@@ -48,10 +48,10 @@ def _GetDocsForTest(test):
   return docs[0]
 
 
-def _AdditionalDetails(bug_id, alerts):
+def _AdditionalDetails(bug_id, project_id, alerts):
   """Returns a message with additional information to add to a bug."""
   base_url = '%s/group_report' % _GetServerURL()
-  bug_page_url = '%s?bug_id=%s' % (base_url, bug_id)
+  bug_page_url = '%s?bug_id=%s&project_id=%s' % (base_url, bug_id, project_id)
   sid = short_uri.GetOrCreatePageState(json.dumps(_UrlsafeKeys(alerts)))
   alerts_url = '%s?sid=%s' % (base_url, sid)
   comment = '<b>All graphs for this bug:</b>\n  %s\n\n' % bug_page_url
@@ -330,15 +330,17 @@ def FileBug(http,
 
   for a in alerts:
     a.bug_id = bug_id
+    a.project_id = project_id
 
   ndb.put_multi(alerts)
-  comment_body = _AdditionalDetails(bug_id, alerts)
+  comment_body = _AdditionalDetails(bug_id, project_id, alerts)
 
   # Add the bug comment with the service account, so that there are no
   # permissions issues.
   dashboard_issue_tracker_service = issue_tracker_service.IssueTrackerService(
       utils.ServiceAccountHttp())
-  dashboard_issue_tracker_service.AddBugComment(bug_id, comment_body)
+  dashboard_issue_tracker_service.AddBugComment(bug_id, comment_body,
+                                                project_id)
   template_params = {'bug_id': bug_id, 'project_id': project_id}
   if all(k.kind() == 'Anomaly' for k in alert_keys):
     logging.info('Kicking bisect for bug ' + str(bug_id))
@@ -353,7 +355,7 @@ def FileBug(http,
           AssignBugToCLAuthor(bug_id, commit_info,
                               dashboard_issue_tracker_service)
     if needs_bisect:
-      bisect_result = auto_bisect.StartNewBisectForBug(bug_id)
+      bisect_result = auto_bisect.StartNewBisectForBug(bug_id, project_id)
       if 'error' in bisect_result:
         logging.info('Failed to kick bisect for ' + str(bug_id))
         template_params['bisect_error'] = bisect_result['error']

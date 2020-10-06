@@ -87,6 +87,10 @@ Polymer({
     bug_id: {
       type: Number,
     },
+    project_id: {
+      type: String,
+      value: 'chromium',
+    },
     test_path: {
       type: String,
       value: '',
@@ -138,6 +142,7 @@ Polymer({
       start_commit: this.start_commit,
       end_commit: this.end_commit,
       bug_id: this.bug_id,
+      project_id: this.project_id,
       story_filter: this.story_filter,
       pin: this.pin,
       bisect_mode: this.$.bisect_mode.selected,

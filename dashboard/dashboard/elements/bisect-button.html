@@ -66,6 +66,7 @@ found in the LICENSE file.
         notify: true
       },
       bugId: { notify: true },
+      projectId: { notify: true },
       xsrfToken: { notify: true }
     },
 
@@ -100,6 +101,7 @@ found in the LICENSE file.
       this.$.pinpoint.start_commit = this.bisectInfo.goodRev;
       this.$.pinpoint.end_commit = this.bisectInfo.badRev;
       this.$.pinpoint.bug_id = this.bugId;
+      this.$.pinpoint.project_id = this.projectId;
       this.$.pinpoint.show();
     }
   });

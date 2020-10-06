@@ -33,12 +33,13 @@ class StartNewBisectForBugTest(testing_common.TestCase):
     test_key = utils.TestKey('Sizes/x86/sizes/abcd')
     anomaly.Anomaly(
         bug_id=444,
+        project_id='test_project',
         test=test_key,
         start_revision=155000,
         end_revision=155100,
         median_before_anomaly=100,
         median_after_anomaly=200).put()
-    result = auto_bisect.StartNewBisectForBug(444)
+    result = auto_bisect.StartNewBisectForBug(444, 'test_project')
     self.assertEqual({'error': 'Could not select a test.'}, result)
 
   @mock.patch.object(utils, 'IsValidSheriffUser',
@@ -86,12 +87,13 @@ class StartNewBisectForBugTest(testing_common.TestCase):
 
     a = anomaly.Anomaly(
         bug_id=333,
+        project_id='test_project',
         test=test_key,
         start_revision=12000,
         end_revision=12500,
         median_before_anomaly=100,
         median_after_anomaly=200).put()
-    result = auto_bisect.StartNewBisectForBug(333)
+    result = auto_bisect.StartNewBisectForBug(333, 'test_project')
     self.assertEqual({
         'issue_id': 123,
         'issue_url': 'http://pinpoint/123'
@@ -131,12 +133,13 @@ class StartNewBisectForBugTest(testing_common.TestCase):
         })
     anomaly.Anomaly(
         bug_id=333,
+        project_id='test_project',
         test=test_key,
         start_revision=12000,
         end_revision=12501,
         median_before_anomaly=100,
         median_after_anomaly=200).put()
-    result = auto_bisect.StartNewBisectForBug(333)
+    result = auto_bisect.StartNewBisectForBug(333, 'test_project')
     self.assertEqual({'error': 'Some reason'}, result)
 
   def testStartNewBisectForBug_DenylistedMaster_RaisesError(self):
@@ -177,12 +180,13 @@ class StartNewBisectForBugTest(testing_common.TestCase):
         })
     anomaly.Anomaly(
         bug_id=333,
+        project_id='test_project',
         test=test_key,
         start_revision=12000,
         end_revision=12500,
         median_before_anomaly=100,
         median_after_anomaly=200).put()
-    result = auto_bisect.StartNewBisectForBug(333)
+    result = auto_bisect.StartNewBisectForBug(333, 'test_project')
     self.assertIn('error', result)
     self.assertIn('only available domains are excluded from automatic bisects',
                   result['error'])
@@ -239,6 +243,7 @@ class StartNewBisectForBugTest(testing_common.TestCase):
     testing_common.AddRows('ChromiumPerf2/linux-pinpoint/sunspider/score', rows)
     anomaly.Anomaly(
         bug_id=333,
+        project_id='test_project',
         test=test_key,
         start_revision=12000,
         end_revision=12500,
@@ -246,12 +251,13 @@ class StartNewBisectForBugTest(testing_common.TestCase):
         median_after_anomaly=200).put()
     a = anomaly.Anomaly(
         bug_id=333,
+        project_id='test_project',
         test=test_key2,
         start_revision=12000,
         end_revision=12500,
         median_before_anomaly=100,
         median_after_anomaly=200).put()
-    result = auto_bisect.StartNewBisectForBug(333)
+    result = auto_bisect.StartNewBisectForBug(333, 'test_project')
     self.assertNotIn('error', result)
     self.assertEqual({
         'alert': a.urlsafe(),

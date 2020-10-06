@@ -23,11 +23,12 @@ class NotBisectableError(Exception):
   pass
 
 
-def StartNewBisectForBug(bug_id):
+def StartNewBisectForBug(bug_id, project_id):
   """Tries to trigger a bisect job for the alerts associated with a bug.
 
   Args:
     bug_id: A bug ID number.
+    project_id: A Monorail project ID.
 
   Returns:
     If successful, a dict containing "issue_id" and "issue_url" for the
@@ -35,15 +36,15 @@ def StartNewBisectForBug(bug_id):
     of the reason why a job wasn't started.
   """
   try:
-    return _StartBisectForBug(bug_id)
+    return _StartBisectForBug(bug_id, project_id)
   except NotBisectableError as e:
     logging.info('New bisect errored out with message: ' + e.message)
     return {'error': e.message}
 
 
-def _StartBisectForBug(bug_id):
+def _StartBisectForBug(bug_id, project_id):
   anomalies, _, _ = anomaly.Anomaly.QueryAsync(
-      bug_id=bug_id, limit=500).get_result()
+      bug_id=bug_id, project_id=project_id, limit=500).get_result()
   if not anomalies:
     raise NotBisectableError('No Anomaly alerts found for this bug.')
 
@@ -59,16 +60,17 @@ def _StartBisectForBug(bug_id):
   if test.bot_name not in list(bot_configurations.keys()):
     raise NotBisectableError('Bot: %s has no corresponding Pinpoint bot.' %
                              test.bot_name)
-  return _StartPinpointBisect(bug_id, test_anomaly, test)
+  return _StartPinpointBisect(bug_id, project_id, test_anomaly, test)
 
 
-def _StartPinpointBisect(bug_id, test_anomaly, test):
+def _StartPinpointBisect(bug_id, project_id, test_anomaly, test):
   # Convert params to Pinpoint compatible
   params = {
       'test_path': test.test_path,
       'start_commit': test_anomaly.start_revision - 1,
       'end_commit': test_anomaly.end_revision,
       'bug_id': bug_id,
+      'project_id': project_id,
       'bisect_mode': 'performance',
       'story_filter': test.unescaped_story_name,
       'alerts': json.dumps([test_anomaly.key.urlsafe()])
