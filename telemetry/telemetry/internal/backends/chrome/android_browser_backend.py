@@ -238,12 +238,15 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       A debug_data.DebugData object containing the collected data.
     """
     # Store additional debug information as artifacts.
+    # We do these in a mixed order so that higher priority ones are done first.
+    # This is so that if an error occurs during debug data collection (e.g.
+    # adb issues), we're more likely to end up with useful debug information.
     suffix = artifact_logger.GetTimestampSuffix()
-    self._StoreUiDumpAsArtifact(suffix)
     self._StoreLogcatAsArtifact(suffix)
+    retval = super(AndroidBrowserBackend, self).CollectDebugData(log_level)
+    self._StoreUiDumpAsArtifact(suffix)
     self._StoreTombstonesAsArtifact(suffix)
-    return super(AndroidBrowserBackend, self).CollectDebugData(
-        log_level)
+    return retval
 
   def SymbolizeMinidump(self, minidump_path):
     dump_symbolizer = android_minidump_symbolizer.AndroidMinidumpSymbolizer(
