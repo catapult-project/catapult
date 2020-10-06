@@ -14,6 +14,11 @@ from devil.utils import cmd_helper
 from devil.utils import reraiser_thread
 from devil.utils import timeout_retry
 
+from devil import devil_env
+
+with devil_env.SysPath(devil_env.SIX_PATH):
+  import six  # pylint: disable=wrong-import-order
+
 DEFAULT_TIMEOUT_ATTR = '_default_timeout'
 DEFAULT_RETRIES_ATTR = '_default_retries'
 
@@ -60,10 +65,11 @@ def _TimeoutRetryWrapper(f,
         return timeout_retry.Run(
             impl, timeout, retries, desc=desc, retry_if_func=retry_if_func)
     except reraiser_thread.TimeoutError as e:
-      raise device_errors.CommandTimeoutError(str(e)), None, (sys.exc_info()[2])
+      six.reraise(device_errors.CommandTimeoutError(str(e)), None,
+                  (sys.exc_info()[2]))
     except cmd_helper.TimeoutError as e:
-      raise device_errors.CommandTimeoutError(
-          str(e), output=e.output), None, (sys.exc_info()[2])
+      six.reraise(device_errors.CommandTimeoutError(str(e)), None,
+                  (sys.exc_info()[2]))
 
   return timeout_retry_wrapper
 

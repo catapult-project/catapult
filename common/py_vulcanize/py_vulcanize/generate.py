@@ -207,7 +207,8 @@ def _MinifyCSS(css_text):
     p = subprocess.Popen(rcssmin_args,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
+                         stderr=subprocess.PIPE, 
+                         universal_newlines=True)
     res = p.communicate(input=css_text)
     errorcode = p.wait()
     if errorcode != 0:
