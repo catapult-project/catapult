@@ -33,6 +33,14 @@ _COMMENT_COMPLETED_NO_DIFFERENCES = (
     u"""<b>\U0001f4cd Couldn't reproduce a difference.</b>
 https://testbed.example.com/job/1""")
 
+_COMMENT_COMPLETED_NO_DIFFERENCES_DUE_TO_FAILURE = (
+    u"""<b>\U0001f63f Job finished with errors.</b>
+https://testbed.example.com/job/1
+
+One or both of the initial changes failed to produce any results.
+Perhaps the job is misconfigured or the tests are broken? See the job
+page for details.""")
+
 _COMMENT_COMPLETED_WITH_COMMIT = (
     u"""<b>\U0001f4cd Found a significant difference at 1 commit.</b>
 10 revisions compared.
@@ -323,6 +331,23 @@ class BugCommentTest(test.TestCase):
         _COMMENT_COMPLETED_NO_DIFFERENCES,
         labels=['Pinpoint-No-Repro'],
         status='WontFix',
+        project='chromium',
+    )
+
+  @mock.patch.object(job.job_state.JobState, 'FirstOrLastChangeFailed')
+  @mock.patch.object(job.job_state.JobState, 'Differences')
+  def testCompletedNoDifferenceDueToFailureAtOneChange(
+      self, differences, first_or_last_change_failed):
+    differences.return_value = []
+    first_or_last_change_failed.return_value = True
+    j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
+    j.Run()
+    self.ExecuteDeferredTasks('default')
+    self.assertFalse(j.failed)
+    self.add_bug_comment.assert_called_once_with(
+        123456,
+        _COMMENT_COMPLETED_NO_DIFFERENCES_DUE_TO_FAILURE,
+        labels=['Pinpoint-Job-Failed'],
         project='chromium',
     )
 

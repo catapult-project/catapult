@@ -55,6 +55,11 @@ COMPARISON_MODES = job_state.COMPARISON_MODES
 RETRY_OPTIONS = taskqueue.TaskRetryOptions(
     task_retry_limit=8, min_backoff_seconds=2)
 
+_FIRST_OR_LAST_FAILED_COMMENT = (
+    u"""One or both of the initial changes failed to produce any results.
+Perhaps the job is misconfigured or the tests are broken? See the job
+page for details.""")
+
 
 def JobFromId(job_id):
   """Get a Job object from its ID.
@@ -529,6 +534,21 @@ class Job(ndb.Model):
       }
 
     if not differences:
+      # First, check if there are no differences because one side of bisection
+      # failed outright.
+      if self.state.FirstOrLastChangeFailed():
+        title = "<b>%s Job finished with errors.</b>" % _CRYING_CAT_FACE
+        comment = '\n'.join(
+            (title, self.url, '', _FIRST_OR_LAST_FAILED_COMMENT))
+        deferred.defer(
+            _PostBugCommentDeferred,
+            self.bug_id,
+            comment,
+            project=self.project,
+            labels=['Pinpoint-Job-Failed'],
+            _retry_options=RETRY_OPTIONS)
+        return
+
       # When we cannot find a difference, we want to not only update the issue
       # with that (minimal) information but also automatically mark the issue
       # WontFix. This is based on information we've gathered in production that

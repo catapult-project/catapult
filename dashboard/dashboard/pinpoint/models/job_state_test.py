@@ -206,3 +206,40 @@ class MeanTest(unittest.TestCase):
 
   def testNoValues(self):
     self.assertTrue(math.isnan(job_state.Mean([None])))
+
+
+class FirstOrLastChangeFailedTest(unittest.TestCase):
+
+  def testNoChanges(self):
+    state = job_state.JobState(())
+    self.assertFalse(state.FirstOrLastChangeFailed())
+
+  def testNoFailedAttempts(self):
+    quests = [quest_test.QuestPass()]
+    state = job_state.JobState(quests)
+    state.AddChange(change_test.Change(1))
+    state.AddChange(change_test.Change(2))
+    state.ScheduleWork()
+    self.assertFalse(state.FirstOrLastChangeFailed())
+
+  def testFailedAttempt(self):
+    quests = [quest_test.QuestPass()]
+    state = job_state.JobState(quests)
+    state.AddChange(change_test.Change(1))
+    state.AddChange(change_test.Change(2))
+    state.ScheduleWork()
+    for attempt in state._attempts[change_test.Change(1)]:
+      attempt._last_execution._exception = "Failed"
+    self.assertTrue(state.FirstOrLastChangeFailed())
+
+  def testNoAttempts(self):
+    quests = [quest_test.QuestPass()]
+    state = job_state.JobState(quests)
+    state.AddChange(change_test.Change(1))
+    state.AddChange(change_test.Change(2))
+    state.ScheduleWork()
+    # It shouldn't happen that a change has no attempts, but we should cope
+    # gracefully if that somehow happens.
+    del state._attempts[change_test.Change(1)][:]
+    del state._attempts[change_test.Change(2)][:]
+    self.assertFalse(state.FirstOrLastChangeFailed())

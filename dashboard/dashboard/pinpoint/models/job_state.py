@@ -320,8 +320,9 @@ class JobState(object):
         comparison, p_value, low_threshold, high_threshold = compare.Compare(
             exceptions_a, exceptions_b, attempt_count, FUNCTIONAL,
             comparison_magnitude)
-        logging.debug('p-value = %.4f (low = %.4f, high = %.4f)', p_value,
-                      low_threshold, high_threshold)
+        logging.debug(
+            'p-value = %.4f (low = %.4f, high = %.4f), comparison = %s',
+            p_value, low_threshold, high_threshold, comparison)
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
         elif comparison == compare.UNKNOWN:
@@ -351,8 +352,9 @@ class JobState(object):
         comparison, p_value, low_threshold, high_threshold = compare.Compare(
             all_a_values, all_b_values, sample_count, PERFORMANCE,
             comparison_magnitude)
-        logging.debug('p-value = %.4f (low = %.4f, high = %.4f)', p_value,
-                      low_threshold, high_threshold)
+        logging.debug(
+            'p-value = %.4f (low = %.4f, high = %.4f), comparison = %s',
+            p_value, low_threshold, high_threshold, comparison)
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
         elif comparison == compare.UNKNOWN:
@@ -384,6 +386,22 @@ class JobState(object):
 
   def ChangesExamined(self):
     return len(self._changes)
+
+  def FirstOrLastChangeFailed(self):
+    """Did all attempts complete and fail for the first or last change?"""
+    if not self._changes:
+      # No changes, so technically they didn't fail.
+      return False
+
+    attempts_a = self._attempts.get(self._changes[0], [])
+    attempts_b = self._attempts.get(self._changes[-1], [])
+
+    if attempts_a and all(a.failed for a in attempts_a):
+      return True
+    if attempts_b and all(a.failed for a in attempts_b):
+      return True
+
+    return False
 
 
 def _ExecutionsPerQuest(attempts):
