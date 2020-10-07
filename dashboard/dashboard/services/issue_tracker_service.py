@@ -18,6 +18,7 @@ _DISCOVERY_URI = ('https://monorail-prod.appspot.com'
 
 STATUS_DUPLICATE = 'Duplicate'
 MAX_DISCOVERY_RETRIES = 3
+MAX_REQUEST_RETRIES = 5
 
 
 class IssueTrackerService(object):
@@ -146,7 +147,7 @@ class IssueTrackerService(object):
     request = self._service.issues().comments().insert(
         projectId=project, issueId=bug_id, sendEmail=send_email, body=body)
     try:
-      if self._ExecuteRequest(request, ignore_error=False):
+      if self._ExecuteRequest(request):
         return True
     except errors.HttpError as e:
       reason = _GetErrorReason(e)
@@ -235,7 +236,7 @@ class IssueTrackerService(object):
     logging.info('Making create issue request with body %s', body)
     logging.info('Issue tracker project = %s', project)
     try:
-      response = self._ExecuteRequest(request, ignore_error=False)
+      response = self._ExecuteRequest(request)
       if response and 'id' in response:
         return {'bug_id': response['id'], 'project_id': project}
       logging.error('Failed to create new bug; response %s', response)
@@ -301,7 +302,7 @@ class IssueTrackerService(object):
         projectId=project, issueId=bug_id, maxResults=10000)
     return self._ExecuteRequest(request)
 
-  def _ExecuteRequest(self, request, ignore_error=True):
+  def _ExecuteRequest(self, request):
     """Makes a request to the issue tracker.
 
     Args:
@@ -310,14 +311,8 @@ class IssueTrackerService(object):
     Returns:
       The response if there was one, or else None.
     """
-    try:
-      response = request.execute()
-      return response
-    except errors.HttpError as e:
-      logging.error('HttpError: %r', e)
-      if ignore_error:
-        return None
-      raise e
+    response = request.execute(num_retries=MAX_REQUEST_RETRIES)
+    return response
 
 
 def _GetErrorReason(request_error):
