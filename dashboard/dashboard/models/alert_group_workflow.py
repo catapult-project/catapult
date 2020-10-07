@@ -146,8 +146,10 @@ class AlertGroupWorkflow(object):
     }:
       issue = self._issue_tracker.GetIssue(
           self._group.bug.bug_id, project=self._group.bug.project)
+      # GetIssueComments doesn't work with empty project id so we have to
+      # manually replace it with 'chromium'.
       issue['comments'] = self._issue_tracker.GetIssueComments(
-          self._group.bug.bug_id, project=self._group.bug.project)
+          self._group.bug.bug_id, project=self._group.bug.project or 'chromium')
     return self.GroupUpdate(now, anomalies, issue)
 
   def Process(self, update=None):
