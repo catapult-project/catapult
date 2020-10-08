@@ -260,7 +260,7 @@ found in the LICENSE file.
             <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
               <paper-input name="pin" value="[[job.arguments.pin]]" label="Patch to apply (Gerrit URL)"></paper-input>
             </template>
-
+            <paper-input name="project" value="{{project}}" label="Monorail Project"></paper-input>
             <paper-input name="bug_id" value="{{bug_id}}" label="Bug ID"></paper-input>
 
             <paper-checkbox name="experimental_execution_engine">
@@ -291,6 +291,10 @@ found in the LICENSE file.
         benchmarkConfigLoading: {
           type: Boolean,
           value: false
+        },
+        project: {
+          type: String,
+          value: 'chromium'
         },
         bug_id: String,
         chart: String,

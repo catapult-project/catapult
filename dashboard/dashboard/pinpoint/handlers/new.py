@@ -69,6 +69,8 @@ def _CreateJob(request):
 
   # Validate the priority, if it's present.
   priority = _ValidatePriority(arguments.get('priority'))
+
+  # Validate and find the associated issue.
   bug_id, project = _ValidateBugId(
       arguments.get('bug_id'), arguments.get('project', 'chromium'))
   comparison_mode = _ValidateComparisonMode(arguments.get('comparison_mode'))
@@ -214,7 +216,7 @@ def _ArgumentsWithConfiguration(original_arguments):
 
 def _ValidateBugId(bug_id, project):
   if not bug_id:
-    return None, project
+    return None, None
 
   try:
     # TODO(dberris): Figure out a way to check the issue tracker if the project
