@@ -270,7 +270,7 @@ def RunStorySet(test, story_set, finder_options, results, max_failures=None):
         cloud_storage.GetFilesInDirectoryIfChanged(directory,
                                                    story_set.bucket)
     if story_set.archive_data_file and not _UpdateAndCheckArchives(
-        story_set.archive_data_file, wpr_archive_info, stories):
+        story_set.archive_data_file, wpr_archive_info, stories, story_filter):
       return
 
   if not stories:
@@ -444,13 +444,14 @@ def RunBenchmark(benchmark, finder_options):
   return return_code
 
 def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
-                            filtered_stories):
+                            filtered_stories, story_filter):
   """Verifies that all stories are local or have WPR archives.
 
   Logs warnings and returns False if any are missing.
   """
   # Report any problems with the entire story set.
-  story_names = [s.name for s in filtered_stories if not s.is_local]
+  story_names = [s.name for s in filtered_stories
+                 if not s.is_local and not story_filter.ShouldSkip(s)]
   if story_names:
     if not archive_data_file:
       logging.error('The story set is missing an "archive_data_file" '
@@ -471,7 +472,7 @@ def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
   stories_missing_archive_path = []
   stories_missing_archive_data = []
   for story in filtered_stories:
-    if not story.is_local:
+    if not story.is_local and not story_filter.ShouldSkip(story):
       archive_path = wpr_archive_info.WprFilePathForStory(story)
       if not archive_path:
         stories_missing_archive_path.append(story)

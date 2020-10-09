@@ -231,6 +231,8 @@ class UpdateAndCheckArchivesTest(unittest.TestCase):
   def setUp(self):
     mock.patch.object(archive_info.WprArchiveInfo,
                       'DownloadArchivesIfNeeded').start()
+    self._mock_story_filter = mock.Mock()
+    self._mock_story_filter.ShouldSkip.return_value = False
 
   def tearDown(self):
     mock.patch.stopall()
@@ -240,7 +242,16 @@ class UpdateAndCheckArchivesTest(unittest.TestCase):
     with self.assertRaises(story_runner.ArchiveError):
       story_runner._UpdateAndCheckArchives(
           story_set.archive_data_file, story_set.wpr_archive_info,
-          story_set.stories)
+          story_set.stories, self._mock_story_filter)
+
+
+  def testMissingArchiveDataFileWithSkippedStory(self):
+    story_set = test_stories.DummyStorySet(['story'])
+    self._mock_story_filter.ShouldSkip.return_value = True
+    success = story_runner._UpdateAndCheckArchives(
+        story_set.archive_data_file, story_set.wpr_archive_info,
+        story_set.stories, self._mock_story_filter)
+    self.assertTrue(success)
 
   def testArchiveDataFileDoesNotExist(self):
     story_set = test_stories.DummyStorySet(
@@ -248,7 +259,7 @@ class UpdateAndCheckArchivesTest(unittest.TestCase):
     with self.assertRaises(story_runner.ArchiveError):
       story_runner._UpdateAndCheckArchives(
           story_set.archive_data_file, story_set.wpr_archive_info,
-          story_set.stories)
+          story_set.stories, self._mock_story_filter)
 
   def testUpdateAndCheckArchivesSuccess(self):
     # This test file has a recording for a 'http://www.testurl.com' story only.
@@ -258,7 +269,7 @@ class UpdateAndCheckArchivesTest(unittest.TestCase):
         ['http://www.testurl.com'], archive_data_file=archive_data_file)
     success = story_runner._UpdateAndCheckArchives(
         story_set.archive_data_file, story_set.wpr_archive_info,
-        story_set.stories)
+        story_set.stories, self._mock_story_filter)
     self.assertTrue(success)
 
   def testArchiveWithMissingStory(self):
@@ -271,7 +282,7 @@ class UpdateAndCheckArchivesTest(unittest.TestCase):
     with self.assertRaises(story_runner.ArchiveError):
       story_runner._UpdateAndCheckArchives(
           story_set.archive_data_file, story_set.wpr_archive_info,
-          story_set.stories)
+          story_set.stories, self._mock_story_filter)
 
   def testArchiveWithMissingWprFile(self):
     # This test file claims to have recordings for both
@@ -286,7 +297,7 @@ class UpdateAndCheckArchivesTest(unittest.TestCase):
     with self.assertRaises(story_runner.ArchiveError):
       story_runner._UpdateAndCheckArchives(
           story_set.archive_data_file, story_set.wpr_archive_info,
-          story_set.stories)
+          story_set.stories, self._mock_story_filter)
 
 
 class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
