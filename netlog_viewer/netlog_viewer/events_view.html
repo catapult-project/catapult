@@ -1,6 +1,14 @@
 <!-- ================= Events view =================== -->
 <dom-module id="events-view">
   <template>
+    <style>
+      :host {
+        display: flex;
+        flex-direction: row;
+        overflow: hidden;
+      }
+    </style>
+    <div id=events-view-left-pane class="flexcol">
     <!-- Filter Box: This the top bar which contains the search box.  -->
     <div id=events-view-filter-box>
       <table width=100%>
@@ -36,7 +44,7 @@
       </ul>
     </div>
     <!-- Events Box: This the panel on the left which lists the sources -->
-    <div id=events-view-source-list>
+    <div id=events-view-source-list class="flexfill scrollable">
       <table id=events-view-source-list-table cellspacing=0 cellpadding=0 width=100%>
         <thead>
           <tr>
@@ -51,10 +59,13 @@
         <tbody id=events-view-source-list-tbody></tbody>
       </table>
     </div>
+    </div>
     <!-- Splitter Box: This is a handle to resize the vertical divider -->
     <div id=events-view-splitter-box class=vertical-splitter></div>
     <!-- Details box: This is the panel on the right which shows information -->
+    <div class="flexfill scrollable">
     <div id=events-view-details-log-box class="event-log content-box"></div>
+    </div>
   </template>
   <script>
     Polymer({

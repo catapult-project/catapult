@@ -29,8 +29,8 @@ var EventsView = (function() {
   // How soon after updating the filter list the counter should be updated.
   var REPAINT_FILTER_COUNTER_TIMEOUT_MS = 0;
 
-  // We inherit from View.
-  var superClass = View;
+  // We inherit from DivView.
+  var superClass = DivView;
 
   /*
    * @constructor
@@ -39,11 +39,11 @@ var EventsView = (function() {
     assertFirstConstructorCall(EventsView);
 
     // Call superclass's constructor.
-    superClass.call(this);
+    // TODO(eroman): Not host element.
+    superClass.call(this, EventsView.LEFT_PANE_ID);
 
     // Initialize the sub-views.
-    var leftPane = new VerticalSplitView(
-        new DivView(EventsView.TOPBAR_ID), new DivView(EventsView.LIST_BOX_ID));
+    var leftPane = new DivView(EventsView.LEFT_PANE_ID);
 
     this.detailsView_ = new DetailsView(EventsView.DETAILS_LOG_BOX_ID);
 
@@ -96,6 +96,7 @@ var EventsView = (function() {
   EventsView.SORT_BY_SOURCE_TYPE_ID = 'events-view-sort-by-source';
   EventsView.SORT_BY_DESCRIPTION_ID = 'events-view-sort-by-description';
   EventsView.DETAILS_LOG_BOX_ID = 'events-view-details-log-box';
+  EventsView.LEFT_PANE_ID = 'events-view-left-pane';
   EventsView.TOPBAR_ID = 'events-view-filter-box';
   EventsView.LIST_BOX_ID = 'events-view-source-list';
   EventsView.SIZER_ID = 'events-view-splitter-box';
@@ -118,11 +119,6 @@ var EventsView = (function() {
       this.numPostfilter_ = 0;
       this.invalidateFilterCounter_();
       this.invalidateDetailsView_();
-    },
-
-    setGeometry: function(left, top, width, height) {
-      superClass.prototype.setGeometry.call(this, left, top, width, height);
-      this.splitterView_.setGeometry(left, top, width, height);
     },
 
     show: function(isVisible) {

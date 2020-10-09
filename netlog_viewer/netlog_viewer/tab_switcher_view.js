@@ -49,32 +49,6 @@ var TabSwitcherView = (function() {
     // Inherit the superclass's methods.
     __proto__: superClass.prototype,
 
-    // ---------------------------------------------
-    // Override methods in View
-    // ---------------------------------------------
-
-    setGeometry: function(left, top, width, height) {
-      superClass.prototype.setGeometry.call(this, left, top, width, height);
-
-      var tabListNode = $(TAB_LIST_ID);
-
-      // Set position of the tab list.  Can't use DivView because DivView sets
-      // a fixed width at creation time, and need to set the width of the tab
-      // list only after its been populated.
-      var tabListWidth = this.tabListWidth_;
-      if (tabListWidth > width)
-        tabListWidth = width;
-      tabListNode.style.position = 'absolute';
-      setNodePosition(tabListNode, left, top, tabListWidth, height);
-
-      // Position each of the tab's content areas.
-      for (var tabId in this.tabIdToView_) {
-        var view = this.tabIdToView_[tabId];
-        view.setGeometry(
-            left + tabListWidth, top, width - tabListWidth, height);
-      }
-    },
-
     show: function(isVisible) {
       superClass.prototype.show.call(this, isVisible);
       var activeView = this.getActiveTabView();

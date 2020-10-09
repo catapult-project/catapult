@@ -46,7 +46,6 @@ found in the LICENSE file.
 <script src="details_view.js"></script>
 <script src="source_entry.js"></script>
 <script src="horizontal_scrollbar_view.js"></script>
-<script src="top_mid_bottom_view.js"></script>
 <script src="timeline_data_series.js"></script>
 <script src="timeline_graph_view.js"></script>
 <script src="timeline_view.js"></script>
@@ -64,29 +63,49 @@ found in the LICENSE file.
 
 <dom-module id="netlog-viewer">
   <template>
-    <div id=import-view-drop-target>  
+    <style>
+      :host {
+        /* Fill the entire viewport */
+        width: 100vw;
+        height: 100vh;
+
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+    </style>
+
+      <!-- The bar at the very top of NetLog viewer that identifies the loaded
+           log file. -->
       <top-bar-view></top-bar-view>
     
-      <div id="tab-list">
+    <!-- The box below the top bar that fills the remaining space and contains
+         everything else -->
+    <div class="flexfill flexrow">
+
+      <!-- The navigation bar on the left to cycle between the different main
+           "tabs" (dns, proxy, import, etc) -->
+      <div id="tab-list" class="scrollable">
       </div>
 
-      <div id=main-tab-contents>
-        <proxy-view></proxy-view>
-        <dns-view></dns-view>
-        <sockets-view></sockets-view>
-        <alt-svc-view></alt-svc-view>
-        <spdy-view></spdy-view>
-        <quic-view></quic-view>
-        <reporting-view></reporting-view>
-        <http-cache-view></http-cache-view>
-        <prerender-view></prerender-view>
-        <modules-view></modules-view>
-        <import-view></import-view>
-        <events-view></events-view>
-        <timeline-view></timeline-view>
+      <!-- The box to the right of the tab list that fills the remaining space
+           and contains the active tab (only one of the children below are
+           visible at a time) -->
+      <div class="flexfill flexrow">
+        <proxy-view class="flexfill scrollable"></proxy-view>
+        <dns-view class="flexfill scrollable"></dns-view>
+        <sockets-view class="flexfill scrollable"></sockets-view>
+        <alt-svc-view class="flexfill scrollable"></alt-svc-view>
+        <spdy-view class="flexfill scrollable"></spdy-view>
+        <quic-view class="flexfill scrollable"></quic-view>
+        <reporting-view class="flexfill scrollable"></reporting-view>
+        <http-cache-view class="flexfill scrollable"></http-cache-view>
+        <prerender-view class="flexfill scrollable"></prerender-view>
+        <modules-view class="flexfill scrollable"></modules-view>
+        <import-view class="flexfill scrollable"></import-view>
+        <events-view class="flexfill"></events-view>
+        <timeline-view class="flexfill"></timeline-view>
       </div>
-    </div>
-
   </template>
   <script>
     'use strict';

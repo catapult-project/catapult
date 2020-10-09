@@ -41,8 +41,7 @@ var HorizontalScrollbarView = (function() {
     // Inherit the superclass's methods.
     __proto__: superClass.prototype,
 
-    setGeometry: function(left, top, width, height) {
-      superClass.prototype.setGeometry.call(this, left, top, width, height);
+    onResized: function() {
       this.setRange(this.range_);
     },
 
@@ -62,7 +61,7 @@ var HorizontalScrollbarView = (function() {
      */
     setRange: function(range) {
       this.range_ = range;
-      setNodeWidth(this.innerDiv_, this.getWidth() + range);
+      setNodeWidth(this.innerDiv_, this.getNode().offsetWidth + range);
       if (range < this.position_)
         this.position_ = range;
       this.setPosition(this.position_);

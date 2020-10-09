@@ -3,8 +3,7 @@
 // found in the LICENSE file.
 
 /**
- * Base class to represent a "view". A view is an absolutely positioned box on
- * the page.
+ * TODO(eroman): This is an old abstraction, switch to custom element instead.
  */
 var View = (function() {
   'use strict';
@@ -17,16 +16,6 @@ var View = (function() {
   }
 
   View.prototype = {
-    /**
-     * Called to reposition the view on the page. Measurements are in pixels.
-     */
-    setGeometry: function(left, top, width, height) {
-      this.left_ = left;
-      this.top_ = top;
-      this.width_ = width;
-      this.height_ = height;
-    },
-
     /**
      * Called to show/hide the view.
      */
@@ -46,30 +35,6 @@ var View = (function() {
      */
     isActive: function() {
       return this.isVisible();
-    },
-
-    getLeft: function() {
-      return this.left_;
-    },
-
-    getTop: function() {
-      return this.top_;
-    },
-
-    getWidth: function() {
-      return this.width_;
-    },
-
-    getHeight: function() {
-      return this.height_;
-    },
-
-    getRight: function() {
-      return this.getLeft() + this.getWidth();
-    },
-
-    getBottom: function() {
-      return this.getTop() + this.getHeight();
     },
 
     setParameters: function(params) {},
@@ -100,7 +65,7 @@ var View = (function() {
 //-----------------------------------------------------------------------------
 
 /**
- * DivView is an implementation of View that wraps a DIV.
+ * TODO(eroman): This is an old abstraction, switch to custom element instead.
  */
 var DivView = (function() {
   'use strict';
@@ -119,9 +84,6 @@ var DivView = (function() {
     if (!this.node_)
       throw new Error('Element ' + divId + ' not found');
 
-    // Initialize the default values to those of the DIV.
-    this.width_ = this.node_.offsetWidth;
-    this.height_ = this.node_.offsetHeight;
     this.isVisible_ = this.node_.style.display != 'none';
   }
 
@@ -129,16 +91,21 @@ var DivView = (function() {
     // Inherit the superclass's methods.
     __proto__: superClass.prototype,
 
-    setGeometry: function(left, top, width, height) {
-      superClass.prototype.setGeometry.call(this, left, top, width, height);
-
-      this.node_.style.position = 'absolute';
-      setNodePosition(this.node_, left, top, width, height);
-    },
-
     show: function(isVisible) {
       superClass.prototype.show.call(this, isVisible);
-      setNodeDisplay(this.node_, isVisible);
+
+      // TODO(eroman): In the process of getting rid of this view
+      // hiearchy and just using custom elements directly. DivView is mostly
+      // used to represent a custom element, however the root node is the first
+      // node within the custom element, rather than the custom element itself.
+      // To work around this, if it looks like this is the root of a custom
+      // element, change the visibility of the custom element.
+      let n = this.node_;
+      if (this.node_.parentNode.nodeName.includes('-')) {
+        n = this.node_.parentNode;
+      }
+
+      setNodeDisplay(n, isVisible);
     },
 
     /**
@@ -150,177 +117,5 @@ var DivView = (function() {
   };
 
   return DivView;
-})();
-
-
-//-----------------------------------------------------------------------------
-
-/**
- * Implementation of View that sizes its child to fit the entire window.
- *
- * @param {!View} childView The child view.
- */
-var WindowView = (function() {
-  'use strict';
-
-  // We inherit from View.
-  var superClass = View;
-
-  /**
-   * @constructor
-   */
-  function WindowView(childView) {
-    // Call superclass's constructor.
-    superClass.call(this);
-
-    this.childView_ = childView;
-    window.addEventListener('resize', this.resetGeometry.bind(this), true);
-  }
-
-  WindowView.prototype = {
-    // Inherit the superclass's methods.
-    __proto__: superClass.prototype,
-
-    setGeometry: function(left, top, width, height) {
-      superClass.prototype.setGeometry.call(this, left, top, width, height);
-      this.childView_.setGeometry(left, top, width, height);
-    },
-
-    show: function() {
-      superClass.prototype.show.call(this, isVisible);
-      this.childView_.show(isVisible);
-    },
-
-    resetGeometry: function() {
-      this.setGeometry(
-          0, 0, document.documentElement.clientWidth,
-          document.documentElement.clientHeight);
-    }
-  };
-
-  return WindowView;
-})();
-
-/**
- * View that positions two views vertically. The top view should be
- * fixed-height, and the bottom view will fill the remainder of the space.
- *
- *  +-----------------------------------+
- *  |            topView                |
- *  +-----------------------------------+
- *  |                                   |
- *  |                                   |
- *  |                                   |
- *  |          bottomView               |
- *  |                                   |
- *  |                                   |
- *  |                                   |
- *  |                                   |
- *  +-----------------------------------+
- */
-var VerticalSplitView = (function() {
-  'use strict';
-
-  // We inherit from View.
-  var superClass = View;
-
-  /**
-   * @param {!View} topView The top view.
-   * @param {!View} bottomView The bottom view.
-   * @constructor
-   */
-  function VerticalSplitView(topView, bottomView) {
-    // Call superclass's constructor.
-    superClass.call(this);
-
-    this.topView_ = topView;
-    this.bottomView_ = bottomView;
-  }
-
-  VerticalSplitView.prototype = {
-    // Inherit the superclass's methods.
-    __proto__: superClass.prototype,
-
-    setGeometry: function(left, top, width, height) {
-      superClass.prototype.setGeometry.call(this, left, top, width, height);
-
-      var fixedHeight = this.topView_.getHeight();
-      this.topView_.setGeometry(left, top, width, fixedHeight);
-
-      this.bottomView_.setGeometry(
-          left, top + fixedHeight, width, height - fixedHeight);
-    },
-
-    show: function(isVisible) {
-      superClass.prototype.show.call(this, isVisible);
-
-      this.topView_.show(isVisible);
-      this.bottomView_.show(isVisible);
-    }
-  };
-
-  return VerticalSplitView;
-})();
-
-/**
- * View that positions two views horizontally. The left view should be
- * fixed-width, and the right view will fill the remainder of the space.
- *
- *  +----------+--------------------------+
- *  |          |                          |
- *  |          |                          |
- *  |          |                          |
- *  | leftView |       rightView          |
- *  |          |                          |
- *  |          |                          |
- *  |          |                          |
- *  |          |                          |
- *  |          |                          |
- *  |          |                          |
- *  |          |                          |
- *  +----------+--------------------------+
- */
-var HorizontalSplitView = (function() {
-  'use strict';
-
-  // We inherit from View.
-  var superClass = View;
-
-  /**
-   * @param {!View} leftView The left view.
-   * @param {!View} rightView The right view.
-   * @constructor
-   */
-  function HorizontalSplitView(leftView, rightView) {
-    // Call superclass's constructor.
-    superClass.call(this);
-
-    this.leftView_ = leftView;
-    this.rightView_ = rightView;
-  }
-
-  HorizontalSplitView.prototype = {
-    // Inherit the superclass's methods.
-    __proto__: superClass.prototype,
-
-    setGeometry: function(left, top, width, height) {
-      superClass.prototype.setGeometry.call(this, left, top, width, height);
-
-      var fixedWidth = this.leftView_.getWidth();
-      this.leftView_.setGeometry(left, top, fixedWidth, height);
-
-      this.rightView_.setGeometry(
-          left + fixedWidth, top, width - fixedWidth, height);
-    },
-
-    show: function(isVisible) {
-      superClass.prototype.show.call(this, isVisible);
-
-      this.leftView_.show(isVisible);
-      this.rightView_.show(isVisible);
-    }
-  };
-
-  return HorizontalSplitView;
 })();
 

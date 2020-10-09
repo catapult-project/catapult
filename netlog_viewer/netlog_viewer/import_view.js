@@ -8,10 +8,6 @@
 var ImportView = (function() {
   'use strict';
 
-  // This is defined in index.html, but for all intents and purposes is part
-  // of this view.
-  var LOAD_LOG_FILE_DROP_TARGET_ID = 'import-view-drop-target';
-
   // We inherit from DivView.
   var superClass = DivView;
 
@@ -30,7 +26,7 @@ var ImportView = (function() {
     this.loadFileElement_.onchange = this.logFileChanged.bind(this);
     this.loadStatusText_ = $(ImportView.LOAD_STATUS_TEXT_ID);
 
-    var dropTarget = $(LOAD_LOG_FILE_DROP_TARGET_ID);
+    var dropTarget = document.body;
     dropTarget.ondragenter = this.onDrag.bind(this);
     dropTarget.ondragover = this.onDrag.bind(this);
     dropTarget.ondrop = this.onDrop.bind(this);

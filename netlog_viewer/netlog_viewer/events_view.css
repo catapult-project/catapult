@@ -2,6 +2,29 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file. */
 
+/*
+ * The resizable box on the left of the events view, which lists the clickable
+ * sources. The initial size of this box is fixed, however it can be
+ * dynamically changed by dragging the bar to its right.
+ */
+#events-view-left-pane {
+  min-width: 0;
+  width: 300px;  /* Initial width */
+}
+
+/* The used to resize the left panel. */
+.vertical-splitter {
+  border-left: 1px solid #afafaf;
+  cursor: ew-resize;
+  user-select: none;
+  width: 10px;
+}
+
+/* Needs to be wider on touch devices. */
+.touch .vertical-splitter {
+  width: 5mm;
+}
+
 #events-view-filter-box {
   background: #efefef;
   border-bottom: 1px solid #aaa;
@@ -19,11 +42,6 @@
   border-top: 1px solid gray;
   overflow: hidden;
   white-space: nowrap;
-}
-
-#events-view-source-list {
-  overflow-x: hidden;
-  overflow-y: auto
 }
 
 #events-view-source-list-table {

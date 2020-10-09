@@ -1,5 +1,11 @@
 <dom-module id="timeline-view">
   <template>
+    <style>
+      :host {
+        display: flex;
+      }
+    </style>
+    <div id=timeline-view-host class="flexfill flexrow">
     <div id=timeline-view-selection-div>
       <div style="text-align: right">
         <button id=timeline-view-selection-toggle
@@ -33,13 +39,16 @@
       </li>
     </ul>
     </div>
-    <div id=timeline-view-graph-div>
+    <div class="flexfill flexcol">
+    <div id=timeline-view-graph-div class="flexfill">
       <canvas id=timeline-view-graph-canvas>
       </canvas>
     </div>
     <div id=timeline-view-scrollbar-div>
       <div id=timeline-view-scrollbar-inner-div>
       </div>
+    </div>
+    </div>
     </div>
   </template>
   <script>

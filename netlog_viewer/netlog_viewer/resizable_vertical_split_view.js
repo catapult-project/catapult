@@ -66,43 +66,6 @@ var ResizableVerticalSplitView = (function() {
     // Inherit the superclass's methods.
     __proto__: superClass.prototype,
 
-    /**
-     * Sets the width of the left view.
-     * @param {Integer} px The number of pixels
-     */
-    setLeftSplit: function(px) {
-      this.leftSplit_ = px;
-    },
-
-    /**
-     * Repositions all of the elements to fit the window.
-     */
-    setGeometry: function(left, top, width, height) {
-      superClass.prototype.setGeometry.call(this, left, top, width, height);
-
-      // If this is the first setGeometry(), initialize the split point at 50%.
-      if (!this.leftSplit_)
-        this.leftSplit_ = parseInt((width / 2).toFixed(0));
-
-      // Calculate the horizontal split points.
-      var leftboxWidth = this.leftSplit_;
-      var sizerWidth = this.sizerView_.getWidth();
-      var rightboxWidth = width - (leftboxWidth + sizerWidth);
-
-      // Don't let the right pane get too small.
-      if (rightboxWidth < MIN_PANEL_WIDTH) {
-        rightboxWidth = MIN_PANEL_WIDTH;
-        leftboxWidth = width - (sizerWidth + rightboxWidth);
-      }
-
-      // Position the boxes using calculated split points.
-      this.leftView_.setGeometry(left, top, leftboxWidth, height);
-      this.sizerView_.setGeometry(
-          this.leftView_.getRight(), top, sizerWidth, height);
-      this.rightView_.setGeometry(
-          this.sizerView_.getRight(), top, rightboxWidth, height);
-    },
-
     show: function(isVisible) {
       superClass.prototype.show.call(this, isVisible);
       this.leftView_.show(isVisible);
@@ -176,18 +139,16 @@ var ResizableVerticalSplitView = (function() {
      * Common code used for both mouse and touch dragging.
      */
     onDragSizer_: function(pageX) {
-      // Convert from page coordinates, to view coordinates.
-      this.leftSplit_ = (pageX - this.getLeft());
+      // Convert the mouse coordinate to a coordinate relative to leftView_.
+      let newWidth = (pageX - this.leftView_.getNode().offsetLeft);
 
       // Avoid shrinking the left box too much.
-      this.leftSplit_ = Math.max(this.leftSplit_, MIN_PANEL_WIDTH);
-      // Avoid shrinking the right box too much.
-      this.leftSplit_ =
-          Math.min(this.leftSplit_, this.getWidth() - MIN_PANEL_WIDTH);
+      newWidth = Math.max(newWidth, MIN_PANEL_WIDTH);
 
-      // Force a layout with the new |leftSplit_|.
-      this.setGeometry(
-          this.getLeft(), this.getTop(), this.getWidth(), this.getHeight());
+      // TODO(eroman): Prevent the rightView from becoming smaller than MIN_PANEL_WIDTH.
+
+      // Resize the left view.
+      this.leftView_.getNode().style.width = newWidth + 'px';
     },
   };
 

@@ -7,8 +7,8 @@
  */
 var TimelineGraphView = (function() {
   'use strict';
-  // We inherit from TopMidBottomView.
-  var superClass = TopMidBottomView;
+  // We inherit from DivView.
+  var superClass = DivView;
 
   // Default starting scale factor, in terms of milliseconds per pixel.
   var DEFAULT_SCALE = 1000;
@@ -52,13 +52,15 @@ var TimelineGraphView = (function() {
   /**
    * @constructor
    */
-  function TimelineGraphView(divId, canvasId, scrollbarId, scrollbarInnerId) {
+  function TimelineGraphView(graphDivId, canvasId, scrollbarId,
+                             scrollbarInnerId) {
+    // Call superclass's constructor.
+    superClass.call(this, graphDivId);
+
     this.scrollbar_ = new HorizontalScrollbarView(
         scrollbarId, scrollbarInnerId, this.onScroll_.bind(this));
-    // Call superclass's constructor.
-    superClass.call(this, null, new DivView(divId), this.scrollbar_);
 
-    this.graphDiv_ = $(divId);
+    this.graphDiv_ = $(graphDivId);
     this.canvas_ = $(canvasId);
     this.canvas_.onmousewheel = this.onMouseWheel_.bind(this);
     this.canvas_.onmousedown = this.onMouseDown_.bind(this);
@@ -93,6 +95,8 @@ var TimelineGraphView = (function() {
 
     // Initialize the scrollbar.
     this.updateScrollbarRange_(true);
+
+    this.initResizePolling_(true);
   }
 
   // Smallest allowed scaling factor.
@@ -102,9 +106,7 @@ var TimelineGraphView = (function() {
     // Inherit the superclass's methods.
     __proto__: superClass.prototype,
 
-    setGeometry: function(left, top, width, height) {
-      superClass.prototype.setGeometry.call(this, left, top, width, height);
-
+    getPreferredCanvasSize_: function() {
       // The size of the canvas can only be set by using its |width| and
       // |height| properties, which do not take padding into account, so we
       // need to use them ourselves.
@@ -114,11 +116,11 @@ var TimelineGraphView = (function() {
       var verticalPadding =
           parseInt(style.paddingTop) + parseInt(style.paddingBottom);
       var canvasWidth =
-          parseInt(this.graphDiv_.style.width) - horizontalPadding;
+          parseInt(this.graphDiv_.clientWidth) - horizontalPadding;
       // For unknown reasons, there's an extra 3 pixels border between the
       // bottom of the canvas and the bottom margin of the enclosing div.
       var canvasHeight =
-          parseInt(this.graphDiv_.style.height) - verticalPadding - 3;
+          parseInt(this.graphDiv_.clientHeight) - verticalPadding - 3;
 
       // Protect against degenerates.
       if (canvasWidth < 10)
@@ -126,8 +128,19 @@ var TimelineGraphView = (function() {
       if (canvasHeight < 10)
         canvasHeight = 10;
 
-      this.canvas_.width = canvasWidth;
-      this.canvas_.height = canvasHeight;
+      return {
+        width: canvasWidth,
+        height: canvasHeight
+      };
+    },
+
+    onResized: function() {
+      this.scrollbar_.onResized();
+
+      let preferredSize = this.getPreferredCanvasSize_();
+
+      this.canvas_.width = preferredSize.width;
+      this.canvas_.height = preferredSize.height;
 
       // Use the same font style for the canvas as we use elsewhere.
       // Has to be updated every resize.
@@ -139,8 +152,33 @@ var TimelineGraphView = (function() {
 
     show: function(isVisible) {
       superClass.prototype.show.call(this, isVisible);
+
+      this.initResizePolling_(isVisible);
+
       if (isVisible)
         this.repaint();
+    },
+
+    // TODO(eroman): This is a bit silly, but good enough for now. Canvas needs
+    // to be sized explicitly, however in this case we want it to occupy all
+    // remaining space. Use polling to check when the canvas logical dimensions
+    // needs to be updated to match the layout size.
+    initResizePolling_: function(active) {
+      if (active && !this.resizeTimer_) {
+        this.resizeTimer_ = window.setInterval(
+            this.checkForResize_.bind(this), 1000);
+      } else if (!active && this.resizeTimer_) {
+        window.clearInterval(this.resizeTimer_);
+        this.resizeTimer_ = null;
+      }
+    },
+
+    checkForResize_: function() {
+      let preferredSize = this.getPreferredCanvasSize_();
+      if ((preferredSize.width != this.canvas_.width) ||
+          (preferredSize.height != this.canvas_.height)) {
+        this.onResized();
+      }
     },
 
     // Returns the total length of the graph, in pixels.

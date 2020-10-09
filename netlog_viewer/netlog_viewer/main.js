@@ -45,8 +45,8 @@ let g_browser = null;
 const MainView = (function() {
   'use strict';
 
-  // We inherit from WindowView
-  const superClass = WindowView;
+  // We inherit from DivView
+  const superClass = DivView;
 
   /**
    * Main entry point. Called once the page has loaded.
@@ -54,6 +54,9 @@ const MainView = (function() {
    */
   function MainView() {
     assertFirstConstructorCall(MainView);
+
+    // TODO(eroman): This element ID is not the host element.
+    superClass.call(this, 'tab-list');
 
     if (hasTouchScreen()) {
       document.body.classList.add('touch');
@@ -71,17 +74,7 @@ const MainView = (function() {
     // Create the tab switcher.
     this.initTabs_();
 
-    // Cut out a small vertical strip at the top of the window, to display
-    // a high level status (i.e. if we are displaying a log file or not).
-    // Below it we will position the main tabs and their content area.
     this.topBarView_ = TopBarView.getInstance(this);
-    const verticalSplitView =
-        new VerticalSplitView(this.topBarView_, this.tabSwitcher_);
-
-    superClass.call(this, verticalSplitView);
-
-    // Trigger initial layout.
-    this.resetGeometry();
 
     window.onhashchange = this.onUrlHashChange_.bind(this);
 

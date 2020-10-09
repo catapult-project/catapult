@@ -10,14 +10,17 @@
 var TimelineView = (function() {
   'use strict';
 
-  // We inherit from HorizontalSplitView.
-  var superClass = HorizontalSplitView;
+  // We inherit from DivView.
+  var superClass = DivView;
 
   /**
    * @constructor
    */
   function TimelineView() {
     assertFirstConstructorCall(TimelineView);
+
+    // TODO(eroman): Shouldn't be naming a node ID.
+    superClass.call(this, 'timeline-view-host');
 
     this.graphView_ = new TimelineGraphView(
         TimelineView.GRAPH_DIV_ID, TimelineView.GRAPH_CANVAS_ID,
@@ -26,9 +29,7 @@ var TimelineView = (function() {
     // Call superclass's constructor.
 
     var selectionView = new DivView(TimelineView.SELECTION_DIV_ID);
-    superClass.call(this, selectionView, this.graphView_);
 
-    this.selectionDivFullWidth_ = selectionView.getWidth();
     $(TimelineView.SELECTION_TOGGLE_ID).onclick =
         this.toggleSelectionDiv_.bind(this);
 
@@ -90,12 +91,11 @@ var TimelineView = (function() {
     // Inherit the superclass's methods.
     __proto__: superClass.prototype,
 
-    setGeometry: function(left, top, width, height) {
-      superClass.prototype.setGeometry.call(this, left, top, width, height);
-    },
-
     show: function(isVisible) {
       superClass.prototype.show.call(this, isVisible);
+
+      this.graphView_.show(isVisible);
+
       // Live capture is no longer supported, so don't need to constantly
       // update the graph's range.
       this.setUpdateEndDateInterval_(0);
@@ -273,21 +273,12 @@ var TimelineView = (function() {
       toggle.className = shouldCollapse ? 'timeline-view-rotateright' :
                                           'timeline-view-rotateleft';
 
-      // Figure out the appropriate width for the selection div.
-      var newWidth;
-      if (shouldCollapse) {
-        newWidth = toggle.offsetWidth;
-      } else {
-        newWidth = this.selectionDivFullWidth_;
-      }
-
-      // Change the width on the selection view (doesn't matter what we
-      // set the other values to, since we will re-layout in the next line).
-      this.leftView_.setGeometry(0, 0, newWidth, 100);
-
-      // Force a re-layout now that the left view has changed width.
-      this.setGeometry(
-          this.getLeft(), this.getTop(), this.getWidth(), this.getHeight());
+      // Notify the graph view that it may need to update the canvas size. This
+      // isn's strictly necessary since that view will also poll to see when a
+      // nresize has happened, but this makes the update happen right away.
+      //
+      // TODO(eroman): Shouldn't be calling a private method on graphView_.
+      this.graphView_.checkForResize_();
     }
   };
 
