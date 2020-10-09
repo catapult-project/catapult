@@ -404,6 +404,7 @@ class AlertGroupWorkflow(object):
     if not commit_info:
       return False
     assert self._group.bug is not None
+
     file_bug.AssignBugToCLAuthor(
         self._group.bug.bug_id,
         commit_info,

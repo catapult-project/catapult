@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# pylint: disable=too-many-lines
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
@@ -408,11 +409,7 @@ class FileBugTest(testing_common.TestCase):
 
     # Two HTTP requests are made when filing a bug; only test 2nd request.
     comment = self._issue_tracker_service.add_comment_args[1]
-    self.assertIn('https://chromeperf.appspot.com/group_report?bug_id=277761',
-                  comment)
-    self.assertIn('https://chromeperf.appspot.com/group_report?sid=', comment)
-    self.assertIn('\n\n\nBot(s) for this bug\'s original alert(s):\n\nlinux',
-                  comment)
+    self.assertIn('Assigning to sheriff@bar.com', comment)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
@@ -509,6 +506,46 @@ class FileBugTest(testing_common.TestCase):
         'Assigning to foo@bar.com because this is the only CL in range',
         comment)
     self.assertNotIn('My first commit', comment)
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+                     mock.MagicMock(return_value=[]))
+  @mock.patch.object(
+      file_bug.file_bug.crrev_service, 'GetNumbering',
+      mock.MagicMock(
+          return_value={'git_sha': '852ba7672ce02911e9f8f2a22363283adc80940e'}))
+  @mock.patch('dashboard.services.gitiles_service.CommitInfo',
+              mock.MagicMock(return_value={
+                  'author': {
+                      'email': 'robot@chops-service-accounts'
+                               '.iam.gserviceaccount.com'
+                  },
+                  'message': 'This is an autoroll\n\nTBR=foo@bar.com',
+              }))
+  def testGet_WithFinish_CreatesBugSingleRevAutorollSheriff(self):
+    # When a POST request is sent with keys specified and with the finish
+    # parameter given, an issue will be created using the issue tracker
+    # API, and the anomalies will be updated, and a response page will
+    # be sent which indicates success.
+    namespaced_stored_object.Set(
+        'repositories', {
+            "chromium": {
+                "repository_url":
+                    "https://chromium.googlesource.com/chromium/src"
+            }
+        })
+    self._issue_tracker_service._bug_id_counter = 277761
+    response = self._PostSampleBug(is_single_rev=True)
+
+    # The response page should have a bug number.
+    self.assertIn('277761', response.body)
+
+    # Three HTTP requests are made when filing a bug with owner; test third
+    # request for owner hame.
+    comment = self._issue_tracker_service.add_comment_args[1]
+    self.assertIn(
+        'Assigning to foo@bar.com because this is the only CL in range',
+        comment)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',

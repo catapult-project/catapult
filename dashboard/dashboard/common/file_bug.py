@@ -257,7 +257,6 @@ def GetCommitInfoForAlert(alert, crrev=None, gitiles=None):
 
   rev = str(auto_bisect.GetRevisionForBisect(alert.end_revision, alert.test))
 
-  # TODO(sullivan, dtu): merge this with similar pinoint code.
   if (re.match(r'^[0-9]{5,7}$', rev)
       and repository_url == repositories['chromium']['repository_url']):
     # This is a commit position, need the git hash.
@@ -282,6 +281,13 @@ def AssignBugToCLAuthor(bug_id,
   """Assigns the bug to the author of the given revision."""
   author = commit_info['author']['email']
   message = commit_info['message']
+
+  # Check first whether the assignee is an auto-roll, and get the alternative
+  # result/assignee.
+  alternative_assignee = utils.GetSheriffForAutorollCommit(
+      author, message)
+  author = alternative_assignee or author
+
   service.AddBugComment(
       bug_id,
       'Assigning to %s because this is the only CL in range:\n%s' %
@@ -289,7 +295,8 @@ def AssignBugToCLAuthor(bug_id,
       status='Assigned',
       labels=labels,
       owner=author,
-      project=project)
+      project=project,
+  )
 
 
 def FileBug(http,
@@ -348,12 +355,9 @@ def FileBug(http,
     if culprit_rev is not None:
       commit_info = GetCommitInfoForAlert(alerts[0])
       if commit_info:
-        author = commit_info['author']['email']
-        message = commit_info['message']
-        if not utils.GetSheriffForAutorollCommit(author, message):
-          needs_bisect = False
-          AssignBugToCLAuthor(bug_id, commit_info,
-                              dashboard_issue_tracker_service)
+        needs_bisect = False
+        AssignBugToCLAuthor(bug_id, commit_info,
+                            dashboard_issue_tracker_service)
     if needs_bisect:
       bisect_result = auto_bisect.StartNewBisectForBug(bug_id, project_id)
       if 'error' in bisect_result:
