@@ -187,7 +187,7 @@ class GroupReportTest(testing_common.TestCase):
   def testPost_WithBugIdParameter(self):
     subscription = self._Subscription()
     test_keys = self._AddTests()
-    bug_data.Bug(id=123).put()
+    bug_data.Bug.New(project='chromium', bug_id=123).put()
     self._AddAnomalyEntities([(200, 300), (100, 200), (400, 500)],
                              test_keys[0], [subscription],
                              bug_id=123,
@@ -201,7 +201,7 @@ class GroupReportTest(testing_common.TestCase):
   def testPost_WithProjectIdMissing(self):
     subscription = self._Subscription()
     test_keys = self._AddTests()
-    bug_data.Bug(id=123).put()
+    bug_data.Bug.New(project='chromium', bug_id=123).put()
     self._AddAnomalyEntities([(200, 300), (100, 200), (400, 500)],
                              test_keys[0], [subscription],
                              bug_id=123,

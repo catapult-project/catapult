@@ -47,14 +47,41 @@ class Bug(ndb.Model):
   # The time that the Bug entity was created.
   timestamp = ndb.DateTimeProperty(indexed=True, auto_now_add=True)
 
+  @classmethod
+  def New(cls, project, bug_id):
+    if not project:
+      raise ValueError('project is required')
+    if not bug_id:
+      raise ValueError('bug_id is required')
+    return cls(id='%s:%d' % (project, int(bug_id)))
 
-def SetBisectStatus(bug_id, status):
+
+def SetBisectStatus(bug_id, status, project):
   """Sets the bisect status for a Bug entity."""
   if bug_id is None or bug_id < 0:
     return
-  bug = ndb.Key('Bug', int(bug_id)).get()
+  bug = Get(project, bug_id)
   if bug:
     bug.latest_bisect_status = status
     bug.put()
   else:
     logging.error('Bug %s does not exist.', bug_id)
+
+
+def Key(project, bug_id):
+  if not project:
+    raise ValueError('project must not be empty or None')
+  if not id or id <= 0:
+    raise ValueError('id must not be empty, zero, None and must be positive')
+  return ndb.Key('Bug', '%s:%d' % (project, bug_id))
+
+
+def Get(project, bug_id):
+  if not project:
+    raise ValueError('project must not be empty or None')
+  if not id or id <= 0:
+    raise ValueError('id must not be empty, zero, None and must be positive')
+  # Due to legacy reasons, the key might just be an issue id
+  # or a combination of the issue id and project.
+  bug = ndb.Key('Bug', '%d' % (bug_id,)).get()
+  return bug or Key(project=project, bug_id=bug_id).get()

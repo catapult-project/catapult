@@ -12,8 +12,6 @@ import mock
 import webapp2
 import webtest
 
-from google.appengine.ext import ndb
-
 from dashboard import mark_recovered_alerts
 from dashboard.common import testing_common
 from dashboard.common import utils
@@ -60,12 +58,12 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
                          revision,
                          median_before,
                          median_after,
-                         bug_id=None):
+                         bug_id=None, project='chromium'):
     """Adds a sample Anomaly and returns the key."""
     if bug_id > 0:
-      bug = ndb.Key('Bug', bug_id).get()
+      bug = bug_data.Key(project=project, bug_id=bug_id).get()
       if not bug:
-        bug_data.Bug(id=bug_id).put()
+        bug_data.Bug.New(project=project, bug_id=bug_id).put()
     return anomaly.Anomaly(
         start_revision=revision,
         end_revision=revision,
@@ -73,6 +71,7 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
         median_before_anomaly=median_before,
         median_after_anomaly=median_after,
         bug_id=bug_id,
+        project_id=project,
     ).put()
 
   def testPost_Recovered_MarkedAsRecovered(self):
@@ -328,7 +327,10 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
                                mark_recovered_alerts._TASK_QUEUE_NAME)
     self.assertTrue(anomaly_key.get().recovered)
     add_bug_comment_mock.assert_called_once_with(
-        mock.ANY, mock.ANY, labels='Performance-Regression-Recovered')
+        mock.ANY,
+        mock.ANY,
+        project=mock.ANY,
+        labels='Performance-Regression-Recovered')
 
   @mock.patch.object(issue_tracker_service.IssueTrackerService, 'AddBugComment')
   @mock.patch.object(

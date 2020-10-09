@@ -103,7 +103,7 @@ class AlertsTest(testing_common.TestCase):
       anomaly_key = anomaly_entity.put()
       key_map[end_rev] = anomaly_key.urlsafe()
       if bug_id > 0:
-        bug_data.Bug(id=bug_id).put()
+        bug_data.Bug.New(project='chromium', bug_id=bug_id).put()
 
     # Add some (6) non-triaged improvements.
     for end_rev in range(10140, 10200, 10):

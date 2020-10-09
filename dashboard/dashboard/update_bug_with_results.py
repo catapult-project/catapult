@@ -98,7 +98,7 @@ def _MapAnomaliesAndUpdateBug(dest, source):
     _MapAnomaliesToMergeIntoBug(dest, source)
     # Mark the duplicate bug's Bug entity status as closed so that
     # it doesn't get auto triaged.
-    bug = ndb.Key('Bug', '%s:%d' % (source.project, source.issue_id)).get()
+    bug = bug_data.Get(project=source.project, bug_id=source.issue_id)
     if bug:
       bug.status = bug_data.BUG_STATUS_CLOSED
       bug.put()
@@ -125,12 +125,13 @@ def _MapAnomaliesToMergeIntoBug(dest_issue, source_issue):
   """
   anomalies, _, _ = anomaly.Anomaly.QueryAsync(
       bug_id=int(source_issue.issue_id),
-      project_id=source_issue.project).get_result()
+      project_id=(source_issue.project or 'chromium'),
+  ).get_result()
 
   bug_id = int(dest_issue.issue_id)
   for a in anomalies:
     a.bug_id = bug_id
-    a.project_id = dest_issue.project
+    a.project_id = (dest_issue.project or 'chromium')
 
   ndb.put_multi(anomalies)
 

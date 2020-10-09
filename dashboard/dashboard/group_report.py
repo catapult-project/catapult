@@ -49,7 +49,7 @@ class GroupReportHandler(chart_handler.ChartHandler):
       JSON for the /group_report page XHR request.
     """
     bug_id = self.request.get('bug_id')
-    project_id = self.request.get('project_id', 'chromium')
+    project_id = self.request.get('project_id', 'chromium') or 'chromium'
     rev = self.request.get('rev')
     keys = self.request.get('keys')
     hash_code = self.request.get('sid')

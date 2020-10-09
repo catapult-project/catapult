@@ -48,13 +48,17 @@ class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
 
     # Handle task queue requests.
     bug_id = self.request.get('bug_id')
+    project_id = self.request.get('project_id')
     if bug_id:
       bug_id = int(bug_id)
+    if not project_id:
+      project_id = 'chromium'
     if self.request.get('check_alert'):
-      self.MarkAlertAndBugIfRecovered(self.request.get('alert_key'), bug_id)
+      self.MarkAlertAndBugIfRecovered(
+          self.request.get('alert_key'), bug_id, project_id)
       return
     if self.request.get('check_bug'):
-      self.CheckRecoveredAlertsForBug(bug_id)
+      self.CheckRecoveredAlertsForBug(bug_id, project_id)
       return
 
     # Kick off task queue jobs for untriaged anomalies.
@@ -108,7 +112,7 @@ class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
         maxResults=1000)
     return bugs['items']
 
-  def MarkAlertAndBugIfRecovered(self, alert_key_urlsafe, bug_id):
+  def MarkAlertAndBugIfRecovered(self, alert_key_urlsafe, bug_id, project_id):
     """Checks whether an alert has recovered, and marks it if so.
 
     An alert will be considered "recovered" if there's a change point in
@@ -130,7 +134,7 @@ class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
     alert_entity.put()
     if bug_id:
       unrecovered, _, _ = anomaly.Anomaly.QueryAsync(
-          bug_id=bug_id, recovered=False).get_result()
+          bug_id=bug_id, project_id=project_id, recovered=False).get_result()
       if not unrecovered:
         # All alerts recovered! Update bug.
         logging.info('All alerts for bug %s recovered!', bug_id)
@@ -139,7 +143,10 @@ class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
         issue_tracker = issue_tracker_service.IssueTrackerService(
             utils.ServiceAccountHttp())
         issue_tracker.AddBugComment(
-            bug_id, comment, labels='Performance-Regression-Recovered')
+            bug_id,
+            comment,
+            project=project_id,
+            labels='Performance-Regression-Recovered')
 
   def _IsAlertRecovered(self, alert_entity):
     test = alert_entity.GetTestMetadataKey().get()
@@ -180,16 +187,18 @@ class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
     larger = max(delta1, delta2)
     return math_utils.RelativeChange(smaller, larger) <= _MAX_DELTA_DIFFERENCE
 
-  def CheckRecoveredAlertsForBug(self, bug_id):
+  def CheckRecoveredAlertsForBug(self, bug_id, project_id):
     unrecovered, _, _ = anomaly.Anomaly.QueryAsync(
         bug_id=bug_id, recovered=False).get_result()
-    logging.info('Queueing %d alerts for bug %s', len(unrecovered), bug_id)
+    logging.info('Queueing %d alerts for bug %s:%s', len(unrecovered),
+                 project_id, bug_id)
     for alert in unrecovered:
       taskqueue.add(
           url='/mark_recovered_alerts',
           params={
               'check_alert': 1,
               'alert_key': alert.key.urlsafe(),
-              'bug_id': bug_id
+              'bug_id': bug_id,
+              'project_id': project_id,
           },
           queue_name=_TASK_QUEUE_NAME)

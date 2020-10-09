@@ -316,7 +316,7 @@ def FileBug(http,
   new_bug_response = user_issue_tracker_service.NewBug(
       summary,
       description,
-      project=project_id,
+      project=project_id or 'chromium',
       labels=labels,
       components=components,
       owner=owner,
@@ -326,7 +326,7 @@ def FileBug(http,
     return {'error': new_bug_response['error']}
 
   bug_id = new_bug_response['bug_id']
-  bug_data.Bug(id=bug_id).put()
+  bug_data.Bug.New(bug_id=bug_id, project=project_id or 'chromium').put()
 
   for a in alerts:
     a.bug_id = bug_id
