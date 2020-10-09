@@ -6,13 +6,17 @@
           <input type=file value="Load log from file" id=import-view-load-log-file accept=".json">
           <pre id=import-view-load-status-text></pre>
       </div>
- 
+
       <div id=import-view-loaded-div style="display: none">
         <h2>Data Loaded</h2>
         <table class=styled-table>
         <tr>
           <th>Export date</th>
           <td id=import-view-numericDate></td>
+        </tr>
+        <tr>
+          <th>Capture Mode</th>
+          <td id=import-view-capture-mode></td>
         </tr>
         <tr>
           <th>Build</th>

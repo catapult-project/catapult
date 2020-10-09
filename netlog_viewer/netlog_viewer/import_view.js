@@ -48,6 +48,7 @@ var ImportView = (function() {
 
   // IDs for HTML elements pertaining to log dump information.
   ImportView.LOADED_INFO_NUMERIC_DATE_ID = 'import-view-numericDate';
+  ImportView.LOADED_INFO_CAPTURE_MODE_ID = 'import-view-capture-mode';
   ImportView.LOADED_INFO_NAME_ID = 'import-view-name';
   ImportView.LOADED_INFO_VERSION_ID = 'import-view-version';
   ImportView.LOADED_INFO_OFFICIAL_ID = 'import-view-official';
@@ -73,6 +74,8 @@ var ImportView = (function() {
     onLoadLogFinish: function(polledData, unused, logDump) {
       $(ImportView.LOADED_INFO_NUMERIC_DATE_ID).textContent =
           timeutil.dateToString(new Date(Constants.clientInfo.numericDate));
+      $(ImportView.LOADED_INFO_CAPTURE_MODE_ID).textContent =
+          Constants.logCaptureMode || '(Not Recorded)';
       $(ImportView.LOADED_INFO_NAME_ID).textContent =
           Constants.clientInfo.name;
       $(ImportView.LOADED_INFO_VERSION_ID).textContent =
