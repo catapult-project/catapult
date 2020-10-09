@@ -237,13 +237,13 @@ def _ComputePostMergeDetails(issue_tracker, commit_cache_key, cc_list):
 
 def _GetBugStatus(issue_tracker, bug_id, project='chromium'):
   if not bug_id:
-    return None
+    return None, None
 
   issue_data = issue_tracker.GetIssue(bug_id, project=project)
   if not issue_data:
-    return None
+    return None, None
 
-  return issue_data.get('status')
+  return issue_data.get('owner'), issue_data.get('status')
 
 
 def _FormatDocumentationUrls(tags):
@@ -277,10 +277,16 @@ def UpdatePostAndMergeDeferred(bug_update_builder, bug_id, tags, url, project):
   bug_update = bug_update_builder.BuildUpdate(tags, url)
   issue_tracker = issue_tracker_service.IssueTrackerService(
       utils.ServiceAccountHttp())
-  merge_details, cc_list = _ComputePostMergeDetails(issue_tracker,
-                                                    commit_cache_key,
-                                                    bug_update.cc_list)
-  current_bug_status = _GetBugStatus(issue_tracker, bug_id, project=project)
+  merge_details, cc_list = _ComputePostMergeDetails(
+      issue_tracker,
+      commit_cache_key,
+      bug_update.cc_list,
+  )
+  owner, current_bug_status = _GetBugStatus(
+      issue_tracker,
+      bug_id,
+      project=project,
+  )
   if not current_bug_status:
     return
 
@@ -291,6 +297,11 @@ def UpdatePostAndMergeDeferred(bug_update_builder, bug_id, tags, url, project):
     # Set the bug status and owner if this bug is opened and unowned.
     status = 'Assigned'
     bug_owner = bug_update.owner
+  elif current_bug_status == 'Assigned':
+    # Always set the owner, and move the current owner to CC.
+    bug_owner = bug_update.owner
+    if owner:
+      cc_list.append(owner)
 
   issue_tracker.AddBugComment(
       bug_id,

@@ -558,8 +558,8 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  def testCompletedDoesNotReassign(self, differences, result_values,
-                                   patch_as_dict):
+  def testCompletedDoesReassign(self, differences, result_values,
+                                patch_as_dict):
     commits = (change.Commit('chromium', 'git_hash'),)
     patch = change.GerritPatch('https://codereview.com', 672011, '2f0d5c7')
     c = change.Change(commits, patch)
@@ -580,7 +580,7 @@ class BugCommentTest(test.TestCase):
     self.add_bug_comment.assert_called_once_with(
         123456,
         _COMMENT_COMPLETED_WITH_PATCH,
-        owner=None,
+        owner='author@chromium.org',
         status=None,
         cc_list=['author@chromium.org'],
         labels=['Pinpoint-Culprit-Found'],
