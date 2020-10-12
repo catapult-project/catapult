@@ -139,7 +139,10 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
 
     self.RenderHtml('bug_result.html', {
         'bug_id': bug_id,
-        'project_id': project_id
+        'project_id': project_id,
+        # This is a bisect run id. It is explicitely set to '' to trigger
+        #  a 'No bisect automatically started' popup in triage-dialog.html.
+        'issue_id': '',
     })
 
   def _VerifyAnomaliesOverlap(self, alerts, bug_id, project_id):
