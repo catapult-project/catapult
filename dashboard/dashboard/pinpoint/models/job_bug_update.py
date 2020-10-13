@@ -29,6 +29,7 @@ _TEMPLATE_ENV = jinja2.Environment(
             os.path.dirname(os.path.realpath(__file__)), 'templates')))
 _DIFFERENCES_FOUND_TMPL = _TEMPLATE_ENV.get_template('differences_found.j2')
 _CREATED_TEMPL = _TEMPLATE_ENV.get_template('job_created.j2')
+_MISSING_VALUES_TMPL = _TEMPLATE_ENV.get_template('missing_values.j2')
 
 
 class JobUpdateBuilder(object):
@@ -60,7 +61,7 @@ class JobUpdateBuilder(object):
     env = self._env.copy()
     env.update({'pending': pending})
     comment_text = _CREATED_TEMPL.render(**env)
-    return _BugUpdateInfo(comment_text, None, None, None)
+    return _BugUpdateInfo(comment_text, None, None, None, None)
 
 
 class DifferencesFoundBugUpdateBuilder(object):
@@ -83,6 +84,7 @@ class DifferencesFoundBugUpdateBuilder(object):
     self._differences = []
     self._examined_count = None
     self._cached_ordered_diffs_by_delta = None
+    self._cached_commits_with_no_values = None
 
   def SetExaminedCount(self, examined_count):
     self._examined_count = examined_count
@@ -103,20 +105,40 @@ class DifferencesFoundBugUpdateBuilder(object):
     """Return _BugUpdateInfo for the differences."""
     if len(self._differences) == 0:
       raise ValueError("BuildUpdate called with 0 differences")
+    differences = self._OrderedDifferencesByDelta()
+    missing_values = self._DifferencesWithNoValues()
     owner, cc_list, notify_why_text = self._PeopleToNotify()
-    comment_text = _DIFFERENCES_FOUND_TMPL.render(
-        differences=self._OrderedDifferencesByDelta(),
-        url=url,
-        metric=self._metric,
-        notify_why_text=notify_why_text,
-        doc_links=_FormatDocumentationUrls(tags),
-        examined_count=self._examined_count,
-    )
-    labels = [
-        'Pinpoint-Culprit-Found'
-        if len(self._differences) == 1 else 'Pinpoint-Multiple-Culprits'
-    ]
-    return _BugUpdateInfo(comment_text, owner, cc_list, labels)
+
+    # Here we're only going to consider the cases where we find differences
+    # that have non-empty values, to consider whether we've found no, a single,
+    # or multiple culprits.
+    if differences:
+      labels = [
+          'Pinpoint-Culprit-Found'
+          if len(differences) == 1 else 'Pinpoint-Multiple-Culprits'
+      ]
+      if missing_values:
+        labels.append('Pinpoint-Multiple-MissingValues')
+      status = 'Assigned'
+      comment_text = _DIFFERENCES_FOUND_TMPL.render(
+          differences=differences,
+          url=url,
+          metric=self._metric,
+          notify_why_text=notify_why_text,
+          doc_links=_FormatDocumentationUrls(tags),
+          examined_count=self._examined_count,
+          missing_values=missing_values,
+      )
+    elif missing_values:
+      labels = ['Pinpoint-No-Repro', 'Pinpoint-Multiple-MissingValues']
+      status = 'WontFix'
+      comment_text = _MISSING_VALUES_TMPL.render(
+          missing_values=missing_values,
+          metric=self._metric,
+          url=url,
+      )
+
+    return _BugUpdateInfo(comment_text, owner, cc_list, labels, status)
 
   def GenerateCommitCacheKey(self):
     commit_cache_key = None
@@ -130,23 +152,26 @@ class DifferencesFoundBugUpdateBuilder(object):
     if self._cached_ordered_diffs_by_delta is not None:
       return self._cached_ordered_diffs_by_delta
 
-    # First, the diffs with deltas.
     diffs_with_deltas = [(diff.MeanDelta(), diff)
                          for diff in self._differences
                          if diff.values_a and diff.values_b]
-    # Followed by the remaining diffs (those with "No values" on either side),
-    # in the original order.
-    no_values_diffs = [
-        diff for diff in self._differences
-        if not (diff.values_a and diff.values_b)
-    ]
     ordered_diffs = [
         diff for _, diff in sorted(
             diffs_with_deltas, key=lambda i: abs(i[0]), reverse=True)
-    ] + no_values_diffs
-
+    ]
     self._cached_ordered_diffs_by_delta = ordered_diffs
     return ordered_diffs
+
+  def _DifferencesWithNoValues(self):
+    """Return the list of differences where one side has no values."""
+    if self._cached_commits_with_no_values is not None:
+      return self._cached_commits_with_no_values
+
+    self._cached_commits_with_no_values = [
+        diff for diff in self._differences
+        if not (diff.values_a and diff.values_b)
+    ]
+    return self._cached_commits_with_no_values
 
   def _PeopleToNotify(self):
     """Return the people to notify for these differences.
@@ -158,7 +183,7 @@ class DifferencesFoundBugUpdateBuilder(object):
     """
     ordered_commits = [
         diff.commit_info for diff in self._OrderedDifferencesByDelta()
-    ]
+    ] + [diff.commit_info for diff in self._DifferencesWithNoValues()]
 
     # CC the folks in the top N commits.  N is scaled by the number of commits
     # (fewer than 10 means N=1, fewer than 100 means N=2, etc.)
@@ -218,7 +243,7 @@ class _Difference(object):
 
 class _BugUpdateInfo(
     namedtuple('_BugUpdateInfo',
-               ['comment_text', 'owner', 'cc_list', 'labels'])):
+               ['comment_text', 'owner', 'cc_list', 'labels', 'status'])):
   """An update to post to a bug.
 
   This is the return type of DifferencesFoundBugUpdateBuilder.BuildUpdate.
@@ -295,7 +320,7 @@ def UpdatePostAndMergeDeferred(bug_update_builder, bug_id, tags, url, project):
 
   if current_bug_status in ['Untriaged', 'Unconfirmed', 'Available']:
     # Set the bug status and owner if this bug is opened and unowned.
-    status = 'Assigned'
+    status = bug_update.status
     bug_owner = bug_update.owner
   elif current_bug_status == 'Assigned':
     # Always set the owner, and move the current owner to CC.

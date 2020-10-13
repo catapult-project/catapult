@@ -40,3 +40,16 @@ You can view the full results and re-run the Pinpoint job at:
 If you think Pinpoint blamed the wrong commit, please add the
 `Chromeperf-Sheriff-NeedsAttention` label to the issue so that a sheriff can
 help diagnose.
+{% if missing_values|length > 0 -%}
+
+NOTE: Pinpoint detected some transitions from "no values" to "some values"
+measured while bisecting. Here's a list of {{missing_values[:3]|length}}:
+{% for diff in missing_values[:3] -%}
+<b>{{ diff.commit_info['subject'] }}</b> by {{ diff.commit_info['author'] }}
+{{ diff.commit_info['url'] }}
+{% if metric %}{{ metric }}: {% endif -%}
+{{ diff.Formatted() }}
+{%- if not loop.last %}
+{% endif %}
+{% endfor -%}
+{% endif -%}

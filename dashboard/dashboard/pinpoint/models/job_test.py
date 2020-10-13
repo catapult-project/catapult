@@ -41,151 +41,6 @@ One or both of the initial changes failed to produce any results.
 Perhaps the job is misconfigured or the tests are broken? See the job
 page for details.""")
 
-_COMMENT_COMPLETED_WITH_COMMIT = (
-    u"""<b>\U0001f4cd Found a significant difference at 1 commit.</b>
-10 revisions compared.
-https://testbed.example.com/job/1
-
-<b>Subject.</b> by author@chromium.org
-https://example.com/repository/+/git_hash
-0 \u2192 1.235 (+1.235) (+\u221e%)
-
-Understanding performance regressions:
-  http://g.co/ChromePerformanceRegressions
-
-You can view the full results and re-run the Pinpoint job at:
-
-https://testbed.example.com/job/1
-
-If you think Pinpoint blamed the wrong commit, please add the
-`Chromeperf-Sheriff-NeedsAttention` label to the issue so that a sheriff can
-help diagnose.""")
-
-_COMMENT_COMPLETED_WITH_COMMIT_AND_DOCS = (
-    u"""<b>\U0001f4cd Found a significant difference at 1 commit.</b>
-10 revisions compared.
-https://testbed.example.com/job/1
-
-<b>Subject.</b> by author@chromium.org
-https://example.com/repository/+/git_hash
-1.235 \u2192 0 (-1.235) (-100%)
-
-Understanding performance regressions:
-  http://g.co/ChromePerformanceRegressions
-
-Benchmark doc link:
-  http://docs
-
-You can view the full results and re-run the Pinpoint job at:
-
-https://testbed.example.com/job/1
-
-If you think Pinpoint blamed the wrong commit, please add the
-`Chromeperf-Sheriff-NeedsAttention` label to the issue so that a sheriff can
-help diagnose.""")
-
-_COMMENT_COMPLETED_WITH_AUTOROLL_COMMIT = (
-    u"""<b>\U0001f4cd Found a significant difference at 1 commit.</b>
-10 revisions compared.
-https://testbed.example.com/job/1
-
-<b>Subject.</b> by chromium-autoroll@skia-public.iam.gserviceaccount.com
-https://example.com/repository/+/git_hash
-20 \u2192 30 (+10) (+50%)
-
-Assigning to sheriff sheriff@bar.com because "Subject." is a roll.
-
-Understanding performance regressions:
-  http://g.co/ChromePerformanceRegressions
-
-You can view the full results and re-run the Pinpoint job at:
-
-https://testbed.example.com/job/1
-
-If you think Pinpoint blamed the wrong commit, please add the
-`Chromeperf-Sheriff-NeedsAttention` label to the issue so that a sheriff can
-help diagnose.""")
-
-_COMMENT_COMPLETED_WITH_PATCH = (
-    u"""<b>\U0001f4cd Found a significant difference at 1 commit.</b>
-10 revisions compared.
-https://testbed.example.com/job/1
-
-<b>Subject.</b> by author@chromium.org
-https://codereview.com/c/672011/2f0d5c7
-40 \u2192 20 (-20) (-50%)
-
-Understanding performance regressions:
-  http://g.co/ChromePerformanceRegressions
-
-You can view the full results and re-run the Pinpoint job at:
-
-https://testbed.example.com/job/1
-
-If you think Pinpoint blamed the wrong commit, please add the
-`Chromeperf-Sheriff-NeedsAttention` label to the issue so that a sheriff can
-help diagnose.""")
-
-_COMMENT_COMPLETED_THREE_DIFFERENCES = (
-    u"""<b>\U0001f4cd Found significant differences at 3 commits.</b>
-10 revisions compared.
-https://testbed.example.com/job/1
-
-The top 3 are:
-
-<b>1. Subject.</b> by author1@chromium.org
-https://example.com/repository/+/git_hash_1
-50 \u2192 0 (-50) (-100%)
-
-<b>2. Subject.</b> by author2@chromium.org
-https://example.com/repository/+/git_hash_2
-0 \u2192 40 (+40) (+\u221e%)
-
-<b>3. Subject.</b> by author3@chromium.org
-https://example.com/repository/+/git_hash_3
-0 \u2192 No values
-
-Understanding performance regressions:
-  http://g.co/ChromePerformanceRegressions
-
-You can view the full results and re-run the Pinpoint job at:
-
-https://testbed.example.com/job/1
-
-If you think Pinpoint blamed the wrong commit, please add the
-`Chromeperf-Sheriff-NeedsAttention` label to the issue so that a sheriff can
-help diagnose.""")
-
-_COMMENT_COMPLETED_THREE_DIFFERENCES_ABSOLUTE = (
-    u"""<b>\U0001f4cd Found significant differences at 3 commits.</b>
-10 revisions compared.
-https://testbed.example.com/job/1
-
-The top 3 are:
-
-<b>1. Subject.</b> by author3@chromium.org
-https://example.com/repository/+/git_hash_3
-0 \u2192 -100 (-100) (+\u221e%)
-
-<b>2. Subject.</b> by author2@chromium.org
-https://example.com/repository/+/git_hash_2
-10 \u2192 0 (-10) (-100%)
-
-<b>3. Subject.</b> by author1@chromium.org
-https://example.com/repository/+/git_hash_1
-No values \u2192 10
-
-Understanding performance regressions:
-  http://g.co/ChromePerformanceRegressions
-
-You can view the full results and re-run the Pinpoint job at:
-
-https://testbed.example.com/job/1
-
-If you think Pinpoint blamed the wrong commit, please add the
-`Chromeperf-Sheriff-NeedsAttention` label to the issue so that a sheriff can
-help diagnose.""")
-
 _COMMENT_FAILED = (u"""\U0001f63f Pinpoint job stopped with an error.
 https://testbed.example.com/job/1
 
@@ -373,13 +228,17 @@ class BugCommentTest(test.TestCase):
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
-        _COMMENT_COMPLETED_WITH_COMMIT,
+        mock.ANY,
         status='Assigned',
         owner='author@chromium.org',
         labels=['Pinpoint-Culprit-Found'],
         cc_list=['author@chromium.org'],
         merge_issue=None,
         project='chromium')
+    message = self.add_bug_comment.call_args[0][1]
+    self.assertIn('Found a significant difference at 1 commit.', message)
+    self.assertIn('<b>Subject.</b>', message)
+    self.assertIn('https://example.com/repository/+/git_hash', message)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -409,13 +268,16 @@ class BugCommentTest(test.TestCase):
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
-        _COMMENT_COMPLETED_WITH_COMMIT,
+        mock.ANY,
         status='Assigned',
         owner='author@chromium.org',
         cc_list=[],
         labels=['Pinpoint-Culprit-Found'],
         merge_issue='111222',
         project='chromium')
+    message = self.add_bug_comment.call_args[0][1]
+    self.assertIn('Found a significant difference at 1 commit.', message)
+    self.assertIn('https://example.com/repository/+/git_hash', message)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -451,13 +313,16 @@ class BugCommentTest(test.TestCase):
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
-        _COMMENT_COMPLETED_WITH_COMMIT,
+        mock.ANY,
         status='Assigned',
         owner='author@chromium.org',
         labels=['Pinpoint-Culprit-Found'],
         cc_list=['author@chromium.org'],
         merge_issue=None,
         project='chromium')
+    message = self.add_bug_comment.call_args[0][1]
+    self.assertIn('Found a significant difference at 1 commit.', message)
+    self.assertIn('https://example.com/repository/+/git_hash', message)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -517,13 +382,17 @@ class BugCommentTest(test.TestCase):
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
-        _COMMENT_COMPLETED_WITH_COMMIT_AND_DOCS,
+        mock.ANY,
         status='Assigned',
         owner='author@chromium.org',
         labels=['Pinpoint-Culprit-Found'],
         cc_list=['author@chromium.org'],
         merge_issue=None,
         project='chromium')
+    message = self.add_bug_comment.call_args[0][1]
+    self.assertIn('Found a significant difference at 1 commit.', message)
+    self.assertIn('http://docs', message)
+    self.assertIn('Benchmark doc link', message)
 
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -547,13 +416,16 @@ class BugCommentTest(test.TestCase):
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
-        _COMMENT_COMPLETED_WITH_PATCH,
+        mock.ANY,
         status='Assigned',
         owner='author@chromium.org',
         labels=['Pinpoint-Culprit-Found'],
         cc_list=['author@chromium.org'],
         merge_issue=None,
         project='chromium')
+    message = self.add_bug_comment.call_args[0][1]
+    self.assertIn('Found a significant difference at 1 commit.', message)
+    self.assertIn('https://codereview.com/c/672011/2f0d5c7', message)
 
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -579,13 +451,16 @@ class BugCommentTest(test.TestCase):
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
-        _COMMENT_COMPLETED_WITH_PATCH,
+        mock.ANY,
         owner='author@chromium.org',
         status=None,
         cc_list=['author@chromium.org'],
         labels=['Pinpoint-Culprit-Found'],
         merge_issue=None,
         project='chromium')
+    message = self.add_bug_comment.call_args[0][1]
+    self.assertIn('Found a significant difference at 1 commit.', message)
+    self.assertIn('https://codereview.com/c/672011/2f0d5c7', message)
 
   @mock.patch('dashboard.pinpoint.models.change.patch.GerritPatch.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -610,13 +485,15 @@ class BugCommentTest(test.TestCase):
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
-        _COMMENT_COMPLETED_WITH_PATCH,
+        mock.ANY,
         owner=None,
         status=None,
         cc_list=['author@chromium.org'],
         labels=['Pinpoint-Culprit-Found'],
         merge_issue=None,
         project='chromium')
+    message = self.add_bug_comment.call_args[0][1]
+    self.assertIn('10 revisions compared', message)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -666,13 +543,20 @@ class BugCommentTest(test.TestCase):
     # We now only CC folks from the top commit.
     self.add_bug_comment.assert_called_once_with(
         123456,
-        _COMMENT_COMPLETED_THREE_DIFFERENCES,
+        mock.ANY,
         status='Assigned',
         owner='author1@chromium.org',
         cc_list=['author1@chromium.org'],
-        labels=['Pinpoint-Multiple-Culprits'],
+        labels=[
+            'Pinpoint-Multiple-Culprits',
+            'Pinpoint-Multiple-MissingValues',
+        ],
         merge_issue=None,
         project='chromium')
+    message = self.add_bug_comment.call_args[0][1]
+    self.assertIn('Found significant differences at 2 commits.', message)
+    self.assertIn('1. Subject.', message)
+    self.assertIn('transitions from "no values" to "some values"', message)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -720,13 +604,21 @@ class BugCommentTest(test.TestCase):
     # We now only CC folks from the top commit.
     self.add_bug_comment.assert_called_once_with(
         123456,
-        _COMMENT_COMPLETED_THREE_DIFFERENCES_ABSOLUTE,
+        mock.ANY,
         status='Assigned',
         owner='author3@chromium.org',
         cc_list=['author3@chromium.org'],
-        labels=['Pinpoint-Multiple-Culprits'],
+        labels=[
+            'Pinpoint-Multiple-Culprits',
+            'Pinpoint-Multiple-MissingValues',
+        ],
         merge_issue=None,
         project='chromium')
+    message = self.add_bug_comment.call_args[0][1]
+    self.assertIn('Found significant differences at 2 commits.', message)
+    self.assertIn('https://example.com/repository/+/git_hash_3', message)
+    self.assertIn('https://example.com/repository/+/git_hash_2', message)
+    self.assertIn('https://example.com/repository/+/git_hash_1', message)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -846,12 +738,19 @@ class BugCommentTest(test.TestCase):
     self.add_bug_comment.assert_called_once_with(
         123456,
         mock.ANY,
-        status='Assigned',
+        status='WontFix',
         owner='author1@chromium.org',
         cc_list=['author1@chromium.org'],
-        labels=['Pinpoint-Multiple-Culprits'],
+        labels=[
+            'Pinpoint-No-Repro',
+            'Pinpoint-Multiple-MissingValues',
+        ],
         merge_issue=None,
         project='chromium')
+    message = self.add_bug_comment.call_args[0][1]
+    self.assertIn('Missing Values', message)
+    self.assertIn('author1@chromium.org', message)
+    self.assertIn('author2@chromium.org', message)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -878,13 +777,17 @@ class BugCommentTest(test.TestCase):
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
-        _COMMENT_COMPLETED_WITH_AUTOROLL_COMMIT,
+        mock.ANY,
         status='Assigned',
         owner='sheriff@bar.com',
         cc_list=['chromium-autoroll@skia-public.iam.gserviceaccount.com'],
         labels=['Pinpoint-Culprit-Found'],
         merge_issue=None,
         project='chromium')
+    message = self.add_bug_comment.call_args[0][1]
+    self.assertIn('Found a significant difference at 1 commit.', message)
+    self.assertIn('chromium-autoroll@skia-public.iam.gserviceaccount.com',
+                  message)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
