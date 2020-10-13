@@ -59,7 +59,7 @@ class ResourceLoader(object):
       return None
 
     # Sort by length. Longest match wins.
-    candidate_paths.sort(key=(lambda x: len(x)))
+    candidate_paths.sort(lambda x, y: len(x) - len(y))
     longest_candidate = candidate_paths[-1]
     return resource_module.Resource(longest_candidate, absolute_path, binary)
 
