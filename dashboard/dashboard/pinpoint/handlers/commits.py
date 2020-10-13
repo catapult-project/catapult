@@ -18,17 +18,18 @@ class Commits(api_request_handler.ApiRequestHandler):
 
   def Post(self):
     try:
+      repository = self.request.get('repository', 'chromium')
       c1 = change.Commit.FromDict({
-          'repository': 'chromium',
+          'repository': repository,
           'git_hash': self.request.get('start_git_hash'),
       })
       c2 = change.Commit.FromDict({
-          'repository': 'chromium',
+          'repository': repository,
           'git_hash': self.request.get('end_git_hash'),
       })
       commits = change.Commit.CommitRange(c1, c2)
       commits = [
-          change.Commit('chromium', c['commit']).AsDict() for c in commits
+          change.Commit(repository, c['commit']).AsDict() for c in commits
       ]
       return [c1.AsDict()] + commits
     except request.RequestError as e:

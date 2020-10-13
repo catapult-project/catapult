@@ -428,6 +428,7 @@ found in the LICENSE file.
           return;
         }
         this.bug_id = job.bug_id;
+        this.project = job.arguments.project;
         this.patch = job.arguments.patch;
         // Legacy try job doesn't have base_git_hash, use end_git_hash instead
         this.base_git_hash = job.arguments.base_git_hash ||
@@ -463,6 +464,7 @@ found in the LICENSE file.
 
       commitsParams(job) {
         return {
+          repository: job.arguments.project,
           start_git_hash: job.arguments.start_git_hash,
           end_git_hash: job.arguments.end_git_hash
         };

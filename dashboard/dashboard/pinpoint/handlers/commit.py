@@ -16,10 +16,11 @@ class Commit(api_request_handler.ApiRequestHandler):
     pass
 
   def Post(self):
+    repository = self.request.get('repository', 'chromium')
     git_hash = self.request.get('git_hash')
     try:
       c = change.Commit.FromDict({
-          'repository': 'chromium',
+          'repository': repository,
           'git_hash': git_hash,
       })
       return c.AsDict()
