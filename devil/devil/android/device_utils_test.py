@@ -80,12 +80,16 @@ class _MockApkHelper(object):
     self.perms = perms
     self.splits = splits if splits else []
     self.abis = [abis.ARM]
+    self.version_code = None
 
   def GetPackageName(self):
     return self.package_name
 
   def GetPermissions(self):
     return self.perms
+
+  def GetVersionCode(self):
+    return self.version_code
 
   def GetAbis(self):
     return self.abis
@@ -436,20 +440,53 @@ class DeviceUtilsIsApplicationInstalledTest(DeviceUtilsTest):
       self.assertTrue(self.device.IsApplicationInstalled('some.installed.app'))
 
   def testIsApplicationInstalled_notInstalled(self):
-    with self.assertCalls((self.call.device.RunShellCommand(
-        ['pm', 'list', 'packages', 'not.installed.app'], check_return=True),
-                           '')):
+    with self.assertCalls(
+        (self.call.device.RunShellCommand(
+            ['pm', 'list', 'packages', 'not.installed.app'], check_return=True),
+         ''),
+        (self.call.device.RunShellCommand(
+            ['dumpsys', 'package'], check_return=True, large_output=True), [])):
       self.assertFalse(self.device.IsApplicationInstalled('not.installed.app'))
 
   def testIsApplicationInstalled_substringMatch(self):
-    with self.assertCalls((self.call.device.RunShellCommand(
-        ['pm', 'list', 'packages', 'substring.of.package'], check_return=True),
-                           [
-                               'package:first.substring.of.package',
-                               'package:second.substring.of.package',
-                           ])):
+    with self.assertCalls(
+        (self.call.device.RunShellCommand(
+            ['pm', 'list', 'packages', 'substring.of.package'],
+            check_return=True),
+         [
+             'package:first.substring.of.package',
+             'package:second.substring.of.package',
+         ]),
+        (self.call.device.RunShellCommand(
+            ['dumpsys', 'package'], check_return=True, large_output=True), [])):
       self.assertFalse(
           self.device.IsApplicationInstalled('substring.of.package'))
+
+  def testIsApplicationInstalled_dumpsysFallback(self):
+    with self.assertCalls(
+        (self.call.device.RunShellCommand(
+            ['pm', 'list', 'packages', 'some.installed.app'],
+            check_return=True), []),
+        (self.call.device.RunShellCommand(
+            ['dumpsys', 'package'], check_return=True, large_output=True),
+         ['Package [some.installed.app] (a12345):'])):
+      self.assertTrue(self.device.IsApplicationInstalled('some.installed.app'))
+
+  def testIsApplicationInstalled_dumpsysFallbackVersioned(self):
+    with self.assertCalls(
+        (self.call.device.RunShellCommand(
+            ['dumpsys', 'package'], check_return=True, large_output=True),
+         ['Package [some.installed.app_1234] (a12345):'])):
+      self.assertTrue(
+          self.device.IsApplicationInstalled('some.installed.app', 1234))
+
+  def testIsApplicationInstalled_dumpsysFallbackVersionNotNeeded(self):
+    with self.assertCalls(
+        (self.call.device.RunShellCommand(
+            ['dumpsys', 'package'], check_return=True, large_output=True),
+         ['Package [some.installed.app] (a12345):'])):
+      self.assertTrue(
+          self.device.IsApplicationInstalled('some.installed.app', 1234))
 
 
 class DeviceUtilsGetApplicationPathsInternalTest(DeviceUtilsTest):
@@ -856,6 +893,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=False,
                                 streaming=None,
                                 allow_downgrade=False),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
@@ -872,6 +910,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=False,
                                 streaming=False,
                                 allow_downgrade=False),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
@@ -887,7 +926,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
           (self.call.adb.Install(TEST_APK_PATH,
                                  reinstall=False,
                                  streaming=None,
-                                 allow_downgrade=False))):
+                                 allow_downgrade=False)),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
   def testInstall_findPermissions(self):
@@ -903,6 +943,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                  reinstall=False,
                                  streaming=None,
                                  allow_downgrade=False)),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
@@ -917,6 +958,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                  reinstall=False,
                                  streaming=None,
                                  allow_downgrade=False)),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1', 'p2']), [])):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk,
@@ -930,7 +972,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE),
          ['/fake/data/app/test.package.apk']),
         (self.call.device._ComputeStaleApks(TEST_PACKAGE, [TEST_APK_PATH]),
-         ([], None)), (self.call.device.ForceStop(TEST_PACKAGE))):
+         ([], None)), (self.call.device.ForceStop(TEST_PACKAGE)),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
       self.device.Install(
           DeviceUtilsInstallTest.mock_apk, retries=0, permissions=[])
 
@@ -947,7 +990,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
           self.call.adb.Install(TEST_APK_PATH,
                                 reinstall=False,
                                 streaming=None,
-                                allow_downgrade=False)):
+                                allow_downgrade=False),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk, retries=0, permissions=[])
 
@@ -964,7 +1008,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
           self.call.adb.Install(TEST_APK_PATH,
                                 reinstall=False,
                                 streaming=None,
-                                allow_downgrade=False)):
+                                allow_downgrade=False),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk, retries=0, permissions=[])
 
@@ -981,7 +1026,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
           self.call.adb.Install(TEST_APK_PATH,
                                 reinstall=True,
                                 streaming=None,
-                                allow_downgrade=False)):
+                                allow_downgrade=False),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk,
             reinstall=True,
@@ -995,7 +1041,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE),
          ['/fake/data/app/test.package.apk']),
         (self.call.device._ComputeStaleApks(TEST_PACKAGE, [TEST_APK_PATH]),
-         ([], None)), (self.call.device.ForceStop(TEST_PACKAGE))):
+         ([], None)), (self.call.device.ForceStop(TEST_PACKAGE)),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
       self.device.Install(
           DeviceUtilsInstallTest.mock_apk,
           reinstall=True,
@@ -1037,7 +1084,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
           self.call.adb.Install(TEST_APK_PATH,
                                 reinstall=True,
                                 streaming=None,
-                                allow_downgrade=True)):
+                                allow_downgrade=True),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk,
             reinstall=True,
@@ -1070,9 +1118,31 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=False,
                                 streaming=None,
                                 allow_downgrade=False),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
           (self.call.device.GrantPermissions(TEST_PACKAGE, None), [])):
         self.device.Install(
             mock_apk_with_fake, fake_modules=fake_modules, retries=0)
+
+  def testInstall_packageNotAvailableAfterInstall(self):
+    with self.patch_call(
+        self.call.device.product_name,
+        return_value='notflounder'), (self.patch_call(
+            self.call.device.build_version_sdk, return_value=23)), (
+                self.patch_call(self.call.device.IsApplicationInstalled,
+                                return_value=False)):
+      with self.assertCalls(
+          (self.call.device._FakeInstall(set(), None, 'test.package')),
+          (mock.call.os.path.exists(TEST_APK_PATH), True),
+          (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE), []),
+          self.call.adb.Install(TEST_APK_PATH,
+                                reinstall=False,
+                                streaming=None,
+                                allow_downgrade=False)):
+        with self.assertRaisesRegexp(
+            device_errors.CommandFailedError,
+            'not installed on device after explicit install attempt'):
+          self.device.Install(
+              DeviceUtilsInstallTest.mock_apk, retries=0)
 
 
 class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
@@ -1097,7 +1167,8 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
               partial=None,
               reinstall=False,
               streaming=None,
-              allow_downgrade=False))):
+              allow_downgrade=False)),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.InstallSplitApk(
             'base.apk', ['split1.apk', 'split2.apk'], permissions=[], retries=0)
 
@@ -1118,7 +1189,8 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
               partial=None,
               reinstall=False,
               streaming=False,
-              allow_downgrade=False))):
+              allow_downgrade=False)),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.InstallSplitApk(
             'base.apk', ['split1.apk', 'split2.apk'], permissions=[], retries=0)
 
@@ -1143,7 +1215,8 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
                                          partial=TEST_PACKAGE,
                                          reinstall=True,
                                          streaming=None,
-                                         allow_downgrade=False))):
+                                         allow_downgrade=False)),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.InstallSplitApk(
             DeviceUtilsInstallSplitApkTest.mock_apk,
             ['split1.apk', 'split2.apk'],
@@ -1172,7 +1245,8 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
                                          partial=TEST_PACKAGE,
                                          reinstall=True,
                                          streaming=None,
-                                         allow_downgrade=True))):
+                                         allow_downgrade=True)),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.InstallSplitApk(
             DeviceUtilsInstallSplitApkTest.mock_apk,
             ['split1.apk', 'split2.apk'],
@@ -1217,7 +1291,8 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
               partial=None,
               reinstall=False,
               streaming=None,
-              allow_downgrade=False))):
+              allow_downgrade=False)),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.InstallSplitApk(
             DeviceUtilsInstallSplitApkTest.mock_apk,
             ['split1.apk', 'split2.apk'],
