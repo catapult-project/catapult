@@ -35,8 +35,8 @@ found in the LICENSE file.
     <ul>
       <template is="dom-if" if="[[job.bug_id]]">
         <li>
-          <a href="https://crbug.com/[[job.bug_id]]" target="_blank">
-            Issue [[job.bug_id]]
+          <a href="https://crbug.com/[[getProject(job)]]/[[job.bug_id]]" target="_blank">
+            Issue [[getProject(job)]]:[[job.bug_id]]
           </a>
       </template>
       <li>
@@ -65,6 +65,13 @@ found in the LICENSE file.
         job: {
           type: Object,
         },
+      },
+
+      getProject(job) {
+        if (!job || !job.arguments || !job.arguments.project) {
+          return 'chromium';
+        }
+        return job.arguments.project;
       },
 
       getArguments(job) {

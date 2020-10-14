@@ -68,7 +68,13 @@ found in the LICENSE file.
             <td><a href='/job/[[item.job_id]]'>[[item.name]]</a></td>
             <td><a href='[[configurationLink(item.configuration)]]'>[[formatConfiguration(item.configuration)]]</a></td>
             <td>[[item.user]]</td>
-            <td><a href="https://crbug.com/[[item.bug_id]]">[[item.bug_id]]</a></td>
+            <td>
+              <template is="dom-if" if="[[item.bug_id]]">
+                <a href="https://crbug.com/[[getProject(item)]]/[[item.bug_id]]">
+                  [[getProject(item)]]:[[item.bug_id]]
+                </a>
+              </template>
+            </td>
             <td>[[formatDate(item.created)]]</td>
             <td>[[formatComparisonMode(item.comparison_mode)]]</td>
             <td>
@@ -195,6 +201,13 @@ found in the LICENSE file.
 
       canBeCancelled(job) {
         return job.status == 'Queued' || job.status == 'Running';
+      },
+
+      getProject(job) {
+        if (!job || !job.arguments || !job.arguments.project) {
+          return 'chromium';
+        }
+        return job.arguments.project;
       },
     });
   </script>
