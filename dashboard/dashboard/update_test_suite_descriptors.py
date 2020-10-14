@@ -44,12 +44,12 @@ def FetchCachedTestSuiteDescriptor(master, test_suite):
 
   for f in futures:
     cur_desc = f.get_result()
-
-    desc['measurements'].extend(cur_desc['measurements'])
-    desc['bots'].extend(cur_desc['bots'])
-    desc['cases'].extend(cur_desc['cases'])
-    for tag, case_tags in cur_desc['caseTags'].iteritems():
-      desc['caseTags'].setdefault(tag, []).extend(case_tags)
+    if cur_desc is not None:
+      desc['measurements'].extend(cur_desc['measurements'])
+      desc['bots'].extend(cur_desc['bots'])
+      desc['cases'].extend(cur_desc['cases'])
+      for tag, case_tags in cur_desc['caseTags'].iteritems():
+        desc['caseTags'].setdefault(tag, []).extend(case_tags)
 
   desc['measurements'] = list(sorted(set(desc['measurements'])))
   desc['bots'] = list(sorted(set(desc['bots'])))
