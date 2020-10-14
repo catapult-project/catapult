@@ -108,6 +108,7 @@ class DifferencesFoundBugUpdateBuilder(object):
     differences = self._OrderedDifferencesByDelta()
     missing_values = self._DifferencesWithNoValues()
     owner, cc_list, notify_why_text = self._PeopleToNotify()
+    status = None
 
     # Here we're only going to consider the cases where we find differences
     # that have non-empty values, to consider whether we've found no, a single,
@@ -130,8 +131,10 @@ class DifferencesFoundBugUpdateBuilder(object):
           missing_values=missing_values,
       )
     elif missing_values:
-      labels = ['Pinpoint-No-Repro', 'Pinpoint-Multiple-MissingValues']
-      status = 'WontFix'
+      status = 'Assigned'
+      labels = [
+          'Pinpoint-Multiple-MissingValues',
+      ]
       comment_text = _MISSING_VALUES_TMPL.render(
           missing_values=missing_values,
           metric=self._metric,

@@ -738,11 +738,10 @@ class BugCommentTest(test.TestCase):
     self.add_bug_comment.assert_called_once_with(
         123456,
         mock.ANY,
-        status='WontFix',
+        status='Assigned',
         owner='author1@chromium.org',
         cc_list=['author1@chromium.org'],
         labels=[
-            'Pinpoint-No-Repro',
             'Pinpoint-Multiple-MissingValues',
         ],
         merge_issue=None,
