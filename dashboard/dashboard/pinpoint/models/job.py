@@ -460,6 +460,7 @@ class Job(ndb.Model):
         _PostBugCommentDeferred,
         self.bug_id,
         comment,
+        labels=job_bug_update.ComputeLabelUpdates(['Pinpoint-Job-Started']),
         project=self.project,
         send_email=True,
         _retry_options=RETRY_OPTIONS)
@@ -545,7 +546,7 @@ class Job(ndb.Model):
             self.bug_id,
             comment,
             project=self.project,
-            labels=['Pinpoint-Job-Failed'],
+            labels=job_bug_update.ComputeLabelUpdates(['Pinpoint-Job-Failed']),
             _retry_options=RETRY_OPTIONS)
         return
 
@@ -560,7 +561,8 @@ class Job(ndb.Model):
           self.bug_id,
           '\n'.join((title, self.url)),
           project=self.project,
-          labels=['Pinpoint-No-Repro'],
+          labels=job_bug_update.ComputeLabelUpdates(
+              ['Pinpoint-Job-Completed', 'Pinpoint-No-Repro']),
           status='WontFix',
           _retry_options=RETRY_OPTIONS)
       return
@@ -633,7 +635,7 @@ class Job(ndb.Model):
         self.bug_id,
         comment,
         project=self.project,
-        labels=['Pinpoint-Job-Failed'],
+        labels=job_bug_update.ComputeLabelUpdates(['Pinpoint-Job-Failed']),
         send_email=True,
         _retry_options=RETRY_OPTIONS)
     scheduler.Complete(self)
@@ -829,7 +831,7 @@ class Job(ndb.Model):
         comment,
         project=self.project,
         send_email=True,
-        labels=['Pinpoint-Job-Cancelled'],
+        labels=job_bug_update.ComputeLabelUpdates(['Pinpoint-Job-Cancelled']),
         _retry_options=RETRY_OPTIONS)
 
 

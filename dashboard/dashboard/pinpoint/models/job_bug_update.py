@@ -31,6 +31,43 @@ _DIFFERENCES_FOUND_TMPL = _TEMPLATE_ENV.get_template('differences_found.j2')
 _CREATED_TEMPL = _TEMPLATE_ENV.get_template('job_created.j2')
 _MISSING_VALUES_TMPL = _TEMPLATE_ENV.get_template('missing_values.j2')
 
+_LABEL_EXCLUSION_SETS = [
+    {
+        'Pinpoint-Job-Started',
+        'Pinpoint-Job-Completed',
+        'Pinpoint-Job-Failed',
+        'Pinpoint-Job-Pending',
+        'Pinpoint-Job-Cancelled',
+    },
+    {
+        'Pinpoint-Culprit-Found',
+        'Pinpoint-No-Repro',
+        'Pinpoint-Multiple-Culprits',
+        'Pinpoint-Multiple-MissingValues',
+    },
+]
+
+
+def ComputeLabelUpdates(labels):
+  """Builds a set of label updates for known labels applied by Pinpoint."""
+  # Validate that the labels aren't found in the same sets.
+  label_updates = set()
+  for label in labels:
+    found_in_sets = sum(
+        label in label_set for label_set in _LABEL_EXCLUSION_SETS)
+    if found_in_sets > 1:
+      raise ValueError(
+          'label "%s" is found in %s label sets',
+          label,
+          found_in_sets,
+      )
+
+  for label_set in _LABEL_EXCLUSION_SETS:
+    label_updates |= set('-' + l for l in label_set)
+  label_updates -= set('-' + l for l in labels)
+  label_updates |= set(labels)
+  return list(label_updates)
+
 
 class JobUpdateBuilder(object):
   """Builder for job issue updates.
@@ -61,7 +98,8 @@ class JobUpdateBuilder(object):
     env = self._env.copy()
     env.update({'pending': pending})
     comment_text = _CREATED_TEMPL.render(**env)
-    return _BugUpdateInfo(comment_text, None, None, None, None)
+    labels = ComputeLabelUpdates(['Pinpoint-Job-Pending'])
+    return _BugUpdateInfo(comment_text, None, None, labels, None)
 
 
 class DifferencesFoundBugUpdateBuilder(object):
@@ -116,10 +154,12 @@ class DifferencesFoundBugUpdateBuilder(object):
     if differences:
       labels = [
           'Pinpoint-Culprit-Found'
-          if len(differences) == 1 else 'Pinpoint-Multiple-Culprits'
+          if len(differences) == 1 else 'Pinpoint-Multiple-Culprits',
+          'Pinpoint-Job-Completed',
       ]
       if missing_values:
         labels.append('Pinpoint-Multiple-MissingValues')
+      labels = ComputeLabelUpdates(labels)
       status = 'Assigned'
       comment_text = _DIFFERENCES_FOUND_TMPL.render(
           differences=differences,
@@ -132,9 +172,8 @@ class DifferencesFoundBugUpdateBuilder(object):
       )
     elif missing_values:
       status = 'Assigned'
-      labels = [
-          'Pinpoint-Multiple-MissingValues',
-      ]
+      labels = ComputeLabelUpdates(
+          ['Pinpoint-Multiple-MissingValues', 'Pinpoint-Job-Completed'])
       comment_text = _MISSING_VALUES_TMPL.render(
           missing_values=missing_values,
           metric=self._metric,
