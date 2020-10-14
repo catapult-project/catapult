@@ -48,7 +48,7 @@ found in the LICENSE file.
                     required disabled$="[[disabled]]"></commit-input>
     </div>
     <div class="details">
-      <iron-ajax id="loading" method="post" headers="[[headers]]" url="/api/commit" params="[[commitParams(value)]]" loading="{{loading}}" last-error="{{error}}" last-response="{{commitDetails}}"></iron-ajax>
+      <iron-ajax id="loading" method="post" headers="[[headers]]" url="/api/commit" params="{{commitParams(project, value)}}" loading="{{loading}}" last-error="{{error}}" last-response="{{commitDetails}}"></iron-ajax>
       <template is="dom-if" if="[[loading]]">
         <paper-progress indeterminate></paper-progress>
       </template>
@@ -74,6 +74,11 @@ found in the LICENSE file.
           notify: true,
           type: Boolean,
           value: false
+        },
+        project: {
+          notify: true,
+          type: String,
+          value: 'chromium'
         },
         value: {
           notify: true,
@@ -103,8 +108,8 @@ found in the LICENSE file.
         return hash.slice(0, 8);
       },
 
-      commitParams(value) {
-        return {git_hash: value};
+      commitParams(project, value) {
+        return {repository: project, git_hash: value};
       },
 
       hasError(error, value) {

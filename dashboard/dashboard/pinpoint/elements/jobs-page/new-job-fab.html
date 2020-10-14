@@ -242,15 +242,33 @@ found in the LICENSE file.
 
             <template is="dom-if" if="[[!isBisectJob(comparisonMode)]]">
               <div class="horizontal">
-                <commit-details class="column rightPad" value="{{base_git_hash}}" label="Base Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[isBisectJob(comparisonMode)]]"></commit-details>
+                <commit-details class="column rightPad"
+                                project="{{getProject(job)}}"
+                                value="{{base_git_hash}}"
+                                label="Base Git Hash"
+                                items="[[commitsListItems(commitsList)]]"
+                                headers="[[authHeaders]]"
+                                required disabled="[[isBisectJob(comparisonMode)]]"></commit-details>
                 <paper-input class="column" name="patch" value="{{patch}}" label="Patch to apply (Gerrit URL)" required disabled="[[isBisectJob(comparisonMode)]]"></paper-input>
               </div>
             </template>
 
             <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
               <div class="horizontal">
-                  <commit-details class="column rightPad" value="{{start_git_hash}}" label="Start Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
-                  <commit-details class="column" value="{{end_git_hash}}" label="End Git Hash" items="[[commitsListItems(commitsList)]]" headers="[[authHeaders]]" required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
+                  <commit-details class="column rightPad"
+                                  project="{{getProject(job)}}"
+                                  value="{{start_git_hash}}"
+                                  label="Start Git Hash"
+                                  items="[[commitsListItems(commitsList)]]"
+                                  headers="[[authHeaders]]"
+                                  required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
+                  <commit-details class="column"
+                                  project="{{getProject(job)}}"
+                                  value="{{end_git_hash}}"
+                                  label="End Git Hash"
+                                  items="[[commitsListItems(commitsList)]]"
+                                  headers="[[authHeaders]]"
+                                  required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
               </div>
             </template>
 
@@ -260,7 +278,7 @@ found in the LICENSE file.
             <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
               <paper-input name="pin" value="[[job.arguments.pin]]" label="Patch to apply (Gerrit URL)"></paper-input>
             </template>
-            <paper-input name="project" value="{{project}}" label="Monorail Project"></paper-input>
+            <paper-input id="project" name="project" value="{{project}}" label="Monorail Project"></paper-input>
             <paper-input name="bug_id" value="{{bug_id}}" label="Bug ID"></paper-input>
 
             <paper-checkbox name="experimental_execution_engine">
@@ -464,10 +482,17 @@ found in the LICENSE file.
 
       commitsParams(job) {
         return {
-          repository: job.arguments.project,
+          repository: job.arguments.project ? job.arguments.project : 'chromium',
           start_git_hash: job.arguments.start_git_hash,
           end_git_hash: job.arguments.end_git_hash
         };
+      },
+
+      getProject(job) {
+        if (!job || !job.arguments || !job.arguments.project) {
+          return this.$.project.value;
+        }
+        return job.arguments.project;
       },
 
       describeParams(benchmark) {
