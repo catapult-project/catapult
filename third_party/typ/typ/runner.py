@@ -434,7 +434,7 @@ class Runner(object):
             return 1
         contents = self.host.read_text_file(args.expectations_files[0])
 
-        expectations = TestExpectations(set(args.tags))
+        expectations = TestExpectations(set(args.tags), args.ignored_tags)
         err, msg = expectations.parse_tagged_list(
             contents, args.expectations_files[0])
         if err:

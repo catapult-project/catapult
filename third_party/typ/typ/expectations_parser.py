@@ -415,8 +415,9 @@ class TaggedTestListParser(object):
 
 class TestExpectations(object):
 
-    def __init__(self, tags=None):
+    def __init__(self, tags=None, ignored_tags=None):
         self.tag_sets = []
+        self.ignored_tags = set(ignored_tags or [])
         self.set_tags(tags or [])
         # Expectations may either refer to individual tests, or globs of
         # tests. Each test (or glob) may have multiple sets of tags and
@@ -448,19 +449,22 @@ class TestExpectations(object):
         def _pluralize_unknown(missing):
             if len(missing) > 1:
                 return ('s %s ' % ', '.join(missing[:-1]) + 'and %s ' % missing[-1] + 'are',
-                        's are')
+                        'have', 's are')
             else:
-                return (' %s ' % missing[0] + 'is', ' is')
+                return (' %s ' % missing[0] + 'is', 'has', ' is')
         tags = [t.lower() for t in tags]
         unknown_tags = sorted([
             t for t in tags
-            if self.tag_sets and all(t not in tag_set for tag_set in self.tag_sets)])
+            if self.tag_sets and all(
+                    t not in tag_set and t not in self.ignored_tags
+                    for tag_set in self.tag_sets)])
         if unknown_tags:
             msg = (
-                'Tag%s not declared in the expectations file. '
-                'There may have been a typo in the expectations file. '
-                'Please make sure the aforementioned tag%s declared at '
-                'the top of the expectations file.' % _pluralize_unknown(unknown_tags))
+                'Tag%s not declared in the expectations file and %s not been '
+                'explicitly ignored by the test. There may have been a typo in '
+                'the expectations file. Please make sure the aforementioned '
+                'tag%s declared at the top of the expectations file.' %
+                _pluralize_unknown(unknown_tags))
             if raise_ex_for_bad_tags:
                 raise ValueError(msg)
             else:

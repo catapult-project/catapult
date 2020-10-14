@@ -193,6 +193,20 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
     """
     return []
 
+  @classmethod
+  def IgnoredTags(cls):
+    """Subclasses can override this class method to return a list of typ
+    expectation tags to ignore for the purposes of tag validation.
+
+    This is so that expectation files don't need to get cluttered with
+    unnecessary tags, e.g. if two tags are functionally equivalent or if some
+    tag is completely unnecessary for a particular test type.
+
+    Returns:
+      A list of typ tags.
+    """
+    return []
+
   def GetExpectationsForTest(self):
     """Subclasses can override this method to return a tuple containing a set
     of expected results and a flag indicating if the test has the RetryOnFailure

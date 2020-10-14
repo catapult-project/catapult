@@ -314,6 +314,7 @@ def RunTests(args):
   assert all(os.path.isabs(path) for path in test_class_expectations_files)
   typ_runner.args.expectations_files.extend(
       test_class_expectations_files)
+  typ_runner.args.ignored_tags.extend(test_class.IgnoredTags())
 
   # Since sharding logic is handled by browser_test_runner harness by passing
   # browser_test_context.test_case_ids_to_run to subprocess to indicate test

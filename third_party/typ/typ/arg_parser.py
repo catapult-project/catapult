@@ -162,6 +162,11 @@ class ArgumentParser(argparse.ArgumentParser):
                               dest='tags', default=[], action='append',
                               help=('test tags (conditions) that apply to '
                                     'this run (can specify multiple times'))
+            self.add_argument('-i', '--ignore-tag',
+                              dest='ignored_tags', default=[], action='append',
+                              help=('test tags (conditions) to treat as '
+                                    'ignored for the purposes of tag '
+                                    'validation.'))
             self.add_argument('-X', '--expectations-file',
                               dest='expectations_files',
                               default=[], action='append',

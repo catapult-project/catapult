@@ -280,7 +280,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
             ' were found in multiple tag sets',
             str(context.exception))
 
-    def testDisjoinTagsets(self):
+    def testDisjointTagsets(self):
         raw_data = ('# tags: [ Mac Win Linux ]\n'
                     '# tags: [ Honda BMW ]')
         expectations_parser.TaggedTestListParser(raw_data)
@@ -744,10 +744,10 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         with self.assertRaises(ValueError) as context:
             expectations.set_tags(['Unknown'], raise_ex_for_bad_tags=True)
         self.assertEqual(str(context.exception),
-            'Tag unknown is not declared in the expectations file. '
-            'There may have been a typo in the expectations file. '
-            'Please make sure the aforementioned tag is declared at '
-            'the top of the expectations file.')
+            'Tag unknown is not declared in the expectations file and has not '
+            'been explicitly ignored by the test. There may have been a typo '
+            'in the expectations file. Please make sure the aforementioned tag '
+            'is declared at the top of the expectations file.')
 
     def testNonDeclaredSystemConditionTagsRaisesException_PluralCase(self):
         test_expectations = '''# tags: [ InTel AMD nvidia ]
@@ -762,10 +762,21 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
             expectations.set_tags(['Unknown', 'linux', 'nVidia', 'nvidia-0x1010'],
                                   raise_ex_for_bad_tags=True)
         self.assertEqual(str(context.exception),
-            'Tags linux, nvidia-0x1010 and unknown are not declared '
-            'in the expectations file. There may have been a typo in '
-            'the expectations file. Please make sure the aforementioned '
-            'tags are declared at the top of the expectations file.')
+            'Tags linux, nvidia-0x1010 and unknown are not declared in the '
+            'expectations file and have not been explicitly ignored by the '
+            'test. There may have been a typo in the expectations file. Please '
+            'make sure the aforementioned tags are declared at the top of the '
+            'expectations file.')
+
+    def testIgnoredTags(self):
+        test_expectations = """# tags: [ foo ]
+        # results: [ Failure ]
+        """
+        expectations = expectations_parser.TestExpectations(
+                ignored_tags=['ignored'])
+        _, msg = expectations.parse_tagged_list(test_expectations, 'test.txt')
+        self.assertFalse(msg)
+        expectations.set_tags(['ignored'], raise_ex_for_bad_tags=True)
 
     def testDeclaredSystemConditionTagsDontRaiseAnException(self):
         test_expectations = '''# tags: [ InTel AMD nvidia nvidia-0x1010 ]
