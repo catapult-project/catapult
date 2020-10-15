@@ -147,9 +147,12 @@ class IssueTrackerService(object):
     request = self._service.issues().comments().insert(
         projectId=project, issueId=bug_id, sendEmail=send_email, body=body)
     try:
-      if self._ExecuteRequest(request):
+      response = self._ExecuteRequest(request)
+      logging.debug('Monorail response = %s', response)
+      if response is not None:
         return True
     except errors.HttpError as e:
+      logging.error('Monorail error: %s', e)
       reason = _GetErrorReason(e)
       if reason is None:
         reason = ''
@@ -172,7 +175,12 @@ class IssueTrackerService(object):
       elif 'User is not allowed to view this issue' in reason:
         logging.warning('Unable to update bug %s with body %s', bug_id, body)
         return True
-    logging.error('Error updating bug %s with body %s', bug_id, body)
+    logging.error(
+        'Error updating issue %s:%s with body %s',
+        project,
+        bug_id,
+        body,
+    )
     return False
 
   def NewBug(self,
