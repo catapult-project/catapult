@@ -42,6 +42,7 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
         {
             'arguments': mock.ANY,
             'bug_id': None,
+            'project': 'chromium',
             'cancel_reason': None,
             'comparison_mode': 'performance',
             'configuration': mock.ANY,
@@ -88,6 +89,8 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
                 mock.ANY,
             'bug_id':
                 None,
+            'project':
+                'chromium',
             'cancel_reason':
                 None,
             'comparison_mode':

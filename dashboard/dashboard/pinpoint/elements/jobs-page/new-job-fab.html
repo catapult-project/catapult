@@ -243,7 +243,7 @@ found in the LICENSE file.
             <template is="dom-if" if="[[!isBisectJob(comparisonMode)]]">
               <div class="horizontal">
                 <commit-details class="column rightPad"
-                                project="{{getProject(job)}}"
+                                project="{{project}}"
                                 value="{{base_git_hash}}"
                                 label="Base Git Hash"
                                 items="[[commitsListItems(commitsList)]]"
@@ -256,14 +256,14 @@ found in the LICENSE file.
             <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
               <div class="horizontal">
                   <commit-details class="column rightPad"
-                                  project="{{getProject(job)}}"
+                                  project="{{project}}"
                                   value="{{start_git_hash}}"
                                   label="Start Git Hash"
                                   items="[[commitsListItems(commitsList)]]"
                                   headers="[[authHeaders]]"
                                   required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
                   <commit-details class="column"
-                                  project="{{getProject(job)}}"
+                                  project="{{project}}"
                                   value="{{end_git_hash}}"
                                   label="End Git Hash"
                                   items="[[commitsListItems(commitsList)]]"
@@ -278,7 +278,7 @@ found in the LICENSE file.
             <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
               <paper-input name="pin" value="[[job.arguments.pin]]" label="Patch to apply (Gerrit URL)"></paper-input>
             </template>
-            <paper-input id="project" name="project" value="{{project}}" label="Monorail Project"></paper-input>
+            <paper-input name="project" value="{{project::input}}" label="Monorail Project"></paper-input>
             <paper-input name="bug_id" value="{{bug_id}}" label="Bug ID"></paper-input>
 
             <paper-checkbox name="experimental_execution_engine">
@@ -486,13 +486,6 @@ found in the LICENSE file.
           start_git_hash: job.arguments.start_git_hash,
           end_git_hash: job.arguments.end_git_hash
         };
-      },
-
-      getProject(job) {
-        if (!job || !job.arguments || !job.arguments.project) {
-          return this.$.project.value;
-        }
-        return job.arguments.project;
       },
 
       describeParams(benchmark) {

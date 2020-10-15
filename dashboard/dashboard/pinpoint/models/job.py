@@ -759,6 +759,7 @@ class Job(ndb.Model):
         'results_url': self.results_url,
         'arguments': self.arguments,
         'bug_id': self.bug_id,
+        'project': self.project,
         'comparison_mode': self.comparison_mode,
         'name': self.auto_name,
         'user': self.user,
