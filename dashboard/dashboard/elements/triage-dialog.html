@@ -121,7 +121,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
                target="_blank">
                {{lastSubmittedProjectId}}:{{lastSubmittedBugId}}
             </a> created/updated.
-        <template is="dom-if" if="{{!!lastSubmittedTryJobId}}">
+        <template is="dom-if" if="{{lastSubmittedTryJobId}}">
           Bisect job <a href="{{lastSubmittedTryJobUrl}}"
                         target="_blank">{{lastSubmittedTryJobId}}</a> started.
         </template>
@@ -158,8 +158,8 @@ Polymer({
       value: ''
     },
     lastSubmittedTryJobId: {
-      type: Number,
-      value: 0
+      type: String,
+      value: ''
     },
     lastSubmittedTryJobUrl: {
       type: String,
