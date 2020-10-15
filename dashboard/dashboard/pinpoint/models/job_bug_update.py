@@ -368,7 +368,7 @@ def UpdatePostAndMergeDeferred(bug_update_builder, bug_id, tags, url, project):
     # Always set the owner, and move the current owner to CC.
     bug_owner = bug_update.owner
     if owner:
-      cc_list.append(owner)
+      cc_list.add(owner)
 
   issue_tracker.AddBugComment(
       bug_id,
