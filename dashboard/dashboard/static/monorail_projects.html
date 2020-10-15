@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--
+Copyright 2020 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/base.html">
+
+<script>
+'use strict';
+tr.exportTo('d', function() {
+  // TODO(crbug.com/1116480): This list should come from a Monorail API.
+  const MONORAIL_PROJECTS = [
+    'angleproject',
+    'aomedia',
+    'apvi',
+    'boringssl',
+    'chromedriver',
+    'chromium',
+    'crashpad',
+    'dawn',
+    'gerrit',
+    'git',
+    'gn',
+    'google-breakpad',
+    'gyp',
+    'libyuv',
+    'linux-syscall-support',
+    'monorail',
+    'nativeclient',
+    'openscreen',
+    'oss-fuzz',
+    'pdfium',
+    'pigweed',
+    'project-zero',
+    'skia',
+    'swiftshader',
+    'tint',
+    'v8',
+    'webm',
+    'webp',
+    'webports',
+    'webrtc',
+  ];
+
+  return {
+    MONORAIL_PROJECTS,
+  };
+});
+</script>

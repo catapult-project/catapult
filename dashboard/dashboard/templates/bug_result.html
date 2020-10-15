@@ -12,6 +12,13 @@ This template contains HTML for the following things:
  - A "bug created" message with a link after creating a new bug.
  - Error messages related to the above.
 -->
+
+<link rel="import" href="/components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="/components/paper-input/paper-input.html">
+<link rel="import" href="/components/paper-listbox/paper-listbox.html">
+<link rel="import" href="/components/polymer/polymer.html">
+<link rel="import" href="/dashboard/static/monorail_projects.html">
+
 <html>
   <head>
     <style>
@@ -161,13 +168,13 @@ This template contains HTML for the following things:
     {% elif bug_associate_form %}
       <form action="/associate_alerts" method="POST">
         <input type="hidden" name="keys" value="{{keys}}">
-        <select name="project_id" id="project_id">
-          {% for project in projects %}
-            <option {% if project == 'chromium' %}selected{% endif %}>
-              {{project}}
-            </option>
-          {% endfor %}
-        </select>
+        <paper-dropdown-menu name="project_id" id="project_id">
+          <paper-listbox class="dropdown-content" selected="chromium">
+            <template is="dom-repeat" items="[[d.MONORAIL_PROJECTS]]">
+              <paper-item>[[item]]</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
         <input type="text" name="bug_id" id="bug_id"
                required placeholder="Bug ID" pattern="[0-9]+">
         <br><br>
@@ -231,13 +238,13 @@ This template contains HTML for the following things:
       <textarea rows=10 cols=60 name="description">{{description}}</textarea>
       <br><br>
       <b>Monorail project</b><br>
-      <select name="project_id" id="project_id">
-        {% for project in projects %}
-          <option {% if project == 'chromium' %}selected{% endif %}>
-            {{project}}
-          </option>
-        {% endfor %}
-      </select>
+      <paper-dropdown-menu name="project_id" id="project_id">
+        <paper-listbox class="dropdown-content" selected="chromium">
+          <template is="dom-repeat" items="[[d.MONORAIL_PROJECTS]]">
+            <paper-item>[[item]]</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
       <br><br>
       <b>Labels:</b><br>
       {% for label in labels %}

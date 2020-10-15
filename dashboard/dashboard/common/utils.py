@@ -45,15 +45,6 @@ _AUTOROLL_DOMAINS = (
 )
 STATISTICS = ['avg', 'count', 'max', 'min', 'std', 'sum']
 
-# TODO(crbug.com/1116480): This list should come from a call to a Monorail API.
-MONORAIL_PROJECTS = [
-    'angleproject', 'aomedia', 'apvi', 'boringssl', 'chromedriver', 'chromium',
-    'crashpad', 'dawn', 'gerrit', 'git', 'gn', 'google-breakpad', 'gyp',
-    'libyuv', 'linux-syscall-support', 'monorail', 'nativeclient', 'openscreen',
-    'oss-fuzz', 'pdfium', 'pigweed', 'project-zero', 'skia', 'swiftshader',
-    'tint', 'v8', 'webm', 'webp', 'webports', 'webrtc'
-]
-
 
 class _SimpleCache(
     collections.namedtuple('_SimpleCache', ('timestamp', 'value'))):

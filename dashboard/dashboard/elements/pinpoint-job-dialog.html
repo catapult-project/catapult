@@ -10,13 +10,16 @@ found in the LICENSE file.
 <link rel="import" href="/components/paper-button/paper-button.html">
 <link rel="import" href="/components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="/components/paper-dialog/paper-dialog.html">
+<link rel="import" href="/components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="/components/paper-input/paper-input.html">
+<link rel="import" href="/components/paper-listbox/paper-listbox.html">
 <link rel="import" href="/components/paper-radio-button/paper-radio-button.html">
 <link rel="import" href="/components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="/components/paper-spinner/paper-spinner.html">
 <link rel="import" href="/components/polymer/polymer.html">
 
 <link rel="import" href="/dashboard/static/base.html">
+<link rel="import" href="/dashboard/static/monorail_projects.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
 <dom-module id="pinpoint-job-dialog">
@@ -52,7 +55,13 @@ found in the LICENSE file.
     <paper-dialog id="container" autoCloseDisabled="true">
       <form>
         <paper-input id="test-path" label="Test Path" value="{{test_path::input}}" disabled></paper-input>
-        <paper-input id="project-id" label="Monorail Project" value="{{project_id::input}}"></paper-input>
+        <paper-dropdown-menu label="Monorail Project" value="{{project_id::input}}">
+          <paper-listbox class="dropdown-content" selected="{{project_id}}">
+            <template is="dom-repeat" items="[[d.MONORAIL_PROJECTS]]">
+              <paper-item>[[item]]</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
         <paper-input id="bug-id" label="Bug ID" value="{{bug_id::input}}"></paper-input>
         <paper-input id="start_commit" label="Start Commit" value="{{start_commit::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
         <paper-input id="end_commit" label="End Commit" value="{{end_commit::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>

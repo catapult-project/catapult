@@ -86,7 +86,6 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
             'bug_associate_form': True,
             'keys': urlsafe_keys,
             'bugs': bugs,
-            'projects': utils.MONORAIL_PROJECTS
         })
 
   def _FetchBugs(self):
