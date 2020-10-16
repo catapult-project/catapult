@@ -264,15 +264,16 @@ class BrowserFinderOptions(optparse.Values):
         default='out/Release',
         help='Specify the ssh_config file used to connect to the Fuchsia OS.')
     group.add_option(
+        '--fuchsia-device-address',
+        help='The IP of the target Fuchsia device. Optional.')
+    group.add_option(
         '--fuchsia-ssh-port',
-        default=None,
         type=int,
         help='The port on the host to which the ssh service running on the '
         'Fuchsia device was forwarded. Will skip using the device-finder tool '
         'if specified.')
     group.add_option(
         '--fuchsia-system-log-file',
-        default=None,
         help='The file where Fuchsia system logs will be stored.')
     group.add_option(
         '--fuchsia-repo',

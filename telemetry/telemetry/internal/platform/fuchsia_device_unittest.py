@@ -61,13 +61,14 @@ class FuchsiaSDKUsageTest(unittest.TestCase):
     self._options.fuchsia_ssh_port = None
     self._options.fuchsia_system_log_file = None
     self._options.fuchsia_repo = None
+    self._options.fuchsia_device_address = None
 
   def testSkipSDKUseIfSshPortExists(self):
     self._options.fuchsia_ssh_port = 22222
     with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH +
                     '._DownloadFuchsiaSDK') as get_mock:
       found_devices = fuchsia_device.FindAllAvailableDevices(self._options)
-      self.assertEquals(get_mock.call_count, 0)
+      get_mock.assert_not_called()
       self.assertEquals(len(found_devices), 1)
       device = found_devices[0]
       self.assertEquals(device.port, 22222)
@@ -122,7 +123,7 @@ class FuchsiaSDKUsageTest(unittest.TestCase):
                         return_value=None) as find_mock:
           self.assertEquals(fuchsia_device.FindAllAvailableDevices(
               self._options), [])
-          self.assertEquals(get_mock.call_count, 0)
+          get_mock.assert_not_called()
           self.assertEquals(find_mock.call_count, 1)
 
   def testSkipDownloadSDKIfExistsInCatapult(self):
@@ -141,7 +142,7 @@ class FuchsiaSDKUsageTest(unittest.TestCase):
           path_mock.side_effect = side_effect
           self.assertEquals(fuchsia_device.FindAllAvailableDevices(
               self._options), [])
-          self.assertEquals(get_mock.call_count, 0)
+          get_mock.assert_not_called()
           self.assertEquals(find_mock.call_count, 1)
 
   def testFoundZeroFuchsiaDevice(self):
@@ -170,3 +171,50 @@ class FuchsiaSDKUsageTest(unittest.TestCase):
         device = found_devices[0]
         self.assertEquals(device.host, 'host0')
         self.assertEquals(device.target_name, 'target0')
+
+  def testSkipUsingSDKIfFuchsiaSshPortFlagUsed(self):
+
+    with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH +
+                    '._DownloadFuchsiaSDK') as get_mock:
+      with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH + '._FindFuchsiaDevice',
+                      return_value=None) as find_mock:
+        self._options.fuchsia_ssh_port = 8222
+        found_devices = fuchsia_device.FindAllAvailableDevices(self._options)
+        self.assertEquals(len(found_devices), 1)
+        device = found_devices[0]
+        self.assertEquals(device.host, 'localhost')
+        self.assertEquals(device.target_name, 'local_device')
+        get_mock.assert_not_called()
+        find_mock.assert_not_called()
+
+  def testSkipUsingSDKIfFuchsiaHostFlagUsed(self):
+
+    with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH +
+                    '._DownloadFuchsiaSDK') as get_mock:
+      with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH + '._FindFuchsiaDevice',
+                      return_value=None) as find_mock:
+        self._options.fuchsia_device_address = 'fuchsia_device'
+        found_devices = fuchsia_device.FindAllAvailableDevices(self._options)
+        self.assertEquals(len(found_devices), 1)
+        device = found_devices[0]
+        self.assertEquals(device.host, 'fuchsia_device')
+        self.assertEquals(device.target_name, 'device_target')
+        get_mock.assert_not_called()
+        find_mock.assert_not_called()
+
+  def testSkipUsingFuchsiaHostFlagIfFuchsiaSshPortFlagUsed(self):
+
+    with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH +
+                    '._DownloadFuchsiaSDK') as get_mock:
+      with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH + '._FindFuchsiaDevice',
+                      return_value=None) as find_mock:
+        self._options.fuchsia_device_address = 'fuchsia_device'
+        self._options.fuchsia_ssh_port = 8222
+        found_devices = fuchsia_device.FindAllAvailableDevices(self._options)
+        self.assertEquals(len(found_devices), 1)
+        device = found_devices[0]
+        self.assertEquals(device.host, 'localhost')
+        self.assertEquals(device.target_name, 'local_device')
+        get_mock.assert_not_called()
+        find_mock.assert_not_called()
+

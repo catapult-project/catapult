@@ -138,6 +138,15 @@ def FindAllAvailableDevices(options):
                           port=options.fuchsia_ssh_port,
                           managed_repo=options.fuchsia_repo)]
 
+  # If the IP address of the device is specified, use that directly.
+  elif options.fuchsia_device_address:
+    return [FuchsiaDevice(target_name='device_target',
+                          host=options.fuchsia_device_address,
+                          system_log_file=options.fuchsia_system_log_file,
+                          ssh_config=options.fuchsia_ssh_config,
+                          port=options.fuchsia_ssh_port,
+                          managed_repo=options.fuchsia_repo)]
+
   # Download the Fuchsia SDK if it doesn't exist.
   # TODO(https://crbug.com/1031763): Figure out how to use the dependency
   # manager.
