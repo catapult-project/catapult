@@ -54,6 +54,15 @@ var ImportView = (function() {
   ImportView.LOADED_INFO_COMMAND_LINE_ID = 'import-view-command-line';
   ImportView.LOADED_INFO_ACTIVE_FIELD_TRIAL_GROUPS_ID =
       'import-view-activeFieldTrialGroups';
+  ImportView.LOADED_INFO_ROW_ADDED_FIELD_TRIAL_GROUPS_ID =
+      'import-view-row-addedFieldTrialGroups';
+  ImportView.LOADED_INFO_ADDED_FIELD_TRIAL_GROUPS_ID =
+      'import-view-addedFieldTrialGroups';
+  ImportView.LOADED_INFO_ROW_REMOVED_FIELD_TRIAL_GROUPS_ID =
+      'import-view-row-removedFieldTrialGroups';
+  ImportView.LOADED_INFO_REMOVED_FIELD_TRIAL_GROUPS_ID =
+      'import-view-removedFieldTrialGroups';
+  ImportView.LOADED_INFO_ROW_USER_COMMENTS_ID = 'import-view-row-user-comments';
   ImportView.LOADED_INFO_USER_COMMENTS_ID = 'import-view-user-comments';
 
   cr.addSingletonGetter(ImportView);
@@ -67,7 +76,7 @@ var ImportView = (function() {
      * loading the new ones.  Returns true to indicate the view should
      * still be visible.
      */
-    onLoadLogFinish: function(polledData, unused, logDump) {
+    onLoadLogFinish(polledData, unused, logDump) {
       $(ImportView.LOADED_INFO_NUMERIC_DATE_ID).textContent =
           timeutil.dateToString(new Date(Constants.clientInfo.numericDate));
       $(ImportView.LOADED_INFO_CAPTURE_MODE_ID).textContent =
@@ -86,51 +95,90 @@ var ImportView = (function() {
           Constants.clientInfo.os_type;
       $(ImportView.LOADED_INFO_COMMAND_LINE_ID).textContent =
           Constants.clientInfo.command_line;
-      $(ImportView.LOADED_INFO_ACTIVE_FIELD_TRIAL_GROUPS_ID).textContent =
-          (Constants.activeFieldTrialGroups &&
-           Constants.activeFieldTrialGroups.constructor == Array)
-          ? Constants.activeFieldTrialGroups.join(' ')
-          : '';
-
-      if (logDump.userComments != undefined) {
-        $(ImportView.LOADED_INFO_USER_COMMENTS_ID).textContent =
-            logDump.userComments;
-      } else {
-        $(ImportView.LOADED_INFO_USER_COMMENTS_ID).textContent = '';
-      }
-
+      this.displayTrials_(Constants.activeFieldTrialGroups,
+                          polledData.activeFieldTrialGroups);
+      this.displayUserComments_(logDump.userComments);
       setNodeDisplay(this.loadedDiv_, true);
       return true;
     },
 
     /**
-     * Called when something is dragged over the drop target.
-     *
-     * Returns false to cancel default browser behavior when a single file is
-     * being dragged.  When this happens, we may not receive a list of files for
-     * security reasons, which is why we allow the |files| array to be empty.
+     * Display the active Field Trials and Trials activated or deactivated
+     * during the capture (if possible).
      */
-    onDrag: function(event) {
-      // NOTE: Use Array.prototype.indexOf here is necessary while WebKit
-      // decides which type of data structure dataTransfer.types will be
-      // (currently between DOMStringList and Array). These have different APIs
-      // so assuming one type or the other was breaking things. See
-      // http://crbug.com/115433. TODO(dbeam): Remove when standardized more.
-      var indexOf = Array.prototype.indexOf;
-      return indexOf.call(event.dataTransfer.types, 'Files') == -1 ||
-          event.dataTransfer.files.length > 1;
+    displayTrials_(trialsAtStart, trialsAtEnd) {
+      if (trialsAtStart && trialsAtStart.constructor !== Array) {
+        trialsAtStart = undefined;
+      }
+      if (trialsAtEnd && trialsAtEnd.constructor !== Array) {
+        trialsAtEnd = undefined;
+      }
+
+      // Display the Active Trials, preferring the list of Trials Active at the
+      // end of the capture, if available. |trialsAtEnd| is absent from netlogs
+      // captured before Chrome 88, and logs captured using the command-line
+      // --log-net-log command (crbug.com/739487).
+      $(ImportView.LOADED_INFO_ACTIVE_FIELD_TRIAL_GROUPS_ID).textContent =
+          (trialsAtEnd || trialsAtStart || []).join(' ');
+
+      // Calculate and display the lists of Trials activated or deactivated
+      // during the capture.
+      const rowAdded =
+          $(ImportView.LOADED_INFO_ROW_ADDED_FIELD_TRIAL_GROUPS_ID);
+      const rowRemoved =
+          $(ImportView.LOADED_INFO_ROW_REMOVED_FIELD_TRIAL_GROUPS_ID);
+
+      // Without Field Trial lists recorded at both the start and the end of the
+      // capture, we cannot calculate the diff.
+      if (!trialsAtStart || !trialsAtEnd) {
+        setNodeDisplay(rowAdded, false);
+        setNodeDisplay(rowRemoved, false);
+        return;
+      }
+
+      // Helper to render the Diff between two lists of Trials.
+      function showDiff(listFirst, listSecond, rowDiff, spanDiff) {
+        const setSecond = new Set(listSecond);
+        const listDiff = listFirst.filter(item => !setSecond.has(item));
+        spanDiff.textContent = listDiff.join(' ');
+        setNodeDisplay(rowDiff, listDiff.length > 0);
+      }
+
+      // Display Field Trials activated during the capture.
+      showDiff(trialsAtEnd, trialsAtStart, rowAdded,
+               $(ImportView.LOADED_INFO_ADDED_FIELD_TRIAL_GROUPS_ID));
+      // Display Field Trials deactivated during the capture.
+      showDiff(trialsAtStart, trialsAtEnd, rowRemoved,
+               $(ImportView.LOADED_INFO_REMOVED_FIELD_TRIAL_GROUPS_ID));
     },
 
     /**
-     * Called when something is dropped onto the drop target.  If it's a single
-     * file, tries to load it as a log file.
+     * Display User Comments (if any).
      */
-    onDrop: function(event) {
-      var indexOf = Array.prototype.indexOf;
-      if (indexOf.call(event.dataTransfer.types, 'Files') == -1 ||
-          event.dataTransfer.files.length != 1) {
+    displayUserComments_(comments) {
+      $(ImportView.LOADED_INFO_USER_COMMENTS_ID).textContent = comments || '';
+      setNodeDisplay($(ImportView.LOADED_INFO_ROW_USER_COMMENTS_ID),
+                     !!comments);
+    },
+
+    /**
+     * Prevent default browser behavior when a file is dragged over the page to
+     * allow our onDrop() handler to handle the drop.
+     */
+    onDrag(event) {
+      if (event.dataTransfer.types.includes('Files')) {
+        event.preventDefault();
+      }
+    },
+
+    /**
+     * If a single file is dropped, try to load it as a log file.
+     */
+    onDrop(event) {
+      if (event.dataTransfer.files.length !== 1) {
         return;
       }
+
       event.preventDefault();
 
       // Loading a log file may hide the currently active tab.  Switch to the
@@ -145,14 +193,12 @@ var ImportView = (function() {
      *
      * Gets the log file from the input element and tries to read from it.
      */
-    logFileChanged: function() {
-      this.loadLogFile(this.loadFileElement_.files[0]);
-    },
+    logFileChanged() { this.loadLogFile(this.loadFileElement_.files[0]); },
 
     /**
      * Attempts to read from the File |logFile|.
      */
-    loadLogFile: function(logFile) {
+    loadLogFile(logFile) {
       if (logFile) {
         this.setLoadFileStatus('Loading log...', true);
         var fileReader = new FileReader();
@@ -168,7 +214,7 @@ var ImportView = (function() {
      * Displays an error message when unable to read the selected log file.
      * Also clears the file input control, so the same file can be reloaded.
      */
-    onLoadLogFileError: function(event) {
+    onLoadLogFileError(event) {
       this.loadFileElement_.value = null;
       this.setLoadFileStatus(
           'Error ' + getKeyWithValue(FileError, event.target.error.code) +
@@ -176,35 +222,30 @@ var ImportView = (function() {
           false);
     },
 
-    onLoadLogFile: function(logFile, event) {
+    onLoadLogFile(logFile, event) {
       var result = LogUtil.loadLogFile(event.target.result, logFile.name);
       this.setLoadFileStatus(result, false);
     },
 
     /**
      * Sets the load from file status text, displayed below the load file
-     * button, to |text|.  Also enables or disables the load buttons based on
+     * button, to |text|. Also enables or disables the load buttons based on
      * the value of |isLoading|, which must be true if the load process is still
      * ongoing, and false when the operation has stopped, regardless of success
-     * of failure.  Also, when loading is done, replaces the load button so the
-     * same file can be loaded again.
+     * of failure. Also, when loading is done, clears the file input control, so
+     * the same file can be reloaded.
      */
-    setLoadFileStatus: function(text, isLoading) {
+    setLoadFileStatus(text, isLoading) {
       this.enableLoadFileElement_(!isLoading);
       this.loadStatusText_.textContent = text;
 
       if (!isLoading) {
-        // Clear the button, so the same file can be reloaded.  Recreating the
-        // element seems to be the only way to do this.
-        var loadFileElementId = this.loadFileElement_.id;
-        var loadFileElementOnChange = this.loadFileElement_.onchange;
-        this.loadFileElement_.outerHTML = this.loadFileElement_.outerHTML;
-        this.loadFileElement_ = $(loadFileElementId);
-        this.loadFileElement_.onchange = loadFileElementOnChange;
+        // Clear the input, so the same file can be reloaded.
+        this.loadFileElement_.value = null;
       }
 
       // Style the log output differently depending on what just happened.
-      var pos = text.indexOf('Log loaded.');
+      const pos = text.indexOf('Log loaded.');
       if (isLoading) {
         this.loadStatusText_.className = 'import-view-pending-log';
       } else if (pos == 0) {
@@ -216,7 +257,7 @@ var ImportView = (function() {
       }
     },
 
-    enableLoadFileElement_: function(enabled) {
+    enableLoadFileElement_(enabled) {
       this.loadFileElement_.disabled = !enabled;
     },
   };
