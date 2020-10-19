@@ -78,7 +78,7 @@ tr.exportTo('tr.metrics', function() {
     }
   }
 
-  function subtractBins_(x, y) {
+  function subtractBins_(x, y, name) {
     x.sum -= y.sum;
     let p1 = 0;
     let p2 = 0;
@@ -86,12 +86,12 @@ tr.exportTo('tr.metrics', function() {
       while (p1 < x.bins.length && x.bins[p1].min !== y.bins[p2].min) {
         p1++;
       }
-      if (p1 === x.bins.length) throw new Error('Cannot subtract');
+      if (p1 === x.bins.length) throw new Error(`Cannot subtract (${name}).`);
       if (x.bins[p1].max !== y.bins[p2].max) {
-        throw new Error('Incompatible bins');
+        throw new Error(`Incompatible bins (${name}).`);
       }
       if (x.bins[p1].count < y.bins[p2].count) {
-        throw new Error('Cannot subtract');
+        throw new Error(`Cannot subtract (${name}).`);
       }
       x.bins[p1].count -= y.bins[p2].count;
       for (const event of y.bins[p2].events) {
@@ -150,13 +150,13 @@ tr.exportTo('tr.metrics', function() {
         if (!histogramValues.has(name)) histogramValues.set(name, values);
         const endValues = parseBuckets_(events[events.length - 1], processName);
         if (events.length === 1) {
-          mergeBins_(values, endValues);
+          mergeBins_(values, endValues, name);
         } else if (events.length === 2) {
-          subtractBins_(endValues, parseBuckets_(events[0], processName));
+          subtractBins_(endValues, parseBuckets_(events[0], processName, name));
           mergeBins_(values, endValues);
         } else {
-          throw new Error('There should be at most two snapshots of an UMA ' +
-                          'histogram in each process');
+          throw new Error('There should be at most two snapshots of UMA ' +
+                          `histogram for ${name} in each process.`);
         }
       }
     }
@@ -182,7 +182,9 @@ tr.exportTo('tr.metrics', function() {
       // Similarly, if shift is greater than 0.5, the sum of samples cannot add
       // up to the sum we read from traces, even if we put all samples at the
       // highest value of their bins.
-      if (Math.abs(shift) > 0.5) throw new Error('Samples sum is wrong');
+      if (Math.abs(shift) > 0.5) {
+        throw new Error(`Samples sum is wrong for ${name}.`);
+      }
 
       for (const bin of values.bins) {
         if (bin.count === 0) continue;
