@@ -482,7 +482,12 @@ class BugCommentTest(test.TestCase):
         'subject': 'Subject.',
         'message': 'Subject.\n\nCommit message.',
     }
-    self.get_issue.return_value = {'status': 'Assigned'}
+    self.get_issue.return_value = {
+        'status': 'Assigned',
+        'owner': {
+            'email': 'some-author@somewhere.org'
+        }
+    }
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
     self.ExecuteDeferredTasks('default')
@@ -492,7 +497,7 @@ class BugCommentTest(test.TestCase):
         mock.ANY,
         owner='author@chromium.org',
         status=None,
-        cc_list=['author@chromium.org'],
+        cc_list=['author@chromium.org', 'some-author@somewhere.org'],
         labels=mock.ANY,
         merge_issue=None,
         project='chromium')

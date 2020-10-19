@@ -7,8 +7,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import collections
 import jinja2
-from collections import namedtuple
+import logging
 import math
 import os.path
 
@@ -284,8 +285,13 @@ class _Difference(object):
 
 
 class _BugUpdateInfo(
-    namedtuple('_BugUpdateInfo',
-               ['comment_text', 'owner', 'cc_list', 'labels', 'status'])):
+    collections.namedtuple('_BugUpdateInfo', [
+        'comment_text',
+        'owner',
+        'cc_list',
+        'labels',
+        'status',
+    ])):
   """An update to post to a bug.
 
   This is the return type of DifferencesFoundBugUpdateBuilder.BuildUpdate.
@@ -368,7 +374,13 @@ def UpdatePostAndMergeDeferred(bug_update_builder, bug_id, tags, url, project):
     # Always set the owner, and move the current owner to CC.
     bug_owner = bug_update.owner
     if owner:
-      cc_list.add(owner)
+      logging.debug(
+          'Current owner for issue %s:%s = %s',
+          project,
+          bug_id,
+          owner,
+      )
+      cc_list.add(owner.get('email', ''))
 
   issue_tracker.AddBugComment(
       bug_id,
