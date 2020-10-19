@@ -62,6 +62,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         'run',
         'fuchsia-pkg://%s/web_engine_shell#meta/web_engine_shell.cmx' %
         self._managed_repo,
+        '--web-engine-package-name=web_engine_with_webui',
         '--remote-debugging-port=0',
         'about:blank'
     ]
