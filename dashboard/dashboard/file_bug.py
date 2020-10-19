@@ -88,6 +88,7 @@ class FileBugHandler(request_handler.RequestHandler):
             'keys': urlsafe_keys,
             'summary': summary,
             'description': description,
+            'projects': utils.MONORAIL_PROJECTS,
             'labels': labels,
             'components': components.union(owner_components),
             'owner': '',
