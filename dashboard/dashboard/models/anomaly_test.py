@@ -75,6 +75,7 @@ class AnomalyTest(testing_common.TestCase):
   def _CreateAnomaly(self,
                      timestamp=None,
                      bug_id=None,
+                     project_id=None,
                      sheriff_name=None,
                      test='master/bot/test_suite/measurement/test_case',
                      start_revision=0,
@@ -89,6 +90,7 @@ class AnomalyTest(testing_common.TestCase):
     if timestamp:
       entity.timestamp = timestamp
     entity.bug_id = bug_id
+    entity.project_id = project_id
     if sheriff_name:
       entity.subscription_names.append(sheriff_name)
       entity.subscriptions.append(
@@ -168,6 +170,23 @@ class AnomalyTest(testing_common.TestCase):
     anomalies, _, _ = anomaly.Anomaly.QueryAsync(bug_id='*').get_result()
     self.assertEqual(1, len(anomalies))
     self.assertEqual(42, anomalies[0].bug_id)
+
+  def testProjectId(self):
+    self._CreateAnomaly(project_id='')
+    self._CreateAnomaly(project_id='test_project')
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(project_id='').get_result()
+    self.assertEqual(1, len(anomalies))
+    self.assertEqual('', anomalies[0].project_id)
+
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(
+        project_id='chromium').get_result()
+    self.assertEqual(1, len(anomalies))
+    self.assertEqual('', anomalies[0].project_id)
+
+    anomalies, _, _ = anomaly.Anomaly.QueryAsync(
+        project_id='test_project').get_result()
+    self.assertEqual(1, len(anomalies))
+    self.assertEqual('test_project', anomalies[0].project_id)
 
   def testIsImprovement(self):
     self._CreateAnomaly()

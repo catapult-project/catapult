@@ -263,10 +263,6 @@ class Anomaly(internal_only_model.InternalOnlyModel):
           inequality_property = 'key'
         # bug_id='*' translates to bug_id != None, which is handled with the
         # other inequality filters.
-      if project_id is not None:
-        query = query.filter(cls.project_id == project_id)
-        equality_properties.append('project_id')
-        inequality_property = 'key'
       if recovered is not None:
         query = query.filter(cls.recovered == recovered)
         equality_properties.append('recovered')
@@ -326,6 +322,13 @@ class Anomaly(internal_only_model.InternalOnlyModel):
         results = [
             alert for alert in results if all(
                 post_filter(alert) for post_filter in post_filters)
+        ]
+      # Temporary treat project_id as a postfilter. This is because some
+      # chromium alerts have been booked with empty project_id.
+      if project_id is not None:
+        results = [
+            alert for alert in results if alert.project_id == project_id
+            or alert.project_id == '' and project_id == 'chromium'
         ]
       if not more:
         start_cursor = None
