@@ -112,6 +112,9 @@ tr.exportTo('tr.ui.tracks', function() {
   function makeLevelSubRows_(slices) {
     const rows = [];
     const putSlice = (slice, level) => {
+      if (slice.hidden) {
+        return;
+      }
       while (rows.length <= level) {
         rows.push([]);
       }
