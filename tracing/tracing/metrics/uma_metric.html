@@ -108,6 +108,11 @@ tr.exportTo('tr.metrics', function() {
     return tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
   }
 
+  function getIsHistogramBinsLinear_(histogramName) {
+    return histogramName.startsWith('Graphics.Smoothness.Throughput') ||
+           histogramName.startsWith('Memory.Memory.GPU.PeakMemoryUsage');
+  }
+
   function getHistogramBoundaries_(name) {
     // Customize histogram boundaries here. Ideally, this would not be
     // necessary.
@@ -164,6 +169,7 @@ tr.exportTo('tr.metrics', function() {
     for (const [name, values] of histogramValues) {
       const histogram = new tr.v.Histogram(
           name, getHistogramUnit_(name), getHistogramBoundaries_(name));
+      const isLinear = getIsHistogramBinsLinear_(name);
       // If we just put samples at the middle of the bins, their sum may not
       // match the sum we read from traces. Compute how much samples should be
       // shifted so that their sum matches what we expect.
@@ -174,15 +180,16 @@ tr.exportTo('tr.metrics', function() {
         sumOfBinLengths += bin.count * (bin.max - bin.min);
       }
       const shift = (values.sum - sumOfMiddles) / sumOfBinLengths;
-      // Note: if shift is less than -0.5, it means that even if we put all
-      // samples at the lowest value of their bins their sum will be less than
-      // the sum we read from traces. So, there is an inconsistency: either the
-      // bins are reported incorrectly, or the sum is reported incorrectly.
+      // Note: for linear bins, if shift is less than -0.5, it means that even
+      // if we put all samples at the lowest value of their bins their sum will
+      // be less than the sum we read from traces. So, there is an
+      // inconsistency: either the bins are reported incorrectly, or the sum is
+      // reported incorrectly.
       //
       // Similarly, if shift is greater than 0.5, the sum of samples cannot add
       // up to the sum we read from traces, even if we put all samples at the
       // highest value of their bins.
-      if (Math.abs(shift) > 0.5) {
+      if (isLinear && Math.abs(shift) > 0.5) {
         throw new Error(`Samples sum is wrong for ${name}.`);
       }
 
