@@ -753,39 +753,29 @@ class Job(ndb.Model):
         raise
 
   def AsDict(self, options=None):
+    def IsoFormatOrNone(attr):
+      time = getattr(self, attr, None)
+      if time:
+        return time.isoformat()
+      return None
+
     d = {
-        'job_id':
-            self.job_id,
-        'configuration':
-            self.configuration,
-        'results_url':
-            self.results_url,
-        'arguments':
-            self.arguments,
-        'bug_id':
-            self.bug_id,
-        'project':
-            self.project,
-        'comparison_mode':
-            self.comparison_mode,
-        'name':
-            self.auto_name,
-        'user':
-            self.user,
-        'created':
-            self.created.isoformat() if self.created else None,
-        'updated':
-            self.updated.isoformat() if self.updated else None,
-        'started_time':
-            self.started_time.isoformat() if self.started_time else None,
-        'difference_count':
-            self.difference_count,
-        'exception':
-            self.exception_details_dict,
-        'status':
-            self.status,
-        'cancel_reason':
-            self.cancel_reason,
+        'job_id': self.job_id,
+        'configuration': self.configuration,
+        'results_url': self.results_url,
+        'arguments': self.arguments,
+        'bug_id': self.bug_id,
+        'project': self.project,
+        'comparison_mode': self.comparison_mode,
+        'name': self.auto_name,
+        'user': self.user,
+        'created': IsoFormatOrNone('created'),
+        'updated': IsoFormatOrNone('updated'),
+        'started_time': IsoFormatOrNone('started_time'),
+        'difference_count': self.difference_count,
+        'exception': self.exception_details_dict,
+        'status': self.status,
+        'cancel_reason': self.cancel_reason,
     }
 
     if not options:
