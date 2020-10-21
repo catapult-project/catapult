@@ -746,7 +746,8 @@ class AddHistogramsQueueTestWithUploadCompletionToken(testing_common.TestCase):
         all(measurement.error_message == 'Test exception'
             for measurement in token.GetMeasurements()))
 
-  def testPostMultipleHistogram_MeasrementExpired(self):
+  @mock.patch('logging.warning')
+  def testPostMultipleHistogram_MeasurementExpired(self, mock_log):
     test_path1 = 'Chromium/win7/suite/metric1'
     test_path2 = 'Chromium/win7/suite/metric2'
 
@@ -757,8 +758,8 @@ class AddHistogramsQueueTestWithUploadCompletionToken(testing_common.TestCase):
     token.UpdateStateAsync(upload_completion_token.State.COMPLETED).wait()
 
     measurement2.key.delete()
-    measurement2 = upload_completion_token.Measurement.get_by_id(
-        test_path2, parent=token.key)
+    measurement2 = upload_completion_token.Measurement.GetByPath(
+        test_path2, token_id)
     self.assertEqual(measurement2, None)
 
     graph_data.Bot(
@@ -785,3 +786,6 @@ class AddHistogramsQueueTestWithUploadCompletionToken(testing_common.TestCase):
 
     token = upload_completion_token.Token.get_by_id(token_id)
     self.assertEqual(token.state, upload_completion_token.State.COMPLETED)
+    mock_log.assert_called_once_with(
+        'Upload completion token measurement could not be found. '
+        'Token id: %s, measurement test path: %s', token_id, test_path2)

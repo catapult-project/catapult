@@ -148,7 +148,7 @@ class AddHistogramsProcessHandler(request_handler.RequestHandler):
       if token_id is not None:
         token = upload_completion_token.Token.get_by_id(token_id)
         upload_completion_token.Token.UpdateObjectStateAsync(
-            token, upload_completion_token.State.PROCESSING)
+            token, upload_completion_token.State.PROCESSING).wait()
 
       try:
         logging.debug('Loading %s', gcs_file_path)

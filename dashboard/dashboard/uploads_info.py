@@ -46,7 +46,7 @@ class UploadInfoHandler(api_request_handler.ApiRequestHandler):
       result['measurements'] = []
     for measurement in measurements:
       info = {
-          'name': measurement.key.id(),
+          'name': measurement.test_path,
           'state': upload_completion_token.StateToString(measurement.state),
           'monitored': measurement.monitored,
           'lastUpdated': str(measurement.update_time),

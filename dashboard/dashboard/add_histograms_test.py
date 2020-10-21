@@ -1765,17 +1765,14 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
             token_info['token'], 'PROCESSING'),
         mock.call(
             'Upload completion token measurement created. Token id: %s, '
-            'measurement id: %r', token_info['token'], measurement_id),
+            'measurement test path: %r', token_info['token'], measurement_id),
         mock.call(
             'Upload completion token updated. Token id: %s, state: %s',
-            token_info['token'], 'PROCESSING'),
+            token_info['token'], 'COMPLETED'),
         mock.call(
             'Upload completion token measurement updated. Token id: %s, '
-            'measurement id: %s, state: %s', token_info['token'],
+            'measurement test path: %s, state: %s', token_info['token'],
             measurement_id, 'COMPLETED'),
-        mock.call(
-            'Upload completion token updated. Token id: %s, state: %s',
-            token_info['token'], 'COMPLETED')
     ]
     mock_log.assert_has_calls(log_calls, any_order=True)
 
@@ -1791,47 +1788,6 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
                   token_info['token']),
         mock.call('Upload completion token updated. Token id: %s, state: %s',
                   token_info['token'], 'FAILED'),
-    ]
-    mock_log.assert_has_calls(log_calls, any_order=True)
-
-  # Sometimes a token might stay in cache because of async_put, that may be
-  # executed after we delete the token manually.
-  @mock.patch('logging.info')
-  @mock.patch.object(upload_completion_token.Token, 'UpdateStateAsync',
-                     _GetSyncedTokenUpdate(
-                         upload_completion_token.Token.UpdateStateAsync))
-  def testPostLogs_TokenExpiredAfterProcess(self, mock_log):
-    token_info = self.PostAddHistogram({'data': self.histogram_data})
-    self.ExecuteTaskQueueTasks('/add_histograms/process', 'default')
-
-    token_key = ndb.Key('Token', token_info['token'])
-    token_key.delete()
-    self.assertEqual(token_key.get(), None)
-
-    self.ExecuteTaskQueueTasks('/add_histograms_queue',
-                               add_histograms.TASK_QUEUE_NAME)
-
-    measurement_id = 'master/bot/benchmark/hist'
-    log_calls = [
-        mock.call(
-            'Upload completion token created. Token id: %s',
-            token_info['token']),
-        mock.call(
-            'Upload completion token updated. Token id: %s, state: %s',
-            token_info['token'], 'PROCESSING'),
-        mock.call(
-            'Upload completion token measurement created. Token id: %s, '
-            'measurement id: %r', token_info['token'], measurement_id),
-        mock.call(
-            'Upload completion token updated. Token id: %s, state: %s',
-            token_info['token'], 'PROCESSING'),
-        mock.call(
-            'Upload completion token measurement updated. Token id: %s, '
-            'measurement id: %s, state: %s', token_info['token'],
-            measurement_id, 'COMPLETED'),
-        mock.call(
-            'Upload completion token of the measurement is expried. Token '
-            'id: %s', token_info['token'])
     ]
     mock_log.assert_has_calls(log_calls, any_order=True)
 

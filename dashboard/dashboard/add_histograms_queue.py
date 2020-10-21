@@ -121,7 +121,7 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
         if futures_info is not None:
           continue
         token_state_futures.append(
-            upload_completion_token.Measurement.UpdateStateByIdAsync(
+            upload_completion_token.Measurement.UpdateStateByPathAsync(
                 param.get('test_path'), param.get('token'),
                 upload_completion_token.State.FAILED, e.message))
       ndb.Future.wait_all(token_state_futures)
@@ -136,7 +136,7 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
           operation_state = upload_completion_token.State.FAILED
           error_message = exception.message
       token_state_futures.append(
-          upload_completion_token.Measurement.UpdateStateByIdAsync(
+          upload_completion_token.Measurement.UpdateStateByPathAsync(
               info.get('test_path'), info.get('token'), operation_state,
               error_message))
     ndb.Future.wait_all(token_state_futures)
@@ -312,7 +312,7 @@ def _AddHistogramFromData(params, revision, test_key, internal_only):
       internal_only=internal_only)
   yield entity.put_async()
 
-  measurement = upload_completion_token.Measurement.GetById(
+  measurement = upload_completion_token.Measurement.GetByPath(
       params.get('test_path'), params.get('token'))
   if measurement is not None:
     measurement.histogram = entity.key

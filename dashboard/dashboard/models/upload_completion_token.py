@@ -5,6 +5,7 @@
 from __future__ import absolute_import
 
 import logging
+import uuid
 
 from google.appengine.ext import ndb
 
@@ -38,6 +39,10 @@ class Token(internal_only_model.InternalOnlyModel):
 
   Token can contain multiple Measurement. One per each histogram in the
   request. States of nested Measurements affect state of the Token.
+
+  Even though Token and Measurements contain related data we do not combine
+  them into one entity group. Token can contain 1000+ measurements. So doing
+  such amount of updates of one entity group is too expencive.
   """
   _use_memcache = True
   _memcache_timeout = _MEMCACHE_TIMEOUT
@@ -71,10 +76,6 @@ class Token(internal_only_model.InternalOnlyModel):
       return State.FAILED
     return State.COMPLETED
 
-  def _LogStateChanged(self):
-    logging.info('Upload completion token updated. Token id: %s, state: %s',
-                 self.key.id(), StateToString(self.state))
-
   @classmethod
   @ndb.tasklet
   def UpdateObjectStateAsync(cls, obj, state, error_message=None):
@@ -89,35 +90,48 @@ class Token(internal_only_model.InternalOnlyModel):
     self.state_ = state
     self.error_message = error_message
     yield self.put_async()
-    self._LogStateChanged()
+
+    # Note that state here does not reflect the state of upload overall (since
+    # "state_" doesn't take measurements into account). Token and Measurements
+    # aren't connected by entity group, so the information about final state
+    # would be stale.
+    logging.info('Upload completion token updated. Token id: %s, state: %s',
+                 self.key.id(), StateToString(self.state_))
 
   @ndb.tasklet
   def AddMeasurement(self, test_path, is_monitored):
     """Creates measurement, associated to the current token."""
 
     measurement = Measurement(
-        id=test_path, parent=self.key, monitored=is_monitored)
+        id=str(uuid.uuid4()),
+        test_path=test_path,
+        token=self.key,
+        monitored=is_monitored)
     yield measurement.put_async()
 
     logging.info(
         'Upload completion token measurement created. Token id: %s, '
-        'measurement id: %r', self.key.id(), measurement.key.id())
+        'measurement test path: %r', self.key.id(), measurement.test_path)
     raise ndb.Return(measurement)
 
   def GetMeasurements(self):
-    return Measurement.query(ancestor=self.key).fetch()
+    return Measurement.query(Measurement.token == self.key).fetch()
 
 
 class Measurement(internal_only_model.InternalOnlyModel):
   """Measurement represents state of added histogram.
 
-  Measurement are keyed by the full path to the test (for example
+  Measurement is uniquely defined by the full path to the test (for example
   master/bot/test/metric/page) and parent token key.
   """
   _use_memcache = True
   _memcache_timeout = _MEMCACHE_TIMEOUT
 
   internal_only = ndb.BooleanProperty(default=True)
+
+  token = ndb.KeyProperty(kind='Token', indexed=True)
+
+  test_path = ndb.StringProperty(indexed=True)
 
   state = ndb.IntegerProperty(default=State.PROCESSING, indexed=False)
 
@@ -130,34 +144,34 @@ class Measurement(internal_only_model.InternalOnlyModel):
   histogram = ndb.KeyProperty(kind='Histogram', indexed=True, default=None)
 
   @classmethod
-  def GetById(cls, measurement_id, parent_id):
-    if measurement_id is None or parent_id is None:
+  def GetByPath(cls, test_path, token_id):
+    if test_path is None or token_id is None:
       return None
-    return cls.get_by_id(measurement_id, parent=ndb.Key('Token', parent_id))
+    # Data here can be a bit stale here.
+    return Measurement.query(
+        ndb.AND(Measurement.test_path == test_path,
+                Measurement.token == ndb.Key('Token', token_id))).get()
 
   @classmethod
   @ndb.tasklet
-  def UpdateStateByIdAsync(cls,
-                           measurement_id,
-                           parent_id,
-                           state,
-                           error_message=None):
+  def UpdateStateByPathAsync(cls,
+                             test_path,
+                             token_id,
+                             state,
+                             error_message=None):
     assert error_message is None or state == State.FAILED
 
-    obj = cls.GetById(measurement_id, parent_id)
+    obj = cls.GetByPath(test_path, token_id)
     if obj is None:
+      if test_path is not None and token_id is not None:
+        logging.warning(
+            'Upload completion token measurement could not be found. '
+            'Token id: %s, measurement test path: %s', token_id, test_path)
       return
     obj.state = state
     obj.error_message = error_message
     yield obj.put_async()
-    token = Token.get_by_id(parent_id)
     logging.info(
         'Upload completion token measurement updated. Token id: %s, '
-        'measurement id: %s, state: %s', parent_id, measurement_id,
+        'measurement test path: %s, state: %s', token_id, test_path,
         StateToString(state))
-    if token is not None:
-      token._LogStateChanged()
-    else:
-      logging.info(
-          'Upload completion token of the measurement is expried. Token '
-          'id: %s', parent_id)
