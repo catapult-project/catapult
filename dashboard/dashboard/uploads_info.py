@@ -91,12 +91,14 @@ class UploadInfoHandler(api_request_handler.ApiRequestHandler):
       "created": "...",
       "lastUpdated": "...",
       "state": "PENDING|PROCESSING|FAILED|COMPLETED",
+      "error_message": "...",
       "measurements": [
         {
           "name": "...",
           "state": "PROCESSING|FAILED|COMPLETED",
           "monitored": True|False,
           "lastUpdated": "...",
+          "error_message": "...",
           "dimentions": [
             {
               "name": "...",
