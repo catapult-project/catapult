@@ -18,6 +18,8 @@ from dashboard.common import utils
 from dashboard.services import issue_tracker_service
 from dashboard.models import histogram
 from dashboard.pinpoint.models import job_state
+from dashboard.pinpoint.models.change import commit as commit_module
+from dashboard.pinpoint.models.change import patch as patch_module
 
 from tracing.value.diagnostics import reserved_infos
 
@@ -128,16 +130,31 @@ class DifferencesFoundBugUpdateBuilder(object):
   def SetExaminedCount(self, examined_count):
     self._examined_count = examined_count
 
-  def AddDifference(self, commit, values_a, values_b):
+  def AddDifference(self, change, values_a, values_b):
     """Add a difference (a commit where the metric changed significantly).
 
     Args:
-      commit: a Commit.
+      change: a Change.
       values_a: (list) result values for the prior commit.
       values_b: (list) result values for this commit.
     """
-    commit_info = commit.AsDict()
-    self._differences.append(_Difference(commit_info, values_a, values_b))
+    if change.patch:
+      kind = 'patch'
+      commit_dict = {
+          'server': change.patch.server,
+          'change': change.patch.change,
+          'revision': change.patch.revision,
+      }
+    else:
+      kind = 'commit'
+      commit_dict = {
+          'repository': change.last_commit.repository,
+          'git_hash': change.last_commit.git_hash,
+      }
+
+    # Store just the commit repository + hash to ensure we don't attempt to
+    # serialize too much data into datastore.  See https://crbug.com/1140309.
+    self._differences.append(_Difference(kind, commit_dict, values_a, values_b))
     self._cached_ordered_diffs_by_delta = None
 
   def BuildUpdate(self, tags, url):
@@ -251,10 +268,35 @@ class DifferencesFoundBugUpdateBuilder(object):
 
 class _Difference(object):
 
-  def __init__(self, commit_info, values_a, values_b):
-    self.commit_info = commit_info
+  # Define this as a class attribute so that accessing it never fails with
+  # AttributeError, even if working with a serialized version of _Difference
+  # that didn't define them.
+  _cached_commit = None
+
+  def __init__(self, commit_kind, commit_dict, values_a, values_b):
+    self.commit_kind = commit_kind
+    self.commit_dict = commit_dict
     self.values_a = values_a
     self.values_b = values_b
+
+  @property
+  def commit_info(self):
+    if 'commit_info' in self.__dict__:
+      # Older versions of this object had this value serialized, so just use
+      # that.
+      # TODO: Delete this code path once we're sure all old deferred calls using
+      # this have expired.
+      return self.__dict__['commit_info']
+    if self._cached_commit is None:
+      if self.commit_kind == 'patch':
+        commit = patch_module.GerritPatch(**self.commit_dict)
+      elif self.commit_kind == 'commit':
+        commit = commit_module.Commit(**self.commit_dict)
+      else:
+        assert False, "Unexpectied commit_kind: " + str(self.commit_kind)
+      self._cached_commit = commit.AsDict()
+
+    return self._cached_commit
 
   def MeanDelta(self):
     return job_state.Mean(self.values_b) - job_state.Mean(self.values_a)

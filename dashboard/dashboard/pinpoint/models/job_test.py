@@ -51,6 +51,32 @@ _COMMENT_CODE_REVIEW = (u"""\U0001f4cd Job complete.
 See results at: https://testbed.example.com/job/1""")
 
 
+def FakeCommitAsDict(commit_self):
+  """Fake for Commit.AsDict.
+
+  Returns a canned commit dict based on the Commit's git_hash, which must start
+  with the prefix "git_hash_".
+
+  Use like::
+
+    @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict',
+                autospec=True)
+    def testFoo(self, commit_as_dict):
+      commit_as_dict.side_effect = FakeCommitAsDict
+      ...
+  """
+  git_hash = commit_self.git_hash
+  n = git_hash[len('git_hash_'):]
+  return {
+      'repository': 'chromium',
+      'git_hash': git_hash,
+      'url': 'https://example.com/repository/+/' + git_hash,
+      'author': 'author%s@chromium.org' % (n,),
+      'subject': 'Subject.',
+      'message': 'Subject.\n\nCommit message.',
+      }
+
+
 @mock.patch.object(job.results2, 'GetCachedResults2',
                    mock.MagicMock(return_value='http://foo'))
 class JobTest(test.TestCase):
@@ -615,7 +641,8 @@ class BugCommentTest(test.TestCase):
     self.assertIn('Pinpoint-Multiple-MissingValues', labels)
     self.assertNotIn('-Pinpoint-Multiple-MissingValues', labels)
 
-  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict',
+              autospec=True)
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
   def testCompletedMultipleDifferences_BlameAbsoluteLargest(
@@ -626,32 +653,7 @@ class BugCommentTest(test.TestCase):
     change_map = {c1: [10], c2: [0], c3: [-100]}
     differences.return_value = [(None, c1), (c1, c2), (c2, c3)]
     result_values.side_effect = lambda c: change_map.get(c, [])
-    commit_as_dict.side_effect = (
-        {
-            'repository': 'chromium',
-            'git_hash': 'git_hash_1',
-            'url': 'https://example.com/repository/+/git_hash_1',
-            'author': 'author1@chromium.org',
-            'subject': 'Subject.',
-            'message': 'Subject.\n\nCommit message.',
-        },
-        {
-            'repository': 'chromium',
-            'git_hash': 'git_hash_2',
-            'url': 'https://example.com/repository/+/git_hash_2',
-            'author': 'author2@chromium.org',
-            'subject': 'Subject.',
-            'message': 'Subject.\n\nCommit message.',
-        },
-        {
-            'repository': 'chromium',
-            'git_hash': 'git_hash_3',
-            'url': 'https://example.com/repository/+/git_hash_3',
-            'author': 'author3@chromium.org',
-            'subject': 'Subject.',
-            'message': 'Subject.\n\nCommit message.',
-        },
-    )
+    commit_as_dict.side_effect = FakeCommitAsDict
     self.get_issue.return_value = {'status': 'Untriaged'}
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.Run()
@@ -681,7 +683,8 @@ class BugCommentTest(test.TestCase):
     self.assertIn('Pinpoint-Multiple-MissingValues', labels)
     self.assertNotIn('-Pinpoint-Multiple-MissingValues', labels)
 
-  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict',
+              autospec=True)
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
   def testCompletedMultipleDifferences_TenCulpritsCcTopTwo(
@@ -690,7 +693,8 @@ class BugCommentTest(test.TestCase):
                                                         result_values,
                                                         commit_as_dict)
 
-  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict',
+              autospec=True)
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
   def testCompletedMultipleDifferences_HundredCulpritsCcTopThree(
@@ -722,14 +726,7 @@ class BugCommentTest(test.TestCase):
       return [v * v]  # Square the value to ensure increasing deltas.
 
     result_values.side_effect = ResultValuesFromFakeGitHash
-    commit_as_dict.side_effect = [{
-        'repository': 'chromium',
-        'git_hash': 'git_hash_%d' % (i,),
-        'url': 'https://example.com/repository/+/git_hash_%d' % (i,),
-        'author': 'author%d@chromium.org' % (i,),
-        'subject': 'Subject.',
-        'message': 'Subject.\n\nCommit message.',
-    } for i in range(1, number_culprits + 1)]
+    commit_as_dict.side_effect = FakeCommitAsDict
 
     self.get_issue.return_value = {'status': 'Untriaged'}
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')

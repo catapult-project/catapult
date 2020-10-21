@@ -572,14 +572,9 @@ class Job(ndb.Model):
         self.state.metric)
     bug_update_builder.SetExaminedCount(changes_examined)
     for change_a, change_b in differences:
-      if change_b.patch:
-        commit = change_b.patch
-      else:
-        commit = change_b.last_commit
-
       values_a = result_values[change_a]
       values_b = result_values[change_b]
-      bug_update_builder.AddDifference(commit, values_a, values_b)
+      bug_update_builder.AddDifference(change_b, values_a, values_b)
 
     deferred.defer(
         job_bug_update.UpdatePostAndMergeDeferred,
