@@ -25,7 +25,7 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
         device.host,
         device.port)
     self._managed_repo = device.managed_repo
-    self._os_version = None
+    self._detailed_os_version = None
     self._device_type = None
 
   @classmethod
@@ -81,15 +81,15 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
     return 'fuchsia-board-' + self._device_type
 
   def GetOSVersionName(self):
-    if not self._os_version:
-      _, self._os_version, _ = self._command_runner.RunCommand(
+    return ''  # TODO(crbug.com/1140869): Implement this.
+
+  def GetOSVersionDetailString(self):
+    if not self._detailed_os_version:
+      _, self._detailed_os_version, _ = self._command_runner.RunCommand(
           ['cat', '/config/build-info/version'],
           stdout=subprocess.PIPE,
           stderr=subprocess.PIPE)
-    return self._os_version
-
-  def GetOSVersionDetailString(self):
-    return ''
+    return self._detailed_os_version
 
   def GetSystemTotalPhysicalMemory(self):
     raise NotImplementedError()
