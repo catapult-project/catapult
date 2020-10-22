@@ -432,18 +432,13 @@ class Forwarder(object):
       if exit_code != 0:
         logger.warning('Forwarder unable to shut down:\n%s', output)
         kill_cmd = ['pkill', '-9', 'host_forwarder']
-        # This is currently being run through strace to help debug
-        # crbug.com/1038789.
         (exit_code, output) = cmd_helper.GetCmdStatusAndOutputWithTimeout(
             kill_cmd, Forwarder._TIMEOUT)
         if exit_code == -9:
-          # pkill can exit with -9, which indicates that it was killed. Dump
-          # system logs to help debug why this is happening.
-          _, dmesg_output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
-              ['dmesg', '-T'], Forwarder._TIMEOUT)
-          logging.error(
-              'pkilling host forwarder returned -9. dmesg output: %s',
-              dmesg_output)
+          # pkill can exit with -9, which indicates that it was killed. It's
+          # possible that the forwarder was still killed, though, which will
+          # be checked later.
+          logging.warning('pkilling host forwarder returned -9.')
         if exit_code in (0, 1):
           # pkill exits with a 0 if it was able to signal at least one process.
           # pkill exits with a 1 if it wasn't able to signal a process because
@@ -459,6 +454,7 @@ class Forwarder(object):
                        '\n  '.join(host_forwarder_lines))
         else:
           logger.error('No remaining host_forwarder processes?')
+          return
         _DumpHostLog()
         error_msg = textwrap.dedent("""\
             `{kill_cmd}` failed to kill host_forwarder.
