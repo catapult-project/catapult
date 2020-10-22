@@ -41,6 +41,7 @@ class Browser(app.App):
       self._startup_args = startup_args
       self._tabs = tab_list.TabList(backend.tab_list_backend)
       self._browser_backend.SetBrowser(self)
+      self._supports_inspecting_webui = False
       if find_existing:
         self._browser_backend.BindDevToolsClient()
       else:
@@ -333,3 +334,21 @@ class Browser(app.App):
       path: The path to the minidump to ignore.
     """
     self._browser_backend.IgnoreMinidump(path)
+
+  def ExecuteBrowserCommand(
+      self, command_id, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
+    self._browser_backend.ExecuteBrowserCommand(command_id, timeout)
+
+  @property
+  def supports_inspecting_webui(self):
+    '''If this flag is enabled, any inspectable targets with chrome:// will
+    pass through browser.tabs
+
+    This is mainly used for inspecting non-content area browser WebUI.
+    (e.g. Tab Search, WebUI TabStrip)
+    '''
+    return self._supports_inspecting_webui
+
+  @supports_inspecting_webui.setter
+  def supports_inspecting_webui(self, value):
+    self._supports_inspecting_webui = value

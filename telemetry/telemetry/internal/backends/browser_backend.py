@@ -417,3 +417,7 @@ class BrowserBackend(app_backend.AppBackend):
 
   def ExitOverviewMode(self, timeout): # pylint: disable=unused-argument
     raise exceptions.StoryActionError('Overview mode is not supported')
+
+  def ExecuteBrowserCommand(
+      self, command_id, timeout): # pylint: disable=unused-argument
+    raise exceptions.StoryActionError('Execute browser command not supported')

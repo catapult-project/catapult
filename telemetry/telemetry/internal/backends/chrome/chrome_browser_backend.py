@@ -300,3 +300,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   @property
   def supports_memory_metrics(self):
     return True
+
+  def ExecuteBrowserCommand(self, command_id, timeout):
+    self.devtools_client.ExecuteBrowserCommand(command_id, timeout)

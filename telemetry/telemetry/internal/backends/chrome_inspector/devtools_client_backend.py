@@ -485,6 +485,15 @@ class _DevToolsClientBackend(object):
     self._CreateWindowManagerBackendIfNeeded()
     return self._wm_backend
 
+  def ExecuteBrowserCommand(self, command_id, timeout):
+    request = {
+        'method': 'Browser.executeBrowserCommand',
+        'params': {
+            'commandId': command_id,
+        }
+    }
+    self._browser_websocket.SyncRequest(request, timeout)
+
 
 class _DevToolsContextMapBackend(object):
   def __init__(self, devtools_client):
