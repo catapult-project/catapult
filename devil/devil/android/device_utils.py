@@ -2100,9 +2100,14 @@ class DeviceUtils(object):
   def _ComputeDeviceChecksumsForApks(self, package_name):
     ret = self._cache['package_apk_checksums'].get(package_name)
     if ret is None:
-      device_paths = self._GetApplicationPathsInternal(package_name)
-      file_to_checksums = md5sum.CalculateDeviceMd5Sums(device_paths, self)
-      ret = set(file_to_checksums.values())
+      if self.PathExists('/data/data/' + package_name, as_root=True):
+        device_paths = self._GetApplicationPathsInternal(package_name)
+        file_to_checksums = md5sum.CalculateDeviceMd5Sums(device_paths, self)
+        ret = set(file_to_checksums.values())
+      else:
+        logger.info('Cannot reuse package %s (data directory missing)',
+                    package_name)
+        ret = set()
       self._cache['package_apk_checksums'][package_name] = ret
     return ret
 
