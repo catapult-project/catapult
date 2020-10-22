@@ -68,7 +68,7 @@ class UploadInfo(testing_common.TestCase):
     response = self.GetFullInfoRequest(token_id)
     self.assertEqual(response, expected)
 
-    token.UpdateStateAsync(upload_completion_token.State.COMPLETED).wait()
+    token.UpdateState(upload_completion_token.State.COMPLETED)
     expected['state'] = 'COMPLETED'
     expected['lastUpdated'] = str(token.update_time)
     response = self.GetFullInfoRequest(token_id)

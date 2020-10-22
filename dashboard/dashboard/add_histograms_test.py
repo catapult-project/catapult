@@ -1532,16 +1532,6 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     self.assertEqual('No BUILD_URLS in data.', mock_log.call_args_list[1][0][0])
 
 
-def _GetSyncedTokenUpdate(original_function):
-
-  def SyncedTokenUpdate(token, state, error_message=None):
-    fixture = original_function(token, state, error_message)
-    fixture.wait()
-    return fixture
-
-  return SyncedTokenUpdate
-
-
 @mock.patch.object(SheriffConfigClient, '__init__',
                    mock.MagicMock(return_value=None))
 @mock.patch.object(SheriffConfigClient, 'Match',
@@ -1682,11 +1672,6 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     mock_graph_revisions.assert_called_once_with(mock.ANY)
     self.assertEqual(len(mock_graph_revisions.mock_calls[0][1][0]), len(rows))
 
-  # Sometimes a token might stay in cache because of async_put, that may be
-  # executed after we delete the token manually.
-  @mock.patch.object(upload_completion_token.Token, 'UpdateStateAsync',
-                     _GetSyncedTokenUpdate(
-                         upload_completion_token.Token.UpdateStateAsync))
   @mock.patch.object(add_histograms_queue.graph_revisions,
                      'AddRowsToCacheAsync')
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')

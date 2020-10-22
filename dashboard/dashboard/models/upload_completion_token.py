@@ -77,19 +77,17 @@ class Token(internal_only_model.InternalOnlyModel):
     return State.COMPLETED
 
   @classmethod
-  @ndb.tasklet
-  def UpdateObjectStateAsync(cls, obj, state, error_message=None):
+  def UpdateObjectState(cls, obj, state, error_message=None):
     if obj is None:
       return
-    yield obj.UpdateStateAsync(state, error_message)
+    return obj.UpdateState(state, error_message)
 
-  @ndb.tasklet
-  def UpdateStateAsync(self, state, error_message=None):
+  def UpdateState(self, state, error_message=None):
     assert error_message is None or state == State.FAILED
 
     self.state_ = state
     self.error_message = error_message
-    yield self.put_async()
+    self.put()
 
     # Note that state here does not reflect the state of upload overall (since
     # "state_" doesn't take measurements into account). Token and Measurements

@@ -632,7 +632,7 @@ class AddHistogramsQueueTestWithUploadCompletionToken(testing_common.TestCase):
     test_path = 'Chromium/win7/suite/metric'
     token = upload_completion_token.Token(id=token_id).put().get()
     token.AddMeasurement(test_path, False).wait()
-    token.UpdateStateAsync(upload_completion_token.State.COMPLETED).wait()
+    token.UpdateState(upload_completion_token.State.COMPLETED)
 
     graph_data.Bot(
         key=ndb.Key('Master', 'Chromium', 'Bot', 'win7'),
@@ -680,7 +680,7 @@ class AddHistogramsQueueTestWithUploadCompletionToken(testing_common.TestCase):
     token.AddMeasurement(test_path1, False).wait()
     token.AddMeasurement(test_path2, False).wait()
     token.AddMeasurement(test_path3, False).wait()
-    token.UpdateStateAsync(upload_completion_token.State.COMPLETED).wait()
+    token.UpdateState(upload_completion_token.State.COMPLETED)
 
     graph_data.Bot(
         key=ndb.Key('Master', 'Chromium', 'Bot', 'win7'),
@@ -755,7 +755,7 @@ class AddHistogramsQueueTestWithUploadCompletionToken(testing_common.TestCase):
     token = upload_completion_token.Token(id=token_id).put().get()
     token.AddMeasurement(test_path1, False).wait()
     measurement2 = token.AddMeasurement(test_path2, False).get_result()
-    token.UpdateStateAsync(upload_completion_token.State.COMPLETED).wait()
+    token.UpdateState(upload_completion_token.State.COMPLETED)
 
     measurement2.key.delete()
     measurement2 = upload_completion_token.Measurement.GetByPath(

@@ -147,8 +147,8 @@ class AddHistogramsProcessHandler(request_handler.RequestHandler):
       token_id = params.get('upload_completion_token')
       if token_id is not None:
         token = upload_completion_token.Token.get_by_id(token_id)
-        upload_completion_token.Token.UpdateObjectStateAsync(
-            token, upload_completion_token.State.PROCESSING).wait()
+        upload_completion_token.Token.UpdateObjectState(
+            token, upload_completion_token.State.PROCESSING)
 
       try:
         logging.debug('Loading %s', gcs_file_path)
@@ -163,15 +163,15 @@ class AddHistogramsProcessHandler(request_handler.RequestHandler):
       finally:
         cloudstorage.delete(gcs_file_path, retry_params=_RETRY_PARAMS)
 
-      upload_completion_token.Token.UpdateObjectStateAsync(
-          token, upload_completion_token.State.COMPLETED).wait()
+      upload_completion_token.Token.UpdateObjectState(
+          token, upload_completion_token.State.COMPLETED)
 
     except Exception as e:  # pylint: disable=broad-except
       logging.error('Error processing histograms: %r', e.message)
       self.response.out.write(json.dumps({'error': e.message}))
 
-      upload_completion_token.Token.UpdateObjectStateAsync(
-          token, upload_completion_token.State.FAILED, e.message).wait()
+      upload_completion_token.Token.UpdateObjectState(
+          token, upload_completion_token.State.FAILED, e.message)
 
 
 class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
@@ -203,7 +203,7 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
       token, token_info = self._CreateUploadCompletionToken()
       ProcessHistogramSet(
           _LoadHistogramList(StringIO.StringIO(self.request.body)), token)
-      token.UpdateStateAsync(upload_completion_token.State.COMPLETED).wait()
+      token.UpdateState(upload_completion_token.State.COMPLETED)
       return token_info
 
     with timing.WallTimeLogger('decompress'):

@@ -37,7 +37,7 @@ class UploadCompletionTokenTest(testing_common.TestCase):
     time.sleep(sleep_time.total_seconds())
 
     new_state = upload_completion_token.State.PROCESSING
-    token.UpdateStateAsync(new_state).wait()
+    token.UpdateState(new_state)
 
     changed_token = upload_completion_token.Token.get_by_id(token_id)
     self.assertEqual(token_id, changed_token.key.id())
@@ -47,7 +47,7 @@ class UploadCompletionTokenTest(testing_common.TestCase):
     self.assertEqual(changed_token.state, new_state)
 
     new_state = upload_completion_token.State.COMPLETED
-    changed_token.UpdateStateAsync(new_state).wait()
+    changed_token.UpdateState(new_state)
 
     changed_token = upload_completion_token.Token.get_by_id(token_id)
     self.assertEqual(changed_token.state, new_state)
@@ -60,14 +60,14 @@ class UploadCompletionTokenTest(testing_common.TestCase):
 
     self.assertEqual(token.state, upload_completion_token.State.PROCESSING)
 
-    token.UpdateStateAsync(upload_completion_token.State.PROCESSING).wait()
+    token.UpdateState(upload_completion_token.State.PROCESSING)
     self.assertEqual(token.state, upload_completion_token.State.PROCESSING)
 
     measurement1.state = upload_completion_token.State.FAILED
     measurement1.put()
     self.assertEqual(token.state, upload_completion_token.State.PROCESSING)
 
-    token.UpdateStateAsync(upload_completion_token.State.COMPLETED).wait()
+    token.UpdateState(upload_completion_token.State.COMPLETED)
     measurement2.state = upload_completion_token.State.COMPLETED
     measurement2.put()
     self.assertEqual(token.state, upload_completion_token.State.FAILED)
@@ -85,7 +85,7 @@ class UploadCompletionTokenTest(testing_common.TestCase):
 
     self.assertEqual(token.state, upload_completion_token.State.PROCESSING)
 
-    token.UpdateStateAsync(upload_completion_token.State.COMPLETED).wait()
+    token.UpdateState(upload_completion_token.State.COMPLETED)
     self.assertEqual(token.state, upload_completion_token.State.PROCESSING)
 
     measurement2.state = upload_completion_token.State.COMPLETED
@@ -107,32 +107,30 @@ class UploadCompletionTokenTest(testing_common.TestCase):
 
     self.assertNotEqual(measurement1, measurement2)
 
-  def testUpdateObjectStateAsync(self):
+  def testUpdateObjectState(self):
     target_state = upload_completion_token.State.COMPLETED
 
-    upload_completion_token.Token.UpdateObjectStateAsync(None,
-                                                         target_state).wait()
+    upload_completion_token.Token.UpdateObjectState(None, target_state)
 
     token = upload_completion_token.Token(id=str(uuid.uuid4())).put().get()
-    upload_completion_token.Token.UpdateObjectStateAsync(token,
-                                                         target_state).wait()
+    upload_completion_token.Token.UpdateObjectState(token, target_state)
     self.assertEqual(token.state, target_state)
 
-  def testUpdateObjectStateAsync_ErrorMessage(self):
+  def testUpdateObjectState_ErrorMessage(self):
     target_state = upload_completion_token.State.FAILED
     target_message = 'Some message'
 
     token = upload_completion_token.Token(id=str(uuid.uuid4())).put().get()
-    upload_completion_token.Token.UpdateObjectStateAsync(
-        token, target_state, target_message).wait()
+    upload_completion_token.Token.UpdateObjectState(token, target_state,
+                                                    target_message)
     self.assertEqual(token.state, target_state)
     self.assertEqual(token.error_message, target_message)
 
   @unittest.expectedFailure
-  def testUpdateObjectStateAsyncWith_ErrorMessageFail(self):
+  def testUpdateObjectStateWith_ErrorMessageFail(self):
     token = upload_completion_token.Token(id=str(uuid.uuid4())).put().get()
-    upload_completion_token.Token.UpdateObjectStateAsync(
-        token, upload_completion_token.State.FAILED, 'Some message').wait()
+    upload_completion_token.Token.UpdateObjectState(
+        token, upload_completion_token.State.FAILED, 'Some message')
 
   def testMeasurementUpdateStateByPathAsync(self):
     test_path = 'test/path'
