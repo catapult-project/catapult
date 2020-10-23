@@ -1,0 +1,280 @@
+# Copyright 2020 Google Inc. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import base64
+import json
+import os
+import unittest
+
+from typ import json_results
+from typ import result_sink
+from typ.fakes import host_fake
+
+
+DEFAULT_LUCI_CONTEXT = {
+    'result_sink': {
+        'address': 'address',
+        'auth_token': 'auth_token',
+    },
+}
+ARTIFACT_DIR = os.path.join('artifact', 'dir')
+
+
+def CreateResult(input_dict):
+    """Creates a ResultSet with Results.
+
+    Args:
+        input_dict: A dict describing the result to create.
+
+    Returns:
+        A Result filled with the information from |input_dict|
+    """
+    return json_results.Result(name=input_dict['name'],
+                               actual=input_dict['actual'],
+                               started=True,
+                               took=1,
+                               worker=None,
+                               expected=input_dict.get('expected'),
+                               out=input_dict.get('out', 'stdout'),
+                               err=input_dict.get('err', 'stderr'),
+                               artifacts=input_dict.get('artifacts'))
+
+
+def StubWithRetval(retval):
+    def stub(*args, **kwargs):
+        stub.args = args
+        stub.kwargs = kwargs
+        return retval
+    stub.args = None
+    stub.kwargs = None
+    return stub
+
+
+def GetTestResultFromPostedJson(json_string):
+    dict_content = json.loads(json_string)
+    return dict_content['testResults'][0]
+
+
+def CreateExpectedTestResult(
+        test_id=None, status=None, expected=None, duration=None,
+        summary_html=None, artifacts=None, tags=None):
+    test_id = test_id or 'test_name_prefix.test_name'
+    return {
+        'testId': test_id,
+        'status': status or 'PASS',
+        'expected': expected or True,
+        'duration': duration or '1s',
+        'summaryHtml': (summary_html
+                        or '<pre>stdout: stdout\nstderr: stderr</pre>'),
+        'artifacts': artifacts or {},
+        'tags': tags or [
+            {'key': 'typ_tags', 'value': 'foo_tag bar_tag'},
+            {'key': 'test_name', 'value': test_id}],
+    }
+
+
+class ResultSinkReporterTest(unittest.TestCase):
+    def setUp(self):
+        self._host = host_fake.FakeHost()
+        self._luci_context_file = '/tmp/luci_context_file.json'
+
+    def setLuciContextWithContent(self, content):
+        self._host.env['LUCI_CONTEXT'] = self._luci_context_file
+        self._host.files[self._luci_context_file] = json.dumps(content)
+
+    def testNoLuciContext(self):
+        if 'LUCI_CONTEXT' in self._host.env:
+            del self._host.env['LUCI_CONTEXT']
+        rsr = result_sink.ResultSinkReporter(self._host)
+        self.assertFalse(rsr.resultdb_supported)
+
+    def testNoSinkKey(self):
+        self.setLuciContextWithContent({})
+        rsr = result_sink.ResultSinkReporter(self._host)
+        self.assertFalse(rsr.resultdb_supported)
+
+    def testValidSinkKey(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = result_sink.ResultSinkReporter(self._host)
+        self.assertTrue(rsr.resultdb_supported)
+
+    def testReportIndividualTestResultEarlyReturnIfNotSupported(self):
+        self.setLuciContextWithContent({})
+        rsr = result_sink.ResultSinkReporter(self._host)
+        rsr._post = lambda: 1/0  # Shouldn't be called.
+        self.assertEqual(
+                rsr.report_individual_test_result(None, None, None, None), 0)
+
+    def testReportIndividualTestResultBasicCase(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = result_sink.ResultSinkReporter(self._host)
+        result = CreateResult({
+            'name': 'test_name',
+            'actual': 'PASS',
+        })
+        rsr._post = StubWithRetval(2)
+        retval = rsr.report_individual_test_result(
+                'test_name_prefix.', result, ARTIFACT_DIR,
+                ['foo_tag', 'bar_tag'])
+        self.assertEqual(retval, 2)
+        expected_result = CreateExpectedTestResult()
+        self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[0]),
+                         expected_result)
+
+    def testReportIndividualTestResultLongSummary(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = result_sink.ResultSinkReporter(self._host)
+        result = CreateResult({
+            'name': 'test_name',
+            'actual': 'PASS',
+            'out': 'a' * 4097,
+            'err': '',
+        })
+        rsr._post = StubWithRetval(0)
+        rsr.report_individual_test_result(
+                'test_name_prefix.', result, ARTIFACT_DIR,
+                ['foo_tag', 'bar_tag'])
+
+        test_result = GetTestResultFromPostedJson(rsr._post.args[0])
+        truncated_summary = '<pre>stdout: %s%s' % (
+            'a' * (result_sink.MAX_HTML_SUMMARY_LENGTH
+                   - len(result_sink.TRUNCATED_SUMMARY_MESSAGE)
+                   - 13),
+            result_sink.TRUNCATED_SUMMARY_MESSAGE
+        )
+        artifact_contents = 'stdout: %s\nstderr: ' % ('a' * 4097)
+        expected_result = CreateExpectedTestResult(
+                summary_html=truncated_summary,
+                artifacts={
+                    'Test Log': {
+                        'contents': base64.b64encode(artifact_contents)
+                    }
+                })
+        self.assertEqual(test_result, expected_result)
+
+    def testReportIndividualTestResultConflictingKeyLongSummary(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = result_sink.ResultSinkReporter(self._host)
+        rsr._post = lambda: 1/0
+        result = CreateResult({
+            'name': 'test_name',
+            'actual': 'PASS',
+            'artifacts': {
+                'Test Log': [''],
+            },
+            'out': 'a' * 4097,
+        })
+        with self.assertRaises(AssertionError):
+            rsr.report_individual_test_result(
+                    'test_name_prefix', result, ARTIFACT_DIR,
+                    ['foo_tag', 'bar_tag'])
+
+    def testReportIndividualTestResultSingleArtifact(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = result_sink.ResultSinkReporter(self._host)
+        rsr._post = StubWithRetval(2)
+        results = CreateResult({
+            'name': 'test_name',
+            'actual': 'PASS',
+            'artifacts': {
+                'artifact_name': ['some_artifact'],
+            },
+        })
+        retval = rsr.report_individual_test_result(
+                'test_name_prefix.', results, ARTIFACT_DIR,
+                ['foo_tag', 'bar_tag'])
+        self.assertEqual(retval, 2)
+
+        test_result = GetTestResultFromPostedJson(rsr._post.args[0])
+        expected_result = CreateExpectedTestResult(
+                artifacts={
+                    'artifact_name': {
+                        'filePath': self._host.join(self._host.getcwd(),
+                                                    ARTIFACT_DIR,
+                                                    'some_artifact'),
+                    },
+                })
+        self.assertEqual(test_result, expected_result)
+
+    def testReportIndividualTestResultMultipleArtifacts(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = result_sink.ResultSinkReporter(self._host)
+        rsr._post = StubWithRetval(2)
+        results = CreateResult({
+            'name': 'test_name',
+            'actual': 'PASS',
+            'artifacts': {
+                'artifact_name': ['some_artifact', 'another_artifact'],
+            },
+        })
+        retval = rsr.report_individual_test_result(
+                'test_name_prefix.', results, ARTIFACT_DIR,
+                ['foo_tag', 'bar_tag'])
+        self.assertEqual(retval, 2)
+
+        test_result = GetTestResultFromPostedJson(rsr._post.args[0])
+        expected_result = CreateExpectedTestResult(
+                artifacts={
+                    'artifact_name-file0': {
+                        'filePath': self._host.join(self._host.getcwd(),
+                                                    ARTIFACT_DIR,
+                                                    'some_artifact'),
+                    },
+                    'artifact_name-file1': {
+                        'filePath': self._host.join(self._host.getcwd(),
+                                                    ARTIFACT_DIR,
+                                                    'another_artifact'),
+                    },
+                })
+        self.assertEqual(test_result, expected_result)
+
+    def testReportResultEarlyReturnIfNotSupported(self):
+        self.setLuciContextWithContent({})
+        rsr = result_sink.ResultSinkReporter(self._host)
+        result_sink._create_json_test_result = lambda: 1/0
+        self.assertEqual(rsr._report_result(
+                'test_id', 'PASS', True, {}, {}, '<pre>summary</pre>', 1), 0)
+
+    def testCreateJsonTestResultInvalidStatus(self):
+        with self.assertRaises(AssertionError):
+            result_sink._create_json_test_result(
+                'test_id', 'InvalidStatus', False, {}, {}, '', 1)
+
+    def testCreateJsonTestResultInvalidSummary(self):
+        with self.assertRaises(AssertionError):
+            result_sink._create_json_test_result(
+                'test_id', 'PASS', True, {}, {}, 'a' * 4097, 1)
+
+    def testCreateJsonTestResultBasic(self):
+        retval = result_sink._create_json_test_result(
+            'test_id', 'PASS', True, {'artifact': {'filePath': 'somepath'}},
+            {'tag_key': 'tag_value'}, '<pre>summary</pre>', 1)
+        self.assertEqual(retval, {
+            'testId': 'test_id',
+            'status': 'PASS',
+            'expected': True,
+            'duration': '1s',
+            'summaryHtml': '<pre>summary</pre>',
+            'artifacts': {
+                'artifact': {
+                    'filePath': 'somepath',
+                },
+            },
+            'tags': [
+                {
+                    'key': 'tag_key',
+                    'value': 'tag_value',
+                },
+            ],
+        })

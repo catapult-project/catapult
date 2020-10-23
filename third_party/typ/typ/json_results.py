@@ -50,6 +50,7 @@ class Result(object):
         self.pid = pid
         self.is_regression = actual != ResultType.Pass and unexpected
         self.artifacts = artifacts
+        self.result_sink_retcode = 0
 
 
 class ResultSet(object):

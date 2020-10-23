@@ -40,6 +40,7 @@ for path in (dir_above_typ, dir_cov):
 
 from typ import artifacts
 from typ import json_results
+from typ import result_sink
 from typ.arg_parser import ArgumentParser
 from typ.expectations_parser import TestExpectations, Expectation
 from typ.host import Host
@@ -624,9 +625,10 @@ class Runner(object):
                                                       int(h.time()),
                                                       all_tests, result_set,
                                                       self.path_delimiter)
+        retcode = (json_results.exit_code_from_full_results(full_results)
+                   | result_sink.result_sink_retcode_from_result_set(result_set))
 
-        return (json_results.exit_code_from_full_results(full_results),
-                full_results)
+        return (retcode, full_results)
 
     def _run_one_set(self, stats, result_set, test_set, jobs, pool):
         self._skip_tests(stats, result_set, test_set.tests_to_skip)
@@ -948,10 +950,12 @@ class _Child(object):
         self.expectations = parent.expectations
         self.test_name_prefix = parent.args.test_name_prefix
         self.artifact_output_dir = parent.artifact_output_dir
+        self.result_sink_reporter = None
 
 
 def _setup_process(host, worker_num, child):
     child.host = host
+    child.result_sink_reporter = result_sink.ResultSinkReporter(host)
     child.worker_num = worker_num
     # pylint: disable=protected-access
 
@@ -1075,11 +1079,15 @@ def _run_one_test(child, test_input):
           test_case.set_artifacts(None)
 
     took = h.time() - started
-    return (_result_from_test_result(test_result, test_name, started, took, out,
+    result = _result_from_test_result(test_result, test_name, started, took, out,
                                     err, child.worker_num, pid,
                                     expected_results, child.has_expectations,
-                                    art.artifacts),
-            should_retry_on_failure)
+                                    art.artifacts)
+    result.result_sink_retcode =\
+            child.result_sink_reporter.report_individual_test_result(
+                child.test_name_prefix, result, child.artifact_output_dir,
+                child.expectations.tags if child.expectations else [])
+    return (result, should_retry_on_failure)
 
 
 def _run_under_debugger(host, test_case, suite,
