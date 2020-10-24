@@ -14,8 +14,9 @@ from devil.android import device_errors
 try:
   from devil.android import forwarder
 except ImportError as exc:
-  # Module is not importable e.g. on Windows hosts.
-  logging.warning('Failed to import devil.android.forwarder: %s', exc)
+  # Module is not importable e.g. on Windows hosts. Skip the warning printout to
+  # to reduce the noise.
+  pass
 
 
 class AndroidForwarderFactory(forwarders.ForwarderFactory):

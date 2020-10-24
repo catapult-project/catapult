@@ -68,8 +68,13 @@ class LoggingArtifactCompatibilityWrapper(ArtifactCompatibilityWrapper):
     super(LoggingArtifactCompatibilityWrapper, self).__init__(None)
 
   def CreateArtifact(self, name, data):
+    # Don't log binary files as the utf-8 encoding will cause errors.
+    # Note that some tests use the .dmp extension for both crash-dump files and
+    # text files.
+    if os.path.splitext(name)[1].lower() in ['.png', '.dmp']:
+      return
     logging.warning(
-        'Only logging the first 100 characters of the given artifact. To store '
-        'the full artifact, run the test in either a Telemetry or typ context.')
-    logging.info(
-        'Artifact with name %s: %s', name, data[:min(100, len(data))])
+        'Only logging the first 100 characters of the %d character artifact '
+        'with name %s. To store the full artifact, run the test in either a '
+        'Telemetry or typ context.' % (len(data), name))
+    logging.info('Artifact with name %s: %s', name, data[:min(100, len(data))])
