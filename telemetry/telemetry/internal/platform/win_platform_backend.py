@@ -30,7 +30,8 @@ try:
   except ImportError:
     import _winreg as winreg  # pylint: disable=import-error,wrong-import-order
   import win32security  # pylint: disable=import-error
-except ImportError:
+except ImportError as e:
+  logging.warning('import error in win_platform_backend: %s', e)
   pywintypes = None
   shell = None
   shellcon = None
@@ -292,6 +293,10 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     return True
 
   def CooperativelyShutdown(self, proc, app_name):
+    if win32gui is None:
+      logging.warning('win32gui unavailable, cannot cooperatively shutdown')
+      return False
+
     pid = proc.pid
 
     # http://timgolden.me.uk/python/win32_how_do_i/
