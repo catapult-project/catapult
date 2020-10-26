@@ -66,8 +66,21 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         '--remote-debugging-port=0',
         'about:blank'
     ]
+
+    # Use flags used on WebEngine in production devices.
+    browser_cmd.extend([
+        '--',
+        '--enable-low-end-device-mode',
+        '--force-gpu-mem-available-mb=64',
+        '--force-gpu-mem-discardable-limit-mb=32',
+        '--force-max-texture-size=2048',
+        '--gpu-rasterization-msaa-sample-count=0',
+        '--min-height-for-gpu-raster-tile=128',
+        '--webgl-msaa-sample-count=0',
+        '--max-decoded-image-size-mb=10'
+    ])
+
     if startup_args:
-      browser_cmd.append('--')
       browser_cmd.extend(startup_args)
     return browser_cmd
 
