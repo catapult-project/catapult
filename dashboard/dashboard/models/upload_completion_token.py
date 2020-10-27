@@ -86,7 +86,10 @@ class Token(internal_only_model.InternalOnlyModel):
     assert error_message is None or state == State.FAILED
 
     self.state_ = state
-    self.error_message = error_message
+    if error_message is not None:
+      # In some cases the error_message (e.message field) can actually be not
+      # a string.
+      self.error_message = str(error_message)
     self.put()
 
     # Note that state here does not reflect the state of upload overall (since
@@ -167,7 +170,10 @@ class Measurement(internal_only_model.InternalOnlyModel):
             'Token id: %s, measurement test path: %s', token_id, test_path)
       return
     obj.state = state
-    obj.error_message = error_message
+    if error_message is not None:
+      # In some cases the error_message (e.message field) can actually be not
+      # a string.
+      obj.error_message = str(error_message)
     yield obj.put_async()
     logging.info(
         'Upload completion token measurement updated. Token id: %s, '

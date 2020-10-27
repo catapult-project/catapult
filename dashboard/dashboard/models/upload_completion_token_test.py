@@ -177,7 +177,7 @@ class UploadCompletionTokenTest(testing_common.TestCase):
     self.assertEqual(measurement.error_message, target_message)
 
   @unittest.expectedFailure
-  def testMeasurementUpdateStateByPathAsync_ErrorMessageFaile(self):
+  def testMeasurementUpdateStateByPathAsync_ErrorMessageFail(self):
     test_path = 'test/path'
     token_id = str(uuid.uuid4())
     token_key = upload_completion_token.Token(id=token_id).put()
@@ -185,8 +185,8 @@ class UploadCompletionTokenTest(testing_common.TestCase):
         id=str(uuid.uuid4()), test_path=test_path, token=token_key).put()
 
     upload_completion_token.Measurement.UpdateStateByPathAsync(
-        test_path, token_id, upload_completion_token.State.FAILED,
-        'Some message').wait()
+        test_path, token_id, upload_completion_token.State.COMPLETED,
+        'Some message').check_success()
 
 
 if __name__ == '__main__':

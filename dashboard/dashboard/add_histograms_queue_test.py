@@ -662,6 +662,21 @@ class AddHistogramsQueueTestWithUploadCompletionToken(testing_common.TestCase):
     self.assertEqual(len(token.GetMeasurements()), 1)
     self.assertEqual(token.GetMeasurements()[0].error_message, 'Test exception')
 
+  @mock.patch.object(
+      find_anomalies, 'ProcessTestsAsync',
+      mock.MagicMock(
+          side_effect=IOError(('Connection aborted.',
+                               Exception(104, 'Connection reset by peer')))))
+  def testPostHistogram_FailWithNonStringMessage(self):
+    token = self._CreateHistogramWithMeasurementAndAdd()
+    self.assertEqual(token.state, upload_completion_token.State.FAILED)
+    self.assertEqual(len(token.GetMeasurements()), 1)
+    self.assertEqual(
+        token.GetMeasurements()[0].error_message,
+        str(
+            IOError(('Connection aborted.',
+                     Exception(104, 'Connection reset by peer')))))
+
   @mock.patch.object(add_histograms_queue, '_ProcessRowAndHistogram',
                      mock.MagicMock(side_effect=Exception('Test exception')))
   def testPostHistogram_FailToCreateFixture(self):
