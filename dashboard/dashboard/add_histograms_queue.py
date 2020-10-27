@@ -316,7 +316,7 @@ def _AddHistogramFromData(params, revision, test_key, internal_only):
       params.get('test_path'), params.get('token'))
   if measurement is not None:
     measurement.histogram = entity.key
-    measurement.put_async()
+    measurement.put()
 
 
 @ndb.tasklet
