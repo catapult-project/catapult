@@ -47,10 +47,6 @@ function onTraceViewerImportFail() {
   let url;
   let model;
 
-  // You can set this to true if you want to hide the WebComponentsV0 polyfill
-  // warning.
-  window.__hideTraceViewerPolyfillWarning = false;
-
   function load() {
     const req = new XMLHttpRequest();
     const isBinary = /[.]gz$/.test(url) || /[.]zip$/.test(url);
