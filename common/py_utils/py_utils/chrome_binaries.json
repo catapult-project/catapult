@@ -12,16 +12,16 @@
           "version_in_cs": "85.0.4169.0"
         },
         "win_AMD64": {
-          "cloud_storage_hash": "c0b02f47afb6bacdd8d12eda6f03488583404b60",
+          "cloud_storage_hash": "121271e6e917886bd2e5b539dd643e74a3aae395",
           "download_path": "bin\\reference_build\\chrome-win64-clang.zip",
           "path_within_archive": "chrome-win64-clang\\chrome.exe",
-          "version_in_cs": "85.0.4169.0"
+          "version_in_cs": "86.0.4240.111"
         },
         "win_x86": {
-          "cloud_storage_hash": "5879958eda4edc5b0eaffeda4c7369a07937af73",
+          "cloud_storage_hash": "83e9d11b28d01c10bbcccb7b882288b192b5e756",
           "download_path": "bin\\reference_build\\chrome-win32-clang.zip",
           "path_within_archive": "chrome-win32-clang\\chrome.exe",
-          "version_in_cs": "85.0.4169.0"
+          "version_in_cs": "86.0.4240.111"
         }
       }
     },
