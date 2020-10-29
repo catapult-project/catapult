@@ -134,6 +134,7 @@ tracing_js_html_files = [
   "tracing/extras/importer/linux_perf/kfunc_parser.html",
   "tracing/extras/importer/linux_perf/mali_parser.html",
   "tracing/extras/importer/linux_perf/memreclaim_parser.html",
+  "tracing/extras/importer/linux_perf/msm_parser.html",
   "tracing/extras/importer/linux_perf/parser.html",
   "tracing/extras/importer/linux_perf/power_parser.html",
   "tracing/extras/importer/linux_perf/regulator_parser.html",
