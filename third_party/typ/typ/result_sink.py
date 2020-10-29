@@ -79,10 +79,7 @@ class ResultSinkReporter(object):
 
     @property
     def resultdb_supported(self):
-        # TODO(crbug.com/1143021): Re-enable this once the GPU presubmit tests
-        # play nicely with ResultDB.
-        return False
-        # return self._sink is not None
+        return self._sink is not None
 
     def report_individual_test_result(
             self, test_name_prefix, result, artifact_output_dir,
