@@ -123,6 +123,12 @@ class ArgumentParser(argparse.ArgumentParser):
                               action='store',
                               help=('If specified, writes the trace to '
                                     'that path.'))
+            self.add_argument('--disable-resultsink',
+                              action='store_true',
+                              default=False,
+                              help=('Explicitly disable ResultSink integration '
+                                    'instead of automatically determining '
+                                    'based off LUCI_CONTEXT.'))
             self.add_argument('tests', nargs='*', default=[],
                               help=argparse.SUPPRESS)
 

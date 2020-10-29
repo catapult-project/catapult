@@ -99,6 +99,11 @@ def CreateExpectedTestResult(
 #         rsr = result_sink.ResultSinkReporter(self._host)
 #         self.assertFalse(rsr.resultdb_supported)
 
+#     def testExplicitDisable(self):
+#         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+#         rsr = result_sink.ResultSinkReporter(self._host, True)
+#         self.assertFalse(rsr.resultdb_supported)
+
 #     def testNoSinkKey(self):
 #         self.setLuciContextWithContent({})
 #         rsr = result_sink.ResultSinkReporter(self._host)

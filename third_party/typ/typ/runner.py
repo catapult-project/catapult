@@ -951,11 +951,13 @@ class _Child(object):
         self.test_name_prefix = parent.args.test_name_prefix
         self.artifact_output_dir = parent.artifact_output_dir
         self.result_sink_reporter = None
+        self.disable_resultsink = parent.args.disable_resultsink
 
 
 def _setup_process(host, worker_num, child):
     child.host = host
-    child.result_sink_reporter = result_sink.ResultSinkReporter(host)
+    child.result_sink_reporter = result_sink.ResultSinkReporter(
+            host, child.disable_resultsink)
     child.worker_num = worker_num
     # pylint: disable=protected-access
 
