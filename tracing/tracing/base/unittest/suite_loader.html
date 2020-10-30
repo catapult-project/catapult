@@ -212,11 +212,11 @@ tr.exportTo('tr.b.unittest', function() {
       this.oldGlobalOnError_ = undefined;
     },
 
-    constructAndRegisterTestSuite(suiteConstructor) {
+    constructAndRegisterTestSuite(suiteConstructor, opt_options) {
       const name = this.currentModuleLoader_.getCurrentlyExecutingModuleName();
 
       const testSuite = new tr.b.unittest.TestSuite(
-          name, suiteConstructor);
+          name, suiteConstructor, opt_options);
 
       this.testSuites.push(testSuite);
 

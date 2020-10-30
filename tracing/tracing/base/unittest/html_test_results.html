@@ -503,8 +503,7 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     didAllTestsPass() {
-      // A test counts as failing if it failed or it was skipped.
-      return this.numTestsThatFailed_ + this.numSkippedTests_ === 0;
+      return this.numTestsThatFailed_ === 0;
     },
 
     notifyTestResultToDevServer_(result, extraMsg) {

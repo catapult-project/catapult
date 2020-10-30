@@ -11,7 +11,8 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.b.unittest.testSuite(function() {
+// See https://crbug.com/1143376.
+tr.b.unittest.skippedTestSuite(function() {
   const KeyEventManager = tr.b.KeyEventManager;
 
   function newKeyEvent(eventType, dict) {
