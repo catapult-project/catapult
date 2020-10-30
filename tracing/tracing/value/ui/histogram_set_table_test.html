@@ -213,7 +213,8 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(baseTable.sortColumnIndex, 1);
   });
 
-  test('controlSortColumnIndex', async function() {
+  // See https://crbug.com/1143376.
+  skipTest('controlSortColumnIndex', async function() {
     const histograms = new tr.v.HistogramSet();
     histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
     histograms.createHistogram('b', tr.b.Unit.byName.count, [2]);
@@ -243,7 +244,8 @@ tr.b.unittest.testSuite(function() {
     await table.viewState.update({sortDescending: false});
   });
 
-  test('controlSortDescending', async function() {
+  // See https://crbug.com/1143376.
+  skipTest('controlSortDescending', async function() {
     const histograms = new tr.v.HistogramSet();
     histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
     histograms.createHistogram('b', tr.b.Unit.byName.count, [2]);
@@ -440,7 +442,8 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(getTableCells(table), 1);
   });
 
-  test('controlRowExpanded', async function() {
+  // See https://crbug.com/1143376.
+  skipTest('controlRowExpanded', async function() {
     const histograms = new tr.v.HistogramSet();
     const aHist = histograms.createHistogram('a', tr.b.Unit.byName.count, [1]);
     aHist.diagnostics.set(tr.v.d.RESERVED_NAMES.STORIES,
@@ -1184,7 +1187,8 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual('-90.0%', barContent.textContent);
   });
 
-  test('requestSelectionChange', async function() {
+  // See https://crbug.com/1143376.
+  skipTest('requestSelectionChange', async function() {
     const histograms = new tr.v.HistogramSet();
     const barHist = histograms.createHistogram(
         'bar', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, [1], {
@@ -1395,7 +1399,8 @@ tr.b.unittest.testSuite(function() {
         table, e => e.textContent === '(missing)'));
   });
 
-  test('instantiate_1x1', async function() {
+  // See https://crbug.com/1143376.
+  skipTest('instantiate_1x1', async function() {
     const histograms = new tr.v.HistogramSet();
     const hist = histograms.createHistogram(
         'foo', tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,

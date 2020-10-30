@@ -13,7 +13,8 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.b.unittest.testSuite(function() {
+// See https://crbug.com/1143376.
+tr.b.unittest.skippedTestSuite(function() {
   const testData = [
     {name: 'a', args: {}, pid: 52, ts: 15000, cat: 'foo', tid: 53, ph: 'B'},
     {name: 'a', args: {}, pid: 52, ts: 19000, cat: 'foo', tid: 53, ph: 'E'},

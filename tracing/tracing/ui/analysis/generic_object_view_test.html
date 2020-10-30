@@ -62,7 +62,8 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(view.$.content.children.length, 3);
   });
 
-  test('booleanValue', function() {
+  // See https://crbug.com/1143376.
+  skipTest('booleanValue', function() {
     const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = false;
     assert.strictEqual(Polymer.dom(view.$.content).textContent, 'false');
@@ -196,7 +197,8 @@ tr.b.unittest.testSuite(function() {
         view.$.content, 'tr-v-ui-scalar-span'));
   });
 
-  test('scalarValue', function() {
+  // See https://crbug.com/1143376.
+  skipTest('scalarValue', function() {
     const view = document.createElement('tr-ui-a-generic-object-view');
     view.object =
         new tr.b.Scalar(tr.b.Unit.byName.normalizedPercentage, .3);

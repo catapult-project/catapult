@@ -134,7 +134,8 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(showAll.checked, false);
   });
 
-  test('controlShowAll', function() {
+  // See https://crbug.com/1143376.
+  skipTest('controlShowAll', function() {
     const controls = buildControls(this);
     const showAll = tr.ui.b.findDeepElementMatchingPredicate(
         controls, e => e.id === 'show_all');

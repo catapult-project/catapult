@@ -300,7 +300,8 @@ tr.b.unittest.testSuite(function() {
         }, containerEl);
   });
 
-  test('instantiate_differentProcessMemoryDumps', function() {
+  // See https://crbug.com/1143376.
+  skipTest('instantiate_differentProcessMemoryDumps', function() {
     const globalMemoryDumps =
         tr.ui.analysis.createMultipleTestGlobalMemoryDumps();
     // 2 dumps in Process 1, 3 dumps in Process 2, and 1 dump in Process 4

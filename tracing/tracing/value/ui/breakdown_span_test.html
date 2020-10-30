@@ -88,7 +88,8 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(span);
   });
 
-  test('correlate', function() {
+  // See https://crbug.com/1143376.
+  skipTest('correlate', function() {
     const histograms = new tr.v.HistogramSet();
     const sample0Breakdown = new tr.v.d.Breakdown();
     sample0Breakdown.set('a', 5);

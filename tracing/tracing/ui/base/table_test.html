@@ -1052,7 +1052,8 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(table.getExpandedForTableRow(rows[0]));
   });
 
-  test('focus_empty', function() {
+  // See https://crbug.com/1143376.
+  skipTest('focus_empty', function() {
     const table = createSimpleOneColumnNestedTable();
     table.tableRows = [];
     table.emptyValue = 'This table is left intentionally empty';
@@ -1105,7 +1106,8 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(table.selectedColumnIndex);
   });
 
-  test('focus_rows', function() {
+  // See https://crbug.com/1143376.
+  skipTest('focus_rows', function() {
     const table = createSimpleOneColumnNestedTable();
     table.selectionMode = SelectionMode.ROW;
     this.addHTMLOutput(table);
@@ -1165,7 +1167,8 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(table.selectedColumnIndex);
   });
 
-  test('focus_cells', function() {
+  // See https://crbug.com/1143376.
+  skipTest('focus_cells', function() {
     const table = createMultiColumnNestedTable();
     table.selectionMode = SelectionMode.CELL;
     this.addHTMLOutput(table);
@@ -1232,7 +1235,8 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(table.selectedColumnIndex, 1);
   });
 
-  test('focus_allCellsUnselectable', function() {
+  // See https://crbug.com/1143376.
+  skipTest('focus_allCellsUnselectable', function() {
     const table = createMultiColumnNestedTable();
     table.selectionMode = SelectionMode.CELL;
     for (const c of table.tableColumns) {

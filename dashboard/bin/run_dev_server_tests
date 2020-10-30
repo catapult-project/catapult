@@ -11,4 +11,8 @@ if __name__ == '__main__':
                                  '..', '..'))
   sys.path.append(catapult_path)
   from catapult_build import run_dev_server_tests
-  sys.exit(run_dev_server_tests.Main(sys.argv + ['--tests=dashboard']))
+  sys.exit(run_dev_server_tests.Main(sys.argv + [
+    '--tests=dashboard',
+    '--extra-chrome-args="--enable-blink-features=CustomElementsV0,'
+    'HTMLImports,ShadowDOMV0"',
+  ]))

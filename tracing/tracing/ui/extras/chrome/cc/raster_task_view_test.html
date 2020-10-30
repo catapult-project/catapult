@@ -47,7 +47,8 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(view);
   });
 
-  test('analysisViewIntegration', function() {
+  // See https://crbug.com/1143376.
+  skipTest('analysisViewIntegration', function() {
     const selection = createSelection();
 
     const timelineView = {model: selection.model};

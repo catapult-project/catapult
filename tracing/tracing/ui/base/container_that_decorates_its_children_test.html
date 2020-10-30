@@ -45,7 +45,8 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(container.children[2].decorated);
   });
 
-  test('clearUsingTextContent', function() {
+  // See https://crbug.com/1111537
+  skipTest('clearUsingTextContent', function() {
     const c0 = createChild();
     const container = new SimpleContainer();
     Polymer.dom(container).appendChild(c0);
@@ -61,7 +62,8 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(c0.decorated);
   });
 
-  test('insertNewBefore', function() {
+  // See https://crbug.com/1111537
+  skipTest('insertNewBefore', function() {
     const c0 = createChild();
     const c1 = createChild();
     const container = new SimpleContainer();
@@ -82,7 +84,8 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(c1.decorated);
   });
 
-  test('testReplace', function() {
+  // See https://crbug.com/1111537
+  skipTest('testReplace', function() {
     const c0 = createChild();
     const c1 = createChild();
     const container = new SimpleContainer();

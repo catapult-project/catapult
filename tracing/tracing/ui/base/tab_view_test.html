@@ -28,7 +28,8 @@ Polymer({
   behaviors: [nonSubViewBehavior]
 });
 
-tr.b.unittest.testSuite(function() {
+// See https://crbug.com/1143376.
+tr.b.unittest.skippedTestSuite(function() {
   function createPowerSampleSubView() {
     const model = tr.c.TestUtils.newModel(function(m) {
       m.device.powerSeries = new tr.model.PowerSeries(m.device);

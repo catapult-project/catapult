@@ -27,7 +27,8 @@ tr.b.unittest.testSuite(function() {
     elem.dispatchEvent(clickEvent);
   }
 
-  test('basic', function() {
+  // See https://crbug.com/1143376.
+  skipTest('basic', function() {
     const dd = document.createElement('tr-ui-b-dropdown');
     dd.style.marginLeft = '50px';
     dd.style.width = '50px';

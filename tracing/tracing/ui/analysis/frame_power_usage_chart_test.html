@@ -47,7 +47,8 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(chart.chart);
   });
 
-  test('instantiate_oneFrame', function() {
+  // See https://crbug.com/1143376.
+  skipTest('instantiate_oneFrame', function() {
     const series = new tr.model.PowerSeries(new tr.Model().device);
 
     const vSyncTimestamps = [0];
@@ -70,7 +71,8 @@ tr.b.unittest.testSuite(function() {
     assert.sameDeepMembers(chart.chart.data, expectedChartData);
   });
 
-  test('instantiate_twoFrames', function() {
+  // See https://crbug.com/1143376.
+  skipTest('instantiate_twoFrames', function() {
     const series = new tr.model.PowerSeries(new tr.Model().device);
 
     const vSyncTimestamps = [0, 4];
@@ -101,7 +103,8 @@ tr.b.unittest.testSuite(function() {
     assert.sameDeepMembers(chart.chart.data, expectedChartData);
   });
 
-  test('instantiate_twoFramesDifferentXValues', function() {
+  // See https://crbug.com/1143376.
+  skipTest('instantiate_twoFramesDifferentXValues', function() {
     const series = new tr.model.PowerSeries(new tr.Model().device);
 
     // Power samples taken at 0, 1, 2, and 3s after frame start.
@@ -134,7 +137,8 @@ tr.b.unittest.testSuite(function() {
     assert.sameDeepMembers(chart.chart.data, expectedChartData);
   });
 
-  test('instantiate_samplesBeforeFirstVSync', function() {
+  // See https://crbug.com/1143376.
+  skipTest('instantiate_samplesBeforeFirstVSync', function() {
     const series = new tr.model.PowerSeries(new tr.Model().device);
 
     const vSyncTimestamps = [4];
@@ -182,7 +186,8 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(chart.chart);
   });
 
-  test('instantiate_vSyncsAfterLastPowerSample', function() {
+  // See https://crbug.com/1143376.
+  skipTest('instantiate_vSyncsAfterLastPowerSample', function() {
     const series = new tr.model.PowerSeries(new tr.Model().device);
 
     const vSyncTimestamps = [0, 4, 8, 12];
@@ -232,8 +237,8 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(chart.chart);
   });
 
-
-  test('instantiate_samplesNotInChronologicalOrder', function() {
+  // See https://crbug.com/1143376.
+  skipTest('instantiate_samplesNotInChronologicalOrder', function() {
     const series = new tr.model.PowerSeries(new tr.Model().device);
 
     const vSyncTimestamps = [0, 4];

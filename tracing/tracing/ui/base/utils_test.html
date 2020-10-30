@@ -37,7 +37,8 @@ Polymer({
 tr.b.unittest.testSuite(function() {
   const THIS_DOC = document.currentScript.ownerDocument;
 
-  test('instantiateTemplatePolymer', function() {
+  // See https://crbug.com/1143376.
+  skipTest('instantiateTemplatePolymer', function() {
     const e = tr.ui.b.instantiateTemplate(
         '#instantiate-template-polymer-test',
         THIS_DOC);
@@ -45,7 +46,8 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(e.children[0].testProperty, 'Test');
   });
 
-  test('instantiateTemplateMultipleTemplates', function() {
+  // See https://crbug.com/1143376.
+  skipTest('instantiateTemplateMultipleTemplates', function() {
     const outerElement = tr.ui.b.instantiateTemplate(
         '#multiple-template-test',
         THIS_DOC);

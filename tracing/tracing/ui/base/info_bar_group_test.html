@@ -21,7 +21,8 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(infoBarGroup);
   });
 
-  test('group-populate-then-clear', function() {
+  // See https://crbug.com/1143376.
+  skipTest('group-populate-then-clear', function() {
     const infoBarGroup = document.createElement('tr-ui-b-info-bar-group');
     infoBarGroup.addMessage(
         'Message 1',

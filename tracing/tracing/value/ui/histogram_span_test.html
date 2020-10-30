@@ -241,7 +241,8 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(span);
   });
 
-  test('breakdownUnit', async function() {
+  // See https://crbug.com/1143376.
+  skipTest('breakdownUnit', async function() {
     const root = new tr.v.Histogram('root', tr.b.Unit.byName.sizeInBytes);
     const sampleBreakdown = new tr.v.d.Breakdown();
     sampleBreakdown.set('x', 30 << 20);
@@ -266,7 +267,8 @@ tr.b.unittest.testSuite(function() {
         span, e => e.textContent === '70.0 MiB'));
   });
 
-  test('diagnosticsTabs', async function() {
+  // See https://crbug.com/1143376.
+  skipTest('diagnosticsTabs', async function() {
     const span = document.createElement('tr-v-ui-histogram-span');
     span.build(tr.v.Histogram.create(
         '', tr.b.Unit.byName.count, [

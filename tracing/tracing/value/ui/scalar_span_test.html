@@ -284,7 +284,8 @@ tr.b.unittest.testSuite(function() {
         {expectedColor: 'rgb(255, 0, 0)'});
   });
 
-  test('createScalarSpan', function() {
+  // See https://crbug.com/1143376.
+  skipTest('createScalarSpan', function() {
     // No config.
     let span = tr.v.ui.createScalarSpan(
         new Scalar(Unit.byName.powerInWatts, 3.14));
@@ -477,7 +478,8 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(rectA.height, rectB.height);
   });
 
-  test('respectCurrentDisplayUnit', function() {
+  // See https://crbug.com/1143376.
+  skipTest('respectCurrentDisplayUnit', function() {
     try {
       Unit.currentTimeDisplayMode = tr.b.TimeDisplayModes.ns;
 
@@ -514,7 +516,8 @@ tr.b.unittest.testSuite(function() {
         expectation.classList || []);
   }
 
-  test('customContextRange', function() {
+  // See https://crbug.com/1143376.
+  skipTest('customContextRange', function() {
     const div = document.createElement('div');
     div.style.width = '101px';  // One extra pixel for sparkline border.
     this.addHTMLOutput(div);
@@ -603,7 +606,8 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(tr.v.ui.createScalarSpan(), '');
   });
 
-  test('contextControllerChanges', function() {
+  // See https://crbug.com/1143376.
+  skipTest('contextControllerChanges', function() {
     const div = document.createElement('div');
     div.style.width = '101px';  // One extra pixel for sparkline border.
     this.addHTMLOutput(div);
@@ -721,7 +725,8 @@ tr.b.unittest.testSuite(function() {
     checkSparkline(s1, {left: 0, width: 51, classList: ['positive']});
   });
 
-  test('deltaSparkline_noImprovementDirection', function() {
+  // See https://crbug.com/1143376.
+  skipTest('deltaSparkline_noImprovementDirection', function() {
     const div = document.createElement('div');
     div.style.width = '101px';  // One extra pixel for sparkline border.
     this.addHTMLOutput(div);
@@ -781,7 +786,8 @@ tr.b.unittest.testSuite(function() {
     checkSparkline(span8, {left: 0, width: 26, classList: ['positive']});
   });
 
-  test('deltaSparkline_smallerIsBetter', function() {
+  // See https://crbug.com/1143376.
+  skipTest('deltaSparkline_smallerIsBetter', function() {
     const div = document.createElement('div');
     div.style.width = '101px';  // One extra pixel for sparkline border.
     this.addHTMLOutput(div);
@@ -842,7 +848,8 @@ tr.b.unittest.testSuite(function() {
     checkSparkline(span8, {left: 0, width: 76, classList: ['better']});
   });
 
-  test('deltaSparkline_biggerIsBetter', function() {
+  // See https://crbug.com/1143376.
+  skipTest('deltaSparkline_biggerIsBetter', function() {
     const div = document.createElement('div');
     div.style.width = '101px';  // One extra pixel for sparkline border.
     this.addHTMLOutput(div);
@@ -902,7 +909,8 @@ tr.b.unittest.testSuite(function() {
     checkSparkline(span8, {left: 0, width: 101, classList: ['worse']});
   });
 
-  test('classListChanges', function() {
+  // See https://crbug.com/1143376.
+  skipTest('classListChanges', function() {
     const div = document.createElement('div');
     div.style.width = '200px';
     this.addHTMLOutput(div);

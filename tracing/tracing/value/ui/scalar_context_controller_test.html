@@ -29,7 +29,8 @@ tr.b.unittest.testSuite(function() {
     is: 'tr-v-ui-scalar-context-controller-mock-host'
   });
 
-  test('getScalarContextControllerForElement', function() {
+  // See https://crbug.com/1143376.
+  skipTest('getScalarContextControllerForElement', function() {
     const root = document.createElement('div');
     Polymer.dom(document.body).appendChild(root);
     try {
