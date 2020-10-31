@@ -11,7 +11,7 @@ config("common_config") {
 }
 
 source_set("histogram") {
-  configs += [ ":common_config" ]
+  public_configs = [ ":common_config" ]
   sources = [
     "value/histogram.cc",
     "value/histogram.h",
@@ -25,7 +25,7 @@ source_set("histogram") {
 }
 
 source_set("reserved_infos") {
-  configs += [ ":common_config" ]
+  public_configs = [ ":common_config" ]
   sources = [
     "value/diagnostics/reserved_infos.cc",
     "value/diagnostics/reserved_infos.h",
@@ -33,7 +33,6 @@ source_set("reserved_infos") {
 }
 
 test("histogram_unittests") {
-  configs += [ ":common_config" ]
   sources = [
     "value/histogram_unittest.cc",
     "value/running_statistics_unittest.cc",
@@ -46,7 +45,7 @@ test("histogram_unittests") {
   deps = [
     ":histogram",
     "proto:histogram_proto",
-    "//testing/gtest:gtest_main",
     "//testing/gtest:gtest",
+    "//testing/gtest:gtest_main",
   ]
 }
