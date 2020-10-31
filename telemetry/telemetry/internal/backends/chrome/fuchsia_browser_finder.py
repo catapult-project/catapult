@@ -47,8 +47,7 @@ class PossibleFuchsiaBrowser(possible_browser.PossibleBrowser):
     pass
 
   def _GetPathsForOsPageCacheFlushing(self):
-    # There is no page write-back on Fuchsia, so there is nothing to flush.
-    return []
+    raise NotImplementedError()
 
   def Create(self):
     """Start the browser process."""
@@ -58,7 +57,6 @@ class PossibleFuchsiaBrowser(possible_browser.PossibleBrowser):
 
     startup_args = chrome_startup_args.GetFromBrowserOptions(
         self._browser_options)
-
     browser_backend = fuchsia_browser_backend.FuchsiaBrowserBackend(
         self._platform_backend, self._browser_options,
         self.browser_directory, self.profile_directory)

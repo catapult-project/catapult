@@ -47,12 +47,6 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _FindDevToolsPortAndTarget(self):
     return self._devtools_port, None
 
-  def DumpMemory(self, timeout=None, detail_level=None):
-    if detail_level is None:
-      detail_level = 'light'
-    return self.devtools_client.DumpMemory(timeout=timeout,
-                                           detail_level=detail_level)
-
   def _ReadDevToolsPort(self, stderr):
     def TryReadingPort(f):
       if not f:
@@ -110,18 +104,6 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           self.browser.platform.GetArchName())
       self._devtools_port = self._ReadDevToolsPort(self._browser_process.stderr)
       self.BindDevToolsClient()
-
-      # Start tracing if startup tracing attempted but did not actually start.
-      # This occurs when no ChromeTraceConfig is present yet current_state is
-      # non-None.
-      tracing_backend = self._platform_backend.tracing_controller_backend
-      current_state = tracing_backend.current_state
-      if not (tracing_backend.GetChromeTraceConfig() and
-              current_state is not None):
-        tracing_backend.StopTracing()
-        tracing_backend.StartTracing(current_state.config,
-                                     current_state.timeout)
-
     except:
       logging.info('The browser failed to start. Output of the browser: \n%s' %
                    self.GetStandardOutput())

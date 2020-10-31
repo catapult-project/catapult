@@ -179,8 +179,7 @@ ALL_CHROMEOS = _TestConditionByPlatformList(['chromeos'], 'ChromeOS')
 ALL_ANDROID = _TestConditionByPlatformList(['android'], 'Android')
 ALL_DESKTOP = _TestConditionByPlatformList(
     ['mac', 'linux', 'win', 'chromeos'], 'Desktop')
-# Fuchsia setup is similar to mobile, though it is not quite the same.
-ALL_MOBILE = _TestConditionByPlatformList(['android', 'fuchsia'], 'Mobile')
+ALL_MOBILE = _TestConditionByPlatformList(['android'], 'Mobile')
 ANDROID_NEXUS5 = _TestConditionByAndroidModel('Nexus 5')
 _ANDROID_NEXUS5X = _TestConditionByAndroidModel('Nexus 5X')
 _ANDROID_NEXUS5XAOSP = _TestConditionByAndroidModel('AOSP on BullHead')

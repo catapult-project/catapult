@@ -202,8 +202,8 @@ class TracingBackend(object):
         'traceConfig': trace_config or {}}
     if params['transferMode'] == 'ReturnAsStream':
       params['streamCompression'] = 'gzip'
-      if trace_format is not None:
-        params['streamFormat'] = trace_format
+    if trace_format is not None:
+      params['streamFormat'] = trace_format
     request = {'method': 'Tracing.start', 'params': params}
     return self._inspector_websocket.SyncRequest(request, timeout)
 
@@ -239,13 +239,11 @@ class TracingBackend(object):
     self._is_tracing_running = False
     self._can_collect_data = True
 
-  def DumpMemory(self, timeout=None, detail_level=None):
+  def DumpMemory(self, timeout=None):
     """Dumps memory.
 
     Args:
       timeout: If not specified defaults to 20 minutes.
-      detail_level: Level of detail in memory dump. One of ['background',
-        'light', 'detailed']. Default is 'detailed'.
 
     Returns:
       GUID of the generated dump if successful, None otherwise.
@@ -257,11 +255,7 @@ class TracingBackend(object):
       TracingUnexpectedResponseException: If the response contains an error
       or does not contain the expected result.
     """
-    params = {}
-    if detail_level:
-      assert detail_level in ['background', 'light', 'detailed']
-      params = {'levelOfDetail': detail_level}
-    request = {'method': 'Tracing.requestMemoryDump', 'params': params}
+    request = {'method': 'Tracing.requestMemoryDump'}
     if timeout is None:
       timeout = 1200  # 20 minutes.
     try:
