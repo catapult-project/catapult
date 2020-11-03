@@ -246,6 +246,7 @@ tracing_js_html_files = [
   "tracing/metrics/vr/webvr_metric.html",
   "tracing/metrics/vr/webxr_metric.html",
   "tracing/metrics/webrtc/webrtc_rendering_metric.html",
+  "tracing/metrics/webui_metric.html",
   "tracing/model/activity.html",
   "tracing/model/alert.html",
   "tracing/model/annotation.html",

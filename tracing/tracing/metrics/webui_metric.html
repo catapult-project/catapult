@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!--
+Copyright 2020 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+
+<script>
+'use strict';
+
+/**
+ * This metric is used for WebUI performance benchmark.
+ * It captures the following:
+ * - Recorded trace events with name starts with "webui_metric:" on the C++
+ * side.
+ * - Duration between performance.mark() with name ends with ":benchmark_begin"
+ * and the same name ends with ":benchmark_end" on the JS side.
+ */
+tr.exportTo('tr.metrics.webui', function() {
+  function webuiMetric(histograms, model, opt_options) {
+    const chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    if (!chromeHelper) {
+      // Chrome isn't present.
+      return;
+    }
+
+    const WEBUI_TITLE_PREFIX = 'webui_metric:';
+    const traces = new Map();
+    // Collect trace events.
+    for (const helper of chromeHelper.browserHelpers) {
+      if (!helper.mainThread) continue;
+      for (const slice of helper.mainThread.sliceGroup.slices.concat(
+          helper.mainThread.asyncSliceGroup.slices)) {
+        if (!slice.error && slice.title.startsWith(WEBUI_TITLE_PREFIX)) {
+          if (!traces.has(slice.title)) {
+            traces.set(slice.title, []);
+          }
+          traces.get(slice.title).push(slice.duration);
+        }
+      }
+    }
+
+    // Collect performance.mark().
+    const BENCHMARK_BEGIN = 'benchmark_begin';
+    const BENCHMARK_END = 'benchmark_end';
+    const marks = new Map();
+    for (const helper of Object.values(chromeHelper.rendererHelpers)) {
+      for (const event of helper.mainThread.sliceGroup.childEvents()) {
+        const navId = getNavigationId(event);
+        if (!navId || !event.category.includes('blink.user_timing')) continue;
+        const {title} = event;
+        const index = title.lastIndexOf(':');
+        if (index === -1) {
+          continue;
+        }
+        const name = title.substring(0, index);
+        const lastPart = title.substring(index + 1);
+        if (lastPart === BENCHMARK_BEGIN) {
+          marks.set(name, event);
+        } else if (lastPart === BENCHMARK_END) {
+          if (!marks.has(name)) {
+            continue;
+          }
+          const range = tr.b.math.Range.fromExplicitRange(
+              marks.get(name).start, event.start);
+          if (!traces.has(name)) {
+            traces.set(name, []);
+          }
+          traces.get(name).push(range.duration);
+          marks.delete(name);
+        }
+      }
+    }
+
+    // Generate histograms.
+    traces.forEach((value, key) => {
+      histograms.createHistogram(key,
+          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+          value);
+    });
+  }
+
+  function getNavigationId(event) {
+    return event.args.data && event.args.data.navigationId;
+  }
+
+  tr.metrics.MetricRegistry.register(webuiMetric, {
+    supportsRangeOfInterest: false,
+  });
+
+  return {
+    webuiMetric,
+  };
+});
+</script>
