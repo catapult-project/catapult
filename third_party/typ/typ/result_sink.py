@@ -111,11 +111,15 @@ class ResultSinkReporter(object):
 
         test_id = test_name_prefix + result.name
         result_is_expected = result.actual in result.expected
-        tags_dict = {
-            'test_name': test_id,
-        }
+
+        tag_list = [
+            ('test_name', test_id),
+        ]
+        for expectation in result.expected:
+            tag_list.append(('typ_expectation', expectation))
         if expectation_tags:
-            tags_dict['typ_tags'] = ' '.join(expectation_tags)
+            for tag in expectation_tags:
+                tag_list.append(('typ_tag', tag))
 
         artifacts = {}
         original_artifacts = result.artifacts or {}
@@ -156,11 +160,11 @@ class ResultSinkReporter(object):
 
         return self._report_result(
                 test_id, result.actual, result_is_expected, artifacts,
-                tags_dict, html_summary, result.took)
+                tag_list, html_summary, result.took)
 
 
     def _report_result(
-            self, test_id, status, expected, artifacts, tags_dict, html_summary,
+            self, test_id, status, expected, artifacts, tag_list, html_summary,
             duration):
         """Reports a single test result to ResultSink.
 
@@ -171,7 +175,8 @@ class ResultSinkReporter(object):
             expected: A boolean denoting whether |status| is expected or not.
             artifacts: A dict of artifact names (strings) to dicts, specifying
                     either a filepath or base64-encoded artifact content.
-            tags_dict: A dict of tag names (strings) to tag values (strings).
+            tag_list: A list of tuples of (str, str), each element being a
+                    key/value pair to add as tags to the reported result.
             html_summary: A string containing HTML summarizing the test run.
                     Must be <= |MAX_HTML_SUMMARY_LENGTH|.
             duration: How long the test took in seconds.
@@ -186,7 +191,7 @@ class ResultSinkReporter(object):
         # TODO(crbug.com/1104252): Handle testLocation key so that ResultDB can
         # look up the correct component for bug filing.
         test_result = _create_json_test_result(
-                test_id, status, expected, artifacts, tags_dict, html_summary,
+                test_id, status, expected, artifacts, tag_list, html_summary,
                 duration)
 
         return self._post(json.dumps({'testResults': [test_result]}))
@@ -210,11 +215,13 @@ class ResultSinkReporter(object):
                 self._url,
                 body=content,
                 headers=self._headers)
-        return 0 if connection.getresponse().status == httplib.OK else 1
+        retval = 0 if connection.getresponse().status == httplib.OK else 1
+        connection.close()
+        return retval
 
 
 def _create_json_test_result(
-        test_id, status, expected, artifacts, tags_dict, html_summary,
+        test_id, status, expected, artifacts, tag_list, html_summary,
         duration):
     """Formats data to be suitable for sending to ResultSink.
 
@@ -225,7 +232,8 @@ def _create_json_test_result(
         expected: A boolean denoting whether |status| is expected or not.
         artifacts: A dict of artifact names (strings) to dicts, specifying
                 either a filepath or base64-encoded artifact content.
-        tags_dict: A dict of tag names (strings) to tag values (strings).
+        tag_list: A list of tuples of (str, str), each element being a
+                    key/value pair to add as tags to the reported result.
         html_summary: A string containing HTML summarizing the test run. Must be
                 <= |MAX_HTML_SUMMARY_LENGTH|.
         duration: How long the test took in seconds.
@@ -247,7 +255,7 @@ def _create_json_test_result(
             'artifacts': artifacts,
             'tags': [],
     }
-    for k, v in tags_dict.items():
+    for (k, v) in tag_list:
         test_result['tags'].append({'key': k, 'value': v})
 
     return test_result

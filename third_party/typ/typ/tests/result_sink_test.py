@@ -79,12 +79,16 @@ def CreateExpectedTestResult(
                         or '<pre>stdout: stdout\nstderr: stderr</pre>'),
         'artifacts': artifacts or {},
         'tags': tags or [
-            {'key': 'typ_tags', 'value': 'foo_tag bar_tag'},
-            {'key': 'test_name', 'value': test_id}],
+            {'key': 'test_name', 'value': test_id},
+            {'key': 'typ_expectation', 'value': 'PASS'},
+            {'key': 'typ_tag', 'value': 'foo_tag'},
+            {'key': 'typ_tag', 'value': 'bar_tag'},],
     }
 
 
 class ResultSinkReporterTest(unittest.TestCase):
+    maxDiff = None
+
     def setUp(self):
         self._host = host_fake.FakeHost()
         self._luci_context_file = '/tmp/luci_context_file.json'
@@ -264,7 +268,7 @@ class ResultSinkReporterTest(unittest.TestCase):
     def testCreateJsonTestResultBasic(self):
         retval = result_sink._create_json_test_result(
             'test_id', 'PASS', True, {'artifact': {'filePath': 'somepath'}},
-            {'tag_key': 'tag_value'}, '<pre>summary</pre>', 1)
+            [('tag_key', 'tag_value')], '<pre>summary</pre>', 1)
         self.assertEqual(retval, {
             'testId': 'test_id',
             'status': 'PASS',
