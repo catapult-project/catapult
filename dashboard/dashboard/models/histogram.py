@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import collections
 import itertools
+import logging
 import sys
 
 from google.appengine.ext import ndb
@@ -191,6 +192,8 @@ class SparseDiagnostic(JsonModel):
 
 @ndb.tasklet
 def _FindOrInsertDiagnosticsLast(new_entities, test, rev):
+  logging.info('Appending diagnostics: %r, revision: %d', new_entities, rev)
+
   query = SparseDiagnostic.query(
       ndb.AND(SparseDiagnostic.end_revision == sys.maxsize,
               SparseDiagnostic.test == test))
@@ -230,6 +233,9 @@ def _FindOrInsertDiagnosticsLast(new_entities, test, rev):
 @ndb.tasklet
 def _FindOrInsertNamedDiagnosticsOutOfOrder(new_diagnostic, old_diagnostics,
                                             rev):
+  logging.info('Inserting diagnostic out of order. Diagnostic: %s,'
+               ' revision: %d', new_diagnostic.name, rev)
+
   new_guid = new_diagnostic.key.id()
   guid_mapping = {}
 
