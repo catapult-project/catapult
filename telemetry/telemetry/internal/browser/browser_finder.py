@@ -45,6 +45,9 @@ def FindAllBrowserTypes(browser_finders=None):
     browsers.extend(bf.FindAllBrowserTypes())
   return browsers
 
+def _IsCrosBrowser(options):
+  return (options.browser_type in
+          ['cros-chrome', 'cros-chrome-guest', 'lacros-chrome'])
 
 @decorators.Cache
 def FindBrowser(options):
@@ -68,14 +71,14 @@ def FindBrowser(options):
     raise browser_finder_exceptions.BrowserFinderException(
         '--browser-executable requires --browser=exact.')
 
-  if options.browser_type == 'cros-chrome' and options.cros_remote is None:
+  if (_IsCrosBrowser(options) and
+      options.cros_remote is None):
     raise browser_finder_exceptions.BrowserFinderException(
-        'browser_type=cros-chrome requires cros_remote be set.')
-  if (options.browser_type != 'cros-chrome' and
-      options.browser_type != 'cros-chrome-guest' and
+        'browser_type=[la]cros-chrome[-guest] requires cros_remote be set.')
+  if (not _IsCrosBrowser(options)  and
       options.cros_remote != None):
     raise browser_finder_exceptions.BrowserFinderException(
-        '--remote requires --browser=cros-chrome or cros-chrome-guest.')
+        '--remote requires --browser=[la]cros-chrome[-guest].')
 
   devices = device_finder.GetDevicesMatchingOptions(options)
   browsers = []

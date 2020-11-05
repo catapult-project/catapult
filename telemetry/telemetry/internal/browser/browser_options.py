@@ -382,8 +382,9 @@ class BrowserFinderOptions(optparse.Values):
             print '     No browsers found for this device'
         sys.exit(0)
 
-      if self.browser_type == 'cros-chrome' and self.cros_remote and (
-          self.cros_remote_ssh_port < 0):
+      if ((self.browser_type == 'cros-chrome' or
+           self.browser_type == 'lacros-chrome') and
+          self.cros_remote and (self.cros_remote_ssh_port < 0)):
         try:
           self.cros_remote_ssh_port = socket.getservbyname('ssh')
         except OSError as e:
@@ -756,7 +757,7 @@ def CreateChromeBrowserOptions(br_options):
   browser_type = br_options.browser_type
 
   if (platform.GetHostPlatform().GetOSName() == 'chromeos' or
-      (browser_type and browser_type.startswith('cros'))):
+      (browser_type and 'cros' in browser_type)):
     return CrosBrowserOptions(br_options)
 
   return br_options

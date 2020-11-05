@@ -54,6 +54,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._is_guest = is_guest
     self._cri = cros_platform_backend.cri
     self._env = env
+    self._started = False
 
   @property
   def log_file_path(self):
@@ -80,13 +81,18 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self.Close()
 
   def Start(self, startup_args):
+    if self._started:
+      return
+    self._started = True
+
     self._cri.OpenConnection()
     # Remove the stale file with the devtools port / browser target
     # prior to restarting chrome.
     self._cri.RmRF(self._GetDevToolsActivePortPath())
 
     self._dump_finder = minidump_finder.MinidumpFinder(
-        self.browser.platform.GetOSName(), self.browser.platform.GetArchName())
+        self._platform_backend.platform.GetOSName(),
+        self._platform_backend.platform.GetArchName())
 
     # Escape all commas in the startup arguments we pass to Chrome
     # because dbus-send delimits array elements by commas
