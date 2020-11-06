@@ -233,8 +233,8 @@ def _FindOrInsertDiagnosticsLast(new_entities, test, rev):
 @ndb.tasklet
 def _FindOrInsertNamedDiagnosticsOutOfOrder(new_diagnostic, old_diagnostics,
                                             rev):
-  logging.info('Inserting diagnostic out of order. Diagnostic: %s,'
-               ' revision: %d', new_diagnostic.name, rev)
+  logging.info('Inserting diagnostic out of order. Diagnostic: %r,'
+               ' revision: %d', new_diagnostic, rev)
 
   new_guid = new_diagnostic.key.id()
   guid_mapping = {}
