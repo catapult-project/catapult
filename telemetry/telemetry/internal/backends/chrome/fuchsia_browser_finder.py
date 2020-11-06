@@ -47,7 +47,8 @@ class PossibleFuchsiaBrowser(possible_browser.PossibleBrowser):
     pass
 
   def _GetPathsForOsPageCacheFlushing(self):
-    raise NotImplementedError()
+    # There is no page write-back on Fuchsia, so there is nothing to flush.
+    return []
 
   def Create(self):
     """Start the browser process."""

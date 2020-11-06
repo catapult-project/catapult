@@ -190,6 +190,10 @@ class TracingControllerBackend(object):
   def is_chrome_tracing_running(self):
     return self._GetActiveChromeTracingAgent() is not None
 
+  @property
+  def current_state(self):
+    return self._current_state
+
   def _GetActiveChromeTracingAgent(self):
     if not self.is_tracing_running:
       return None
