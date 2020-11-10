@@ -147,6 +147,7 @@ class ResultSinkReporter(object):
 
         summary_content = 'stdout: %s\nstderr: %s' % (
                 cgi.escape(result.out), cgi.escape(result.err))
+        summary_content = summary_content.encode('utf-8')
         html_summary = '<pre>%s</pre>' % summary_content
         truncated_summary = None
         if len(html_summary) > MAX_HTML_SUMMARY_LENGTH:

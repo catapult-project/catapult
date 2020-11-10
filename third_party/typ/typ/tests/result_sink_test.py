@@ -172,6 +172,40 @@ class ResultSinkReporterTest(unittest.TestCase):
                 })
         self.assertEqual(test_result, expected_result)
 
+    def testReportIndividualTestResultLongSummaryUnicode(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = result_sink.ResultSinkReporter(self._host)
+        result = CreateResult({
+            'name': 'test_name',
+            'actual': 'PASS',
+            'out': u'\u00A5' + 'a' * 4096,
+            'err': '',
+        })
+        rsr._post = StubWithRetval(0)
+        rsr.report_individual_test_result(
+                'test_name_prefix.', result, ARTIFACT_DIR,
+                ['foo_tag', 'bar_tag'])
+
+        test_result = GetTestResultFromPostedJson(rsr._post.args[0])
+        truncated_summary = '<pre>stdout: %s%s' % (
+            u'\u00A5' + 'a' * (result_sink.MAX_HTML_SUMMARY_LENGTH
+                               - len(result_sink.TRUNCATED_SUMMARY_MESSAGE)
+                               - 15),
+            result_sink.TRUNCATED_SUMMARY_MESSAGE
+        )
+        self.assertEqual(len(truncated_summary.encode('utf-8')),
+                         result_sink.MAX_HTML_SUMMARY_LENGTH)
+        artifact_contents = 'stdout: %s\nstderr: ' % (u'\u00A5' + 'a' * 4096)
+        expected_result = CreateExpectedTestResult(
+                summary_html=truncated_summary,
+                artifacts={
+                    'Test Log': {
+                        'contents': base64.b64encode(
+                                artifact_contents.encode('utf-8'))
+                    }
+                })
+        self.assertEqual(test_result, expected_result)
+
     def testReportIndividualTestResultConflictingKeyLongSummary(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
         rsr = result_sink.ResultSinkReporter(self._host)
