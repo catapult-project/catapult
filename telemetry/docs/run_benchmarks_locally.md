@@ -30,16 +30,20 @@ libstdc++6:i386 package.
 
 #### Android
 
-Running on Android is supported with a Linux or Mac OS X host. Windows is not
+Running on Android is supported with a Linux host. Windows and Mac OS X are not
 yet supported. There are also a few additional steps to set up:
 
   1. Telemetry requires [adb](http://developer.android.com/tools/help/adb.html).
      If you're running from the zip archive, adb is already included. But if
      you're running with a Chromium checkout, ensure your .gclient file contains
      target\_os = ['android'], then resync your code.
-  2. If running from an OS X host, you need to run ADB as root. First, you need
-     to install a "userdebug" build of Android on your device. Then run adb
-     root. Sometimes you may also need to run adb remount.
+  2. Telemetry only supports devices with ADB Daemon running as root.
+     First, you need to install a "userdebug" build of Android on your device.
+     Then run `adb root`. Sometimes you may also need to run `adb remount`.
+     If you are unable to install "userdebug" build of Android, you can try
+     running benchmarks with `--compatibility-mode=dont-require-rooted-device`
+     switch, however this configuration may not be supported and you may run
+     into errors.
   3. Enable [debugging over USB](http://developer.android.com/tools/device.html)
      on your device.
   4. You can get the name of your device with `adb devices` and use it with
