@@ -17,6 +17,7 @@ def CreateLowOverheadFilter():
   """
   categories = [
       "toplevel",
+      "base",
       "benchmark",
       "webkit.console",
       "blink.console",
