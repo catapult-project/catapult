@@ -204,7 +204,8 @@ def _GetPossibleBrowser(finder_options):
   return possible_browser
 
 
-def RunStorySet(test, story_set, finder_options, results, max_failures=None):
+def RunStorySet(test, story_set, finder_options, results,
+                max_failures=None, found_possible_browser=None):
   """Runs a test against a story_set with the given options.
 
   Stop execution for unexpected exceptions such as KeyboardInterrupt. Some
@@ -219,16 +220,19 @@ def RunStorySet(test, story_set, finder_options, results, max_failures=None):
     max_failures: Max number of story run failures allowed before aborting
       the entire story run. It's overriden by finder_options.max_failures
       if given.
+    found_possible_broswer: The possible version of browser to use. We don't
+      need to find again if this is given.
     expectations: Benchmark expectations used to determine disabled stories.
   """
   stories = story_set.stories
   for s in stories:
     ValidateStory(s)
 
-  # TODO(crbug.com/1013630): A possible_browser object was already created in
-  # Run() method, so instead of creating a new one here we should be
-  # using that one.
-  possible_browser = _GetPossibleBrowser(finder_options)
+  if found_possible_browser:
+    possible_browser = found_possible_browser
+    finder_options.browser_options.browser_type = possible_browser.browser_type
+  else:
+    possible_browser = _GetPossibleBrowser(finder_options)
   platform_tags = possible_browser.GetTypExpectationsTags()
   logging.info('The following expectations condition tags were generated %s',
                str(platform_tags))
@@ -427,7 +431,8 @@ def RunBenchmark(benchmark, finder_options):
 
     try:
       RunStorySet(
-          test, story_set, finder_options, results, benchmark.max_failures)
+          test, story_set, finder_options, results, benchmark.max_failures,
+          possible_browser)
       if results.benchmark_interrupted:
         return_code = exit_codes.FATAL_ERROR
       elif results.had_failures:

@@ -18,7 +18,7 @@ class Story(object):
   Tests should override Run to maybe start the application and perform actions
   on it. To share state between different tests, one can define a
   shared_state which contains hooks that will be called before and
-  after mutiple stories run and in between runs.
+  after multiple stories run and in between runs.
 
   Args:
     shared_state_class: subclass of telemetry.story.shared_state.SharedState.
