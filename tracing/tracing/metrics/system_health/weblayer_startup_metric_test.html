@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!--
+Copyright 2020 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/system_health/weblayer_startup_metric.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
+
+<script>
+'use strict';
+tr.b.unittest.testSuite(function() {
+  function makeTestModel() {
+    return tr.c.TestUtils.newModel(function(model) {
+      const mainThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'weblayer',
+        title: 'WebLayerStartupInterval',
+        start: 200,
+        duration: 42.0,
+        cpuStart: 150,
+        cpuDuration: 32.0
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'weblayer',
+        title: 'WebLayerBlankUrlLoadInterval',
+        start: 250,
+        duration: 27.0,
+        cpuStart: 190,
+        cpuDuration: 17.0
+      }));
+    });
+  }
+
+  test('weblayerStartupMetric', function() {
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.weblayerStartupMetric(histograms, makeTestModel());
+    assert.closeTo(42, histograms.getHistogramNamed(
+        'weblayer_startup_wall_time').average, 1e-2);
+    assert.closeTo(27, histograms.getHistogramNamed(
+        'weblayer_url_load_wall_time').average, 1e-2);
+  });
+});
+</script>

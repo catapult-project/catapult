@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+Copyright 2020 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/metrics/system_health/utils.html">
+<link rel="import" href="/tracing/value/histogram.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.sh', function() {
+  function weblayerStartupMetric(histograms, model) {
+    const startupWallHist = new tr.v.Histogram('weblayer_startup_wall_time',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
+    startupWallHist.description = 'WebLayer startup wall time';
+    const loadWallHist = new tr.v.Histogram('weblayer_url_load_wall_time',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
+    loadWallHist.description = 'WebLayer blank URL load wall time';
+
+    // TODO(alexandermont): Only iterate over the processes and threads that
+    // could contain these events.
+    for (const slice of model.getDescendantEvents()) {
+      if (!(slice instanceof tr.model.ThreadSlice)) continue;
+
+      // WebLayerStartupInterval is the title of the section of code that is
+      // entered (via android.os.Trace.beginSection) when WebLayer is started
+      // up. This value is defined in TelemetryActivity.java.
+      if (slice.title === 'WebLayerStartupInterval') {
+        startupWallHist.addSample(slice.duration);
+      }
+
+      // WebLayerBlankUrlLoadInterval is the title of the section of code
+      // that is entered (via android.os.Trace.beginSection) when WebLayer
+      // is started up. This value is defined in TelemetryActivity.java.
+      if (slice.title === 'WebLayerBlankUrlLoadInterval') {
+        loadWallHist.addSample(slice.duration);
+      }
+    }
+
+    histograms.addHistogram(startupWallHist);
+    histograms.addHistogram(loadWallHist);
+  }
+
+  tr.metrics.MetricRegistry.register(weblayerStartupMetric);
+
+  return {
+    weblayerStartupMetric,
+  };
+});
+</script>

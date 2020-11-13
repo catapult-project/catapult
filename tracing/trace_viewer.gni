@@ -232,6 +232,7 @@ tracing_js_html_files = [
   "tracing/metrics/system_health/responsiveness_metric.html",
   "tracing/metrics/system_health/screenshots_based_speed_index_metric.html",
   "tracing/metrics/system_health/utils.html",
+  "tracing/metrics/system_health/weblayer_startup_metric.html",
   "tracing/metrics/system_health/webview_startup_metric.html",
   "tracing/metrics/tabs_metric.html",
   "tracing/metrics/tracing_metric.html",
@@ -686,9 +687,8 @@ py_vulcanize_files = [
   "../common/py_vulcanize/third_party/rjsmin/rjsmin.py",
   "../common/py_vulcanize/third_party/rjsmin/setup.py",
 ]
-other_python_files = [
-  "tracing_project.py",
-]
+other_python_files = [ "tracing_project.py" ]
+
 # python files needed for deterministic builds. See https://crbug.com/1025132.
 # This list is manually generated and may become out of date. Please fix it if
 # it does so.
