@@ -26,10 +26,7 @@ import json
 import os
 import sys
 
-if sys.version_info.major == 2:
-  import httplib
-else:
-  import http.client as httplib
+import requests
 
 from typ import json_results
 from typ import expectations_parser
@@ -72,13 +69,14 @@ class ResultSinkReporter(object):
         if not self._sink:
             return
 
-        self._address = self._sink['address']
-        self._url = '/prpc/luci.resultsink.v1.Sink/ReportTestResults'
+        self._url = ('http://%s/prpc/luci.resultsink.v1.Sink/ReportTestResults'
+                     % self._sink['address'])
         self._headers = {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'Authorization': 'ResultSink %s' % self._sink['auth_token']
         }
+        self._session = requests.Session()
 
     @property
     def resultdb_supported(self):
@@ -218,18 +216,11 @@ class ResultSinkReporter(object):
         Returns:
             0 if the POST succeeded, otherwise 1.
         """
-        # The "requests" module would make this simpler, but since we only need
-        # to make a single post and typ prefers to have minimal dependencies,
-        # use the built-in HTTP functionality instead.
-        connection = httplib.HTTPConnection(self._address)
-        connection.request(
-                'POST',
-                self._url,
-                body=content,
-                headers=self._headers)
-        retval = 0 if connection.getresponse().status == httplib.OK else 1
-        connection.close()
-        return retval
+        res = self._session.post(
+            url=self._url,
+            headers=self._headers,
+            data=content)
+        return 0 if res.ok else 1
 
 
 def _create_json_test_result(
