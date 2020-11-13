@@ -26,7 +26,7 @@ _EXPECTATION_MAP = {
     'skip': ResultType.Skip
 }
 
-_RESULT_TAGS = {
+RESULT_TAGS = {
     ResultType.Failure: 'Failure',
     ResultType.Crash: 'Crash',
     ResultType.Timeout: 'Timeout',
@@ -136,7 +136,7 @@ class Expectation(object):
         if not results <= self._results:
             self._results = frozenset(self._results | results)
             self._raw_results = sorted(
-                [_RESULT_TAGS[t] for t in self._results])
+                [RESULT_TAGS[t] for t in self._results])
 
     @property
     def raw_tags(self):
@@ -147,7 +147,7 @@ class Expectation(object):
     @property
     def raw_results(self):
         if not self._raw_results:
-            self._raw_results = {_RESULT_TAGS[t] for t in self._results}
+            self._raw_results = {RESULT_TAGS[t] for t in self._results}
             if self.is_slow_test:
                 self._raw_results.add(_SLOW_TAG)
             if self.should_retry_on_failure:
@@ -479,6 +479,8 @@ class TestExpectations(object):
             parser = TaggedTestListParser(raw_data, conflict_resolution)
         except ParseError as e:
             return 1, str(e)
+        # TODO(crbug.com/1148060): Properly update self._tags as well using
+        # self.set_tags().
         self.tag_sets = parser.tag_sets
         self._tags_conflict = tags_conflict
         # TODO(crbug.com/83560) - Add support for multiple policies

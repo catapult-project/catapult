@@ -17,6 +17,7 @@ import json
 import os
 import unittest
 
+from typ import expectations_parser
 from typ import json_results
 from typ import result_sink
 from typ.fakes import host_fake
@@ -72,7 +73,7 @@ def CreateExpectedTestResult(
     test_id = test_id or 'test_name_prefix.test_name'
     return {
         'testId': test_id,
-        'status': status or 'PASS',
+        'status': status or json_results.ResultType.Pass,
         'expected': expected or True,
         'duration': duration or '1s',
         'summaryHtml': (summary_html
@@ -80,10 +81,34 @@ def CreateExpectedTestResult(
         'artifacts': artifacts or {},
         'tags': tags or [
             {'key': 'test_name', 'value': test_id},
-            {'key': 'typ_expectation', 'value': 'PASS'},
-            {'key': 'typ_tag', 'value': 'foo_tag'},
-            {'key': 'typ_tag', 'value': 'bar_tag'},],
+            {'key': 'typ_expectation', 'value': json_results.ResultType.Pass},
+            {'key': 'raw_typ_expectation', 'value': 'Pass'},
+            {'key': 'typ_tag', 'value': 'bar_tag'},
+            {'key': 'typ_tag', 'value': 'foo_tag'},],
     }
+
+
+def CreateTestExpectations(expectation_definitions=None):
+    expectation_definitions = expectation_definitions or [{'name': 'test_name'}]
+    tags = set()
+    results = set()
+    lines = []
+    for ed in expectation_definitions:
+        name = ed['name']
+        t = ed.get('tags', ['foo_tag', 'bar_tag'])
+        r = ed.get('results', ['Pass'])
+        str_t = '[ ' + ' '.join(t) + ' ]' if t else ''
+        str_r = '[ ' + ' '.join(r) + ' ]'
+        lines.append('%s %s %s' % (str_t, name, str_r))
+        tags |= set(t)
+        results |= set(r)
+    data = '# tags: [ %s ]\n# results: [ %s ]\n%s' % (
+            ' '.join(tags), ' '.join(results), '\n'.join(lines))
+    # TODO(crbug.com/1148060): Remove the passing in of tags to the constructor
+    # once tags are properly updated through parse_tagged_list().
+    expectations = expectations_parser.TestExpectations(list(tags))
+    expectations.parse_tagged_list(data)
+    return expectations
 
 
 class ResultSinkReporterTest(unittest.TestCase):
@@ -130,14 +155,33 @@ class ResultSinkReporterTest(unittest.TestCase):
         rsr = result_sink.ResultSinkReporter(self._host)
         result = CreateResult({
             'name': 'test_name',
-            'actual': 'PASS',
+            'actual': json_results.ResultType.Pass,
         })
         rsr._post = StubWithRetval(2)
         retval = rsr.report_individual_test_result(
                 'test_name_prefix.', result, ARTIFACT_DIR,
-                ['foo_tag', 'bar_tag'])
+                CreateTestExpectations())
         self.assertEqual(retval, 2)
         expected_result = CreateExpectedTestResult()
+        self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[0]),
+                         expected_result)
+
+    def testReportIndividualTestResultNoTestExpectations(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = result_sink.ResultSinkReporter(self._host)
+        result = CreateResult({
+            'name': 'test_name',
+            'actual': json_results.ResultType.Pass,
+        })
+        rsr._post = StubWithRetval(2)
+        retval = rsr.report_individual_test_result(
+                'test_name_prefix.', result, ARTIFACT_DIR, None)
+        self.assertEqual(retval, 2)
+        expected_result = CreateExpectedTestResult(tags=[
+            {'key': 'test_name', 'value': 'test_name_prefix.test_name'},
+            {'key': 'typ_expectation', 'value': json_results.ResultType.Pass},
+            {'key': 'raw_typ_expectation', 'value': 'Pass'},
+        ])
         self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[0]),
                          expected_result)
 
@@ -146,14 +190,14 @@ class ResultSinkReporterTest(unittest.TestCase):
         rsr = result_sink.ResultSinkReporter(self._host)
         result = CreateResult({
             'name': 'test_name',
-            'actual': 'PASS',
+            'actual': json_results.ResultType.Pass,
             'out': 'a' * 4097,
             'err': '',
         })
         rsr._post = StubWithRetval(0)
         rsr.report_individual_test_result(
                 'test_name_prefix.', result, ARTIFACT_DIR,
-                ['foo_tag', 'bar_tag'])
+                CreateTestExpectations())
 
         test_result = GetTestResultFromPostedJson(rsr._post.args[0])
         truncated_summary = '<pre>stdout: %s%s' % (
@@ -177,14 +221,14 @@ class ResultSinkReporterTest(unittest.TestCase):
         rsr = result_sink.ResultSinkReporter(self._host)
         result = CreateResult({
             'name': 'test_name',
-            'actual': 'PASS',
+            'actual': json_results.ResultType.Pass,
             'out': u'\u00A5' + 'a' * 4096,
             'err': '',
         })
         rsr._post = StubWithRetval(0)
         rsr.report_individual_test_result(
                 'test_name_prefix.', result, ARTIFACT_DIR,
-                ['foo_tag', 'bar_tag'])
+                CreateTestExpectations())
 
         test_result = GetTestResultFromPostedJson(rsr._post.args[0])
         truncated_summary = '<pre>stdout: %s%s' % (
@@ -212,7 +256,7 @@ class ResultSinkReporterTest(unittest.TestCase):
         rsr._post = lambda: 1/0
         result = CreateResult({
             'name': 'test_name',
-            'actual': 'PASS',
+            'actual': json_results.ResultType.Pass,
             'artifacts': {
                 'Test Log': [''],
             },
@@ -221,7 +265,7 @@ class ResultSinkReporterTest(unittest.TestCase):
         with self.assertRaises(AssertionError):
             rsr.report_individual_test_result(
                     'test_name_prefix', result, ARTIFACT_DIR,
-                    ['foo_tag', 'bar_tag'])
+                    CreateTestExpectations())
 
     def testReportIndividualTestResultSingleArtifact(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
@@ -229,14 +273,14 @@ class ResultSinkReporterTest(unittest.TestCase):
         rsr._post = StubWithRetval(2)
         results = CreateResult({
             'name': 'test_name',
-            'actual': 'PASS',
+            'actual': json_results.ResultType.Pass,
             'artifacts': {
                 'artifact_name': ['some_artifact'],
             },
         })
         retval = rsr.report_individual_test_result(
                 'test_name_prefix.', results, ARTIFACT_DIR,
-                ['foo_tag', 'bar_tag'])
+                CreateTestExpectations())
         self.assertEqual(retval, 2)
 
         test_result = GetTestResultFromPostedJson(rsr._post.args[0])
@@ -256,14 +300,14 @@ class ResultSinkReporterTest(unittest.TestCase):
         rsr._post = StubWithRetval(2)
         results = CreateResult({
             'name': 'test_name',
-            'actual': 'PASS',
+            'actual': json_results.ResultType.Pass,
             'artifacts': {
                 'artifact_name': ['some_artifact', 'another_artifact'],
             },
         })
         retval = rsr.report_individual_test_result(
                 'test_name_prefix.', results, ARTIFACT_DIR,
-                ['foo_tag', 'bar_tag'])
+                CreateTestExpectations())
         self.assertEqual(retval, 2)
 
         test_result = GetTestResultFromPostedJson(rsr._post.args[0])
@@ -287,7 +331,8 @@ class ResultSinkReporterTest(unittest.TestCase):
         rsr = result_sink.ResultSinkReporter(self._host)
         result_sink._create_json_test_result = lambda: 1/0
         self.assertEqual(rsr._report_result(
-                'test_id', 'PASS', True, {}, {}, '<pre>summary</pre>', 1), 0)
+                'test_id', json_results.ResultType.Pass, True, {}, {},
+                '<pre>summary</pre>', 1), 0)
 
     def testCreateJsonTestResultInvalidStatus(self):
         with self.assertRaises(AssertionError):
@@ -297,15 +342,17 @@ class ResultSinkReporterTest(unittest.TestCase):
     def testCreateJsonTestResultInvalidSummary(self):
         with self.assertRaises(AssertionError):
             result_sink._create_json_test_result(
-                'test_id', 'PASS', True, {}, {}, 'a' * 4097, 1)
+                'test_id', json_results.ResultType.Pass, True, {}, {},
+                'a' * 4097, 1)
 
     def testCreateJsonTestResultBasic(self):
         retval = result_sink._create_json_test_result(
-            'test_id', 'PASS', True, {'artifact': {'filePath': 'somepath'}},
+            'test_id', json_results.ResultType.Pass, True,
+            {'artifact': {'filePath': 'somepath'}},
             [('tag_key', 'tag_value')], '<pre>summary</pre>', 1)
         self.assertEqual(retval, {
             'testId': 'test_id',
-            'status': 'PASS',
+            'status': json_results.ResultType.Pass,
             'expected': True,
             'duration': '1s',
             'summaryHtml': '<pre>summary</pre>',

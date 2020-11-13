@@ -1088,7 +1088,7 @@ def _run_one_test(child, test_input):
     result.result_sink_retcode =\
             child.result_sink_reporter.report_individual_test_result(
                 child.test_name_prefix, result, child.artifact_output_dir,
-                child.expectations.tags if child.expectations else [])
+                child.expectations)
     return (result, should_retry_on_failure)
 
 
