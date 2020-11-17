@@ -20,15 +20,12 @@ found in the LICENSE file.
  *
  * UMA histograms are logged in trace events titled 'UMAHistogramSamples'. The
  * event arguments contain the histogram name and the base-64 coded of an
- * snapshot of histogram samples serialized in a pickle.
+ * snapshot of histogram samples serialized in a pickle. These are emitted at
+ * the end of tracing, and represent the difference in the UMA histograms from
+ * when the tracing began.
  *
  * If there are several processes that have snapshots of the same histogram,
  * the snapshots will be merged.
- *
- * If there are two snapshots of the same histogram in the same process, we
- * assume that the first snapshot is taken when tracing started and the second
- * snapshot is taken when tracing is stopped. So, we compute the difference to
- * show the samples added during the tracing session.
  */
 tr.exportTo('tr.metrics', function() {
   function parseBuckets_(event, processName) {
@@ -75,31 +72,6 @@ tr.exportTo('tr.metrics', function() {
         x.bins.push(bin);
         last = bin;
       }
-    }
-  }
-
-  function subtractBins_(x, y, name) {
-    x.sum -= y.sum;
-    let p1 = 0;
-    let p2 = 0;
-    while (p2 < y.bins.length) {
-      while (p1 < x.bins.length && x.bins[p1].min !== y.bins[p2].min) {
-        p1++;
-      }
-      if (p1 === x.bins.length) throw new Error(`Cannot subtract (${name}).`);
-      if (x.bins[p1].max !== y.bins[p2].max) {
-        throw new Error(`Incompatible bins (${name}).`);
-      }
-      if (x.bins[p1].count < y.bins[p2].count) {
-        throw new Error(`Cannot subtract (${name}).`);
-      }
-      x.bins[p1].count -= y.bins[p2].count;
-      for (const event of y.bins[p2].events) {
-        x.bins[p1].events.add(event);
-      }
-      const processName = tr.b.getOnlyElement(x.bins[p1].processes)[0];
-      x.bins[p1].processes.set(processName, x.bins[p1].count);
-      p2++;
     }
   }
 
@@ -156,11 +128,8 @@ tr.exportTo('tr.metrics', function() {
         const endValues = parseBuckets_(events[events.length - 1], processName);
         if (events.length === 1) {
           mergeBins_(values, endValues, name);
-        } else if (events.length === 2) {
-          subtractBins_(endValues, parseBuckets_(events[0], processName, name));
-          mergeBins_(values, endValues);
         } else {
-          throw new Error('There should be at most two snapshots of UMA ' +
+          throw new Error('There should be at most one snapshot of UMA ' +
                           `histogram for ${name} in each process.`);
         }
       }

@@ -15,13 +15,11 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   // 1 sample in [1, 3) and 2 samples in [3, 7).
-  const BROWSER_BUCKETS1 =
+  const BROWSER_BUCKETS =
       'LAAAAAwAAAAAAAAAAwAAAAEAAAADAAAAAAAAAAEAAAADAAAABwAAAAAAAAACAAAA';
   // 1 sample in [3, 7).
-  const BROWSER_BUCKETS2 = 'HAAAAAUAAAAAAAAAAQAAAAMAAAAHAAAAAAAAAAEAAAA=';
-  // 2 samples in [7, 9).
   const RENDERER_BUCKETS = 'HAAAABAAAAAAAAAAAgAAAAcAAAAJAAAAAAAAAAIAAAA=';
-  // 1 sample in [8, 10).
+  // 2 samples in [8, 10).
   const RENDERER_INCOMPATIBLE_BUCKETS =
       'HAAAAAkAAAAAAAAAAQAAAAgAAAAKAAAAAAAAAAEAAAA=';
   // 1 sample in [1, 3) and 2 samples in [3, 7). The sum is 9.
@@ -38,7 +36,7 @@ tr.b.unittest.testSuite(function() {
         title: 'UMAHistogramSamples', start: 2,
         args: {
           name: 'metric1',
-          buckets: BROWSER_BUCKETS1}}));
+          buckets: BROWSER_BUCKETS}}));
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.umaMetric(histograms, model);
@@ -57,47 +55,15 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(2, processes.get('browser_process_1'), 1e-6);
   });
 
-  test('twoUMASnapshots', function() {
-    const model = tr.c.TestUtils.newModel((model) => {
-      const browserProcess = model.getOrCreateProcess(0);
-      browserProcess.getOrCreateThread(0).name = 'CrBrowserMain';
-      browserProcess.instantEvents.push(tr.c.TestUtils.newInstantEvent({
-        title: 'UMAHistogramSamples', start: 1,
-        args: {
-          name: 'metric1',
-          buckets: BROWSER_BUCKETS2}}));
-      browserProcess.instantEvents.push(tr.c.TestUtils.newInstantEvent({
-        title: 'UMAHistogramSamples', start: 2,
-        args: {
-          name: 'metric1',
-          buckets: BROWSER_BUCKETS1}}));
-    });
-    const histograms = new tr.v.HistogramSet();
-    tr.metrics.umaMetric(histograms, model);
-    const hist = histograms.getHistogramNamed('metric1');
-
-    // (BROWSER_BUCKETS1 - BROWSER_BUCKETS2) looks like
-    //   *     *
-    // 1 2 3 4 5 6 7
-    assert.closeTo(2, hist.min, 1e-6);
-    assert.closeTo(5, hist.max, 1e-6);
-    assert.closeTo(3.5, hist.average, 1e-6);
-  });
-
   test('twoUMASnapshotsInDifferentProcesses', function() {
     const model = tr.c.TestUtils.newModel((model) => {
       const browserProcess = model.getOrCreateProcess(0);
       browserProcess.getOrCreateThread(0).name = 'CrBrowserMain';
       browserProcess.instantEvents.push(tr.c.TestUtils.newInstantEvent({
-        title: 'UMAHistogramSamples', start: 1,
-        args: {
-          name: 'metric1',
-          buckets: BROWSER_BUCKETS2}}));
-      browserProcess.instantEvents.push(tr.c.TestUtils.newInstantEvent({
         title: 'UMAHistogramSamples', start: 2,
         args: {
           name: 'metric1',
-          buckets: BROWSER_BUCKETS1}}));
+          buckets: BROWSER_BUCKETS}}));
       const process = model.getOrCreateProcess(1);
       process.instantEvents.push(tr.c.TestUtils.newInstantEvent({
         title: 'UMAHistogramSamples', start: 2,
@@ -110,12 +76,12 @@ tr.b.unittest.testSuite(function() {
     const hist = histograms.getHistogramNamed('metric1');
 
     // The aggregated histogram looks like
-    //               *
+    //         *     *
     //   *     *     *
     // 1 2 3 4 5 6 7 8 9
     assert.closeTo(2, hist.min, 1e-6);
     assert.closeTo(8, hist.max, 1e-6);
-    assert.closeTo(5.75, hist.average, 1e-6);
+    assert.closeTo(5.6, hist.average, 1e-6);
 
     const bin = hist.getBinForValue(8);
     for (const diagnostics of bin.diagnosticMaps) {
@@ -187,28 +153,6 @@ tr.b.unittest.testSuite(function() {
     assert.throws(function() {
       tr.metrics.umaMetric(histograms, model);
     }, 'Incompatible bins');
-  });
-
-  test('badStartStopUMASnapshots', function() {
-    const model = tr.c.TestUtils.newModel((model) => {
-      const browserProcess = model.getOrCreateProcess(0);
-      browserProcess.getOrCreateThread(0).name = 'CrBrowserMain';
-      browserProcess.instantEvents.push(tr.c.TestUtils.newInstantEvent({
-        title: 'UMAHistogramSamples', start: 1,
-        args: {
-          name: 'metric1',
-          buckets: BROWSER_BUCKETS1}}));
-      browserProcess.instantEvents.push(tr.c.TestUtils.newInstantEvent({
-        title: 'UMAHistogramSamples', start: 2,
-        args: {
-          name: 'metric1',
-          buckets: BROWSER_BUCKETS2}}));
-    });
-    const histograms = new tr.v.HistogramSet();
-
-    assert.throws(function() {
-      tr.metrics.umaMetric(histograms, model);
-    }, 'Cannot subtract');
   });
 });
 </script>
