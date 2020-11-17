@@ -17,4 +17,5 @@ data:
   - dir: common/py_utils
   - dir: dependency_manager
   - dir: devil
+  - dir: third_party/gsutil
   - dir: third_party/zipfile
