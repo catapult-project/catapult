@@ -169,6 +169,9 @@ histogram.addSample(number, {name: diagnostic})
 
 Metrics may not use the following names for Histogram-level Diagnostics.
 
+ * alertGrouping is a GenericSet of strings. Each string is a grouping key that
+   will be used by the dashboard auto-triage system to [group
+   alerts](https://goto.google.com/chromeperf-alert-grouping-dd) together.
  * angleRevisions is a GenericSet of strings containing
    [Angle](https://chromium.googlesource.com/angle/angle/) git hashes.
  * architectures is a GenericSet of strings containing [CPU
@@ -236,6 +239,30 @@ to be shared by all Histograms, and must all contain exactly one value:
  * chromiumCommitPositions
  * masters
 
+
+## Alert grouping
+Setting alert groupings for your histograms allows the dashboard to be
+[smarter](https://goto.google.com/chromeperf-alert-grouping-dd) about how to
+group alerts together. In order to define alert groupings for your metrics,
+first add it to `tracing/tracing/value/diagnostics/alert_groups.html`. Then you
+can set these alert groupings either by calling `setAlertGrouping` on your
+histgoram:
+
+```javascript
+my_hist.setAlertGrouping([
+  tr.v.d.ALERT_GROUPS.LOADING_PAINT,
+  tr.v.d.ALERT_GROUPS.LOADING_INTERACTIVITY]);
+```
+
+or by defining it when you create your histogram:
+
+```javascript
+const my_hist = tr.v.Histogram.create('foo', unitlessNumber, [], {
+  alertGrouping: [
+    tr.v.d.ALERT_GROUPS.LOADING_PAINT,
+    tr.v.d.ALERT_GROUPS.LOADING_INTERACTIVITY,
+  ]});
+```
 
 ## Consumers of Histograms
 

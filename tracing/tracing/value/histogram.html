@@ -12,6 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
+<link rel="import" href="/tracing/value/diagnostics/reserved_names.html">
 
 <script>
 'use strict';
@@ -234,6 +235,9 @@ tr.exportTo('tr.v', function() {
     static create(name, unit, samples, opt_options) {
       const options = opt_options || {};
       const hist = new Histogram(name, unit, options.binBoundaries);
+      if (options.alertGrouping !== undefined) {
+        hist.setAlertGrouping(options.alertGrouping);
+      }
 
       if (options.description) hist.description = options.description;
 
@@ -273,6 +277,26 @@ tr.exportTo('tr.v', function() {
 
     get diagnostics() {
       return this.diagnostics_;
+    }
+
+    /* Set alert grouping for a Histogram.
+     * See https://go/chromeperf-alert-grouping-dd
+     * @param {Array.< String >=} opt_alertGrouping
+     */
+    setAlertGrouping(alertGrouping) {
+      if (alertGrouping === undefined ||
+          alertGrouping === null ||
+          alertGrouping.length === undefined) {
+        throw Error('alertGrouping must be an array');
+      }
+      for (const alertGroup of alertGrouping) {
+        if (!Object.values(tr.v.d.ALERT_GROUPS).includes(alertGroup)) {
+          throw Error(`Alert group ${alertGroup} must be added to ` +
+              '/tracing/value/diagnostics/alert_groups.html');
+        }
+      }
+      this.diagnostics.set(tr.v.d.RESERVED_NAMES.ALERT_GROUPING,
+          new tr.v.d.GenericSet(alertGrouping));
     }
 
     get running() {

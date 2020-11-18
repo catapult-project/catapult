@@ -147,6 +147,12 @@ tr.exportTo('tr.metrics', function() {
   function validateDiagnosticNames(histograms) {
     for (const hist of histograms) {
       for (const name of hist.diagnostics.keys()) {
+        if (name === tr.v.d.RESERVED_NAMES.ALERT_GROUPING) {
+          // Metrics can set alert grouping when they create histogram. It's
+          // still a reserved diagnostic because that helps us enforce the right
+          // diagnostic shape.
+          continue;
+        }
         if (tr.v.d.RESERVED_NAMES_SET.has(name)) {
           throw new Error(
               `Illegal diagnostic name "${name}" on Histogram "${hist.name}"`);

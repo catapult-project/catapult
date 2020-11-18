@@ -17,6 +17,7 @@ tr.exportTo('tr.v.d', function() {
   // Diagnostics that are produced outside of metrics (e.g. by telemetry) use
   // reserved names.
   const RESERVED_INFOS = {
+    ALERT_GROUPING: { name: 'alertGrouping', type: tr.v.d.GenericSet },
     ANGLE_REVISIONS: {name: 'angleRevisions', type: tr.v.d.GenericSet},
     ARCHITECTURES: {name: 'architectures', type: tr.v.d.GenericSet},
     BENCHMARKS: {name: 'benchmarks', type: tr.v.d.GenericSet},

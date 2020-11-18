@@ -559,6 +559,7 @@ tracing_js_html_files = [
   "tracing/ui/tracks/x_axis_track.html",
   "tracing/ui/view_specific_brushing_state.html",
   "tracing/value/csv_builder.html",
+  "tracing/value/diagnostics/alert_groups.html",
   "tracing/value/diagnostics/all_diagnostics.html",
   "tracing/value/diagnostics/breakdown.html",
   "tracing/value/diagnostics/collected_related_event_set.html",

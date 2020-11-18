@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/model/helpers/chrome_renderer_helper.html">
+<link rel="import" href="/tracing/value/diagnostics/alert_groups.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
 <script>
@@ -78,6 +79,7 @@ tr.exportTo('tr.metrics.sh', function() {
     cpuTimeHist.description =
         'Percent CPU utilization, normalized against a single core. Can be ' +
         'greater than 100% if machine has multiple cores.';
+    cpuTimeHist.setAlertGrouping([tr.v.d.ALERT_GROUPS.CPU_USAGE]);
     cpuTimeHist.customizeSummaryOptions({
       avg: true,
       count: false,

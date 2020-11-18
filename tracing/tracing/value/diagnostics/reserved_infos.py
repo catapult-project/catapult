@@ -25,6 +25,7 @@ class _Info(object):
     return self._entry_type
 
 
+ALERT_GROUPING = _Info('alertGrouping', 'GenericSet', str)
 ANGLE_REVISIONS = _Info('angleRevisions', 'GenericSet', str)
 ARCHITECTURES = _Info('architectures', 'GenericSet', str)
 BENCHMARKS = _Info('benchmarks', 'GenericSet', str)

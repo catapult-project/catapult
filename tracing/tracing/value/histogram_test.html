@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/assert_utils.html">
+<link rel="import" href="/tracing/value/diagnostics/alert_groups.html">
 <link rel="import" href="/tracing/value/diagnostics/generic_set.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
@@ -857,6 +858,62 @@ tr.b.unittest.testSuite(function() {
         mergedIprs[1], tr.b.math.Range.fromExplicitRange(0.25, 0.75));
     tr.b.assertRangeEquals(
         mergedIprs[2], tr.b.math.Range.fromExplicitRange(0.2, 0.8));
+  });
+
+  test('alertGrouping', function() {
+    const hist0 = new tr.v.Histogram('', unitlessNumber);
+    hist0.setAlertGrouping([tr.v.d.ALERT_GROUPS.CPU_USAGE]);
+    const hist1 = tr.v.Histogram.create('', unitlessNumber, [], {
+      alertGrouping: [tr.v.d.ALERT_GROUPS.LOADING_PAINT]
+    });
+    const hist2 = tr.v.Histogram.create('', unitlessNumber, [], {
+      alertGrouping: [
+        tr.v.d.ALERT_GROUPS.LOADING_PAINT,
+        tr.v.d.ALERT_GROUPS.LOADING_INTERACTIVITY,
+      ]});
+
+    assert.isTrue(hist0.diagnostics.get('alertGrouping').equals(
+        new tr.v.d.GenericSet([tr.v.d.ALERT_GROUPS.CPU_USAGE])));
+    assert.isTrue(hist1.diagnostics.get('alertGrouping').equals(
+        new tr.v.d.GenericSet([tr.v.d.ALERT_GROUPS.LOADING_PAINT])));
+    assert.isTrue(hist2.diagnostics.get('alertGrouping').equals(
+        new tr.v.d.GenericSet([
+          tr.v.d.ALERT_GROUPS.LOADING_PAINT,
+          tr.v.d.ALERT_GROUPS.LOADING_INTERACTIVITY])));
+
+    const merged = hist0.clone();
+    merged.addHistogram(hist1);
+    merged.addHistogram(hist2);
+
+    assert.isTrue(merged.diagnostics.get('alertGrouping').equals(
+        new tr.v.d.GenericSet([
+          tr.v.d.ALERT_GROUPS.CPU_USAGE,
+          tr.v.d.ALERT_GROUPS.LOADING_PAINT,
+          tr.v.d.ALERT_GROUPS.LOADING_INTERACTIVITY])));
+  });
+
+  test('alertGroupingErrors', function() {
+    const hist0 = new tr.v.Histogram('', unitlessNumber);
+
+    // Must be from tr.v.d.ALERT_GROUPS.
+    assert.throws(() => {
+      hist0.setAlertGrouping(['foo']);
+    });
+    assert.throws(() => {
+      tr.v.Histogram.create('', unitlessNumber, [], {
+        alertGrouping: ['foo'],
+      });
+    });
+
+    // Must be an array.
+    assert.throws(() => {
+      hist0.setAlertGrouping(tr.v.d.ALERT_GROUPS.CPU_USAGE);
+    });
+    assert.throws(() => {
+      tr.v.Histogram.create('', unitlessNumber, [], {
+        alertGrouping: tr.v.d.ALERT_GROUPS.CPU_USAGE,
+      });
+    });
   });
 });
 </script>

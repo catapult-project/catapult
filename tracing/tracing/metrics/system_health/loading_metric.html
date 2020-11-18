@@ -18,6 +18,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/model/helpers/chrome_thread_helper.html">
 <link rel="import" href="/tracing/model/timed_event.html">
+<link rel="import" href="/tracing/value/diagnostics/alert_groups.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
@@ -611,18 +612,21 @@ tr.exportTo('tr.metrics.sh', function() {
           binBoundaries: LOADING_METRIC_BOUNDARIES,
           description: 'time to first paint',
           summaryOptions: SUMMARY_OPTIONS,
+          alertGrouping: [tr.v.d.ALERT_GROUPS.LOADING_PAINT],
         });
     const firstContentfulPaintHistogram = histograms.createHistogram(
         'timeToFirstContentfulPaint', timeDurationInMs_smallerIsBetter, [], {
           binBoundaries: LOADING_METRIC_BOUNDARIES,
           description: 'time to first contentful paint',
           summaryOptions: SUMMARY_OPTIONS,
+          alertGrouping: [tr.v.d.ALERT_GROUPS.LOADING_PAINT],
         });
     const firstContentfulPaintCpuTimeHistogram = histograms.createHistogram(
         'cpuTimeToFirstContentfulPaint', timeDurationInMs_smallerIsBetter, [], {
           binBoundaries: LOADING_METRIC_BOUNDARIES,
           description: 'CPU time to first contentful paint',
           summaryOptions: SUMMARY_OPTIONS,
+          alertGrouping: [tr.v.d.ALERT_GROUPS.LOADING_PAINT],
         });
     const onLoadHistogram = histograms.createHistogram(
         'timeToOnload', timeDurationInMs_smallerIsBetter, [], {
@@ -636,30 +640,36 @@ tr.exportTo('tr.metrics.sh', function() {
           binBoundaries: LOADING_METRIC_BOUNDARIES,
           description: 'time to first meaningful paint',
           summaryOptions: SUMMARY_OPTIONS,
+          alertGrouping: [tr.v.d.ALERT_GROUPS.LOADING_PAINT],
         });
     const firstMeaningfulPaintCpuTimeHistogram = histograms.createHistogram(
         'cpuTimeToFirstMeaningfulPaint', timeDurationInMs_smallerIsBetter, [], {
           binBoundaries: LOADING_METRIC_BOUNDARIES,
           description: 'CPU time to first meaningful paint',
           summaryOptions: SUMMARY_OPTIONS,
+          alertGrouping: [tr.v.d.ALERT_GROUPS.LOADING_PAINT],
         });
     const timeToInteractiveHistogram = histograms.createHistogram(
         'timeToInteractive', timeDurationInMs_smallerIsBetter, [], {
           binBoundaries: TIME_TO_INTERACTIVE_BOUNDARIES,
           description: 'Time to Interactive',
           summaryOptions: SUMMARY_OPTIONS,
+          alertGrouping: [tr.v.d.ALERT_GROUPS.LOADING_PAINT],
+          alertGrouping: [tr.v.d.ALERT_GROUPS.LOADING_INTERACTIVITY],
         });
     const totalBlockingTimeHistogram = histograms.createHistogram(
         'totalBlockingTime', timeDurationInMs_smallerIsBetter, [], {
           binBoundaries: TIME_TO_INTERACTIVE_BOUNDARIES,
           description: 'Total Blocking Time',
           summaryOptions: SUMMARY_OPTIONS,
+          alertGrouping: [tr.v.d.ALERT_GROUPS.LOADING_INTERACTIVITY],
         });
     const timeToFirstCpuIdleHistogram = histograms.createHistogram(
         'timeToFirstCpuIdle', timeDurationInMs_smallerIsBetter, [], {
           binBoundaries: TIME_TO_INTERACTIVE_BOUNDARIES,
           description: 'Time to First CPU Idle',
           summaryOptions: SUMMARY_OPTIONS,
+          alertGrouping: [tr.v.d.ALERT_GROUPS.LOADING_INTERACTIVITY],
         });
     const aboveTheFoldLoadedToVisibleHistogram = histograms.createHistogram(
         'aboveTheFoldLoadedToVisible', timeDurationInMs_smallerIsBetter, [], {
@@ -690,12 +700,14 @@ tr.exportTo('tr.metrics.sh', function() {
           binBoundaries: LOADING_METRIC_BOUNDARIES,
           description: 'Time to Largest Contentful Paint',
           summaryOptions: SUMMARY_OPTIONS,
+          alertGrouping: [tr.v.d.ALERT_GROUPS.LOADING_PAINT],
         });
     const layoutShiftHistogram = histograms.createHistogram(
         'mainFrameCumulativeLayoutShift', unitlessNumber_smallerIsBetter, [], {
           binBoundaries: LAYOUT_SHIFT_SCORE_BOUNDARIES,
           description: 'Main Frame Document Cumulative Layout Shift Score',
           summaryOptions: SUMMARY_OPTIONS,
+          alertGrouping: [tr.v.d.ALERT_GROUPS.LOADING_LAYOUT],
         });
     const navigationStartHistogram = histograms.createHistogram(
         'navigationStart', timeDurationInMs_smallerIsBetter, [], {
