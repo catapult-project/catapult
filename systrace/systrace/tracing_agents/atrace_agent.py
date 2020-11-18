@@ -104,7 +104,8 @@ def try_create_agent(config):
            'Your device SDK version is %d.' % device_sdk_version)
     return None
 
-  return AtraceAgent(device_sdk_version, util.get_tracing_path())
+  return AtraceAgent(device_sdk_version,
+                     util.get_tracing_path(config.device_serial_number))
 
 def _construct_extra_atrace_args(config, categories):
   """Construct extra arguments (-a, -k, categories) for atrace command.
