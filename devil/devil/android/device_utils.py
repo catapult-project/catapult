@@ -3251,11 +3251,12 @@ class DeviceUtils(object):
         WebViewPackages: Dict of installed WebView providers, mapping "package
             name" to "reason it's valid/invalid."
 
-    It may return an empty dictionary if device does not
-    support the "dumpsys webviewupdate" command.
+    The returned dictionary may not include all of the above keys: this depends
+    on the support of the platform's underlying WebViewUpdateService. This may
+    return an empty dictionary on OS versions which do not support querying the
+    WebViewUpdateService.
 
     Raises:
-      CommandFailedError on failure.
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
@@ -3294,12 +3295,6 @@ class DeviceUtils(object):
         result['MinimumWebViewVersionCode'] = int(match.group(1))
     if webview_packages:
       result['WebViewPackages'] = webview_packages
-
-    missing_fields = set(['CurrentWebViewPackage', 'FallbackLogicEnabled']) - \
-                     set(result.keys())
-    if len(missing_fields) > 0:
-      raise device_errors.CommandFailedError(
-          '%s not found in dumpsys webviewupdate' % str(list(missing_fields)))
     return result
 
   @decorators.WithTimeoutAndRetriesFromInstance()

@@ -3150,8 +3150,8 @@ class DeviceUtilsGetWebViewUpdateServiceDumpTest(DeviceUtilsTest):
       with self.assertCall(
           self.call.adb.Shell('dumpsys webviewupdate'),
           'Fallback logic enabled: true'):
-        with self.assertRaises(device_errors.CommandFailedError):
-          self.device.GetWebViewUpdateServiceDump()
+        update = self.device.GetWebViewUpdateServiceDump()
+        self.assertEqual(True, update['FallbackLogicEnabled'])
 
   def testGetWebViewUpdateServiceDump_noop(self):
     with self.patch_call(
