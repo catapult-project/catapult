@@ -130,7 +130,7 @@ class Benchmark(command_line.Command):
   def ProcessCommandLineArgs(cls, parser, args):
     pass
 
-  def CustomizeOptions(self, finder_options):
+  def CustomizeOptions(self, finder_options, possible_browser=None):
     """Add options that are required by this benchmark."""
 
   def GetBugComponents(self):
