@@ -247,8 +247,7 @@ class BrowserFinderOptions(optparse.Values):
         'base module. Ignored on Non-Android platforms.')
     group.add_option(
         '--compile-apk',
-        action='store_true',
-        help='Will compile the APK under test using dex2oat in speed mode. '
+        help='Compiles the APK under test using dex2oat in the specified mode. '
         'Ignored on non-Android platforms.')
     group.add_option(
         '--avd-config',
