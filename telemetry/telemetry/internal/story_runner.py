@@ -392,18 +392,21 @@ def RunBenchmark(benchmark, finder_options):
   if not re.match(_RE_VALID_TEST_SUITE_NAME, benchmark_name):
     logging.fatal('Invalid benchmark name: %s', benchmark_name)
     return 2  # exit_codes.FATAL_ERROR
-  benchmark.CustomizeOptions(finder_options)
+
+  possible_browser = browser_finder.FindBrowser(finder_options)
+  if not possible_browser:
+    print ('No browser of type "%s" found for running benchmark "%s".' % (
+        finder_options.browser_options.browser_type, benchmark.Name()))
+    return exit_codes.ALL_TESTS_SKIPPED
+
+  benchmark.CustomizeOptions(finder_options, possible_browser)
+
   with results_options.CreateResults(
       finder_options,
       benchmark_name=benchmark_name,
       benchmark_description=benchmark.Description(),
       report_progress=not finder_options.suppress_gtest_report) as results:
 
-    possible_browser = browser_finder.FindBrowser(finder_options)
-    if not possible_browser:
-      print ('No browser of type "%s" found for running benchmark "%s".' % (
-          finder_options.browser_options.browser_type, benchmark.Name()))
-      return exit_codes.ALL_TESTS_SKIPPED
     if not _ShouldRunBenchmark(benchmark, possible_browser, finder_options):
       return exit_codes.ALL_TESTS_SKIPPED
 
