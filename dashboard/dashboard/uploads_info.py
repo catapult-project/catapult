@@ -7,6 +7,8 @@ from __future__ import absolute_import
 import logging
 import uuid
 
+from google.appengine.ext import ndb
+
 from dashboard.api import api_request_handler
 from dashboard.common import histogram_helpers
 from dashboard.models import histogram
@@ -31,8 +33,44 @@ class UploadInfoHandler(api_request_handler.ApiRequestHandler):
   def _CheckUser(self):
     self._CheckIsInternalUser()
 
-  def _GenerateResponse(self, token, measurements=None):
-    measurements = measurements or []
+  @ndb.tasklet
+  def _GenerateMeasurementInfo(self, measurement, get_dimensions_info=False):
+    info = {
+        'name': measurement.test_path,
+        'state': upload_completion_token.StateToString(measurement.state),
+        'monitored': measurement.monitored,
+        'lastUpdated': str(measurement.update_time),
+    }
+    if measurement.error_message is not None:
+      info['error_message'] = measurement.error_message
+    if get_dimensions_info and measurement.histogram is not None:
+      histogram_entity = yield measurement.histogram.get_async()
+      attached_histogram = histogram_module.Histogram.FromDict(
+          histogram_entity.data)
+      info['dimensions'] = []
+      for name, diagnostic in attached_histogram.diagnostics.items():
+        if name not in histogram_helpers.ADD_HISTOGRAM_RELATED_DIAGNOSTICS:
+          continue
+
+        if isinstance(diagnostic, diagnostic_ref.DiagnosticRef):
+          original_diagnostic = histogram.SparseDiagnostic.get_by_id(
+              diagnostic.guid)
+          diagnostic = diagnostic_module.Diagnostic.FromDict(
+              original_diagnostic.data)
+
+        # We don't have other diagnostics in
+        # histogram_helpers.ADD_HISTOGRAM_RELATED_DIAGNOSTICS if they apper
+        # in the future, dimensions format should be changed.
+        assert isinstance(diagnostic, generic_set.GenericSet)
+
+        info['dimensions'].append({'name': name, 'value': list(diagnostic)})
+    raise ndb.Return(info)
+
+  def _GenerateResponse(self,
+                        token,
+                        get_measurement_info=False,
+                        get_dimensions_info=False):
+    measurements = token.GetMeasurements() if get_measurement_info else []
     result = {
         'token': token.key.id(),
         'file': token.temporary_staging_file_path,
@@ -44,45 +82,22 @@ class UploadInfoHandler(api_request_handler.ApiRequestHandler):
       result['error_message'] = token.error_message
     if measurements:
       result['measurements'] = []
+
+    measurement_info_futures = []
     for measurement in measurements:
-      info = {
-          'name': measurement.test_path,
-          'state': upload_completion_token.StateToString(measurement.state),
-          'monitored': measurement.monitored,
-          'lastUpdated': str(measurement.update_time),
-      }
-      if measurement.error_message is not None:
-        info['error_message'] = measurement.error_message
-      if measurement.histogram is not None:
-        histogram_entity = measurement.histogram.get()
-        attached_histogram = histogram_module.Histogram.FromDict(
-            histogram_entity.data)
-        info['dimensions'] = []
-        for name, diagnostic in attached_histogram.diagnostics.items():
-          if name not in histogram_helpers.ADD_HISTOGRAM_RELATED_DIAGNOSTICS:
-            continue
-
-          if isinstance(diagnostic, diagnostic_ref.DiagnosticRef):
-            original_diagnostic = histogram.SparseDiagnostic.get_by_id(
-                diagnostic.guid)
-            diagnostic = diagnostic_module.Diagnostic.FromDict(
-                original_diagnostic.data)
-
-          # We don't have other diagnostics in
-          # histogram_helpers.ADD_HISTOGRAM_RELATED_DIAGNOSTICS if they apper
-          # in the future, dimensions format should be changed.
-          assert isinstance(diagnostic, generic_set.GenericSet)
-
-          info['dimensions'].append({'name': name, 'value': list(diagnostic)})
-
-      result['measurements'].append(info)
+      measurement_info_futures.append(
+          self._GenerateMeasurementInfo(measurement, get_dimensions_info))
+    ndb.Future.wait_all(measurement_info_futures)
+    for future in measurement_info_futures:
+      result['measurements'].append(future.get_result())
     return result
 
   def Get(self, *args):
     """Returns json, that describes state of the token.
 
     Can be called by get request to /uploads/<token_id>. Measurements info can
-    be requested with GET parameter ?additional_info=measurements.
+    be requested with GET parameter ?additional_info=measurements. If dimentions
+    info is also required use ?additional_info=measurements,dimentions.
 
     Response is json of the form:
     {
@@ -136,7 +151,8 @@ class UploadInfoHandler(api_request_handler.ApiRequestHandler):
         - dimentions: List of relevant for /add_histogram api diagnostics,
           associated to the histogram, that is represented by the measurement.
           This field will be present in response only after the histogram has
-          been added to Datastore.
+          been added to Datastore. This field may be absent if full information
+          is not requested.
           - name: Name of the diagnostic.
           - values: List of values, stored in the GenericSet diagnostic.
 
@@ -159,7 +175,7 @@ class UploadInfoHandler(api_request_handler.ApiRequestHandler):
       logging.error('Upload completion token not found. Token id: %s', token_id)
       raise api_request_handler.NotFoundError
 
-    measurements = None
-    if 'measurements' in self.request.get('additional_info'):
-      measurements = token.GetMeasurements()
-    return self._GenerateResponse(token, measurements)
+    get_measurement_info = 'measurements' in self.request.get('additional_info')
+    get_dimensions_info = 'dimensions' in self.request.get('additional_info')
+    return self._GenerateResponse(token, get_measurement_info,
+                                  get_dimensions_info)

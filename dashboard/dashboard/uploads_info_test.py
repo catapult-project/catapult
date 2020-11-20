@@ -46,12 +46,45 @@ class UploadInfo(testing_common.TestCase):
   def GetFullInfoRequest(self, token_id, status=200):
     return json.loads(
         self.testapp.get(
-            '/uploads/%s?additional_info=measurements' % token_id,
+            '/uploads/%s?additional_info=measurements,dimensions' % token_id,
             status=status).body)
 
   def GetLimitedInfoRequest(self, token_id, status=200):
     return json.loads(
         self.testapp.get('/uploads/%s' % token_id, status=status).body)
+
+  def GetTestHistogram(self,
+                       owners_diagnostic=None,
+                       commit_position_diagnostic=None):
+    if not commit_position_diagnostic:
+      commit_position_diagnostic = generic_set.GenericSet([123])
+    if not owners_diagnostic:
+      owners_diagnostic = generic_set.GenericSet(['owner_name'])
+    return histogram.Histogram(
+        id=str(uuid.uuid4()),
+        data={
+            'allBins': {
+                '1': [1],
+                '3': [1],
+                '4': [1]
+            },
+            'binBoundaries': [1, [1, 1000, 20]],
+            'diagnostics': {
+                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                    commit_position_diagnostic.AsDict(),
+                reserved_infos.OWNERS.name:
+                    owners_diagnostic.guid,
+                'irrelevant_diagnostic':
+                    generic_set.GenericSet([42]).AsDict(),
+            },
+            'name': 'foo',
+            'running': [3, 3, 0.5972531564093516, 2, 1, 6, 2],
+            'sampleValues': [1, 2, 3],
+            'unit': 'count_biggerIsBetter'
+        },
+        test=None,
+        revision=123,
+        internal_only=True)
 
   def testGet_Success(self):
     token_id = str(uuid.uuid4())
@@ -136,8 +169,47 @@ class UploadInfo(testing_common.TestCase):
 
   def testGet_SuccessWithMeasurementsAndAssociatedHistogram(self):
     owners_diagnostic = generic_set.GenericSet(['owner_name'])
+    owners_diagnostic.guid = str(uuid.uuid4())
+
+    histogram.SparseDiagnostic(
+        id=owners_diagnostic.guid,
+        data=owners_diagnostic.AsDict(),
+        name=reserved_infos.OWNERS.name,
+        test=None,
+        start_revision=1,
+        end_revision=999).put().get()
+
+    hs = self.GetTestHistogram(owners_diagnostic).put().get()
+
+    token_id = str(uuid.uuid4())
+    test_path = 'Chromium/win7/suite/metric1'
+    token = upload_completion_token.Token(id=token_id).put().get()
+    measurement = token.AddMeasurement(test_path, True).get_result()
+    measurement.histogram = hs.key
+    measurement.put()
+
+    expected = {
+        'token': token_id,
+        'file': None,
+        'created': str(token.creation_time),
+        'lastUpdated': str(token.update_time),
+        'state': 'PROCESSING',
+        'measurements': [{
+            'name': test_path,
+            'state': 'PROCESSING',
+            'monitored': True,
+            'lastUpdated': str(measurement.update_time),
+        },]
+    }
+    response = json.loads(
+        self.testapp.get(
+            '/uploads/%s?additional_info=measurements' % token_id,
+            status=200).body)
+    self.assertEqual(response, expected)
+
+  def testGet_SuccessWithMeasurementsDimentionsAssociatedHistogram(self):
+    owners_diagnostic = generic_set.GenericSet(['owner_name'])
     commit_position_diagnostic = generic_set.GenericSet([123])
-    irrelevant_diagnostic = generic_set.GenericSet([42])
     owners_diagnostic.guid = str(uuid.uuid4())
     commit_position_diagnostic.guid = str(uuid.uuid4())
 
@@ -149,29 +221,8 @@ class UploadInfo(testing_common.TestCase):
         start_revision=1,
         end_revision=999).put().get()
 
-    hs = histogram.Histogram(
-        id=str(uuid.uuid4()),
-        data={
-            'allBins': {
-                '1': [1],
-                '3': [1],
-                '4': [1]
-            },
-            'binBoundaries': [1, [1, 1000, 20]],
-            'diagnostics': {
-                reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
-                    commit_position_diagnostic.AsDict(),
-                reserved_infos.OWNERS.name: owners_diagnostic.guid,
-                'irrelevant_diagnostic': irrelevant_diagnostic.AsDict(),
-            },
-            'name': 'foo',
-            'running': [3, 3, 0.5972531564093516, 2, 1, 6, 2],
-            'sampleValues': [1, 2, 3],
-            'unit': 'count_biggerIsBetter'
-        },
-        test=None,
-        revision=123,
-        internal_only=True).put().get()
+    hs = self.GetTestHistogram(owners_diagnostic,
+                               commit_position_diagnostic).put().get()
 
     token_id = str(uuid.uuid4())
     test_path = 'Chromium/win7/suite/metric1'

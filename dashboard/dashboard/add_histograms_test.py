@@ -1564,7 +1564,7 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
   def GetUploads(self, token_id, status=200):
     return json.loads(
         self.testapp.get(
-            '/uploads/%s?additional_info=measurements' % token_id,
+            '/uploads/%s?additional_info=measurements,dimensions' % token_id,
             status=status).body)
 
   def testPost_Succeeds(self):
