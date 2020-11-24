@@ -50,6 +50,7 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._devtools_client_os = None
     self._devtools_port_path = self._GetDevToolsActivePortPath()
     self._cros_browser_backend = cros_browser_backend
+    self._is_browser_running = False
 
   @property
   def log_file_path(self):
@@ -62,6 +63,9 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     results = self._cri.RunCmdOnDevice(cmd)
     logging.info("stdout: " + results[0])
     logging.info("stderr: " + results[1])
+
+  def _IsDevtoolsUp(self):
+    return self._cri.FileExistsOnDevice(self._GetDevToolsActivePortPath())
 
   # TODO(crbug.com/1148868): Share this and others with CrOSBrowserBackend.
   def _FindDevToolsPortAndTarget(self):
@@ -93,6 +97,9 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         startup_args[i] = new_arg
 
   def _LaunchLacrosChromeHelper(self, startup_args):
+    self._cri.RunCmdOnDevice(['cp', '../usr/local/lacros-chrome/chrome',
+                              '../usr/local/lacros-chrome/lacros-chrome'])
+
     # Some args need escaping, etc.
     self._ReformatArg(startup_args, 'enable-features')
     self._ReformatArg(startup_args, 'disable-features')
@@ -108,7 +115,7 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
            'python',
            '/mojo_connection_lacros_launcher.py',
            '-s', '/tmp/lacros.sock',
-           './../usr/local/lacros-chrome/chrome',
+           './../usr/local/lacros-chrome/lacros-chrome',
            '--ozone-platform=wayland',
            '--user-data-dir=/usr/local/lacros-chrome/user_data',
            '--enable-gpu-rasterization',
@@ -116,18 +123,22 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
            '--lang=en-US',
            '--breakpad-dump-location=/usr/local/lacros-chrome/',
            '--no-sandbox'] + startup_args)
-      # This will only exist if launch is successful.
-      return self._cri.FileExistsOnDevice(self._GetDevToolsActivePortPath())
+      # This will only exist if launch was successful.
+      return self._IsDevtoolsUp()
 
     # TODO(crbug/1148534) - Launch only works sporadically.
+    # This will return either when the timeout is hit or the test closes Lacros,
+    # whichever is *later*
     py_utils.WaitFor(_Launch, 40)
+    self._is_browser_running = False
 
   def LaunchLacrosChrome(self, startup_args):
     thread.start_new_thread(self._LaunchLacrosChromeHelper, (startup_args,))
-    py_utils.WaitFor(lambda: self._cri.FileExistsOnDevice(self._GetDevToolsActivePortPath()), 40)
+    py_utils.WaitFor(self._IsDevtoolsUp, 40)
+    self._is_browser_running = self._IsDevtoolsUp()
     # TODO(crbug/1150455) - Find another condtion to wait on.
     time.sleep(1)
-    print 'Lacros is up!'
+    print 'Is Lacros up? ' + str(self._is_browser_running)
 
   def Start(self, startup_args):
     self._cri.OpenConnection()
@@ -156,7 +167,7 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._cros_browser_backend.Close()
 
   def IsBrowserRunning(self):
-    raise NotImplementedError
+    return self._is_browser_running
 
   def GetStandardOutput(self):
     return 'Cannot get standard output on Lacros'
