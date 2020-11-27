@@ -7,7 +7,7 @@ services:
     image: dashboard-base:latest
     volumes:
       - ../..:/image/workspace:ro
-    command: [/workspace/dashboard/bin/run_py_tests, -t, -v]
+    command: [vpython, /workspace/dashboard/bin/run_py_tests, -t, -v]
   deploy-dashboard:
     image: dashboard-base:latest
     volumes:
