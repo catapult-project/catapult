@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 
 namespace catapult {
 
@@ -16,7 +17,7 @@ void RunningStatistics::Add(double value) {
   min_ = std::min(min_, value);
   sum_ += value;
 
-  if (value < 0.0) {
+  if (std::islessequal(value, 0.0)) {
     meanlogs_valid_ = false;
   } else if (meanlogs_valid_) {
     meanlogs_ += (std::log(std::abs(value)) - meanlogs_) / count_;
