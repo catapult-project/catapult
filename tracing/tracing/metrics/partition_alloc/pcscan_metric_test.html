@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!--
+Copyright 2020 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_processes.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_test_utils.html">
+<link rel="import" href="/tracing/metrics/partition_alloc/pcscan_metric.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  const CHROME_PROCESS_NAMES =
+       tr.e.chrome.chrome_processes.CHROME_PROCESS_NAMES;
+
+  function makeTestModelFor(processName) {
+    return tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const process = (processName === CHROME_PROCESS_NAMES.RENDERER ?
+        model.rendererProcess : model.browserProcess);
+      const thread = process.getOrCreateThread(2);
+      thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'partition_alloc',
+        title: 'PCScan',
+        start: 200,
+        duration: 100,
+        cpuStart: 200,
+        cpuDuration: 100
+      }));
+      thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'partition_alloc',
+        title: 'PCScan.Clear',
+        start: 200,
+        duration: 16,
+        cpuStart: 200,
+        cpuDuration: 16
+      }));
+      thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'partition_alloc',
+        title: 'PCScan.Scan',
+        start: 216,
+        duration: 32,
+        cpuStart: 216,
+        cpuDuration: 32
+      }));
+      thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'partition_alloc',
+        title: 'PCScan.Sweep',
+        start: 248,
+        duration: 42,
+        cpuStart: 248,
+        cpuDuration: 42
+      }));
+    });
+  }
+
+  function testPCScanMetrics(processName) {
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.pa.pcscanMetric(histograms, makeTestModelFor(processName));
+    assert.closeTo(100, histograms.getHistogramNamed(
+        'pa:pcscan:' + processName).average, 1e-2);
+    assert.closeTo(16, histograms.getHistogramNamed(
+        'pa:pcscan:' + processName + ':clear').average, 1e-2);
+    assert.closeTo(32, histograms.getHistogramNamed(
+        'pa:pcscan:' + processName + ':scan').average, 1e-2);
+    assert.closeTo(42, histograms.getHistogramNamed(
+        'pa:pcscan:' + processName + ':sweep').average, 1e-2);
+  }
+
+  test('pcscanMetricForBrowser', function() {
+    testPCScanMetrics(CHROME_PROCESS_NAMES.BROWSER);
+  });
+
+  test('pcscanMetricForRenderer', function() {
+    testPCScanMetrics(CHROME_PROCESS_NAMES.RENDERER);
+  });
+});
+</script>

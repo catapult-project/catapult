@@ -204,6 +204,7 @@ tracing_js_html_files = [
   "tracing/metrics/memory_ablation_metric.html",
   "tracing/metrics/metric_map_function.html",
   "tracing/metrics/metric_registry.html",
+  "tracing/metrics/partition_alloc/pcscan_metric.html",
   "tracing/metrics/rendering/cpu_utilization.html",
   "tracing/metrics/rendering/frame_time.html",
   "tracing/metrics/rendering/image_decode_time.html",
