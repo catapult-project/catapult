@@ -73,14 +73,15 @@ class InvalidPattern(MissingFields):
     reason: A text description of the error.
   """
 
-  def __init__(self, message, index, pattern_index, reason):
+  def __init__(self, message, index, pattern_index, reason, group):
     super(InvalidPattern, self).__init__(message, index, 'patterns')
     self.pattern_index = pattern_index
     self.reason = reason
+    self.group = group
 
   def __str__(self):
-    return 'Subscription #%d has a bad pattern (#%d); reason: %s' % (
-        self.index, self.pattern_index, self.reason)
+    return 'Subscription #%d has a bad pattern (%s #%d); reason: %s' % (
+        self.index, self.group, self.pattern_index, self.reason)
 
 
 def Validate(content):
@@ -102,6 +103,23 @@ def Validate(content):
 
   # Go through each of the subscriptions, and ensure we find the semantically
   # required fields.
+  def ValidatePattern(index, pattern_idx, pattern, group):
+    field = pattern.WhichOneof('pattern')
+    if field is None:
+      raise InvalidPattern(result, index, pattern_idx,
+                           'must provide either \'glob\' or \'regex\'', group)
+    elif field == 'glob' and len(pattern.glob) == 0:
+      raise InvalidPattern(result, index, pattern_idx, 'glob must not be empty',
+                           group)
+    elif field == 'regex' and len(pattern.regex) == 0:
+      raise InvalidPattern(result, index, pattern_idx,
+                           'regex must not be empty', group)
+    try:
+      matcher.CompilePattern(pattern)
+    except re2.error as e:
+      raise InvalidPattern(result, index, pattern_idx, 'failed: %s' % (e,),
+                           group)
+
   for (index, subscription) in enumerate(result.subscriptions):
     if subscription.contact_email is None or len(
         subscription.contact_email) == 0:
@@ -110,21 +128,23 @@ def Validate(content):
       raise MissingName(result, index)
     if not subscription.rules.match:
       raise MissingPatterns(result, index)
-    for (pattern_idx, pattern) in enumerate(subscription.rules.match):
-      field = pattern.WhichOneof('pattern')
-      if field is None:
-        raise InvalidPattern(result, index, pattern_idx,
-                             'must provide either \'glob\' or \'regex\'')
-      elif field == 'glob' and len(pattern.glob) == 0:
-        raise InvalidPattern(result, index, pattern_idx,
-                             'glob must not be empty')
-      elif field == 'regex' and len(pattern.regex) == 0:
-        raise InvalidPattern(result, index, pattern_idx,
-                             'regex must not be empty')
 
-      try:
-        matcher.CompilePattern(pattern)
-      except re2.error as e:
-        raise InvalidPattern(result, index, pattern_idx, 'failed: %s' % (e,))
+    for (pattern_idx, pattern) in enumerate(subscription.rules.match):
+      ValidatePattern(index, pattern_idx, pattern, 'rules.match')
+    for (pattern_idx, pattern) in enumerate(subscription.rules.exclude):
+      ValidatePattern(index, pattern_idx, pattern, 'rules.exclude')
+    for (pattern_idx,
+         pattern) in enumerate(subscription.auto_triage.rules.match):
+      ValidatePattern(index, pattern_idx, pattern, 'auto_triage.rules.match')
+    for (pattern_idx,
+         pattern) in enumerate(subscription.auto_triage.rules.exclude):
+      ValidatePattern(index, pattern_idx, pattern, 'auto_triage.rules.exclude')
+    for (pattern_idx,
+         pattern) in enumerate(subscription.auto_bisection.rules.match):
+      ValidatePattern(index, pattern_idx, pattern, 'auto_bisection.rules.match')
+    for (pattern_idx,
+         pattern) in enumerate(subscription.auto_bisection.rules.exclude):
+      ValidatePattern(index, pattern_idx, pattern,
+                      'auto_bisection.rules.exclude')
 
   return result

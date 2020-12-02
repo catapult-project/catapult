@@ -168,7 +168,7 @@ class ValidatorTest(unittest.TestCase):
                                ]
                              """)
 
-  def testInvalidRegex(self):
+  def testInvalidRegexMatch(self):
     with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
       _ = validator.Validate("""
                                subscriptions: [
@@ -178,6 +178,146 @@ class ValidatorTest(unittest.TestCase):
                                    bug_labels: ["test-blocker"],
                                    bug_components: ["Sample>Component"],
                                    rules: { match: [{regex: "*"}] }
+                                 }
+                               ]
+                             """)
+
+  def testInvalidRegexExclude(self):
+    with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
+      _ = validator.Validate("""
+                               subscriptions: [
+                                 {
+                                   name: "Empty Regex",
+                                   contact_email: "bad-pattern@domain",
+                                   bug_labels: ["test-blocker"],
+                                   bug_components: ["Sample>Component"],
+                                   rules: {
+                                      match: [{regex: ".*"}]
+                                      exclude: [{regex: "*"}]
+                                   }
+                                 }
+                               ]
+                             """)
+
+  def testInvalidRegexAutoTriage(self):
+    with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
+      _ = validator.Validate("""
+                               subscriptions: [
+                                 {
+                                   name: "Empty Regex",
+                                   contact_email: "bad-pattern@domain",
+                                   bug_labels: ["test-blocker"],
+                                   bug_components: ["Sample>Component"],
+                                   rules: {
+                                      match: [{regex: ".*"}]
+                                      exclude: [{regex: ".*"}]
+                                   }
+                                   auto_triage {
+                                     rules: {
+                                       match: {regex: "*"}
+                                     }
+                                   }
+                                 }
+                               ]
+                             """)
+    with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
+      _ = validator.Validate("""
+                               subscriptions: [
+                                 {
+                                   name: "Empty Regex",
+                                   contact_email: "bad-pattern@domain",
+                                   bug_labels: ["test-blocker"],
+                                   bug_components: ["Sample>Component"],
+                                   rules: {
+                                      match: [{regex: ".*"}]
+                                      exclude: [{regex: ".*"}]
+                                   }
+                                   auto_triage {
+                                     rules: {
+                                       match: {regex: ".*"}
+                                       exclude: {regex: "*"}
+                                     }
+                                   }
+                                 }
+                               ]
+                             """)
+
+  def testInvalidRegexAutoBisect(self):
+    with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
+      _ = validator.Validate("""
+                               subscriptions: [
+                                 {
+                                   name: "Empty Regex",
+                                   contact_email: "bad-pattern@domain",
+                                   bug_labels: ["test-blocker"],
+                                   bug_components: ["Sample>Component"],
+                                   rules: {
+                                      match: [{regex: ".*"}]
+                                   }
+                                   auto_triage {
+                                     rules: {
+                                       match: {regex: ".*"}
+                                     }
+                                   }
+                                   auto_bisection {
+                                     rules: {
+                                       match: {regex: "*"}
+                                     }
+                                   }
+                                 }
+                               ]
+                             """)
+    with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
+      _ = validator.Validate("""
+                               subscriptions: [
+                                 {
+                                   name: "Empty Regex",
+                                   contact_email: "bad-pattern@domain",
+                                   bug_labels: ["test-blocker"],
+                                   bug_components: ["Sample>Component"],
+                                   rules: {
+                                      match: [{regex: ".*"}]
+                                      exclude: [{regex: ".*"}]
+                                   }
+                                   auto_triage {
+                                     rules: {
+                                       match: {regex: ".*"}
+                                     }
+                                   }
+                                   auto_bisection {
+                                     rules: {
+                                       match: {regex: ".*"}
+                                       exclude: {regex: "*"}
+                                     }
+                                   }
+                                 }
+                               ]
+                             """)
+
+  def testValidAutoTriageAndAutoBisect(self):
+    _ = validator.Validate("""
+                               subscriptions: [
+                                 {
+                                   name: "Empty Regex",
+                                   contact_email: "bad-pattern@domain",
+                                   bug_labels: ["test-blocker"],
+                                   bug_components: ["Sample>Component"],
+                                   rules: {
+                                      match: [{regex: ".*"}]
+                                      exclude: [{regex: ".*"}]
+                                   }
+                                   auto_triage {
+                                     rules: {
+                                       match: {regex: ".*"}
+                                       exclude: {regex: ".*"}
+                                     }
+                                   }
+                                   auto_bisection {
+                                     rules: {
+                                       match: {regex: ".*"}
+                                       exclude: {regex: ".*"}
+                                     }
+                                   }
                                  }
                                ]
                              """)
