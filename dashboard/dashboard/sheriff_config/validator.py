@@ -11,7 +11,9 @@ from __future__ import division
 from __future__ import absolute_import
 
 from google.protobuf import text_format
+import matcher
 import sheriff_pb2
+import re2
 
 
 class Error(Exception):
@@ -119,5 +121,10 @@ def Validate(content):
       elif field == 'regex' and len(pattern.regex) == 0:
         raise InvalidPattern(result, index, pattern_idx,
                              'regex must not be empty')
+
+      try:
+        matcher.CompilePattern(pattern)
+      except re2.error as e:
+        raise InvalidPattern(result, index, pattern_idx, 'failed: %s' % (e,))
 
   return result

@@ -168,6 +168,20 @@ class ValidatorTest(unittest.TestCase):
                                ]
                              """)
 
+  def testInvalidRegex(self):
+    with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
+      _ = validator.Validate("""
+                               subscriptions: [
+                                 {
+                                   name: "Empty Regex",
+                                   contact_email: "bad-pattern@domain",
+                                   bug_labels: ["test-blocker"],
+                                   bug_components: ["Sample>Component"],
+                                   rules: { match: [{regex: "*"}] }
+                                 }
+                               ]
+                             """)
+
 
 if __name__ == '__main__':
   unittest.main()
