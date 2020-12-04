@@ -22,6 +22,671 @@ tr.exportTo('tr.metrics.v8', function() {
   const TARGET_FPS = 60;
   const MS_PER_SECOND = 1000;
   const WINDOW_SIZE_MS = MS_PER_SECOND / TARGET_FPS;
+  const EPSILON = 1e-6;
+
+  /**
+   * A list of metrics that are measured and tracked.
+   *
+   * See https://bit.ly/v8-gc-stats-collection for the metric naming convention.
+   * You can add a variant of an existing metric by simply adding its name to
+   * this list. E.g. v8:gc:cycle:background_threads:full:atomic:mark:cpp.
+   *
+   * If you want to add a completely new metric with its own TRACE_EVENT then
+   * you also need to add the corresponding rule to the RULES list below.
+   *
+   * @const {!Array<string>}
+   */
+  const METRICS = [
+    'v8:gc:cycle:full',
+    'v8:gc:cycle:full:cpp',
+    'v8:gc:cycle:full:mark',
+    'v8:gc:cycle:full:mark:cpp',
+    'v8:gc:cycle:full:weak',
+    'v8:gc:cycle:full:weak:cpp',
+    'v8:gc:cycle:full:sweep',
+    'v8:gc:cycle:full:sweep:cpp',
+    'v8:gc:cycle:full:compact',
+    'v8:gc:cycle:full:compact:cpp',
+    'v8:gc:cycle:main_thread:full',
+    'v8:gc:cycle:main_thread:full:cpp',
+    'v8:gc:cycle:main_thread:full:mark',
+    'v8:gc:cycle:main_thread:full:mark:cpp',
+    'v8:gc:cycle:main_thread:full:weak',
+    'v8:gc:cycle:main_thread:full:weak:cpp',
+    'v8:gc:cycle:main_thread:full:sweep',
+    'v8:gc:cycle:main_thread:full:sweep:cpp',
+    'v8:gc:cycle:main_thread:full:compact',
+    'v8:gc:cycle:main_thread:full:compact:cpp',
+    'v8:gc:event:main_thread:full:atomic',
+    'v8:gc:event:main_thread:full:atomic:cpp',
+    'v8:gc:event:main_thread:full:atomic:mark',
+    'v8:gc:event:main_thread:full:atomic:mark:cpp',
+    'v8:gc:event:main_thread:full:atomic:weak',
+    'v8:gc:event:main_thread:full:atomic:weak:cpp',
+    'v8:gc:event:main_thread:full:atomic:sweep',
+    'v8:gc:event:main_thread:full:atomic:sweep:cpp',
+    'v8:gc:event:main_thread:full:atomic:compact',
+    'v8:gc:event:main_thread:full:atomic:compact:cpp',
+    'v8:gc:event:main_thread:full:incremental',
+    'v8:gc:event:main_thread:full:incremental:cpp',
+    'v8:gc:event:main_thread:full:incremental:mark',
+    'v8:gc:event:main_thread:full:incremental:mark:cpp',
+    'v8:gc:event:main_thread:full:incremental:sweep',
+    'v8:gc:event:main_thread:full:incremental:sweep:cpp',
+    'v8:gc:cycle:young',
+    'v8:gc:cycle:main_thread:young',
+  ];
+
+  /**
+   * Shorthands for various event groups to be used in RULES below.
+   */
+  const V8_FULL_ATOMIC_EVENTS = [
+    'V8.GCCompactor',
+    'V8.GCFinalizeMC',
+    'V8.GCFinalizeMCReduceMemory',
+  ];
+
+  const V8_FULL_MARK_EVENTS = [
+    'V8.GC_MC_BACKGROUND_MARKING',
+    'V8.GC_MC_MARK',
+    'V8.GCIncrementalMarking',
+    'V8.GCIncrementalMarkingFinalize',
+    'V8.GCIncrementalMarkingStart',
+  ];
+
+  const V8_FULL_COMPACT_EVENTS = [
+    'V8.GC_MC_BACKGROUND_EVACUATE_COPY',
+    'V8.GC_MC_BACKGROUND_EVACUATE_UPDATE_POINTERS',
+    'V8.GC_MC_EVACUATE',
+  ];
+
+  const V8_FULL_SWEEP_EVENTS = [
+    'V8.GC_MC_BACKGROUND_SWEEPING',
+    'V8.GC_MC_SWEEP',
+  ];
+
+  const V8_FULL_WEAK_EVENTS = [
+    'V8.GC_MC_CLEAR',
+  ];
+
+  const V8_YOUNG_EVENTS = [
+    'V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL',
+    'V8.GCScavenger',
+  ];
+
+  // TODO(chromium:1056170): Add CppGC library events to this list before
+  // switching to the libary.
+  const CPP_GC_FULL_MARK_EVENTS = [
+    'BlinkGC.AtomicPauseMarkEpilogue',
+    'BlinkGC.AtomicPauseMarkPrologue',
+    'BlinkGC.AtomicPauseMarkRoots',
+    'BlinkGC.AtomicPauseMarkTransitiveClosure',
+    'BlinkGC.ConcurrentMarkingStep',
+    'BlinkGC.IncrementalMarkingStartMarking',
+    'BlinkGC.IncrementalMarkingStep',
+    'BlinkGC.MarkBailOutObjects',
+    'BlinkGC.MarkFlushEphemeronPairs',
+    'BlinkGC.MarkFlushV8References',
+    'BlinkGC.UnifiedMarkingStep',
+  ];
+
+  // TODO(chromium:1056170): Add CppGC library events to this list before
+  // switching to the libary.
+  const CPP_GC_FULL_COMPACT_EVENTS = [
+    'BlinkGC.AtomicPauseSweepAndCompact',
+  ];
+
+  // TODO(chromium:1056170): Add CppGC library events to this list before
+  // switching to the libary.
+  const CPP_GC_FULL_SWEEP_EVENTS = [
+    'BlinkGC.CompleteSweep',
+    'BlinkGC.ConcurrentSweepingStep',
+    'BlinkGC.LazySweepInIdle',
+    'BlinkGC.LazySweepOnAllocation',
+  ];
+
+  /**
+   * A Rule object describes a mapping from events to metrics.
+   *
+   * For each event in a single GC cycle there can be at most one rule that
+   * that applies to that event. An event E applies to a rule R if all the
+   * following conditions hold:
+   *
+   *    1. R.events contains E.title.
+   *
+   *    2. if R.inside is not empty, then at least one event X specified by
+   *       R.inside exists on some thread and fully encloses E:
+   *          X.start <= E.start && E.end <= X.end.
+   *       Note that X and E don't have to be on the same thread, which allows
+   *       us to find background thread events that happen during atomic pause.
+   *
+   *    3. if R.outside is not empty, then there is no such event X specified
+   *       by R.outside that fully encloses E. This is useful for background
+   *       events that happen during incremental phases.
+   *
+   * TODO(chromium:1056170): Currently event names of V8 and CppGC do not
+   * collide because V8 events are prefixed with 'V8' and CppGC events are
+   * prefixed with 'BlinkGC'. Revisit this it before switching to the library.
+   * We may need to either include the category to rules or keep the prefixes.
+   *
+   * @typedef {Object} Rule
+   * @property {!Array<string>} events - Event names selected by this rule.
+   * @property {?Array<string>} inside - Allowlist of enclosing event names.
+   * @property {?Array<string>} outside - Blocklist of enclosing event names.
+   * @property {string} contribute_to - The most specific target metric name.
+   *    The rule automatically applies to all more general metrics that can
+   *    be derived by dropping parts of the target metric name.
+   *    Note that the metric name does not include granularity and threads.
+   */
+
+  /**
+   * @const {!Array<!Rule>}
+   */
+  const RULES = [
+    {
+      events: V8_FULL_ATOMIC_EVENTS,
+      contribute_to: 'full:atomic',
+    },
+    {
+      events: V8_FULL_MARK_EVENTS,
+      inside: V8_FULL_ATOMIC_EVENTS,
+      contribute_to: 'full:atomic:mark',
+    },
+    {
+      events: CPP_GC_FULL_MARK_EVENTS,
+      inside: V8_FULL_ATOMIC_EVENTS,
+      contribute_to: 'full:atomic:mark:cpp',
+    },
+    {
+      events: V8_FULL_MARK_EVENTS,
+      outside: V8_FULL_ATOMIC_EVENTS,
+      contribute_to: 'full:incremental:mark',
+    },
+    {
+      events: CPP_GC_FULL_MARK_EVENTS,
+      outside: V8_FULL_ATOMIC_EVENTS,
+      contribute_to: 'full:incremental:mark:cpp',
+    },
+    {
+      events: V8_FULL_COMPACT_EVENTS,
+      inside: V8_FULL_ATOMIC_EVENTS,
+      contribute_to: 'full:atomic:compact',
+    },
+    {
+      events: CPP_GC_FULL_COMPACT_EVENTS,
+      inside: V8_FULL_ATOMIC_EVENTS,
+      contribute_to: 'full:atomic:compact:cpp',
+    },
+    {
+      events: V8_FULL_SWEEP_EVENTS,
+      inside: V8_FULL_ATOMIC_EVENTS,
+      contribute_to: 'full:atomic:sweep',
+    },
+    {
+      events: CPP_GC_FULL_SWEEP_EVENTS,
+      inside: V8_FULL_ATOMIC_EVENTS,
+      contribute_to: 'full:atomic:sweep:cpp',
+    },
+    {
+      events: V8_FULL_WEAK_EVENTS,
+      inside: V8_FULL_ATOMIC_EVENTS,
+      contribute_to: 'full:atomic:weak',
+    },
+    {
+      events: V8_FULL_SWEEP_EVENTS,
+      outside: V8_FULL_ATOMIC_EVENTS,
+      contribute_to: 'full:incremental:sweep',
+    },
+    {
+      events: CPP_GC_FULL_SWEEP_EVENTS,
+      outside: V8_FULL_ATOMIC_EVENTS,
+      contribute_to: 'full:incremental:sweep:cpp',
+    },
+    {
+      events: V8_YOUNG_EVENTS,
+      contribute_to: 'young:atomic',
+    },
+  ];
+
+  /**
+   * A part of the metric name that defines how the events contributing to
+   * the metric are aggregated. See Metric.apply() below.
+   * @enum {string}
+   */
+  const Granularity = {
+    CYCLE: 'cycle',
+    EVENT: 'event',
+  };
+
+  /**
+   * A thread of a V8 isolate is considered a main thread including:
+   *
+   * - the main thread of the renderer.
+   * - the main thread of a dedicated worker.
+   * - the main thread of a service worker.
+   *
+   * A thread that runs background tasks is considered a background
+   * thread. See jsExecutionThreadsWithTypes() below.
+   *
+   * @enum {string}
+   */
+  const ThreadType = {
+    MAIN: 'main',
+    BACKGROUND: 'background',
+    ALL_THREADS: 'all_threads',
+  };
+
+  /**
+   * Represents a single metric together with its histogram of measurements.
+   */
+  class Metric {
+    /**
+     * @param{string} name The name of the metric.
+     *    See https://bit.ly/v8-gc-stats-collection for the metric naming
+     *    convention and the meanining of name parts.
+     */
+    constructor(name) {
+      const parts = name.split(':');
+
+      /** @private @const {Granularity} */
+      this.granularity_ = parts[2];
+      assert(this.granularity_ === Granularity.CYCLE ||
+             this.granularity_ === Granularity.EVENT);
+
+      /** @private @const {?ThreadType} */
+      this.thread_ = ThreadType.ALL_THREADS;
+      let phasesIndex = 3;
+      if (parts[3] === 'main_thread') {
+        this.thread_ = ThreadType.MAIN;
+        phasesIndex = 4;
+      }
+      if (parts[3] === 'background_threads') {
+        this.thread_ = ThreadType.BACKGROUND;
+        phasesIndex = 4;
+      }
+
+      /** @private @const {!Array<string>} */
+      this.phases_ = parts.slice(phasesIndex);
+
+      const maxValue = this.isPerCycleMetric() ? 10000 : 1000;
+      const boundaries =
+          tr.v.HistogramBinBoundaries.createExponential(0.1, maxValue, 100);
+
+      /** @package @const {!tr.v.Histogram} */
+      this.histogram = new tr.v.Histogram(name,
+          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, boundaries);
+      this.histogram.customizeSummaryOptions({
+        avg: true,
+        count: true,
+        max: true,
+        min: false,
+        std: false,
+        sum: this.isPerCycleMetric(),
+      });
+    }
+
+    /**
+     * @return  {boolean} Whether the granularity of this metric is per cycle.
+     */
+    isPerCycleMetric() {
+      return this.granularity_ === Granularity.CYCLE;
+    }
+
+    /**
+     * @param {!Array<string>} phases - A list of metric phases.
+     * @return {boolean} Whether the phases of this metric are more general
+     *    than (or equal to) the given phases.
+     */
+    isMoreGeneralThanOrEqualTo(phases) {
+      // Check that this.phases_ is a subset of phases.
+      const phasesSet = new Set(phases.split(':'));
+      return this.phases_.every(phase => phasesSet.has(phase));
+    }
+
+    /**
+     * @param {!Array<!Rule>} rules - Rules that map events to metrics.
+     * @param {!Array<!tr.model.Slice>} events - All events of a single GC cycle
+     *    including the events of the main and background threads.
+     * @return {!Array<!tr.model.Slice>} A subset of the given events that
+     *    contribute to this metric.
+     */
+    contributingEvents(rules, events) {
+      // A map from an event name to the events with that name.
+      // It is used to speed up enclosing checks below.
+      const eventsByName = groupBy(events, e => e.title);
+
+      // Checks if the given rule matches (or applies) to the given event.
+      function matches(rule, event) {
+        // Checks if there is an event with the given name that encloses
+        // |event|.
+        function isEnclosing(name) {
+          if (!eventsByName.has(name)) return false;
+          return eventsByName.get(name).some(e => encloses(e, event));
+        }
+        if (!rule.events.includes(event.title)) {
+          return false;
+        }
+        if (rule.inside && !rule.inside.some(isEnclosing)) {
+          return false;
+        }
+        if (rule.outside && rule.outside.some(isEnclosing)) {
+          return false;
+        }
+        return true;
+      }
+
+      // For each event find the applying rule and check if the rule also
+      // applies to this metric.
+      const result = [];
+      for (const event of events) {
+        const matching = rules.filter(r => matches(r, event));
+        if (matching.length === 0) {
+          continue;
+        }
+        assert(matching.length === 1,
+            `${event.userFriendlyName} matches more than one rule: ` +
+            JSON.stringify(matching));
+        if (this.isMoreGeneralThanOrEqualTo(matching[0].contribute_to)) {
+          result.push(event);
+        }
+      }
+      return result;
+    }
+
+    /**
+     * Finds all events that contribute to this metric and aggregates them
+     * in the metric's histogram.
+     *
+     * @param {!Array<!Rule>} rules - Rules that map events to metrics.
+     * @param {!Array<!tr.model.Slice>} events - All events of a single GC cycle
+     *    including the events of the main and background threads.
+     * @param {!Map<number, ThreadType>} threadTypes - A map from a thread-id
+     *    to a thread type.
+     */
+    apply(rules, events, threadTypes) {
+      // Find all events that are relevant for this metric.
+      const filtered = this.contributingEvents(rules, events);
+
+      // Group the events by thread.
+      const eventsByThread = groupBy(filtered, e => e.parentContainer.tid);
+
+      // Drop events nested in other events and also drop events from
+      // the irrelevant threads.
+      let flattened = [];
+      for (const [tid, threadEvents] of eventsByThread) {
+        if (this.thread_ === ThreadType.ALL_THREADS ||
+            this.thread_ === threadTypes.get(tid)) {
+          flattened = flattened.concat(flatten(threadEvents));
+        }
+      }
+
+      // Aggregate events in the histogram.
+      if (this.isPerCycleMetric()) {
+        let sum = 0;
+        for (const event of flattened) {
+          sum += event.cpuDuration;
+        }
+        if (flattened.length > 0) {
+          this.histogram.addSample(sum);
+        }
+      } else {
+        for (const event of flattened) {
+          this.histogram.addSample(event.cpuDuration);
+        }
+      }
+    }
+  }
+
+  /**
+   * A helper for checking the condition.
+   * @param {boolean} condition
+   * @param {string}  message
+   */
+  function assert(condition, message) {
+    if (!condition) {
+      throw new Error(message);
+    }
+  }
+
+  /**
+   * A helper for grouping objects by the custom key.
+   * @param {!Array<!Object>} objects
+   * @param {!function(!Object): !Object} keyCallback
+   * @param {!Map<!Object, !Array<!Object>>} Objects grouped by the key.
+   */
+  function groupBy(objects, keyCallback) {
+    const result = new Map();
+    for (const object of objects) {
+      const group = keyCallback(object);
+      if (result.has(group)) {
+        result.get(group).push(object);
+      } else {
+        result.set(group, [object]);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * A helper for getting all events relevant for the rules.
+   * @param {!Array<Rule>} rules
+   * @return {!Array<string>} Event names.
+   */
+  function eventsMentionedIn(rules) {
+    let result = [];
+    for (const rule of rules) {
+      result = result.concat(rule.events);
+      if (rule.inside) {
+        result = result.concat(rule.inside);
+      }
+      if (rule.outside) {
+        result = result.concat(rule.outside);
+      }
+    }
+    return result;
+  }
+
+
+  /**
+   * Performs thread-independent check for event nesting.
+   *
+   * @param {!Array<!tr.model.Slice>} event1
+   * @param {!Array<!tr.model.Slice>} event2
+   * @return {boolean} Whether the first event encloses the second event.
+   */
+  function encloses(event1, event2) {
+    return (event1.start - EPSILON <= event2.start &&
+            event2.end <= event1.end + EPSILON);
+  }
+
+  /**
+   * Finds all threads that may execute JS code in the given renderer
+   * and return them together with the thread-id to thread type mapping.
+   *
+   * @param {!tr.model.helpers.ChromeRendererHelper} rendererHelper
+   * @return {[!Array<tr.model.Thread>, !Map<number, ThreadType>] A pair
+   *    of a thread list and a thread type mapping.
+   */
+  function jsExecutionThreadsWithTypes(rendererHelper) {
+    const mainThreads = ([rendererHelper.mainThread]
+        .concat(rendererHelper.dedicatedWorkerThreads)
+        .concat(rendererHelper.serviceWorkerThreads));
+    const backgroundThreads = rendererHelper.foregroundWorkerThreads;
+    const threadTypes = new Map();
+    for (const thread of mainThreads) {
+      threadTypes.set(thread.tid, ThreadType.MAIN);
+    }
+    for (const thread of backgroundThreads) {
+      threadTypes.set(thread.tid, ThreadType.BACKGROUND);
+    }
+    return [mainThreads.concat(backgroundThreads), threadTypes];
+  }
+
+  /**
+   * Drops all events that are nested in other events.
+   *
+   * @param {!Array<!tr.model.Slice>} events - Events on the same thread.
+   * @return {!Array<!tr.model.Slice>} Top-level events.
+   */
+  function flatten(events) {
+    function compareWithEpsilon(a, b) {
+      if (a.start < b.start - EPSILON) return -1;
+      if (a.start > b.start + EPSILON) return 1;
+      return b.end - a.end;
+    }
+    events.sort(compareWithEpsilon);
+    let last = events[0];
+    const result = [last];
+    for (const e of events) {
+      if (e.end > last.end + EPSILON) {
+        assert(e.start >= last.end - EPSILON,
+            'Overlapping events: ' +
+            e.userFriendlyName + ' ' +
+            last.userFriendlyName);
+        result.push(e);
+        last = e;
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Groups the events by GC cycle using the epoch argument of events.
+   *
+   * The function is more complex than expected for two reasons:
+   *
+   *    1. V8 and CppGC do not syncronize their epoch counters (yet).
+   *    2. V8 adds the epoch argument only to the top-level events. Nested
+   *       events are not requred to have the epoch.
+   *
+   * The function first finds the mapping from CppGC epoch to V8 epoch assuming
+   * that there will always be a CppGC event nested in a V8 event.
+   * Then it finds the V8 epoch for each nested V8 event and CppGC event.
+   * Finally, it groups the events by their V8 epoch.
+   *
+   * @param {!Array<!tr.model.Slice>} events - Events from multiple GC cycles
+   *    and multiple threads.
+   * @return {!Map<string, !Array<!tr.model.Slice>>} Grouped events.
+   */
+  function groupByEpoch(events) {
+    function isV8Event(event) {
+      // TODO(1056170): Adjust this if the CppGC library uses a v8 category
+      // for trace events.
+      return event.category && event.category.includes('v8');
+    }
+
+    // Finds the V8 and CppGC epoch arguments in the given event and its
+    // ancestors.
+    function getEpoch(event) {
+      function checkEpochConsistency(epoch, event) {
+        if (epoch === null) return;
+        assert(epoch === event.args.epoch,
+            `${event.userFriendlyName} has epoch ${event.args.epoch} ` +
+            `which contradicts the epoch of nested events ${epoch}`);
+      }
+      const result = {v8: null, cpp: null};
+      while (event) {
+        if ('epoch' in event.args) {
+          if (isV8Event(event)) {
+            checkEpochConsistency(result.v8, event);
+            result.v8 = event.args.epoch;
+          } else {
+            checkEpochConsistency(result.cpp, event);
+            result.cpp = event.args.epoch;
+          }
+        }
+        event = event.parentSlice;
+      }
+      return result;
+    }
+
+    // Find the mapping from a CppGC epoch to a V8 epoch.
+    const cppToV8 = new Map();
+    for (const event of events) {
+      const epoch = getEpoch(event);
+      if (epoch.cpp !== null && epoch.v8 !== null) {
+        assert(!cppToV8.has(epoch.cpp) || cppToV8.get(epoch.cpp) === epoch.v8,
+            `CppGC epoch ${epoch.cpp} corresponds to two v8 epochs ` +
+            `${cppToV8.get(epoch.cpp)} and ${epoch.v8}. ` +
+            `Detected at ${event.userFriendlyName}.`);
+        cppToV8.set(epoch.cpp, epoch.v8);
+      }
+    }
+
+    // For each event infer its V8 epoch and group by that.
+    const result = new Map();
+    for (const event of events) {
+      const epoch = getEpoch(event);
+      if (epoch.cpp === null && epoch.v8 === null) {
+        continue;
+      }
+      assert(epoch.cpp === null || cppToV8.has(epoch.cpp),
+          `CppGC epoch ${epoch.cpp} doesn't have the corresponding V8 epoch. ` +
+          `Detected at ${event.userFriendlyName}`);
+      const key = epoch.v8 === null ? cppToV8.get(epoch.cpp) : epoch.v8;
+      if (result.has(key)) {
+        result.get(key).push(event);
+      } else {
+        result.set(key, [event]);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * The main entry point of GC metric computation.
+   *
+   * @param {!Array<string} metricNames - A list of metric names to be computed.
+   * @param {!tr.v.HistogramSet} histograms - The histogram set where the new
+   *    histograms will be added.
+   * @param {!tr.Model} model
+   */
+  function addGarbageCollectionMetrics(metricNames, histograms, model) {
+    // Parse the metric names and store them in a list.
+    const metrics = metricNames.map(name => new Metric(name));
+
+    // Compute the set of GC related event names.
+    const gcEventNames = new Set(eventsMentionedIn(RULES));
+
+    // Iterate all renderer processes.
+    const chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
+      if (rendererHelper.isChromeTracingUI) continue;
+
+      const [threads, threadTypes] =
+          jsExecutionThreadsWithTypes(rendererHelper);
+
+      // Get all GC related events.
+      const events = [];
+      for (const thread of threads) {
+        for (const event of thread.sliceGroup.childEvents()) {
+          if (gcEventNames.has(event.title)) {
+            events.push(event);
+          }
+        }
+      }
+
+      // Group events by GC cycle and consider each cycle separately.
+      for (const cycleEvents of groupByEpoch(events).values()) {
+        // If any event is in the cycle is forced, then the whole cycle
+        // is considered forced. Skip all events in the cycle.
+        if (cycleEvents.some(
+            tr.metrics.v8.utils.isForcedGarbageCollectionEvent)) {
+          continue;
+        }
+
+        for (const metric of metrics) {
+          metric.apply(RULES, cycleEvents, threadTypes);
+        }
+      }
+    }
+
+    // Add the new histograms to the resulting histogram set.
+    for (const metric of metrics) {
+      histograms.addHistogram(metric.histogram);
+    }
+  }
 
   function gcMetric(histograms, model, options) {
     options = options || {};
@@ -36,6 +701,8 @@ tr.exportTo('tr.metrics.v8', function() {
     addTotalMarkCompactorTime(histograms, model);
     addTotalMarkCompactorMarkingTime(histograms, model);
     addScavengerSurvivedFromStackEvents(histograms, model);
+    // TODO(chromium:1154636): Compute the new metrics here by
+    // calling: addGarbageCollectionMetrics(METRICS, histograms, model).
   }
 
   tr.metrics.MetricRegistry.register(gcMetric);
@@ -380,6 +1047,8 @@ tr.exportTo('tr.metrics.v8', function() {
   return {
     gcMetric,
     WINDOW_SIZE_MS,  // For testing purposes only.
+    addGarbageCollectionMetrics, // For testing purposes only.
   };
 });
 </script>
+

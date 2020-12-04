@@ -34,6 +34,9 @@ tr.exportTo('tr.e.chrome', function() {
       model.rasterWorker1 = model.rendererProcess.getOrCreateThread(5);
       model.rasterWorker1.name = 'CompositorTileWorker1';
 
+      model.foregroundWorker1 = model.rendererProcess.getOrCreateThread(6);
+      model.foregroundWorker1.name = 'ThreadPoolForegroundWorker1';
+
       customizeModelCallback(model);
     });
   };
