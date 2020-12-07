@@ -25,6 +25,9 @@ found in the LICENSE file.
 //    part of the response from the network and started loading the page.
 // 5. first_contentful_paint_time - time to the first contentful paint of the
 //    page loaded at startup
+// 6. process_create_to_app_start_time - time from process creation until the
+//    application starts. The end time of this event will be the same as the
+//    start time of messageloop_start_time.
 //
 // The metric also supports multiple browser restarts, in this case multiple
 // samples would be added to the histograms above.
@@ -33,10 +36,13 @@ tr.exportTo('tr.metrics.sh', function() {
   const CONTENT_START_EVENT_NAME = 'content::Start';
   const NAVIGATION_EVENT_NAME = 'Navigation StartToCommit';
   const FIRST_CONTENTFUL_PAINT_EVENT_NAME = 'firstContentfulPaint';
+  const APPLICATION_START_EVENT_NAME =
+      'Startup.LoadTime.ProcessCreateToApplicationStart';
   function androidStartupMetric(histograms, model) {
     // Walk the browser slices, extract timestamps for the browser start,
     // message loop start.
     let messageLoopStartEvents = [];
+    let applicationStartEvents = [];
     let navigationEvents = [];
     const chromeHelper =
         model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
@@ -45,6 +51,8 @@ tr.exportTo('tr.metrics.sh', function() {
       for (const ev of helper.mainThread.asyncSliceGroup.childEvents()) {
         if (ev.title === MESSAGE_LOOP_EVENT_NAME) {
           messageLoopStartEvents.push(ev);
+        } else if (ev.title === APPLICATION_START_EVENT_NAME) {
+          applicationStartEvents.push(ev);
         } else if (ev.title === NAVIGATION_EVENT_NAME) {
           navigationEvents.push(ev);
         }
@@ -76,14 +84,17 @@ tr.exportTo('tr.metrics.sh', function() {
     let totalContentStartEvents = contentStartEvents.length;
     let totalFcpEvents = firstContentfulPaintEvents.length;
     let totalNavigations = navigationEvents.length;
+    let totalApplicationStartEvents = applicationStartEvents.length;
     if (totalFcpEvents !== totalBrowserStarts ||
         totalNavigations !== totalBrowserStarts ||
         totalContentStartEvents !== totalBrowserStarts ||
+        totalApplicationStartEvents !== totalBrowserStarts ||
         totalBrowserStarts === 0) {
       messageLoopStartEvents = [];
       contentStartEvents = [];
       navigationEvents = [];
       firstContentfulPaintEvents = [];
+      applicationStartEvents = [];
       // Sometimes either the browser process or the renderer process does not
       // have the proper name attached. This often happens when both chrome
       // trace and systrace are merged. Other multi-process trickery, like
@@ -92,6 +103,8 @@ tr.exportTo('tr.metrics.sh', function() {
         for (const ev of proc.getDescendantEvents()) {
           if (ev.title === MESSAGE_LOOP_EVENT_NAME) {
             messageLoopStartEvents.push(ev);
+          } else if (ev.title === APPLICATION_START_EVENT_NAME) {
+            applicationStartEvents.push(ev);
           } else if (ev.title === NAVIGATION_EVENT_NAME) {
             navigationEvents.push(ev);
           } else if (ev.title === CONTENT_START_EVENT_NAME) {
@@ -109,6 +122,7 @@ tr.exportTo('tr.metrics.sh', function() {
       totalContentStartEvents = contentStartEvents.length;
       totalNavigations = navigationEvents.length;
       totalFcpEvents = firstContentfulPaintEvents.length;
+      totalApplicationStartEvents = applicationStartEvents.length;
     }
 
     // Sometimes a number of early trace events are not recorded because tracing
@@ -121,6 +135,7 @@ tr.exportTo('tr.metrics.sh', function() {
       return event1.start - event2.start;
     }
     messageLoopStartEvents.sort(orderEvents);
+    applicationStartEvents.sort(orderEvents);
     contentStartEvents.sort(orderEvents);
     navigationEvents.sort(orderEvents);
     firstContentfulPaintEvents.sort(orderEvents);
@@ -147,6 +162,9 @@ tr.exportTo('tr.metrics.sh', function() {
     const firstContentfulPaintHistogram = histograms.createHistogram(
         'first_contentful_paint_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
+    const applicationStartHistogram = histograms.createHistogram(
+        'process_create_to_app_start_time',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
     // The earliest browser start is skipped because it is affected by the state
     // of the system coming from the time before the benchmark started. Removing
     // these influencing factors allows reducing measurement noise.
@@ -156,7 +174,10 @@ tr.exportTo('tr.metrics.sh', function() {
     let navIndex = 0;
     let fcpIndex = 0;
     for (let loopStartIndex = 0; loopStartIndex < totalBrowserStarts;) {
-      const startEvent = messageLoopStartEvents[loopStartIndex];
+      const loopStartEvent = messageLoopStartEvents[loopStartIndex];
+      // There should be a corresponding application start event for each
+      // message loop start event.
+      const applicationStartEvent = applicationStartEvents[loopStartIndex];
       if (fcpIndex === totalFcpEvents) {
         break;
       }
@@ -164,18 +185,18 @@ tr.exportTo('tr.metrics.sh', function() {
       // Skip all events that appear before the next browser start.
       const contentStartEvent = contentIndex < contentStartEvents.length ?
         contentStartEvents[contentIndex] : null;
-      if (contentStartEvent && contentStartEvent.start < startEvent.start) {
+      if (contentStartEvent && contentStartEvent.start < loopStartEvent.start) {
         contentIndex++;
         continue;
       }
       const navEvent = navIndex < navigationEvents.length ?
         navigationEvents[navIndex] : null;
-      if (navEvent && navEvent.start < startEvent.start) {
+      if (navEvent && navEvent.start < loopStartEvent.start) {
         navIndex++;
         continue;
       }
       const fcpEvent = firstContentfulPaintEvents[fcpIndex];
-      if (fcpEvent.start < startEvent.start) {
+      if (fcpEvent.start < loopStartEvent.start) {
         fcpIndex++;
         continue;
       }
@@ -190,25 +211,29 @@ tr.exportTo('tr.metrics.sh', function() {
       }
 
       // Record the histograms.
-      messageLoopStartHistogram.addSample(startEvent.duration,
-          {events: new tr.v.d.RelatedEventSet([startEvent])});
+      messageLoopStartHistogram.addSample(loopStartEvent.duration,
+          {events: new tr.v.d.RelatedEventSet([loopStartEvent])});
       if (contentStartEvent) {
         contentStartHistogram.addSample(
-            contentStartEvent.start - startEvent.start,
-            {events: new tr.v.d.RelatedEventSet([startEvent,
+            contentStartEvent.start - loopStartEvent.start,
+            {events: new tr.v.d.RelatedEventSet([loopStartEvent,
               contentStartEvent])});
       }
       if (navEvent) {
         navigationStartHistogram.addSample(
-            navEvent.start - startEvent.start,
-            {events: new tr.v.d.RelatedEventSet([startEvent, navEvent])});
+            navEvent.start - loopStartEvent.start,
+            {events: new tr.v.d.RelatedEventSet([loopStartEvent, navEvent])});
         navigationCommitHistogram.addSample(
-            navEvent.end - startEvent.start,
-            {events: new tr.v.d.RelatedEventSet([startEvent, navEvent])});
+            navEvent.end - loopStartEvent.start,
+            {events: new tr.v.d.RelatedEventSet([loopStartEvent, navEvent])});
       }
       firstContentfulPaintHistogram.addSample(
-          fcpEvent.end - startEvent.start,
-          {events: new tr.v.d.RelatedEventSet([startEvent, fcpEvent])});
+          fcpEvent.end - loopStartEvent.start,
+          {events: new tr.v.d.RelatedEventSet([loopStartEvent, fcpEvent])});
+      if (applicationStartEvent) {
+        applicationStartHistogram.addSample(applicationStartEvent.duration,
+            {events: new tr.v.d.RelatedEventSet([applicationStartEvent])});
+      }
     }
   }
 
