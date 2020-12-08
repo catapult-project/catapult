@@ -32,7 +32,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(hist4.numValues, 2);
   });
 
-  test('tabsMetric_collectPerformanceMark', function() {
+  test('webuiMetric_collectPerformanceMark', function() {
     const model = tr.c.TestUtils.newModel((model) => {
       const rendererMainThread = setUpRendererMainThread(model);
       addPerformanceMark(rendererMainThread);
@@ -58,6 +58,17 @@ tr.b.unittest.testSuite(function() {
     // metric5 is not collected because
     // ":benchmark_begin" is missing.
     assert.isUndefined(histograms.getHistogramNamed('metric5'));
+    const hist3 = histograms.getHistogramNamed('metric6');
+    assert.strictEqual(hist3.numValues, 2);
+    assert.strictEqual(hist3.max, 51);
+    assert.strictEqual(hist3.min, 49);
+    assert.strictEqual(hist3.average, 50);
+    // metric7 is not collected because
+    // benmark value is invalid.
+    assert.isUndefined(histograms.getHistogramNamed('metric7'));
+    // metric8 is not collected because
+    // benchmark value is missing.
+    assert.isUndefined(histograms.getHistogramNamed('metric8'));
   });
 
   function setUpBrowserThread(model) {
@@ -172,6 +183,22 @@ tr.b.unittest.testSuite(function() {
         title: 'metric5:benchmark_end',
         start: 10,
       },
+      {
+        title: 'metric6:49:benchmark_value',
+        start: 10,
+      },
+      {
+        title: 'metric6:51:benchmark_value',
+        start: 20,
+      },
+      {
+        title: 'metric7:invalid value:benchmark_value',
+        start: 10,
+      },
+      {
+        title: 'metric8:benchmark_value',
+        start: 10,
+      }
     ].forEach(slice => {
       thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',

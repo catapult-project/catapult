@@ -15,8 +15,10 @@ found in the LICENSE file.
  * It captures the following:
  * - Recorded trace events with name starts with "webui_metric:" on the C++
  * side.
- * - Duration between performance.mark() with name ends with ":benchmark_begin"
- * and the same name ends with ":benchmark_end" on the JS side.
+ * - Duration between performance.mark('<YOUR_METRIC_NAME>:benchmark_begin')
+ * and performance.mark('<YOUR_METRIC_NAME>:benchmark_end') on the JS side.
+ * - performance.mark('<YOUR_METRIC_NAME>:<YOUR_METRIC_VALUE>:benchmark_value')
+ * on the JS side.
  */
 tr.exportTo('tr.metrics.webui', function() {
   function webuiMetric(histograms, model, opt_options) {
@@ -29,6 +31,7 @@ tr.exportTo('tr.metrics.webui', function() {
 
     const WEBUI_TITLE_PREFIX = 'webui_metric:';
     const traces = new Map();
+    const benchmarkValues = new Map();
     // Collect trace events.
     for (const helper of chromeHelper.browserHelpers) {
       if (!helper.mainThread) continue;
@@ -46,6 +49,7 @@ tr.exportTo('tr.metrics.webui', function() {
     // Collect performance.mark().
     const BENCHMARK_BEGIN = 'benchmark_begin';
     const BENCHMARK_END = 'benchmark_end';
+    const BENCHMARK_VALUE = 'benchmark_value';
     const marks = new Map();
     for (const helper of Object.values(chromeHelper.rendererHelpers)) {
       for (const event of helper.mainThread.sliceGroup.childEvents()) {
@@ -71,6 +75,19 @@ tr.exportTo('tr.metrics.webui', function() {
           }
           traces.get(name).push(range.duration);
           marks.delete(name);
+        } else if (lastPart === BENCHMARK_VALUE) {
+          const index2 = name.lastIndexOf(':');
+          if (index2 === -1) {
+            continue;
+          }
+          const key = name.substring(0, index2);
+          const value = Number(name.substring(index2 + 1));
+          if (key && !isNaN(value)) {
+            if (!benchmarkValues.has(key)) {
+              benchmarkValues.set(key, []);
+            }
+            benchmarkValues.get(key).push(value);
+          }
         }
       }
     }
@@ -79,6 +96,11 @@ tr.exportTo('tr.metrics.webui', function() {
     traces.forEach((value, key) => {
       histograms.createHistogram(key,
           tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+          value);
+    });
+    benchmarkValues.forEach((value, key) => {
+      histograms.createHistogram(key,
+          tr.b.Unit.byName.unitlessNumber_smallerIsBetter,
           value);
     });
   }
