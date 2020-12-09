@@ -6,7 +6,7 @@ import json
 import os
 import unittest
 
-import mock
+import mock  # pylint: disable=import-error
 
 from telemetry.internal.results import story_run
 from telemetry.story import shared_state

@@ -9,7 +9,7 @@ import unittest
 from telemetry.internal.backends import browser_backend
 from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
-import mock
+import mock  # pylint: disable=import-error
 
 
 class BrowserBackendLogsUploadingUnittest(unittest.TestCase):

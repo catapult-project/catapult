@@ -31,7 +31,6 @@ THIRD_PARTY_LIBRARIES = [
     'ijson',
     'jquery',
     'mapreduce',
-    'mock',
     'oauth2client',
     'pipeline',
     'polymer',

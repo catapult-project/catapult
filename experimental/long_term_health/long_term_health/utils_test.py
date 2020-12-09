@@ -7,7 +7,7 @@ from datetime import datetime
 from unittest import TestCase
 
 from long_term_health import utils
-import mock
+import mock  # pylint: disable=import-error
 
 
 class TestParseIsoFormatDate(TestCase):

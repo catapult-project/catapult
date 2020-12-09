@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 import unittest
-import mock
+import mock  # pylint: disable=import-error
 
 from telemetry.story import typ_expectations
 

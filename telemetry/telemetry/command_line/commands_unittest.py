@@ -10,7 +10,7 @@ from telemetry import benchmark
 from telemetry.command_line import commands
 from telemetry import story as story_module
 from telemetry import page as page_module
-import mock
+import mock  # pylint: disable=import-error
 
 
 class BenchmarkFoo(benchmark.Benchmark):

@@ -4,7 +4,7 @@
 
 import unittest
 
-import mock
+import mock  # pylint: disable=import-error
 
 from telemetry.internal.backends import android_browser_backend_settings as \
     backends

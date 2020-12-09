@@ -6,7 +6,7 @@ import shutil
 import tempfile
 import unittest
 
-import mock
+import mock  # pylint: disable=import-error
 
 from telemetry import android
 from telemetry import benchmark

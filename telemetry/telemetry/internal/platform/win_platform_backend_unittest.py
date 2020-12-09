@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 import unittest
-import mock
+import mock  # pylint: disable=import-error
 
 from telemetry import decorators
 from telemetry.internal.platform import win_platform_backend

@@ -9,7 +9,7 @@ from unittest import TestCase
 
 from long_term_health import full_milestone_info
 from long_term_health import utils
-import mock
+import mock  # pylint: disable=import-error
 
 
 class TestGetBranchInfo(TestCase):

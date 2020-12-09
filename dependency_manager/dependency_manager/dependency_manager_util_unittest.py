@@ -11,7 +11,7 @@ import unittest
 import uuid
 import zipfile
 
-import mock
+import mock  # pylint: disable=import-error
 
 from dependency_manager import dependency_manager_util
 from dependency_manager import exceptions

@@ -4,7 +4,7 @@
 
 import unittest
 
-import mock
+import mock  # pylint: disable=import-error
 
 from telemetry.core import platform
 from telemetry import decorators

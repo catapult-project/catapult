@@ -4,7 +4,7 @@
 
 import unittest
 
-import mock
+import mock  # pylint: disable=import-error
 
 from systrace.tracing_agents import atrace_agent as systrace_atrace_agent
 from telemetry.core import exceptions

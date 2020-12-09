@@ -8,7 +8,7 @@ import unittest
 from telemetry import story
 from telemetry.page import page
 
-import mock
+import mock  # pylint: disable=import-error
 
 
 class TestPage(unittest.TestCase):
