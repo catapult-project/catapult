@@ -12,7 +12,7 @@ from telemetry.page import legacy_page_test
 from telemetry import story as story_module
 from telemetry.testing import fakes
 from telemetry.testing import options_for_unittests
-import mock
+import mock  # pylint: disable=import-error
 
 
 # pylint: disable=abstract-method

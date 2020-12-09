@@ -10,7 +10,7 @@ from telemetry.internal.platform import network_controller_backend
 from telemetry.internal.platform import platform_backend
 from telemetry.util import wpr_modes
 
-import mock
+import mock  # pylint: disable=import-error
 
 
 class NetworkControllerBackendTest(unittest.TestCase):

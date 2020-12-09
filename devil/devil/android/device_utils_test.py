@@ -35,8 +35,7 @@ with devil_env.SysPath(
     os.path.join(devil_env.CATAPULT_ROOT_PATH, 'common', 'py_utils')):
   from py_utils import tempfile_ext
 
-with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock  # pylint: disable=import-error
+import mock  # pylint: disable=import-error
 
 TEST_APK_PATH = '/fake/test/app.apk'
 TEST_PACKAGE = 'test.package'

@@ -5,7 +5,7 @@
 import unittest
 import urllib2
 
-import mock
+import mock  # pylint: disable=import-error
 
 import py_utils
 

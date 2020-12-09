@@ -6,7 +6,7 @@ import unittest
 
 from telemetry.core import exceptions
 from telemetry.internal.util import binary_manager
-import mock
+import mock  # pylint: disable=import-error
 
 
 class BinaryManagerTest(unittest.TestCase):
@@ -25,13 +25,10 @@ class BinaryManagerTest(unittest.TestCase):
 
   @mock.patch('py_utils.binary_manager.BinaryManager')
   def testFetchPathInitialized(self, binary_manager_mock):
-    expected = [
-        mock.call.binary_manager.BinaryManager(['base_config_object']),
-        mock.call.binary_manager.BinaryManager().FetchPath('dep', 'plat_arch')
-    ]
     binary_manager.InitDependencyManager(None)
-    binary_manager.FetchPath('dep', 'plat', 'arch')
-    binary_manager_mock.assert_call_args(expected)
+    path = binary_manager.FetchPath('dep', 'plat', 'arch')
+    binary_manager_mock.assert_called_once()
+    self.assertIsNotNone(path)
 
   def testFetchPathUninitialized(self):
     self.assertRaises(exceptions.InitializationError,
@@ -39,13 +36,10 @@ class BinaryManagerTest(unittest.TestCase):
 
   @mock.patch('py_utils.binary_manager.BinaryManager')
   def testLocalPathInitialized(self, binary_manager_mock):
-    expected = [
-        mock.call.binary_manager.BinaryManager(['base_config_object']),
-        mock.call.binary_manager.BinaryManager().LocalPath('dep', 'plat_arch')
-    ]
     binary_manager.InitDependencyManager(None)
-    binary_manager.LocalPath('dep', 'plat', 'arch')
-    binary_manager_mock.assert_call_args(expected)
+    path = binary_manager.LocalPath('dep', 'plat', 'arch')
+    binary_manager_mock.assert_called_once()
+    self.assertIsNotNone(path)
 
   def testLocalPathUninitialized(self):
     self.assertRaises(exceptions.InitializationError,

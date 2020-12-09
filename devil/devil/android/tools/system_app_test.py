@@ -12,14 +12,12 @@ if __name__ == '__main__':
       os.path.abspath(
           os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 
-from devil import devil_env
 from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
 from devil.android.sdk import version_codes
 from devil.android.tools import system_app
 
-with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock
+import mock
 
 _PACKAGE_NAME = 'com.android'
 _PACKAGE_PATH = '/path/to/com.android.apk'

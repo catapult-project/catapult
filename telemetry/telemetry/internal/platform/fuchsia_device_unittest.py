@@ -10,7 +10,7 @@ import unittest
 from telemetry.core import fuchsia_interface
 from telemetry.internal.browser import browser_options
 from telemetry.internal.platform import fuchsia_device
-import mock
+import mock  # pylint: disable=import-error
 
 _FUCHSIA_DEVICE_IMPORT_PATH = 'telemetry.internal.platform.fuchsia_device'
 

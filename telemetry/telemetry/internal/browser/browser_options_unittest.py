@@ -7,7 +7,7 @@ import unittest
 
 from telemetry.internal.browser import browser_options
 
-import mock
+import mock  # pylint: disable=import-error
 
 
 class BrowserOptionsTest(unittest.TestCase):

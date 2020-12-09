@@ -9,10 +9,12 @@
 
 import time
 
+# pylint: disable=import-error
 import httplib2
 
-from apiclient import discovery  # pylint: disable=import-error
+from apiclient import discovery
 from oauth2client import service_account  # pylint: disable=no-name-in-module
+# pylint: enable=import-error
 
 # Update this to the location you downloaded the keyfile to.
 # See https://developers.google.com/sheets/api/quickstart/python

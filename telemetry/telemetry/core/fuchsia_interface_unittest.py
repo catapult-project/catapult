@@ -4,7 +4,7 @@
 import unittest
 
 from telemetry.core import fuchsia_interface
-import mock
+import mock  # pylint: disable=import-error
 
 class FuchsiaInterfaceTests(unittest.TestCase):
 

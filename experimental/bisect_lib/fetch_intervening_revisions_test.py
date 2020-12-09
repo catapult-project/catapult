@@ -4,15 +4,13 @@
 # found in the LICENSE file.
 
 import os
-import sys
 import unittest
 
 _CATAPULT_PATH = os.path.abspath(os.path.join(
     os.path.dirname(__file__), os.path.pardir, os.path.pardir))
-sys.path.insert(0, os.path.join(_CATAPULT_PATH, 'third_party', 'mock'))
 
 # pylint: disable=wrong-import-position
-import mock
+import mock  # pylint: disable=import-error
 
 from bisect_lib import fetch_intervening_revisions
 # pylint: enable=wrong-import-position

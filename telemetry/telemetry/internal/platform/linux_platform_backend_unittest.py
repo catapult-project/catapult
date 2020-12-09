@@ -8,7 +8,7 @@ import unittest
 from telemetry import decorators
 from telemetry.core import util
 from telemetry.internal.platform import linux_platform_backend
-import mock
+import mock  # pylint: disable=import-error
 
 
 def _PathMatches(wanted_path):

@@ -20,7 +20,7 @@ from telemetry.internal.platform.tracing_agent import telemetry_tracing_agent
 from telemetry.internal.platform import tracing_controller_backend
 from telemetry.timeline import tracing_config
 
-import mock
+import mock  # pylint: disable=import-error
 
 
 class FakeTraceDataBuilder(object):

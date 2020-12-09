@@ -7,7 +7,7 @@ import shutil
 import tempfile
 import unittest
 
-import mock
+import mock  # pylint: disable=import-error
 
 from telemetry.core import exceptions
 from telemetry.internal.util import binary_manager

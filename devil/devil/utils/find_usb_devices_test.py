@@ -30,13 +30,11 @@ Bus 002:
 import logging
 import unittest
 
-from devil import devil_env
 from devil.utils import find_usb_devices
 from devil.utils import lsusb
 from devil.utils import usb_hubs
 
-with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock  # pylint: disable=import-error
+import mock  # pylint: disable=import-error
 
 # Output of lsusb.lsusb().
 # We just test that the dictionary is working by creating an

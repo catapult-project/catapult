@@ -7,8 +7,10 @@ import json
 import re
 import urllib
 
+# pylint: disable=import-error
 import httplib2
 from oauth2client import service_account  # pylint: disable=no-name-in-module
+# pylint: enable=import-error
 
 
 # Update this to the location you downloaded the keyfile to.

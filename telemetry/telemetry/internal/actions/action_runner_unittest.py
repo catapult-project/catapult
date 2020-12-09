@@ -4,7 +4,7 @@
 # found in the LICENSE file.
 import unittest
 
-import mock
+import mock  # pylint: disable=import-error
 
 from telemetry.core import exceptions
 from telemetry import decorators

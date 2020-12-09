@@ -9,7 +9,7 @@ from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 from telemetry.internal.platform.tracing_agent import (
     chrome_tracing_devtools_manager)
 from telemetry.timeline import tracing_config
-import mock
+import mock  # pylint: disable=import-error
 
 _CHROME_TRACING_AGENT_IMPORT_PATH = 'telemetry.internal.platform.tracing_agent'\
                                     '.chrome_tracing_agent.ChromeTracingAgent'
