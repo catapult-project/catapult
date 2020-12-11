@@ -57,7 +57,8 @@ const LogUtil = (function() {
     if (typeof(logDump.events) !== 'object') {
       errorString += 'NetLog events missing.\n';
     }
-    if (typeof(logDump.constants.logFormatVersion) !== 'number') {
+    if (logDump.constants &&
+        typeof(logDump.constants.logFormatVersion) !== 'number') {
       errorString += 'Invalid version number.\n';
     }
 

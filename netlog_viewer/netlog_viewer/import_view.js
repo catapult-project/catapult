@@ -202,12 +202,49 @@ var ImportView = (function() {
       if (logFile) {
         this.setLoadFileStatus('Loading log...', true);
         var fileReader = new FileReader();
-
-        fileReader.onload = this.onLoadLogFile.bind(this, logFile);
         fileReader.onerror = this.onLoadLogFileError.bind(this);
 
-        fileReader.readAsText(logFile);
+        if (logFile.name.toLowerCase().endsWith('.zip')) {
+          fileReader.onload = this.onLoadZip.bind(this, logFile);
+          fileReader.readAsArrayBuffer(logFile);
+        } else {
+          fileReader.onload = this.onLoadLogFile.bind(this, logFile);
+          fileReader.readAsText(logFile);
+        }
       }
+    },
+
+    /**
+     * Opens a ZIP and finds the first *.json file within, then attempts to
+     * decompress the JSON content and parse it as a netlog.
+     */
+    onLoadZip(logFile, data) {
+      const zip = new JSZip();
+      zip.loadAsync(data.target.result)
+          .then(zip => {
+            for (const filename in zip.files) {
+              if (!filename.toLowerCase().endsWith('.json')) {
+                console.log('Netlog Import skipping: ' + filename);
+                continue;
+              }
+
+              zip.files[filename].async('string').then(content => {
+                var result = LogUtil.loadLogFile(content, logFile.name +
+                                                              '::' + filename);
+                this.setLoadFileStatus(result, false);
+              });
+              // We only attempt to parse one log.
+              return;
+            }
+            // If we made it this far, we did not find any JSON.
+            throw new Error('The ZIP file did not contain a netlog.json file.');
+          })
+          .catch(e => {
+            console.log('ZIP load failed: ' + e.message);
+            this.loadFileElement_.value = null;
+            this.setLoadFileStatus(
+                'Error: Unable to find json inside the ZIP file.', false);
+          });
     },
 
     /**
