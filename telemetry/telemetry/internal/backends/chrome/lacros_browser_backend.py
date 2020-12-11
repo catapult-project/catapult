@@ -106,6 +106,7 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._ReformatArg(startup_args, 'force-fieldtrials')
     self._ReformatArg(startup_args, 'force-fieldtrial-params')
     self._ReformatArg(startup_args, 'proxy-bypass-list')
+    self._ReformatArg(startup_args, 'user-agent')
 
     def _Launch():
       # This will block until the launched browser is closed.
