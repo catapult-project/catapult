@@ -9,10 +9,12 @@ import itertools
 import threading
 import unittest
 
+from devil import devil_env
 from devil.android import logcat_monitor
 from devil.android.sdk import adb_wrapper
 
-import mock  # pylint: disable=import-error
+with devil_env.SysPath(devil_env.PYMOCK_PATH):
+  import mock  # pylint: disable=import-error
 
 
 def _CreateTestLog(raw_logcat=None):

@@ -8,13 +8,12 @@ import os
 import unittest
 
 from py_utils import cloud_storage
-import mock  # pylint: disable=import-error
+import mock
 from pyfakefs import fake_filesystem_unittest
 from pyfakefs import fake_filesystem
 from pyfakefs import fake_filesystem_glob
 
 import dependency_manager
-from dependency_manager import cloud_storage_info
 from dependency_manager import uploader
 
 
@@ -1510,52 +1509,24 @@ class BaseConfigTest(unittest.TestCase):
     expected_dep_info = ['dep_info0', 'dep_info1', 'dep_info2']
     dep_info_mock.side_effect = expected_dep_info
     expected_calls = [
-        mock.call('dep', 'plat1_arch2', 'file_path',
-                  cloud_storage_info=cloud_storage_info.CloudStorageInfo(
-                      download_path=os.path.join(
-                          os.getcwd(), 'download_path112'),
-                      cs_remote_path='cs_base_folder1/dep_hash112',
-                      cs_bucket='bucket1',
-                      cs_hash='hash112',
-                      version_in_cs=None,
-                      archive_info=None),
-                  local_path_info=mock.ANY),
-        mock.call('dep', 'all_the_variables', 'file_path',
-                  cloud_storage_info=cloud_storage_info.CloudStorageInfo(
-                      download_path=os.path.join(
-                          os.getcwd(), 'download_path111'),
-                      cs_remote_path='cs_base_folder1/dep_hash111',
-                      cs_bucket='bucket1',
-                      cs_hash='hash111',
-                      version_in_cs='version_111',
-                      archive_info=mock.ANY),
-                  local_path_info=mock.ANY),
-        mock.call('dep', 'plat1_arch1', 'file_path',
-                  cloud_storage_info=cloud_storage_info.CloudStorageInfo(
-                      download_path=os.path.join(
-                          os.getcwd(), 'download_path111'),
-                      cs_remote_path='cs_base_folder1/dep_hash111',
-                      cs_bucket='bucket1',
-                      cs_hash='hash111',
-                      version_in_cs='version_111',
-                      archive_info=None),
-                  local_path_info=mock.ANY),
-        mock.call('dep', 'win_arch1', 'file_path',
-                  cloud_storage_info=cloud_storage_info.CloudStorageInfo(
-                      download_path=os.path.join(
-                          os.getcwd(), 'download', 'path', '1w1'),
-                      cs_remote_path='cs_base_folder1/dep_hash1w1',
-                      cs_bucket='bucket1',
-                      cs_hash='hash1w1',
-                      version_in_cs=None,
-                      archive_info=None),
-                  local_path_info=mock.ANY),
-    ]
+        mock.call('dep', 'plat1_arch1', 'file_path', cs_bucket='bucket1',
+                  cs_hash='hash111', download_path='download_path111',
+                  cs_remote_path='cs_path111',
+                  local_paths=['local_path1110', 'local_path1111']),
+        mock.call('dep', 'plat1_arch1', 'file_path', cs_bucket='bucket1',
+                  cs_hash='hash112', download_path='download_path112',
+                  cs_remote_path='cs_path112',
+                  local_paths=['local_path1120', 'local_path1121']),
+        mock.call('dep', 'win_arch1', 'file_path', cs_bucket='bucket1',
+                  cs_hash='hash1w1',
+                  download_path=os.path.join('download', 'path', '1w1'),
+                  cs_remote_path='cs_path1w1',
+                  local_paths=[os.path.join('download', 'path', '1w10'),
+                               os.path.join('download', 'path', '1w11')])]
     deps_seen = []
     for dep_info in config.IterDependencyInfo():
       deps_seen.append(dep_info)
-    dep_info_mock.assert_has_calls(expected_calls, any_order=True)
-    self.assertEqual(len(dep_info_mock.call_args_list), len(expected_calls))
+    dep_info_mock.assert_call_args(expected_calls)
     self.assertItemsEqual(expected_dep_info, deps_seen)
 
   @mock.patch('dependency_manager.base_config.json')

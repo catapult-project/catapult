@@ -9,9 +9,11 @@ import subprocess
 import sys
 import time
 
+from devil import devil_env
 from devil.utils import cmd_helper
 
-import mock  # pylint: disable=import-error
+with devil_env.SysPath(devil_env.PYMOCK_PATH):
+  import mock  # pylint: disable=import-error
 
 
 class CmdHelperSingleQuoteTest(unittest.TestCase):

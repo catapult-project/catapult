@@ -6,7 +6,7 @@ import tempfile
 import unittest
 import os
 
-import mock  # pylint: disable=import-error
+import mock
 
 from py_utils import cloud_storage  # pylint: disable=import-error
 from telemetry.testing import fakes

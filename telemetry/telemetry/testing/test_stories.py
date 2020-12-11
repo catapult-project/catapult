@@ -19,7 +19,7 @@ classes to work with these kinds of stories.
 import posixpath
 import urlparse
 
-import mock  # pylint: disable=import-error
+import mock
 
 from telemetry.core import platform as platform_module
 from telemetry.core import util

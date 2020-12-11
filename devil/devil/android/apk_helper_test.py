@@ -7,11 +7,13 @@ import collections
 import os
 import unittest
 
+from devil import devil_env
 from devil.android import apk_helper
 from devil.android.ndk import abis
 from devil.utils import mock_calls
 
-import mock  # pylint: disable=import-error
+with devil_env.SysPath(devil_env.PYMOCK_PATH):
+  import mock  # pylint: disable=import-error
 
 # pylint: disable=line-too-long
 _MANIFEST_DUMP = """N: android=http://schemas.android.com/apk/res/android

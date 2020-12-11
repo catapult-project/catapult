@@ -6,7 +6,7 @@ import os
 import stat
 import unittest
 
-import mock  # pylint: disable=import-error
+import mock
 from pyfakefs import fake_filesystem_unittest
 from py_utils import cloud_storage
 

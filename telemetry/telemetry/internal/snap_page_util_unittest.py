@@ -9,7 +9,7 @@ import tempfile
 import unittest
 import StringIO
 
-import mock  # pylint: disable=import-error
+import mock
 
 from telemetry.internal import snap_page_util
 from telemetry.testing import options_for_unittests

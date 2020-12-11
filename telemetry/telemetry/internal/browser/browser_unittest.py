@@ -20,7 +20,7 @@ from telemetry.testing import options_for_unittests
 
 from devil.android import app_ui
 
-import mock  # pylint: disable=import-error
+import mock
 
 
 class IntentionalException(Exception):

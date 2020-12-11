@@ -4,7 +4,7 @@
 
 import logging
 
-import mock  # pylint: disable=import-error
+import mock
 
 from telemetry.testing import browser_backend_test_case
 from telemetry import decorators

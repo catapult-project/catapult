@@ -7,7 +7,7 @@ import optparse
 import sys
 import unittest
 
-import mock  # pylint: disable=import-error
+import mock
 
 from telemetry.command_line import parser
 from telemetry import benchmark

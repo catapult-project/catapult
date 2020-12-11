@@ -10,7 +10,7 @@ from telemetry.core import util
 from telemetry.internal.platform import android_device
 from telemetry.internal.platform import android_platform_backend
 from telemetry.testing import system_stub
-import mock  # pylint: disable=import-error
+import mock
 
 from devil.android import battery_utils
 from devil.android import device_utils

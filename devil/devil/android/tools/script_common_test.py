@@ -13,7 +13,8 @@ from devil.android import device_errors
 from devil.android import device_utils
 from devil.android.tools import script_common
 
-import mock  # pylint: disable=import-error
+with devil_env.SysPath(devil_env.PYMOCK_PATH):
+  import mock  # pylint: disable=import-error
 
 with devil_env.SysPath(devil_env.DEPENDENCY_MANAGER_PATH):
   # pylint: disable=wrong-import-order

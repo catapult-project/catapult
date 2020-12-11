@@ -6,7 +6,7 @@ import os
 import shutil
 import tempfile
 import unittest
-import mock  # pylint: disable=import-error
+import mock
 
 from pyfakefs import fake_filesystem_unittest
 

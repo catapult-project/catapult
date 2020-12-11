@@ -6,10 +6,12 @@
 
 import unittest
 
+from devil import devil_env
 from devil.utils import lsusb
 from devil.utils import mock_calls
 
-import mock  # pylint: disable=import-error
+with devil_env.SysPath(devil_env.PYMOCK_PATH):
+  import mock  # pylint: disable=import-error
 
 RAW_OUTPUT = """
 Bus 003 Device 007: ID 18d1:4ee2 Google Inc. Nexus 4 (debug)

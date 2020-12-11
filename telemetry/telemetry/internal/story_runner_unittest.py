@@ -10,7 +10,7 @@ import tempfile
 import unittest
 import logging
 
-import mock  # pylint: disable=import-error
+import mock
 
 from py_utils import cloud_storage
 from py_utils.constants import exit_codes
