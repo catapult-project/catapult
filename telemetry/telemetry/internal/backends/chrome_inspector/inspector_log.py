@@ -27,7 +27,7 @@ class InspectorLog(object):
         logging.warning('DevTools console [%s]: %s %s',
                         entry['source'], text, entry.get('url', ''))
 
-  def _Enable(self, timeout=10):
+  def _Enable(self, timeout=60):
     try:
       self._inspector_websocket.SyncRequest({'method': 'Log.enable'}, timeout)
     except:
