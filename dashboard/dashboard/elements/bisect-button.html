@@ -101,7 +101,8 @@ found in the LICENSE file.
       this.$.pinpoint.start_commit = this.bisectInfo.goodRev;
       this.$.pinpoint.end_commit = this.bisectInfo.badRev;
       this.$.pinpoint.bug_id = this.bugId;
-      this.$.pinpoint.project_id = this.projectId;
+      this.$.pinpoint.project_id =
+          this.projectId != null ? this.projectId : 'chromium';
       this.$.pinpoint.show();
     }
   });
