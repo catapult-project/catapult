@@ -9,7 +9,7 @@
 
 #timeline-view-selection-toggle {
   background-color: #fff;
-  background-image: url(select.png);
+  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAICAQAAACxSAwfAAAAUUlEQVR42mP4TxREZkYxpKHAKKzKEhOZvyG4zN8SE7Eq+6+wYCHbTwiT7eeChf8VsFsKVQhTxIDDbVCFfF8ginApgyp82wRShEcZVJIVzoJDAGqrgII2fJb+AAAAAElFTkSuQmCC);
   border: none;
   height: 8px;
   padding: none;
