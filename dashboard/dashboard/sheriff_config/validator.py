@@ -147,4 +147,16 @@ def Validate(content):
       ValidatePattern(index, pattern_idx, pattern,
                       'auto_bisection.rules.exclude')
 
+    # Validate patterns for anomaly configurations.
+    for (anomaly_config_idx,
+         anomaly_config) in enumerate(subscription.anomaly_configs):
+      for (pattern_idx, pattern) in enumerate(anomaly_config.rules.match):
+        ValidatePattern(
+            index, pattern_idx, pattern,
+            'anomaly_configs[{}].rules.match'.format(anomaly_config_idx))
+      for (pattern_idx, pattern) in enumerate(anomaly_config.rules.exclude):
+        ValidatePattern(
+            index, pattern_idx, pattern,
+            'anomaly_configs[{}].rules.exclude'.format(anomaly_config_idx))
+
   return result

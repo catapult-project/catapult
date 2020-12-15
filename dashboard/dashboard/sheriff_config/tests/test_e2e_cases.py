@@ -218,6 +218,50 @@ class LuciPollingTest(unittest.TestCase):
         headers={'X-Forwarded-Proto': 'https'})
     self.assertEqual(response.status_code, 404)
 
+  def testPollAndMatchWithAnomalyConfig(self):
+    client = self.app.test_client()
+    response = client.get(
+        '/configs/update', headers={'X-Forwarded-Proto': 'https'})
+    self.assertEqual(response.status_code, 200)
+    response = client.post(
+        '/subscriptions/match',
+        json={
+            'path': 'Master/Bot/Test/Metric/WithAnomalyConfig',
+            'stats': ['PCT_99'],
+            'metadata': {
+                'units': 'SomeUnit',
+                'master': 'Master',
+                'bot': 'Bot',
+                'benchmark': 'Test',
+                'metric_parts': ['Metric', 'WithAnomalyConfig'],
+            }
+        },
+        headers={'X-Forwarded-Proto': 'https'})
+    self.assertEqual(response.status_code, 200)
+    response_proto = response.get_json()
+    self.assertEqual(
+        response_proto, {
+            'subscriptions': [{
+                'config_set': mock.ANY,
+                'revision': mock.ANY,
+                'subscription': {
+                    'name': 'Expected 1',
+                    'monorail_project_id': 'non-chromium',
+                    'contact_email': 'expected-1@example.com',
+                    'bug_labels': ['Some-Label'],
+                    'bug_components': ['Some>Component'],
+                    'auto_triage': {
+                        'enable': False
+                    },
+                    'auto_bisection': {
+                        'enable': False
+                    },
+                    'rules': {},
+                    'anomaly_configs': [mock.ANY],
+                }
+            }]
+        })
+
   def testPollAndMatchNone(self):
     client = self.app.test_client()
     response = client.get(

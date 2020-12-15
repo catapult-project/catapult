@@ -162,6 +162,20 @@ class Matcher(object):
       self._match_auto_bisection = matcher_module.CompileRules(
           subscription.auto_bisection.rules, ignore_broken=True)
 
+    def Reduced(config):
+      copied_config = sheriff_pb2.AnomalyConfig()
+      copied_config.CopyFrom(config)
+      copied_config.rules.Clear()
+      return copied_config
+
+    self._anomaly_config_matchers = [(
+        matcher_module.CompileRules(
+            config.rules,
+            ignore_broken=True,
+        ),
+        Reduced(config),
+    ) for config in subscription.anomaly_configs]
+
   def MatchSubscription(self, test):
     return self._match_subscription(test)
 
@@ -170,6 +184,12 @@ class Matcher(object):
 
   def MatchAutoBisection(self, test):
     return self._match_auto_bisection(test)
+
+  def GetAnomalyConfig(self, test):
+    for config_matcher, config in self._anomaly_config_matchers:
+      if config_matcher(test):
+        return config
+    return None
 
 
 def GetMatcher(revision, subscription):
@@ -235,6 +255,9 @@ def CopyNormalizedSubscription(src, dst):
   # We shouldn't use rules outside the sheriff-config in any case.
   # Maybe allow being explicitily requsted for debug usage later.
   dst.rules.Clear()
+
+  # We also should not provide any of the anomaly configs.
+  del dst.anomaly_configs[:]
 
   auto_triage_enable = dst.auto_triage.enable
   dst.auto_triage.Clear()

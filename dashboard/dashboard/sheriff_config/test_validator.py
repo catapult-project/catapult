@@ -322,6 +322,64 @@ class ValidatorTest(unittest.TestCase):
                                ]
                              """)
 
+  def testValidAnomalyConfigs(self):
+    _ = validator.Validate("""
+      subscriptions: [
+        {
+          name: "Subscription"
+          contact_email: "user@domain"
+          bug_labels: ["test-blocker"],
+          bug_components: ["Sample>Component"],
+          rules: {
+            match: [{regex: ".*"}]
+          }
+          anomaly_configs {
+            rules {
+              match: [{regex: ".*"}]
+            }
+          }
+        }
+      ]""")
+
+  def testInvalidAnomalyConfigs(self):
+    pattern = """
+        subscriptions: [
+          {
+            name: "Test %s"
+            contact_email: "user@domain"
+            bug_labels: ["test-blocker"]
+            bug_components: ["Sample>Component"]
+            rules {
+              match {
+                regex: ".*"
+              }
+            }
+            anomaly_configs {
+              max_window_size: 50
+              min_segment_size: 6
+              min_absolute_change: 0
+              min_relative_change: 0.01
+              min_steppiness: 0.5
+              multiple_of_std_dev: 0
+              rules {
+                %s
+              }
+            }
+          }
+        ]"""
+    cases = [
+        'match { glob: "" }',
+        'exclude { glob: "" }',
+        'match { regex: "" }',
+        'exclude { regex: "" }',
+        'match { regex: "*" }',
+        'exclude { regex: "*" }',
+    ]
+    for case, rule in enumerate(cases):
+      with self.subTest(case=case, rule=rule):
+        with self.assertRaisesRegex(validator.InvalidPattern, '.*'):
+          _ = validator.Validate(pattern % (case, rule))
+
 
 if __name__ == '__main__':
   unittest.main()

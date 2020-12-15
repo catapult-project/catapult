@@ -100,7 +100,8 @@ message AnomalyConfig {
   reserved 7;
 
   // The rules to which this anomaly configuration apply.
-  repeated Rules rules = 8;
+  reserved 8;
+  Rules rules = 9;
 }
 
 // Sheriff can use enable flag or rules to select tests being auto triaged. But

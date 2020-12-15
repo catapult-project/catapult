@@ -182,8 +182,17 @@ def CreateApp(test_config=None):
       subscription_metadata = match_response.subscriptions.add()
       subscription_metadata.config_set = config_set
       subscription_metadata.revision = revision
-      luci_config.CopyNormalizedSubscription(subscription,
-                                             subscription_metadata.subscription)
+      luci_config.CopyNormalizedSubscription(
+          subscription,
+          subscription_metadata.subscription,
+      )
+
+      # Then we find one anomaly config that matches.
+      matcher = luci_config.GetMatcher(revision, subscription)
+      anomaly_config = matcher.GetAnomalyConfig(match_request.path)
+      if anomaly_config:
+        subscription_metadata.subscription.anomaly_configs.append(
+            anomaly_config)
     if not match_response.subscriptions:
       return jsonify({}), 404
     return (json_format.MessageToJson(
