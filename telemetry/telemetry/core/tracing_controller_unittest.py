@@ -11,7 +11,7 @@ from telemetry.testing import tab_test_case
 from telemetry.timeline import tracing_config
 from telemetry.util import trace_processor
 
-import mock  # pylint: disable=import-error
+import mock
 
 
 class TracingControllerTest(tab_test_case.TabTestCase):

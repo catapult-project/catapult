@@ -6,7 +6,7 @@ import itertools
 import posixpath
 import unittest
 
-import mock  # pylint: disable=import-error
+import mock
 
 from telemetry import decorators
 from telemetry.testing import options_for_unittests

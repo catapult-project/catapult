@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 import unittest
-import mock  # pylint: disable=import-error
+import mock
 
 from telemetry.core import platform as platform_module
 from telemetry.internal.platform import platform_backend

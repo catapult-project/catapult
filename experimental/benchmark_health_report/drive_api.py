@@ -11,8 +11,7 @@ import time
 
 # pylint: disable=import-error
 import httplib2
-
-from apiclient import discovery
+from apiclient import discovery  # pylint: disable=import-error
 from oauth2client import service_account  # pylint: disable=no-name-in-module
 # pylint: enable=import-error
 

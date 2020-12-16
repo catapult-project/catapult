@@ -13,13 +13,15 @@ import io
 import logging
 import unittest
 
+from devil import devil_env
 from devil.android import device_errors
 from devil.android import device_utils
 from devil.android import fastboot_utils
 from devil.android.sdk import fastboot
 from devil.utils import mock_calls
 
-import mock  # pylint: disable=import-error
+with devil_env.SysPath(devil_env.PYMOCK_PATH):
+  import mock  # pylint: disable=import-error
 
 _BOARD = 'board_type'
 _SERIAL = '0123456789abcdef'

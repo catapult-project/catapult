@@ -4,7 +4,7 @@
 
 import unittest
 
-import mock  # pylint: disable=import-error
+import mock
 
 from devil.android.sdk import version_codes
 

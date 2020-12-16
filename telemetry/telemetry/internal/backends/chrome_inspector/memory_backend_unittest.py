@@ -4,7 +4,7 @@
 
 import unittest
 
-import mock  # pylint: disable=import-error
+import mock
 
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import memory_backend

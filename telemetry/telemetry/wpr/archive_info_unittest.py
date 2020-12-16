@@ -7,7 +7,7 @@ import shutil
 import tempfile
 import unittest
 
-import mock  # pylint: disable=import-error
+import mock
 
 from py_utils import cloud_storage  # pylint: disable=import-error
 

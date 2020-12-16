@@ -10,6 +10,8 @@ import shutil
 import tempfile
 import unittest
 
+sys.path.append(
+    os.path.join(os.path.dirname(__file__), '..', '..', 'mock'))
 import mock
 
 import vinn

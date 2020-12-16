@@ -5,7 +5,7 @@
 import StringIO
 import unittest
 
-import mock  # pylint: disable=import-error
+import mock
 
 from telemetry.internal.results import page_test_results
 from telemetry.testing import test_stories

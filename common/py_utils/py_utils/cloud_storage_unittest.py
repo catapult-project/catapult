@@ -8,7 +8,7 @@ import sys
 import tempfile
 import unittest
 
-import mock  # pylint: disable=import-error
+import mock
 from pyfakefs import fake_filesystem_unittest
 
 import py_utils
@@ -339,13 +339,11 @@ class GetIfChangedTests(BaseFakeFsUnitTest):
     self.assertTrue(os.path.exists(file_path + '.fetchts'))
 
     # Subsequent invocations of GetIfChanged should not invoke CalculateHash.
-    mock_calculate_hash.assert_called_once()
+    mock_calculate_hash.assert_not_called()
     self.assertFalse(cloud_storage.GetIfChanged(file_path,
                                                 cloud_storage.PUBLIC_BUCKET))
-    mock_calculate_hash.assert_called_once()
     self.assertFalse(cloud_storage.GetIfChanged(file_path,
                                                 cloud_storage.PUBLIC_BUCKET))
-    mock_calculate_hash.assert_called_once()
 
   @mock.patch('py_utils.cloud_storage._FileLock')
   @mock.patch('py_utils.cloud_storage.CalculateHash')

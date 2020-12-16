@@ -6,7 +6,7 @@ import shutil
 import tempfile
 import unittest
 
-import mock  # pylint: disable=import-error
+import mock
 
 from telemetry.core import util
 

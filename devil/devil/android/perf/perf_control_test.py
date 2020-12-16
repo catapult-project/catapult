@@ -4,11 +4,13 @@
 
 import unittest
 
+from devil import devil_env
 from devil.android import device_utils
 from devil.android.perf import perf_control
 from devil.android.sdk import adb_wrapper
 
-import mock
+with devil_env.SysPath(devil_env.PYMOCK_PATH):
+  import mock
 
 
 # pylint: disable=unused-argument

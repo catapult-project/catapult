@@ -4,7 +4,7 @@
 
 import unittest
 
-import mock  # pylint: disable=import-error
+import mock
 
 from telemetry.internal.forwarders import cros_forwarder
 
