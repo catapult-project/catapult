@@ -1313,6 +1313,7 @@ class DeviceUtils(object):
         apks_to_install = apk_paths
 
     if device_apk_paths and apks_to_install and not reinstall:
+      logger.info('Uninstalling package %s', package_name)
       self.Uninstall(package_name)
 
     if apks_to_install:
@@ -1323,6 +1324,8 @@ class DeviceUtils(object):
       streaming = None
       if self.product_name in _NO_STREAMING_DEVICE_LIST:
         streaming = False
+      logger.info('Installing package %s using APKs %s',
+                  package_name, apks_to_install)
       if len(apks_to_install) > 1 or partial:
         self.adb.InstallMultiple(
             apks_to_install,
@@ -1337,6 +1340,7 @@ class DeviceUtils(object):
             streaming=streaming,
             allow_downgrade=allow_downgrade)
     else:
+      logger.info('Skipping installation of package %s', package_name)
       # Running adb install terminates running instances of the app, so to be
       # consistent, we explicitly terminate it when skipping the install.
       self.ForceStop(package_name)
