@@ -6,8 +6,11 @@ import os
 import unittest
 import zipfile
 
+from devil import devil_env
 from devil.utils import zip_utils
-from py_utils import tempfile_ext
+
+with devil_env.SysPath(devil_env.PY_UTILS_PATH):
+  from py_utils import tempfile_ext
 
 
 class WriteZipFileTest(unittest.TestCase):

@@ -12,15 +12,11 @@ import re
 import sys
 
 if __name__ == '__main__':
-  sys.path.append(
-      os.path.abspath(
-          os.path.join(os.path.dirname(__file__), '..', '..', '..')))
-  sys.path.append(
-      os.path.abspath(
-          os.path.join(
-              os.path.dirname(__file__), '..', '..', '..', '..', 'common',
-              'py_utils')))
+  _DEVIL_ROOT_DIR = os.path.abspath(
+      os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+  sys.path.append(_DEVIL_ROOT_DIR)
 
+from devil import devil_env
 from devil.android import apk_helper
 from devil.android import device_errors
 from devil.android.sdk import version_codes
@@ -29,7 +25,9 @@ from devil.android.tools import system_app
 from devil.utils import cmd_helper
 from devil.utils import parallelizer
 from devil.utils import run_tests_helper
-from py_utils import tempfile_ext
+
+with devil_env.SysPath(devil_env.PY_UTILS_PATH):
+  from py_utils import tempfile_ext
 
 logger = logging.getLogger(__name__)
 

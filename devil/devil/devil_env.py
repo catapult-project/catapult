@@ -15,6 +15,7 @@ CATAPULT_ROOT_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', '..'))
 DEPENDENCY_MANAGER_PATH = os.path.join(CATAPULT_ROOT_PATH, 'dependency_manager')
 PYMOCK_PATH = os.path.join(CATAPULT_ROOT_PATH, 'third_party', 'mock')
+PY_UTILS_PATH = os.path.join(CATAPULT_ROOT_PATH, 'common', 'py_utils')
 
 
 @contextlib.contextmanager
@@ -151,7 +152,9 @@ class _Environment(object):
       devil_logger.propagate = False
       devil_logger.addHandler(handler)
 
-      import py_utils.cloud_storage
+      with SysPath(PY_UTILS_PATH):
+        import py_utils.cloud_storage
+
       lock_logger = py_utils.cloud_storage.logger
       lock_logger.setLevel(log_level)
       lock_logger.propagate = False

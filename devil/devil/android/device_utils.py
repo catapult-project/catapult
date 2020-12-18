@@ -45,7 +45,8 @@ from devil.utils import reraiser_thread
 from devil.utils import timeout_retry
 from devil.utils import zip_utils
 
-from py_utils import tempfile_ext
+with devil_env.SysPath(devil_env.PY_UTILS_PATH):
+  from py_utils import tempfile_ext
 
 try:
   from devil.utils import reset_usb

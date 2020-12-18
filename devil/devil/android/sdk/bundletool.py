@@ -9,7 +9,9 @@ from devil import base_error
 from devil import devil_env
 from devil.utils import cmd_helper
 from devil.utils import lazy
-from py_utils import tempfile_ext
+
+with devil_env.SysPath(devil_env.PY_UTILS_PATH):
+  from py_utils import tempfile_ext
 
 _bundletool_path = lazy.WeakConstant(lambda: devil_env.config.FetchPath(
     'bundletool'))
