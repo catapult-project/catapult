@@ -21,7 +21,7 @@ class Failure(object):
   def __str__(self):
     return (
         'Failure for job %s with function handle %s and trace handle %s:\n'
-        'of type %s wtih description %s. Stack:\n\n%s' % (
+        'of type "%s" with description "%s". Stack:\n\n%s' % (
             self.job.guid, self.function_handle_string,
             self.trace_canonical_url, self.failure_type_name,
             self.description, self.stack))
