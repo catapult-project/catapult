@@ -892,8 +892,6 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=False,
                                 streaming=None,
                                 allow_downgrade=False),
-          (self.call.adb.Shell(
-              'ls /data/data/test.package', expect_status=None)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
@@ -911,8 +909,6 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=False,
                                 streaming=False,
                                 allow_downgrade=False),
-          (self.call.adb.Shell(
-              'ls /data/data/test.package', expect_status=None)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
@@ -930,8 +926,6 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                  reinstall=False,
                                  streaming=None,
                                  allow_downgrade=False)),
-          (self.call.adb.Shell(
-              'ls /data/data/test.package', expect_status=None)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
@@ -948,8 +942,6 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                  reinstall=False,
                                  streaming=None,
                                  allow_downgrade=False)),
-          (self.call.adb.Shell(
-              'ls /data/data/test.package', expect_status=None)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
@@ -965,8 +957,6 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                  reinstall=False,
                                  streaming=None,
                                  allow_downgrade=False)),
-          (self.call.adb.Shell(
-              'ls /data/data/test.package', expect_status=None)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1', 'p2']), [])):
         self.device.Install(
@@ -1000,8 +990,6 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=False,
                                 streaming=None,
                                 allow_downgrade=False),
-          (self.call.adb.Shell(
-              'ls /data/data/test.package', expect_status=None)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk, retries=0, permissions=[])
@@ -1020,8 +1008,6 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=False,
                                 streaming=None,
                                 allow_downgrade=False),
-          (self.call.adb.Shell(
-              'ls /data/data/test.package', expect_status=None)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk, retries=0, permissions=[])
@@ -1040,8 +1026,6 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=True,
                                 streaming=None,
                                 allow_downgrade=False),
-          (self.call.adb.Shell(
-              'ls /data/data/test.package', expect_status=None)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk,
@@ -1100,8 +1084,6 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=True,
                                 streaming=None,
                                 allow_downgrade=True),
-          (self.call.adb.Shell(
-              'ls /data/data/test.package', expect_status=None)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk,
@@ -1135,8 +1117,6 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=False,
                                 streaming=None,
                                 allow_downgrade=False),
-          (self.call.adb.Shell(
-              'ls /data/data/test.package', expect_status=None)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
           (self.call.device.GrantPermissions(TEST_PACKAGE, None), [])):
         self.device.Install(
@@ -1156,9 +1136,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
           self.call.adb.Install(TEST_APK_PATH,
                                 reinstall=False,
                                 streaming=None,
-                                allow_downgrade=False),
-          (self.call.adb.Shell(
-              'ls /data/data/test.package', expect_status=None))):
+                                allow_downgrade=False)):
         with self.assertRaisesRegexp(
             device_errors.CommandFailedError,
             'not installed on device after explicit install attempt'):
@@ -1189,8 +1167,6 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
               reinstall=False,
               streaming=None,
               allow_downgrade=False)),
-          (self.call.adb.Shell(
-              'ls /data/data/test.package', expect_status=None)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.InstallSplitApk(
             'base.apk', ['split1.apk', 'split2.apk'], permissions=[], retries=0)
@@ -1213,8 +1189,6 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
               reinstall=False,
               streaming=False,
               allow_downgrade=False)),
-          (self.call.adb.Shell(
-              'ls /data/data/test.package', expect_status=None)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.InstallSplitApk(
             'base.apk', ['split1.apk', 'split2.apk'], permissions=[], retries=0)
@@ -1241,8 +1215,6 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
                                          reinstall=True,
                                          streaming=None,
                                          allow_downgrade=False)),
-          (self.call.adb.Shell(
-              'ls /data/data/test.package', expect_status=None)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.InstallSplitApk(
             DeviceUtilsInstallSplitApkTest.mock_apk,
@@ -1273,8 +1245,6 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
                                          reinstall=True,
                                          streaming=None,
                                          allow_downgrade=True)),
-          (self.call.adb.Shell(
-              'ls /data/data/test.package', expect_status=None)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.InstallSplitApk(
             DeviceUtilsInstallSplitApkTest.mock_apk,
@@ -1321,8 +1291,6 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
               reinstall=False,
               streaming=None,
               allow_downgrade=False)),
-          (self.call.adb.Shell(
-              'ls /data/data/test.package', expect_status=None)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.InstallSplitApk(
             DeviceUtilsInstallSplitApkTest.mock_apk,

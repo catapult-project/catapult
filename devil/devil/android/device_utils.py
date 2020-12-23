@@ -1340,9 +1340,6 @@ class DeviceUtils(object):
             reinstall=reinstall,
             streaming=streaming,
             allow_downgrade=allow_downgrade)
-      logger.info('Install complete. Package data directory contents:\n%s',
-                  self.adb.Shell(
-                      'ls /data/data/' +  package_name, expect_status=None))
     else:
       logger.info('Skipping installation of package %s', package_name)
       # Running adb install terminates running instances of the app, so to be
