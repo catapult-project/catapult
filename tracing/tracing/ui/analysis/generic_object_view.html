@@ -95,7 +95,7 @@ Polymer({
     if (!(object instanceof Object)) {
       const type = typeof object;
       if (type !== 'string') {
-        return this.appendSimpleText_(label, indent, object, suffix);
+        return this.appendSimpleText_(label, indent, String(object), suffix);
       }
       let objectReplaced = false;
       if ((object[0] === '{' && object[object.length - 1] === '}') ||
