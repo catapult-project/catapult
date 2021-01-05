@@ -10,10 +10,11 @@ import pipes
 import select
 import signal
 import string
-import StringIO
 import subprocess
 import sys
 import time
+
+import six
 
 from devil import base_error
 
@@ -21,9 +22,11 @@ logger = logging.getLogger(__name__)
 
 _SafeShellChars = frozenset(string.ascii_letters + string.digits + '@%_-+=:,./')
 
-# Cache the string-escape codec to ensure subprocess can find it
-# later. Return value doesn't matter.
-codecs.lookup('string-escape')
+# The string-escape codec doesn't exist in python3. Don't attempt to look it up.
+if six.PY2:
+  # Cache the string-escape codec to ensure subprocess can find it
+  # later. Return value doesn't matter.
+  codecs.lookup('string-escape')
 
 
 def SingleQuote(s):
@@ -452,7 +455,7 @@ def GetCmdStatusAndOutputWithTimeout(args,
     TimeoutError on timeout.
   """
   _ValidateAndLogCommand(args, cwd, shell)
-  output = StringIO.StringIO()
+  output = six.StringIO()
   process = Popen(
       args,
       cwd=cwd,

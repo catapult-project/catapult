@@ -15,9 +15,11 @@ _DEVIL_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 sys.path.append(_DEVIL_PATH)
 import devil.devil_env_test
+import devil.android.decorators_test
 
 PY3_COMPATIBLE_TESTS = [
     devil.devil_env_test,
+    devil.android.decorators_test,
 ]
 
 
