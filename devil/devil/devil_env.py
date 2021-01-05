@@ -11,6 +11,8 @@ import sys
 import tempfile
 import threading
 
+import six
+
 CATAPULT_ROOT_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', '..'))
 DEPENDENCY_MANAGER_PATH = os.path.join(CATAPULT_ROOT_PATH, 'dependency_manager')
@@ -53,7 +55,7 @@ def EmptyConfig():
 
 
 def LocalConfigItem(dependency_name, dependency_platform, dependency_path):
-  if isinstance(dependency_path, basestring):
+  if isinstance(dependency_path, six.string_types):
     dependency_path = [dependency_path]
   return {
       dependency_name: {
@@ -69,7 +71,7 @@ def LocalConfigItem(dependency_name, dependency_platform, dependency_path):
 def _GetEnvironmentVariableConfig():
   env_config = EmptyConfig()
   path_config = ((os.environ.get(k), v)
-                 for k, v in _LEGACY_ENVIRONMENT_VARIABLES.iteritems())
+                 for k, v in six.iteritems(_LEGACY_ENVIRONMENT_VARIABLES))
   path_config = ((p, c) for p, c in path_config if p)
   for p, c in path_config:
     env_config['dependencies'].update(
