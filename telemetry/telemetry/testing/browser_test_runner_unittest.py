@@ -94,7 +94,11 @@ class BrowserTestRunnerTest(unittest.TestCase):
                         ['-x=%s' % tag for tag in tags])
     args = ([test_name,
              '--write-full-results-to=%s' % temp_file_name,
-             '--test-filter=%s' % test_filter] + extra_args)
+             '--test-filter=%s' % test_filter,
+             # We don't want the underlying tests to report their results to
+             # ResultDB.
+             '--disable-resultsink',
+            ] + extra_args)
     try:
       args = browser_test_runner.ProcessConfig(config, args)
       with binary_manager.TemporarilyReplaceBinaryManager(None):
