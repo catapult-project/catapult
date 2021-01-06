@@ -41,13 +41,7 @@ tr.exportTo('tr.v.ui', function() {
           ' or a base class must have a registered elementName');
     }
 
-    const tagName = typeInfo.metadata.elementName;
-
-    if (tr.ui.b.isUnknownElementName(tagName)) {
-      throw new Error('Element not registered: ' + tagName);
-    }
-
-    return tagName;
+    return typeInfo.metadata.elementName;
   }
 
   /**
@@ -61,6 +55,9 @@ tr.exportTo('tr.v.ui', function() {
   function createDiagnosticSpan(diagnostic, name, histogram) {
     const tagName = findElementNameForDiagnostic(diagnostic);
     const span = document.createElement(tagName);
+    if (span instanceof HTMLUnknownElement) {
+      throw new Error('Element not registered: ' + tagName);
+    }
     if (span.build === undefined) throw new Error(tagName);
     span.build(diagnostic, name, histogram);
     return span;

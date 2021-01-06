@@ -60,19 +60,7 @@ tr.exportTo('tr.ui.b', function() {
         undefined, {minimumFractionDigits: 3, maximumFractionDigits: 3});
   }
 
-  /**
-   * Returns true if |name| is the name of an unknown HTML element.  Registered
-   * polymer elements are known, so this returns false.  Typos of registered
-   * polymer element names are unknown, so this returns true for typos.
-   *
-   * @return {boolean}
-   */
-  function isUnknownElementName(name) {
-    return document.createElement(name) instanceof HTMLUnknownElement;
-  }
-
   return {
-    isUnknownElementName,
     toThreeDigitLocaleString,
     instantiateTemplate,
     windowRectForElement,
