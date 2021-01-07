@@ -253,7 +253,13 @@ def _create_json_test_result(
             'testId': test_id,
             'status': status,
             'expected': expected,
-            'duration': str(duration) + 's',
+            # If the number is too large or small, python formats the number
+            # in scientific notation, but google.protobuf.duration doesn't
+            # accept an input formatted in scientific notation.
+            #
+            # .9fs because nanosecond is the smallest precision that
+            # google.protobuf.duration supports.
+            'duration': '%.9fs' % duration,
             'summaryHtml': html_summary,
             'artifacts': artifacts,
             'tags': [],

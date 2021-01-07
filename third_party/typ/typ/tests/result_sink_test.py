@@ -75,7 +75,7 @@ def CreateExpectedTestResult(
         'testId': test_id,
         'status': status or json_results.ResultType.Pass,
         'expected': expected or True,
-        'duration': duration or '1s',
+        'duration': duration or '1.000000000s',
         'summaryHtml': (summary_html
                         or '<pre>stdout: stdout\nstderr: stderr</pre>'),
         'artifacts': artifacts or {},
@@ -354,7 +354,7 @@ class ResultSinkReporterTest(unittest.TestCase):
             'testId': 'test_id',
             'status': json_results.ResultType.Pass,
             'expected': True,
-            'duration': '1s',
+            'duration': '1.000000000s',
             'summaryHtml': '<pre>summary</pre>',
             'artifacts': {
                 'artifact': {
@@ -368,3 +368,17 @@ class ResultSinkReporterTest(unittest.TestCase):
                 },
             ],
         })
+
+    def testCreateJsonWithVerySmallDuration(self):
+        retval = result_sink._create_json_test_result(
+            'test_id', json_results.ResultType.Pass, True,
+            {'artifact': {'filePath': 'somepath'}},
+            [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e-10)
+        self.assertEqual(retval['duration'], '0.000000000s')
+
+    def testCreateJsonFormatsWithVeryLongDuration(self):
+        retval = result_sink._create_json_test_result(
+            'test_id', json_results.ResultType.Pass, True,
+            {'artifact': {'filePath': 'somepath'}},
+            [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e+16)
+        self.assertEqual(retval['duration'], '10000000000000000.000000000s')
