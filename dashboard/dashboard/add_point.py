@@ -643,19 +643,19 @@ def _ValidateRowId(row_dict, last_added_entity):
   row_id = GetAndValidateRowId(row_dict)
 
   # Get the last added revision number for this test.
-  master, bot, test = row_dict['master'], row_dict['bot'], row_dict['test']
-  test_path = '%s/%s/%s' % (master, bot, test)
+  last_row_id = None
   if not last_added_entity:
+    master, bot, test = row_dict['master'], row_dict['bot'], row_dict['test']
+    test_path = '%s/%s/%s' % (master, bot, test)
     # Could be first point in test.
     logging.warning('Test %s has no last added revision entry.', test_path)
-    return
-
-  last_row_id = last_added_entity.revision
+  else:
+    last_row_id = last_added_entity.revision
 
   if not _IsAcceptableRowId(row_id, last_row_id):
     raise BadRequestError(
         'Invalid ID (revision) %d; compared to previous ID %s, it was larger '
-        'or smaller by too much.' % (row_id, last_row_id))
+        'or smaller by too much and must not be <= 0.' % (row_id, last_row_id))
 
 
 def _IsAcceptableRowId(row_id, last_row_id):
@@ -682,10 +682,10 @@ def _IsAcceptableRowId(row_id, last_row_id):
   Returns:
     True if acceptable, False otherwise.
   """
-  if last_row_id is None:
-    return True
   if row_id <= 0:
     return False
+  if last_row_id is None:
+    return True
   # Too big of a decrease.
   if row_id < 0.5 * last_row_id:
     return False
