@@ -131,7 +131,7 @@ class TimelineBasedMeasurement(story_test.StoryTest):
   def __init__(self, options):
     self._tbm_options = options
 
-  def WillRunStory(self, platform):
+  def WillRunStory(self, platform, story=None):
     """Configure and start tracing."""
     if self._tbm_options.config.enable_chrome_trace:
       # Always enable 'blink.console' and 'v8.console' categories for:
@@ -141,6 +141,8 @@ class TimelineBasedMeasurement(story_test.StoryTest):
       # Note that these categories are extremely low-overhead, so this doesn't
       # affect the tracing overhead budget much.
       chrome_config = self._tbm_options.config.chrome_trace_config
+      if story:
+        story.WillStartTracing(chrome_config)
       chrome_config.category_filter.AddIncludedCategory('blink.console')
       chrome_config.category_filter.AddIncludedCategory('v8.console')
     platform.tracing_controller.StartTracing(self._tbm_options.config)
