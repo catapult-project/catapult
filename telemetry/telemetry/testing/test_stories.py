@@ -37,8 +37,8 @@ class DummyStoryTest(story_test.StoryTest):
   def __init__(self, options=None):
     del options  # Unused.
 
-  def WillRunStory(self, platform, story):
-    del platform, story  # Unused.
+  def WillRunStory(self, platform):
+    del platform  # Unused.
 
   def Measure(self, platform, results):
     del platform, results  # Unused.

@@ -170,10 +170,3 @@ class Story(object):
     return ['exampleMetric']
     """
     return []
-
-  def WillStartTracing(self, chrome_trace_config):
-    """This method provides a way to add/modify tracing configs on the story
-    levels. e.g. if you want to add more trace categories for some stories
-    you can add them here.
-    """
-    pass

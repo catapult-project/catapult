@@ -19,13 +19,12 @@ class StoryTest(object):
     test.DidRunStory
   """
 
-  def WillRunStory(self, platform, story):
+  def WillRunStory(self, platform):
     """Override to do any action before running the story.
 
     This is run before state.WillRunStory.
     Args:
       platform: The platform that the story will run on.
-      story: The story will run on.
     """
     raise NotImplementedError()
 
