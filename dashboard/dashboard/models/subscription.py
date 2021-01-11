@@ -18,6 +18,16 @@ class _Visibility(object):
   PUBLIC = 1
 
 
+class AnomalyConfig(object):
+  """Mirror of sheriff_pb2.Subscription.AnomalyConfig."""
+  max_window_size = ndb.IntegerProperty()
+  min_segment_size = ndb.IntegerProperty()
+  min_absolute_change = ndb.FloatProperty()
+  min_relative_change = ndb.FloatProperty()
+  min_steppiness = ndb.FloatProperty()
+  multiple_of_std_dev = ndb.FloatProperty()
+
+
 VISIBILITY = _Visibility()
 
 
@@ -39,3 +49,4 @@ class Subscription(ndb.Model):
   auto_triage_enable = ndb.BooleanProperty()
   auto_bisect_enable = ndb.BooleanProperty()
   monorail_project_id = ndb.StringProperty(default='chromium')
+  anomaly_configs = ndb.LocalStructuredProperty(AnomalyConfig, repeated=True)
