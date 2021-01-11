@@ -30,14 +30,23 @@ def _RunUnitTests(input_api, output_api):
                   output_api.PresubmitPromptWarning)
 
   return input_api.RunTests([
-      input_api.Command(
-          name='devil/bin/run_py_tests',
-          cmd=[
-              input_api.os_path.join(input_api.PresubmitLocalPath(), 'bin',
-                                     'run_py_tests')
-          ],
-          kwargs={'env': test_env},
-          message=message_type)
+      input_api.Command(name='devil/bin/run_py_tests',
+                        cmd=[
+                            input_api.os_path.join(
+                                input_api.PresubmitLocalPath(), 'bin',
+                                'run_py_tests')
+                        ],
+                        kwargs={'env': test_env},
+                        message=message_type),
+      input_api.Command(name='devil/bin/run_py3_tests',
+                        cmd=[
+                            input_api.os_path.join(
+                                input_api.PresubmitLocalPath(), 'bin',
+                                'run_py3_tests')
+                        ],
+                        kwargs={'env': test_env},
+                        message=message_type,
+                        python3=True),
   ])
 
 
