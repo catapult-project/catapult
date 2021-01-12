@@ -345,8 +345,9 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
             '(document.scrollingElement || document.body).scrollLeft') > 75)
 
   @decorators.Disabled(
-      'android',  # crbug.com/437065.
-      'chromeos')  # crbug.com/483212.
+      'android',   # crbug.com/437065.
+      'chromeos',  # crbug.com/483212.
+      'linux')     # crbug.com/1164657
   def testSwipe(self):
     if not page_action.IsGestureSourceTypeSupported(self._tab, 'touch'):
       return
