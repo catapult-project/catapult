@@ -33,7 +33,7 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
 
   # https://github.com/catapult-project/catapult/issues/3099
   # crbug.com/1005062
-  @decorators.Disabled('android', 'chromeos')
+  @decorators.Disabled('android', 'chromeos', 'linux')
   def testPressEndAndHome(self):
     # Make page taller than the window so it's scrollable.
     self._tab.ExecuteJavaScript(
