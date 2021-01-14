@@ -34,8 +34,9 @@ logger = logging.getLogger(__name__)
 SPECIAL_SYSTEM_APP_LOCATIONS = {
     # Older versions of ArCore were installed in /data/app/ regardless of
     # whether they were system apps or not. Newer versions install in /system/
-    # if they are system apps, and in /data/app/ if they aren't.
-    'com.google.ar.core': ['/data/app/', '/system/'],
+    # if they are system apps, and in /data/app/ if they aren't. Some newer
+    # devices/OSes install in /product/app/ for system apps, as well.
+    'com.google.ar.core': ['/data/app/', '/system/', '/product/app/'],
     # On older versions of VrCore, the system app version is installed in
     # /system/ like normal. However, at some point, this moved to /data/.
     # So, we have to handle both cases. Like ArCore, this means we'll end up
