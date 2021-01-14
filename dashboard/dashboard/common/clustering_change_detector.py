@@ -91,39 +91,32 @@ def PermutationTest(sequence, rand=None):
   if rand is None:
     rand = random.Random()
 
-  def RandomPermutations(sequence, count):
+  def RandomSampler(sequence, count):
     pool = tuple(sequence)
     length = len(sequence)
     i = 0
+    prev = tuple(rand.sample(pool, min(length, _MAX_SUBSAMPLING_LENGTH)))
     while i < count:
       i += 1
-      yield tuple(rand.sample(pool, min(length, _MAX_SUBSAMPLING_LENGTH)))
+      cur = tuple(rand.sample(pool, min(length, _MAX_SUBSAMPLING_LENGTH)))
+      yield prev + cur
+      prev = cur
 
   sames = 0
-  differences = 0
-  unknowns = 0
-  for permutation in RandomPermutations(
+  total = 0
+  for permutation in RandomSampler(
       sequence,
       min(_MAX_PERMUTATION_TESTING_ITERATIONS, math.factorial(len(sequence)))):
-    change_point, found = ChangePointEstimator(permutation)
-    if not found:
-      sames += 1
-      continue
-    comparison, unused_a, unused_b = ClusterAndCompare(permutation,
-                                                       change_point)
+    comparison, _, _ = ClusterAndCompare(permutation, len(permutation) // 2)
     if comparison.result == pinpoint_compare.SAME:
       sames += 1
-    elif comparison.result == pinpoint_compare.UNKNOWN:
-      unknowns += 1
-    else:
-      differences += 1
+    total += 1
 
   # If at least 5% of the permutations compare differently, then it passes the
   # permutation test (meaning we can detect a potential change-point in the
   # sequence).
-  total = float(sames + unknowns + differences)
-  probability = float(differences) / total if total > 0. else 0.
-  return probability
+  probability = float(sames) / total if total > 0. else 0.
+  return 1.0 - probability
 
 
 def Estimator(sequence, index):
