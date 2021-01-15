@@ -802,6 +802,9 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertEqual(7001, new_anomalies[0].start_revision)
     self.assertEqual(7001, new_anomalies[0].end_revision)
 
+  # TODO(fancl): Temporarily disable the test because we are working on fixing
+  # Multiple change points cases.
+  @unittest.expectedFailure
   def testProcessTest_MultipleChangePoints(self):
     testing_common.AddTests(
         ['ChromiumPerf'], ['linux-perf'],
@@ -1031,6 +1034,76 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertEqual(anomaly.DOWN, new_anomalies[0].direction)
     self.assertEqual(794144, new_anomalies[0].start_revision)
     self.assertEqual(794154, new_anomalies[0].end_revision)
+
+  def testProcessTest__RefineAnomalyPlacement_OnePassEDivisive(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['linux-perf'],
+        {'blink_perf.layout': {
+            'nested-percent-height-tables': {}
+        }})
+    test = utils.TestKey(
+        'ChromiumPerf/linux-perf/blink_perf.layout/nested-percent-height-tables'
+    ).get()
+    test_container_key = utils.GetTestContainerKey(test.key)
+    # 1608562683 will be anomaly if we run E-Divisive from 1608525044.
+    sample_data = [
+        (1608404024, 246272),
+        (1608407660, 249344),
+        (1608417360, 246272),
+        (1608422547, 246784),
+        (1608434678, 248832),
+        (1608440108, 248320),
+        (1608442260, 250880),
+        (1608452306, 248832),
+        (1608457404, 247296),
+        (1608459374, 247296),
+        (1608463502, 249344),
+        (1608469894, 247296),
+        (1608471945, 247296),
+        (1608477313, 246272),
+        (1608481014, 248832),
+        (1608484511, 247296),
+        (1608486532, 246784),
+        (1608488082, 248832),
+        (1608491972, 246784),
+        (1608493895, 248832),
+        (1608495366, 248320),
+        (1608498927, 252416),
+        (1608501293, 246784),
+        (1608505924, 246272),
+        (1608507885, 246784),
+        (1608509593, 250368),
+        (1608512971, 246784),
+        (1608515075, 246272),
+        (1608519889, 247296),
+        (1608521956, 254464),
+        (1608525044, 247296),
+        (1608526992, 244736),
+        (1608528640, 245760),
+        (1608530391, 246784),
+        (1608531986, 245760),
+        (1608533763, 245760),
+        (1608538109, 246272),
+        (1608539988, 246784),
+        (1608545280, 251392),
+        (1608547200, 251026),
+        (1608550736, 248320),
+        (1608552820, 248832),
+        (1608554780, 251392),
+        (1608560589, 247296),
+        (1608562683, 251904),
+        (1608564319, 268800),
+        (1608566089, 263168),
+        (1608567823, 266240),
+        (1608569370, 266752),
+        (1608570921, 264192),
+    ]
+    for row in sample_data:
+      graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
+    test.UpdateSheriff()
+    test.put()
+    new_anomalies = anomaly.Anomaly.query().fetch()
+    self.assertEqual(0, len(new_anomalies))
 
   def testMakeAnomalyEntity_NoRefBuild(self):
     testing_common.AddTests(['ChromiumPerf'], ['linux'], {

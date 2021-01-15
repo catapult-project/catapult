@@ -119,43 +119,10 @@ def FindChangePoints(series,
   _, y_values = zip(*series)
 
   candidate_indices = []
-  split_index = 0
-
-  def RelativeIndexAdjuster(base, offset):
-    if base == 0:
-      return offset
-
-    # Prevent negative indices.
-    return max((base + offset) - min_segment_size, 0)
-
-  # We iteratively find all potential change-points in the range.
-  while split_index + min_segment_size < len(y_values):
-    try:
-      # First we get an adjusted set of indices, starting from split_index,
-      # filtering out the ones we've already seen.
-      potential_candidates_unadjusted = (
-          clustering_change_detector.ClusterAndFindSplit(
-              y_values[max(split_index - min_segment_size, 0):]))
-      potential_candidates_unfiltered = [
-          RelativeIndexAdjuster(split_index, x)
-          for x in potential_candidates_unadjusted
-      ]
-      potential_candidates = [
-          x for x in potential_candidates_unfiltered
-          if x not in candidate_indices
-      ]
-      logging.debug('New indices: %s', potential_candidates)
-
-      if potential_candidates:
-        candidate_indices.extend(potential_candidates)
-        split_index = max(potential_candidates)
-      else:
-        break
-    except clustering_change_detector.Error as e:
-      if not candidate_indices:
-        logging.warning('Clustering change point detection failed: %s', e)
-        return []
-      break
+  try:
+    candidate_indices = clustering_change_detector.ClusterAndFindSplit(y_values)
+  except clustering_change_detector.InsufficientData:
+    pass
 
   def RevAndIdx(idx):
     return ('rev:%s' % (series[idx][0],), 'idx:%s' % (idx,))
