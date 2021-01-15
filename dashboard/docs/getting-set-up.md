@@ -33,29 +33,6 @@ To load sample graph or alert data from production, navigate to
 
 ## Deploying to production
 
-### Current method: `bin/deploy`
-
-To deploy, you can run `bin/deploy`, which prepares the code to be deployed and
-runs `gcloud app deploy`. If you modify any `*.yaml` files, you can pass them as
-parameters to `bin/deploy` to deploy the updated configs.
-
-When deploying services, `bin/deploy` doesn't set the new version as the default
-version; to do this, you can use the Versions page on the [Google Developers
-Console](https://console.developers.google.com/) if you have edit or owner
-permissions for the App Engine project; otherwise if you want to request to set
-a new default version for chromeperf.appspot.com you can contact
-chrome-perf-dashboard-team@google.com.
-
-After deploying, there is a checklist to verify that no major functionality
-has regressed: [deploy checklist](/dashboard/docs/deploy-checklist.md).
-
-WARNING: Some changes to production may not be easily reversible; for
-example `appcfg.py ... vacuum_indexes` will remove datastore indexes that
-are not in your local index.yaml file, which may take more than 24 hours,
-and will disable any queries that depend on those indexes.
-
-### Coming soon: Docker
-
 See [Docker deploy](/dashbaord/docs/dev_dockerfiles/README.md).
 
 ## Where to find documentation
