@@ -35,7 +35,7 @@ class SheriffConfigClient(object):
     # workarounds for protobuf import paths are fully installed.
     self._InitSession()
     from dashboard.common.utils import GetEmail
-    from dashboard.models.subscription import Subscription, AnomalyConfig
+    from dashboard.models.subscription import Subscription
     from google.protobuf import json_format
     from dashboard import sheriff_config_pb2
     self._GetEmail = GetEmail  # pylint: disable=invalid-name
@@ -55,16 +55,6 @@ class SheriffConfigClient(object):
 
   @staticmethod
   def _ParseSubscription(revision, subscription):
-    anomaly_configs = [
-        SheriffConfigClient.AnomalyConfig(
-            max_window_size=a.max_window_size,
-            min_segment_size=a.min_segment_size,
-            min_absolute_change=a.min_absolute_change,
-            min_relative_change=a.min_relative_change,
-            min_steppiness=a.min_steppiness,
-            multiple_of_std_dev=a.multiple_of_std_dev,
-        ) for a in subscription.anomaly_configs
-    ]
     return SheriffConfigClient._Subscription(
         revision=revision,
         name=subscription.name,
@@ -77,7 +67,6 @@ class SheriffConfigClient(object):
         visibility=subscription.visibility,
         auto_triage_enable=subscription.auto_triage.enable,
         auto_bisect_enable=subscription.auto_bisection.enable,
-        anomaly_configs=anomaly_configs,
     )
 
   def Match(self, path, check=False):

@@ -68,7 +68,7 @@ class AddPointQueueHandler(request_handler.RequestHandler):
     ndb.Future.wait_all(all_put_futures)
 
     client = sheriff_config_client.GetSheriffConfigClient()
-    tests_with_subs = []
+    tests_keys = []
     for t in parent_tests:
       reason = []
       subscriptions, _ = client.Match(t.test_path, check=True)
@@ -82,13 +82,13 @@ class AddPointQueueHandler(request_handler.RequestHandler):
         logging.info('Skip test: %s reason=%s', t.key, ','.join(reason))
         continue
       logging.info('Process test: %s', t.key)
-      tests_with_subs += [(t.key, s) for s in subscriptions]
+      tests_keys.append(t.key)
 
     # Updating of the cached graph revisions should happen after put because
     # it requires the new row to have a timestamp, which happens upon put.
     futures = [
         graph_revisions.AddRowsToCacheAsync(added_rows),
-        find_anomalies.ProcessTestsAsync(tests_with_subs)
+        find_anomalies.ProcessTestsAsync(tests_keys)
     ]
     ndb.Future.wait_all(futures)
 
