@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 import logging as real_logging
 import os
+import subprocess
 import sys
 import time
 
@@ -409,3 +410,105 @@ class Platform(object):
 
   def GetTypExpectationsTags(self):
     return self._platform_backend.GetTypExpectationsTags()
+
+  def SupportsIntelPowerGadget(self):
+    """Check if Intel Power Gadget is supported.
+
+    Intel Power Gadget is supported on Intel based desktop platforms. Currently
+    this function only checks if Intel Power Gadget is installed on the device.
+    The assumption is if it is installed, it can run successfully.
+    """
+    return self._platform_backend.SupportsIntelPowerGadget()
+
+  def RunIntelPowerGadget(self, duration, output_path):
+    """Runs Intel Power Gadget and collects power data for a period of time.
+
+    Note that Intel Power Gadget will stop after |duration|, output the
+    collected data, and then exit. However, this function returns right away
+    after Intel Power Gadget is launched and starts collection power data.
+
+    Also, makes sure SupportsIntelPowerGadget() returns True before calling
+    this function.
+
+    Args:
+      duration: Seconds that Intel Power Gadget runs and collects power data.
+      output_path: Specifies to which file Intel Power Gadget writes the
+          collected data.
+
+    Returns True if Intel Power Gadget starts successfully.
+    """
+    ipg_path = self._platform_backend.GetIntelPowerGadgetPath()
+    if not ipg_path:
+      real_logging.error('Fail to locate Intel Power Gadget. Please call '
+                         'SupportsIntelPowerGadget() before calling this.')
+      return False
+    command = '"%s" -duration %d -file "%s"' % (ipg_path, duration, output_path)
+    subprocess.Popen(command, shell=True, stderr=subprocess.STDOUT)
+    return True
+
+  def CollectIntelPowerGadgetResults(self, output_path, skip_duration=0,
+                                     sample_duration=0):
+    """Processes power data output from Intel Power Gadget.
+
+    Note that the file |output_path| is removed when this function returns.
+
+    Args:
+      output_path: Specifies to which file Intel Power Gadget wrote the
+          collected data.
+      skip_duration: Seconds of data to skip in the beginning of the collected
+          data, assuming there are extra noises in the beginning.
+      sample_duration: Seconds of data to process and return after the
+          |skip_duration|. If this is 0, process data to the end.
+
+    Returns:
+      A dictionary in the format of {measurement_name: average_value}.
+      Specifically, 'samples' indicates the number of samples that contributed
+      to the returned data.
+      If an error occurs, an empty disctionary is returned.
+    """
+    if not os.path.isfile(output_path):
+      real_logging.error('Cannot locate output file at ' + output_path)
+      return {}
+
+    first_line = True
+    samples = 0
+    cols = 0
+    indices = []
+    labels = []
+    sums = []
+    col_time = None
+    for line in open(output_path):
+      tokens = [token.strip('" ') for token in line.split(',')]
+      if first_line:
+        first_line = False
+        cols = len(tokens)
+        for ii in range(0, cols):
+          token = tokens[ii]
+          if token.startswith('Elapsed Time'):
+            col_time = ii
+          elif token.endswith('(Watt)'):
+            indices.append(ii)
+            labels.append(token[:-len('(Watt)')])
+            sums.append(0.0)
+        assert col_time
+        assert cols > 0
+        assert len(indices) > 0
+        continue
+      if len(tokens) != cols:
+        continue
+      if skip_duration > 0 and float(tokens[col_time]) < skip_duration:
+        continue
+      if (sample_duration > 0 and
+          float(tokens[col_time]) > skip_duration + sample_duration):
+        break
+      samples += 1
+      for ii in range(0, len(indices)):
+        index = indices[ii]
+        sums[ii] += float(tokens[index])
+    results = {'samples': samples}
+    if samples > 0:
+      for ii in range(0, len(indices)):
+        results[labels[ii]] = sums[ii] / samples
+
+    os.remove(output_path)
+    return results
