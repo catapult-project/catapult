@@ -29,28 +29,7 @@ from dashboard import find_step
 from dashboard import ttest
 from dashboard.common import math_utils
 from dashboard.common import clustering_change_detector
-
-# Maximum number of points to consider at one time.
-_MAX_WINDOW_SIZE = 50
-
-# Minimum number of points in a segment. This can help filter out erroneous
-# results by ignoring results that were found from looking at too few points.
-MIN_SEGMENT_SIZE = 6
-
-# Minimum absolute difference between medians before and after.
-_MIN_ABSOLUTE_CHANGE = 0
-
-# Minimum relative difference between medians before and after.
-_MIN_RELATIVE_CHANGE = 0.01
-
-# "Steppiness" is a number between 0 and 1 that indicates how similar the
-# shape is to a perfect step function, where 1 represents a step function.
-_MIN_STEPPINESS = 0.5
-
-# The "standard deviation" is based on a subset of points in the series.
-# This parameter is the minimum acceptable ratio of the relative change
-# and this standard deviation.
-_MULTIPLE_OF_STD_DEV = 2.5
+from dashboard.common import defaults
 
 
 class ChangePoint(
@@ -85,12 +64,12 @@ class ChangePoint(
 
 
 def FindChangePoints(series,
-                     max_window_size=_MAX_WINDOW_SIZE,
-                     min_segment_size=MIN_SEGMENT_SIZE,
-                     min_absolute_change=_MIN_ABSOLUTE_CHANGE,
-                     min_relative_change=_MIN_RELATIVE_CHANGE,
-                     min_steppiness=_MIN_STEPPINESS,
-                     multiple_of_std_dev=_MULTIPLE_OF_STD_DEV):
+                     max_window_size=defaults.MAX_WINDOW_SIZE,
+                     min_segment_size=defaults.MIN_SEGMENT_SIZE,
+                     min_absolute_change=defaults.MIN_ABSOLUTE_CHANGE,
+                     min_relative_change=defaults.MIN_RELATIVE_CHANGE,
+                     min_steppiness=defaults.MIN_STEPPINESS,
+                     multiple_of_std_dev=defaults.MULTIPLE_OF_STD_DEV):
   """Finds change points in the given series.
 
   Only the last |max_window_size| points are examined, regardless of how many

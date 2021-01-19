@@ -221,7 +221,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     s2 = Subscription(name='sheriff2', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([s1, s2], None))) as m:
-      find_anomalies.ProcessTests([test.key])
+      find_anomalies.ProcessTests([(test.key, s1)])
       self.assertEqual(m.call_args_list, [mock.call(test.key.id())])
     self.ExecuteDeferredTasks('default')
 
@@ -337,7 +337,7 @@ class ProcessAlertsTest(testing_common.TestCase):
 
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([], None))) as m:
-      find_anomalies.ProcessTests([test.key])
+      find_anomalies.ProcessTests([(test.key, None)])
       self.assertEqual(m.call_args_list, [])
     self.ExecuteDeferredTasks('default')
 
@@ -363,7 +363,7 @@ class ProcessAlertsTest(testing_common.TestCase):
 
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([], None))):
-      find_anomalies.ProcessTests([test.key])
+      find_anomalies.ProcessTests([(test.key, None)])
     self.ExecuteDeferredTasks('default')
 
     query = graph_data.Row.query(projection=['revision', 'timestamp', 'value'])
@@ -405,7 +405,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     mock_process_stat.side_effect = _AssertParams
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([], None))):
-      find_anomalies.ProcessTests([test.key])
+      find_anomalies.ProcessTests([(test.key, None)])
     self.ExecuteDeferredTasks('default')
 
   @mock.patch.object(
@@ -420,7 +420,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.put()
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([], None))) as m:
-      find_anomalies.ProcessTests([test.key])
+      find_anomalies.ProcessTests([(test.key, None)])
       self.assertEqual(m.call_args_list, [mock.call(test.key.id())])
     anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(len(anomalies), 1)
@@ -433,7 +433,7 @@ class ProcessAlertsTest(testing_common.TestCase):
         'ChromiumGPU/linux-release/scrolling_benchmark/ref').get()
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([], None))):
-      find_anomalies.ProcessTests([ref.key])
+      find_anomalies.ProcessTests([(ref.key, None)])
     mock_logging_error.assert_called_with('No subscription for %s',
                                           ref.key.string_id())
 
@@ -453,7 +453,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     s = Subscription(name='sheriff', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([s], None))) as m:
-      find_anomalies.ProcessTests([test.key])
+      find_anomalies.ProcessTests([(test.key, s)])
       self.assertEqual(m.call_args_list, [mock.call(test.key.id())])
     self.ExecuteDeferredTasks('default')
     mock_email_sheriff.assert_called_once_with(
@@ -477,7 +477,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     s = Subscription(name='sheriff', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([s], None))) as m:
-      find_anomalies.ProcessTests([test.key])
+      find_anomalies.ProcessTests([(test.key, s)])
       self.assertEqual(m.call_args_list, [mock.call(test.key.id())])
     self.ExecuteDeferredTasks('default')
     expected_calls = [
@@ -519,7 +519,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     ref.put()
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([], None))) as m:
-      find_anomalies.ProcessTests([ref.key])
+      find_anomalies.ProcessTests([(ref.key, None)])
       self.assertEqual(m.call_args_list, [mock.call(ref.key.id())])
     new_anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(1, len(new_anomalies))
@@ -548,7 +548,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     non_ref.put()
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([], None))):
-      find_anomalies.ProcessTests([non_ref.key])
+      find_anomalies.ProcessTests([(non_ref.key, None)])
     new_anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(0, len(new_anomalies))
 
@@ -576,7 +576,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     non_ref.put()
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([], None))) as m:
-      find_anomalies.ProcessTests([non_ref.key])
+      find_anomalies.ProcessTests([(non_ref.key, None)])
       self.assertEqual(m.call_args_list, [mock.call(non_ref.key.id())])
     new_anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(len(new_anomalies), 1)
@@ -596,7 +596,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     ref.put()
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([], None))) as m:
-      find_anomalies.ProcessTests([ref.key])
+      find_anomalies.ProcessTests([(ref.key, None)])
       self.assertEqual(m.call_args_list, [mock.call(ref.key.id())])
     new_anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(1, len(new_anomalies))
@@ -672,7 +672,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.put()
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([], None))) as m:
-      find_anomalies.ProcessTests([test.key])
+      find_anomalies.ProcessTests([(test.key, None)])
       self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
     new_anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(1, len(new_anomalies))
@@ -746,7 +746,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.put()
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([], None))) as m:
-      find_anomalies.ProcessTests([test.key])
+      find_anomalies.ProcessTests([(test.key, None)])
       self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
     new_anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(1, len(new_anomalies))
@@ -794,7 +794,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.put()
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([], None))) as m:
-      find_anomalies.ProcessTests([test.key])
+      find_anomalies.ProcessTests([(test.key, None)])
       self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
     new_anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(1, len(new_anomalies))
@@ -873,7 +873,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.put()
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([], None))) as m:
-      find_anomalies.ProcessTests([test.key])
+      find_anomalies.ProcessTests([(test.key, None)])
       self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
     new_anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(2, len(new_anomalies))
@@ -951,7 +951,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.put()
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([], None))) as m:
-      find_anomalies.ProcessTests([test.key])
+      find_anomalies.ProcessTests([(test.key, None)])
       self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
     new_anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(1, len(new_anomalies))
@@ -1027,7 +1027,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.put()
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([], None))) as m:
-      find_anomalies.ProcessTests([test.key])
+      find_anomalies.ProcessTests([(test.key, None)])
       self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
     new_anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(1, len(new_anomalies))
