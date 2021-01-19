@@ -12,7 +12,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 import logging
-import json
 
 from google.appengine.ext import deferred
 from google.appengine.ext import ndb
@@ -60,7 +59,7 @@ def ProcessTestsAsync(tests_with_subs):
 
 
 @ndb.tasklet
-def _ProcessTest(test_key, subs):
+def _ProcessTest(test_key, _):
   """Processes a test to find new anomalies.
 
   Args:
@@ -81,18 +80,6 @@ def _ProcessTest(test_key, subs):
   # TODO(crbug/1158326): This is the deprecated method of getting an anomaly
   # config.
   legacy_config = yield anomaly_config.GetAnomalyConfigDictAsync(test)
-  new_config = {}
-  if subs and subs.anomaly_configs:
-    new_config = subs.anomaly_configs[0]
-
-  legacy_config_json = json.dumps(legacy_config)
-  new_config_json = json.dumps(new_config)
-  differences = legacy_config_json != new_config_json
-  logging.debug('anomaly configs: legacy = \'%s\'; new = \'%s\'; diff? %s',
-                legacy_config_json, new_config_json, differences)
-
-  # In the interim, compare the legacy_config with the config that's provided
-  # to this function.
   max_num_rows = legacy_config.get('max_window_size', DEFAULT_NUM_POINTS)
   rows_by_stat = yield GetRowsToAnalyzeAsync(test, max_num_rows)
 
