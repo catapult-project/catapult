@@ -256,41 +256,35 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
   yield ndb.put_multi_async(rows) + [r.UpdateParentAsync() for r in rows]
   logging.debug('Processed %s row entities.', len(rows))
 
-  def IsMonitoredWithSubscriptions(client, test):
+  def IsMonitored(client, test):
     reason = []
-    subscriptions, _ = client.Match(test, check=True)
-    has_subscribers = subscriptions or False
+    has_subscribers = utils.IsMonitored(client, test.test_path)
     if not has_subscribers:
       reason.append('subscriptions')
     if not test.has_rows:
       reason.append('has_rows')
     if reason:
       logging.info('Skip test: %s reason=%s', test.key, ','.join(reason))
-      return False, None
+      return False
     logging.info('Process test: %s', test.key)
-    return True, subscriptions
+    return True
 
   client = sheriff_config_client.GetSheriffConfigClient()
-  tests_with_subs = []
-  monitored, subscriptions = IsMonitoredWithSubscriptions(client, parent_test)
-  if monitored:
-    tests_with_subs += [(test_key, sub) for sub in subscriptions]
+  tests_keys = []
+  if IsMonitored(client, parent_test):
+    tests_keys.append(parent_test.key)
 
   for legacy_parent_test in legacy_parent_tests.values():
-    monitored, subscriptions = IsMonitoredWithSubscriptions(
-        client, legacy_parent_test)
-    if monitored:
-      tests_with_subs += [(legacy_parent_test, sub) for sub in subscriptions]
+    if IsMonitored(client, legacy_parent_test):
+      tests_keys.append(legacy_parent_test.key)
 
-  tests_with_subs = [
-      (k, s) for k, s in tests_with_subs if not add_point_queue.IsRefBuild(k)
-  ]
+  tests_keys = [k for k in tests_keys if not add_point_queue.IsRefBuild(k)]
 
   # Updating of the cached graph revisions should happen after put because
   # it requires the new row to have a timestamp, which happens upon put.
   futures = [
       graph_revisions.AddRowsToCacheAsync(rows),
-      find_anomalies.ProcessTestsAsync(tests_with_subs)
+      find_anomalies.ProcessTestsAsync(tests_keys)
   ]
   yield futures
 
