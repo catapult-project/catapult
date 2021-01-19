@@ -81,7 +81,7 @@ def _ProcessTest(test_key, subs):
   # TODO(crbug/1158326): This is the deprecated method of getting an anomaly
   # config.
   legacy_config = yield anomaly_config.GetAnomalyConfigDictAsync(test)
-  new_config = None
+  new_config = {}
   if subs and subs.anomaly_configs:
     new_config = subs.anomaly_configs[0]
 
