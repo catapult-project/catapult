@@ -280,7 +280,7 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
     monitored, subscriptions = IsMonitoredWithSubscriptions(
         client, legacy_parent_test)
     if monitored:
-      tests_with_subs += [(test_key, sub) for sub in subscriptions]
+      tests_with_subs += [(legacy_parent_test, sub) for sub in subscriptions]
 
   tests_with_subs = [
       (k, s) for k, s in tests_with_subs if not add_point_queue.IsRefBuild(k)
