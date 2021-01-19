@@ -226,6 +226,7 @@ class WebLayerBackendSettings(WebViewBackendSettings):
                       'org.chromium.weblayer.shell.TelemetryActivity')
     kwargs.setdefault('embedder_apk_name', 'WebLayerShellSystemWebView.apk')
     kwargs.setdefault('command_line_name', 'weblayer-command-line')
+    kwargs.setdefault('supports_spki_list', True)
     return super(WebLayerBackendSettings, cls).__new__(cls, **kwargs)
 
   def GetApkName(self, device):
