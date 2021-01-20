@@ -154,8 +154,9 @@ class FindChangePointsTest(unittest.TestCase):
     self._AssertFindsChangePoints([1, 1, 1, 1, 6, 6, 6, 6, 9, 9, 9], [4],
                                   max_window_size=11,
                                   min_segment_size=3)
-    self._AssertFindsChangePoints([1, 1, 1, 6, 6, 6, 6, 12, 12, 12, 12], [7],
-                                  max_window_size=11,
+    self._AssertFindsChangePoints([1, 1, 1, 1, 6, 6, 6, 6, 12, 12, 12, 12],
+                                  [8, 4],
+                                  max_window_size=12,
                                   min_segment_size=3)
     self._AssertFindsChangePoints([1, 1, 5, 5, 5, 5, 9, 9, 9, 9, 9], [6],
                                   max_window_size=11,

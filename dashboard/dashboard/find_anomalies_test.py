@@ -802,9 +802,6 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertEqual(7001, new_anomalies[0].start_revision)
     self.assertEqual(7001, new_anomalies[0].end_revision)
 
-  # TODO(fancl): Temporarily disable the test because we are working on fixing
-  # Multiple change points cases.
-  @unittest.expectedFailure
   def testProcessTest_MultipleChangePoints(self):
     testing_common.AddTests(
         ['ChromiumPerf'], ['linux-perf'],
@@ -880,8 +877,8 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertEqual(anomaly.UP, new_anomalies[0].direction)
     self.assertEqual(805429, new_anomalies[0].start_revision)
     self.assertEqual(805457, new_anomalies[0].end_revision)
-    self.assertEqual(805346, new_anomalies[1].start_revision)
-    self.assertEqual(805359, new_anomalies[1].end_revision)
+    self.assertEqual(805360, new_anomalies[1].start_revision)
+    self.assertEqual(805384, new_anomalies[1].end_revision)
 
   def testProcessTest__RefineAnomalyPlacement_BalancedEstimator1(self):
     testing_common.AddTests(

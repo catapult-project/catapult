@@ -60,11 +60,14 @@ class ChangeDetectorTest(unittest.TestCase):
     self.assertIn(10, splits)
 
   def testClusterAndFindSplit_Spikes(self):
-    # We actually can identify spikes very well.
+    # E-divisive can identify spikes very well, but it won't pass permutation
+    # tests because spikes is not significant enough to identify as
+    # adistribution change.
     sequence = ([1] * 15) + [500, 1000, 500] + ([1] * 15)
-    splits = ccd.ClusterAndFindSplit(sequence, self.rand)
-    logging.debug('Splits = %s', splits)
-    self.assertEqual([15], splits)
+    self.assertRaises(
+        ccd.InsufficientData,
+        lambda: ccd.ClusterAndFindSplit(sequence, self.rand),
+    )
 
   def testClusterAndFindSplit_SpikeAndLevelChange(self):
     # We actually can identify the spike, the drop, and the level change.
