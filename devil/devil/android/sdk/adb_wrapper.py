@@ -35,6 +35,8 @@ ADB_KEYS_FILE = '/data/misc/adb/adb_keys'
 ADB_HOST_KEYS_DIR = os.path.join(os.path.expanduser('~'), '.android')
 
 DEFAULT_TIMEOUT = 30
+DEFAULT_LONG_TIMEOUT = DEFAULT_TIMEOUT * 10
+DEFAULT_SUPER_LONG_TIMEOUT = DEFAULT_LONG_TIMEOUT * 2
 DEFAULT_RETRIES = 2
 
 _ADB_VERSION_RE = re.compile(r'Android Debug Bridge version (\d+\.\d+\.\d+)')
@@ -476,7 +478,7 @@ class AdbWrapper(object):
            local,
            remote,
            sync=False,
-           timeout=60 * 5,
+           timeout=DEFAULT_SUPER_LONG_TIMEOUT,
            retries=DEFAULT_RETRIES):
     """Pushes a file from the host to the device.
 
@@ -549,7 +551,11 @@ class AdbWrapper(object):
 
     self._RunDeviceAdbCmd(push_cmd, timeout, retries)
 
-  def Pull(self, remote, local, timeout=60 * 5, retries=DEFAULT_RETRIES):
+  def Pull(self,
+           remote,
+           local,
+           timeout=DEFAULT_LONG_TIMEOUT,
+           retries=DEFAULT_RETRIES):
     """Pulls a file from the device to the host.
 
     Args:
@@ -832,7 +838,7 @@ class AdbWrapper(object):
               reinstall=False,
               sd_card=False,
               streaming=None,
-              timeout=60 * 2,
+              timeout=DEFAULT_LONG_TIMEOUT,
               retries=DEFAULT_RETRIES):
     """Install an apk on the device.
 
@@ -883,7 +889,7 @@ class AdbWrapper(object):
                       allow_downgrade=False,
                       partial=False,
                       streaming=None,
-                      timeout=60 * 2,
+                      timeout=DEFAULT_LONG_TIMEOUT,
                       retries=DEFAULT_RETRIES):
     """Install an apk with splits on the device.
 
@@ -1002,7 +1008,8 @@ class AdbWrapper(object):
     VerifyLocalFileExists(path)
     self._RunDeviceAdbCmd(['restore'] + [path], timeout, retries)
 
-  def WaitForDevice(self, timeout=60 * 5, retries=DEFAULT_RETRIES):
+  def WaitForDevice(self, timeout=DEFAULT_LONG_TIMEOUT,
+                    retries=DEFAULT_RETRIES):
     """Block until the device is online.
 
     Args:
@@ -1047,7 +1054,9 @@ class AdbWrapper(object):
     """Remounts the /system partition on the device read-write."""
     self._RunDeviceAdbCmd(['remount'], timeout, retries)
 
-  def Reboot(self, to_bootloader=False, timeout=60 * 5,
+  def Reboot(self,
+             to_bootloader=False,
+             timeout=DEFAULT_LONG_TIMEOUT,
              retries=DEFAULT_RETRIES):
     """Reboots the device.
 
