@@ -114,6 +114,7 @@ def RecoverDevice(device, denylist, should_reboot=lambda device: True):
     return
 
   if should_reboot(device):
+    should_restore_root = device.HasRoot()
     try:
       device.WaitUntilFullyBooted(retries=0)
     except (device_errors.CommandTimeoutError, device_errors.CommandFailedError,
@@ -154,6 +155,8 @@ def RecoverDevice(device, denylist, should_reboot=lambda device: True):
     try:
       device.WaitUntilFullyBooted(
           retries=0, timeout=device.REBOOT_DEFAULT_TIMEOUT)
+      if should_restore_root:
+        device.EnableRoot()
     except (device_errors.CommandFailedError,
             device_errors.DeviceUnreachableError):
       logger.exception('Failure while waiting for %s.', str(device))

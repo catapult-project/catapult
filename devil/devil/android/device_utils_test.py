@@ -230,10 +230,6 @@ class DeviceUtilsTest(mock_calls.TestCase):
     return mock.Mock(
         side_effect=device_errors.CommandFailedError(msg, str(self.device)))
 
-  def MyRootUserBuildError(self):
-    return mock.Mock(side_effect=device_errors.RootUserBuildError(
-        device_serial=str(self.device)))
-
   def ShellError(self, output=None, status=1):
     def action(cmd, *args, **kwargs):
       raise device_errors.AdbShellCommandFailedError(cmd, output, status,
@@ -364,7 +360,7 @@ class DeviceUtilsEnableRootTest(DeviceUtilsTest):
   def testEnableRoot_userBuild(self):
     with self.assertCalls((self.call.adb.Root(), self.AdbCommandError()),
                           (self.call.device.IsUserBuild(), True)):
-      with self.assertRaises(device_errors.RootUserBuildError):
+      with self.assertRaises(device_errors.CommandFailedError):
         self.device.EnableRoot()
 
   def testEnableRoot_rootFails(self):
@@ -855,13 +851,24 @@ class DeviceUtilsRebootTest(DeviceUtilsTest):
 
   def testReboot_blocking(self):
     with self.assertCalls(
+        (self.call.device.HasRoot(), False),
         self.call.adb.Reboot(), (self.call.device.IsOnline(), True),
         (self.call.device.IsOnline(), False),
         self.call.device.WaitUntilFullyBooted(wifi=False, decrypt=False)):
       self.device.Reboot(block=True)
 
+  def testReboot_blockingWithRoot(self):
+    with self.assertCalls(
+        (self.call.device.HasRoot(), True),
+        self.call.adb.Reboot(), (self.call.device.IsOnline(), True),
+        (self.call.device.IsOnline(), False),
+        self.call.device.WaitUntilFullyBooted(wifi=False, decrypt=False),
+        self.call.device.EnableRoot()):
+      self.device.Reboot(block=True)
+
   def testReboot_blockUntilWifi(self):
     with self.assertCalls(
+        (self.call.device.HasRoot(), False),
         self.call.adb.Reboot(), (self.call.device.IsOnline(), True),
         (self.call.device.IsOnline(), False),
         self.call.device.WaitUntilFullyBooted(wifi=True, decrypt=False)):
@@ -869,6 +876,7 @@ class DeviceUtilsRebootTest(DeviceUtilsTest):
 
   def testReboot_blockUntilDecrypt(self):
     with self.assertCalls(
+        (self.call.device.HasRoot(), False),
         self.call.adb.Reboot(), (self.call.device.IsOnline(), True),
         (self.call.device.IsOnline(), False),
         self.call.device.WaitUntilFullyBooted(wifi=False, decrypt=True)):
@@ -1397,7 +1405,6 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
     expected_cmd_without_su = """sh -c 'echo '"'"'%s'"'"''""" % payload
     expected_cmd = 'su -c %s' % expected_cmd_without_su
     with self.assertCalls(
-        (self.call.device.HasRoot(), True),
         (self.call.device.NeedsSU(), True),
         (self.call.device._Su(expected_cmd_without_su), expected_cmd),
         (mock.call.devil.android.device_temp_file.DeviceTempFile(
@@ -1414,33 +1421,6 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
     expected_cmd_without_su = "sh -c 'setprop service.adb.root 0'"
     expected_cmd = 'su -c %s' % expected_cmd_without_su
     with self.assertCalls(
-        (self.call.device.HasRoot(), True),
-        (self.call.device.NeedsSU(), True),
-        (self.call.device._Su(expected_cmd_without_su), expected_cmd),
-        (self.call.adb.Shell(expected_cmd), '')):
-      self.device.RunShellCommand(['setprop', 'service.adb.root', '0'],
-                                  check_return=True,
-                                  as_root=True)
-
-  def testRunShellCommand_withSuAndNotRoot(self):
-    expected_cmd_without_su = "sh -c 'setprop service.adb.root 0'"
-    expected_cmd = 'su -c %s' % expected_cmd_without_su
-    with self.assertCalls(
-        (self.call.device.HasRoot(), False),
-        (self.call.device.EnableRoot(), True),
-        (self.call.device.NeedsSU(), True),
-        (self.call.device._Su(expected_cmd_without_su), expected_cmd),
-        (self.call.adb.Shell(expected_cmd), '')):
-      self.device.RunShellCommand(['setprop', 'service.adb.root', '0'],
-                                  check_return=True,
-                                  as_root=True)
-
-  def testRunShellCommand_withSuAndUserBuild(self):
-    expected_cmd_without_su = "sh -c 'setprop service.adb.root 0'"
-    expected_cmd = 'su -c %s' % expected_cmd_without_su
-    with self.assertCalls(
-        (self.call.device.HasRoot(), False),
-        (self.call.device.EnableRoot(), self.MyRootUserBuildError()),
         (self.call.device.NeedsSU(), True),
         (self.call.device._Su(expected_cmd_without_su), expected_cmd),
         (self.call.adb.Shell(expected_cmd), '')):
@@ -1465,7 +1445,6 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
         'sh -c %s' % cmd_helper.SingleQuote(expected_cmd_with_run_as))
     expected_cmd = 'su -c %s' % expected_cmd_without_su
     with self.assertCalls(
-        (self.call.device.HasRoot(), True),
         (self.call.device.NeedsSU(), True),
         (self.call.device._Su(expected_cmd_without_su), expected_cmd),
         (self.call.adb.Shell(expected_cmd), '')):
@@ -1684,8 +1663,7 @@ class DeviceUtilsKillAllTest(DeviceUtilsTest):
   def testKillAll_root(self):
     with self.assertCalls(
         (self.call.device.ListProcesses('some.process'),
-         Processes(('some.process', 1234))), (self.call.device.HasRoot(), True),
-        (self.call.device.NeedsSU(), True),
+         Processes(('some.process', 1234))), (self.call.device.NeedsSU(), True),
         (self.call.device._Su("sh -c 'kill -9 1234'"),
          "su -c sh -c 'kill -9 1234'"),
         (self.call.adb.Shell("su -c sh -c 'kill -9 1234'"), '')):
@@ -2552,7 +2530,6 @@ class DeviceUtilsWriteFileTest(DeviceUtilsTest):
     expected_cmd_without_su = "sh -c 'echo -n contents > /test/file'"
     expected_cmd = 'su -c %s' % expected_cmd_without_su
     with self.assertCalls(
-        (self.call.device.HasRoot(), True),
         (self.call.device.NeedsSU(), True),
         (self.call.device._Su(expected_cmd_without_su), expected_cmd),
         (self.call.adb.Shell(expected_cmd), '')):
@@ -3060,38 +3037,32 @@ class DeviceUtilsGetSetEnforce(DeviceUtilsTest):
       self.assertEqual(None, self.device.GetEnforce())
 
   def testSetEnforce_Enforcing(self):
-    with self.assertCalls((self.call.device.HasRoot(), True),
-                          (self.call.device.NeedsSU(), False),
+    with self.assertCalls((self.call.device.NeedsSU(), False),
                           (self.call.adb.Shell('setenforce 1'), '')):
       self.device.SetEnforce(enabled=True)
 
   def testSetEnforce_Permissive(self):
-    with self.assertCalls((self.call.device.HasRoot(), True),
-                          (self.call.device.NeedsSU(), False),
+    with self.assertCalls((self.call.device.NeedsSU(), False),
                           (self.call.adb.Shell('setenforce 0'), '')):
       self.device.SetEnforce(enabled=False)
 
   def testSetEnforce_EnforcingWithInt(self):
-    with self.assertCalls((self.call.device.HasRoot(), True),
-                          (self.call.device.NeedsSU(), False),
+    with self.assertCalls((self.call.device.NeedsSU(), False),
                           (self.call.adb.Shell('setenforce 1'), '')):
       self.device.SetEnforce(enabled=1)
 
   def testSetEnforce_PermissiveWithInt(self):
-    with self.assertCalls((self.call.device.HasRoot(), True),
-                          (self.call.device.NeedsSU(), False),
+    with self.assertCalls((self.call.device.NeedsSU(), False),
                           (self.call.adb.Shell('setenforce 0'), '')):
       self.device.SetEnforce(enabled=0)
 
   def testSetEnforce_EnforcingWithStr(self):
-    with self.assertCalls((self.call.device.HasRoot(), True),
-                          (self.call.device.NeedsSU(), False),
+    with self.assertCalls((self.call.device.NeedsSU(), False),
                           (self.call.adb.Shell('setenforce 1'), '')):
       self.device.SetEnforce(enabled='1')
 
   def testSetEnforce_PermissiveWithStr(self):
-    with self.assertCalls((self.call.device.HasRoot(), True),
-                          (self.call.device.NeedsSU(), False),
+    with self.assertCalls((self.call.device.NeedsSU(), False),
                           (self.call.adb.Shell('setenforce 0'), '')):
       self.device.SetEnforce(enabled='0')  # Not recommended but it works!
 
