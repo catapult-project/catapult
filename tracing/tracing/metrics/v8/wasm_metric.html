@@ -74,12 +74,14 @@ tr.exportTo('tr.metrics.v8', function() {
         'v8:wasm:streaming_baseline_compilation:wall_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
 
-    const compilationStart =
-      wasmEvents['wasm.StartStreamingCompilation'][0].start;
-
-    const compilationEnd = wasmEvents['wasm.BaselineFinished'][0].end;
-
-    histogram.addSample(compilationEnd - compilationStart);
+    for (const endEvent of wasmEvents['wasm.BaselineFinished']) {
+      const compilationEnd = endEvent.end;
+      const startEvent = wasmEvents['wasm.StartStreamingCompilation'].find(
+          e => e.args.id === endEvent.args.id);
+      if (!startEvent) continue;
+      const compilationStart = startEvent.start;
+      histogram.addSample(compilationEnd - compilationStart);
+    }
     histograms.addHistogram(histogram);
   }
 
@@ -93,10 +95,14 @@ tr.exportTo('tr.metrics.v8', function() {
         'v8:wasm:compilation_tierup:wall_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
 
-    const tierupStart = wasmEvents['wasm.BaselineFinished'][0].start;
-    const tierupEnd = wasmEvents['wasm.TopTierFinished'][0].end;
-
-    histogram.addSample(tierupEnd - tierupStart);
+    for (const endEvent of wasmEvents['wasm.TopTierFinished']) {
+      const tierupEnd = endEvent.end;
+      const startEvent = wasmEvents['wasm.BaselineFinished'].find(
+          e => e.args.id === endEvent.args.id);
+      if (!startEvent) continue;
+      const tierupStart = startEvent.start;
+      histogram.addSample(tierupEnd - tierupStart);
+    }
 
     histograms.addHistogram(histogram);
   }
