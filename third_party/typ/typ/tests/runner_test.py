@@ -19,7 +19,7 @@ import unittest
 from textwrap import dedent as d
 
 
-from typ import Host, Runner, TestCase, TestSet, TestInput
+from typ import Host, Runner, Stats, TestCase, TestSet, TestInput
 from typ import WinMultiprocessing
 
 
@@ -138,6 +138,31 @@ class RunnerTests(TestCase):
         r = Runner()
         ret = r.main([], tests=['typ.tests.runner_test.ContextTests'])
         self.assertEqual(ret, 0)
+
+    def test_max_failures_fail_if_equal(self):
+      r = Runner()
+      r.args.tests = ['typ.tests.runner_test.FailureTests']
+      r.args.jobs = 1
+      r.args.typ_max_failures = 1
+      r.context = True
+      with self.assertRaises(RuntimeError):
+        r.run()
+
+    def test_max_failures_pass_if_under(self):
+      r = Runner()
+      r.args.tests = ['typ.tests.runner_test.ContextTests', 'typ.tests.runner_test.FAilureTests']
+      r.args.jobs = 1
+      r.args.typ_max_failures = 2
+      r.context = True
+      r.run()
+
+    def test_max_failures_ignored_if_unset(self):
+      r = Runner()
+      r.args.tests = ['typ.tests.runner_test.FailureTests']
+      r.args.jobs = 1
+      r.args.typ_max_failures = None
+      r.context = True
+      r.run()
 
 
 class TestSetTests(TestCase):
@@ -292,3 +317,10 @@ class ContextTests(TestCase):
         # RunnerTests.test_context, above. It is not interesting on its own.
         if self.context:
             self.assertEquals(self.context['foo'], 'bar')
+
+
+class FailureTests(TestCase):
+    def test_failure(self):
+        # Intended to be called from tests above.
+        if self.context:
+            self.fail()

@@ -17,6 +17,7 @@ class Stats(object):
 
     def __init__(self, status_format, time_fn, size):
         self.fmt = status_format
+        self.failed = 0
         self.finished = 0
         self.started = 0
         self.total = 0

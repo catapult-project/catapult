@@ -663,6 +663,17 @@ class Runner(object):
                 self._print_test_started(stats, test_input)
 
             result, should_retry_on_failure = pool.get()
+            if result.is_regression:
+                stats.failed += 1
+            if (self.args.typ_max_failures is not None
+                and stats.failed >= self.args.typ_max_failures):
+                print('\nAborting, waiting for processes to close')
+                pool.close()
+                pool.join()
+                raise RuntimeError(
+                    'Encountered %d failures with max of %d set, aborting.' % (
+                    stats.failed, self.args.typ_max_failures))
+
             if (self.args.retry_only_retry_on_failure_tests and
                 result.actual == ResultType.Failure and
                 should_retry_on_failure):

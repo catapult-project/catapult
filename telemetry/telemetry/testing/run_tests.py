@@ -185,6 +185,7 @@ class RunTestsCommand(command_line.OptparseCommand):
     runner.args.passthrough = args.passthrough
     runner.args.path = args.path
     runner.args.retry_limit = args.retry_limit
+    runner.args.typ_max_failures = args.typ_max_failures
     runner.args.test_results_server = args.test_results_server
     runner.args.partial_match_filter = args.positional_args
     runner.args.test_filter = args.test_filter
