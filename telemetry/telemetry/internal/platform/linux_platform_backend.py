@@ -26,6 +26,9 @@ _POSSIBLE_PERFHOST_APPLICATIONS = [
 
 
 def _GetOSVersion(value):
+  if value == 'rodete':
+    return 0.0
+
   try:
     return float(value)
   except (TypeError, ValueError):
