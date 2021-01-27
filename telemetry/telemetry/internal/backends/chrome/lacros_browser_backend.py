@@ -114,7 +114,7 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           ['EGL_PLATFORM=surfaceless',
            'XDG_RUNTIME_DIR=/run/chrome',
            'python',
-           '/usr/local/mojo_connection_lacros_launcher.py',
+           '/usr/local/bin/mojo_connection_lacros_launcher.py',
            '-s', '/tmp/lacros.sock',
            './../usr/local/lacros-chrome/lacros-chrome',
            '--ozone-platform=wayland',
