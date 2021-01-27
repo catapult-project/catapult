@@ -114,8 +114,6 @@ tr.exportTo('tr.metrics.v8', function() {
     'V8.GCScavenger',
   ];
 
-  // TODO(chromium:1056170): Add CppGC library events to this list before
-  // switching to the libary.
   const CPP_GC_FULL_MARK_EVENTS = [
     'BlinkGC.AtomicPauseMarkEpilogue',
     'BlinkGC.AtomicPauseMarkPrologue',
@@ -128,21 +126,29 @@ tr.exportTo('tr.metrics.v8', function() {
     'BlinkGC.MarkFlushEphemeronPairs',
     'BlinkGC.MarkFlushV8References',
     'BlinkGC.UnifiedMarkingStep',
+    'CppGC.AtomicMark',
+    'CppGC.IncrementalMark',
+    'CppGC.ConcurrentMark',
   ];
 
-  // TODO(chromium:1056170): Add CppGC library events to this list before
-  // switching to the libary.
   const CPP_GC_FULL_COMPACT_EVENTS = [
     'BlinkGC.AtomicPauseSweepAndCompact',
+    'CppGC.AtomicCompact',
   ];
 
-  // TODO(chromium:1056170): Add CppGC library events to this list before
-  // switching to the libary.
   const CPP_GC_FULL_SWEEP_EVENTS = [
     'BlinkGC.CompleteSweep',
     'BlinkGC.ConcurrentSweepingStep',
     'BlinkGC.LazySweepInIdle',
     'BlinkGC.LazySweepOnAllocation',
+    'CppGC.AtomicSweep',
+    'CppGC.IncrementalSweep',
+    'CppGC.ConcurrentSweep',
+  ];
+
+  const CPP_GC_FULL_WEAK_EVENTS = [
+    'BlinkGC.MarkWeakProcessing',
+    'CppGC.AtomicWeak',
   ];
 
   /**
@@ -166,7 +172,7 @@ tr.exportTo('tr.metrics.v8', function() {
    *
    * TODO(chromium:1056170): Currently event names of V8 and CppGC do not
    * collide because V8 events are prefixed with 'V8' and CppGC events are
-   * prefixed with 'BlinkGC'. Revisit this it before switching to the library.
+   * prefixed with 'CppGC'. Revisit this it before switching to the library.
    * We may need to either include the category to rules or keep the prefixes.
    *
    * @typedef {Object} Rule
@@ -231,6 +237,11 @@ tr.exportTo('tr.metrics.v8', function() {
       events: V8_FULL_WEAK_EVENTS,
       inside: V8_FULL_ATOMIC_EVENTS,
       contribute_to: 'full:atomic:weak',
+    },
+    {
+      events: CPP_GC_FULL_WEAK_EVENTS,
+      inside: V8_FULL_ATOMIC_EVENTS,
+      contribute_to: 'full:atomic:weak:cpp',
     },
     {
       events: V8_FULL_SWEEP_EVENTS,
