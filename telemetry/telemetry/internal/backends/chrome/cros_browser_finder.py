@@ -189,6 +189,9 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         '--enable-crash-reporter-for-testing',
     ])
 
+    if self._app_type == 'lacros-chrome':
+      startup_args.extend(['--lacros-mojo-socket-for-testing=/tmp/lacros.sock'])
+
     if browser_options.mute_audio:
       startup_args.append('--mute-audio')
 
