@@ -11,17 +11,17 @@ found in the LICENSE file.
 'use strict';
 
 /**
- * This metric is used for WebUI performance benchmark.
+ * This metric is used for custom performance benchmark.
  * It captures the following:
- * - Recorded trace events with name starts with "webui_metric:" on the C++
+ * - Recorded trace events with name starts with "custom_metric:" on the C++
  * side.
  * - Duration between performance.mark('<YOUR_METRIC_NAME>:benchmark_begin')
  * and performance.mark('<YOUR_METRIC_NAME>:benchmark_end') on the JS side.
  * - performance.mark('<YOUR_METRIC_NAME>:<YOUR_METRIC_VALUE>:benchmark_value')
  * on the JS side.
  */
-tr.exportTo('tr.metrics.webui', function() {
-  function webuiMetric(histograms, model, opt_options) {
+tr.exportTo('tr.metrics', function() {
+  function customMetric(histograms, model, opt_options) {
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     if (!chromeHelper) {
@@ -29,7 +29,7 @@ tr.exportTo('tr.metrics.webui', function() {
       return;
     }
 
-    const WEBUI_TITLE_PREFIX = 'webui_metric:';
+    const TITLE_PREFIX = 'custom_metric:';
     const traces = new Map();
     const benchmarkValues = new Map();
     // Collect trace events.
@@ -37,7 +37,7 @@ tr.exportTo('tr.metrics.webui', function() {
       if (!helper.mainThread) continue;
       for (const slice of helper.mainThread.sliceGroup.slices.concat(
           helper.mainThread.asyncSliceGroup.slices)) {
-        if (!slice.error && slice.title.startsWith(WEBUI_TITLE_PREFIX)) {
+        if (!slice.error && slice.title.startsWith(TITLE_PREFIX)) {
           if (!traces.has(slice.title)) {
             traces.set(slice.title, []);
           }
@@ -109,12 +109,12 @@ tr.exportTo('tr.metrics.webui', function() {
     return event.args.data && event.args.data.navigationId;
   }
 
-  tr.metrics.MetricRegistry.register(webuiMetric, {
+  tr.metrics.MetricRegistry.register(customMetric, {
     supportsRangeOfInterest: false,
   });
 
   return {
-    webuiMetric,
+    customMetric,
   };
 });
 </script>

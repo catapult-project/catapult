@@ -6,39 +6,39 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/metrics/webui_metric.html">
+<link rel="import" href="/tracing/metrics/custom_metric.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  test('webuiMetric_collectTrace', function() {
+  test('customMetric_collectTrace', function() {
     const model = tr.c.TestUtils.newModel((model) => {
       const browserThread = setUpBrowserThread(model);
       addTraces(browserThread);
     });
     const histograms = new tr.v.HistogramSet();
-    tr.metrics.webui.webuiMetric(histograms, model);
-    const hist1 = histograms.getHistogramNamed('webui_metric:metric1');
+    tr.metrics.customMetric(histograms, model);
+    const hist1 = histograms.getHistogramNamed('custom_metric:metric1');
     assert.strictEqual(hist1.numValues, 2);
-    const hist2 = histograms.getHistogramNamed('webui_metric:metric2');
+    const hist2 = histograms.getHistogramNamed('custom_metric:metric2');
     assert.strictEqual(hist2.numValues, 1);
     const hist3 = histograms.getHistogramNamed('metric3');
     // metric3 is not collected because its name doesn't start with
-    // "webui_metric:".
+    // "custom_metric:".
     assert.isUndefined(hist3);
-    const hist4 = histograms.getHistogramNamed('webui_metric:metric4');
+    const hist4 = histograms.getHistogramNamed('custom_metric:metric4');
     assert.strictEqual(hist4.numValues, 2);
   });
 
-  test('webuiMetric_collectPerformanceMark', function() {
+  test('customMetric_collectPerformanceMark', function() {
     const model = tr.c.TestUtils.newModel((model) => {
       const rendererMainThread = setUpRendererMainThread(model);
       addPerformanceMark(rendererMainThread);
     });
     const histograms = new tr.v.HistogramSet();
-    tr.metrics.webui.webuiMetric(histograms, model);
+    tr.metrics.customMetric(histograms, model);
     const hist1 = histograms.getHistogramNamed('metric1');
     assert.strictEqual(hist1.numValues, 2);
     assert.strictEqual(hist1.max, 5.0);
@@ -101,19 +101,19 @@ tr.b.unittest.testSuite(function() {
     [
       {
         cat: 'browser',
-        title: 'webui_metric:metric1',
+        title: 'custom_metric:metric1',
         start: 1,
         duration: 1,
       },
       {
         cat: 'browser',
-        title: 'webui_metric:metric1',
+        title: 'custom_metric:metric1',
         start: 2,
         duration: 2,
       },
       {
         cat: 'browser',
-        title: 'webui_metric:metric2',
+        title: 'custom_metric:metric2',
         start: 3,
         duration: 3,
       },
@@ -130,13 +130,13 @@ tr.b.unittest.testSuite(function() {
     [
       {
         cat: 'browser',
-        title: 'webui_metric:metric4',
+        title: 'custom_metric:metric4',
         start: 1,
         duration: 1,
       },
       {
         cat: 'browser',
-        title: 'webui_metric:metric4',
+        title: 'custom_metric:metric4',
         start: 2,
         duration: 2,
       }
