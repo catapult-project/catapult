@@ -3,7 +3,7 @@
 // in the LICENSE file.
 syntax = "proto3";
 
-package dashboard;
+package catapult.dashboard.dashboard.proto;
 import "sheriff.proto";
 
 // A MatchRequest proto defines the message we expect to get for matching

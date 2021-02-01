@@ -12,7 +12,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 import logging
-import json
 
 from google.appengine.ext import deferred
 from google.appengine.ext import ndb
@@ -35,32 +34,24 @@ DEFAULT_NUM_POINTS = 50
 
 
 @ndb.synctasklet
-def ProcessTests(tests_with_subs):
-  """Processes a list of tests to find new anomalies.
+def ProcessTests(test_keys):
+  """Processes a list of tests to find new anoamlies.
 
   Args:
-    test_keys: A list of tuples of TestMetadata ndb.Key's and a Subscription.
+    test_keys: A list of TestMetadata ndb.Key's.
   """
-  yield ProcessTestsAsync(tests_with_subs)
+  yield ProcessTestsAsync(test_keys)
 
 
 @ndb.tasklet
-def ProcessTestsAsync(tests_with_subs):
-  """Starts a parallel run of tests and associated configs.
-
-  Arguments:
-  - tests_with_configs: an iterable of a tuple of test keys and anomaly
-    configurations that apply to the test.
-
-  Returns None.
-  """
+def ProcessTestsAsync(test_keys):
   # Using a parallel yield here let's the tasklets for each _ProcessTest run
   # in parallel.
-  yield [_ProcessTest(k, s) for k, s in tests_with_subs]
+  yield [_ProcessTest(k) for k in test_keys]
 
 
 @ndb.tasklet
-def _ProcessTest(test_key, subs):
+def _ProcessTest(test_key):
   """Processes a test to find new anomalies.
 
   Args:
@@ -76,20 +67,10 @@ def _ProcessTest(test_key, subs):
 
   test = yield test_key.get_async()
 
-  # In addition to getting the configuration from Datastore, we'll use the
-  # sheriff configuration-hosted anomaly configs.
-  # TODO(crbug/1158326): This is the deprecated method of getting an anomaly
-  # config.
-  legacy_config = yield anomaly_config.GetAnomalyConfigDictAsync(test)
-  new_config_json = json.dumps(subs.anomaly_configs[0].to_dict()
-                              ) if subs and subs.anomaly_configs else '{}'
-  legacy_config_json = json.dumps(legacy_config)
-  logging.debug('anomaly configs: legacy = %s, new = %s, diff? %s',
-                legacy_config_json, new_config_json,
-                legacy_config_json != new_config_json)
-
-  max_num_rows = legacy_config.get('max_window_size', DEFAULT_NUM_POINTS)
+  config = yield anomaly_config.GetAnomalyConfigDictAsync(test)
+  max_num_rows = config.get('max_window_size', DEFAULT_NUM_POINTS)
   rows_by_stat = yield GetRowsToAnalyzeAsync(test, max_num_rows)
+
   ref_rows_by_stat = {}
   ref_test = yield _CorrespondingRefTest(test_key)
   if ref_test:
@@ -98,13 +79,7 @@ def _ProcessTest(test_key, subs):
   for s, rows in rows_by_stat.items():
     if rows:
       logging.info('Processing test: %s', test_key.id())
-      yield _ProcessTestStat(
-          legacy_config,
-          test,
-          s,
-          rows,
-          ref_rows_by_stat.get(s),
-      )
+      yield _ProcessTestStat(config, test, s, rows, ref_rows_by_stat.get(s))
 
 
 def _EmailSheriff(sheriff, test_key, anomaly_key):
