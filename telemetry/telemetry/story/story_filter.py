@@ -65,7 +65,7 @@ class StoryFilterFactory(object):
         cls._story_filter_exclude,
         cls._story_tag_filter, cls._story_tag_filter_exclude,
         cls._shard_begin_index, cls._shard_end_index, cls._run_disabled_stories,
-        stories=cls._stories)
+        stories=cls._stories, shard_indexes=cls._shard_indexes)
 
   @classmethod
   def AddCommandLineArgs(cls, parser):

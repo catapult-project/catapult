@@ -937,3 +937,23 @@ class RunBenchmarkTest(unittest.TestCase):
     for (story, status), result in zip(expected, test_results):
       self.assertEqual(result['testPath'], 'fake_benchmark/%s' % story)
       self.assertEqual(result['status'], status)
+
+
+  def testRangeIndexSingles(self):
+    fake_benchmark = FakeBenchmark(stories=(
+        test_stories.DummyStory('story_%i' % i) for i in range(100)))
+    options = self.GetFakeBrowserOptions({
+        'story_shard_indexes': "2,50,90"})
+    story_runner.RunBenchmark(fake_benchmark, options)
+    test_results = self.ReadTestResults()
+    self.assertEqual(len(test_results), 3)
+
+
+  def testRangeIndexRanges(self):
+    fake_benchmark = FakeBenchmark(stories=(
+        test_stories.DummyStory('story_%i' % i) for i in range(100)))
+    options = self.GetFakeBrowserOptions({
+        'story_shard_indexes': "-10, 20-30, 90-"})
+    story_runner.RunBenchmark(fake_benchmark, options)
+    test_results = self.ReadTestResults()
+    self.assertEqual(len(test_results), 30)

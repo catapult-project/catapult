@@ -192,13 +192,14 @@ class FilterStoriesShardIndexUnittest(unittest.TestCase):
     self.s2 = FakeStory('2')
     self.s3 = FakeStory('3')
     self.s4 = FakeStory('4')
-    self.stories = (self.s1, self.s2, self.s3, self.s4)
+    self.s5 = FakeStory('5')
+    self.stories = (self.s1, self.s2, self.s3, self.s4, self.s5)
 
   def testStoryShardBegin(self):
     story_filter = story_filter_module.StoryFilter(
         shard_begin_index=1)
     output = story_filter.FilterStories(self.stories)
-    self.assertEqual([self.s2, self.s3, self.s4], output)
+    self.assertEqual([self.s2, self.s3, self.s4, self.s5], output)
 
   def testStoryShardEnd(self):
     story_filter = story_filter_module.StoryFilter(
@@ -235,7 +236,7 @@ class FilterStoriesShardIndexUnittest(unittest.TestCase):
     story_filter = story_filter_module.StoryFilter(
         shard_indexes='1-')
     output = story_filter.FilterStories(self.stories)
-    self.assertEqual([self.s2, self.s3, self.s4], output)
+    self.assertEqual([self.s2, self.s3, self.s4, self.s5], output)
 
   def testStoryIndexRangeSingles(self):
     story_filter = story_filter_module.StoryFilter(
@@ -247,7 +248,7 @@ class FilterStoriesShardIndexUnittest(unittest.TestCase):
     story_filter = story_filter_module.StoryFilter(
         shard_indexes='0,2-')
     output = story_filter.FilterStories(self.stories)
-    self.assertEqual([self.s1, self.s3, self.s4], output)
+    self.assertEqual([self.s1, self.s3, self.s4, self.s5], output)
 
   def testStoryIndexRangeInvalidRange(self):
     with self.assertRaises(ValueError):
