@@ -32,7 +32,8 @@ try:
     import _winreg as winreg  # pylint: disable=import-error,wrong-import-order
   import win32security  # pylint: disable=import-error
 except ImportError as e:
-  logging.warning('import error in win_platform_backend: %s', e)
+  if platform.system() == 'Windows':
+    logging.warning('import error in win_platform_backend: %s', e)
   pywintypes = None
   shell = None
   shellcon = None
