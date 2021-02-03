@@ -265,7 +265,7 @@ tr.exportTo('tr.metrics.sh', function() {
     return samples;
   }
 
-  function findLayoutShiftSamples(rendererHelper) {
+  function findMainFrameLayoutShiftSamples(rendererHelper) {
     let sample;
     EventFinderUtils.getSortedMainThreadEventsByFrame(rendererHelper,
         'LayoutShift', 'loading').forEach((events) => {
@@ -276,6 +276,25 @@ tr.exportTo('tr.metrics.sh', function() {
       }
     });
     return sample ? [sample] : [];
+  }
+
+  function findAllLayoutShiftSamples(rendererHelper) {
+    let total = 0;
+    let foundMainFrame = false;
+    tr.e.chrome.EventFinderUtils.getSortedMainThreadEventsByFrame(
+        rendererHelper, 'LayoutShift', 'loading').forEach((events) => {
+      // Add up the scores for main frames and weighted scores for subframes.
+      for (const event of events) {
+        const evData = event.args.data;
+        if (evData.is_main_frame) {
+          total += evData.score;
+          foundMainFrame = true;
+        } else {
+          total += evData.weighted_score_delta;
+        }
+      }
+    });
+    return foundMainFrame ? [{value: total}] : [];
   }
 
   function addFirstMeaningfulPaintSample(samples, rendererHelper,
@@ -488,7 +507,9 @@ tr.exportTo('tr.metrics.sh', function() {
     const largestTextPaintSamples = findLargestTextPaintSamples(
         rendererHelper, frameToNavStartEvents,
         navIdToNavStartEvents);
-    const layoutShiftSamples = findLayoutShiftSamples(rendererHelper);
+    const mainFrameLayoutShiftSamples = findMainFrameLayoutShiftSamples(
+        rendererHelper);
+    const allLayoutShiftSamples = findAllLayoutShiftSamples(rendererHelper);
     const navigationStartSamples = timeToFCPEntries.map(entry => {
       return { value: entry.navigationStartEvent.start};
     });
@@ -503,7 +524,8 @@ tr.exportTo('tr.metrics.sh', function() {
       firstViewportReadySamples,
       largestImagePaintSamples,
       largestTextPaintSamples,
-      layoutShiftSamples,
+      mainFrameLayoutShiftSamples,
+      allLayoutShiftSamples,
       navigationStartSamples,
     };
   }
@@ -702,10 +724,17 @@ tr.exportTo('tr.metrics.sh', function() {
           summaryOptions: SUMMARY_OPTIONS,
           alertGrouping: [tr.v.d.ALERT_GROUPS.LOADING_PAINT],
         });
-    const layoutShiftHistogram = histograms.createHistogram(
+    const mainFrameLayoutShiftHistogram = histograms.createHistogram(
         'mainFrameCumulativeLayoutShift', unitlessNumber_smallerIsBetter, [], {
           binBoundaries: LAYOUT_SHIFT_SCORE_BOUNDARIES,
           description: 'Main Frame Document Cumulative Layout Shift Score',
+          summaryOptions: SUMMARY_OPTIONS,
+          alertGrouping: [tr.v.d.ALERT_GROUPS.LOADING_LAYOUT],
+        });
+    const allLayoutShiftHistogram = histograms.createHistogram(
+        'overallCumulativeLayoutShift', unitlessNumber_smallerIsBetter, [], {
+          binBoundaries: LAYOUT_SHIFT_SCORE_BOUNDARIES,
+          description: 'Document Cumulative Layout Shift Score with iframes',
           summaryOptions: SUMMARY_OPTIONS,
           alertGrouping: [tr.v.d.ALERT_GROUPS.LOADING_LAYOUT],
         });
@@ -760,7 +789,13 @@ tr.exportTo('tr.metrics.sh', function() {
           largestTextPaintHistogram,
           histograms);
       addSamplesToHistogram(
-          samplesSet.layoutShiftSamples, layoutShiftHistogram, histograms);
+          samplesSet.mainFrameLayoutShiftSamples,
+          mainFrameLayoutShiftHistogram,
+          histograms);
+      addSamplesToHistogram(
+          samplesSet.allLayoutShiftSamples,
+          allLayoutShiftHistogram,
+          histograms);
       addSamplesToHistogram(
           samplesSet.navigationStartSamples,
           navigationStartHistogram,
