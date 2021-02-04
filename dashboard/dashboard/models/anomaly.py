@@ -98,6 +98,10 @@ class Anomaly(internal_only_model.InternalOnlyModel):
   # component as the benchmark's Monorail component
   ownership = ndb.JsonProperty()
 
+  # Alert grouping is used to overide the default alert group (test suite)
+  # for auto-triage.
+  alert_grouping = ndb.StringProperty(indexed=False, repeated=True)
+
   # The number of points before and after this anomaly that were looked at
   # when finding this anomaly.
   segment_size_before = ndb.IntegerProperty(indexed=False)

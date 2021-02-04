@@ -377,7 +377,8 @@ def _MakeAnomalyEntity(change_point, test, stat, rows):
           suite_key,
           set([
               reserved_infos.BUG_COMPONENTS.name, reserved_infos.OWNERS.name,
-              reserved_infos.INFO_BLURB.name
+              reserved_infos.INFO_BLURB.name,
+              reserved_infos.ALERT_GROUPING.name,
           ])))
 
   bug_components = queried_diagnostics.get(reserved_infos.BUG_COMPONENTS.name,
@@ -400,6 +401,9 @@ def _MakeAnomalyEntity(change_point, test, stat, rows):
           queried_diagnostics.get(reserved_infos.INFO_BLURB.name,
                                   {}).get('values', [None])[0],
   }
+
+  alert_grouping = queried_diagnostics.get(reserved_infos.ALERT_GROUPING.name,
+                                           {}).get('values', [])
 
   # Compute additional anomaly metadata.
   def MinMax(iterable):
@@ -436,6 +440,7 @@ def _MakeAnomalyEntity(change_point, test, stat, rows):
       display_start=display_start,
       display_end=display_end,
       ownership=ownership_information,
+      alert_grouping=alert_grouping,
       earliest_input_timestamp=earliest_input_timestamp,
       latest_input_timestamp=latest_input_timestamp)
   raise ndb.Return(new_anomaly)

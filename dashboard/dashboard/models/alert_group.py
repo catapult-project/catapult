@@ -69,12 +69,12 @@ class AlertGroup(ndb.Model):
           sheriff_config or sheriff_config_client.GetSheriffConfigClient())
       subscriptions, _ = sheriff_config.Match(
           anomaly_entity.test.string_id(), check=True)
+    names = anomaly_entity.alert_grouping or [anomaly_entity.benchmark_name]
 
     return [
-        # TODO(fancl): Support multiple group name
         cls(
             id=str(uuid.uuid4()),
-            name=anomaly_entity.benchmark_name,
+            name=group_name,
             domain=anomaly_entity.master_name,
             subscription_name=s.name,
             project_id=s.monorail_project_id,
@@ -85,28 +85,30 @@ class AlertGroup(ndb.Model):
                 start=anomaly_entity.start_revision,
                 end=anomaly_entity.end_revision,
             ),
-        ) for s in subscriptions
+        ) for s in subscriptions for group_name in names
     ]
 
   @classmethod
   def GetGroupsForAnomaly(cls, anomaly_entity, subscriptions):
-    # TODO(fancl): Support multiple group name
-    name = anomaly_entity.benchmark_name
+    names = anomaly_entity.alert_grouping or [anomaly_entity.benchmark_name]
     revision = RevisionRange(
         repository='chromium',
         start=anomaly_entity.start_revision,
         end=anomaly_entity.end_revision,
     )
-    subscription_names = [s.name for s in subscriptions]
-    groups = [
-        g for g in cls.Get(name, revision)
-        if g.subscription_name in subscription_names
-    ]
-    all_groups = cls.GenerateAllGroupsForAnomaly(
-        anomaly_entity, subscriptions=subscriptions)
-    if not groups or not all(
-        any(g1.IsOverlapping(g2) for g2 in groups) for g1 in all_groups):
-      groups += cls.Get('Ungrouped', None)
+    groups = []
+    for name in names:
+      subscription_names = [s.name for s in subscriptions]
+      groups.extend(
+          g for g in cls.Get(name, revision)
+          if g.subscription_name in subscription_names and
+          all(not added.IsOverlapping(g) for added in groups)
+      )
+      all_groups = cls.GenerateAllGroupsForAnomaly(
+          anomaly_entity, subscriptions=subscriptions)
+      if not groups or not all(
+          any(g1.IsOverlapping(g2) for g2 in groups) for g1 in all_groups):
+        groups += cls.Get('Ungrouped', None)
     return [g.key for g in groups]
 
   @classmethod

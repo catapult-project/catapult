@@ -1242,6 +1242,38 @@ class ProcessAlertsTest(testing_common.TestCase):
                          ['alice@chromium.org', 'bob@chromium.org'])
     self.assertEqual(alert.ownership['info_blurb'], 'This is an info blurb.')
 
+  def testMakeAnomalyEntity_AlertGrouping(self):
+    data_sample = {
+        'type': 'GenericSet',
+        'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
+        'values': ['group123', 'group234']
+    }
+
+    testing_common.AddTests(['ChromiumPerf'], ['linux'], {
+        'page_cycler_v2': {
+            'cnn': {},
+            'cnn_ref': {},
+            'yahoo': {},
+            'nytimes': {},
+        },
+    })
+    test = utils.TestKey('ChromiumPerf/linux/page_cycler_v2/cnn').get()
+    testing_common.AddRows(test.test_path, [100, 200, 300, 400])
+
+    suite_key = utils.TestKey('ChromiumPerf/linux/page_cycler_v2')
+    entity = histogram.SparseDiagnostic(
+        data=data_sample,
+        test=suite_key,
+        start_revision=1,
+        end_revision=sys.maxsize,
+        id=data_sample['guid'],
+        name=reserved_infos.ALERT_GROUPING.name)
+    entity.put()
+    entity.put()
+    alert = find_anomalies._MakeAnomalyEntity(
+        _MakeSampleChangePoint(10011, 50, 100), test, 'avg',
+        self._DataSeries()).get_result()
+    self.assertEqual(alert.alert_grouping, ['group123', 'group234'])
 
 if __name__ == '__main__':
   unittest.main()
