@@ -278,22 +278,27 @@ tr.exportTo('tr.metrics.sh', function() {
     return sample ? [sample] : [];
   }
 
-  function findAllLayoutShiftSamples(rendererHelper) {
+  function findAllLayoutShiftSamples(chromeHelper) {
     let total = 0;
     let foundMainFrame = false;
-    tr.e.chrome.EventFinderUtils.getSortedMainThreadEventsByFrame(
-        rendererHelper, 'LayoutShift', 'loading').forEach((events) => {
-      // Add up the scores for main frames and weighted scores for subframes.
-      for (const event of events) {
-        const evData = event.args.data;
-        if (evData.is_main_frame) {
-          total += evData.score;
-          foundMainFrame = true;
-        } else {
-          total += evData.weighted_score_delta;
+    for (const pid in chromeHelper.rendererHelpers) {
+      const rendererHelper = chromeHelper.rendererHelpers[pid];
+      if (rendererHelper.isChromeTracingUI) continue;
+
+      tr.e.chrome.EventFinderUtils.getSortedMainThreadEventsByFrame(
+          rendererHelper, 'LayoutShift', 'loading').forEach((events) => {
+        // Add up the scores for main frames and weighted scores for subframes.
+        for (const event of events) {
+          const evData = event.args.data;
+          if (evData.is_main_frame) {
+            total += evData.score;
+            foundMainFrame = true;
+          } else {
+            total += evData.weighted_score_delta;
+          }
         }
-      }
-    });
+      });
+    }
     return foundMainFrame ? [{value: total}] : [];
   }
 
@@ -509,7 +514,6 @@ tr.exportTo('tr.metrics.sh', function() {
         navIdToNavStartEvents);
     const mainFrameLayoutShiftSamples = findMainFrameLayoutShiftSamples(
         rendererHelper);
-    const allLayoutShiftSamples = findAllLayoutShiftSamples(rendererHelper);
     const navigationStartSamples = timeToFCPEntries.map(entry => {
       return { value: entry.navigationStartEvent.start};
     });
@@ -525,7 +529,6 @@ tr.exportTo('tr.metrics.sh', function() {
       largestImagePaintSamples,
       largestTextPaintSamples,
       mainFrameLayoutShiftSamples,
-      allLayoutShiftSamples,
       navigationStartSamples,
     };
   }
@@ -748,6 +751,13 @@ tr.exportTo('tr.metrics.sh', function() {
 
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
+
+    const allLayoutShiftSamples = findAllLayoutShiftSamples(chromeHelper);
+    addSamplesToHistogram(
+        allLayoutShiftSamples,
+        allLayoutShiftHistogram,
+        histograms);
+
     for (const pid in chromeHelper.rendererHelpers) {
       const rendererHelper = chromeHelper.rendererHelpers[pid];
       if (rendererHelper.isChromeTracingUI) continue;
@@ -791,10 +801,6 @@ tr.exportTo('tr.metrics.sh', function() {
       addSamplesToHistogram(
           samplesSet.mainFrameLayoutShiftSamples,
           mainFrameLayoutShiftHistogram,
-          histograms);
-      addSamplesToHistogram(
-          samplesSet.allLayoutShiftSamples,
-          allLayoutShiftHistogram,
           histograms);
       addSamplesToHistogram(
           samplesSet.navigationStartSamples,

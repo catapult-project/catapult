@@ -1638,13 +1638,13 @@ tr.b.unittest.testSuite(function() {
       const mainThread = model.rendererMain;
       const mainFrame = {id: '0xdeadbeef', is_main: true};
       const subframe = {id: '0xdeadb33f', is_main: false};
-      const emitEvent = (time, score, weightedScore, frame) => {
+      const emitEvent = (thread, time, score, weightedScore, frame) => {
         const data = {
           is_main_frame: frame.is_main,
           score,
           weighted_score_delta: weightedScore
         };
-        mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
           cat: 'loading',
           title: 'LayoutShift',
           start: time,
@@ -1652,17 +1652,22 @@ tr.b.unittest.testSuite(function() {
           args: {frame: frame.id, data}
         }));
       };
-      emitEvent(1000, 1.5, 1000, mainFrame);
-      emitEvent(3000, 3.5, 1000, mainFrame);
-      emitEvent(2000, 3.0, 1000, mainFrame);
-      emitEvent(4000, 4000, 4.0, subframe);
+      emitEvent(mainThread, 1000, 1.5, 1000, mainFrame);
+      emitEvent(mainThread, 3000, 3.5, 1000, mainFrame);
+      emitEvent(mainThread, 2000, 3.0, 1000, mainFrame);
+      emitEvent(mainThread, 4000, 4000, 4.0, subframe);
+      const rendererProcess2 = model.getOrCreateProcess(10);
+      const mainThread2 = rendererProcess2.getOrCreateThread(20);
+      mainThread2.name = 'CrRendererMain';
+      const subframe2 = { id: '0xdeadb33f', is_main: false };
+      emitEvent(mainThread2, 2500, 1000, 2.0, subframe2);
     });
     const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
     const hist = histograms.getHistogramNamed('overallCumulativeLayoutShift');
     assert.strictEqual(1, hist.sampleValues.length);
     assert.strictEqual(1, hist.running.count);
-    assert.strictEqual(12, hist.running.mean);
+    assert.strictEqual(14, hist.running.mean);
   });
 
   test('speedIndexIsAddedToHistograms', function() {
