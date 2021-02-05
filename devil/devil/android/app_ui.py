@@ -193,8 +193,12 @@ class AppUi(object):
       A UI node instance pointing to the root of the xml screenshot.
     """
     with device_temp_file.DeviceTempFile(self._device.adb) as dtemp:
-      self._device.RunShellCommand(['uiautomator', 'dump', dtemp.name],
-                                   check_return=True)
+      output = self._device.RunShellCommand(
+          ['uiautomator', 'dump', dtemp.name], single_line=True,
+          check_return=True)
+      if output.startswith('ERROR:'):
+        raise RuntimeError(
+            'uiautomator dump command returned error: {}'.format(output))
       xml_node = element_tree.fromstring(
           self._device.ReadFile(dtemp.name, force_pull=True))
     return _UiNode(self._device, xml_node, package=self._package)

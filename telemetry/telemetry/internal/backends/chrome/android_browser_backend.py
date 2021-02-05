@@ -313,10 +313,13 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       os.utime(host_path, (host_mtime, host_mtime))
 
   def _StoreUiDumpAsArtifact(self, suffix):
-    ui_dump = self.platform_backend.GetSystemUi().ScreenDump()
-    artifact_name = posixpath.join(
-        self.DEBUG_ARTIFACT_PREFIX, 'ui_dump-%s.txt' % suffix)
-    artifact_logger.CreateArtifact(artifact_name, '\n'.join(ui_dump))
+    try:
+      ui_dump = self.platform_backend.GetSystemUi().ScreenDump()
+      artifact_name = posixpath.join(
+          self.DEBUG_ARTIFACT_PREFIX, 'ui_dump-%s.txt' % suffix)
+      artifact_logger.CreateArtifact(artifact_name, '\n'.join(ui_dump))
+    except Exception:  # pylint: disable=broad-except
+      logging.exception('Failed to store UI dump')
 
   def _StoreLogcatAsArtifact(self, suffix):
     logcat = self.platform_backend.GetLogCat()
