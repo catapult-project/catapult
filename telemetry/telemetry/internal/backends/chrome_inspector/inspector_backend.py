@@ -586,6 +586,59 @@ class InspectorBackend(object):
     }
     return self._runtime.RunInspectorCommand(stop_casting_command, timeout)
 
+  @_HandleInspectorWebSocketExceptions
+  def StartMobileDeviceEmulation(
+      self, width=360, height=640, dsr=2, timeout=60):
+    """Emulates a mobile device.
+
+    This method is intended for benchmarks used to gather non-performance
+    metrics only. Mobile emulation is not guaranteed to have the same
+    performance characteristics as real devices.
+
+    Example device parameters:
+    https://gist.github.com/devinmancuso/0c94410cb14c83ddad6f
+
+    Args:
+      width: Screen width.
+      height: Screen height.
+      dsr: Screen device scale factor.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    params = {
+        'width': width,
+        'height': height,
+        'deviceScaleFactor': dsr,
+        'mobile': True,
+    }
+    emulate_command = {
+        'method': 'Emulation.setDeviceMetricsOverride',
+        'params': params,
+    }
+    return self._runtime.RunInspectorCommand(emulate_command, timeout)
+
+  @_HandleInspectorWebSocketExceptions
+  def StopMobileDeviceEmulation(self, timeout=60):
+    """Stops emulation of a mobile device.
+
+    Raises:
+      exceptions.TimeoutException
+      exceptions.DevtoolsTargetCrashException
+    """
+    params = {
+        'width': 0,
+        'height': 0,
+        'deviceScaleFactor': 0,
+        'mobile': False,
+    }
+    emulate_command = {
+        'method': 'Emulation.setDeviceMetricsOverride',
+        'params': params,
+    }
+    return self._runtime.RunInspectorCommand(emulate_command, timeout)
+
   # Methods used internally by other backends.
 
   def _HandleInspectorDomainNotification(self, res):
