@@ -447,9 +447,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm1', test_key, 5)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           10).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            10,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, sys.maxsize, [u'm1']),
@@ -463,9 +466,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm1', test_key, 1)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           10).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            10,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, sys.maxsize, [u'm1']),
@@ -479,9 +485,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 1)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           10).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            10,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, 4, [u'm2']),
@@ -496,9 +505,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 5)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           10).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            10,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, 4, [u'm1']),
@@ -514,9 +526,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 12)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           10).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            10,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, 11, [u'm1']),
@@ -531,9 +546,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 8)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           10).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            10,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, 7, [u'm1']),
@@ -550,9 +568,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 5)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           10).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            10,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, 4, [u'm1']),
@@ -569,9 +590,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 5)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           10).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            10,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, 4, [u'm1']),
@@ -587,9 +611,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm3', test_key, 5)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           10).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            10,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, 4, [u'm1']),
@@ -604,9 +631,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 10)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           10).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            10,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, 9, [u'm1']),
@@ -622,9 +652,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 10)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           15).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            15,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, 9, [u'm1']),
@@ -642,9 +675,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 10)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           15).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            15,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, 9, [u'm1']),
@@ -662,9 +698,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 10)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           15).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            15,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, 9, [u'm1']),
@@ -680,9 +719,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm4', test_key, 10)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           15).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            15,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, 9, [u'm1']),
@@ -699,9 +741,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm3', test_key, 10)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           15).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            15,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, 9, [u'm1']),
@@ -717,9 +762,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm1', test_key, 10)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           15).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            15,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, sys.maxsize, [u'm1']),
@@ -734,9 +782,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm1', test_key, 10)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           15).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            15,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, 14, [u'm1']),
@@ -756,9 +807,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm3', test_key, 3)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           5).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            5,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, 2, [u'm1']),
@@ -776,9 +830,12 @@ class SparseDiagnosticTest(testing_common.TestCase):
     e = self._CreateGenericDiagnostic('foo', 'm2', test_key, 1)
 
     guid_mapping = (
-        histogram.SparseDiagnostic.FindOrInsertDiagnostics([e], test_key,
-                                                           e.start_revision,
-                                                           5).get_result())
+        histogram.SparseDiagnostic.FindOrInsertDiagnostics(
+            [e],
+            test_key,
+            e.start_revision,
+            5,
+        ).get_result())
 
     self._CheckExpectations(e, guid_mapping, [
         (1, sys.maxsize, [u'm2']),
