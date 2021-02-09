@@ -46,6 +46,17 @@ class AlertGroup(ndb.Model):
     closed = 4
 
   status = ndb.IntegerProperty(indexed=False)
+
+  class Type(object):
+    test_suite = 0
+    logical = 1
+    reserved = 2
+
+  group_type = ndb.IntegerProperty(
+      indexed=False,
+      choices=[Type.test_suite, Type.logical, Type.reserved],
+      default=Type.test_suite,
+  )
   active = ndb.BooleanProperty(indexed=True)
   revision = ndb.LocalStructuredProperty(RevisionRange)
   bug = ndb.LocalStructuredProperty(BugInfo)
@@ -57,7 +68,14 @@ class AlertGroup(ndb.Model):
     return (self.name == b.name and self.domain == b.domain
             and self.subscription_name == b.subscription_name
             and self.project_id == b.project_id
+            and self.group_type == b.group_type
             and self.revision.IsOverlapping(b.revision))
+
+  @classmethod
+  def GetType(cls, anomaly_entity):
+    if anomaly_entity.alert_grouping:
+      return cls.Type.logical
+    return cls.Type.test_suite
 
   @classmethod
   def GenerateAllGroupsForAnomaly(cls,
@@ -65,10 +83,10 @@ class AlertGroup(ndb.Model):
                                   sheriff_config=None,
                                   subscriptions=None):
     if subscriptions is None:
-      sheriff_config = (
-          sheriff_config or sheriff_config_client.GetSheriffConfigClient())
-      subscriptions, _ = sheriff_config.Match(
-          anomaly_entity.test.string_id(), check=True)
+      sheriff_config = (sheriff_config
+                        or sheriff_config_client.GetSheriffConfigClient())
+      subscriptions, _ = sheriff_config.Match(anomaly_entity.test.string_id(),
+                                              check=True)
     names = anomaly_entity.alert_grouping or [anomaly_entity.benchmark_name]
 
     return [
@@ -79,6 +97,7 @@ class AlertGroup(ndb.Model):
             subscription_name=s.name,
             project_id=s.monorail_project_id,
             status=cls.Status.untriaged,
+            group_type=cls.GetType(anomaly_entity),
             active=True,
             revision=RevisionRange(
                 repository='chromium',
@@ -91,6 +110,7 @@ class AlertGroup(ndb.Model):
   @classmethod
   def GetGroupsForAnomaly(cls, anomaly_entity, subscriptions):
     names = anomaly_entity.alert_grouping or [anomaly_entity.benchmark_name]
+    group_type = cls.GetType(anomaly_entity)
     revision = RevisionRange(
         repository='chromium',
         start=anomaly_entity.start_revision,
@@ -99,16 +119,16 @@ class AlertGroup(ndb.Model):
     groups = []
     for name in names:
       subscription_names = [s.name for s in subscriptions]
-      groups.extend(
-          g for g in cls.Get(name, revision)
-          if g.subscription_name in subscription_names and
-          all(not added.IsOverlapping(g) for added in groups)
-      )
+      groups.extend(g for g in cls.Get(name, group_type, revision)
+                    if g.subscription_name in subscription_names and all(
+                        not added.IsOverlapping(g) for added in groups))
       all_groups = cls.GenerateAllGroupsForAnomaly(
-          anomaly_entity, subscriptions=subscriptions)
+          anomaly_entity,
+          subscriptions=subscriptions,
+      )
       if not groups or not all(
           any(g1.IsOverlapping(g2) for g2 in groups) for g1 in all_groups):
-        groups += cls.Get('Ungrouped', None)
+        groups += cls.Get('Ungrouped', cls.Type.reserved, None)
     return [g.key for g in groups]
 
   @classmethod
@@ -116,16 +136,19 @@ class AlertGroup(ndb.Model):
     return ndb.Key('AlertGroup', group_id).get()
 
   @classmethod
-  def Get(cls, group_name, revision_info, active=True):
+  def Get(cls, group_name, group_type, revision_info, active=True):
     query = cls.query(
         cls.active == active,
         cls.name == group_name,
     )
     if not revision_info:
-      return list(query.fetch())
+      return [
+          group for group in query.fetch() if group.group_type == group_type
+      ]
     return [
         group for group in query.fetch()
-        if revision_info.IsOverlapping(group.revision)
+        if revision_info and revision_info.IsOverlapping(group.revision)
+        and group.group_type == group_type
     ]
 
   @classmethod

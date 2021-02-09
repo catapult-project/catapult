@@ -36,9 +36,11 @@ def _ProcessUngroupedAlerts():
     return None
 
   logging.info('Processing un-grouped alerts.')
-  ungrouped_list = alert_group.AlertGroup.Get('Ungrouped', None)
+  reserved = alert_group.AlertGroup.Type.reserved
+  ungrouped_list = alert_group.AlertGroup.Get('Ungrouped', reserved, None)
   if not ungrouped_list:
-    alert_group.AlertGroup(name='Ungrouped', active=True).put()
+    alert_group.AlertGroup(name='Ungrouped', group_type=reserved,
+                           active=True).put()
     return
   ungrouped = ungrouped_list[0]
   ungrouped_anomalies = ndb.get_multi(ungrouped.anomalies)
@@ -69,9 +71,8 @@ def ProcessAlertGroups():
         group.key,
         _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0))
 
-  deferred.defer(
-      _ProcessUngroupedAlerts,
-      _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0))
+  deferred.defer(_ProcessUngroupedAlerts,
+                 _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0))
 
 
 class AlertGroupsHandler(request_handler.RequestHandler):
@@ -89,7 +90,6 @@ class AlertGroupsHandler(request_handler.RequestHandler):
   - Untriaged: Only improvements in the group or auto-triage not enabled.
   - Closed: Issue closed.
   """
-
   def get(self):
     logging.info('Queueing task for deferred processing.')
     # Do not retry failed tasks.
