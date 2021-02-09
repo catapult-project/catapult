@@ -66,6 +66,7 @@ SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set([
 ])
 
 HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set([
+    reserved_infos.ALERT_GROUPING.name,
     reserved_infos.DEVICE_IDS.name,
     reserved_infos.STORIES.name,
     reserved_infos.STORYSET_REPEATS.name,

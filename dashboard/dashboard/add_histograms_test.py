@@ -994,6 +994,8 @@ class AddHistogramsTest(AddHistogramsBaseTest):
                 'e9c2891d-2b04-413f-8cf4-099827e67626',
             reserved_infos.BOTS.name:
                 '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.ALERT_GROUPING.name:
+                'f71bad03-ef98-42c0-833c-790d4e873871',
             reserved_infos.DEVICE_IDS.name:
                 '0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
             reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
@@ -1013,6 +1015,68 @@ class AddHistogramsTest(AddHistogramsBaseTest):
                        diagnostics[reserved_infos.DEVICE_IDS.name]['values'])
       self.assertNotEqual('0bc1021b-8107-4db7-bc8c-49d7cf53c5ae',
                           diagnostics[reserved_infos.DEVICE_IDS.name]['guid'])
+
+  def testPostHistogramPassesAlertGroupingSparseDiagnostics(self):
+    data = json.dumps([{
+        'values': ['benchmark'],
+        'guid': '876d0fba-1d12-4c00-a7e9-5fed467e19e3',
+        'type': 'GenericSet',
+    }, {
+        'values': [424242],
+        'guid': '25f0a111-9bb4-4cea-b0c1-af2609623160',
+        'type': 'GenericSet',
+    }, {
+        'values': ['master'],
+        'guid': 'e9c2891d-2b04-413f-8cf4-099827e67626',
+        'type': 'GenericSet'
+    }, {
+        'values': ['bot'],
+        'guid': '53fb5448-9f8d-407a-8891-e7233fe1740f',
+        'type': 'GenericSet'
+    }, {
+        'values': ['group'],
+        'guid': 'f71bad03-ef98-42c0-833c-790d4e873871',
+        'type': 'GenericSet'
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.MASTERS.name:
+                'e9c2891d-2b04-413f-8cf4-099827e67626',
+            reserved_infos.BOTS.name:
+                '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                '25f0a111-9bb4-4cea-b0c1-af2609623160',
+            reserved_infos.BENCHMARKS.name:
+                '876d0fba-1d12-4c00-a7e9-5fed467e19e3',
+        },
+        'name': 'foo',
+        'unit': 'count'
+    }, {
+        'binBoundaries': [1, [1, 1000, 20]],
+        'diagnostics': {
+            reserved_infos.MASTERS.name:
+                'e9c2891d-2b04-413f-8cf4-099827e67626',
+            reserved_infos.BOTS.name:
+                '53fb5448-9f8d-407a-8891-e7233fe1740f',
+            reserved_infos.ALERT_GROUPING.name:
+                'f71bad03-ef98-42c0-833c-790d4e873871',
+            reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
+                '25f0a111-9bb4-4cea-b0c1-af2609623160',
+            reserved_infos.BENCHMARKS.name:
+                '876d0fba-1d12-4c00-a7e9-5fed467e19e3',
+        },
+        'name': 'foo2',
+        'unit': 'count'
+    }])
+    self.PostAddHistogram({'data': data})
+    for params in self.TaskParams():
+      diagnostics = params['diagnostics']
+      if len(diagnostics) < 1:
+        continue
+      self.assertEqual(
+          ['group'],
+          diagnostics[reserved_infos.ALERT_GROUPING.name]['values'],
+      )
 
   def testPostHistogram_AddsNewSparseDiagnostic(self):
     diag_dict = {
