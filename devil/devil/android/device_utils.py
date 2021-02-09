@@ -2223,13 +2223,19 @@ class DeviceUtils(object):
           self.adb, suffix='.zip') as device_temp:
         self.adb.Push(zip_path, device_temp.name)
 
-        quoted_dirs = ' '.join(cmd_helper.SingleQuote(d) for d in dirs)
-        self.RunShellCommand(
-            'unzip %s&&chmod -R 777 %s' % (device_temp.name, quoted_dirs),
-            shell=True,
-            as_root=True,
-            env={'PATH': '%s:$PATH' % install_commands.BIN_DIR},
-            check_return=True)
+        with device_temp_file.DeviceTempFile(self.adb) as dirs_temp:
+          self._WriteFileWithPush(dirs_temp.name, ' '.join(dirs))
+
+          self.RunShellCommand(
+              # Read dirs from temp file to avoid potential errors like
+              # "Argument list too long" (crbug.com/1174331) when the list
+              # is too long.
+              'unzip %s && cat %s | xargs chmod -R 777' % (
+                  device_temp.name, dirs_temp.name),
+              shell=True,
+              as_root=True,
+              env={'PATH': '%s:$PATH' % install_commands.BIN_DIR},
+              check_return=True)
 
     return True
 

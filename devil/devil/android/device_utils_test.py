@@ -2194,7 +2194,7 @@ class DeviceUtilsPushChangedFilesZippedTest(DeviceUtilsTest):
       self.assertFalse(
           self.device._PushChangedFilesZipped(test_files, ['/test/dir']))
 
-  def _testPushChangedFilesZipped_spec(self, test_files):
+  def _testPushChangedFilesZipped_spec(self, test_files, test_dirs):
     @contextlib.contextmanager
     def mock_zip_temp_dir():
       yield '/test/temp/dir'
@@ -2207,25 +2207,32 @@ class DeviceUtilsPushChangedFilesZippedTest(DeviceUtilsTest):
         (mock.call.os.path.getsize('/test/temp/dir/tmp.zip'), 123),
         (self.call.device.NeedsSU(), True),
         (mock.call.devil.android.device_temp_file.DeviceTempFile(
-            self.adb, suffix='.zip'), MockTempFile('/test/sdcard/foo123.zip')),
-        self.call.adb.Push('/test/temp/dir/tmp.zip', '/test/sdcard/foo123.zip'),
+            self.adb, suffix='.zip'), MockTempFile('/sdcard/foo123.zip')),
+        self.call.adb.Push('/test/temp/dir/tmp.zip', '/sdcard/foo123.zip'),
+        (mock.call.devil.android.device_temp_file.DeviceTempFile(
+            self.adb), MockTempFile('/sdcard/bar123')),
+        self.call.device._WriteFileWithPush('/sdcard/bar123',
+                                            ' '.join(test_dirs)),
         self.call.device.RunShellCommand(
-            'unzip /test/sdcard/foo123.zip&&chmod -R 777 /test/dir',
+            'unzip /sdcard/foo123.zip && '
+            'cat /sdcard/bar123 | xargs chmod -R 777',
             shell=True,
             as_root=True,
             env={'PATH': '/data/local/tmp/bin:$PATH'},
             check_return=True)):
       self.assertTrue(
-          self.device._PushChangedFilesZipped(test_files, ['/test/dir']))
+          self.device._PushChangedFilesZipped(test_files, test_dirs))
 
   def testPushChangedFilesZipped_single(self):
-    self._testPushChangedFilesZipped_spec([('/test/host/path/file1',
-                                            '/test/device/path/file1')])
+    self._testPushChangedFilesZipped_spec(
+        [('/test/host/path/file1', '/test/device/path/file1')],
+        ['/test/dir1'])
 
   def testPushChangedFilesZipped_multiple(self):
     self._testPushChangedFilesZipped_spec(
         [('/test/host/path/file1', '/test/device/path/file1'),
-         ('/test/host/path/file2', '/test/device/path/file2')])
+         ('/test/host/path/file2', '/test/device/path/file2')],
+        ['/test/dir1', '/test/dir2'])
 
 
 class DeviceUtilsPathExistsTest(DeviceUtilsTest):
