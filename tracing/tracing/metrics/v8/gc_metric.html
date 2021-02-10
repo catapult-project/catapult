@@ -57,6 +57,22 @@ tr.exportTo('tr.metrics.v8', function() {
     'v8:gc:cycle:main_thread:full:sweep:cpp',
     'v8:gc:cycle:main_thread:full:compact',
     'v8:gc:cycle:main_thread:full:compact:cpp',
+    'v8:gc:cycle:main_thread:full:atomic',
+    'v8:gc:cycle:main_thread:full:atomic:cpp',
+    'v8:gc:cycle:main_thread:full:atomic:mark',
+    'v8:gc:cycle:main_thread:full:atomic:mark:cpp',
+    'v8:gc:cycle:main_thread:full:atomic:weak',
+    'v8:gc:cycle:main_thread:full:atomic:weak:cpp',
+    'v8:gc:cycle:main_thread:full:atomic:sweep',
+    'v8:gc:cycle:main_thread:full:atomic:sweep:cpp',
+    'v8:gc:cycle:main_thread:full:atomic:compact',
+    'v8:gc:cycle:main_thread:full:atomic:compact:cpp',
+    'v8:gc:cycle:main_thread:full:incremental',
+    'v8:gc:cycle:main_thread:full:incremental:cpp',
+    'v8:gc:cycle:main_thread:full:incremental:mark',
+    'v8:gc:cycle:main_thread:full:incremental:mark:cpp',
+    'v8:gc:cycle:main_thread:full:incremental:sweep',
+    'v8:gc:cycle:main_thread:full:incremental:sweep:cpp',
     'v8:gc:event:main_thread:full:atomic',
     'v8:gc:event:main_thread:full:atomic:cpp',
     'v8:gc:event:main_thread:full:atomic:mark',
@@ -81,15 +97,13 @@ tr.exportTo('tr.metrics.v8', function() {
    * Shorthands for various event groups to be used in RULES below.
    */
   const V8_FULL_ATOMIC_EVENTS = [
-    'V8.GCCompactor',
-    'V8.GCFinalizeMC',
-    'V8.GCFinalizeMCReduceMemory',
+    'V8.GC_MARK_COMPACTOR'
   ];
 
   const V8_FULL_MARK_EVENTS = [
     'V8.GC_MC_BACKGROUND_MARKING',
     'V8.GC_MC_MARK',
-    'V8.GCIncrementalMarking',
+    'V8.GC_MC_INCREMENTAL',
     'V8.GCIncrementalMarkingFinalize',
     'V8.GCIncrementalMarkingStart',
   ];
@@ -111,7 +125,7 @@ tr.exportTo('tr.metrics.v8', function() {
 
   const V8_YOUNG_EVENTS = [
     'V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL',
-    'V8.GCScavenger',
+    'V8.GC_SCAVENGER',
   ];
 
   const CPP_GC_FULL_MARK_EVENTS = [
@@ -611,16 +625,29 @@ tr.exportTo('tr.metrics.v8', function() {
       return result;
     }
 
+    // The following two functions combine V8 and CppGC epoch into a single
+    // global epoch. We give V8 even global epochs and CppGC odd global epochs.
+    function GlobalEpochFromV8(v8Epoch) {
+      return 2 * v8Epoch;
+    }
+
+    function GlobalEpochFromCpp(cppEpoch) {
+      return 2 * cppEpoch + 1;
+    }
+
     // Find the mapping from a CppGC epoch to a V8 epoch.
     const cppToV8 = new Map();
     for (const event of events) {
       const epoch = getEpoch(event);
       if (epoch.cpp !== null && epoch.v8 !== null) {
-        assert(!cppToV8.has(epoch.cpp) || cppToV8.get(epoch.cpp) === epoch.v8,
-            `CppGC epoch ${epoch.cpp} corresponds to two v8 epochs ` +
-            `${cppToV8.get(epoch.cpp)} and ${epoch.v8}. ` +
-            `Detected at ${event.userFriendlyName}.`);
-        cppToV8.set(epoch.cpp, epoch.v8);
+        // The start of V8 incremental marking may finalize GppGC sweeping
+        // of the previous garbage collection cycle. Thus it may happen that
+        // the same CppGC epoch maps to two V8 epoch. In such a conflict
+        // the smaller V8 epoch wins, essentially mapping the event back to
+        // the previous V8 cycle.
+        if (!cppToV8.has(epoch.cpp) || cppToV8.get(epoch.cpp) > epoch.v8) {
+          cppToV8.set(epoch.cpp, epoch.v8);
+        }
       }
     }
 
@@ -631,14 +658,21 @@ tr.exportTo('tr.metrics.v8', function() {
       if (epoch.cpp === null && epoch.v8 === null) {
         continue;
       }
-      assert(epoch.cpp === null || cppToV8.has(epoch.cpp),
-          `CppGC epoch ${epoch.cpp} doesn't have the corresponding V8 epoch. ` +
-          `Detected at ${event.userFriendlyName}`);
-      const key = epoch.v8 === null ? cppToV8.get(epoch.cpp) : epoch.v8;
-      if (result.has(key)) {
-        result.get(key).push(event);
+      let globalEpoch;
+      if (epoch.v8 !== null) {
+        // Case 1: either a V8 event or a CppGC event nested in a V8 event.
+        globalEpoch = GlobalEpochFromV8(epoch.v8);
+      } else if (cppToV8.has(epoch.cpp)) {
+        // Case 2: A CppGC event of a unified garbage collection.
+        globalEpoch = GlobalEpochFromV8(cppToV8.get(epoch.cpp));
       } else {
-        result.set(key, [event]);
+        // Case 3: An event from a standalone CppGC garbage collection.
+        globalEpoch = GlobalEpochFromCpp(epoch.cpp);
+      }
+      if (result.has(globalEpoch)) {
+        result.get(globalEpoch).push(event);
+      } else {
+        result.set(globalEpoch, [event]);
       }
     }
     return result;
@@ -712,8 +746,7 @@ tr.exportTo('tr.metrics.v8', function() {
     addTotalMarkCompactorTime(histograms, model);
     addTotalMarkCompactorMarkingTime(histograms, model);
     addScavengerSurvivedFromStackEvents(histograms, model);
-    // TODO(chromium:1154636): Compute the new metrics here by
-    // calling: addGarbageCollectionMetrics(METRICS, histograms, model).
+    addGarbageCollectionMetrics(METRICS, histograms, model);
   }
 
   tr.metrics.MetricRegistry.register(gcMetric);
