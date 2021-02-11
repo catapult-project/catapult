@@ -1,4 +1,4 @@
-FROM google/cloud-sdk:281.0.0
+FROM google/cloud-sdk:326.0.0
 
 ARG PROTOBUF_VERSION=3.6.1.3-2
 
