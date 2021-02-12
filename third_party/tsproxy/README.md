@@ -30,6 +30,8 @@ $ python tsproxy.py --rtt=200 --inkbps=1600 --outkbps=768
 | **`--desthost`**  | **`-d`** | Redirect all outbound connections to the specified host (name or IP). |
 | **`--mapports`**  | **`-m`** | Remap outbound ports. Comma-separated list of original:new with * as a wildcard. `--mapports '443:8443,*:8080'` |
 | **`--localhost`** | **`-l`** | Include connections already destined for localhost/127.0.0.1 in the host and port remapping. |
+| **`--nodnscache`** | **`-n`** | Disable the internal DNS cache. |
+| **`--flushdnscache`** | **`-f`** | Automatically flush the DNS cache 500ms after the last client disconnects. |
 | **`--verbose`**   | **`-v`** | Increase verbosity (specify multiple times for more). `-vvvv` for full debug output. |
 
 
@@ -62,11 +64,6 @@ docker run --rm -it -p 1080:1080 webpagetest/tsproxy [options...]
 Add a --proxy-server command-line option.
 ```bash
 --proxy-server="socks://localhost:1080"
-```
-
-Additionally if you need localhost addresses (ex: localhost, 127.0.0.1) to be sent through the proxy add:
-```bash
---proxy-bypass-list="<-loopback>"
 ```
 
 # Known Shortcomings/Issues

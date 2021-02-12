@@ -194,6 +194,7 @@ class TsProxyServer(object):
     if not self._proc:
       return
     try:
+      self._IssueCommand('exit', timeout=10)
       py_utils.WaitFor(lambda: self._proc.poll() is not None, 10)
     except py_utils.TimeoutException:
       # signal.SIGINT is not supported on Windows.
