@@ -1,9 +1,18 @@
 # Chromeperf Datastore → BigQuery export pipeline.
 
-This directory contains Apache Beam pipelines for exporting Anomaly, Row, and
-Job entities from chromeperf's Datastore into BigQuery tables.
+This directory contains Apache Beam pipelines for exporting entities from
+chromeperf's Datastore into BigQuery tables.
 
 This README briefly describes how to run and deploy those pipelines.
+
+## Directory overview
+
+| Script name              | Entity type exported | Type of export       |
+|--------------------------|----------------------|----------------------|
+| `export_anomalies.py`    | Anomaly              | Incremental (by day) |
+| `export_rows.py`         | Row                  | Incremental (by day) |
+| `export_jobs.py`         | Job                  | Incremental (by day) |
+| `export_testmetadata.py` | TestMetadata         | Full                 |
 
 ## Set up a development environment
 
@@ -59,12 +68,26 @@ $ PYTHONPATH=$PYTHONPATH:"$(pwd)/bq_export" python \
   --temp_location=gs://chromeperf-dataflow-temp/export-jobs-daily
 ```
 
+```
+$ PYTHONPATH=$PYTHONPATH:"$(pwd)/bq_export" python \
+  bq_export/export_testmetadata.py \
+  --service_account_email=bigquery-exporter@chromeperf.iam.gserviceaccount.com \
+  --runner=DataflowRunner \
+  --region=us-central1 \
+  --experiments=use_beam_bq_sink  \
+  --setup_file=bq_export/setup.py \
+  --staging_location=gs://chromeperf-dataflow/staging \
+  --template_location=gs://chromeperf-dataflow/templates/export_testmetadata \
+  --temp_location=gs://chromeperf-dataflow-temp/export-testmetadata-daily
+```
+
 There are Cloud Scheduler jobs configured to run
 `gs://chromeperf-dataflow/templates/export_anomalies`,
 `gs://chromeperf-dataflow/templates/export_rows`, and
-`gs://chromeperf-dataflow/templates/export_jobs` once every day, so updating
-those job templates is all that is required to update those daily runs.  See the
-Cloud Scheduler jobs at
+`gs://chromeperf-dataflow/templates/export_jobs`,
+`gs://chromeperf-dataflow/templates/export_testmetadata`, once every day, so
+updating those job templates is all that is required to update those daily runs.
+See the Cloud Scheduler jobs at
 https://console.cloud.google.com/cloudscheduler?project=chromeperf.
 
 **Tip:** You can also use the "RUN NOW" buttons on the Cloud Scheduler console

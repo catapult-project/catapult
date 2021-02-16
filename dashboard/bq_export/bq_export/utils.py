@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import logging
 import math
 
 import apache_beam as beam
@@ -113,3 +114,34 @@ def WriteToPartitionedBigQuery(table_name,
       write_disposition=beam.io.BigQueryDisposition.WRITE_TRUNCATE,
       create_disposition=beam.io.BigQueryDisposition.CREATE_NEVER,
       **kwargs)
+
+
+class UnconvertibleEntityError(Exception):
+  pass
+
+
+def ConvertEntity(convert_fn, read_counter, fail_counter):
+  """Helper to apply a entity->dict convert_fn.
+
+  Increments read_counter and fail_counter as appropriate.  convert_fn should
+  raise UnconvertibleEntityError if the entity could not be converted.
+
+  Expected usage looks like::
+
+    row_dicts_pcoll = (
+        entities_pcoll
+        | 'ConvertEntityToRow(Foo)' >> beam.FlatMap(
+            ConvertEntity(FooEntityToRowDict, entities_read,
+                          failed_entity_transforms))
+    )
+  """
+  def _ConvertEntity(entity):
+    read_counter.inc()
+    try:
+      row_dict = convert_fn(entity)
+    except UnconvertibleEntityError:
+      logging.getLogger().exception('Failed to convert Entity')
+      fail_counter.inc()
+      return []
+    return [row_dict]
+  return _ConvertEntity
