@@ -24,7 +24,7 @@ ResultType = json_results.ResultType
 # expectations.config stay in sync.
 SYSTEM_CONDITION_TAGS = frozenset([
     'android', 'android-go', 'android-low-end', 'android-nexus-5',
-    'android-nexus-5x', 'android-nexus-6', 'android-pixel-2',
+    'android-nexus-5x', 'android-nexus-6', 'android-pixel-2', 'android-pixel-4',
     'chromeos', 'chromeos-board-amd64-generic', 'chromeos-board-betty',
     'chromeos-board-betty-pi-arc', 'chromeos-board-eve', 'chromeos-board-kevin',
     'chromeos-local', 'chromeos-remote', 'desktop', 'fuchsia',
