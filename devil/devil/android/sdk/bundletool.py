@@ -3,13 +3,11 @@
 # found in the LICENSE file.
 """This module wraps bundletool."""
 
-from distutils import spawn  # pylint: disable=no-name-in-module
 import json
 
 from devil import base_error
 from devil import devil_env
 from devil.utils import cmd_helper
-from devil.utils import decorators
 from devil.utils import lazy
 
 with devil_env.SysPath(devil_env.PY_UTILS_PATH):
@@ -17,11 +15,6 @@ with devil_env.SysPath(devil_env.PY_UTILS_PATH):
 
 _bundletool_path = lazy.WeakConstant(lambda: devil_env.config.FetchPath(
     'bundletool'))
-
-
-@decorators.Memoize
-def _FindJava():
-  return spawn.find_executable('java')
 
 
 def ExtractApks(output_dir,
@@ -44,9 +37,6 @@ def ExtractApks(output_dir,
     sdk_version: Target SDK version.
     modules: Extra modules to install.
   """
-  java_path = _FindJava()
-  if not java_path:
-    raise base_error.BaseError("Unable to find 'java' executable on PATH.")
   device_spec = {
       'supportedAbis': abis,
       'supportedLocales': ['%s-%s' % l for l in locales],
@@ -58,7 +48,7 @@ def ExtractApks(output_dir,
     with open(device_spec_path, 'w') as f:
       json.dump(device_spec, f)
     cmd = [
-        java_path,
+        'java',
         '-jar',
         _bundletool_path.read(),
         'extract-apks',
