@@ -101,7 +101,7 @@ class Tab(web_contents.WebContents):
       exceptions.TimeoutException
     """
     if keep_one and len(self._tab_list_backend) <= 1:
-      self._tab_list_backend.New(in_new_window=False, timeout=timeout)
+      self._tab_list_backend.New(in_new_window=False, timeout=timeout, url=None)
     self._tab_list_backend.CloseTab(self.id, timeout)
 
   @property

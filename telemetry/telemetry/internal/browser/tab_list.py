@@ -8,7 +8,7 @@ class TabList(object):
   def __init__(self, tab_list_backend):
     self._tab_list_backend = tab_list_backend
 
-  def New(self, in_new_window=False, timeout=300):
+  def New(self, in_new_window=False, timeout=300, url=None):
     """ Open a new browser context.
 
     Args:
@@ -22,7 +22,7 @@ class TabList(object):
       exceptions.EvaluateException: for the current implementation of opening
         a tab in a new window.
     """
-    return self._tab_list_backend.New(in_new_window, timeout)
+    return self._tab_list_backend.New(in_new_window, timeout, url)
 
   def __iter__(self):
     return self._tab_list_backend.__iter__()

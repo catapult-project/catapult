@@ -66,3 +66,8 @@ class TabListBackendTest(tab_test_case.TabTestCase):
     # should raise an exception.
     self.assertEquals(tabs[1], self.tabs.GetTabById(tabs[1].id))
     self.assertRaises(KeyError, lambda: self.tabs.GetTabById(tabs[0].id))
+
+  @decorators.Enabled('has tabs')
+  def testNewTabWithUrl(self):
+    url = 'chrome://version/'
+    self.assertEqual(url, self.tabs.New(url=url).url)

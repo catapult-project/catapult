@@ -272,7 +272,7 @@ class _DevToolsClientBackend(object):
   def _ListInspectableContexts(self):
     return self._devtools_http.RequestJson('')
 
-  def RequestNewTab(self, timeout, in_new_window=False):
+  def RequestNewTab(self, timeout, in_new_window=False, url=None):
     """Creates a new tab, either in new window or current window.
 
     Returns:
@@ -288,7 +288,7 @@ class _DevToolsClientBackend(object):
     request = {
         'method': 'Target.createTarget',
         'params': {
-            'url': 'about:blank',
+            'url': url if url else 'about:blank',
             'newWindow': in_new_window
         }
     }

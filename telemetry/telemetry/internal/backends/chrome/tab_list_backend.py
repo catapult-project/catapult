@@ -19,7 +19,7 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
   def __init__(self, browser_backend):
     super(TabListBackend, self).__init__(browser_backend)
 
-  def New(self, in_new_window, timeout):
+  def New(self, in_new_window, timeout, url):
     """Makes a new tab of specified type.
 
     Args:
@@ -38,7 +38,7 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
     if not self._browser_backend.supports_tab_control:
       raise NotImplementedError("Browser doesn't support tab control.")
     response = self._browser_backend.devtools_client.RequestNewTab(
-        timeout, in_new_window=in_new_window)
+        timeout, in_new_window=in_new_window, url=url)
     if 'error' in response:
       raise TabUnexpectedResponseException(
           app=self._browser_backend.browser,
