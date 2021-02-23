@@ -88,11 +88,16 @@ def make_full_results(metadata, seconds_since_epoch, all_test_names, results,
     passing_tests = _passing_test_names(results)
     skipped_tests = _skipped_test_names(results)
     failed_tests = set(all_test_names) - passing_tests - skipped_tests
+    crashed_tests = failed_tests & _crashing_test_names(results)
+    timed_out_tests = failed_tests & _timed_out_test_names(results)
+    failed_tests -= crashed_tests | timed_out_tests
 
     full_results['num_failures_by_type'] = OrderedDict()
-    full_results['num_failures_by_type']['FAIL'] = len(failed_tests)
-    full_results['num_failures_by_type']['PASS'] = len(passing_tests)
-    full_results['num_failures_by_type']['SKIP'] = len(skipped_tests)
+    full_results['num_failures_by_type'][ResultType.Failure] = len(failed_tests)
+    full_results['num_failures_by_type'][ResultType.Timeout] = len(timed_out_tests)
+    full_results['num_failures_by_type'][ResultType.Crash] = len(crashed_tests)
+    full_results['num_failures_by_type'][ResultType.Pass] = len(passing_tests)
+    full_results['num_failures_by_type'][ResultType.Skip] = len(skipped_tests)
 
     full_results['num_regressions'] = 0
 
@@ -158,6 +163,11 @@ def _skipped_test_names(results):
 def _passing_test_names(results):
     return set(r.name for r in results.results if r.actual == ResultType.Pass)
 
+def _crashing_test_names(results):
+    return set(r.name for r in results.results if r.actual == ResultType.Crash)
+
+def _timed_out_test_names(results):
+    return set(r.name for r in results.results if r.actual == ResultType.Timeout)
 
 def _results_for_test(test_name, results):
     value = OrderedDict()
@@ -165,12 +175,10 @@ def _results_for_test(test_name, results):
     times = []
     for r in results.results:
         if r.name == test_name:
-            if r.actual == ResultType.Failure:
-                actuals.append('FAIL')
-            elif r.actual == ResultType.Pass:
-                actuals.append('PASS')
-            elif r.actual == ResultType.Skip:
-                actuals.append('SKIP')
+            if r.actual in ResultType.values:
+                actuals.append(r.actual)
+            else:
+                raise ValueError('%r is not a valid result' % r.actual)
 
             # The time a test takes is a floating point number of seconds;
             # if we were to encode this unmodified, then when we converted it

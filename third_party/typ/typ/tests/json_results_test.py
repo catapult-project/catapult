@@ -59,7 +59,8 @@ class TestMakeUploadRequest(unittest.TestCase):
              '\r\n'
              '{"version": 3, "interrupted": false, "path_delimiter": ".", '
              '"seconds_since_epoch": 0, '
-             '"num_failures_by_type": {"FAIL": 0, "PASS": 0, "SKIP": 0}, '
+             '"num_failures_by_type": {"FAIL": 0, "TIMEOUT": 0, "CRASH": 0,'
+             ' "PASS": 0, "SKIP": 0}, '
              '"num_regressions": 0, '
              '"tests": {}}\r\n'
              '---J-S-O-N-R-E-S-U-L-T-S---B-O-U-N-D-A-R-Y---\r\n'))
@@ -71,7 +72,8 @@ class TestMakeFullResults(unittest.TestCase):
     def test_basic(self):
         test_names = ['foo_test.FooTest.test_fail',
                       'foo_test.FooTest.test_pass',
-                      'foo_test.FooTest.test_skip']
+                      'foo_test.FooTest.test_skip',
+                      'foo_test.FooTest.test_crash']
 
         result_set = json_results.ResultSet()
         result_set.add(
@@ -86,6 +88,9 @@ class TestMakeFullResults(unittest.TestCase):
                                            0, 0.3, 0,
                                            expected=[json_results.ResultType.Skip],
                                            unexpected=False))
+        result_set.add(json_results.Result('foo_test.FooTest.test_crash',
+                                           json_results.ResultType.Crash,
+                                           0, 0.2, 0, unexpected=True))
 
         full_results = json_results.make_full_results(
             {'foo': 'bar'}, 0, test_names, result_set)
@@ -96,9 +101,11 @@ class TestMakeFullResults(unittest.TestCase):
             'interrupted': False,
             'num_failures_by_type': {
                 'FAIL': 1,
+                'TIMEOUT': 0,
+                'CRASH': 1,
                 'PASS': 1,
                 'SKIP': 1},
-            'num_regressions': 1,
+            'num_regressions': 2,
             'path_delimiter': '.',
             'seconds_since_epoch': 0,
             'tests': {
@@ -108,6 +115,13 @@ class TestMakeFullResults(unittest.TestCase):
                             'expected': 'PASS',
                             'actual': 'FAIL',
                             'times': [0.1],
+                            'is_unexpected': True,
+                            'is_regression': True,
+                        },
+                        'test_crash': {
+                            'expected': 'PASS',
+                            'actual': 'CRASH',
+                            'times': [0.2],
                             'is_unexpected': True,
                             'is_regression': True,
                         },
@@ -123,6 +137,18 @@ class TestMakeFullResults(unittest.TestCase):
                         }}}},
             'version': 3}
         self.assertEqual(full_results, expected_full_results)
+
+    def test_unknown_result(self):
+        test_names = ['foo_test.FooTest.test_unknown_result']
+
+        result_set = json_results.ResultSet()
+        result_set.add(json_results.Result('foo_test.FooTest.test_unknown_result',
+                                           'UNKNOWN',
+                                           0, 0.2, 0))
+        with self.assertRaises(ValueError) as ctx:
+            full_results = json_results.make_full_results(
+                    {'foo': 'bar'}, 0, test_names, result_set)
+        self.assertIn('UNKNOWN', str(ctx.exception))
 
     def test_artifacts_and_types_added(self):
         ar = FakeArtifacts()
