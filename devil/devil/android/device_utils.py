@@ -3589,21 +3589,21 @@ class DeviceUtils(object):
     return json.dumps(obj, separators=(',', ':'))
 
   @classmethod
-  def parallel(cls, devices, async=False):
+  def parallel(cls, devices, asyn=False):
     """Creates a Parallelizer to operate over the provided list of devices.
 
     Args:
       devices: A list of either DeviceUtils instances or objects from
                from which DeviceUtils instances can be constructed. If None,
                all attached devices will be used.
-      async: If true, returns a Parallelizer that runs operations
+      asyn: If true, returns a Parallelizer that runs operations
              asynchronously.
 
     Returns:
       A Parallelizer operating over |devices|.
     """
     devices = [d if isinstance(d, cls) else cls(d) for d in devices]
-    if async:
+    if asyn:
       return parallelizer.Parallelizer(devices)
     else:
       return parallelizer.SyncParallelizer(devices)

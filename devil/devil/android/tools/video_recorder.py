@@ -164,7 +164,7 @@ def main():
 
   parallel_devices = device_utils.DeviceUtils.parallel(script_common.GetDevices(
       args.devices, args.denylist_file),
-                                                       async=True)
+                                                       asyn=True)
   stop_recording = threading.Event()
   running_recording = parallel_devices.pMap(record_video, stop_recording)
   print 'Recording. Press Enter to stop.',
