@@ -56,7 +56,7 @@ found in the LICENSE file.
         <paper-input id="bug-id" label="Bug ID" value="{{bug_id::input}}"></paper-input>
         <paper-input id="start_commit" label="Start Commit" value="{{start_commit::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
         <paper-input id="end_commit" label="End Commit" value="{{end_commit::input}}" allowed-pattern="[A-Fa-f0-9]" required auto-validate prevent-invalid-input></paper-input>
-        <paper-input id="story-filter" label="Story Filter (optional)" value="{{story_filter::input}}" disabled$="[[loading]]"></paper-input>
+        <paper-input id="story-filter" label="Story" value="{{story_filter::input}}" disabled$="[[loading]]"></paper-input>
         <paper-input id="pin" label="Patch to Apply to the Entire Job (optional)" value="{{pin::input}}"></paper-input>
         <paper-radio-group id="bisect_mode" selected="performance">
           <paper-radio-button id="performance" name="performance">Performance</paper-radio-button>
