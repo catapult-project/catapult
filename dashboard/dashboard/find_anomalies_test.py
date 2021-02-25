@@ -110,7 +110,10 @@ def _MakeSampleChangePoint(x_value, median_before, median_after):
       std_dev_before=None,
       t_statistic=None,
       degrees_of_freedom=None,
-      p_value=None)
+      p_value=None,
+      extended_start=x_value,
+      extended_end=x_value,
+  )
 
 
 class EndRevisionMatcher(object):
@@ -601,8 +604,8 @@ class ProcessAlertsTest(testing_common.TestCase):
     new_anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(1, len(new_anomalies))
     self.assertEqual(anomaly.UP, new_anomalies[0].direction)
-    self.assertEqual(241536, new_anomalies[0].start_revision)
-    self.assertEqual(241537, new_anomalies[0].end_revision)
+    self.assertEqual(241533, new_anomalies[0].start_revision)
+    self.assertEqual(241546, new_anomalies[0].end_revision)
 
   def testProcessTest_RefineAnomalyPlacement_OffByOneBefore(self):
     testing_common.AddTests(
@@ -877,8 +880,8 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertEqual(anomaly.UP, new_anomalies[0].direction)
     self.assertEqual(805429, new_anomalies[0].start_revision)
     self.assertEqual(805457, new_anomalies[0].end_revision)
-    self.assertEqual(805360, new_anomalies[1].start_revision)
-    self.assertEqual(805384, new_anomalies[1].end_revision)
+    self.assertEqual(805315, new_anomalies[1].start_revision)
+    self.assertEqual(805428, new_anomalies[1].end_revision)
 
   def testProcessTest__RefineAnomalyPlacement_BalancedEstimator1(self):
     testing_common.AddTests(

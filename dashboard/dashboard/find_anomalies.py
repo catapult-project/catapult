@@ -360,8 +360,10 @@ def _MakeAnomalyEntity(change_point, test, stat, rows):
   Returns:
     An Anomaly entity, which is not yet put in the datastore.
   """
-  end_rev = change_point.x_value
-  start_rev = _GetImmediatelyPreviousRevisionNumber(end_rev, rows) + 1
+  end_rev = change_point.extended_end
+  start_rev = _GetImmediatelyPreviousRevisionNumber(
+      change_point.extended_start, rows) + 1
+  print(change_point.extended_start, change_point.extended_end)
   display_start = display_end = None
   if test.master_name == 'ClankInternal':
     display_start, display_end = _GetDisplayRange(change_point.x_value, rows)

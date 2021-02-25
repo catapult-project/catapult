@@ -75,7 +75,11 @@ class ChangePoint(
             # Results of the Welch's t-test for values before and after.
             't_statistic',
             'degrees_of_freedom',
-            'p_value'))):
+            'p_value',
+            # Extended possible change point range
+            'extended_start',
+            'extended_end',
+        ))):
   """A ChangePoint represents a change in a series -- a potential alert."""
   _slots = None
 
@@ -118,9 +122,9 @@ def FindChangePoints(series,
   series = series[-max_window_size:]
   _, y_values = zip(*series)
 
-  candidate_indices = []
+  candidate_points = []
   try:
-    candidate_indices = clustering_change_detector.ClusterAndFindSplit(y_values)
+    candidate_points = clustering_change_detector.ClusterAndFindSplit(y_values)
   except clustering_change_detector.InsufficientData:
     pass
 
@@ -128,29 +132,29 @@ def FindChangePoints(series,
     return ('rev:%s' % (series[idx][0],), 'idx:%s' % (idx,))
 
   logging.info('E-Divisive candidate change-points: %s',
-               [RevAndIdx(idx) for idx in candidate_indices])
+               [RevAndIdx(idx) for idx, _ in candidate_points])
   change_points = []
-  for potential_index in reversed(sorted(candidate_indices)):
+  for point in reversed(sorted(candidate_points)):
     passed_filter, reject_reason = _PassesThresholds(
         y_values,
-        potential_index,
+        point[0],
         min_segment_size=min_segment_size,
         min_absolute_change=min_absolute_change,
         min_relative_change=min_relative_change,
         min_steppiness=min_steppiness,
         multiple_of_std_dev=multiple_of_std_dev)
     if passed_filter:
-      change_points.append(potential_index)
+      change_points.append(point)
     else:
       logging.debug('Rejected %s as potential index (%s); reason = %s',
-                    potential_index, RevAndIdx(potential_index), reject_reason)
+                    point, RevAndIdx(point[0]), reject_reason)
 
   logging.info('E-Divisive potential change-points: %s',
-               [RevAndIdx(idx) for idx in change_points])
-  return [MakeChangePoint(series, index) for index in change_points]
+               [RevAndIdx(idx) for idx, _ in change_points])
+  return [MakeChangePoint(series, point) for point in change_points]
 
 
-def MakeChangePoint(series, split_index):
+def MakeChangePoint(series, point):
   """Makes a ChangePoint object for the given series at the given point.
 
   Args:
@@ -160,6 +164,7 @@ def MakeChangePoint(series, split_index):
   Returns:
     A ChangePoint object.
   """
+  split_index, (lower, upper) = point
   assert 0 <= split_index < len(series)
   x_values, y_values = zip(*series)
   left, right = y_values[:split_index], y_values[split_index:]
@@ -177,7 +182,10 @@ def MakeChangePoint(series, split_index):
       std_dev_before=math_utils.StandardDeviation(left),
       t_statistic=ttest_results.t,
       degrees_of_freedom=ttest_results.df,
-      p_value=ttest_results.p)
+      p_value=ttest_results.p,
+      extended_start=x_values[lower],
+      extended_end=x_values[upper],
+  )
 
 
 def _PassesThresholds(values, split_index, min_segment_size,

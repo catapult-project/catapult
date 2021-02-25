@@ -38,6 +38,9 @@ _MIN_SIGNIFICANCE = 0.95
 # testing use to find potential rearrangements of the underlying data.
 _MAX_SUBSAMPLING_LENGTH = 20
 
+# Extend the change range based on the estimate value in the range of tolerance.
+_CHANGE_RANGE_TOLERANCE = 0.90
+
 
 class Error(Exception):
   pass
@@ -171,6 +174,24 @@ def ChangePointEstimator(sequence):
   return (max_index + margin, max_estimate, True)
 
 
+def ExtendChangePointRange(change_point, sequence):
+  max_estimate = Estimator(sequence, change_point)
+
+  left, right = 1, len(sequence) - 1
+
+  for index in range(change_point, 0, -1):
+    if Estimator(sequence, index) < _CHANGE_RANGE_TOLERANCE * max_estimate:
+      left = index + 1
+      break
+
+  for index in range(change_point, len(sequence) - 1):
+    if Estimator(sequence, index) < _CHANGE_RANGE_TOLERANCE * max_estimate:
+      right = index - 1
+      break
+
+  return (left, right)
+
+
 def ClusterAndFindSplit(values, rand=None):
   """Finds a list of indices where we can detect significant changes.
 
@@ -225,7 +246,12 @@ def ClusterAndFindSplit(values, rand=None):
         probability >= _MIN_SIGNIFICANCE, probability)
     if probability < _MIN_SIGNIFICANCE:
       continue
-    candidate_indices.add(start + partition_point)
+    lower, upper = ExtendChangePointRange(partition_point, segment)
+    if lower != partition_point or upper != partition_point:
+      logging.debug('Extending change range from %d to %d-%d.',
+                    partition_point, lower, upper)
+    candidate_indices.add(
+        (start + partition_point, (start + lower, start + upper)))
 
     exploration_queue.append((start, start + partition_point))
     exploration_queue.append((start + partition_point, end))

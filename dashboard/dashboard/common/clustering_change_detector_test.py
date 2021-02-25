@@ -51,13 +51,13 @@ class ChangeDetectorTest(unittest.TestCase):
     # This tests that we can find a change point in a contrived scenario.
     sequence = ([1] * 10) + ([10] * 10)
     splits = ccd.ClusterAndFindSplit(sequence, self.rand)
-    self.assertIn(10, splits)
+    self.assertIn((10, (10, 10)), splits)
 
   def testClusterAndFindSplit_Steps(self):
     # We actually can find the first step very well.
     sequence = ([1] * 10) + ([2] * 10) + ([1] * 10)
     splits = ccd.ClusterAndFindSplit(sequence, self.rand)
-    self.assertIn(10, splits)
+    self.assertIn((10, (10, 10)), splits)
 
   def testClusterAndFindSplit_Spikes(self):
     # E-divisive can identify spikes very well, but it won't pass permutation
@@ -69,12 +69,21 @@ class ChangeDetectorTest(unittest.TestCase):
         lambda: ccd.ClusterAndFindSplit(sequence, self.rand),
     )
 
+  def testClusterAndFindSplit_Slope(self):
+    # E-divisive can identify spikes very well, but it won't pass permutation
+    # tests because spikes is not significant enough to identify as
+    # adistribution change.
+    sequence = ([1] * 15) + [800] + ([1000] * 20)
+    splits = ccd.ClusterAndFindSplit(sequence, self.rand)
+    self.assertIn((15, (15, 16)), splits)
+
   def testClusterAndFindSplit_SpikeAndLevelChange(self):
     # We actually can identify the spike, the drop, and the level change.
     sequence = ([1] * 50) + [1000] * 10 + [1] * 50 + ([500] * 50)
     splits = ccd.ClusterAndFindSplit(sequence, self.rand)
     logging.debug('Splits = %s', splits)
-    self.assertEqual([50, 60, 110], splits)
+    self.assertEqual(
+        [(50, (48, 50)), (60, (60, 60)), (110, (108, 113))], splits)
 
   def testClusterAndFindSplit_Windowing(self):
     # We contrive a case where we'd like to find change points by doing a
@@ -92,7 +101,7 @@ class ChangeDetectorTest(unittest.TestCase):
         SlidingWindow(master_sequence, 50, 10)):
       try:
         split_index = (index_offset * 10) + max(
-            ccd.ClusterAndFindSplit(sequence, self.rand))
+            idx for idx, _ in ccd.ClusterAndFindSplit(sequence, self.rand))
         collected_indices.add(split_index)
       except ccd.InsufficientData:
         continue
@@ -102,7 +111,7 @@ class ChangeDetectorTest(unittest.TestCase):
     sequence = ([1] * 10 + [2] * 10)
     splits = ccd.ClusterAndFindSplit(sequence, self.rand)
     logging.debug('Splits = %s', splits)
-    self.assertEqual([10], splits)
+    self.assertEqual([(10, (10, 10))], splits)
 
   def testClusterAndFindSplit_N_Pattern(self):
     # In this test case we're ensuring that permutation testing is finding the
@@ -130,7 +139,7 @@ class ChangeDetectorTest(unittest.TestCase):
 
     # Instead of asserting that we have specific indices, we're testing that the
     # splits found are within certain ranges.
-    self.assertTrue(any(50 <= c < 100 for c in splits))
+    self.assertTrue(any(50 <= c < 100 for c, _ in splits))
 
   def testClusterAndFindSplit_InifiniteLooper(self):
     # We construct a case where we find a clear partition point in offset 240,
@@ -139,7 +148,7 @@ class ChangeDetectorTest(unittest.TestCase):
     sequence = [100] * 120 + [200] * 10 + [100] * 110 + [500] * 2
     splits = ccd.ClusterAndFindSplit(sequence, self.rand)
     logging.debug('Splits = %s', splits)
-    self.assertIn(240, splits)
+    self.assertIn((240, (240, 241)), splits)
     self.assertEqual(sequence[240], 500)
-    self.assertIn(120, splits)
+    self.assertIn((120, (114, 120)), splits)
     self.assertEqual(sequence[120], 200)
