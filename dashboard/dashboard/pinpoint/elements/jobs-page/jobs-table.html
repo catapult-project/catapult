@@ -188,9 +188,9 @@ found in the LICENSE file.
 
         const d = new Date(dateString + 'Z');
         return d.getFullYear() +
-          '-' + pad(d.getMonth()) +
+          '-' + pad(d.getMonth() + 1) +
           '-' + pad(d.getDate()) +
-          'T' + pad(d.getHours()) +
+          ' T' + pad(d.getHours()) +
           ':' + pad(d.getMinutes()) +
           ':' + pad(d.getSeconds());
       },
