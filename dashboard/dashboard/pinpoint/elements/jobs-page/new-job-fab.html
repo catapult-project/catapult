@@ -579,6 +579,9 @@ found in the LICENSE file.
         if (configuration.toLowerCase().includes('webview')) {
           return 'performance_webview_test_suite';
         }
+        if (configuration.toLowerCase().includes('eve')) {
+          return 'performance_test_suite_eve';
+        }
         if (benchmark.startsWith('xr')) {
           return 'vr_perf_tests';
         }

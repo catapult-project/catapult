@@ -161,6 +161,12 @@ def GetIsolateTarget(bot_name, suite):
   # configuration).
   if 'webview' in bot_name.lower():
     return 'performance_webview_test_suite'
+
+  # Special cases for CrOS tests -
+  # performance_test_suites are device type specific.
+  if 'eve' in bot_name.lower():
+    return 'performance_test_suite_eve'
+
   return 'performance_test_suite'
 
 

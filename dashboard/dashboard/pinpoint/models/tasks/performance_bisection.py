@@ -654,7 +654,8 @@ class Serializer(evaluators.FilteringEvaluator):
 
 
 EXPERIMENTAL_TELEMETRY_BENCHMARKS = {
-    'performance_test_suite', 'performance_webview_test_suite',
+    'performance_test_suite', 'performance_test_suite_eve',
+    'performance_webview_test_suite',
     'telemetry_perf_tests', 'telemetry_perf_webview_tests'
 }
 EXPERIMENTAL_VR_BENCHMARKS = {'vr_perf_tests'}

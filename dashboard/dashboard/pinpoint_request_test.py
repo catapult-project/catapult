@@ -184,6 +184,30 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
 
   @mock.patch.object(utils, 'IsValidSheriffUser',
                      mock.MagicMock(return_value=True))
+  def testPinpointParams_IsolateTarget_LacrosEve(self):
+    params = {
+        'test_path':
+            'ChromiumPerf/lacros-eve-perf/system_health/foo',
+        'start_commit':
+            'abcd1234',
+        'end_commit':
+            'efgh5678',
+        'extra_test_args':
+            '',
+        'story_filter':
+            '',
+    }
+    results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+    self.assertEqual('lacros-eve-perf', results['configuration'])
+    self.assertEqual('system_health', results['benchmark'])
+    self.assertEqual('performance_test_suite_eve', results['target'])
+    self.assertEqual('foo@chromium.org', results['user'])
+    self.assertEqual('abcd1234', results['base_git_hash'])
+    self.assertEqual('efgh5678', results['end_git_hash'])
+
+  @mock.patch.object(utils, 'IsValidSheriffUser',
+                     mock.MagicMock(return_value=True))
   @mock.patch.object(pinpoint_request.crrev_service, 'GetNumbering',
                      mock.MagicMock(return_value={'git_sha': 'abcd'}))
   def testPinpointParams_ConvertsCommitsToGitHashes(self):
@@ -477,6 +501,41 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('system_health', results['benchmark'])
     self.assertEqual('foo', results['chart'])
     self.assertEqual('performance_webview_test_suite', results['target'])
+    self.assertEqual('foo@chromium.org', results['user'])
+    self.assertEqual('abcd1234', results['start_git_hash'])
+    self.assertEqual('efgh5678', results['end_git_hash'])
+    self.assertEqual('performance', results['comparison_mode'])
+    self.assertEqual(1, results['bug_id'])
+
+  @mock.patch.object(utils, 'IsValidSheriffUser',
+                     mock.MagicMock(return_value=True))
+  def testPinpointParams_IsolateTarget_LacrosEve(self):
+    testing_common.AddTests(['ChromiumPerf'], ['lacros-eve-perf'],
+                            {'system_health': {
+                                'foo': {}
+                            }})
+    params = {
+        'test_path':
+            'ChromiumPerf/lacros-eve-perf/system_health/foo',
+        'start_commit':
+            'abcd1234',
+        'end_commit':
+            'efgh5678',
+        'bug_id':
+            1,
+        'bisect_mode':
+            'performance',
+        'story_filter':
+            '',
+        'pin':
+            '',
+    }
+    results = pinpoint_request.PinpointParamsFromBisectParams(params)
+
+    self.assertEqual('lacros-eve-perf', results['configuration'])
+    self.assertEqual('system_health', results['benchmark'])
+    self.assertEqual('foo', results['chart'])
+    self.assertEqual('performance_test_suite_eve', results['target'])
     self.assertEqual('foo@chromium.org', results['user'])
     self.assertEqual('abcd1234', results['start_git_hash'])
     self.assertEqual('efgh5678', results['end_git_hash'])
