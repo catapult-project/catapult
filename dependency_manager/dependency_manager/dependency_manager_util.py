@@ -7,7 +7,7 @@ import shutil
 import stat
 import subprocess
 import sys
-import zipfile_2_7_13 as zipfile
+import zipfile
 
 from dependency_manager import exceptions
 
