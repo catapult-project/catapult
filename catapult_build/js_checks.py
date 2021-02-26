@@ -4,7 +4,6 @@
 
 import re
 
-import eslint
 from py_vulcanize import strip_js_comments
 
 from catapult_build import parse_html
@@ -46,14 +45,6 @@ class JSChecker(object):
       error_lines += CheckStrictMode(
           '\n'.join(contents),
           is_html_file=f.LocalPath().endswith('.html'))
-
-    if affected_js_files:
-      success, eslint_output = eslint.RunEslint(
-          [f.AbsoluteLocalPath() for f in affected_js_files])
-
-      if not success:
-        error_lines.append('\neslint found lint errors:')
-        error_lines.append(eslint_output)
 
     if error_lines:
       error_lines.insert(0, 'Found JavaScript style violations:')
