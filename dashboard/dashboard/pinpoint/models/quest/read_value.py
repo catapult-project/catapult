@@ -224,6 +224,7 @@ def CreateHistogramSetByTestPathDict(histograms, ignore_grouping_label=False):
 def FindTraceUrls(histograms):
   # Get and cache any trace URLs.
   unique_trace_urls = set()
+  trace_names = {}
   for hist in histograms:
     trace_urls = hist.diagnostics.get(reserved_infos.TRACE_URLS.name)
     # TODO(simonhatch): Remove this sometime after May 2018. We had a
@@ -233,10 +234,17 @@ def FindTraceUrls(histograms):
     # https://github.com/catapult-project/catapult/issues/4243
     if trace_urls and not isinstance(trace_urls, diagnostic_ref.DiagnosticRef):
       unique_trace_urls.update(trace_urls)
+      for url in trace_urls:
+        trace_name = hist.diagnostics.get(reserved_infos.STORIES.name)
+        if not trace_name:
+          trace_name = url.split('/')[-1]
+        else:
+          trace_name = trace_name.GetOnlyElement()
+        trace_names[url] = trace_name
 
   sorted_urls = sorted(unique_trace_urls)
 
-  return [{'name': t.split('/')[-1], 'url': t} for t in sorted_urls]
+  return [{'name': trace_names[t], 'url': t} for t in sorted_urls]
 
 
 def _GetValuesOrStatistic(statistic, hist):

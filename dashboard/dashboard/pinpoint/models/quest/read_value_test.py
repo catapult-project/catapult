@@ -464,6 +464,8 @@ class ReadValueTest(_ReadValueExecutionTest):
     hist3.diagnostics[reserved_infos.TRACE_URLS.name] = (
         generic_set.GenericSet(['trace_url2']))
     histograms = histogram_set.HistogramSet([hist, hist2, hist3])
+    histograms.AddSharedDiagnosticToAllHistograms(
+        reserved_infos.STORIES.name, generic_set.GenericSet(['story']))
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json', metric=hist.name)
@@ -480,17 +482,17 @@ class ReadValueTest(_ReadValueExecutionTest):
             'details': [
                 {
                     'key': 'trace',
-                    'value': 'trace_url1',
+                    'value': 'story',
                     'url': 'trace_url1',
                 },
                 {
                     'key': 'trace',
-                    'value': 'trace_url2',
+                    'value': 'story',
                     'url': 'trace_url2',
                 },
                 {
                     'key': 'trace',
-                    'value': 'trace_url3',
+                    'value': 'story',
                     'url': 'trace_url3',
                 },
             ],
