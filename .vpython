@@ -24,11 +24,6 @@
 
 python_version: "2.7"
 
-# Used repo-wide for py3 migration.
-wheel: <
-  name: "infra/python/wheels/six-py2_py3"
-  version: "version:1.15.0"
->
 
 # Used by:
 #   dashboard/
@@ -138,6 +133,10 @@ wheel: <
 wheel: <
   name: "infra/python/wheels/httplib2-py2_py3"
   version: "version:0.10.3"
+>
+wheel: <
+  name: "infra/python/wheels/six-py2_py3"
+  version: "version:1.10.0"
 >
 wheel: <
   name: "infra/python/wheels/pytz-py2_py3"
