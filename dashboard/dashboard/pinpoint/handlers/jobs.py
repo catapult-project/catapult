@@ -28,16 +28,29 @@ class Jobs(webapp2.RequestHandler):
 
 
 def _GetJobs(options, query_filter):
-  query = job_module.Job.query()
+  query = job_module.Job.query().order(-job_module.Job.created)
 
   # Query filters should a string as described in https://google.aip.dev/160
-  # For now we only support filtering on user, so we'll look for the 'user='
-  # field in the string.
-  for f in query_filter:
+  # We implement a simple parser for the query_filter provided, to allow us to
+  # support a simple expression language expressed in the AIP.
+  # FIXME: Implement a validating parser.
+  def _ParseExpressions():
+    # Yield tokens as we parse them.
+    # We only support 'AND' as a keyword and ignore any 'OR's.
+    for q in query_filter:
+      parts = q.split(' ')
+      for p in parts:
+        if p == 'AND':
+          continue
+        yield p
+
+  for f in _ParseExpressions():
     if f.startswith('user='):
       query = query.filter(job_module.Job.user == f[len('user='):])
+    elif f.startswith('configuration='):
+      query = query.filter(
+          job_module.Job.configuration == f[len('configuration='):])
 
-  query = query.order(-job_module.Job.created)
   job_future = query.fetch_async(limit=_MAX_JOBS_TO_FETCH)
   count_future = query.count_async(limit=_MAX_JOBS_TO_COUNT)
 
@@ -48,15 +61,13 @@ def _GetJobs(options, query_filter):
   }
 
   jobs = job_future.get_result()
+  service_account_email = utils.ServiceAccountEmail()
+  logging.debug('service account email = %s', service_account_email)
 
   def _FixupEmails(j):
-    if 'user' not in j:
-      return j
-    email = j['user']
-    if email == utils.ServiceAccountEmail():
-      email = 'chromeperf (automation)'
-    logging.debug('email = %s', email)
-    j['user'] = email
+    user = j.get('user')
+    if user and user == service_account_email:
+      j['user'] = 'chromeperf (automation)'
     return j
 
   for job in jobs:
