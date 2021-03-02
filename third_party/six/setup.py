@@ -1,4 +1,4 @@
-# Copyright (c) 2010-2015 Benjamin Peterson
+# Copyright (c) 2010-2020 Benjamin Peterson
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +20,9 @@
 
 from __future__ import with_statement
 
+# Six is a dependency of setuptools, so using setuptools creates a
+# circular dependency when building a Python stack from source. We
+# therefore allow falling back to distutils to install six.
 try:
     from setuptools import setup
 except ImportError:
@@ -28,6 +31,7 @@ except ImportError:
 import six
 
 six_classifiers = [
+    "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python :: 2",
     "Programming Language :: Python :: 3",
     "Intended Audience :: Developers",
@@ -36,17 +40,19 @@ six_classifiers = [
     "Topic :: Utilities",
 ]
 
-with open("README", "r") as fp:
+with open("README.rst", "r") as fp:
     six_long_description = fp.read()
 
 setup(name="six",
       version=six.__version__,
       author="Benjamin Peterson",
       author_email="benjamin@python.org",
-      url="http://pypi.python.org/pypi/six/",
+      url="https://github.com/benjaminp/six",
+      tests_require=["pytest"],
       py_modules=["six"],
       description="Python 2 and 3 compatibility utilities",
       long_description=six_long_description,
       license="MIT",
-      classifiers=six_classifiers
+      classifiers=six_classifiers,
+      python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*",
       )
