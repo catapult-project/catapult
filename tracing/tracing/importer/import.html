@@ -235,11 +235,23 @@ tr.exportTo('tr.importer', function() {
       // Create auditors
       let auditors = [];
       addImportStage('Adding arbitrary data to model...', () => {
-        auditors = this.importOptions_.auditorConstructors.map(
-            auditorConstructor => new auditorConstructor(this.model_));
+        for (const auditorConstructor of
+               this.importOptions_.auditorConstructors) {
+          try {
+            auditors.push(new auditorConstructor(this.model_));
+          } catch (e) {
+            console.error('Failed to construct an auditor:');
+            console.error(e);
+          }
+        }
         auditors.forEach((auditor) => {
-          auditor.runAnnotate();
-          auditor.installUserFriendlyCategoryDriverIfNeeded();
+          try {
+            auditor.runAnnotate();
+            auditor.installUserFriendlyCategoryDriverIfNeeded();
+          } catch (e) {
+            console.error('Failed to run an auditor:');
+            console.error(e);
+          }
         });
       });
 
@@ -275,8 +287,13 @@ tr.exportTo('tr.importer', function() {
 
       // Build the UserModel.
       addImportStage('Building UserModel...', () => {
-        const userModelBuilder = new tr.importer.UserModelBuilder(this.model_);
-        userModelBuilder.buildUserModel();
+        try {
+          const userModelBuilder = new tr.importer.UserModelBuilder(this.model_);
+          userModelBuilder.buildUserModel();
+        } catch (e) {
+          console.error('Failed to build user model');
+          console.error(e);
+        }
       });
 
       // Sort Expectations.
