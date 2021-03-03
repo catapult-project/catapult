@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
       const thread = process.getOrCreateThread(2);
       thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'partition_alloc',
-        title: 'PCScan',
+        title: 'PCScan.Scanner',
         start: 200,
         duration: 100,
         cpuStart: 200,
@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
       }));
       thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'partition_alloc',
-        title: 'PCScan.Clear',
+        title: 'PCScan.Scanner.Clear',
         start: 200,
         duration: 16,
         cpuStart: 200,
@@ -41,7 +41,7 @@ tr.b.unittest.testSuite(function() {
       }));
       thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'partition_alloc',
-        title: 'PCScan.Scan',
+        title: 'PCScan.Scanner.Scan',
         start: 216,
         duration: 32,
         cpuStart: 216,
@@ -49,7 +49,15 @@ tr.b.unittest.testSuite(function() {
       }));
       thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'partition_alloc',
-        title: 'PCScan.Sweep',
+        title: 'PCScan.Mutator.Scan',
+        start: 232,
+        duration: 16,
+        cpuStart: 232,
+        cpuDuration: 16
+      }));
+      thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'partition_alloc',
+        title: 'PCScan.Scanner.Sweep',
         start: 248,
         duration: 42,
         cpuStart: 248,
@@ -62,13 +70,15 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
     tr.metrics.pa.pcscanMetric(histograms, makeTestModelFor(processName));
     assert.closeTo(100, histograms.getHistogramNamed(
-        'pa:pcscan:' + processName).average, 1e-2);
+        'pa:pcscan:' + processName + ':scanner').average, 1e-2);
     assert.closeTo(16, histograms.getHistogramNamed(
-        'pa:pcscan:' + processName + ':clear').average, 1e-2);
+        'pa:pcscan:' + processName + ':scanner:clear').average, 1e-2);
     assert.closeTo(32, histograms.getHistogramNamed(
-        'pa:pcscan:' + processName + ':scan').average, 1e-2);
+        'pa:pcscan:' + processName + ':scanner:scan').average, 1e-2);
+    assert.closeTo(16, histograms.getHistogramNamed(
+        'pa:pcscan:' + processName + ':mutator:scan').average, 1e-2);
     assert.closeTo(42, histograms.getHistogramNamed(
-        'pa:pcscan:' + processName + ':sweep').average, 1e-2);
+        'pa:pcscan:' + processName + ':scanner:sweep').average, 1e-2);
   }
 
   test('pcscanMetricForBrowser', function() {

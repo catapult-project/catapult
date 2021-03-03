@@ -21,18 +21,22 @@ found in the LICENSE file.
  * are no pointers in memory which point to explicitly freed objects before
  * actually releasing their memory.
  *
- * pa:pcscan:<process_name>
+ * pa:pcscan:<process_name>:scanner
  * ========================
  * The overall time spent on scanning the partition alloc heap for a specific
  * process (can be either 'browser_process' or 'renderer_processes').
  *
- * pa:pcscan:<process_name>:<phase>
+ * pa:pcscan:<process_name>:scanner:<phase>
  * ========================
  * Time spent on a certain PCScan phase ('clear', 'scan' or 'sweep').
+ *
+ * pa:pcscan:<process_name>:mutator:scan
+ * ========================
+ * Time spent on scanning the heap from mutator threads (in safepoints).
  */
 tr.exportTo('tr.metrics.pa', function() {
   function pcscanMetric(histograms, model) {
-    function createNumericForProcess(name, processName, desc) {
+    function createNumericForProcess(name, processName, context, desc) {
       function createNumericForEventTime(name, desc) {
         const n = new tr.v.Histogram(name,
             tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
@@ -46,21 +50,23 @@ tr.exportTo('tr.metrics.pa', function() {
           sum: true});
         return n;
       }
-      const scheme = ['pa', 'pcscan', processName];
+      const scheme = ['pa', 'pcscan', processName, context];
       if (name) scheme.push(name);
       return createNumericForEventTime(scheme.join(':'), desc);
     }
 
     function createHistsForProcess(processName) {
       return {
-        scan: createNumericForProcess('scan', processName,
-            'Time for scanning heap for quarantine pointers'),
-        sweep: createNumericForProcess('sweep', processName,
+        scan: createNumericForProcess('scan', processName, 'scanner',
+            'Time for scanning heap for quarantine pointers on concurrent threads'),
+        sweep: createNumericForProcess('sweep', processName, 'scanner',
             'Time for sweeping quarantine'),
-        clear: createNumericForProcess('clear', processName,
+        clear: createNumericForProcess('clear', processName, 'scanner',
             'Time for clearing quarantine entries'),
-        total: createNumericForProcess('', processName,
-            'Total time for PCScan execution')
+        total: createNumericForProcess('', processName, 'scanner',
+            'Total time for PCScan execution on concurrent threads'),
+        mutator_scan: createNumericForProcess('scan', processName, 'mutator',
+            'Time for scanning heap for quarantine pointers on mutator threads'),
       };
     }
 
@@ -68,14 +74,16 @@ tr.exportTo('tr.metrics.pa', function() {
       if (!(slice instanceof tr.model.ThreadSlice)) return;
       if (slice.category !== 'partition_alloc') return;
 
-      if (slice.title === 'PCScan.Scan') {
+      if (slice.title === 'PCScan.Scanner.Scan') {
         hists.scan.addSample(slice.duration);
-      } else if (slice.title === 'PCScan.Sweep') {
+      } else if (slice.title === 'PCScan.Scanner.Sweep') {
         hists.sweep.addSample(slice.duration);
-      } else if (slice.title === 'PCScan.Clear') {
+      } else if (slice.title === 'PCScan.Scanner.Clear') {
         hists.clear.addSample(slice.duration);
-      } else if (slice.title === 'PCScan') {
+      } else if (slice.title === 'PCScan.Scanner') {
         hists.total.addSample(slice.duration);
+      } else if (slice.title === 'PCScan.Mutator.Scan') {
+        hists.mutator_scan.addSample(slice.duration);
       }
     }
 
