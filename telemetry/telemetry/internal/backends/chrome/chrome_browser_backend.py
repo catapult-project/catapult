@@ -304,3 +304,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   def ExecuteBrowserCommand(self, command_id, timeout):
     self.devtools_client.ExecuteBrowserCommand(command_id, timeout)
+
+  def SetDownloadBehavior(self, behavior, downloadPath, timeout):
+    self.devtools_client.SetDownloadBehavior(behavior, downloadPath, timeout)

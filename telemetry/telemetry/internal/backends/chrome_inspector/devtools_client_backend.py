@@ -501,6 +501,16 @@ class _DevToolsClientBackend(object):
     }
     self._browser_websocket.SyncRequest(request, timeout)
 
+  def SetDownloadBehavior(self, behavior, downloadPath, timeout):
+    request = {
+        'method': 'Browser.setDownloadBehavior',
+        'params': {
+            'behavior': behavior,
+            'downloadPath': downloadPath,
+        }
+    }
+    self._browser_websocket.SyncRequest(request, timeout)
+
 
 class _DevToolsContextMapBackend(object):
   def __init__(self, devtools_client):

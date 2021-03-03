@@ -421,3 +421,7 @@ class BrowserBackend(app_backend.AppBackend):
   def ExecuteBrowserCommand(
       self, command_id, timeout): # pylint: disable=unused-argument
     raise exceptions.StoryActionError('Execute browser command not supported')
+
+  def SetDownloadBehavior(
+      self, behavior, downloadPath, timeout): # pylint: disable=unused-argument
+    raise exceptions.StoryActionError('Set download behavior not supported')
