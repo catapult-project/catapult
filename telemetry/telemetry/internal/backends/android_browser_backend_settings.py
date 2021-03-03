@@ -269,78 +269,62 @@ ANDROID_CONTENT_SHELL = AndroidBrowserBackendSettings(
     supports_spki_list=True,
     additional_apk_name=None)
 
-# TODO(crbug.com/1038137): Add reference setting for android-weblayer
 ANDROID_WEBLAYER = WebLayerBackendSettings(
     browser_type='android-weblayer')
 
-# TODO(crbug.com/1038137): Add reference setting for android-weblayer
 ANDROID_WEBLAYER_GOOGLE_BUNDLE = WebLayerBundleBackendSettings(
     browser_type='android-weblayer-google-bundle',
     apk_name='monochrome_bundle')
 
-# TODO(crbug.com/1038137): Add reference setting for android-weblayer
 ANDROID_WEBLAYER_STANDALONE_GOOGLE_BUNDLE = WebLayerBundleBackendSettings(
     browser_type='android-weblayer-standalone-google-bundle',
     apk_name='system_webview_google_bundle')
 
-# TODO(crbug.com/1038137): Add reference setting for android-webview
 ANDROID_WEBVIEW = WebViewBackendSettings(
     browser_type='android-webview')
 
-# TODO(crbug.com/1038137): Add reference setting for android-webview
 ANDROID_WEBVIEW_STANDALONE = WebViewBackendSettings(
     apk_name='SystemWebView.apk',
     browser_type='android-webview-standalone')
 
-# TODO(crbug.com/1038137): Add reference setting for android-webview
 ANDROID_WEBVIEW_STANDALONE_BUNDLE = WebViewBundleBackendSettings(
     browser_type='android-webview-standalone-bundle',
     apk_name='system_webview_bundle')
 
-# TODO(crbug.com/1038137): Add reference setting for android-webview
 ANDROID_WEBVIEW_TRICHROME = WebViewBackendSettings(
     apk_name='TrichromeWebView.apk',
     additional_apk_name='TrichromeLibrary.apk',
     browser_type='android-webview-trichrome')
 
-# TODO(crbug.com/1038137): Add reference setting for android-webview
 ANDROID_WEBVIEW_TRICHROME_BUNDLE = WebViewBackendSettings(
     apk_name='trichrome_webview_bundle',
     additional_apk_name='TrichromeLibrary.apk',
     browser_type='android-webview-trichrome-bundle')
 
-# TODO(crbug.com/1038137): Add reference setting for android-webview-bundle
 ANDROID_WEBVIEW_BUNDLE = WebViewBundleBackendSettings(
     browser_type='android-webview-bundle',
     apk_name='monochrome_public_bundle')
 
-# TODO(crbug.com/1038137): Add reference setting for android-webview-google
 ANDROID_WEBVIEW_GOOGLE = WebViewGoogleBackendSettings(
     browser_type='android-webview-google')
 
-# TODO(crbug.com/1038137): Add reference setting for
-# android-webview-google-bundle
 ANDROID_WEBVIEW_GOOGLE_BUNDLE = WebViewBundleBackendSettings(
     browser_type='android-webview-google-bundle',
     apk_name='monochrome_bundle')
 
-# TODO(crbug.com/1038137): Add reference setting for android-webview
 ANDROID_WEBVIEW_STANDALONE_GOOGLE = WebViewBackendSettings(
     apk_name='SystemWebViewGoogle.apk',
     browser_type='android-webview-standalone-google')
 
-# TODO(crbug.com/1038137): Add reference setting for android-webview
 ANDROID_WEBVIEW_STANDALONE_GOOGLE_BUNDLE = WebViewBundleBackendSettings(
     browser_type='android-webview-standalone-google-bundle',
     apk_name='system_webview_google_bundle')
 
-# TODO(crbug.com/1038137): Add reference setting for android-webview
 ANDROID_WEBVIEW_TRICHROME_GOOGLE = WebViewBackendSettings(
     apk_name='TrichromeWebViewGoogle.apk',
     additional_apk_name='TrichromeLibraryGoogle.apk',
     browser_type='android-webview-trichrome-google')
 
-# TODO(crbug.com/1038137): Add reference setting for android-webview
 ANDROID_WEBVIEW_TRICHROME_GOOGLE_BUNDLE = WebViewBackendSettings(
     apk_name='trichrome_webview_google_bundle',
     additional_apk_name='TrichromeLibraryGoogle.apk',
@@ -369,7 +353,6 @@ ANDROID_CHROMIUM_MONOCHROME = GenericChromeBackendSettings(
     apk_name='MonochromePublic.apk'
 )
 
-# TODO(crbug.com/1038137): Add reference setting for android-chrome
 ANDROID_CHROME = ChromeBackendSettings(
     browser_type='android-chrome',
     package='com.google.android.apps.chrome')
@@ -379,11 +362,6 @@ ANDROID_CHROME_BUNDLE = GenericChromeBundleBackendSettings(
     package='com.google.android.apps.chrome',
     apk_name='monochrome_bundle')
 
-REFERENCE_ANDROID_CHROME_BUNDLE = GenericChromeBackendSettings(
-    browser_type='reference-android-chrome-bundle',
-    package='com.google.android.apps.chrome')
-
-# TODO(crbug.com/1038137): Add reference setting for android-chrome-64-bundle
 ANDROID_CHROME_64_BUNDLE = GenericChromeBundleBackendSettings(
     browser_type='android-chrome-64-bundle',
     package='com.google.android.apps.chrome',
@@ -427,7 +405,6 @@ ANDROID_BACKEND_SETTINGS = (
     ANDROID_CHROMIUM,
     ANDROID_CHROMIUM_BUNDLE,
     ANDROID_CHROMIUM_MONOCHROME,
-    REFERENCE_ANDROID_CHROME_BUNDLE,
     ANDROID_CHROME,
     ANDROID_CHROME_64_BUNDLE,
     ANDROID_CHROME_BUNDLE,
