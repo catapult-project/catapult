@@ -93,7 +93,7 @@ class FuchsiaSDKUsageTest(unittest.TestCase):
       with tarfile.open(tar_file, 'w') as tar:
         temp_dir = tempfile.mkdtemp()
         try:
-          os.makedirs(os.path.join(temp_dir, 'tools'))
+          os.makedirs(os.path.join(temp_dir, 'tools', 'x64'))
           for f in fuchsia_device._SDK_TOOLS:
             temp_file = os.path.join(temp_dir, f)
             with open(temp_file, 'w'):
