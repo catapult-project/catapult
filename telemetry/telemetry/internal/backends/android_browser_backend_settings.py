@@ -59,6 +59,10 @@ class AndroidBrowserBackendSettings(_BackendSettingsTuple):
   def requires_embedder(self):
     return self.embedder_apk_name is not None
 
+  @property
+  def has_additional_apk(self):
+    return self.additional_apk_name is not None
+
   def GetDevtoolsRemotePort(self, device):
     del device
     # By default return the devtools_port defined in the constructor.
@@ -107,6 +111,16 @@ class GenericChromeBundleBackendSettings(GenericChromeBackendSettings):
     # bin directory instead of being output to the apk directory at compile
     # time like a normal APK.
     return os.path.join('..', 'bin', self.apk_name)
+
+  def FindSupportApks(self, apk_path, chrome_root):
+    del chrome_root
+    all_apks = []
+    if apk_path is not None and self.additional_apk_name is not None:
+      additional_apk_path = os.path.join(
+          os.path.dirname(apk_path), '..', 'apks', self.additional_apk_name)
+      if os.path.exists(additional_apk_path):
+        all_apks.append(additional_apk_path)
+    return all_apks
 
 
 class ChromeBackendSettings(GenericChromeBackendSettings):
@@ -362,6 +376,12 @@ ANDROID_CHROME_BUNDLE = GenericChromeBundleBackendSettings(
     package='com.google.android.apps.chrome',
     apk_name='monochrome_bundle')
 
+ANDROID_TRICHROME_BUNDLE = GenericChromeBundleBackendSettings(
+    browser_type='android-trichrome-bundle',
+    package='com.google.android.apps.chrome',
+    apk_name='trichrome_chrome_google_bundle',
+    additional_apk_name='TrichromeLibraryGoogle.apk')
+
 ANDROID_CHROME_64_BUNDLE = GenericChromeBundleBackendSettings(
     browser_type='android-chrome-64-bundle',
     package='com.google.android.apps.chrome',
@@ -408,6 +428,7 @@ ANDROID_BACKEND_SETTINGS = (
     ANDROID_CHROME,
     ANDROID_CHROME_64_BUNDLE,
     ANDROID_CHROME_BUNDLE,
+    ANDROID_TRICHROME_BUNDLE,
     ANDROID_CHROME_BETA,
     ANDROID_CHROME_DEV,
     ANDROID_CHROME_CANARY,
