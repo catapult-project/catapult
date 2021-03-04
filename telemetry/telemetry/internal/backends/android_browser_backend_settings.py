@@ -220,12 +220,18 @@ class WebViewBundleBackendSettings(WebViewBackendSettings):
   def FindSupportApks(self, apk_path, chrome_root):
     del chrome_root
     # Try to find the WebView embedder in apk directory
+    all_apks = []
     if apk_path is not None:
       embedder_apk_path = os.path.join(
           os.path.dirname(apk_path), '..', 'apks', self.embedder_apk_name)
       if os.path.exists(embedder_apk_path):
-        return [embedder_apk_path]
-    return []
+        all_apks.append(embedder_apk_path)
+      if self.additional_apk_name is not None:
+        additional_apk_path = os.path.join(
+            os.path.dirname(apk_path), '..', 'apks', self.additional_apk_name)
+        if os.path.exists(additional_apk_path):
+          all_apks.append(additional_apk_path)
+    return all_apks
 
 
 class WebLayerBackendSettings(WebViewBackendSettings):
@@ -263,12 +269,18 @@ class WebLayerBundleBackendSettings(WebLayerBackendSettings):
   def FindSupportApks(self, apk_path, chrome_root):
     del chrome_root
     # Try to find the WebLayer embedder in apk directory.
+    all_apks = []
     if apk_path is not None:
       embedder_apk_path = os.path.join(
           os.path.dirname(apk_path), '..', 'apks', self.embedder_apk_name)
       if os.path.exists(embedder_apk_path):
-        return [embedder_apk_path]
-    return []
+        all_apks.append(embedder_apk_path)
+      if self.additional_apk_name is not None:
+        additional_apk_path = os.path.join(
+            os.path.dirname(apk_path), '..', 'apks', self.additional_apk_name)
+        if os.path.exists(additional_apk_path):
+          all_apks.append(additional_apk_path)
+    return all_apks
 
 
 ANDROID_CONTENT_SHELL = AndroidBrowserBackendSettings(
@@ -339,7 +351,7 @@ ANDROID_WEBVIEW_TRICHROME_GOOGLE = WebViewBackendSettings(
     additional_apk_name='TrichromeLibraryGoogle.apk',
     browser_type='android-webview-trichrome-google')
 
-ANDROID_WEBVIEW_TRICHROME_GOOGLE_BUNDLE = WebViewBackendSettings(
+ANDROID_WEBVIEW_TRICHROME_GOOGLE_BUNDLE = WebViewBundleBackendSettings(
     apk_name='trichrome_webview_google_bundle',
     additional_apk_name='TrichromeLibraryGoogle.apk',
     browser_type='android-webview-trichrome-google-bundle')
