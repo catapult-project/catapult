@@ -141,7 +141,7 @@ tr.exportTo('tr.ui.analysis', function() {
           if (!this.displayedNode_.parentNode) break;
 
           // Enter the parent node upon pressing backspace.
-          const viewEvent = new tr.b.Event('enter-node');
+          const viewEvent = new tr.b.Event('enter-node', true /*bubbles*/);
           viewEvent.node = this.displayedNode_.parentNode;
           this.dispatchEvent(viewEvent);
           keyHandled = true;
@@ -180,7 +180,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     ready() {
       this.$.table.addEventListener('step-into', function(tableEvent) {
-        const viewEvent = new tr.b.Event('enter-node');
+        const viewEvent = new tr.b.Event('enter-node', true /*bubbles*/);
         viewEvent.node = tableEvent.tableRow;
         this.dispatchEvent(viewEvent);
       }.bind(this));
