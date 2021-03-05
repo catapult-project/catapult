@@ -10,10 +10,12 @@ import pipes
 import select
 import signal
 import string
-import StringIO
+import io
 import subprocess
 import sys
 import time
+
+import six
 
 from devil import base_error
 
@@ -23,7 +25,8 @@ _SafeShellChars = frozenset(string.ascii_letters + string.digits + '@%_-+=:,./')
 
 # Cache the string-escape codec to ensure subprocess can find it
 # later. Return value doesn't matter.
-codecs.lookup('string-escape')
+if six.PY2:
+  codecs.lookup('string-escape')
 
 
 def SingleQuote(s):
@@ -165,7 +168,7 @@ def GetCmdOutput(args, cwd=None, shell=False, env=None):
 
 
 def _ValidateAndLogCommand(args, cwd, shell):
-  if isinstance(args, basestring):
+  if isinstance(args, six.string_types):
     if not shell:
       raise Exception('string args must be run with shell=True')
   else:
@@ -452,7 +455,7 @@ def GetCmdStatusAndOutputWithTimeout(args,
     TimeoutError on timeout.
   """
   _ValidateAndLogCommand(args, cwd, shell)
-  output = StringIO.StringIO()
+  output = io.StringIO()
   process = Popen(
       args,
       cwd=cwd,
@@ -464,11 +467,11 @@ def GetCmdStatusAndOutputWithTimeout(args,
     for data in _IterProcessStdout(process, timeout=timeout):
       if logfile:
         logfile.write(data)
-      output.write(data)
+      output.write(data.decode('utf8'))
   except TimeoutError:
     raise TimeoutError(output.getvalue())
 
-  str_output = output.getvalue()
+  str_output = str(output.getvalue())
   logger.debug('STDOUT+STDERR: %s%s', str_output[:4096].rstrip(),
                '<truncated>' if len(str_output) > 4096 else '')
   return process.returncode, str_output
