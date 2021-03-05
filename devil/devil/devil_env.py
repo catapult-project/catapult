@@ -182,7 +182,10 @@ class _Environment(object):
 def GetPlatform(arch=None, device=None):
   if arch or device:
     return 'android_%s' % (arch or device.product_cpu_abi)
-  return '%s_%s' % (sys.platform, platform.machine())
+  # use 'linux2' for linux as this is already used in json file
+  return '%s_%s' % (
+      sys.platform if not sys.platform.startswith('linux') else 'linux2',
+      platform.machine())
 
 
 config = _Environment()
