@@ -2854,6 +2854,7 @@ tr.exportTo('tr.e.importer', function() {
       // In Chromium under //services/resource_coordinator/public see
       // mojom/memory_instrumentation/memory_instrumentation.mojom and
       // cpp/memory_instrumentation/tracing_observer.cc
+      if (rawVmRegions === null) return;
       const vmRegions = new Array(rawVmRegions.length);
       for (let i = 0; i < rawVmRegions.length; i++) {
         const rawVmRegion = rawVmRegions[i];
