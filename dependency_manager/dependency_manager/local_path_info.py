@@ -4,6 +4,7 @@
 
 import os
 
+import six
 
 class LocalPathInfo(object):
 
@@ -66,4 +67,4 @@ class LocalPathInfo(object):
   def _ParseLocalPaths(local_paths):
     if not local_paths:
       return []
-    return [[e] if isinstance(e, basestring) else e for e in local_paths]
+    return [[e] if isinstance(e, six.string_types) else e for e in local_paths]
