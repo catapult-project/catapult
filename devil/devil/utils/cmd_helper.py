@@ -557,7 +557,7 @@ def _IterCmdOutputLines(process,
           'cmd: %s' % cmd)
 
     # Construct lines to yield from raw data.
-    buffer_output += data
+    buffer_output += data.decode('utf8')
     has_incomplete_line = buffer_output[-1] not in '\r\n'
     lines = buffer_output.splitlines()
     buffer_output = lines.pop() if has_incomplete_line else ''
