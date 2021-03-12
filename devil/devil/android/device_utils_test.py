@@ -3617,6 +3617,23 @@ class DeviceUtilsGrantPermissionsTest(DeviceUtilsTest):
           self.device.GrantPermissions('package', [WRITE])
       self.assertEqual(logger.warnings, [])
 
+  def testGrantPermissions_ManageExtrnalStorage(self):
+    with PatchLogger() as logger:
+      with self.patch_call(self.call.device.build_version_sdk,
+                           return_value=version_codes.R):
+        with self.assertCalls(
+            (self.call.device.RunShellCommand(
+                AnyStringWith('appops set pkg MANAGE_EXTERNAL_STORAGE allow'),
+                shell=True,
+                raw_output=True,
+                large_output=True,
+                check_return=True),
+             '{sep}MANAGE_EXTERNAL_STORAGE{sep}0{sep}\n'.format(
+                 sep=device_utils._SHELL_OUTPUT_SEPARATOR))):
+          self.device.GrantPermissions(
+              'pkg', ['android.permission.MANAGE_EXTERNAL_STORAGE'])
+      self.assertEqual(logger.warnings, [])
+
   def testGrantPermissions_DenyList(self):
     with PatchLogger() as logger:
       with self.patch_call(
