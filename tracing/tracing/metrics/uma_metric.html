@@ -148,6 +148,31 @@ tr.exportTo('tr.metrics', function() {
         sumOfMiddles += bin.count * (bin.min + bin.max) / 2;
         sumOfBinLengths += bin.count * (bin.max - bin.min);
       }
+
+      if (name.startsWith('CompositorLatency.Type')) {
+        let histogramBoundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 101);
+        let histogramUnit = getHistogramUnit_(name);
+        let inTimeCount = values.bins[0].count - values.bins[1].count;
+        let delayedCount = values.bins[1].count;
+        let droppedCount = values.bins[2].count;
+        let totalCount = values.bins[0].count + values.bins[2].count;
+
+        const inTimeHistogram = new tr.v.Histogram(
+          name+'.Percentage_of_in_time_frames', histogramUnit, histogramBoundaries);
+        inTimeHistogram.addSample(100.0 * inTimeCount / totalCount);
+        histograms.addHistogram(inTimeHistogram);
+
+        const delayedHistogram = new tr.v.Histogram(
+          name+'.Percentage_of_delayed_frames', histogramUnit, histogramBoundaries);
+        delayedHistogram.addSample(100.0 * delayedCount / totalCount);
+        histograms.addHistogram(delayedHistogram);
+
+        const droppedHistogram = new tr.v.Histogram(
+          name+'.Percentage_of_dropped_frames', histogramUnit, histogramBoundaries);
+        droppedHistogram.addSample(100.0 * droppedCount / totalCount);
+        histograms.addHistogram(droppedHistogram);
+      }
+
       const shift = (values.sum - sumOfMiddles) / sumOfBinLengths;
       // Note: for linear bins, if shift is less than -0.5, it means that even
       // if we put all samples at the lowest value of their bins their sum will
