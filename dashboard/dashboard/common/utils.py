@@ -781,28 +781,6 @@ def GetStdioLinkFromRow(row):
           or getattr(row, 'a_a_stdio_uri', None))
 
 
-def GetBuildbotStatusPageUriFromStdioLink(stdio_link):
-  base_url, _, bot, buildnumber, _ = GetBuildDetailsFromStdioLink(stdio_link)
-  if not base_url:
-    # Can't parse status page
-    return None
-  return '%s%s/builds/%s' % (base_url, urllib.quote(bot), buildnumber)
-
-
-def GetLogdogLogUriFromStdioLink(stdio_link):
-  base_url, master, bot, buildnumber, step = GetBuildDetailsFromStdioLink(
-      stdio_link)
-  if not base_url:
-    # Can't parse status page
-    return None
-  bot = re.sub(r'[ \(\)]', '_', bot)
-  s_param = urllib.quote(
-      'chrome/bb/%s/%s/%s/+/recipes/steps/%s/0/stdout' %
-      (master, bot, buildnumber, step),
-      safe='')
-  return 'https://luci-logdog.appspot.com/v/?s=%s' % s_param
-
-
 def GetRowKey(testmetadata_key, revision):
   test_container_key = GetTestContainerKey(testmetadata_key)
   return ndb.Key('Row', revision, parent=test_container_key)

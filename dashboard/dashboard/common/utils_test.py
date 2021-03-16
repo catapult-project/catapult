@@ -379,25 +379,6 @@ class UtilsTest(testing_common.TestCase):
     self.assertEqual('3486', number)
     self.assertEqual('new_test', step)
 
-  def testGetBuildbotStatusPageUriFromStdioLink(self):
-    buildbot_status_page = utils.GetBuildbotStatusPageUriFromStdioLink(
-        ('[Buildbot stdio](https://build.chromium.org/p/chromium.perf/builders/'
-         'Android%20One%20Perf%20%282%29/builds/5365/steps/'
-         'blink_style.top_25/logs/stdio)'))
-    self.assertEqual(('https://build.chromium.org/p/chromium.perf/builders/'
-                      'Android%20One%20Perf%20%282%29/builds/5365'),
-                     buildbot_status_page)
-
-  def testGetLogdogLogUriFromStdioLink(self):
-    logdog_uri = utils.GetLogdogLogUriFromStdioLink(
-        ('[Buildbot stdio](https://build.chromium.org/p/chromium.perf/builders/'
-         'Android%20One%20Perf%20%282%29/builds/5365/steps/'
-         'blink_style.top_25/logs/stdio)'))
-    self.assertEqual(
-        ('https://luci-logdog.appspot.com/v/?s='
-         'chrome%2Fbb%2Fchromium.perf%2FAndroid_One_Perf__2_%2F5365%2F%2B%2F'
-         'recipes%2Fsteps%2Fblink_style.top_25%2F0%2Fstdout'), logdog_uri)
-
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch('common.utils.discovery.build')
   def testIsGroupMember_PositiveCase(self, mock_discovery_build):

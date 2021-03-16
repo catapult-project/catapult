@@ -257,15 +257,6 @@ def _PointInfoDict(row, anomaly_annotation_map):
     point_info['g_anomaly'] = alerts.GetAnomalyDict(anomaly_entity)
   row_dict = row.to_dict()
   for name, val in row_dict.items():
-    if _IsMarkdownLink(val) and 'Buildbot stdio' in val:
-      logdog_link, status_page_link = _GetUpdatedBuildbotLinks(val)
-      if logdog_link:
-        val = logdog_link
-      # TODO(simonhatch): Remove this sometime in 2019.
-      # crbug.com/891424
-      if status_page_link and not 'a_build_uri' in row_dict:
-        point_info['a_buildbot_status_page'] = status_page_link
-
     if name.startswith('r_'):
       point_info[name] = val
     elif name == 'a_default_rev':
@@ -282,19 +273,6 @@ def _IsMarkdownLink(value):
   if not isinstance(value, str):
     return False
   return re.match(r'\[.+?\]\(.+?\)', value)
-
-
-def _GetUpdatedBuildbotLinks(old_stdio_link):
-  # Links take a markdown format, [title](url)
-  logdog_markdown = None
-  logdog_link = utils.GetLogdogLogUriFromStdioLink(old_stdio_link)
-  if logdog_link:
-    logdog_markdown = '[Buildbot stdio](%s)' % logdog_link
-  buildbot_status_markdown = None
-  buildbot_link = utils.GetBuildbotStatusPageUriFromStdioLink(old_stdio_link)
-  if buildbot_link:
-    buildbot_status_markdown = '[Buildbot status page](%s)' % buildbot_link
-  return logdog_markdown, buildbot_status_markdown
 
 
 def _CreateLinkProperty(name, label, url):
