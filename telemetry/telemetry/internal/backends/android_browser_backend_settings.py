@@ -306,6 +306,11 @@ ANDROID_WEBLAYER_STANDALONE_GOOGLE_BUNDLE = WebLayerBundleBackendSettings(
     browser_type='android-weblayer-standalone-google-bundle',
     apk_name='system_webview_google_bundle')
 
+ANDROID_WEBLAYER_TRICHROME_GOOGLE_BUNDLE = WebLayerBundleBackendSettings(
+    apk_name='trichrome_webview_google_bundle',
+    additional_apk_name='TrichromeLibraryGoogle.apk',
+    browser_type='android-weblayer-trichrome-google-bundle')
+
 ANDROID_WEBVIEW = WebViewBackendSettings(
     browser_type='android-webview')
 
@@ -421,6 +426,7 @@ ANDROID_BACKEND_SETTINGS = (
     ANDROID_WEBLAYER,
     ANDROID_WEBLAYER_GOOGLE_BUNDLE,
     ANDROID_WEBLAYER_STANDALONE_GOOGLE_BUNDLE,
+    ANDROID_WEBLAYER_TRICHROME_GOOGLE_BUNDLE,
     ANDROID_WEBVIEW,
     ANDROID_WEBVIEW_BUNDLE,
     ANDROID_WEBVIEW_GOOGLE,
