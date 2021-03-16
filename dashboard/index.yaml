@@ -140,6 +140,21 @@ indexes:
   - name: created
     direction: desc
 
+# Used to query for jobs with filters on configuration and user.
+- kind: Job
+  properties:
+  - name: configuration
+  - name: user
+  - name: created
+    direction: desc
+
+# Used to query for jobs with filters on just configuration.
+- kind: Job
+  properties:
+  - name: configuration
+  - name: created
+    direction: desc
+
 # Used in find_anomalies.GetRowsToAnalyze when getting latest points,
 # with projection query for properties revision, value, and timestamp.
 - kind: Row
