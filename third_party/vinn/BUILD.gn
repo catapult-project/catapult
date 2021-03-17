@@ -33,7 +33,7 @@ group("vinn") {
     ]
   }
 
-  if (is_linux || is_chromeos || is_android) {
+  if (is_linux || is_chromeos || is_android || is_fuchsia) {
     data += [ "third_party/v8/linux/x86_64/" ]
   }
 }
