@@ -33,6 +33,14 @@ tr.b.unittest.testSuite(function() {
       }));
       thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'partition_alloc',
+        title: 'PCScan.Mutator',
+        start: 200,
+        duration: 50,
+        cpuStart: 200,
+        cpuDuration: 50
+      }));
+      thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'partition_alloc',
         title: 'PCScan.Scanner.Clear',
         start: 200,
         duration: 16,
@@ -46,6 +54,14 @@ tr.b.unittest.testSuite(function() {
         duration: 32,
         cpuStart: 216,
         cpuDuration: 32
+      }));
+      thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'partition_alloc',
+        title: 'PCScan.Mutator.Clear',
+        start: 210,
+        duration: 8,
+        cpuStart: 210,
+        cpuDuration: 8
       }));
       thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'partition_alloc',
@@ -71,10 +87,14 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.pa.pcscanMetric(histograms, makeTestModelFor(processName));
     assert.closeTo(100, histograms.getHistogramNamed(
         'pa:pcscan:' + processName + ':scanner').average, 1e-2);
+    assert.closeTo(50, histograms.getHistogramNamed(
+        'pa:pcscan:' + processName + ':mutator').average, 1e-2);
     assert.closeTo(16, histograms.getHistogramNamed(
         'pa:pcscan:' + processName + ':scanner:clear').average, 1e-2);
     assert.closeTo(32, histograms.getHistogramNamed(
         'pa:pcscan:' + processName + ':scanner:scan').average, 1e-2);
+    assert.closeTo(8, histograms.getHistogramNamed(
+        'pa:pcscan:' + processName + ':mutator:clear').average, 1e-2);
     assert.closeTo(16, histograms.getHistogramNamed(
         'pa:pcscan:' + processName + ':mutator:scan').average, 1e-2);
     assert.closeTo(42, histograms.getHistogramNamed(
