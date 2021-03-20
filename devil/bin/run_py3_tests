@@ -10,14 +10,16 @@ import sys
 import unittest
 
 _DEVIL_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+_SIX_PATH = os.path.join(_DEVIL_PATH, '..', 'third_party', 'six')
 
 sys.path.append(_DEVIL_PATH)
+sys.path.append(_SIX_PATH)
 # Import compatible tests here by full module path
-#   (e.g. 'import devil.devil_env_tests')
+import devil.utils.cmd_helper_test
 
 PY3_COMPATIBLE_TESTS = [
     # Add full test module path here
-    #   (e.g. 'devil.devil_env_tests')
+    devil.utils.cmd_helper_test,
 ]
 
 

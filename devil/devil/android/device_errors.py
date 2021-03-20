@@ -23,6 +23,8 @@ The class hierarchy for device exceptions is:
 
 """
 
+import six
+
 from devil import base_error
 from devil.utils import cmd_helper
 from devil.utils import parallelizer
@@ -158,7 +160,7 @@ class AdbShellCommandFailedError(AdbCommandFailedError):
     segments.append('  exit status: %s\n' % status)
     if output:
       segments.append('  output:\n')
-      if isinstance(output, basestring):
+      if isinstance(output, six.string_types):
         output_lines = output.splitlines()
       else:
         output_lines = output

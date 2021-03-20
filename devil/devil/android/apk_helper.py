@@ -111,7 +111,7 @@ def _ParseManifestFromApk(apk_path):
   node_stack = [parsed_manifest]
   indent = '  '
 
-  if aapt_output[0].decode('utf8').startswith('N'):
+  if aapt_output[0].startswith('N'):
     # if the first line is a namespace then the root manifest is indented, and
     # we need to add a dummy namespace node, then skip the first line (we dont
     # care about namespaces).
@@ -126,7 +126,6 @@ def _ParseManifestFromApk(apk_path):
 
     # If namespaces are stripped, aapt still outputs the full url to the
     # namespace and appends it to the attribute names.
-    line = line.decode('utf8')
     line = line.replace('http://schemas.android.com/apk/res/android:',
                         'android:')
 

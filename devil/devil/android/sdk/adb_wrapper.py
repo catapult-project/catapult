@@ -18,6 +18,8 @@ import posixpath
 import re
 import subprocess
 
+import six
+
 from devil import base_error
 from devil import devil_env
 from devil.android import decorators
@@ -1105,7 +1107,7 @@ class AdbWrapper(object):
     Returns:
       The output of the emulator console command.
     """
-    if isinstance(cmd, basestring):
+    if isinstance(cmd, six.string_types):
       cmd = [cmd]
     return self._RunDeviceAdbCmd(['emu'] + cmd, timeout, retries)
 

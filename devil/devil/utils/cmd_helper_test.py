@@ -33,6 +33,17 @@ class CmdHelperSingleQuoteTest(unittest.TestCase):
     self.assertEquals(test_string,
                       cmd_helper.GetCmdOutput(cmd, shell=True).rstrip())
 
+class CmdHelperGetCmdStatusAndOutputTest(unittest.TestCase):
+  def testGetCmdStatusAndOutput_success(self):
+    cmd = 'echo "Hello World"'
+    status, output = cmd_helper.GetCmdStatusAndOutput(cmd, shell=True)
+    self.assertEqual(status, 0)
+    self.assertEqual(output.rstrip(), "Hello World")
+
+  def testGetCmdStatusAndOutput_unicode(self):
+    # pylint: disable=no-self-use
+    cmd = 'echo "\x80\x31Hello World\n"'
+    cmd_helper.GetCmdStatusAndOutput(cmd, shell=True)
 
 class CmdHelperDoubleQuoteTest(unittest.TestCase):
   def testDoubleQuote_basic(self):
@@ -195,7 +206,7 @@ class CmdHelperIterCmdOutputLinesTest(unittest.TestCase):
   # pylint: disable=protected-access
 
   _SIMPLE_OUTPUT_SEQUENCE = [
-      _ProcessOutputEvent(read_contents='1\n2\n'),
+      _ProcessOutputEvent(read_contents=b'1\n2\n'),
   ]
 
   def testIterCmdOutputLines_success(self):
@@ -204,6 +215,14 @@ class CmdHelperIterCmdOutputLinesTest(unittest.TestCase):
       for num, line in enumerate(
           cmd_helper._IterCmdOutputLines(mock_proc, 'mock_proc'), 1):
         self.assertEquals(num, int(line))
+
+  def testIterCmdOutputLines_unicode(self):
+    output_sequence = [
+        _ProcessOutputEvent(read_contents=b'\x80\x31\nHello\n\xE2\x98\xA0')
+    ]
+    with _MockProcess(output_sequence=output_sequence) as mock_proc:
+      lines = list(cmd_helper._IterCmdOutputLines(mock_proc, 'mock_proc'))
+      self.assertEquals(lines[1], "Hello")
 
   def testIterCmdOutputLines_exitStatusFail(self):
     with self.assertRaises(subprocess.CalledProcessError):
@@ -238,9 +257,9 @@ class CmdHelperIterCmdOutputLinesTest(unittest.TestCase):
 
   def testIterCmdOutputLines_delay(self):
     output_sequence = [
-        _ProcessOutputEvent(read_contents='1\n2\n', ts=1),
+        _ProcessOutputEvent(read_contents=b'1\n2\n', ts=1),
         _ProcessOutputEvent(read_contents=None, ts=2),
-        _ProcessOutputEvent(read_contents='Awake', ts=10),
+        _ProcessOutputEvent(read_contents=b'Awake', ts=10),
     ]
     with _MockProcess(output_sequence=output_sequence) as mock_proc:
       for num, line in enumerate(
