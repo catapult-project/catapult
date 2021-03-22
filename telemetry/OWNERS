@@ -18,8 +18,6 @@ achuith@chromium.org
 # For CrOS OOBE-related changes.
 rsorokin@chromium.org
 
-# TEAM: telemetry@chromium.org
-# COMPONENT: Test>Telemetry
 # emeritus:
 # aiolos@chromium.org
 # chrishenry@google.com
