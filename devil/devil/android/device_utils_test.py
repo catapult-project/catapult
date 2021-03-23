@@ -2199,6 +2199,11 @@ class DeviceUtilsPushChangedFilesZippedTest(DeviceUtilsTest):
     def mock_zip_temp_dir():
       yield '/test/temp/dir'
 
+    expected_cmd = ''.join([
+        '\n  /data/local/tmp/bin/unzip %s &&',
+        ' (for dir in %s\n  do\n    chmod -R 777 "$dir" || exit 1\n',
+        '  done)\n'
+    ]) % ('/sdcard/foo123.zip', ' '.join(test_dirs))
     with self.assertCalls(
         (self.call.device._MaybeInstallCommands(), True),
         (mock.call.py_utils.tempfile_ext.NamedTemporaryDirectory(),
@@ -2210,16 +2215,11 @@ class DeviceUtilsPushChangedFilesZippedTest(DeviceUtilsTest):
             self.adb, suffix='.zip'), MockTempFile('/sdcard/foo123.zip')),
         self.call.adb.Push('/test/temp/dir/tmp.zip', '/sdcard/foo123.zip'),
         (mock.call.devil.android.device_temp_file.DeviceTempFile(
-            self.adb), MockTempFile('/sdcard/bar123')),
-        self.call.device._WriteFileWithPush('/sdcard/bar123',
-                                            ' '.join(test_dirs)),
-        self.call.device.RunShellCommand(
-            'unzip /sdcard/foo123.zip && '
-            'cat /sdcard/bar123 | xargs chmod -R 777',
-            shell=True,
-            as_root=True,
-            env={'PATH': '/data/local/tmp/bin:$PATH'},
-            check_return=True)):
+            self.adb, suffix='.sh'), MockTempFile('/sdcard/temp-123.sh')),
+        self.call.device.WriteFile('/sdcard/temp-123.sh', expected_cmd),
+        (self.call.device.RunShellCommand(['source', '/sdcard/temp-123.sh'],
+                                          check_return=True,
+                                          as_root=True))):
       self.assertTrue(
           self.device._PushChangedFilesZipped(test_files, test_dirs))
 
