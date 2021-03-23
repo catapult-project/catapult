@@ -103,10 +103,9 @@ class MarkdownTest(unittest.TestCase):
   def testLink(self):
     link_text = 'Devil home'
     link_target = (
-        'https://github.com/catapult-project/catapult/tree/master/devil')
-    expected = (
-        '[Devil home]'
-        '(https://github.com/catapult-project/catapult/tree/master/devil)')
+        'https://chromium.googlesource.com/catapult.git/+/HEAD/devil')
+    expected = ('[Devil home]'
+                '(https://chromium.googlesource.com/catapult.git/+/HEAD/devil)')
     self.assertEquals(expected, markdown.md_link(link_text, link_target))
 
   def testLinkTextContainsBracket(self):

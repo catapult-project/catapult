@@ -8,7 +8,7 @@ import os
 import sys
 
 _DEVIL_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-_DEVIL_URL = ('https://github.com/catapult-project/catapult/blob/master/devil/')
+_DEVIL_URL = ('https://chromium.googlesource.com/catapult.git/+/HEAD/devil/')
 
 sys.path.append(_DEVIL_PATH)
 from devil.utils import cmd_helper
