@@ -52,6 +52,7 @@ class TimelineBasedMeasurementTest(unittest.TestCase):
     self.assertEqual(len(test_results), 1)
     return test_results[0]
 
+  @decorators.Disabled('chromeos')  # crbug.com/1191132
   @decorators.Isolated
   def testTraceCaptureUponSuccess(self):
     test_benchmark = TestTimelineBenchmark()
