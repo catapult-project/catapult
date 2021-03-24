@@ -149,7 +149,8 @@ tr.exportTo('tr.metrics', function() {
         sumOfBinLengths += bin.count * (bin.max - bin.min);
       }
 
-      if (name.startsWith('CompositorLatency.Type')) {
+      if (name.startsWith('CompositorLatency.Type') && values.bins[0] &&
+          values.bins[1] && values.bins[2]) {
         let histogramBoundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 101);
         let histogramUnit = getHistogramUnit_(name);
         let inTimeCount = values.bins[0].count - values.bins[1].count;
