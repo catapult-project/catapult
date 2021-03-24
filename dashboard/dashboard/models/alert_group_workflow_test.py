@@ -85,6 +85,26 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     return anomaly.Anomaly(**default).put()
 
   @staticmethod
+  def _AddSignalQualityScore(anomaly_key, signal_score):
+    version = 0
+    key = ndb.Key(
+        'SignalQuality',
+        anomaly_key.get().test.string_id(),
+        'SignalQualityScore',
+        str(version),
+    )
+
+    class SignalQualityScore(ndb.Model):
+      score = ndb.FloatProperty()
+      updated_time = ndb.DateTimeProperty()
+
+    return SignalQualityScore(
+        key=key,
+        score=signal_score,
+        updated_time=datetime.datetime.now(),
+    ).put()
+
+  @staticmethod
   def _AddAlertGroup(anomaly_key,
                      subscription_name=None,
                      issue=None,
@@ -848,6 +868,110 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         ))
     tags = json.loads(self._pinpoint.new_job_request['tags'])
     self.assertEqual(anomalies[1].urlsafe(), tags['alert'])
+
+    # Tags must be a dict of key/value string pairs.
+    for k, v in tags.items():
+      self.assertIsInstance(k, basestring)
+      self.assertIsInstance(v, basestring)
+
+    self.assertEqual(['123456'], group.get().bisection_ids)
+    self.assertEqual(['Chromeperf-Auto-Bisected'],
+                     self._issue_tracker.add_comment_kwargs['labels'])
+
+  def testBisect_GroupTriaged_WithSignalQuality(self):
+    anomalies = [
+        self._AddAnomaly(
+            test='master/bot/test_suite/measurement/test_case1',
+            median_before_anomaly=0.2,
+        ),
+        self._AddAnomaly(
+            test='master/bot/test_suite/measurement/test_case2',
+            median_before_anomaly=0.1,
+        ),
+    ]
+    self._AddSignalQualityScore(anomalies[0], 0.9)
+    self._AddSignalQualityScore(anomalies[1], 0.8)
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    self._issue_tracker.issue.update({
+        'state': 'open',
+    })
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+    )
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
+    tags = json.loads(self._pinpoint.new_job_request['tags'])
+    self.assertEqual(anomalies[0].urlsafe(), tags['alert'])
+
+
+  def testBisect_GroupTriaged_WithDefaultSignalQuality(self):
+    anomalies = [
+        self._AddAnomaly(
+            test='master/bot/test_suite/measurement/test_case1',
+            median_before_anomaly=0.1,
+        ),
+        self._AddAnomaly(
+            test='master/bot/test_suite/measurement/test_case2',
+            median_before_anomaly=0.2,
+        ),
+        self._AddAnomaly(
+            test='master/bot/test_suite/measurement/test_case3',
+            median_before_anomaly=0.3,
+        ),
+    ]
+    self._AddSignalQualityScore(anomalies[0], 0.3)
+    self._AddSignalQualityScore(anomalies[1], 0.2)
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    self._issue_tracker.issue.update({
+        'state': 'open',
+    })
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+    )
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
+    tags = json.loads(self._pinpoint.new_job_request['tags'])
+    self.assertEqual(anomalies[2].urlsafe(), tags['alert'])
 
     # Tags must be a dict of key/value string pairs.
     for k, v in tags.items():
