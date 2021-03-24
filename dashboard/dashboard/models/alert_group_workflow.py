@@ -81,6 +81,11 @@ _ALERT_GROUP_TRIAGE_DELAY = datetime.timedelta(minutes=20)
 _ALERT_GROUP_DEFAULT_SIGNAL_QUALITY_SCORE = 0.6
 
 
+class SignalQualityScore(ndb.Model):
+  score = ndb.FloatProperty()
+  updated_time = ndb.DateTimeProperty()
+
+
 class InvalidPinpointRequest(Exception):
   pass
 

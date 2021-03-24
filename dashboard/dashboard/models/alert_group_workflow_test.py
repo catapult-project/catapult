@@ -94,11 +94,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         str(version),
     )
 
-    class SignalQualityScore(ndb.Model):
-      score = ndb.FloatProperty()
-      updated_time = ndb.DateTimeProperty()
-
-    return SignalQualityScore(
+    return alert_group_workflow.SignalQualityScore(
         key=key,
         score=signal_score,
         updated_time=datetime.datetime.now(),
