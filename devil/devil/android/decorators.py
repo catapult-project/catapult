@@ -58,7 +58,7 @@ def _TimeoutRetryWrapper(f,
         desc = '%s(%s)' % (f.__name__, ', '.join(
             itertools.chain(
                 (str(a) for a in args),
-                ('%s=%s' % (k, str(v)) for k, v in six.iteritems(kwargs)))))
+                ('%s=%s' % (k, str(v)) for k, v in kwargs.iteritems()))))
         return timeout_retry.Run(
             impl, timeout, retries, desc=desc, retry_if_func=retry_if_func)
     except reraiser_thread.TimeoutError as e:
