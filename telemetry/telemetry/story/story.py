@@ -60,6 +60,7 @@ class Story(object):
       tags = set(tags)
     else:
       assert isinstance(tags, set)
+    tags.add('all')
     for t in tags:
       if not _VALID_TAG_RE.match(t):
         raise ValueError(

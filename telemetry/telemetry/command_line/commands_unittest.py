@@ -89,6 +89,7 @@ class PrintBenchmarkListTests(unittest.TestCase):
                  {
                      'name': 'dummy_page',
                      'tags': [
+                         'all',
                          'foo',
                          'bar'
                      ]
