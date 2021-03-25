@@ -16,6 +16,7 @@ CATAPULT_ROOT_PATH = os.path.abspath(
 DEPENDENCY_MANAGER_PATH = os.path.join(CATAPULT_ROOT_PATH, 'dependency_manager')
 PYMOCK_PATH = os.path.join(CATAPULT_ROOT_PATH, 'third_party', 'mock')
 PY_UTILS_PATH = os.path.join(CATAPULT_ROOT_PATH, 'common', 'py_utils')
+SIX_PATH = os.path.join(CATAPULT_ROOT_PATH, 'third_party', 'six')
 
 
 @contextlib.contextmanager
@@ -30,6 +31,9 @@ def SysPath(path):
 
 with SysPath(DEPENDENCY_MANAGER_PATH):
   import dependency_manager  # pylint: disable=import-error
+
+with SysPath(SIX_PATH):
+  import six
 
 _ANDROID_BUILD_TOOLS = {'aapt', 'dexdump', 'split-select'}
 
@@ -69,7 +73,7 @@ def LocalConfigItem(dependency_name, dependency_platform, dependency_path):
 def _GetEnvironmentVariableConfig():
   env_config = EmptyConfig()
   path_config = ((os.environ.get(k), v)
-                 for k, v in _LEGACY_ENVIRONMENT_VARIABLES.iteritems())
+                 for k, v in six.iteritems(_LEGACY_ENVIRONMENT_VARIABLES))
   path_config = ((p, c) for p, c in path_config if p)
   for p, c in path_config:
     env_config['dependencies'].update(
@@ -115,7 +119,8 @@ class _Environment(object):
     # TODO(jbudorick): Remove this recursion if/when dependency_manager
     # supports loading configurations directly from a dict.
     if configs:
-      with tempfile.NamedTemporaryFile(delete=False) as next_config_file:
+      with tempfile.NamedTemporaryFile(mode='w',
+                                       delete=False) as next_config_file:
         try:
           next_config_file.write(json.dumps(configs[0]))
           next_config_file.close()
