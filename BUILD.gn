@@ -16,6 +16,7 @@ group("telemetry_chrome_test_support") {
   data += [
     "AUTHORS",
     "CONTRIBUTING.md",
+    "DIR_METADATA",
     "LICENSE",
     "OWNERS",
     "PRESUBMIT.py",
@@ -110,6 +111,7 @@ group("telemetry_chrome_test_support") {
 
   data += [
     "tracing/BUILD.gn",
+    "tracing/DIR_METADATA",
     "tracing/LICENSE",
     "tracing/OWNERS",
     "tracing/PRESUBMIT.py",

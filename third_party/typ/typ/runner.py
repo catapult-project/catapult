@@ -1096,10 +1096,11 @@ def _run_one_test(child, test_input):
                                     err, child.worker_num, pid,
                                     expected_results, child.has_expectations,
                                     art.artifacts)
+    test_location = inspect.getsourcefile(test_case.__class__)
     result.result_sink_retcode =\
             child.result_sink_reporter.report_individual_test_result(
                 child.test_name_prefix, result, child.artifact_output_dir,
-                child.expectations)
+                child.expectations, test_location)
     return (result, should_retry_on_failure)
 
 

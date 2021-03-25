@@ -58,6 +58,7 @@ class ResultSinkReporter(object):
         """
         self._host = host
         self._sink = None
+        self._chromium_src_dir = None
         if disable:
             return
 
@@ -83,7 +84,8 @@ class ResultSinkReporter(object):
         return self._sink is not None
 
     def report_individual_test_result(
-            self, test_name_prefix, result, artifact_output_dir, expectations):
+            self, test_name_prefix, result, artifact_output_dir, expectations,
+            test_file_location):
         """Reports typ results for a single test to ResultSink.
 
         Inputs are typically similar to what is passed to
@@ -101,6 +103,8 @@ class ResultSinkReporter(object):
                     point to the cwd.
             expectations: An expectations_parser.TestExpectations instance, or
                     None if one is not available.
+            test_file_location: A string containing the path to the file
+                    containing the test.
 
         Returns:
             0 if the result was reported successfully or ResultDB is not
@@ -168,14 +172,24 @@ class ResultSinkReporter(object):
             }
         html_summary = truncated_summary or html_summary
 
+        test_location_in_repo = self._convert_path_to_repo_path(
+            test_file_location)
+        test_metadata = {
+            'name': test_id,
+            'location': {
+                'repo': 'https://chromium.googlesource.com/chromium/src',
+                'fileName': test_location_in_repo
+            },
+        }
+
         return self._report_result(
                 test_id, result.actual, result_is_expected, artifacts,
-                tag_list, html_summary, result.took)
+                tag_list, html_summary, result.took, test_metadata)
 
 
     def _report_result(
             self, test_id, status, expected, artifacts, tag_list, html_summary,
-            duration):
+            duration, test_metadata):
         """Reports a single test result to ResultSink.
 
         Args:
@@ -190,6 +204,7 @@ class ResultSinkReporter(object):
             html_summary: A string containing HTML summarizing the test run.
                     Must be <= |MAX_HTML_SUMMARY_LENGTH|.
             duration: How long the test took in seconds.
+            test_metadata: A dict containing additional test metadata to upload.
 
         Returns:
             0 if the result was reported successfully or ResultDB is not
@@ -202,7 +217,7 @@ class ResultSinkReporter(object):
         # look up the correct component for bug filing.
         test_result = _create_json_test_result(
                 test_id, status, expected, artifacts, tag_list, html_summary,
-                duration)
+                duration, test_metadata)
 
         return self._post(json.dumps({'testResults': [test_result]}))
 
@@ -222,10 +237,36 @@ class ResultSinkReporter(object):
             data=content)
         return 0 if res.ok else 1
 
+    def _convert_path_to_repo_path(self, filepath):
+        """Converts an absolute file path to a repo relative file path.
+
+        Args:
+            filepath: A string containing an absolute path to a file.
+
+        Returns:
+            A string containing the path to |filepath| in the Chromium
+            src repo, leading with //.
+        """
+        chromium_src_dir = self._get_chromium_src_dir()
+        assert chromium_src_dir in filepath
+        repo_location = filepath.replace(chromium_src_dir, '//', 1)
+        repo_location = repo_location.replace(self._host.sep, '/')
+        return repo_location
+
+    def _get_chromium_src_dir(self):
+        if not self._chromium_src_dir:
+          src_dir = self._host.abspath(
+                  self._host.join(self._host.dirname(__file__),
+                                  '..', '..', '..', '..', '..'))
+          if not src_dir.endswith(self._host.sep):
+              src_dir += self._host.sep
+          self._chromium_src_dir = src_dir
+        return self._chromium_src_dir
+
 
 def _create_json_test_result(
         test_id, status, expected, artifacts, tag_list, html_summary,
-        duration):
+        duration, test_metadata):
     """Formats data to be suitable for sending to ResultSink.
 
     Args:
@@ -240,6 +281,7 @@ def _create_json_test_result(
         html_summary: A string containing HTML summarizing the test run. Must be
                 <= |MAX_HTML_SUMMARY_LENGTH|.
         duration: How long the test took in seconds.
+        test_metadata: A dict containing additional test metadata to upload.
 
     Returns:
         A dict containing the provided data in a format that is ingestable by
@@ -263,6 +305,7 @@ def _create_json_test_result(
             'summaryHtml': html_summary,
             'artifacts': artifacts,
             'tags': [],
+            'testMetadata': test_metadata,
     }
     for (k, v) in tag_list:
         test_result['tags'].append({'key': k, 'value': v})

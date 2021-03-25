@@ -30,6 +30,7 @@ DEFAULT_LUCI_CONTEXT = {
     },
 }
 ARTIFACT_DIR = os.path.join('artifact', 'dir')
+FAKE_TEST_PATH = '/src/some/test.py'
 
 
 def CreateResult(input_dict):
@@ -69,7 +70,7 @@ def GetTestResultFromPostedJson(json_string):
 
 def CreateExpectedTestResult(
         test_id=None, status=None, expected=None, duration=None,
-        summary_html=None, artifacts=None, tags=None):
+        summary_html=None, artifacts=None, tags=None, test_metadata=None):
     test_id = test_id or 'test_name_prefix.test_name'
     return {
         'testId': test_id,
@@ -85,6 +86,13 @@ def CreateExpectedTestResult(
             {'key': 'raw_typ_expectation', 'value': 'Pass'},
             {'key': 'typ_tag', 'value': 'bar_tag'},
             {'key': 'typ_tag', 'value': 'foo_tag'},],
+        'testMetadata': test_metadata or {
+            'name': test_id,
+            'location': {
+                'repo': 'https://chromium.googlesource.com/chromium/src',
+                'fileName': '//some/test.py',
+            }
+        },
     }
 
 
@@ -109,6 +117,12 @@ def CreateTestExpectations(expectation_definitions=None):
     expectations = expectations_parser.TestExpectations(list(tags))
     expectations.parse_tagged_list(data)
     return expectations
+
+
+class ResultSinkReporterWithFakeSrc(result_sink.ResultSinkReporter):
+    def __init__(self, *args, **kwargs):
+        super(ResultSinkReporterWithFakeSrc, self).__init__(*args, **kwargs)
+        self._chromium_src_dir = '/src/'
 
 
 class ResultSinkReporterTest(unittest.TestCase):
@@ -148,11 +162,12 @@ class ResultSinkReporterTest(unittest.TestCase):
         rsr = result_sink.ResultSinkReporter(self._host)
         rsr._post = lambda: 1/0  # Shouldn't be called.
         self.assertEqual(
-                rsr.report_individual_test_result(None, None, None, None), 0)
+                rsr.report_individual_test_result(None, None, None, None, None),
+                0)
 
     def testReportIndividualTestResultBasicCase(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
-        rsr = result_sink.ResultSinkReporter(self._host)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
         result = CreateResult({
             'name': 'test_name',
             'actual': json_results.ResultType.Pass,
@@ -160,7 +175,7 @@ class ResultSinkReporterTest(unittest.TestCase):
         rsr._post = StubWithRetval(2)
         retval = rsr.report_individual_test_result(
                 'test_name_prefix.', result, ARTIFACT_DIR,
-                CreateTestExpectations())
+                CreateTestExpectations(), FAKE_TEST_PATH)
         self.assertEqual(retval, 2)
         expected_result = CreateExpectedTestResult()
         self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[0]),
@@ -168,14 +183,14 @@ class ResultSinkReporterTest(unittest.TestCase):
 
     def testReportIndividualTestResultNoTestExpectations(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
-        rsr = result_sink.ResultSinkReporter(self._host)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
         result = CreateResult({
             'name': 'test_name',
             'actual': json_results.ResultType.Pass,
         })
         rsr._post = StubWithRetval(2)
         retval = rsr.report_individual_test_result(
-                'test_name_prefix.', result, ARTIFACT_DIR, None)
+                'test_name_prefix.', result, ARTIFACT_DIR, None, FAKE_TEST_PATH)
         self.assertEqual(retval, 2)
         expected_result = CreateExpectedTestResult(tags=[
             {'key': 'test_name', 'value': 'test_name_prefix.test_name'},
@@ -187,7 +202,7 @@ class ResultSinkReporterTest(unittest.TestCase):
 
     def testReportIndividualTestResultLongSummary(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
-        rsr = result_sink.ResultSinkReporter(self._host)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
         result = CreateResult({
             'name': 'test_name',
             'actual': json_results.ResultType.Pass,
@@ -197,7 +212,7 @@ class ResultSinkReporterTest(unittest.TestCase):
         rsr._post = StubWithRetval(0)
         rsr.report_individual_test_result(
                 'test_name_prefix.', result, ARTIFACT_DIR,
-                CreateTestExpectations())
+                CreateTestExpectations(), FAKE_TEST_PATH)
 
         test_result = GetTestResultFromPostedJson(rsr._post.args[0])
         truncated_summary = '<pre>stdout: %s%s' % (
@@ -218,7 +233,7 @@ class ResultSinkReporterTest(unittest.TestCase):
 
     def testReportIndividualTestResultLongSummaryUnicode(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
-        rsr = result_sink.ResultSinkReporter(self._host)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
         result = CreateResult({
             'name': 'test_name',
             'actual': json_results.ResultType.Pass,
@@ -228,7 +243,7 @@ class ResultSinkReporterTest(unittest.TestCase):
         rsr._post = StubWithRetval(0)
         rsr.report_individual_test_result(
                 'test_name_prefix.', result, ARTIFACT_DIR,
-                CreateTestExpectations())
+                CreateTestExpectations(), FAKE_TEST_PATH)
 
         test_result = GetTestResultFromPostedJson(rsr._post.args[0])
         truncated_summary = '<pre>stdout: %s%s' % (
@@ -252,7 +267,7 @@ class ResultSinkReporterTest(unittest.TestCase):
 
     def testReportIndividualTestResultConflictingKeyLongSummary(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
-        rsr = result_sink.ResultSinkReporter(self._host)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
         rsr._post = lambda: 1/0
         result = CreateResult({
             'name': 'test_name',
@@ -265,11 +280,11 @@ class ResultSinkReporterTest(unittest.TestCase):
         with self.assertRaises(AssertionError):
             rsr.report_individual_test_result(
                     'test_name_prefix', result, ARTIFACT_DIR,
-                    CreateTestExpectations())
+                    CreateTestExpectations(), FAKE_TEST_PATH)
 
     def testReportIndividualTestResultSingleArtifact(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
-        rsr = result_sink.ResultSinkReporter(self._host)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
         rsr._post = StubWithRetval(2)
         results = CreateResult({
             'name': 'test_name',
@@ -280,7 +295,7 @@ class ResultSinkReporterTest(unittest.TestCase):
         })
         retval = rsr.report_individual_test_result(
                 'test_name_prefix.', results, ARTIFACT_DIR,
-                CreateTestExpectations())
+                CreateTestExpectations(), FAKE_TEST_PATH)
         self.assertEqual(retval, 2)
 
         test_result = GetTestResultFromPostedJson(rsr._post.args[0])
@@ -296,7 +311,7 @@ class ResultSinkReporterTest(unittest.TestCase):
 
     def testReportIndividualTestResultMultipleArtifacts(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
-        rsr = result_sink.ResultSinkReporter(self._host)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
         rsr._post = StubWithRetval(2)
         results = CreateResult({
             'name': 'test_name',
@@ -307,7 +322,7 @@ class ResultSinkReporterTest(unittest.TestCase):
         })
         retval = rsr.report_individual_test_result(
                 'test_name_prefix.', results, ARTIFACT_DIR,
-                CreateTestExpectations())
+                CreateTestExpectations(), FAKE_TEST_PATH)
         self.assertEqual(retval, 2)
 
         test_result = GetTestResultFromPostedJson(rsr._post.args[0])
@@ -332,24 +347,25 @@ class ResultSinkReporterTest(unittest.TestCase):
         result_sink._create_json_test_result = lambda: 1/0
         self.assertEqual(rsr._report_result(
                 'test_id', json_results.ResultType.Pass, True, {}, {},
-                '<pre>summary</pre>', 1), 0)
+                '<pre>summary</pre>', 1, {}), 0, {})
 
     def testCreateJsonTestResultInvalidStatus(self):
         with self.assertRaises(AssertionError):
             result_sink._create_json_test_result(
-                'test_id', 'InvalidStatus', False, {}, {}, '', 1)
+                'test_id', 'InvalidStatus', False, {}, {}, '', 1, {})
 
     def testCreateJsonTestResultInvalidSummary(self):
         with self.assertRaises(AssertionError):
             result_sink._create_json_test_result(
                 'test_id', json_results.ResultType.Pass, True, {}, {},
-                'a' * 4097, 1)
+                'a' * 4097, 1, {})
 
     def testCreateJsonTestResultBasic(self):
         retval = result_sink._create_json_test_result(
             'test_id', json_results.ResultType.Pass, True,
             {'artifact': {'filePath': 'somepath'}},
-            [('tag_key', 'tag_value')], '<pre>summary</pre>', 1)
+            [('tag_key', 'tag_value')], '<pre>summary</pre>', 1,
+            {'name': 'test_name', 'location': {'repo': 'a repo'}})
         self.assertEqual(retval, {
             'testId': 'test_id',
             'status': json_results.ResultType.Pass,
@@ -367,18 +383,37 @@ class ResultSinkReporterTest(unittest.TestCase):
                     'value': 'tag_value',
                 },
             ],
+            'testMetadata': {
+                'name': 'test_name',
+                'location': {
+                    'repo': 'a repo',
+                },
+            },
         })
 
     def testCreateJsonWithVerySmallDuration(self):
         retval = result_sink._create_json_test_result(
             'test_id', json_results.ResultType.Pass, True,
             {'artifact': {'filePath': 'somepath'}},
-            [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e-10)
+            [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e-10, {})
         self.assertEqual(retval['duration'], '0.000000000s')
 
     def testCreateJsonFormatsWithVeryLongDuration(self):
         retval = result_sink._create_json_test_result(
             'test_id', json_results.ResultType.Pass, True,
             {'artifact': {'filePath': 'somepath'}},
-            [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e+16)
+            [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e+16, {})
         self.assertEqual(retval['duration'], '10000000000000000.000000000s')
+
+    def testConvertPathToRepoPath(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
+        p = '/src/some/file.txt'
+        repo_path = rsr._convert_path_to_repo_path(p)
+        self.assertEqual(repo_path, '//some/file.txt')
+
+        rsr._chromium_src_dir = 'c:\\src\\'
+        self._host.sep = '\\'
+        p = 'c:\\src\\some\\file.txt'
+        repo_path = rsr._convert_path_to_repo_path(p)
+        self.assertEqual(repo_path, '//some/file.txt')
