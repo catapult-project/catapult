@@ -69,9 +69,11 @@ class CpuTemperatureGetThermalDeviceInformationTest(CpuTemperatureTest):
         'cpu6': '/sys/class/thermal/thermal_zone17/temp',
         'cpu7': '/sys/class/thermal/thermal_zone18/temp'
     }
-    self.assertEqual(
-        cmp(correct_information,
-            self.cpu_temp.GetDeviceInfoForTesting().get('cpu_temps')), 0)
+
+    self.assertDictEqual(
+        correct_information,
+        self.cpu_temp.GetDeviceInfoForTesting().get('cpu_temps')
+    )
 
 
 class CpuTemperatureIsSupportedTest(CpuTemperatureTest):

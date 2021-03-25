@@ -80,7 +80,7 @@ class UiAppTest(unittest.TestCase):
 
   def assertNodeHasAttribs(self, node, attr):
     # pylint: disable=protected-access
-    for key, value in attr.iteritems():
+    for key, value in attr.items():
       self.assertEquals(node._GetAttribute(key), value)
 
   def assertTappedOnceAt(self, x, y):

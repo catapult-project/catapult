@@ -116,7 +116,7 @@ class Intent(object):
     if self.flags:
       args.extend(['-f', self.flags])
     if self.extras:
-      for key, value in self.extras.iteritems():
+      for key, value in self.extras.items():
         if value is None:
           args.extend(['--esn', key])
         elif isinstance(value, str):

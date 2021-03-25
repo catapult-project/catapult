@@ -6,6 +6,8 @@
 import posixpath
 import unittest
 
+import six
+
 from devil.android import flag_changer
 
 _CMDLINE_FILE = 'chrome-command-line'
@@ -109,15 +111,22 @@ class ParseSerializeFlagsTest(unittest.TestCase):
   def _testParseCmdLine(self, command_line, expected_flags):
     # Start with a command line, check that flags are parsed as expected.
     # pylint: disable=protected-access
+    # pylint: disable=no-member
     flags = flag_changer._ParseFlags(command_line)
-    self.assertItemsEqual(flags, expected_flags)
+    if six.PY2:
+      self.assertItemsEqual(flags, expected_flags)
+    else:
+      self.assertCountEqual(flags, expected_flags)
 
     # Check that flags survive a round-trip.
     # Note: Although new_command_line and command_line may not match, they
     # should describe the same set of flags.
     new_command_line = flag_changer._SerializeFlags(flags)
     new_flags = flag_changer._ParseFlags(new_command_line)
-    self.assertItemsEqual(new_flags, expected_flags)
+    if six.PY2:
+      self.assertItemsEqual(new_flags, expected_flags)
+    else:
+      self.assertCountEqual(new_flags, expected_flags)
 
   def testParseCmdLine_simple(self):
     self._testParseCmdLine('chrome --foo --bar="a b" --baz=true --fine="ok"',

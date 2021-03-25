@@ -9,6 +9,7 @@ class BaseError(Exception):
   def __init__(self, message, is_infra_error=False):
     super(BaseError, self).__init__(message)
     self._is_infra_error = is_infra_error
+    self.message = message
 
   def __eq__(self, other):
     return (self.message == other.message

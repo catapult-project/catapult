@@ -51,7 +51,7 @@ class TestCase(unittest.TestCase):
           (call.parent.name, call.parent) for call, _ in self._expected_calls)
       self._patched = [
           test_case.patch_call(call, side_effect=do_check(call))
-          for call in watched.itervalues()
+          for call in watched.values()
       ]
 
     def __enter__(self):

@@ -300,7 +300,7 @@ class BatteryUtils(object):
             'uid': uid,
             'data': pwi_entries[uid]
         }
-        for p, uid in self._cache['uids'].iteritems()
+        for p, uid in self._cache['uids'].items()
     }
     return {'system_total': system_total, 'per_package': per_package}
 

@@ -15,11 +15,68 @@ _SIX_PATH = os.path.join(_DEVIL_PATH, '..', 'third_party', 'six')
 sys.path.append(_DEVIL_PATH)
 sys.path.append(_SIX_PATH)
 # Import compatible tests here by full module path
+import devil.android.apk_helper_test
+import devil.android.app_ui_test
+import devil.android.battery_utils_test
+import devil.android.cpu_temperature_test
+import devil.android.decorators_test
+import devil.android.device_denylist_test
+import devil.android.device_errors_test
+import devil.android.device_utils_test
+import devil.android.fastboot_utils_test
+import devil.android.flag_changer_test
+import devil.android.logcat_monitor_test
+import devil.android.md5sum_test
+import devil.android.perf.perf_control_test
+import devil.android.sdk.adb_wrapper_test
+import devil.android.sdk.shared_prefs_test
+import devil.android.tools.device_monitor_test
+import devil.android.tools.script_common_test
+import devil.android.tools.system_app_test
+import devil.devil_env_test
 import devil.utils.cmd_helper_test
+import devil.utils.decorators_test
+import devil.utils.find_usb_devices_test
+import devil.utils.geometry_test
+import devil.utils.lazy.weak_constant_test
+import devil.utils.lsusb_test
+import devil.utils.markdown_test
+import devil.utils.mock_calls_test
+import devil.utils.parallelizer_test
+import devil.utils.zip_utils_test
 
 PY3_COMPATIBLE_TESTS = [
     # Add full test module path here
+    devil.android.apk_helper_test,
+    devil.android.app_ui_test,
+    devil.android.battery_utils_test,
+    devil.android.cpu_temperature_test,
+    devil.android.decorators_test,
+    devil.android.device_denylist_test,
+    devil.android.device_errors_test,
+    devil.android.device_utils_test,
+    devil.android.fastboot_utils_test,
+    devil.android.flag_changer_test,
+#    devil.android.logcat_monitor_test,
+#    devil.android.md5sum_test,
+#    devil.android.perf.perf_control_test,
+#    devil.android.perf.surface_stats_collector_test,
+#    devil.android.sdk.adb_wrapper_test,
+#    devil.android.sdk.shared_prefs_test,
+#    devil.android.tools.device_monitor_test,
+#    devil.android.tools.script_common_test,
+#    devil.android.tools.system_app_test,
+#    devil.devil_env_test,
     devil.utils.cmd_helper_test,
+#    devil.utils.decorators_test,
+#    devil.utils.find_usb_devices_test,
+#    devil.utils.geometry_test,
+#    devil.utils.lazy.weak_constant_test,
+#    devil.utils.lsusb_test,
+#    devil.utils.markdown_test,
+#    devil.utils.mock_calls_test,
+#    devil.utils.parallelizer_test,
+#    devil.utils.zip_utils_test,
 ]
 
 

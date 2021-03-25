@@ -51,7 +51,7 @@ class _UiNode(object):
       A geometry.Rectangle instance.
     """
     d = _RE_BOUNDS.match(self._GetAttribute('bounds')).groupdict()
-    return geometry.Rectangle.FromDict({k: int(v) for k, v in d.iteritems()})
+    return geometry.Rectangle.FromDict({k: int(v) for k, v in d.items()})
 
   def Tap(self, point=None, dp_units=False):
     """Send a tap event to the UI node.
@@ -150,7 +150,7 @@ class _UiNode(object):
         and ':id/' not in resource_id):
       kwargs['resource_id'] = '%s:id/%s' % (self._package, resource_id)
 
-    criteria = [(k.replace('_', '-'), v) for k, v in kwargs.iteritems()
+    criteria = [(k.replace('_', '-'), v) for k, v in kwargs.items()
                 if v is not None]
     if not criteria:
       raise TypeError('At least one search criteria should be specified')

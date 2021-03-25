@@ -1553,7 +1553,7 @@ class DeviceUtils(object):
     else:
       cmd = ' '.join(cmd_helper.SingleQuote(s) for s in cmd)
     if env:
-      env = ' '.join(env_quote(k, v) for k, v in env.iteritems())
+      env = ' '.join(env_quote(k, v) for k, v in env.items())
       cmd = '%s %s' % (env, cmd)
     if cwd:
       cmd = 'cd %s && %s' % (cmd_helper.SingleQuote(cwd), cmd)
@@ -1750,7 +1750,7 @@ class DeviceUtils(object):
       cmd.append('-w')
     if raw:
       cmd.append('-r')
-    for k, v in extras.iteritems():
+    for k, v in extras.items():
       cmd.extend(['-e', str(k), str(v)])
     cmd.append(component)
 
@@ -2612,7 +2612,7 @@ class DeviceUtils(object):
     """
     entries = self._ParseLongLsOutput(device_path, as_root=as_root, **kwargs)
     for d in entries:
-      for key, value in d.items():
+      for key, value in list(d.items()):
         if value is None:
           del d[key]  # Remove missing fields.
       d['st_mode'] = _ParseModeString(d['st_mode'])
@@ -3100,18 +3100,19 @@ class DeviceUtils(object):
     Returns:
       A list of ProcessInfo tuples with |name|, |pid|, and |ppid| fields.
     """
+    # pylint: disable=broad-except
     process_name = process_name or ''
     processes = []
     for line in self._GetPsOutput(process_name):
       row = line.split()
       try:
-        row = {k: row[i] for k, i in _PS_COLUMNS.iteritems()}
+        row = {k: row[i] for k, i in _PS_COLUMNS.items()}
         if row['pid'] == 'PID' or process_name not in row['name']:
           # Skip over header and non-matching processes.
           continue
         row['pid'] = int(row['pid'])
         row['ppid'] = int(row['ppid'])
-      except StandardError:  # e.g. IndexError, TypeError, ValueError.
+      except Exception:  # e.g. IndexError, TypeError, ValueError.
         logging.warning('failed to parse ps line: %r', line)
         continue
       processes.append(ProcessInfo(**row))
@@ -3566,10 +3567,10 @@ class DeviceUtils(object):
     # When using a cache across script invokations, verify that apps have
     # not been uninstalled.
     self._cache['package_apk_paths_to_verify'] = set(
-        self._cache['package_apk_paths'].iterkeys())
+        self._cache['package_apk_paths'])
 
     package_apk_checksums = obj.get('package_apk_checksums', {})
-    for k, v in package_apk_checksums.iteritems():
+    for k, v in package_apk_checksums.items():
       package_apk_checksums[k] = set(v)
     self._cache['package_apk_checksums'] = package_apk_checksums
     device_path_checksums = obj.get('device_path_checksums', {})
@@ -3593,7 +3594,7 @@ class DeviceUtils(object):
     obj['package_apk_paths'] = self._cache['package_apk_paths']
     obj['package_apk_checksums'] = self._cache['package_apk_checksums']
     # JSON can't handle sets.
-    for k, v in obj['package_apk_checksums'].iteritems():
+    for k, v in obj['package_apk_checksums'].items():
       obj['package_apk_checksums'][k] = list(v)
     obj['device_path_checksums'] = self._cache['device_path_checksums']
     return json.dumps(obj, separators=(',', ':'))

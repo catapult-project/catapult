@@ -13,6 +13,8 @@ import io
 import logging
 import unittest
 
+import six
+
 from devil import devil_env
 from devil.android import device_errors
 from devil.android import device_utils
@@ -347,16 +349,22 @@ class FastbootUtilsFastbootMode(FastbootUtilsTest):
         pass
 
 
+if six.PY2:
+  _BUILTIN_OPEN = '__builtin__.open'
+else:
+  _BUILTIN_OPEN = 'builtins.open'
+
+
 class FastbootUtilsVerifyBoard(FastbootUtilsTest):
   def testVerifyBoard_bothValid(self):
     mock_file = io.StringIO(u'require board=%s\n' % _BOARD)
-    with mock.patch('__builtin__.open', return_value=mock_file, create=True):
+    with mock.patch(_BUILTIN_OPEN, return_value=mock_file, create=True):
       with mock.patch('os.listdir', return_value=_VALID_FILES):
         self.assertTrue(self.fastboot._VerifyBoard('test'))
 
   def testVerifyBoard_BothNotValid(self):
     mock_file = io.StringIO(u'abc')
-    with mock.patch('__builtin__.open', return_value=mock_file, create=True):
+    with mock.patch(_BUILTIN_OPEN, return_value=mock_file, create=True):
       with mock.patch('os.listdir', return_value=_INVALID_FILES):
         self.assertFalse(self.assertFalse(self.fastboot._VerifyBoard('test')))
 
@@ -366,31 +374,31 @@ class FastbootUtilsVerifyBoard(FastbootUtilsTest):
 
   def testVerifyBoard_ZipNotFoundFileValid(self):
     mock_file = io.StringIO(u'require board=%s\n' % _BOARD)
-    with mock.patch('__builtin__.open', return_value=mock_file, create=True):
+    with mock.patch(_BUILTIN_OPEN, return_value=mock_file, create=True):
       with mock.patch('os.listdir', return_value=['android-info.txt']):
         self.assertTrue(self.fastboot._VerifyBoard('test'))
 
   def testVerifyBoard_zipNotValidFileIs(self):
     mock_file = io.StringIO(u'require board=%s\n' % _BOARD)
-    with mock.patch('__builtin__.open', return_value=mock_file, create=True):
+    with mock.patch(_BUILTIN_OPEN, return_value=mock_file, create=True):
       with mock.patch('os.listdir', return_value=_INVALID_FILES):
         self.assertTrue(self.fastboot._VerifyBoard('test'))
 
   def testVerifyBoard_fileNotValidZipIs(self):
     mock_file = io.StringIO(u'require board=WrongBoard')
-    with mock.patch('__builtin__.open', return_value=mock_file, create=True):
+    with mock.patch(_BUILTIN_OPEN, return_value=mock_file, create=True):
       with mock.patch('os.listdir', return_value=_VALID_FILES):
         self.assertFalse(self.fastboot._VerifyBoard('test'))
 
   def testVerifyBoard_noBoardInFileValidZip(self):
     mock_file = io.StringIO(u'Regex wont match')
-    with mock.patch('__builtin__.open', return_value=mock_file, create=True):
+    with mock.patch(_BUILTIN_OPEN, return_value=mock_file, create=True):
       with mock.patch('os.listdir', return_value=_VALID_FILES):
         self.assertTrue(self.fastboot._VerifyBoard('test'))
 
   def testVerifyBoard_noBoardInFileInvalidZip(self):
     mock_file = io.StringIO(u'Regex wont match')
-    with mock.patch('__builtin__.open', return_value=mock_file, create=True):
+    with mock.patch(_BUILTIN_OPEN, return_value=mock_file, create=True):
       with mock.patch('os.listdir', return_value=_INVALID_FILES):
         self.assertFalse(self.fastboot._VerifyBoard('test'))
 
@@ -419,7 +427,7 @@ class FastbootUtilsFindAndVerifyPartitionsAndImages(FastbootUtilsTest):
     ]
     with mock.patch('os.listdir', return_value=files):
       imgs = self.fastboot._FindAndVerifyPartitionsAndImages(PARTITIONS, 'test')
-      parts = imgs.keys()
+      parts = list(imgs.keys())
       self.assertDictEqual(imgs, img_check)
       self.assertListEqual(parts, parts_check)
 
@@ -451,7 +459,7 @@ class FastbootUtilsFindAndVerifyPartitionsAndImages(FastbootUtilsTest):
       with self.patch_call(self.call.fastboot.supports_ab, return_value=False):
         imgs = self.fastboot._FindAndVerifyPartitionsAndImages(
             PARTITIONS, 'test')
-        parts = imgs.keys()
+        parts = list(imgs.keys())
         self.assertDictEqual(imgs, img_check)
         self.assertListEqual(parts, parts_check)
 
