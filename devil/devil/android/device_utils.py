@@ -324,30 +324,6 @@ def GetAVDs():
   return avds
 
 
-@decorators.WithExplicitTimeoutAndRetries(_DEFAULT_TIMEOUT, _DEFAULT_RETRIES)
-def RestartServer():
-  """Restarts the adb server.
-
-  Raises:
-    CommandFailedError if we fail to kill or restart the server.
-  """
-
-  def adb_killed():
-    return not adb_wrapper.AdbWrapper.IsServerOnline()
-
-  def adb_started():
-    return adb_wrapper.AdbWrapper.IsServerOnline()
-
-  adb_wrapper.AdbWrapper.KillServer()
-  if not timeout_retry.WaitFor(adb_killed, wait_period=1, max_tries=5):
-    # TODO(crbug.com/442319): Switch this to raise an exception if we
-    # figure out why sometimes not all adb servers on bots get killed.
-    logger.warning('Failed to kill adb server')
-  adb_wrapper.AdbWrapper.StartServer()
-  if not timeout_retry.WaitFor(adb_started, wait_period=1, max_tries=5):
-    raise device_errors.CommandFailedError('Failed to start adb server')
-
-
 def _ParseModeString(mode_str):
   """Parse a mode string, e.g. 'drwxrwxrwx', into a st_mode value.
 
@@ -3745,7 +3721,7 @@ class DeviceUtils(object):
             'No devices found. Will try again after restarting adb server '
             'and a short nap of %d s.', sleep_s)
         time.sleep(sleep_s)
-        RestartServer()
+        adb_wrapper.RestartServer()
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RestartAdbd(self, timeout=None, retries=None):

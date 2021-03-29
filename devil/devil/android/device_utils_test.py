@@ -166,7 +166,7 @@ class DeviceUtilsRestartServerTest(mock_calls.TestCase):
             ['pgrep', 'adb']),
          (1, '')), (mock.call.devil.utils.cmd_helper.GetCmdStatusAndOutput(
              ['pgrep', 'adb']), (0, '123\n'))):
-      device_utils.RestartServer()
+      adb_wrapper.RestartServer()
 
 
 class MockTempFile(object):
@@ -3481,7 +3481,7 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
         device_utils.DeviceUtils.HealthyDevices(device_arg=[], retries=0)
 
   @mock.patch('time.sleep')
-  @mock.patch('devil.android.device_utils.RestartServer')
+  @mock.patch('devil.android.sdk.adb_wrapper.RestartServer')
   def testHealthyDevices_EmptyListDeviceArg_no_attached_with_retry(
       self, mock_restart, mock_sleep):
     with self.assertCalls(
@@ -3499,7 +3499,7 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
          mock.call(8), mock.call(16)])
 
   @mock.patch('time.sleep')
-  @mock.patch('devil.android.device_utils.RestartServer')
+  @mock.patch('devil.android.sdk.adb_wrapper.RestartServer')
   def testHealthyDevices_EmptyListDeviceArg_no_attached_with_resets(
       self, mock_restart, mock_sleep):
     # The reset_usb import fails on windows. Mock the full import here so it can
