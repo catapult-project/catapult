@@ -15,6 +15,7 @@ from telemetry.internal.backends.chrome import extension_backend
 from telemetry.internal.backends.chrome import tab_list_backend
 from telemetry.internal.backends.chrome_inspector import devtools_client_backend
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
+from telemetry.internal.backends.chrome_inspector import ui_devtools_client_backend
 from telemetry.internal.browser import web_contents
 
 import py_utils
@@ -307,3 +308,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   def SetDownloadBehavior(self, behavior, downloadPath, timeout):
     self.devtools_client.SetDownloadBehavior(behavior, downloadPath, timeout)
+
+  def GetUIDevtoolsBackend(self, port):
+    return ui_devtools_client_backend.GetUIDevtoolsBackend(port, self)

@@ -14,6 +14,7 @@ from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome_inspector import tracing_backend
 from telemetry.internal.browser import extension_dict
 from telemetry.internal.browser import tab_list
+from telemetry.internal.browser import ui_devtools
 from telemetry.internal.browser import web_contents
 from telemetry.testing import test_utils
 
@@ -352,3 +353,8 @@ class Browser(app.App):
   @supports_inspecting_webui.setter
   def supports_inspecting_webui(self, value):
     self._supports_inspecting_webui = value
+
+  def GetUIDevtools(self, port=None):
+    '''UI Devtools is mainly used to interact with native UI'''
+    return ui_devtools.UIDevTools(
+        self._browser_backend.GetUIDevtoolsBackend(port))
