@@ -27,6 +27,9 @@ class TestTimelineBenchmark(benchmark.Benchmark):
   def CreateCoreTimelineBasedMeasurementOptions(self):
     options = timeline_based_measurement.Options()
     options.config.enable_chrome_trace = True
+    # Increase buffer size to deal with flaky test cases running into the
+    # buffer limit (crbug.com/1193748).
+    options.config.chrome_trace_config.SetTraceBufferSizeInKb(400 * 1024)
     options.SetTimelineBasedMetrics(['sampleMetric'])
     return options
 
