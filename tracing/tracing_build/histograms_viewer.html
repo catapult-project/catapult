@@ -59,8 +59,10 @@ ga('set', 'historyImportTask', null);
     const view = document.getElementById('histograms');
     const locus = new tr.v.ui.HistogramSetLocation();
 
-    const data = jsonData.childNodes[0].textContent;
-    await importer.importHistograms(data, view);
+    // Extract all comment nodes inside jsonData.
+    const strings = Array.prototype.map.call(
+        jsonData.childNodes, each => each.textContent);
+    await importer.importHistograms(strings, view);
     await locus.build(view.viewState);
 
     // Free the objects and DOM referenced by the importer.

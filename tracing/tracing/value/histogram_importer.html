@@ -51,26 +51,26 @@ tr.exportTo('tr.v', function() {
      * The |view| should have 'display:none' so that it doesn't obnoxiously
      * display "zero Histograms" while they are being imported.
      *
-     * @param {!String} string
+     * @param {!String[]} strings
      * @param {!Element} view A histogram-set-view.
      * @return {Promise} resolves when |view| is displayed.
      */
-    async importHistograms(string, view) {
+    async importHistograms(strings, view) {
       this.histograms_ = new tr.v.HistogramSet();
-      this.string_ = string;
       this.view_ = view;
       tr.b.Timing.instant('HistogramImporter', 'string', this.string_.length);
-
-      if (this.string_.length > 0) {
+      const loadMark = tr.b.Timing.mark('HistogramImporter', 'loadHistograms');
+      for (const string of strings) {
+        this.string_ = string;
+        this.dataOffset_ = 0;
+        if (this.string_.length == 0) continue;
         await this.update_('Loading Histogram 0');
-        const loadMark = tr.b.Timing.mark(
-            'HistogramImporter', 'loadHistograms');
-        if (!this.findDataStart_()) return;
+        if (!this.findDataStart_()) continue
         await this.loadSomeHistograms_();
-        loadMark.end();
-        tr.b.Timing.instant('HistogramImporter', 'nsPerJson',
-            parseInt(1e3 * loadMark.durationMs / this.histograms_.length));
       }
+      loadMark.end();
+      tr.b.Timing.instant('HistogramImporter', 'nsPerJson',
+          parseInt(1e3 * loadMark.durationMs / this.histograms_.length));
 
       await this.update_('Displaying Histogram table...');
       await this.displayHistograms_();

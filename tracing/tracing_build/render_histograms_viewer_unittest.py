@@ -52,6 +52,49 @@ class ResultsRendererTest(unittest.TestCase):
         render_histograms_viewer.ReadExistingResults(self.output_stream.read()))
     self.assertIn(value0_json, self.GetOutputFileContent())
 
+  def testBasicWithSeparatorOften(self):
+    data_list = [{'foo': i} for i in range(11)]
+    render_histograms_viewer.RenderHistogramsViewer(
+        [], self.output_stream, False)
+    self.output_stream.seek(0)
+    self.assertCountEqual([], render_histograms_viewer.ReadExistingResults(
+        self.output_stream.read()))
+    # Write payload, forcing a new chunk after ever single item
+    render_histograms_viewer.RenderHistogramsViewer(
+        data_list, self.output_stream, False, max_chunk_size_hint_bytes=1)
+    self.output_stream.seek(0)
+    self.assertCountEqual(
+        data_list,
+        render_histograms_viewer.ReadExistingResults(
+            self.output_stream.read()))
+
+    for data in data_list:
+      data_json = json.dumps(data, separators=(',', ':'))
+      self.assertIn(data_json, self.GetOutputFileContent())
+
+  def testBasicWithSeparator(self):
+    data_list = [{'foo': i} for i in range(11)]
+    render_histograms_viewer.RenderHistogramsViewer(
+        [], self.output_stream, False)
+    self.output_stream.seek(0)
+    self.assertCountEqual([], render_histograms_viewer.ReadExistingResults(
+        self.output_stream.read()))
+    # Write payload, forcing a new chunk after a few items
+    item_json = json.dumps(data_list[2], separators=(',', ':'))
+    render_histograms_viewer.RenderHistogramsViewer(
+        data_list,
+        self.output_stream,
+        False,
+        max_chunk_size_hint_bytes=len(item_json) * 3)
+    self.output_stream.seek(0)
+    self.assertCountEqual(
+        data_list,
+        render_histograms_viewer.ReadExistingResults(
+            self.output_stream.read()))
+    for data in data_list:
+      data_json = json.dumps(data, separators=(',', ':'))
+      self.assertIn(data_json, self.GetOutputFileContent())
+
   def testExistingResults(self):
     value0 = {'foo': 0}
     value0_json = json.dumps(value0, separators=(',', ':'))

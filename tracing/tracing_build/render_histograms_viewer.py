@@ -7,7 +7,9 @@ import logging
 import re
 
 _DATA_START = '<div id="histogram-json-data" style="display:none;"><!--'
-_DATA_END = '--!></div>'
+_DATA_SEPARATOR = '--><!--'
+_DATA_END_OLD = '--!></div>'
+_DATA_END = '--></div>'
 
 
 def ExtractJSON(results_html):
@@ -17,14 +19,18 @@ def ExtractJSON(results_html):
   if start is None:
     logging.warn('Could not find histogram data start: %s', _DATA_START)
     return []
-  pattern = '^((%s)|(.*?))$' % re.escape(_DATA_END)
+  pattern = '^((%s|%s)|(.*?))$' % (re.escape(_DATA_END_OLD),
+                                   re.escape(_DATA_END))
   # Find newlines and parse each line as separate JSON data.
   for match in re.compile(pattern, flags).finditer(results_html, start.end()+1):
     try:
       # Check if the end tag in group(2) got a match.
       if match.group(2):
         return results
-      results.append(json.loads(match.group(3)))
+      payload = match.group(3)
+      if payload == _DATA_SEPARATOR:
+        continue
+      results.append(json.loads(payload))
     except ValueError:
       logging.warn(
           'Found existing results json, but failed to parse it: %s',
@@ -45,7 +51,8 @@ def ReadExistingResults(results_html):
 
 
 def RenderHistogramsViewer(histogram_dicts, output_stream, reset_results=False,
-                           vulcanized_html=''):
+                           vulcanized_html='',
+                           max_chunk_size_hint_bytes=100000000):
   """Renders a Histograms viewer to output_stream containing histogram_dicts.
 
   Requires a Histograms viewer to have already been vulcanized.
@@ -66,14 +73,22 @@ def RenderHistogramsViewer(histogram_dicts, output_stream, reset_results=False,
 
   output_stream.write(vulcanized_html)
   # Put all the serialized histograms nodes inside an html comment to avoid
-  # unecessary stress on html parsing and avoid creating throw-away dom nodes.
+  # unnecessary stress on html parsing and avoid creating throw-away dom nodes.
   output_stream.write(_DATA_START)
+
+  chunk_size = 0
   for histogram in histogram_dicts:
-    hist_json = json.dumps(histogram, separators=(',', ':'))
     output_stream.write('\n')
     # No escaping is necessary since the data is stored inside an html comment.
     # This assumes that {hist_json} doesn't contain an html comment itself.
+    hist_json = json.dumps(histogram, separators=(',', ':'))
     output_stream.write(hist_json)
+    chunk_size += len(hist_json) + 1
+    # Start a new comment after {max_chunk_size_hint_bytes} to avoid hitting
+    # V8's max string length. Each comment can be read as individual string.
+    if chunk_size > max_chunk_size_hint_bytes:
+      output_stream.write('\n%s' % _DATA_SEPARATOR)
+      chunk_size = 0
   output_stream.write('\n%s\n' % _DATA_END)
 
   # If the output file already existed and was longer than the new contents,
