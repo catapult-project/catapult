@@ -198,6 +198,7 @@ tracing_js_html_files = [
   "tracing/metrics/android_systrace_metric.html",
   "tracing/metrics/blink/gc_metric.html",
   "tracing/metrics/blink/leak_detection_metric.html",
+  "tracing/metrics/blink/resource_metric.html",
   "tracing/metrics/console_error_metric.html",
   "tracing/metrics/count_sum_metric.html",
   "tracing/metrics/cpu_process_metric.html",
