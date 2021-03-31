@@ -102,7 +102,7 @@ class FromDictTest(unittest.TestCase):
 
 class _RunTestExecutionTest(unittest.TestCase):
 
-  def assertNewTaskHasDimensions(self, swarming_tasks_new):
+  def assertNewTaskHasDimensions(self, swarming_tasks_new, patch=None):
     body = {
         'name':
             'Pinpoint job',
@@ -134,6 +134,8 @@ class _RunTestExecutionTest(unittest.TestCase):
             }
         },],
     }
+    if patch:
+      body.update(patch)
     swarming_tasks_new.assert_called_with(body)
 
 
@@ -233,6 +235,114 @@ class RunTestFullTest(_RunTestExecutionTest):
     execution.Poll()
 
     self.assertNewTaskHasDimensions(swarming_tasks_new)
+
+  def testSuccess_Cas(self, swarming_task_result, swarming_tasks_new):
+    # Goes through a full run of two Executions.
+
+    # Call RunTest.Start() to create an Execution.
+    quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS,
+                             None, None)
+
+    # Propagate a thing that looks like a job.
+    quest.PropagateJob(
+        FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
+                'user@example.com'))
+
+    execution = quest.Start('change_1', 'isolate server', 'x' * 64)
+
+    swarming_task_result.assert_not_called()
+    swarming_tasks_new.assert_not_called()
+
+    # Call the first Poll() to start the swarming task.
+    swarming_tasks_new.return_value = {'task_id': 'task id'}
+    execution.Poll()
+
+    swarming_task_result.assert_not_called()
+    self.assertEqual(swarming_tasks_new.call_count, 1)
+    self.assertNewTaskHasDimensions(swarming_tasks_new, {
+        'task_slices': [{
+            'expiration_secs': '86400',
+            'properties': {
+                'cas_input_root': {
+                    'cas_instance': run_test._CAS_DEFAULT_INSTANCE,
+                    'digest': 'x' * 64,
+                },
+                'extra_args': ['arg'],
+                'dimensions': DIMENSIONS,
+                'execution_timeout_secs': mock.ANY,
+                'io_timeout_secs': mock.ANY,
+            }
+        }]
+    })
+    self.assertFalse(execution.completed)
+    self.assertFalse(execution.failed)
+
+    # Call subsequent Poll()s to check the task status.
+    swarming_task_result.return_value = {'state': 'PENDING'}
+    execution.Poll()
+
+    self.assertFalse(execution.completed)
+    self.assertFalse(execution.failed)
+
+    swarming_task_result.return_value = {
+        'bot_id': 'bot id',
+        'exit_code': 0,
+        'failure': False,
+        'outputs_ref': {
+            'isolatedserver': 'output isolate server',
+            'isolated': 'output isolate hash',
+        },
+        'state': 'COMPLETED',
+    }
+    execution.Poll()
+
+    self.assertTrue(execution.completed)
+    self.assertFalse(execution.failed)
+    self.assertEqual(execution.result_values, ())
+    self.assertEqual(
+        execution.result_arguments, {
+            'isolate_server': 'output isolate server',
+            'isolate_hash': 'output isolate hash',
+        })
+    self.assertEqual(
+        execution.AsDict(), {
+            'completed':
+                True,
+            'exception':
+                None,
+            'details': [
+                {
+                    'key': 'bot',
+                    'value': 'bot id',
+                    'url': 'server/bot?id=bot id',
+                },
+                {
+                    'key': 'task',
+                    'value': 'task id',
+                    'url': 'server/task?id=task id',
+                },
+                {
+                    'key': 'isolate',
+                    'value': 'output isolate hash',
+                    'url': 'output isolate server/browse?'
+                           'digest=output isolate hash',
+                },
+            ],
+        })
+
+    # Start a second Execution on another Change. It should use the bot_id
+    # from the first execution.
+    execution = quest.Start('change_2', 'isolate server', 'input isolate hash')
+    execution.Poll()
+
+    self.assertNewTaskHasDimensions(swarming_tasks_new)
+
+    # Start an Execution on the same Change. It should use a new bot_id.
+    execution = quest.Start('change_2', 'isolate server', 'input isolate hash')
+    execution.Poll()
+
+    self.assertNewTaskHasDimensions(swarming_tasks_new)
+
 
   def testStart_NoSwarmingTags(self, swarming_task_result, swarming_tasks_new):
     del swarming_task_result
