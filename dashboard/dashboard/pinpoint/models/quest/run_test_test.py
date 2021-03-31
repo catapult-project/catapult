@@ -248,7 +248,7 @@ class RunTestFullTest(_RunTestExecutionTest):
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
                 'user@example.com'))
 
-    execution = quest.Start('change_1', 'isolate server', 'x' * 64)
+    execution = quest.Start('change_1', 'isolate server', 'xxxxxxxx/111')
 
     swarming_task_result.assert_not_called()
     swarming_tasks_new.assert_not_called()
@@ -265,7 +265,10 @@ class RunTestFullTest(_RunTestExecutionTest):
             'properties': {
                 'cas_input_root': {
                     'cas_instance': run_test._CAS_DEFAULT_INSTANCE,
-                    'digest': 'x' * 64,
+                    'digest': {
+                        'hash': 'xxxxxxxx',
+                        'size_bytes': 111,
+                    },
                 },
                 'extra_args': ['arg'],
                 'dimensions': DIMENSIONS,

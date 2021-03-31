@@ -314,7 +314,7 @@ class _RunTestExecution(execution_module.Execution):
 
   @staticmethod
   def _IsCasDigest(d):
-    return len(d) > 40
+    return '/' in d
 
   def _StartTask(self):
     """Kick off a Swarming task to run a test."""
@@ -325,10 +325,14 @@ class _RunTestExecution(execution_module.Execution):
     # TODO(fancl): Seperate cas input from isolate (including endpoint and
     # datastore module)
     if self._IsCasDigest(self._isolate_hash):
+      cas_hash, cas_size = self._isolate_hash.split('/', 1)
       input_ref = {
           'cas_input_root': {
               'cas_instance': _CAS_DEFAULT_INSTANCE,
-              'digest': self._isolate_hash,
+              'digest': {
+                  'hash': cas_hash,
+                  'size_bytes': int(cas_size),
+              }
           }
       }
     else:
