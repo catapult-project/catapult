@@ -126,17 +126,13 @@ _MODIFICATION_TIMEOUT = 300
 _MODIFICATION_RETRIES = 2
 _ENABLE_MODIFICATION_PROP = 'devil.modify_sys_apps'
 
-
-def _ShouldRetryModification(exc):
-  return not isinstance(exc, device_errors.CommandTimeoutError)
-
-
 # timeout and retries are both required by the decorator, but neither
 # are used within the body of the function.
 # pylint: disable=unused-argument
 
 
-@decorators.WithTimeoutAndConditionalRetries(_ShouldRetryModification)
+@decorators.WithExplicitTimeoutAndRetries(_MODIFICATION_TIMEOUT,
+                                          _MODIFICATION_RETRIES)
 def _SetUpSystemAppModification(device, timeout=None, retries=None):
   # Ensure that the device is online & available before proceeding to
   # handle the case where something fails in the middle of set up and
@@ -181,7 +177,8 @@ def _SetUpSystemAppModification(device, timeout=None, retries=None):
   return should_restore_root
 
 
-@decorators.WithTimeoutAndConditionalRetries(_ShouldRetryModification)
+@decorators.WithExplicitTimeoutAndRetries(_MODIFICATION_TIMEOUT,
+                                          _MODIFICATION_RETRIES)
 def _TearDownSystemAppModification(device,
                                    should_restore_root,
                                    timeout=None,
@@ -212,16 +209,11 @@ def EnableSystemAppModification(device):
     yield
     return
 
-  should_restore_root = _SetUpSystemAppModification(
-      device, timeout=_MODIFICATION_TIMEOUT, retries=_MODIFICATION_RETRIES)
+  should_restore_root = _SetUpSystemAppModification(device)
   try:
     yield
   finally:
-    _TearDownSystemAppModification(
-        device,
-        should_restore_root,
-        timeout=_MODIFICATION_TIMEOUT,
-        retries=_MODIFICATION_RETRIES)
+    _TearDownSystemAppModification(device, should_restore_root)
 
 
 @contextlib.contextmanager
