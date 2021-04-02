@@ -325,8 +325,6 @@ class AdbWrapper(object):
         raise
     except cmd_helper.TimeoutError:
       logger.error('Timeout on adb command: %r', adb_cmd)
-      logger.info('Restarting adb server')
-      RestartServer()
       raise
 
     # Best effort to catch errors from adb; unfortunately adb is very
