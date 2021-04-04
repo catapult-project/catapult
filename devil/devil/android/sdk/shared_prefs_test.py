@@ -132,6 +132,8 @@ class SharedPrefsTest(unittest.TestCase):
         })  # data survived roundtrip
 
   def testForceCommit(self):
+    type(self.device).build_version_sdk = mock.PropertyMock(
+        return_value=version_codes.LOLLIPOP_MR1)
     prefs = shared_prefs.SharedPrefs(self.device, 'com.some.package',
                                      'prefs.xml')
     prefs.Load()

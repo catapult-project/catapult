@@ -184,7 +184,7 @@ def get_all_status(denylist):
   }
 
   if denylist:
-    for device, reason in denylist.Read().iteritems():
+    for device, reason in denylist.Read().items():
       status_dict['devices'][device] = {
           'state': reason.get('reason', 'denylisted')
       }

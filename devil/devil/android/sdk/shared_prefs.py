@@ -11,6 +11,8 @@ import logging
 import posixpath
 from xml.etree import ElementTree
 
+import six
+
 from devil.android import device_errors
 from devil.android.sdk import version_codes
 
@@ -43,7 +45,10 @@ class BasePref(object):
 
   def __str__(self):
     """Get the underlying xml element as a string."""
-    return ElementTree.tostring(self._elem)
+    if six.PY2:
+      return ElementTree.tostring(self._elem)
+    else:
+      return ElementTree.tostring(self._elem, encoding="unicode")
 
   def get(self):
     """Get the value of this preference."""
@@ -231,7 +236,11 @@ class SharedPrefs(object):
 
   def __str__(self):
     """Get the underlying xml document as a string."""
-    return _XML_DECLARATION + ElementTree.tostring(self.xml)
+    if six.PY2:
+      return _XML_DECLARATION + ElementTree.tostring(self.xml)
+    else:
+      return _XML_DECLARATION + \
+          ElementTree.tostring(self.xml, encoding="unicode")
 
   @property
   def package(self):

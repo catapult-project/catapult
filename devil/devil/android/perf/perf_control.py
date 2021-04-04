@@ -203,7 +203,7 @@ class PerfControl(object):
       if not isinstance(cpu_max_freq, dict):
         self._SetScalingMaxFreqForCpus(cpu_max_freq, self._cpu_file_list)
       else:
-        for key, max_frequency in cpu_max_freq.iteritems():
+        for key, max_frequency in cpu_max_freq.items():
           # Convert 'X' to 'cpuX' and 'X..Y' to 'cpuX cpu<X+1> .. cpuY'.
           if '..' in key:
             range_min, range_max = key.split('..')
@@ -211,7 +211,7 @@ class PerfControl(object):
           else:
             range_min = range_max = int(key)
           cpu_files = [
-              'cpu%d' % number for number in xrange(range_min, range_max + 1)
+              'cpu%d' % number for number in range(range_min, range_max + 1)
           ]
           # Set the |max_frequency| on requested subset of the cores.
           self._SetScalingMaxFreqForCpus(max_frequency, ' '.join(cpu_files))

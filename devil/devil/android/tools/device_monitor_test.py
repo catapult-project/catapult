@@ -7,6 +7,8 @@ import os
 import sys
 import unittest
 
+import six
+
 if __name__ == '__main__':
   sys.path.append(
       os.path.abspath(
@@ -53,7 +55,7 @@ class DeviceMonitorTest(unittest.TestCase):
     }
 
     def mock_run_shell(cmd, **_kwargs):
-      args = cmd.split() if isinstance(cmd, basestring) else cmd
+      args = cmd.split() if isinstance(cmd, six.string_types) else cmd
       try:
         return self.cmd_outputs[args[0]]
       except KeyError:

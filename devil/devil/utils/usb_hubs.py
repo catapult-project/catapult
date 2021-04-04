@@ -73,7 +73,7 @@ class HubType(object):
       A series of (int, USBNode) tuples giving a physical port
       and the Node connected to it.
     """
-    for (virtual, physical) in mapping.iteritems():
+    for (virtual, physical) in mapping.items():
       if node.HasPort(virtual):
         if isinstance(physical, dict):
           for res in self._GppHelper(node.PortToDevice(virtual), physical):

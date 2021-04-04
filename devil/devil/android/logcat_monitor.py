@@ -13,6 +13,8 @@ import tempfile
 import threading
 import time
 
+import six
+
 from devil.android import decorators
 from devil.android import device_errors
 from devil.android.sdk import adb_wrapper
@@ -102,9 +104,9 @@ class LogcatMonitor(object):
       raise LogcatMonitorCommandError(
           'Must be recording logcat when calling |WaitFor|',
           device_serial=str(self._adb))
-    if isinstance(success_regex, basestring):
+    if isinstance(success_regex, six.string_types):
       success_regex = re.compile(success_regex)
-    if isinstance(failure_regex, basestring):
+    if isinstance(failure_regex, six.string_types):
       failure_regex = re.compile(failure_regex)
 
     logger.debug('Waiting %d seconds for "%s"', timeout, success_regex.pattern)
@@ -220,10 +222,14 @@ class LogcatMonitor(object):
 
     Clears the logcat if |clear| was set in |__init__|.
     """
+    # pylint: disable=unexpected-keyword-arg
     if self._clear:
       self._adb.Logcat(clear=True)
     if not self._record_file:
-      self._record_file = tempfile.NamedTemporaryFile(mode='a', bufsize=1)
+      if six.PY2:
+        self._record_file = tempfile.NamedTemporaryFile(mode='a', bufsize=1)
+      else:
+        self._record_file = tempfile.NamedTemporaryFile(mode='a', buffering=1)
     self._StartRecording()
 
   def Stop(self):

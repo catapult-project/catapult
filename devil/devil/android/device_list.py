@@ -7,6 +7,8 @@ import json
 import logging
 import os
 
+import six
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,7 +28,7 @@ def GetPersistentDeviceList(file_name):
     with open(file_name) as f:
       devices = json.load(f)
     if not isinstance(devices, list) or not all(
-        isinstance(d, basestring) for d in devices):
+        isinstance(d, six.string_types) for d in devices):
       logger.warning('Unrecognized device file format: %s', devices)
       return []
     return [d for d in devices if d != '(error)']

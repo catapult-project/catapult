@@ -57,7 +57,7 @@ def EmptyConfig():
 
 
 def LocalConfigItem(dependency_name, dependency_platform, dependency_path):
-  if isinstance(dependency_path, basestring):
+  if isinstance(dependency_path, six.string_types):
     dependency_path = [dependency_path]
   return {
       dependency_name: {

@@ -159,7 +159,7 @@ def IsHttpServerConnectable(host,
     message the server returns when connect status is false.
   """
   assert tries >= 1
-  for i in xrange(0, tries):
+  for i in range(0, tries):
     client_error = None
     try:
       with contextlib.closing(
