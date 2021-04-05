@@ -113,7 +113,7 @@ def CaptureLogsAsArtifacts(results):
       yield
 
 
-def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
+def _RunStoryAndProcessErrorIfNeeded(story, results, state, test, finder_options):
   def ProcessError(log_message):
     logging.exception(log_message)
     state.DumpStateUponStoryRunFailure(results)
@@ -138,6 +138,9 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
         state.browser.CleanupUnsymbolizedMinidumps()
 
       story.wpr_mode = state.wpr_mode
+      if finder_options.periodic_screenshot_frequency_ms:
+        state.browser.StartCollectingPeriodicScreenshots(
+            finder_options.periodic_screenshot_frequency_ms)
       state.RunStory(results)
       if isinstance(test, story_test.StoryTest):
         test.Measure(state.platform, results)
@@ -158,6 +161,8 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
       # create a new shared state.
       raise
     finally:
+      if finder_options.periodic_screenshot_frequency_ms:
+        state.browser.StopCollectingPeriodicScreenshots()
       has_existing_exception = (sys.exc_info() != (None, None, None))
       try:
         if hasattr(state, 'browser') and state.browser:
@@ -316,7 +321,7 @@ def RunStorySet(test, story_set, finder_options, results,
               if finder_options.wait_for_cpu_temp:
                 state.platform.WaitForCpuTemperature(38.0)
               _WaitForThermalThrottlingIfNeeded(state.platform)
-            _RunStoryAndProcessErrorIfNeeded(story, results, state, test)
+            _RunStoryAndProcessErrorIfNeeded(story, results, state, test, finder_options)
           except _UNHANDLEABLE_ERRORS as exc:
             interruption = (
                 'Benchmark execution interrupted by a fatal exception: %r' %

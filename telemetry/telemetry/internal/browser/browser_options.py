@@ -198,6 +198,10 @@ class BrowserFinderOptions(optparse.Values):
         dest='capture_screen_video', action='store_true',
         help='Capture the screen during the test and save it to a video file '
              '(note that it is supported only on some platforms)')
+    group.add_option(
+        '--periodic-screenshot-frequency-ms',
+        dest='periodic_screenshot_frequency_ms', type=int,
+        help='During each story, capture a screenshot every x ms and save it to a file.')
     parser.add_option_group(group)
 
     # Platform options

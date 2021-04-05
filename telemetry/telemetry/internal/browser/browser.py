@@ -340,6 +340,12 @@ class Browser(app.App):
       self, command_id, timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
     self._browser_backend.ExecuteBrowserCommand(command_id, timeout)
 
+  def StartCollectingPeriodicScreenshots(self, frequency_ms):
+    self._browser_backend.StartCollectingPeriodicScreenshots(frequency_ms)
+
+  def StopCollectingPeriodicScreenshots(self):
+    self._browser_backend.StopCollectingPeriodicScreenshots()
+
   @property
   def supports_inspecting_webui(self):
     '''If this flag is enabled, any inspectable targets with chrome:// will

@@ -307,6 +307,10 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
   - Use mocks for all objects, including stories. No real browser is involved.
   - Call story_runner._RunStoryAndProcessErrorIfNeeded as entry point.
   """
+  def setUp(self):
+    self.finder_options = options_for_unittests.GetCopy()
+    self.finder_options.periodic_screenshot_frequency_ms = 0
+
   def _CreateErrorProcessingMock(self, method_exceptions=None,
                                  legacy_test=False):
     if legacy_test:
@@ -333,7 +337,8 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
     root_mock = self._CreateErrorProcessingMock()
 
     story_runner._RunStoryAndProcessErrorIfNeeded(
-        root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+        root_mock.story, root_mock.results, root_mock.state, root_mock.test,
+        self.finder_options)
 
     self.assertEquals(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
@@ -350,7 +355,8 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
     root_mock = self._CreateErrorProcessingMock(legacy_test=True)
 
     story_runner._RunStoryAndProcessErrorIfNeeded(
-        root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+        root_mock.story, root_mock.results, root_mock.state, root_mock.test,
+        self.finder_options)
 
     self.assertEquals(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
@@ -367,7 +373,8 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
     })
 
     story_runner._RunStoryAndProcessErrorIfNeeded(
-        root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+        root_mock.story, root_mock.results, root_mock.state, root_mock.test,
+        self.finder_options)
 
     self.assertEquals(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
@@ -394,7 +401,8 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
 
       with self.assertRaises(exceptions.AppCrashException):
         story_runner._RunStoryAndProcessErrorIfNeeded(
-            root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+            root_mock.story, root_mock.results, root_mock.state, root_mock.test,
+            self.finder_options)
 
       self.assertListEqual(root_mock.method_calls, [
           mock.call.results.CreateArtifact('logs.txt'),
@@ -418,7 +426,8 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
 
     with self.assertRaisesRegexp(exceptions.Error, 'foo'):
       story_runner._RunStoryAndProcessErrorIfNeeded(
-          root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+          root_mock.story, root_mock.results, root_mock.state, root_mock.test,
+          self.finder_options)
 
     self.assertEquals(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
@@ -438,7 +447,8 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
     })
 
     story_runner._RunStoryAndProcessErrorIfNeeded(
-        root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+        root_mock.story, root_mock.results, root_mock.state, root_mock.test,
+        self.finder_options)
     self.assertEquals(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform, root_mock.story),
@@ -457,7 +467,8 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
 
     with self.assertRaisesRegexp(Exception, 'foo'):
       story_runner._RunStoryAndProcessErrorIfNeeded(
-          root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+          root_mock.story, root_mock.results, root_mock.state, root_mock.test,
+          self.finder_options)
 
     self.assertEquals(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
@@ -477,7 +488,8 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
 
     with self.assertRaisesRegexp(Exception, 'bar'):
       story_runner._RunStoryAndProcessErrorIfNeeded(
-          root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+          root_mock.story, root_mock.results, root_mock.state, root_mock.test,
+          self.finder_options)
 
     self.assertEquals(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
@@ -498,7 +510,8 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
     })
 
     story_runner._RunStoryAndProcessErrorIfNeeded(
-        root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+        root_mock.story, root_mock.results, root_mock.state, root_mock.test,
+        self.finder_options)
 
     self.assertEquals(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
@@ -521,7 +534,8 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
 
     with self.assertRaisesRegexp(exceptions.Error, 'foo'):
       story_runner._RunStoryAndProcessErrorIfNeeded(
-          root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+          root_mock.story, root_mock.results, root_mock.state, root_mock.test,
+          self.finder_options)
 
     self.assertEquals(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
@@ -541,7 +555,8 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
     })
 
     story_runner._RunStoryAndProcessErrorIfNeeded(
-        root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+        root_mock.story, root_mock.results, root_mock.state, root_mock.test,
+        self.finder_options)
 
     self.assertEquals(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
@@ -560,7 +575,8 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
 
     with self.assertRaisesRegexp(Exception, 'foo'):
       story_runner._RunStoryAndProcessErrorIfNeeded(
-          root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+          root_mock.story, root_mock.results, root_mock.state, root_mock.test,
+          self.finder_options)
 
     self.assertEquals(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
