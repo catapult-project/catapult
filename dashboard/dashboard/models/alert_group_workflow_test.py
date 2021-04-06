@@ -789,7 +789,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     )
     w.Process(
         update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
-            now=datetime.datetime.utcnow(),
+            now=datetime.datetime.utcnow() + datetime.timedelta(seconds=1),
             anomalies=ndb.get_multi(anomalies),
             issue=None,
         ))

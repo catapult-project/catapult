@@ -94,7 +94,8 @@ def FindChangePoints(series,
                      min_absolute_change=_MIN_ABSOLUTE_CHANGE,
                      min_relative_change=_MIN_RELATIVE_CHANGE,
                      min_steppiness=_MIN_STEPPINESS,
-                     multiple_of_std_dev=_MULTIPLE_OF_STD_DEV):
+                     multiple_of_std_dev=_MULTIPLE_OF_STD_DEV,
+                     rand=None):
   """Finds change points in the given series.
 
   Only the last |max_window_size| points are examined, regardless of how many
@@ -124,7 +125,8 @@ def FindChangePoints(series,
 
   candidate_points = []
   try:
-    candidate_points = clustering_change_detector.ClusterAndFindSplit(y_values)
+    candidate_points = clustering_change_detector.ClusterAndFindSplit(
+        y_values, rand=rand)
   except clustering_change_detector.InsufficientData:
     pass
 
