@@ -174,6 +174,49 @@ class NewTest(_NewTest):
         job.state._changes[1].id_string,
         'chromium@3 + %s' % ('https://lalala/repo~branch~id/abc123',))
 
+  def testComparisonModeTry_ApplyBaseAndExperimentPatchLegacy(self):
+    request = dict(_BASE_REQUEST)
+    request['comparison_mode'] = 'try'
+    request['base_patch'] = 'https://lalala/c/foo/bar/+/122'
+    request['patch'] = 'https://lalala/c/foo/bar/+/123'
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    self.assertEqual(job.comparison_mode, 'try')
+    self.assertEqual(
+        job.state._changes[1].id_string,
+        'chromium@3 + %s' % ('https://lalala/repo~branch~id/abc123',))
+    self.assertEqual(
+        job.state._changes[0].id_string,
+        'chromium@3 + %s' % ('https://lalala/repo~branch~id/abc123',))
+
+  def testComparisonModeTry_ApplyBaseAndExperimentPatch(self):
+    request = dict(_BASE_REQUEST)
+    request['comparison_mode'] = 'try'
+    request['base_patch'] = 'https://lalala/c/foo/bar/+/122'
+    request['experiment_patch'] = 'https://lalala/c/foo/bar/+/123'
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    self.assertEqual(job.comparison_mode, 'try')
+    self.assertEqual(
+        job.state._changes[1].id_string,
+        'chromium@3 + %s' % ('https://lalala/repo~branch~id/abc123',))
+    self.assertEqual(
+        job.state._changes[0].id_string,
+        'chromium@3 + %s' % ('https://lalala/repo~branch~id/abc123',))
+
+  def testComparisonModeTry_BaseNoPatchAndExperimentCommitPatch(self):
+    request = dict(_BASE_REQUEST)
+    request['comparison_mode'] = 'try'
+    request['end_git_hash'] = '60061ec0de'
+    request['experiment_patch'] = 'https://lalala/c/foo/bar/+/123'
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    self.assertEqual(job.comparison_mode, 'try')
+    self.assertEqual(
+        job.state._changes[1].id_string,
+        'chromium@60061ec0de + %s' % ('https://lalala/repo~branch~id/abc123',))
+    self.assertEqual(job.state._changes[0].id_string, 'chromium@3')
+
   def testComparisonModeTry_MissingRequiredArgs(self):
     request = dict(_BASE_REQUEST)
     request['comparison_mode'] = 'try'

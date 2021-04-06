@@ -76,7 +76,8 @@ def _CreateJob(request):
   comparison_mode = _ValidateComparisonMode(arguments.get('comparison_mode'))
   comparison_magnitude = _ValidateComparisonMagnitude(
       arguments.get('comparison_magnitude'))
-  gerrit_server, gerrit_change_id = _ValidatePatch(arguments.get('patch'))
+  gerrit_server, gerrit_change_id = _ValidatePatch(
+      arguments.get('patch', arguments.get('experiment_patch')))
   name = arguments.get('name')
   pin = _ValidatePin(arguments.get('pin'))
   tags = _ValidateTags(arguments.get('tags'))
@@ -238,6 +239,53 @@ def _ValidatePriority(priority):
     raise ValueError(_ERROR_PRIORITY)
 
 
+def _ValidateChangesForTry(arguments):
+  if 'base_git_hash' not in arguments:
+    raise ValueError('base_git_hash is required for try jobs')
+
+  commit_1 = change.Commit.FromDict({
+      'repository': arguments.get('repository'),
+      'git_hash': arguments.get('base_git_hash'),
+  })
+  commit_2 = change.Commit.FromDict({
+      'repository':
+          arguments.get('repository'),
+      'git_hash':
+          arguments.get(
+              'end_git_hash',
+              arguments.get(
+                  'experiment_git_hash',
+                  arguments.get('base_git_hash'),
+              ),
+          ),
+  })
+
+  # Now, if we have a patch argument, we need to handle the case where a patch
+  # needs to be applied to both the 'end_git_hash' and the 'base_git_hash'.
+  patch = arguments.get('patch')
+  if patch:
+    patch = change.GerritPatch.FromUrl(patch)
+
+  exp_patch = arguments.get('experiment_patch')
+  if exp_patch:
+    exp_patch = change.GerritPatch.FromUrl(exp_patch)
+
+  base_patch = arguments.get('base_patch')
+  if base_patch:
+    base_patch = change.GerritPatch.FromUrl(base_patch)
+
+  if commit_1.git_hash != commit_2.git_hash and patch:
+    base_patch = patch
+    exp_patch = patch
+
+  if not exp_patch:
+    exp_patch = patch
+
+  change_1 = change.Change(commits=(commit_1,), patch=base_patch)
+  change_2 = change.Change(commits=(commit_2,), patch=exp_patch)
+  return change_1, change_2
+
+
 def _ValidateChanges(comparison_mode, arguments):
   changes = arguments.get('changes')
   if changes:
@@ -248,43 +296,7 @@ def _ValidateChanges(comparison_mode, arguments):
   # end_git_hash without a patch. Let's check first whether we're finding the
   # right combination of inputs here.
   if comparison_mode == job_state.TRY:
-    if 'base_git_hash' not in arguments:
-      raise ValueError('base_git_hash is required for try jobs')
-
-    commit_1 = change.Commit.FromDict({
-        'repository': arguments.get('repository'),
-        'git_hash': arguments.get('base_git_hash'),
-    })
-
-    commit_2 = change.Commit.FromDict({
-        'repository':
-            arguments.get('repository'),
-        'git_hash':
-            arguments.get('end_git_hash', arguments.get('base_git_hash')),
-    })
-
-    # Now, if we have a patch argument, we need to handle the case where a patch
-    # needs to be applied to both the 'end_git_hash' and the 'base_git_hash'.
-    if 'patch' in arguments:
-      patch = change.GerritPatch.FromUrl(arguments['patch'])
-    else:
-      patch = None
-
-    if 'end_git_hash' in arguments and arguments['end_git_hash'] != arguments[
-        'base_git_hash']:
-      # This is the case where 'end_git_hash' was also provided, in which case
-      # it means that we want to apply the patch to both the base_git_hash and
-      # the end_git_hash.
-      change_1 = change.Change(commits=(commit_1,), patch=patch)
-      change_2 = change.Change(commits=(commit_2,), patch=patch)
-    else:
-      # This is the case where only 'base_git_hash' was provided, or that
-      # 'end_git_hash' is the same as 'base_git_hash', in which case this is an
-      # A/B test.
-      change_1 = change.Change(commits=(commit_1,))
-      change_2 = change.Change(commits=(commit_1,), patch=patch)
-
-    return change_1, change_2
+    return _ValidateChangesForTry(arguments)
 
   # Everything else that follows only applies to bisections.
   assert (comparison_mode == job_state.FUNCTIONAL
