@@ -28,11 +28,12 @@ class GerritPatch(
   """
 
   def __str__(self):
-    return self.revision[:7]
+    return self.revision[:7].strip()
 
   @property
   def id_string(self):
-    return '%s/%s/%s' % (self.server, self.change, self.revision)
+    return '%s/%s/%s' % (self.server, str(
+        self.change).strip(), str(self.revision).strip())
 
   def BuildParameters(self):
     patch_info = gerrit_service.GetChange(
@@ -61,10 +62,11 @@ class GerritPatch(
         self.hostname, patch_info['_number'], revision_info['_number'])
 
   def AsDict(self):
+    revision = str(self.revision).strip()
     d = {
         'server': self.server,
         'change': self.change,
-        'revision': self.revision,
+        'revision': revision,
     }
 
     try:
@@ -75,7 +77,7 @@ class GerritPatch(
           self.server,
           self.change,
           fields=('ALL_REVISIONS', 'DETAILED_ACCOUNTS', 'COMMIT_FOOTERS'))
-      revision_info = patch_info['revisions'][self.revision]
+      revision_info = patch_info['revisions'][revision]
       url = '%s/c/%s/+/%d/%d' % (self.server, patch_info['project'],
                                  patch_info['_number'],
                                  revision_info['_number'])
@@ -178,7 +180,7 @@ class GerritPatch(
       KeyError: The patch doesn't have the given revision.
     """
     server = data['server']
-    change = data['change']
+    change = str(data['change']).strip()
     revision = data.get('revision')
 
     # Look up the patch and convert everything to a canonical format.

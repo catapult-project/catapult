@@ -83,6 +83,11 @@ class GerritPatchTest(test.TestCase):
     self.assertEqual(str(p), '2f0d5c7')
     self.assertEqual(p.id_string, 'https://example.com/abcdef/2f0d5c7')
 
+  def testPatch_WithNewlines(self):
+    p = patch.GerritPatch('https://example.com', 'abcdef\n', '2f0d5c7\n')
+    self.assertEqual(str(p), '2f0d5c7')
+    self.assertEqual(p.id_string, 'https://example.com/abcdef/2f0d5c7')
+
   def testBuildParameters(self):
     p = Patch('current revision')
     expected = {
@@ -98,6 +103,20 @@ class GerritPatchTest(test.TestCase):
 
   def testAsDict(self):
     p = Patch('current revision')
+    expected = {
+        'server': 'https://codereview.com',
+        'change': 'repo~branch~id',
+        'revision': 'current revision',
+        'url': 'https://codereview.com/c/chromium/src/+/658277/5',
+        'author': 'author@example.org',
+        'created': '2018-02-01T23:46:56',
+        'subject': 'Subject',
+        'message': 'Subject\n\nCommit message.\nChange-Id: I0123456789abcdef',
+    }
+    self.assertEqual(p.AsDict(), expected)
+
+  def testAsDict_WithNewlines(self):
+    p = Patch(revision='current revision\n')
     expected = {
         'server': 'https://codereview.com',
         'change': 'repo~branch~id',

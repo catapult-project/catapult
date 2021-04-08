@@ -39,7 +39,7 @@ class Change(collections.namedtuple('Change', ('commits', 'patch'))):
 
   def __str__(self):
     """Returns an informal short string representation of this Change."""
-    string = ' '.join(str(commit) for commit in self.commits)
+    string = ' '.join(str(commit).strip() for commit in self.commits)
     if self.patch:
       string += ' + ' + str(self.patch)
     return string
