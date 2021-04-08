@@ -220,7 +220,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
                 or the git hash is not valid.
     """
     repository = data['repository']
-    git_hash = data['git_hash']
+    git_hash = str(data['git_hash']).strip()
 
     # Translate repository if it's a URL.
     if repository.startswith('https://'):

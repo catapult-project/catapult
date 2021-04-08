@@ -228,6 +228,13 @@ deps = {
     })
     self.assertEqual(c, Commit(0))
 
+  def testFromDictWithNewlines(self):
+    c = commit.Commit.FromDict({
+        'repository': 'chromium',
+        'git_hash': 'commit_0\n',
+    })
+    self.assertEqual(c, Commit(0))
+
   def testFromDictResolvesHEAD(self):
     c = commit.Commit.FromDict({
         'repository': test.CHROMIUM_URL,
