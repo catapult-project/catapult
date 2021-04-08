@@ -69,7 +69,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
   @property
   def id_string(self):
     """Returns a string that is unique to this repository and git hash."""
-    return self.repository + '@' + self.git_hash
+    return self.repository + '@' + str(self.git_hash).strip()
 
   @property
   def repository_url(self):
@@ -90,16 +90,22 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
       A frozenset of Dep (repository_url, git_hash) namedtuples.
     """
     # Download and execute DEPS file.
+    git_hash = str(self.git_hash).strip()
     try:
-      deps_file_contents = gitiles_service.FileContents(self.repository_url,
-                                                        self.git_hash, 'DEPS')
+      deps_file_contents = gitiles_service.FileContents(
+          self.repository_url,
+          git_hash,
+          'DEPS',
+      )
     except gitiles_service.NotFoundError:
       return frozenset()  # No DEPS file => no DEPS.
 
     try:
       deps_data = gclient_eval.Parse(
-          deps_file_contents, '{}@{}/DEPS'.format(self.repository_url,
-                                                  self.git_hash))
+          deps_file_contents, '{}@{}/DEPS'.format(
+              self.repository_url,
+              git_hash,
+          ))
     except gclient_eval.Error:
       return frozenset()  # Invalid/unparseable DEPS file => no DEPS.
 
@@ -123,17 +129,17 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
       if len(dep_string_parts) > 2:
         raise NotImplementedError('Unknown DEP format: ' + dep_string)
 
-      repository_url, git_hash = dep_string_parts
+      repository_url, dep_git_hash = dep_string_parts
       if repository_url.endswith('.git'):
         repository_url = repository_url[:-4]
-      commits.append(Dep(repository_url, git_hash))
+      commits.append(Dep(repository_url, dep_git_hash.strip()))
 
     return frozenset(commits)
 
   def AsDict(self):
     d = {
         'repository': self.repository,
-        'git_hash': self.git_hash,
+        'git_hash': str(self.git_hash).strip(),
     }
 
     d.update(self.GetOrCacheCommitInfo())
@@ -171,7 +177,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
         dep.repository_url, add_if_missing=True)
     if repository in utils.GetRepositoryExclusions():
       return None
-    commit = cls(repository, dep.git_hash)
+    commit = cls(repository, str(dep.git_hash).strip())
     commit._repository_url = dep.repository_url
     return commit
 
@@ -205,7 +211,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
 
     return cls.FromDict({
         'repository': repository[:-1],
-        'git_hash': git_hash[1:],
+        'git_hash': str(git_hash[1:]).strip(),
     })
 
   @classmethod
