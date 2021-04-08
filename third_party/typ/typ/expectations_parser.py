@@ -227,6 +227,7 @@ class TaggedTestListParser(object):
       ...
     """
     CONFLICTS_ALLOWED = '# conflicts_allowed: '
+    CONFLICT_RESOLUTION = '# conflict_resolution: '
     RESULT_TOKEN = '# results: ['
     TAG_TOKEN = '# tags: ['
     # The bug field (optional), including optional subproject.
@@ -244,7 +245,7 @@ class TaggedTestListParser(object):
         self.expectations = []
         self._allowed_results = set()
         self._tag_to_tag_set = {}
-        self._conflict_resolution = conflict_resolution
+        self.conflict_resolution = conflict_resolution
         self._parse_raw_expectation_data(raw_data)
 
     def _parse_raw_expectation_data(self, raw_data):
@@ -310,6 +311,18 @@ class TaggedTestListParser(object):
                         {tg: id(tag_set) for tg in tag_set})
                 else:
                     self._allowed_results.update(tag_set)
+            elif line.startswith(self.CONFLICT_RESOLUTION):
+                value = line[len(self.CONFLICT_RESOLUTION):].lower()
+                if value not in ('union', 'override'):
+                    raise ParseError(
+                        lineno,
+                        ("Unrecognized value '%s' given for conflict_resolution"
+                         "descriptor" %
+                         value))
+                if value == 'union':
+                    self.conflict_resolution = ConflictResolutionTypes.UNION
+                else:
+                    self.conflict_resolution = ConflictResolutionTypes.OVERRIDE
             elif line.startswith(self.CONFLICTS_ALLOWED):
                 bool_value = line[len(self.CONFLICTS_ALLOWED):].lower()
                 if bool_value not in ('true', 'false'):
@@ -415,7 +428,7 @@ class TaggedTestListParser(object):
         # the Runner instance which are also stored in lower case.
         return Expectation(
             reason, test, tags, results, lineno, retry_on_failure, is_slow_test,
-            self._conflict_resolution, raw_tags=raw_tags, raw_results=raw_results,
+            self.conflict_resolution, raw_tags=raw_tags, raw_results=raw_results,
             is_glob=is_glob, trailing_comments=trailing_comments)
 
 
@@ -433,6 +446,7 @@ class TestExpectations(object):
         self.individual_exps = OrderedDict()
         self.glob_exps = OrderedDict()
         self._tags_conflict = _default_tags_conflict
+        self._conflict_resolution = ConflictResolutionTypes.UNION
 
     def set_tags(self, tags, raise_ex_for_bad_tags=False):
         self.validate_condition_tags(tags, raise_ex_for_bad_tags)
@@ -481,6 +495,7 @@ class TestExpectations(object):
                           conflict_resolution=ConflictResolutionTypes.UNION):
         ret = 0
         self.file_name = file_name
+        self._conflict_resolution = conflict_resolution
         try:
             parser = TaggedTestListParser(raw_data, conflict_resolution)
         except ParseError as e:
@@ -489,6 +504,8 @@ class TestExpectations(object):
         # self.set_tags().
         self.tag_sets = parser.tag_sets
         self._tags_conflict = tags_conflict
+        # Conflict resolution tag in raw data will take precedence
+        self._conflict_resolution = parser.conflict_resolution
         # TODO(crbug.com/83560) - Add support for multiple policies
         # for supporting multiple matching lines, e.g., allow/union,
         # reject, etc. Right now, you effectively just get a union.
@@ -584,6 +601,7 @@ class TestExpectations(object):
             return Expectation(
                     test=test, results=self._results, tags=self._exp_tags,
                     retry_on_failure=self._should_retry_on_failure,
+                    conflict_resolution=self._conflict_resolution,
                     is_slow_test=self._is_slow_test, reason=' '.join(self._reasons),
                     trailing_comments=self._trailing_comments)
 
@@ -602,6 +620,7 @@ class TestExpectations(object):
                     return Expectation(
                             test=test, results=self._results, tags=self._exp_tags,
                             retry_on_failure=self._should_retry_on_failure,
+                            conflict_resolution=self._conflict_resolution,
                             is_slow_test=self._is_slow_test, reason=' '.join(self._reasons),
                             trailing_comments=self._trailing_comments)
 
