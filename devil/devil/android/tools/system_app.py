@@ -184,6 +184,22 @@ def _TearDownSystemAppModification(device,
                                    timeout=None,
                                    retries=None):
   try:
+    # The function may be re-entered after the the device loses root
+    # privilege. For instance if the adb server is restarted before
+    # re-entering the function then the device may lose root privilege.
+    # Therefore we need to do a sanity check for root privilege
+    # on the device and then re-enable root privilege if the device
+    # does not have it.
+    if not device.HasRoot():
+      logger.warning('Need to re-enable root.')
+      device.EnableRoot()
+
+      if not device.HasRoot():
+        raise device_errors.CommandFailedError(
+          ('Failed to tear down modification of '
+           'system apps on non-rooted device.'),
+          str(device))
+
     device.SetProp(_ENABLE_MODIFICATION_PROP, '0')
     device.Reboot()
     device.WaitUntilFullyBooted()
