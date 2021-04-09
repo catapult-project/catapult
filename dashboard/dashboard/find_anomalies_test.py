@@ -421,15 +421,16 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.improvement_direction = anomaly.DOWN
     test.UpdateSheriff()
     test.put()
+    s = Subscription(name='sheriff', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
-                           mock.MagicMock(return_value=([], None))) as m:
+                           mock.MagicMock(return_value=([s], None))) as m:
       find_anomalies.ProcessTests([test.key])
       self.assertEqual(m.call_args_list, [mock.call(test.key.id())])
     anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(len(anomalies), 1)
     self.assertTrue(anomalies[0].is_improvement)
 
-  @mock.patch('logging.warning')
+  @mock.patch('logging.error')
   def testProcessTest_NoSheriff_ErrorLogged(self, mock_logging_error):
     self._AddDataForTests()
     ref = utils.TestKey(
@@ -520,8 +521,9 @@ class ProcessAlertsTest(testing_common.TestCase):
           id=row[0], value=row[1], parent=test_container_key_non_ref).put()
     ref.UpdateSheriff()
     ref.put()
+    s = Subscription(name='sheriff', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
-                           mock.MagicMock(return_value=([], None))) as m:
+                           mock.MagicMock(return_value=([s], None))) as m:
       find_anomalies.ProcessTests([ref.key])
       self.assertEqual(m.call_args_list, [mock.call(ref.key.id())])
     new_anomalies = anomaly.Anomaly.query().fetch()
@@ -577,8 +579,9 @@ class ProcessAlertsTest(testing_common.TestCase):
     ref.put()
     non_ref.UpdateSheriff()
     non_ref.put()
+    s = Subscription(name='sheriff', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
-                           mock.MagicMock(return_value=([], None))) as m:
+                           mock.MagicMock(return_value=([s], None))) as m:
       find_anomalies.ProcessTests([non_ref.key])
       self.assertEqual(m.call_args_list, [mock.call(non_ref.key.id())])
     new_anomalies = anomaly.Anomaly.query().fetch()
@@ -597,8 +600,9 @@ class ProcessAlertsTest(testing_common.TestCase):
       graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
     ref.UpdateSheriff()
     ref.put()
+    s = Subscription(name='sheriff', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
-                           mock.MagicMock(return_value=([], None))) as m:
+                           mock.MagicMock(return_value=([s], None))) as m:
       find_anomalies.ProcessTests([ref.key])
       self.assertEqual(m.call_args_list, [mock.call(ref.key.id())])
     new_anomalies = anomaly.Anomaly.query().fetch()
@@ -673,8 +677,9 @@ class ProcessAlertsTest(testing_common.TestCase):
       graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
     test.UpdateSheriff()
     test.put()
+    s = Subscription(name='sheriff', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
-                           mock.MagicMock(return_value=([], None))) as m:
+                           mock.MagicMock(return_value=([s], None))) as m:
       find_anomalies.ProcessTests([test.key])
       self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
     new_anomalies = anomaly.Anomaly.query().fetch()
@@ -747,8 +752,9 @@ class ProcessAlertsTest(testing_common.TestCase):
       graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
     test.UpdateSheriff()
     test.put()
+    s = Subscription(name='sheriff', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
-                           mock.MagicMock(return_value=([], None))) as m:
+                           mock.MagicMock(return_value=([s], None))) as m:
       find_anomalies.ProcessTests([test.key])
       self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
     new_anomalies = anomaly.Anomaly.query().fetch()
@@ -795,8 +801,9 @@ class ProcessAlertsTest(testing_common.TestCase):
       graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
     test.UpdateSheriff()
     test.put()
+    s = Subscription(name='sheriff', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
-                           mock.MagicMock(return_value=([], None))) as m:
+                           mock.MagicMock(return_value=([s], None))) as m:
       find_anomalies.ProcessTests([test.key])
       self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
     new_anomalies = anomaly.Anomaly.query().fetch()
@@ -871,8 +878,9 @@ class ProcessAlertsTest(testing_common.TestCase):
       graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
     test.UpdateSheriff()
     test.put()
+    s = Subscription(name='sheriff', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
-                           mock.MagicMock(return_value=([], None))) as m:
+                           mock.MagicMock(return_value=([s], None))) as m:
       find_anomalies.ProcessTests([test.key])
       self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
     new_anomalies = anomaly.Anomaly.query().fetch()
@@ -949,8 +957,9 @@ class ProcessAlertsTest(testing_common.TestCase):
       graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
     test.UpdateSheriff()
     test.put()
+    s = Subscription(name='sheriff', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
-                           mock.MagicMock(return_value=([], None))) as m:
+                           mock.MagicMock(return_value=([s], None))) as m:
       find_anomalies.ProcessTests([test.key])
       self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
     new_anomalies = anomaly.Anomaly.query().fetch()
@@ -1025,8 +1034,9 @@ class ProcessAlertsTest(testing_common.TestCase):
       graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
     test.UpdateSheriff()
     test.put()
+    s = Subscription(name='sheriff', visibility=VISIBILITY.PUBLIC)
     with mock.patch.object(SheriffConfigClient, 'Match',
-                           mock.MagicMock(return_value=([], None))) as m:
+                           mock.MagicMock(return_value=([s], None))) as m:
       find_anomalies.ProcessTests([test.key])
       self.assertEqual(m.call_args_list, [mock.call(test.test_path)])
     new_anomalies = anomaly.Anomaly.query().fetch()
@@ -1117,8 +1127,8 @@ class ProcessAlertsTest(testing_common.TestCase):
     testing_common.AddRows(test.test_path, [100, 200, 300, 400])
 
     alert = find_anomalies._MakeAnomalyEntity(
-        _MakeSampleChangePoint(10011, 50, 100), test, 'avg',
-        self._DataSeries()).get_result()
+        _MakeSampleChangePoint(10011, 50, 100), test, 'avg', self._DataSeries(),
+        {}).get_result()
     self.assertIsNone(alert.ref_test)
 
   def testMakeAnomalyEntity_RefBuildSlash(self):
@@ -1134,8 +1144,8 @@ class ProcessAlertsTest(testing_common.TestCase):
     testing_common.AddRows(test.test_path, [100, 200, 300, 400])
 
     alert = find_anomalies._MakeAnomalyEntity(
-        _MakeSampleChangePoint(10011, 50, 100), test, 'avg',
-        self._DataSeries()).get_result()
+        _MakeSampleChangePoint(10011, 50, 100), test, 'avg', self._DataSeries(),
+        {}).get_result()
     self.assertEqual(alert.ref_test.string_id(),
                      'ChromiumPerf/linux/page_cycler_v2/ref')
 
@@ -1152,8 +1162,8 @@ class ProcessAlertsTest(testing_common.TestCase):
     testing_common.AddRows(test.test_path, [100, 200, 300, 400])
 
     alert = find_anomalies._MakeAnomalyEntity(
-        _MakeSampleChangePoint(10011, 50, 100), test, 'avg',
-        self._DataSeries()).get_result()
+        _MakeSampleChangePoint(10011, 50, 100), test, 'avg', self._DataSeries(),
+        {}).get_result()
     self.assertEqual(alert.ref_test.string_id(),
                      'ChromiumPerf/linux/page_cycler_v2/cnn_ref')
     self.assertIsNone(alert.display_start)
@@ -1176,8 +1186,8 @@ class ProcessAlertsTest(testing_common.TestCase):
       row.put()
 
     alert = find_anomalies._MakeAnomalyEntity(
-        _MakeSampleChangePoint(300, 50, 100), test, 'avg',
-        self._DataSeries()).get_result()
+        _MakeSampleChangePoint(300, 50, 100), test, 'avg', self._DataSeries(),
+        {}).get_result()
     self.assertEqual(alert.display_start, 203)
     self.assertEqual(alert.display_end, 302)
 
@@ -1237,8 +1247,8 @@ class ProcessAlertsTest(testing_common.TestCase):
     entity.put()
 
     alert = find_anomalies._MakeAnomalyEntity(
-        _MakeSampleChangePoint(10011, 50, 100), test, 'avg',
-        self._DataSeries()).get_result()
+        _MakeSampleChangePoint(10011, 50, 100), test, 'avg', self._DataSeries(),
+        {}).get_result()
 
     self.assertEqual(alert.ownership['component'], 'abc')
     self.assertListEqual(alert.ownership['emails'],
@@ -1274,9 +1284,10 @@ class ProcessAlertsTest(testing_common.TestCase):
     entity.put()
     entity.put()
     alert = find_anomalies._MakeAnomalyEntity(
-        _MakeSampleChangePoint(10011, 50, 100), test, 'avg',
-        self._DataSeries()).get_result()
+        _MakeSampleChangePoint(10011, 50, 100), test, 'avg', self._DataSeries(),
+        {}).get_result()
     self.assertEqual(alert.alert_grouping, ['group123', 'group234'])
+
 
 if __name__ == '__main__':
   unittest.main()

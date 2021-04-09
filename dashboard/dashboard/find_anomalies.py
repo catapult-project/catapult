@@ -91,16 +91,41 @@ def _EmailSheriff(sheriff, test_key, anomaly_key):
 
 @ndb.tasklet
 def _ProcessTestStat(config, test, stat, rows, ref_rows):
-  test_key = test.key
-
   # If there were no rows fetched, then there's nothing to analyze.
   if not rows:
     logging.error('No rows fetched for %s', test.test_path)
     raise ndb.Return(None)
 
+
+  # TODO(crbug/1158326): Use the data from the git-hosted anomaly configuration
+  # instead of the provided config.
+  # Get all the sheriff from sheriff-config match the path
+  client = SheriffConfigClient()
+  subscriptions, err_msg = client.Match(test.test_path)
+
+  # Breaks the process when Match failed to ensure find_anomaly do the best
+  # effort to find the subscriber. Leave retrying to upstream.
+  if err_msg is not None:
+    raise RuntimeError(err_msg)
+
+  # If we don't find any subscriptions, then we shouldn't waste resources on
+  # trying to find anomalies that we aren't going to alert on anyway.
+  if not subscriptions:
+    logging.error('No subscription for %s', test.test_path)
+    raise ndb.Return(None)
+
+  subscription_names = [s.name for s in subscriptions or []]
+  configs = {
+      s.name: [c.to_dict() for c in s.anomaly_configs
+              ] for s in subscriptions or [] if s.anomaly_configs
+  }
+  if configs:
+    logging.debug('matched anomaly configs: %s', configs)
+
   # Get anomalies and check if they happen in ref build also.
   change_points = FindChangePointsForTest(rows, config)
 
+  test_key = test.key
   if ref_rows:
     ref_change_points = FindChangePointsForTest(ref_rows, config)
 
@@ -109,7 +134,7 @@ def _ProcessTestStat(config, test, stat, rows, ref_rows):
                                                test_key)
 
   anomalies = yield [
-      _MakeAnomalyEntity(c, test, stat, rows) for c in change_points
+      _MakeAnomalyEntity(c, test, stat, rows, config) for c in change_points
   ]
 
   # If no new anomalies were found, then we're done.
@@ -119,19 +144,6 @@ def _ProcessTestStat(config, test, stat, rows, ref_rows):
   logging.info('Created %d anomalies', len(anomalies))
   logging.info(' Test: %s', test_key.id())
   logging.info(' Stat: %s', stat)
-
-  # Get all the sheriff from sheriff-config match the path
-  client = SheriffConfigClient()
-  subscriptions, err_msg = client.Match(test.test_path)
-  subscription_names = [s.name for s in subscriptions or []]
-
-  # Breaks the process when Match failed to ensure find_anomaly do the best
-  # effort to find the subscriber. Leave retrying to upstream.
-  if err_msg is not None:
-    raise RuntimeError(err_msg)
-
-  if not subscriptions:
-    logging.warning('No subscription for %s', test.test_path)
 
   for a in anomalies:
     a.subscriptions = subscriptions
@@ -348,7 +360,7 @@ def _GetDisplayRange(old_end, rows):
 
 
 @ndb.tasklet
-def _MakeAnomalyEntity(change_point, test, stat, rows):
+def _MakeAnomalyEntity(change_point, test, stat, rows, config):
   """Creates an Anomaly entity.
 
   Args:
@@ -356,6 +368,8 @@ def _MakeAnomalyEntity(change_point, test, stat, rows):
     test: The TestMetadata entity that the anomalies were found on.
     stat: The TestMetadata stat that the anomaly was found on.
     rows: List of Row entities that the anomalies were found on.
+    config: A dict representing the anomaly detection configuration
+        parameters used to produce this anomaly.
 
   Returns:
     An Anomaly entity, which is not yet put in the datastore.
@@ -444,7 +458,8 @@ def _MakeAnomalyEntity(change_point, test, stat, rows):
       ownership=ownership_information,
       alert_grouping=alert_grouping,
       earliest_input_timestamp=earliest_input_timestamp,
-      latest_input_timestamp=latest_input_timestamp)
+      latest_input_timestamp=latest_input_timestamp,
+      anomaly_config=config)
   raise ndb.Return(new_anomaly)
 
 
