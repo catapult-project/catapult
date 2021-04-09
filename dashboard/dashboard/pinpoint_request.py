@@ -11,11 +11,11 @@ import logging
 
 from google.appengine.ext import ndb
 
-from dashboard import find_change_points
 from dashboard.common import descriptor
 from dashboard.common import math_utils
 from dashboard.common import request_handler
 from dashboard.common import utils
+from dashboard.common import defaults
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
@@ -104,7 +104,7 @@ def FindMagnitudeBetweenCommits(test_key, start_commit, end_commit):
 
   test = test_key.get()
   num_points = anomaly_config.GetAnomalyConfigDict(test).get(
-      'min_segment_size', find_change_points.MIN_SEGMENT_SIZE)
+      'min_segment_size', defaults.MIN_SEGMENT_SIZE)
   start_rows = graph_data.GetRowsForTestBeforeAfterRev(test_key, start_commit,
                                                        num_points, 0)
   end_rows = graph_data.GetRowsForTestBeforeAfterRev(test_key, end_commit, 0,

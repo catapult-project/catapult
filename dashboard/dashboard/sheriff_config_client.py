@@ -7,6 +7,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from dashboard.common import defaults
+
 
 class InternalServerError(Exception):
   """An error indicating that something unexpected happens."""
@@ -35,11 +37,12 @@ class SheriffConfigClient(object):
     # workarounds for protobuf import paths are fully installed.
     self._InitSession()
     from dashboard.common.utils import GetEmail
-    from dashboard.models.subscription import Subscription
+    from dashboard.models.subscription import Subscription, AnomalyConfig
     from google.protobuf import json_format
     from dashboard import sheriff_config_pb2
     self._GetEmail = GetEmail  # pylint: disable=invalid-name
     SheriffConfigClient._Subscription = Subscription
+    SheriffConfigClient._AnomalyConfig = AnomalyConfig
     self._json_format = json_format
     self._sheriff_config_pb2 = sheriff_config_pb2
 
@@ -55,6 +58,19 @@ class SheriffConfigClient(object):
 
   @staticmethod
   def _ParseSubscription(revision, subscription):
+    anomaly_configs = [
+        SheriffConfigClient._AnomalyConfig(
+            max_window_size=a.max_window_size or defaults.MAX_WINDOW_SIZE,
+            min_segment_size=a.min_segment_size or defaults.MIN_SEGMENT_SIZE,
+            min_absolute_change=a.min_absolute_change
+            or defaults.MIN_ABSOLUTE_CHANGE,
+            min_relative_change=a.min_relative_change
+            or defaults.MIN_RELATIVE_CHANGE,
+            min_steppiness=a.min_steppiness or defaults.MIN_STEPPINESS,
+            multiple_of_std_dev=a.multiple_of_std_dev
+            or defaults.MULTIPLE_OF_STD_DEV,
+        ) for a in subscription.anomaly_configs
+    ]
     return SheriffConfigClient._Subscription(
         revision=revision,
         name=subscription.name,
@@ -67,6 +83,7 @@ class SheriffConfigClient(object):
         visibility=subscription.visibility,
         auto_triage_enable=subscription.auto_triage.enable,
         auto_bisect_enable=subscription.auto_bisection.enable,
+        anomaly_configs=anomaly_configs,
     )
 
   def Match(self, path, check=False):

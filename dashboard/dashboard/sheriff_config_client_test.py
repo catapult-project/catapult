@@ -7,13 +7,11 @@ from __future__ import division
 from __future__ import print_function
 
 import json
+import mock
 
-from dashboard import speed_releasing
 from dashboard import sheriff_config_client
 from dashboard.common import testing_common
-from dashboard.models.subscription import Subscription
-from dashboard.models.subscription import VISIBILITY
-import mock
+from dashboard.models import subscription
 
 _SAMPLE_BOTS = ['ChromiumPerf/win', 'ChromiumPerf/linux']
 _DOWNSTREAM_BOTS = ['ClankInternal/win', 'ClankInternal/linux']
@@ -21,10 +19,6 @@ _SAMPLE_TESTS = ['my_test_suite/my_test', 'my_test_suite/my_other_test']
 _SAMPLE_LAYOUT = ('{ "my_test_suite/my_test": ["Foreground", '
                   '"Pretty Name 1"],"my_test_suite/my_other_test": '
                   ' ["Foreground", "Pretty Name 2"]}')
-
-RECENT_REV = speed_releasing.CHROMIUM_MILESTONES[
-    speed_releasing.CURRENT_MILESTONE][0] + 42
-
 
 @mock.patch.object(sheriff_config_client.SheriffConfigClient, '_InitSession',
                    mock.MagicMock(return_value=None))
@@ -84,12 +78,12 @@ class SheriffConfigClientTest(testing_common.TestCase):
     """
     clt._session = self._Session(self._Response(True, response_text))
     expected = [
-        Subscription(
+        subscription.Subscription(
             revision='c9d4943dc832e448f9786e244f918fdabc1e5303',
             name='Public Team1',
             rotation_url='https://some/url',
             notification_email='public@mail.com',
-            visibility=VISIBILITY.PUBLIC,
+            visibility=subscription.VISIBILITY.PUBLIC,
             bug_labels=['Lable1', 'Lable2'],
             bug_components=['foo>bar'],
             auto_triage_enable=False,
@@ -127,12 +121,12 @@ class SheriffConfigClientTest(testing_common.TestCase):
     """
     clt._session = self._Session(self._Response(True, response_text))
     expected = [
-        Subscription(
+        subscription.Subscription(
             revision='c9d4943dc832e448f9786e244f918fdabc1e5303',
             name='Public Team1',
             rotation_url='https://some/url',
             notification_email='public@mail.com',
-            visibility=VISIBILITY.PUBLIC,
+            visibility=subscription.VISIBILITY.PUBLIC,
             bug_labels=['Lable1', 'Lable2'],
             bug_components=['foo>bar'],
             auto_triage_enable=False,
@@ -141,6 +135,54 @@ class SheriffConfigClientTest(testing_common.TestCase):
         ),
     ]
     self.assertEqual(clt.List(), (expected, None))
+
+  def testMatchWithAnomalyConfig(self):
+    clt = sheriff_config_client.SheriffConfigClient()
+    response_text = """
+    {
+      "subscriptions": [
+        {
+          "config_set": "projects/catapult",
+          "revision": "c9d4943dc832e448f9786e244f918fdabc1e5303",
+          "subscription": {
+            "name": "Public Team1",
+            "rotation_url": "https://some/url",
+            "notification_email": "public@mail.com",
+            "monorail_project_id": "non-chromium",
+            "bug_labels": [
+              "Lable1",
+              "Lable2"
+            ],
+            "bug_components": [
+              "foo>bar"
+            ],
+            "visibility": "PUBLIC",
+            "anomaly_configs": [
+              {
+                "max_window_size": 200
+              }
+            ]
+          }
+        }
+      ]
+    }
+    """
+    clt._session = self._Session(self._Response(True, response_text))
+    expected = [
+        subscription.Subscription(
+            revision='c9d4943dc832e448f9786e244f918fdabc1e5303',
+            name='Public Team1',
+            rotation_url='https://some/url',
+            notification_email='public@mail.com',
+            visibility=subscription.VISIBILITY.PUBLIC,
+            bug_labels=['Lable1', 'Lable2'],
+            bug_components=['foo>bar'],
+            auto_triage_enable=False,
+            auto_bisect_enable=False,
+            monorail_project_id='non-chromium',
+            anomaly_configs=[subscription.AnomalyConfig(max_window_size=200)]),
+    ]
+    self.assertEqual(clt.Match('Foo2/a/Bar2/b'), (expected, None))
 
   def testMatchFailed(self):
     clt = sheriff_config_client.SheriffConfigClient()
