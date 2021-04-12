@@ -377,10 +377,13 @@ def _GenerateQuests(arguments):
     target = arguments.get('target')
     logging.debug('Target: %s', target)
 
-    if target in ('performance_test_suite', 'performance_test_suite_eve',
-                  'performance_webview_test_suite',
+    if target in ('performance_test_suite', 'performance_webview_test_suite',
                   'telemetry_perf_tests', 'telemetry_perf_webview_tests'):
       quest_classes = (quest_module.FindIsolate, quest_module.RunTelemetryTest,
+                       quest_module.ReadValue)
+    elif 'performance_test_suite_eve' in target:
+      quest_classes = (quest_module.FindIsolate,
+                       quest_module.RunLacrosTelemetryTest,
                        quest_module.ReadValue)
     elif target == 'vr_perf_tests':
       quest_classes = (quest_module.FindIsolate,
