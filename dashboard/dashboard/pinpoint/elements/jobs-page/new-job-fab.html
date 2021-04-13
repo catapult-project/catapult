@@ -112,8 +112,14 @@ found in the LICENSE file.
         </template>
         <template is="dom-if" if="[[!isBisectJob(comparisonMode)]]">
           <p>
-            See the performance impact of a patch on a benchmark. A try job runs
-            HEAD and HEAD + patch, and compares all the metrics between the two.
+            Run an A/B experiment between an A build (base commit and an
+            optional patch) and a B build (optional experiment commit and an
+            experiment patch), and compares all the metrics between the two.
+          </p>
+          <p>
+            <b style="color: red;">New!</b> Try the Pinpoint command line
+            interface in <pre>depot_tools</pre>! Read more about it with
+            <pre>pinpoint help</pre> from your terminal shell.
           </p>
         </template>
         <template is="dom-if" if="[[error]]">
