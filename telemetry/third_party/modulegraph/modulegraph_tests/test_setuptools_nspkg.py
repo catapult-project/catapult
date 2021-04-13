@@ -3,6 +3,7 @@ Tests that deal with setuptools namespace
 packages, and in particular the installation
 flavour used by pip
 """
+from __future__ import print_function
 import os
 import shutil
 import sys

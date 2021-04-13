@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 import contextlib
 import logging
 import os
@@ -257,7 +258,7 @@ def UpdateDependency(dependency, dep_local_path, version,
   c = base_config.BaseConfig(config, writable=True)
   try:
     old_version = c.GetVersion(dependency, dep_platform)
-    print 'Updating from version: {}'.format(old_version)
+    print('Updating from version: {}'.format(old_version))
   except ValueError:
     raise RuntimeError(
         ('binary_dependencies.json entry for %s missing or invalid; please add '

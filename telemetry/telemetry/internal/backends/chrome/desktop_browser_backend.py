@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 import datetime
 import hashlib
 import logging
@@ -203,7 +204,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         # This can happen in the case that loading the Chrome binary fails.
         # We print rather than using logging here, because that makes a
         # recursive call to this function.
-        print >> sys.stderr, "Can't get standard output with --show-stdout"
+        print("Can't get standard output with --show-stdout", file=sys.stderr)
       return ''
     self._tmp_output_file.flush()
     try:

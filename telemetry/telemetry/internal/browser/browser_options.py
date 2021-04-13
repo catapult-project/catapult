@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 import atexit
 import copy
 import logging
@@ -351,9 +352,9 @@ class BrowserFinderOptions(optparse.Values):
         if binary_manager.NeedsInit():
           binary_manager.InitDependencyManager([])
         devices = device_finder.GetDevicesMatchingOptions(self)
-        print 'Available devices:'
+        print('Available devices:')
         for device in devices:
-          print ' ', device.name
+          print(' ', device.name)
         sys.exit(0)
 
       if self.browser_executable and not self.browser_type:
@@ -372,17 +373,17 @@ class BrowserFinderOptions(optparse.Values):
             browser_types[device.name] = sorted(
                 [browser.browser_type for browser in possible_browsers])
           except browser_finder_exceptions.BrowserFinderException as ex:
-            print >> sys.stderr, 'ERROR: ', ex
+            print('ERROR: ', ex, file=sys.stderr)
             sys.exit(1)
-        print 'Available browsers:'
+        print('Available browsers:')
         if len(browser_types) == 0:
-          print '  No devices were found.'
+          print('  No devices were found.')
         for device_name in sorted(browser_types.keys()):
-          print '  ', device_name
+          print('  ', device_name)
           for browser_type in browser_types[device_name]:
-            print '    ', browser_type
+            print('    ', browser_type)
           if len(browser_types[device_name]) == 0:
-            print '     No browsers found for this device'
+            print('     No browsers found for this device')
         sys.exit(0)
 
       if ((self.browser_type == 'cros-chrome' or
@@ -402,7 +403,7 @@ class BrowserFinderOptions(optparse.Values):
       # incorrect profiles so this will not be supported.
       if (len(self.interval_profiling_periods) > 1
           and 'story_run' in self.interval_profiling_periods):
-        print 'Cannot specify other periods along with the story_run period.'
+        print('Cannot specify other periods along with the story_run period.')
         sys.exit(1)
 
       self.interval_profiler_options = shlex.split(

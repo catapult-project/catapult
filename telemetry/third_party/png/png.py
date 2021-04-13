@@ -165,6 +165,7 @@ And now, my famous members
 # http://www.python.org/doc/2.2.3/whatsnew/node5.html
 from __future__ import generators
 
+from __future__ import print_function
 __version__ = "$URL$ $Rev$"
 
 from array import array
@@ -2444,7 +2445,7 @@ def topngbytes(name, rows, x, y, **k):
 
     import os
 
-    print name
+    print(name)
     f = BytesIO()
     w = Writer(x, y, **k)
     w.write(f, rows)
@@ -2608,7 +2609,7 @@ class Test(unittest.TestCase):
             candi = candidate.replace('n', 'i')
             if candi not in _pngsuite:
                 continue
-            print 'adam7 read', candidate
+            print('adam7 read', candidate)
             straight = Reader(bytes=_pngsuite[candidate])
             adam7 = Reader(bytes=_pngsuite[candi])
             # Just compare the pixels.  Ignore x,y (because they're
@@ -2882,7 +2883,7 @@ class Test(unittest.TestCase):
         try:
             import numpy
         except ImportError:
-            print >>sys.stderr, "skipping numpy test"
+            print("skipping numpy test", file=sys.stderr)
             return
 
         rows = [map(numpy.uint16, range(0,0x10000,0x5555))]
@@ -2894,7 +2895,7 @@ class Test(unittest.TestCase):
         try:
             import numpy
         except ImportError:
-            print >>sys.stderr, "skipping numpy test"
+            print("skipping numpy test", file=sys.stderr)
             return
 
         rows = [map(numpy.uint8, range(0,0x100,0x55))]
@@ -2906,7 +2907,7 @@ class Test(unittest.TestCase):
         try:
             import numpy
         except ImportError:
-            print >>sys.stderr, "skipping numpy test"
+            print("skipping numpy test", file=sys.stderr)
             return
 
         rows = [map(numpy.bool, [0,1])]
@@ -2917,7 +2918,7 @@ class Test(unittest.TestCase):
         try:
             import numpy
         except ImportError:
-            print >>sys.stderr, "skipping numpy test"
+            print("skipping numpy test", file=sys.stderr)
             return
 
         pixels = numpy.array([[0,0x5555],[0x5555,0xaaaa]], numpy.uint16)
@@ -3854,4 +3855,4 @@ if __name__ == '__main__':
     try:
         _main(sys.argv)
     except Error, e:
-        print >>sys.stderr, e
+        print(e, file=sys.stderr)

@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 import logging
 import os
 import sys
@@ -171,7 +172,7 @@ class RunTestsCommand(command_line.OptparseCommand):
       runner.args.jobs = len(android_devs)
       if runner.args.jobs == 0:
         raise RuntimeError("No Android device found")
-      print 'Running tests with %d Android device(s).' % runner.args.jobs
+      print('Running tests with %d Android device(s).' % runner.args.jobs)
     elif platform.GetOSVersionName() == 'xp':
       # For an undiagnosed reason, XP falls over with more parallelism.
       # See crbug.com/388256
@@ -219,7 +220,7 @@ class RunTestsCommand(command_line.OptparseCommand):
     try:
       ret, _, _ = runner.run()
     except KeyboardInterrupt:
-      print >> sys.stderr, "interrupted, exiting"
+      print("interrupted, exiting", file=sys.stderr)
       ret = 130
     return ret
 

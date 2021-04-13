@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 import logging
 import shutil
 import thread
@@ -139,7 +140,7 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._is_browser_running = self._IsDevtoolsUp()
     # TODO(crbug/1150455) - Find another condtion to wait on.
     time.sleep(1)
-    print 'Is Lacros up? ' + str(self._is_browser_running)
+    print('Is Lacros up? ' + str(self._is_browser_running))
 
   def Start(self, startup_args):
     self._cri.OpenConnection()

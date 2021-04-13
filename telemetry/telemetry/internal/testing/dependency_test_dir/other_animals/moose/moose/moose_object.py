@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 from horn import horn_object  # pylint: disable=relative-import
 
 class Moose(object):
@@ -10,4 +11,4 @@ class Moose(object):
 
   def Run(self):
     if self._horn.IsBig():
-      print 'I need to drop my horn! It is big!'
+      print('I need to drop my horn! It is big!')

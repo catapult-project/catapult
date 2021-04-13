@@ -9,6 +9,7 @@ to rebuild the modulegraph source file that contains
 this information.
 """
 
+from __future__ import print_function
 import re
 import sys
 import os
@@ -37,7 +38,7 @@ def extract_implies(root):
 
 def main():
     for version in ('2.6', '2.7', '3.1'):
-        print "====", version
+        print("====", version)
         pprint.pprint(list(extract_implies('/Users/ronald/Projects/python/release%s-maint'%(version.replace('.', '')))))
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 import contextlib
 import itertools
 import logging
@@ -254,7 +255,7 @@ def RunStorySet(test, story_set, finder_options, results,
   if finder_options.print_only:
     if finder_options.print_only == 'tags':
       tags = set(itertools.chain.from_iterable(s.tags for s in stories))
-      print 'List of tags:\n%s' % '\n'.join(tags)
+      print('List of tags:\n%s' % '\n'.join(tags))
       return
     include_tags = finder_options.print_only == 'both'
     if include_tags:
@@ -262,7 +263,7 @@ def RunStorySet(test, story_set, finder_options, results,
     else:
       format_string = '%s%s'
     for s in stories:
-      print format_string % (s.name, ','.join(s.tags) if include_tags else '')
+      print(format_string % (s.name, ','.join(s.tags) if include_tags else ''))
     return
 
   if (not finder_options.use_live_sites and
@@ -381,9 +382,9 @@ def _ShouldRunBenchmark(benchmark, possible_browser, finder_options):
     return True  # Should always run on print-only mode.
   if benchmark.CanRunOnPlatform(possible_browser.platform, finder_options):
     return True
-  print ('Benchmark "%s" is not supported on the current platform. If this '
-         "is in error please add it to the benchmark's SUPPORTED_PLATFORMS."
-         % benchmark.Name())
+  print('Benchmark "%s" is not supported on the current platform. If this '
+        "is in error please add it to the benchmark's SUPPORTED_PLATFORMS."
+        % benchmark.Name())
   return False
 
 
@@ -400,7 +401,7 @@ def RunBenchmark(benchmark, finder_options):
 
   possible_browser = browser_finder.FindBrowser(finder_options)
   if not possible_browser:
-    print ('No browser of type "%s" found for running benchmark "%s".' % (
+    print('No browser of type "%s" found for running benchmark "%s".' % (
         finder_options.browser_options.browser_type, benchmark.Name()))
     return exit_codes.ALL_TESTS_SKIPPED
 

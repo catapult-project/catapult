@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 import codecs
 import os
 import logging
@@ -92,16 +93,16 @@ def _FetchImages(image_dir, frame_number, external_images):
     try:
       image_request = urllib2.urlopen(image_url)
     except IOError as e:
-      print 'Error fetching image [local_file=%s, url=%s, message=%s].' % (
-          image_file, image_url, e)
+      print('Error fetching image [local_file=%s, url=%s, message=%s].' % (
+          image_file, image_url, e))
       continue
 
     try:
       with open(image_file, 'wb') as image_file_handle:
         shutil.copyfileobj(BytesIO(image_request.read()), image_file_handle)
     except IOError as e:
-      print 'Error copying image [local_file=%s, url=%s, message=%s].' % (
-          image_file, image_url, e)
+      print('Error copying image [local_file=%s, url=%s, message=%s].' % (
+          image_file, image_url, e))
 
 def _GetLocalImageDirectory(snapshot_path):
   return os.path.splitext(snapshot_path)[0]
@@ -119,7 +120,7 @@ def _SnapPageToFile(finder_options, url, interactive, snapshot_path,
           'Activating interactive mode. Press enter after you finish '
           "interacting with the page to snapshot the page's DOM content.")
 
-    print 'Snapshotting content of %s. This could take a while...' % url
+    print('Snapshotting content of %s. This could take a while...' % url)
     tab.WaitForDocumentReadyStateToBeComplete()
     tab.action_runner.WaitForNetworkQuiescence(
         timeout_in_seconds=EXPENSIVE_JS_TIMEOUT_SECONDS)
@@ -184,7 +185,7 @@ def _SnapPageToFile(finder_options, url, interactive, snapshot_path,
     page_snapshot = tab.EvaluateJavaScript('outputHTMLString(serializedDoms);',
                                            timeout=EXPENSIVE_JS_TIMEOUT_SECONDS)
 
-    print 'Writing page snapshot [path=%s].' % snapshot_path
+    print('Writing page snapshot [path=%s].' % snapshot_path)
     snapshot_file.write(page_snapshot)
     for i in xrange(len(external_images)):
       _FetchImages(image_dir, i, external_images[i])
@@ -203,4 +204,4 @@ def SnapPage(finder_options, url, interactive, snapshot_path,
   with codecs.open(snapshot_path, 'w', 'utf-8') as f:
     _SnapPageToFile(finder_options, url, interactive, snapshot_path, f,
                     enable_browser_log)
-  print 'Successfully saved snapshot to file://%s' % snapshot_path
+  print('Successfully saved snapshot to file://%s' % snapshot_path)

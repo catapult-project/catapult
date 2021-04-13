@@ -3,6 +3,7 @@ Tests that deal with pep420 namespace packages.
 
 PEP 420 is new in Python 3.3
 """
+from __future__ import print_function
 import os
 import shutil
 import sys

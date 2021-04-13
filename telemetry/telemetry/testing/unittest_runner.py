@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 import os
 import subprocess
 import sys
@@ -51,7 +52,7 @@ def Run(project_config, no_browser=False,
   exit_code = subprocess.call([sys.executable, path_to_run_tests] + args,
                               env=env)
   if exit_code:
-    print '**Non zero exit code**'
+    print('**Non zero exit code**')
     print ('If you don\'t see any error stack, this could have been a '
            'native crash. Consider installing faulthandler '
            '(https://faulthandler.readthedocs.io/) for more useful error '

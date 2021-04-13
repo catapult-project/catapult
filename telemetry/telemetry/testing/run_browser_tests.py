@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 import os
 import sys
 import json
@@ -23,7 +24,7 @@ def PrintTelemetryHelp():
   options = browser_options.BrowserFinderOptions()
   options.browser_type = 'any'
   parser = options.CreateParser()
-  print '\n\nCommand line arguments handled by Telemetry:'
+  print('\n\nCommand line arguments handled by Telemetry:')
   parser.print_help()
 
 
@@ -88,9 +89,9 @@ def _DebugShardDistributions(shards, test_times):
       shard_time = 0.0
       for t in s:
         shard_time += _TestTime(t, test_times, median)
-      print 'shard %d: %d seconds (%d tests)' % (i, shard_time, num_tests)
+      print('shard %d: %d seconds (%d tests)' % (i, shard_time, num_tests))
     else:
-      print 'shard %d: %d tests (unknown duration)' % (i, num_tests)
+      print('shard %d: %d tests (unknown duration)' % (i, num_tests))
 
 
 def _SplitShardsByTime(test_cases, total_shards, test_times,
@@ -241,9 +242,9 @@ def RunTests(args):
       break
 
   if not test_class:
-    print 'Cannot find test class with name matching %s' % options.test
-    print 'Available tests: %s' % '\n'.join(
-        cl.Name() for cl in browser_test_classes)
+    print('Cannot find test class with name matching %s' % options.test)
+    print('Available tests: %s' % '\n'.join(
+        cl.Name() for cl in browser_test_classes))
     return 1
 
   test_class._typ_runner = typ_runner = typ.Runner()
@@ -330,7 +331,7 @@ def RunTests(args):
   try:
     ret, _, _ = typ_runner.run()
   except KeyboardInterrupt:
-    print >> sys.stderr, "interrupted, exiting"
+    print("interrupted, exiting", file=sys.stderr)
     ret = 130
   return ret
 

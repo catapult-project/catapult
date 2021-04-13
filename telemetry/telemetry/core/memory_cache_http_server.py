@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 import BaseHTTPServer
 from collections import namedtuple
 import errno
@@ -251,7 +252,7 @@ class MemoryCacheHTTPServerBackend(local_server.LocalServerBackend):
     paths = args['paths']
     for path in paths:
       if not os.path.realpath(path).startswith(os.path.realpath(os.getcwd())):
-        print >> sys.stderr, '"%s" is not under the cwd.' % path
+        print('"%s" is not under the cwd.' % path, file=sys.stderr)
         sys.exit(1)
 
     server_address = (args['host'], args['port'])

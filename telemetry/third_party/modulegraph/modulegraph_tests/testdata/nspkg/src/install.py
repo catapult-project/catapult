@@ -6,6 +6,7 @@ with --single-version-externally-managed namespace packages.
 Use this script with new versions of distribute and setuptools to ensure
 that changes in the handling of this option don't break us.
 """
+from __future__ import print_function
 import pkg_resources
 import subprocess
 import os

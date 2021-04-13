@@ -4,6 +4,7 @@
 
 # pylint: disable=import-error
 # pylint: disable=no-name-in-module
+from __future__ import print_function
 import distutils.spawn as spawn
 import logging
 import os
@@ -97,11 +98,11 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
               'for a prompt. Please ask an administrator to set the setuid '
               'bit on this executable and ensure that it is owned by a user '
               'with the necessary privileges. Aborting.' % application)
-          print text
+          print(text)
           raise Exception(text)
         # Else, there is a tty that can be used for a useful interactive prompt.
-        print ('Telemetry needs to run %s under sudo. Please authenticate.' %
-               application)
+        print('Telemetry needs to run %s under sudo. Please authenticate.' %
+              application)
         # Synchronously authenticate.
         subprocess.check_call(['/usr/bin/sudo', '-v'])
 

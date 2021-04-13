@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 """Defines the commands provided by Telemetry: Run, List."""
 
+from __future__ import print_function
 import json
 import logging
 import optparse
@@ -96,9 +97,9 @@ def PrintBenchmarkList(
     output_pipe = sys.stdout
 
   if not benchmarks:
-    print >> output_pipe, 'No benchmarks found!'
+    print('No benchmarks found!', file=output_pipe)
     if json_pipe:
-      print >> json_pipe, '[]'
+      print('[]', file=json_pipe)
     return
 
   bad_benchmark = next((b for b in benchmarks
@@ -125,25 +126,27 @@ def PrintBenchmarkList(
 
   supported = [b for b in all_benchmark_info if b['supported']]
   if supported:
-    print >> output_pipe, 'Available benchmarks %sare:' % (
-        'for %s ' % possible_browser.browser_type if possible_browser else '')
+    browser_type_msg = \
+      ('for %s ' % possible_browser.browser_type if possible_browser else '')
+    print('Available benchmarks %sare:' % browser_type_msg, file=output_pipe)
     for b in supported:
-      print >> output_pipe, format_string % (b['name'], b['description'])
+      print(format_string % (b['name'], b['description']), file=output_pipe)
 
   not_supported = [b for b in all_benchmark_info if not b['supported']]
   if not_supported:
-    print >> output_pipe, (
-        '\nNot supported benchmarks for %s are (force run with -d):' %
-        possible_browser.browser_type)
+    print(('\nNot supported benchmarks for %s are (force run with -d):' %
+           possible_browser.browser_type),
+          file=output_pipe)
     for b in not_supported:
-      print >> output_pipe, format_string % (b['name'], b['description'])
+      print(format_string % (b['name'], b['description']), file=output_pipe)
 
-  print >> output_pipe, (
-      'Pass --browser to list benchmarks for another browser.\n')
+  print('Pass --browser to list benchmarks for another browser.\n',
+        file=output_pipe)
 
   if json_pipe:
-    print >> json_pipe, json.dumps(all_benchmark_info, indent=4,
-                                   sort_keys=True, separators=(',', ': ')),
+    print(json.dumps(all_benchmark_info, indent=4,
+                     sort_keys=True, separators=(',', ': ')),
+          end='', file=json_pipe)
 
 
 class List(object):
@@ -230,7 +233,7 @@ class Run(object):
       most_likely_matched_benchmarks = matching.GetMostLikelyMatchedObject(
           all_benchmarks, benchmark_name, lambda x: x.Name())
       if most_likely_matched_benchmarks:
-        print >> sys.stderr, 'Do you mean any of those benchmarks below?'
+        print('Do you mean any of those benchmarks below?', file=sys.stderr)
         PrintBenchmarkList(most_likely_matched_benchmarks, None, sys.stderr)
       parser.error('no such benchmark: %s' % benchmark_name)
 

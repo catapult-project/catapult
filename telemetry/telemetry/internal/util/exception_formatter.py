@@ -4,6 +4,7 @@
 
 """Print prettier and more detailed exceptions."""
 
+from __future__ import print_function
 import logging
 import math
 import os
@@ -37,8 +38,8 @@ def PrintFormattedException(exception_class=None, exception=None, tb=None,
   exception_string = '\n'.join(l.strip() for l in exception_list)
 
   if msg:
-    print >> sys.stderr
-    print >> sys.stderr, msg
+    print(file=sys.stderr)
+    print(msg, file=sys.stderr)
 
   _PrintFormattedTrace(processed_tb, frame, exception_string)
 
@@ -54,24 +55,24 @@ def _PrintFormattedTrace(processed_tb, frame, exception_string=None):
     - Report stacks to maintainers like depot_tools does.
     - Add a debug flag to automatically start pdb upon exception.
   """
-  print >> sys.stderr
+  print(file=sys.stderr)
 
   # Format the traceback.
-  print >> sys.stderr, 'Traceback (most recent call last):'
+  print('Traceback (most recent call last):', file=sys.stderr)
   for filename, line, function, text in processed_tb:
     filename = os.path.abspath(filename)
-    print >> sys.stderr, '  %s at %s:%d' % (function, filename, line)
-    print >> sys.stderr, '    %s' % text
+    print('  %s at %s:%d' % (function, filename, line), file=sys.stderr)
+    print('    %s' % text, file=sys.stderr)
 
   # Format the exception.
   if exception_string:
-    print >> sys.stderr, exception_string
+    print(exception_string, file=sys.stderr)
 
   # Format the locals.
   local_variables = [(variable, value) for variable, value in
                      frame.f_locals.iteritems() if variable != 'self']
-  print >> sys.stderr
-  print >> sys.stderr, 'Locals:'
+  print(file=sys.stderr)
+  print('Locals:', file=sys.stderr)
   if local_variables:
     longest_variable = max(len(v) for v, _ in local_variables)
     for variable, value in sorted(local_variables):
@@ -80,13 +81,14 @@ def _PrintFormattedTrace(processed_tb, frame, exception_string=None):
       truncation_indication = ''
       if len(possibly_truncated_value) != len(value):
         truncation_indication = ' (truncated)'
-      print >> sys.stderr, '  %s: %s%s' % (variable.ljust(longest_variable + 1),
-                                           possibly_truncated_value,
-                                           truncation_indication)
+      print('  %s: %s%s' % (variable.ljust(longest_variable + 1),
+                            possibly_truncated_value,
+                            truncation_indication),
+            file=sys.stderr)
   else:
-    print >> sys.stderr, '  No locals!'
+    print('  No locals!', file=sys.stderr)
 
-  print >> sys.stderr
+  print(file=sys.stderr)
   sys.stderr.flush()
 
 
