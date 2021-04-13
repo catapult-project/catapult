@@ -128,6 +128,7 @@ class EvaluatorTest(test.TestCase):
                 'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
+                'results_path': ['some_benchmark', 'perf_results.json'],
                 'histogram_options': {
                     'grouping_label': 'label',
                     'story': 'story',
@@ -182,6 +183,7 @@ class EvaluatorTest(test.TestCase):
                 'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
+                'results_path': ['some_benchmark', 'perf_results.json'],
                 'histogram_options': {
                     'grouping_label': 'label',
                     'story': 'story',
@@ -235,6 +237,7 @@ class EvaluatorTest(test.TestCase):
                 'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
+                'results_path': ['some_benchmark', 'perf_results.json'],
                 'histogram_options': {
                     'grouping_label': 'label',
                     'story': 'https://story',
@@ -295,6 +298,7 @@ class EvaluatorTest(test.TestCase):
                 'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
+                'results_path': ['some_benchmark', 'perf_results.json'],
                 'histogram_options': {
                     'grouping_label': 'label',
                     'story': 'story',
@@ -346,6 +350,7 @@ class EvaluatorTest(test.TestCase):
                 'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
+                'results_path': ['some_benchmark', 'perf_results.json'],
                 'histogram_options': {
                     'grouping_label': None,
                     'story': None,
@@ -408,6 +413,7 @@ class EvaluatorTest(test.TestCase):
                 'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
+                'results_path': ['some_benchmark', 'perf_results.json'],
                 'histogram_options': {
                     'grouping_label': None,
                     'story': None,
@@ -486,6 +492,7 @@ class EvaluatorTest(test.TestCase):
                 'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
+                'results_path': ['some_benchmark', 'perf_results.json'],
                 'histogram_options': {
                     'grouping_label': None,
                     'story': None,
@@ -536,6 +543,7 @@ class EvaluatorTest(test.TestCase):
                 'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
+                'results_path': ['some_benchmark', 'perf_results.json'],
                 'histogram_options': {
                     'grouping_label': 'label',
                     'story': 'https://story',
@@ -583,6 +591,7 @@ class EvaluatorTest(test.TestCase):
                 'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
+                'results_path': ['some_benchmark', 'perf_results.json'],
                 'histogram_options': {
                     'grouping_label': 'label',
                     'story': 'https://story',
@@ -633,6 +642,7 @@ class EvaluatorTest(test.TestCase):
                 'change': mock.ANY,
                 'mode': 'histogram_sets',
                 'results_filename': 'some_benchmark/perf_results.json',
+                'results_path': ['some_benchmark', 'perf_results.json'],
                 'histogram_options': {
                     'grouping_label': 'label',
                     'story': 'https://story',
@@ -684,6 +694,7 @@ class EvaluatorTest(test.TestCase):
                 'change': mock.ANY,
                 'mode': 'graph_json',
                 'results_filename': 'some_benchmark/perf_results.json',
+                'results_path': ['some_benchmark', 'perf_results.json'],
                 'histogram_options': {
                     'grouping_label': None,
                     'story': None,
@@ -725,6 +736,7 @@ class EvaluatorTest(test.TestCase):
                 'change': mock.ANY,
                 'mode': 'graph_json',
                 'results_filename': 'some_benchmark/perf_results.json',
+                'results_path': ['some_benchmark', 'perf_results.json'],
                 'histogram_options': {
                     'grouping_label': None,
                     'story': None,
@@ -772,6 +784,7 @@ class EvaluatorTest(test.TestCase):
                 'change': mock.ANY,
                 'mode': 'graph_json',
                 'results_filename': 'some_benchmark/perf_results.json',
+                'results_path': ['some_benchmark', 'perf_results.json'],
                 'histogram_options': {
                     'grouping_label': None,
                     'story': None,
@@ -823,6 +836,7 @@ class EvaluatorTest(test.TestCase):
                 'change': mock.ANY,
                 'mode': 'graph_json',
                 'results_filename': 'some_benchmark/perf_results.json',
+                'results_path': ['some_benchmark', 'perf_results.json'],
                 'histogram_options': {
                     'grouping_label': None,
                     'story': None,
@@ -881,6 +895,7 @@ class EvaluatorTest(test.TestCase):
                 'change': mock.ANY,
                 'mode': 'graph_json',
                 'results_filename': 'some_benchmark/perf_results.json',
+                'results_path': ['some_benchmark', 'perf_results.json'],
                 'histogram_options': {
                     'grouping_label': None,
                     'story': None,

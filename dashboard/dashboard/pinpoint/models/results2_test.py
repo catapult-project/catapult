@@ -275,9 +275,10 @@ class GenerateResults2Test(testing_common.TestCase):
             'f00c0de': [{
                 'executions': [
                     read_value.ReadValueExecution(
-                        'fake_filename', 'fake_metric', 'fake_grouping_label',
-                        'fake_trace_or_story', 'avg', 'fake_chart',
-                        'https://isolate_server', 'deadc0decafef00d')
+                        'fake_filename', ['fake_filename'], 'fake_metric',
+                        'fake_grouping_label', 'fake_trace_or_story', 'avg',
+                        'fake_chart', 'https://isolate_server',
+                        'deadc0decafef00d')
                 ]
             }]
         }))
@@ -315,17 +316,19 @@ class GenerateResults2Test(testing_common.TestCase):
             'f00c0de': [{
                 'executions': [
                     read_value.ReadValueExecution(
-                        'fake_filename', 'fake_metric', 'fake_grouping_label',
-                        'fake_trace_or_story', 'avg', 'fake_chart',
-                        'https://isolate_server', 'deadc0decafef00d')
+                        'fake_filename', ['fake_filename'], 'fake_metric',
+                        'fake_grouping_label', 'fake_trace_or_story', 'avg',
+                        'fake_chart', 'https://isolate_server',
+                        'deadc0decafef00d')
                 ]
             }],
             'badc0de': [{
                 'executions': [
                     read_value.ReadValueExecution(
-                        'fake_filename', 'fake_metric', 'fake_grouping_label',
-                        'fake_trace_or_story', 'avg', 'fake_chart',
-                        'https://isolate_server', 'deadc0decafef00d')
+                        'fake_filename', ['fake_filename'], 'fake_metric',
+                        'fake_grouping_label', 'fake_trace_or_story', 'avg',
+                        'fake_chart', 'https://isolate_server',
+                        'deadc0decafef00d')
                 ]
             }]
         }))

@@ -260,14 +260,20 @@ class _RunTestExecution(execution_module.Execution):
           'url': self._swarming_server + '/task?id=' + self._task_id,
       })
     if self._result_arguments:
+      cas_root_ref = self._result_arguments.get('cas_root_ref')
+      if cas_root_ref is not None:
+        digest = cas_root_ref['digest']
+        url = 'https://cas-viewer.appspot.com/{}/{}/{}/tree'.format(
+            cas_root_ref['cas_instance'], digest['hash'], digest['size_bytes'])
+        value = '{}/{}'.format(digest['hash'], digest['size_bytes'])
+      else:
+        url = (self._result_arguments['isolate_server'] + '/browse?digest=' +
+               self._result_arguments['isolate_hash'])
+        value = self._result_arguments['isolate_hash']
       details.append({
-          'key':
-              'isolate',
-          'value':
-              self._result_arguments['isolate_hash'],
-          'url':
-              self._result_arguments['isolate_server'] + '/browse?digest=' +
-              self._result_arguments['isolate_hash'],
+          'key': 'isolate',
+          'value': value,
+          'url': url,
       })
     return details
 
@@ -305,10 +311,15 @@ class _RunTestExecution(execution_module.Execution):
             result['outputs_ref']['isolated'])
         raise errors.SwarmingTaskFailed('%s' % (isolate_output_url,))
 
-    result_arguments = {
-        'isolate_server': result['outputs_ref']['isolatedserver'],
-        'isolate_hash': result['outputs_ref']['isolated'],
-    }
+    if 'cas_output_root' in result:
+      result_arguments = {
+          'cas_root_ref': result['cas_output_root'],
+      }
+    else:
+      result_arguments = {
+          'isolate_server': result['outputs_ref']['isolatedserver'],
+          'isolate_hash': result['outputs_ref']['isolated'],
+      }
 
     self._Complete(result_arguments=result_arguments)
 

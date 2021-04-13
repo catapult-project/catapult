@@ -173,6 +173,130 @@ class EvaluatorTest(test.TestCase):
     swarming_task_result.assert_called()
     self.assertGreaterEqual(swarming_task_result.call_count, 10)
 
+  def testEvaluateToCompletion_CAS(self, swarming_task_result,
+                                   swarming_tasks_new):
+    swarming_tasks_new.return_value = {'task_id': 'task id'}
+    evaluator = evaluators.SequenceEvaluator(
+        evaluators=(
+            evaluators.FilteringEvaluator(
+                predicate=evaluators.TaskTypeEq('find_isolate'),
+                delegate=evaluators.SequenceEvaluator(
+                    evaluators=(bisection_test_util.FakeFoundIsolate(self.job),
+                                evaluators.TaskPayloadLiftingEvaluator()))),
+            run_test.Evaluator(self.job),
+        ))
+    self.assertNotEqual({},
+                        task_module.Evaluate(
+                            self.job,
+                            event_module.Event(
+                                type='initiate', target_task=None, payload={}),
+                            evaluator))
+
+    # Ensure that we've found all the 'run_test' tasks.
+    self.assertEqual(
+        {
+            'run_test_chromium@aaaaaaa_%s' % (attempt,): {
+                'status': 'ongoing',
+                'swarming_server': 'some_server',
+                'dimensions': DIMENSIONS,
+                'extra_args': [],
+                'swarming_request_body': {
+                    'name': mock.ANY,
+                    'user': mock.ANY,
+                    'priority': mock.ANY,
+                    'task_slices': mock.ANY,
+                    'tags': mock.ANY,
+                    'pubsub_auth_token': mock.ANY,
+                    'pubsub_topic': mock.ANY,
+                    'pubsub_userdata': mock.ANY,
+                    'service_account': mock.ANY,
+                },
+                'swarming_task_id': 'task id',
+                'tries': 1,
+                'change': mock.ANY,
+                'index': attempt,
+            } for attempt in range(10)
+        },
+        task_module.Evaluate(
+            self.job,
+            event_module.Event(type='select', target_task=None, payload={}),
+            evaluators.Selector(task_type='run_test')))
+
+    # Ensure that we've actually made the calls to the Swarming service.
+    swarming_tasks_new.assert_called()
+    self.assertGreaterEqual(swarming_tasks_new.call_count, 10)
+
+    # Then we propagate an event for each of the run_test tasks in the graph.
+    swarming_task_result.return_value = {
+        'bot_id': 'bot id',
+        'exit_code': 0,
+        'failure': False,
+        'cas_output_root': {
+            'cas_instance': 'output cas server',
+            'digest': {
+                'hash': 'output cas hash',
+                "byteSize": 91,
+            },
+        },
+        'state': 'COMPLETED',
+    }
+    for attempt in range(10):
+      self.assertNotEqual(
+          {},
+          task_module.Evaluate(
+              self.job,
+              event_module.Event(
+                  type='update',
+                  target_task='run_test_chromium@aaaaaaa_%s' % (attempt,),
+                  payload={}), evaluator), 'Attempt #%s' % (attempt,))
+
+    # Ensure that we've polled the status of each of the tasks, and that we've
+    # marked the tasks completed.
+    self.assertEqual(
+        {
+            'run_test_chromium@aaaaaaa_%s' % (attempt,): {
+                'status': 'completed',
+                'swarming_server': 'some_server',
+                'dimensions': DIMENSIONS,
+                'extra_args': [],
+                'swarming_request_body': {
+                    'name': mock.ANY,
+                    'user': mock.ANY,
+                    'priority': mock.ANY,
+                    'task_slices': mock.ANY,
+                    'tags': mock.ANY,
+                    'pubsub_auth_token': mock.ANY,
+                    'pubsub_topic': mock.ANY,
+                    'pubsub_userdata': mock.ANY,
+                    'service_account': mock.ANY,
+                },
+                'swarming_task_result': {
+                    'bot_id': mock.ANY,
+                    'state': 'COMPLETED',
+                    'failure': False,
+                },
+                'cas_root_ref': {
+                    'cas_instance': 'output cas server',
+                    'digest': {
+                        'hash': 'output cas hash',
+                        "byteSize": 91,
+                    },
+                },
+                'swarming_task_id': 'task id',
+                'tries': 1,
+                'change': mock.ANY,
+                'index': attempt,
+            } for attempt in range(10)
+        },
+        task_module.Evaluate(
+            self.job,
+            event_module.Event(type='select', target_task=None, payload={}),
+            evaluators.Selector(task_type='run_test')))
+
+    # Ensure that we've actually made the calls to the Swarming service.
+    swarming_task_result.assert_called()
+    self.assertGreaterEqual(swarming_task_result.call_count, 10)
+
   def testEvaluateFailedDependency(self, *_):
     evaluator = evaluators.SequenceEvaluator(
         evaluators=(

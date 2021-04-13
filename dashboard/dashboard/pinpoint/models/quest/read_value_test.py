@@ -6,12 +6,14 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import hashlib
 import json
 import logging
 import mock
 import sys
 import unittest
 
+from dashboard.common import testing_common
 from dashboard.pinpoint.models.quest import read_value
 from tracing.proto import histogram_proto
 from tracing.value import histogram_set
@@ -42,7 +44,8 @@ class ReadValueQuestTest(unittest.TestCase):
   def testMinimumArguments(self):
     quest = read_value.ReadValue.FromDict(_BASE_ARGUMENTS_HISTOGRAMS)
     expected = read_value.ReadValue(
-        results_filename='speedometer/perf_results.json')
+        results_filename='speedometer/perf_results.json',
+        results_path=['speedometer', 'perf_results.json'])
     self.assertEqual(quest, expected)
 
   def testAllArguments(self):
@@ -54,6 +57,7 @@ class ReadValueQuestTest(unittest.TestCase):
     quest = read_value.ReadValue.FromDict(arguments)
     expected = read_value.ReadValue(
         results_filename='speedometer/perf_results.json',
+        results_path=['speedometer', 'perf_results.json'],
         metric='timeToFirst',
         grouping_label='pcv1-cold',
         trace_or_story='trace_name',
@@ -70,6 +74,7 @@ class ReadValueQuestTest(unittest.TestCase):
     quest = read_value.ReadValue.FromDict(arguments)
     expected = read_value.ReadValue(
         results_filename='speedometer/perf_results.json',
+        results_path=['speedometer', 'perf_results.json'],
         metric='timeToFirst',
         grouping_label='pcv1-cold',
         trace_or_story='trace_name',
@@ -83,6 +88,7 @@ class ReadValueQuestTest(unittest.TestCase):
     quest = read_value.ReadValue.FromDict(arguments)
     expected = read_value.ReadValue(
         results_filename='speedometer/perf_results.json',
+        results_path=['speedometer', 'perf_results.json'],
         metric=None,
         grouping_label=None,
         trace_or_story='trace_name',
@@ -94,7 +100,8 @@ class ReadValueQuestTest(unittest.TestCase):
     arguments['dimensions'] = [{'key': 'os', 'value': 'Windows-10'}]
     quest = read_value.ReadValue.FromDict(arguments)
     expected = read_value.ReadValue(
-        results_filename='speedometer\\perf_results.json')
+        results_filename='speedometer\\perf_results.json',
+        results_path=['speedometer', 'perf_results.json'])
     self.assertEqual(quest, expected)
 
   def testGraphJsonMissingChart(self):
@@ -103,6 +110,7 @@ class ReadValueQuestTest(unittest.TestCase):
     quest = read_value.ReadValue.FromDict(arguments)
     expected = read_value.ReadValue(
         results_filename='base_perftests/perf_results.json',
+        results_path=['base_perftests', 'perf_results.json'],
         chart=None,
         trace_or_story='trace_name')
     self.assertEqual(quest, expected)
@@ -113,6 +121,7 @@ class ReadValueQuestTest(unittest.TestCase):
     quest = read_value.ReadValue.FromDict(arguments)
     expected = read_value.ReadValue(
         results_filename='base_perftests/perf_results.json',
+        results_path=['base_perftests', 'perf_results.json'],
         chart='chart_name',
         metric='chart_name',
         trace_or_story=None)
@@ -129,9 +138,14 @@ class _ReadValueExecutionTest(unittest.TestCase):
     self.stream_handler = logging.StreamHandler(sys.stdout)
     self.logger.addHandler(self.stream_handler)
     self.addCleanup(self.logger.removeHandler, self.stream_handler)
-    patcher = mock.patch('dashboard.services.isolate.Retrieve')
-    self._retrieve = patcher.start()
-    self.addCleanup(patcher.stop)
+    retrieve = mock.patch('dashboard.services.isolate.Retrieve')
+    self._retrieve = retrieve.start()
+    self.addCleanup(retrieve.stop)
+    cas_client = mock.patch(
+        'dashboard.services.cas_service.RBECASService',
+        testing_common.FakeCASClient)
+    cas_client.start()
+    self.addCleanup(cas_client.stop)
     super(_ReadValueExecutionTest, self).setUp()
 
   def SetOutputFileContents(self, contents):
@@ -139,6 +153,49 @@ class _ReadValueExecutionTest(unittest.TestCase):
         '{"files": {"chartjson-output.json": {"h": "output json hash"}}}',
         json.dumps(contents),
     )
+
+  def SetOutputCASContents(self, path, content):
+
+    def GetDigest(data):
+      data_str = str(data)
+      return (
+          hashlib.sha256(data_str).hexdigest(),
+          len(data_str),
+      )
+
+    file_content = json.dumps(content)
+    file_digest = GetDigest(file_content)
+    trees = {}
+
+    child_name = path[-1]
+    child_digest = file_digest
+    for d in path[:-1]:
+      node = {
+          'directories' if trees else 'files': [{
+              'name': child_name,
+              'digest': {
+                  'hash': child_digest[0],
+                  'sizeBytes': child_digest[1],
+              }
+          }]
+      }
+      child_name = d
+      child_digest = GetDigest(node)
+      trees[child_digest] = node
+
+    trees[('root hash', '123')] = {
+        'directories' if trees else 'files': [{
+            'name': child_name,
+            'digest': {
+                'hash': child_digest[0],
+                'sizeBytes': child_digest[1],
+            }
+        }]
+    }
+
+    client = read_value.cas_service.GetRBECASService()
+    client._trees['cas instance'] = trees
+    client._files['cas instance'] = {file_digest: file_content}
 
   def SetOutputFileContentsProto(self, contents):
     self._retrieve.side_effect = (
@@ -250,6 +307,7 @@ class ReadValueTest(_ReadValueExecutionTest):
 
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         chart='chart',
         trace_or_story='trace')
     execution = quest.Start(None, 'server', 'output hash')
@@ -259,13 +317,58 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.assertEqual(execution.result_values, (126444.869721,))
     self.assertRetrievedOutputJson()
 
+  def testReadGraphJsonValueFromCAS(self):
+    self.SetOutputCASContents(
+        ['base_perftests', 'perf_resultst.json'],
+        {'chart': {
+            'traces': {
+                'trace': ['126444.869721', '0.0']
+            }
+        }})
+
+    quest = read_value.ReadValue(
+        results_filename='base_perftests/perf_results.json',
+        results_path=['base_perftests', 'perf_resultst.json'],
+        chart='chart',
+        trace_or_story='trace')
+    execution = quest.Start(None, None, None, {
+        'cas_instance': 'cas instance',
+        'digest': {
+            'hash': 'root hash',
+            'size_bytes': 123,
+        },
+    })
+    execution.Poll()
+
+    self.assertReadValueSuccess(execution)
+    self.assertEqual(execution.result_values, (126444.869721,))
+
   def testReadGraphJsonValueWithMissingFile(self):
     self.SetOutputFileContentsRaw('{"files": {}}')
     quest = read_value.ReadValue(
         results_filename='base_perftests/perf_results.json',
+        results_path=['base_perftests', 'chartjson-output.json'],
         chart='metric',
         trace_or_story='test')
     execution = quest.Start(None, 'server', 'output hash')
+    execution.Poll()
+    self.assertReadValueError(execution, 'ReadValueNoFile')
+
+  def testReadGraphJsonValueWithMissingFileFromCAS(self):
+    self.SetOutputFileContentsRaw('{"files": {}}')
+    self.SetOutputCASContents(['base_perftests', 'missing.json'], {})
+    quest = read_value.ReadValue(
+        results_filename='base_perftests/perf_results.json',
+        results_path=['base_perftests', 'chartjson-output.json'],
+        chart='metric',
+        trace_or_story='test')
+    execution = quest.Start(None, None, None, {
+        'cas_instance': 'cas instance',
+        'digest': {
+            'hash': 'root hash',
+            'size_bytes': 123,
+        },
+    })
     execution.Poll()
     self.assertReadValueError(execution, 'ReadValueNoFile')
 
@@ -273,6 +376,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents({'chart': {'traces': {}}})
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         chart='chart',
         trace_or_story='test')
     execution = quest.Start(None, 'server', 'output hash')
@@ -293,6 +397,7 @@ class ReadValueTest(_ReadValueExecutionTest):
 
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         metric=hist.name,
         grouping_label='label',
         trace_or_story='story')
@@ -307,6 +412,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContentsRaw('{"files": {}}')
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         metric='metric',
         grouping_label='test')
     execution = quest.Start(None, 'server', 'output hash')
@@ -325,6 +431,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         metric=hist.name,
         grouping_label='label',
         trace_or_story='http://story')
@@ -348,6 +455,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         metric=hist.name,
         grouping_label='label',
         trace_or_story='story:has:colons:too')
@@ -371,6 +479,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         metric=hist.name,
         trace_or_story='story:has:colons:too')
     execution = quest.Start(None, 'server', 'output hash')
@@ -393,6 +502,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         metric=hist.name,
         grouping_label='label',
         trace_or_story='story',
@@ -413,6 +523,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         metric=hist.name,
         grouping_label='label',
         trace_or_story='story',
@@ -443,6 +554,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         metric=hist.name,
         grouping_label='label',
         trace_or_story='story')
@@ -468,7 +580,9 @@ class ReadValueTest(_ReadValueExecutionTest):
         reserved_infos.STORIES.name, generic_set.GenericSet(['story']))
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(
-        results_filename='chartjson-output.json', metric=hist.name)
+        results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
+        metric=hist.name)
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
     self.assertReadValueSuccess(execution)
@@ -511,7 +625,9 @@ class ReadValueTest(_ReadValueExecutionTest):
     histograms = histogram_set.HistogramSet([hist, hist2])
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(
-        results_filename='chartjson-output.json', metric=hist.name)
+        results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
+        metric=hist.name)
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
     self.assertReadValueSuccess(execution)
@@ -548,6 +664,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         metric=hist.name,
         grouping_label='label')
     execution = quest.Start(None, 'server', 'output hash')
@@ -567,6 +684,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         metric=hist.name,
         trace_or_story='story')
     execution = quest.Start(None, 'server', 'output hash')
@@ -593,6 +711,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         metric=hists[0].name,
         grouping_label='label')
     execution = quest.Start(None, 'server', 'output hash')
@@ -635,7 +754,9 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents(histograms.AsDicts())
 
     quest = read_value.ReadValue(
-        results_filename='chartjson-output.json', metric=hists[0].name)
+        results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
+        metric=hists[0].name)
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
     self.assertReadValueSuccess(execution)
@@ -661,7 +782,9 @@ class ReadValueTest(_ReadValueExecutionTest):
     histograms.AddSharedDiagnosticToAllHistograms(
         reserved_infos.STORY_TAGS.name, generic_set.GenericSet(['group:label']))
     self.SetOutputFileContents(histograms.AsDicts())
-    quest = read_value.ReadValue(results_filename='chartjson-output.json')
+    quest = read_value.ReadValue(
+        results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'])
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
     self.assertReadValueSuccess(execution)
@@ -672,6 +795,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents([])
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         metric='metric',
         grouping_label='test')
     execution = quest.Start(None, 'server', 'output hash')
@@ -683,7 +807,9 @@ class ReadValueTest(_ReadValueExecutionTest):
     histograms = histogram_set.HistogramSet([hist])
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(
-        results_filename='chartjson-output.json', metric='does_not_exist')
+        results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
+        metric='does_not_exist')
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
     self.assertReadValueError(execution, 'ReadValueNotFound')
@@ -693,7 +819,9 @@ class ReadValueTest(_ReadValueExecutionTest):
     histograms = histogram_set.HistogramSet([hist])
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(
-        results_filename='chartjson-output.json', metric='chart')
+        results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
+        metric='chart')
     execution = quest.Start(None, 'server', 'output hash')
     execution.Poll()
     self.assertReadValueError(execution, 'ReadValueNotFound')
@@ -704,6 +832,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         metric='chart',
         grouping_label='label')
     execution = quest.Start(None, 'server', 'output hash')
@@ -716,6 +845,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContents(histograms.AsDicts())
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         metric='chart',
         trace_or_story='story')
     execution = quest.Start(None, 'server', 'output hash')
@@ -734,6 +864,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContentsProto(hist_set.SerializeToString())
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         metric='metric',
         grouping_label='test')
     execution = quest.Start(None, 'server', 'output hash')
@@ -745,6 +876,7 @@ class ReadValueTest(_ReadValueExecutionTest):
     self.SetOutputFileContentsProto(hist_set.SerializeToString())
     quest = read_value.ReadValue(
         results_filename='chartjson-output.json',
+        results_path=['chartjson-output.json'],
         metric='metric',
         grouping_label='test')
     execution = quest.Start(None, 'server', 'output hash')
@@ -754,6 +886,7 @@ class ReadValueTest(_ReadValueExecutionTest):
   def testMetricPropertyReturnsChart(self):
     quest = read_value.ReadValue(
         results_filename='somefile.json',
+        results_path=['somefile.json'],
         chart='somechart',
         trace_or_story='trace')
     self.assertEqual(quest.metric, 'somechart')

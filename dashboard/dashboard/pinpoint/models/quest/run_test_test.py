@@ -291,9 +291,12 @@ class RunTestFullTest(_RunTestExecutionTest):
         'bot_id': 'bot id',
         'exit_code': 0,
         'failure': False,
-        'outputs_ref': {
-            'isolatedserver': 'output isolate server',
-            'isolated': 'output isolate hash',
+        'cas_output_root': {
+            'cas_instance': 'projects/x/instances/default_instance',
+            'digest': {
+                'hash': 'e3b0c44298fc1c149afbf4c8996fb',
+                'size_bytes': 1,
+            },
         },
         'state': 'COMPLETED',
     }
@@ -304,8 +307,13 @@ class RunTestFullTest(_RunTestExecutionTest):
     self.assertEqual(execution.result_values, ())
     self.assertEqual(
         execution.result_arguments, {
-            'isolate_server': 'output isolate server',
-            'isolate_hash': 'output isolate hash',
+            'cas_root_ref': {
+                'cas_instance': 'projects/x/instances/default_instance',
+                'digest': {
+                    'hash': 'e3b0c44298fc1c149afbf4c8996fb',
+                    'size_bytes': 1,
+                },
+            }
         })
     self.assertEqual(
         execution.AsDict(), {
@@ -326,9 +334,10 @@ class RunTestFullTest(_RunTestExecutionTest):
                 },
                 {
                     'key': 'isolate',
-                    'value': 'output isolate hash',
-                    'url': 'output isolate server/browse?'
-                           'digest=output isolate hash',
+                    'value': 'e3b0c44298fc1c149afbf4c8996fb/1',
+                    'url': 'https://cas-viewer.appspot.com/'
+                           'projects/x/instances/default_instance/'
+                           'e3b0c44298fc1c149afbf4c8996fb/1/tree',
                 },
             ],
         })

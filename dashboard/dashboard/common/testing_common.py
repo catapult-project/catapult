@@ -527,3 +527,36 @@ class FakeRevisionInfoClient(object):
           '{{R2}}', revision_end[k])
       infos.append(info)
     return infos
+
+
+class FakeCASClient(object):
+
+  _trees = {}
+  _files = {}
+
+  def __init__(self, http):
+    pass
+
+  @staticmethod
+  def _NormalizeDigest(digest):
+    return {
+        'hash': digest['hash'],
+        'sizeBytes': digest.get('sizeBytes') or str(digest.get('size_bytes')),
+    }
+
+  def GetTree(self, cas_ref, page_size=None, page_token=None):
+    if page_size or page_token:
+      raise NotImplementedError()
+    digest = self._NormalizeDigest(cas_ref['digest'])
+    key = (digest['hash'], digest['sizeBytes'])
+    return {'directories': [self._trees[cas_ref['cas_instance']][key]]}
+
+  def BatchRead(self, cas_instance, digests):
+    digests = [self._NormalizeDigest(d) for d in digests]
+    return {
+        'responses': [{
+            'data': self._files[cas_instance][(d['hash'], d['sizeBytes'])],
+            'digest': d,
+            'status': {},
+        } for d in digests]
+    }

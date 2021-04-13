@@ -75,6 +75,7 @@ class ReadValueEvaluator(
     dep = accumulator.get(task.dependencies[0], {})
     isolate_server = dep.get('isolate_server')
     isolate_hash = dep.get('isolate_hash')
+    cas_root_ref = dep.get('cas_root_ref')
     dependency_status = dep.get('status', 'failed')
     if dependency_status == 'failed':
       return self.CompleteWithError(
@@ -86,8 +87,12 @@ class ReadValueEvaluator(
       return None
 
     try:
-      data = read_value_quest.RetrieveOutputJson(
-          isolate_server, isolate_hash, task.payload.get('results_filename'))
+      if cas_root_ref:
+        data = read_value_quest.RetrieveOutputJsonFromCAS(
+            cas_root_ref, task.payload.get('results_path'))
+      else:
+        data = read_value_quest.RetrieveOutputJson(
+            isolate_server, isolate_hash, task.payload.get('results_filename'))
       if task.payload.get('mode') == 'histogram_sets':
         return self.HandleHistogramSets(task, data)
       elif task.payload.get('mode') == 'graph_json':
@@ -217,6 +222,7 @@ def CreateGraph(options):
     path = ntpath.join(options.benchmark, 'perf_results.json')
   else:
     path = posixpath.join(options.benchmark, 'perf_results.json')
+  results_path = [options.benchmark, 'perf_results.json']
 
   # We create a 1:1 mapping between a read_value task and a run_test task.
   def GenerateVertexAndDep(attempts):
@@ -231,7 +237,10 @@ def CreateGraph(options):
           payload={
               'benchmark': options.benchmark,
               'mode': options.mode,
+              # TODO(fancl): remove results_filename because retrieving file in
+              # RBE-CAS is platform independent.
               'results_filename': path,
+              'results_path': results_path,
               'histogram_options': options.histogram_options._asdict(),
               'graph_json_options': options.graph_json_options._asdict(),
               'change': options.test_options.build_options.change.AsDict(),

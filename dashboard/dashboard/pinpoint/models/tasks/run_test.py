@@ -161,10 +161,16 @@ class PollSwarmingTaskAction(
           self.job, self.task.id, new_state='failed', payload=self.task.payload)
       return
 
-    self.task.payload.update({
-        'isolate_server': result.get('outputs_ref', {}).get('isolatedserver'),
-        'isolate_hash': result.get('outputs_ref', {}).get('isolated'),
-    })
+    if 'outputs_ref' in result:
+      self.task.payload.update({
+          'isolate_server': result.get('outputs_ref').get('isolatedserver'),
+          'isolate_hash': result.get('outputs_ref').get('isolated'),
+      })
+    elif 'cas_output_root' in result:
+      self.task.payload.update({
+          'cas_root_ref': result.get('cas_output_root'),
+      })
+
     new_state = 'completed'
     if result.get('failure', False):
       new_state = 'failed'
