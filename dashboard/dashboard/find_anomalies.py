@@ -79,7 +79,7 @@ def _ProcessTest(test_key):
   for s, rows in rows_by_stat.items():
     if rows:
       logging.info('Processing test: %s', test_key.id())
-      yield _ProcessTestStat(config, test, s, rows, ref_rows_by_stat.get(s))
+      yield _ProcessTestStat(test, s, rows, ref_rows_by_stat.get(s))
 
 
 def _EmailSheriff(sheriff, test_key, anomaly_key):
@@ -90,7 +90,7 @@ def _EmailSheriff(sheriff, test_key, anomaly_key):
 
 
 @ndb.tasklet
-def _ProcessTestStat(config, test, stat, rows, ref_rows):
+def _ProcessTestStat(test, stat, rows, ref_rows):
   # If there were no rows fetched, then there's nothing to analyze.
   if not rows:
     logging.error('No rows fetched for %s', test.test_path)
@@ -114,7 +114,6 @@ def _ProcessTestStat(config, test, stat, rows, ref_rows):
     logging.error('No subscription for %s', test.test_path)
     raise ndb.Return(None)
 
-  subscription_names = [s.name for s in subscriptions or []]
   configs = {
       s.name: [c.to_dict() for c in s.anomaly_configs
               ] for s in subscriptions or [] if s.anomaly_configs
@@ -123,19 +122,22 @@ def _ProcessTestStat(config, test, stat, rows, ref_rows):
     logging.debug('matched anomaly configs: %s', configs)
 
   # Get anomalies and check if they happen in ref build also.
-  change_points = FindChangePointsForTest(rows, config)
-
   test_key = test.key
-  if ref_rows:
-    ref_change_points = FindChangePointsForTest(ref_rows, config)
+  anomaly_inputs = []
+  for matching_sub in subscriptions:
+    anomaly_configs = matching_sub.anomaly_configs or [
+        subscription.AnomalyConfig()
+    ]
+    for config in [c.to_dict() for c in anomaly_configs]:
+      change_points = FindChangePointsForTest(rows, config)
+      if ref_rows:
+        ref_change_points = FindChangePointsForTest(ref_rows, config)
+        change_points = _FilterAnomaliesFoundInRef(change_points,
+                                                   ref_change_points, test_key)
+      anomaly_inputs.extend(
+          (c, test, stat, rows, config, matching_sub) for c in change_points)
 
-    # Filter using any jumps in ref
-    change_points = _FilterAnomaliesFoundInRef(change_points, ref_change_points,
-                                               test_key)
-
-  anomalies = yield [
-      _MakeAnomalyEntity(c, test, stat, rows, config) for c in change_points
-  ]
+  anomalies = yield [_MakeAnomalyEntity(*inputs) for inputs in anomaly_inputs]
 
   # If no new anomalies were found, then we're done.
   if not anomalies:
@@ -146,8 +148,8 @@ def _ProcessTestStat(config, test, stat, rows, ref_rows):
   logging.info(' Stat: %s', stat)
 
   for a in anomalies:
-    a.subscriptions = subscriptions
-    a.subscription_names = subscription_names
+    a.subscriptions = [a.matching_subscription]
+    a.subscription_names = [a.matching_subscription.name]
     a.internal_only = (
         any([
             s.visibility != subscription.VISIBILITY.PUBLIC
@@ -159,11 +161,12 @@ def _ProcessTestStat(config, test, stat, rows, ref_rows):
 
   # TODO(simonhatch): email_sheriff.EmailSheriff() isn't a tasklet yet, so this
   # code will run serially.
-  # Email sheriff about any new regressions.
+  # Email sheriff about any new regressions, but deduplicate them by the
+  # matched subscription.
   for anomaly_entity in anomalies:
     if anomaly_entity.bug_id is None and not anomaly_entity.is_improvement:
-      deferred.defer(_EmailSheriff, anomaly_entity.subscriptions, test.key,
-                     anomaly_entity.key)
+      deferred.defer(_EmailSheriff, [anomaly_entity.matching_subscription],
+                     test.key, anomaly_entity.key)
 
 
 @ndb.tasklet
@@ -360,7 +363,7 @@ def _GetDisplayRange(old_end, rows):
 
 
 @ndb.tasklet
-def _MakeAnomalyEntity(change_point, test, stat, rows, config):
+def _MakeAnomalyEntity(change_point, test, stat, rows, config, matching_sub):
   """Creates an Anomaly entity.
 
   Args:
@@ -370,6 +373,7 @@ def _MakeAnomalyEntity(change_point, test, stat, rows, config):
     rows: List of Row entities that the anomalies were found on.
     config: A dict representing the anomaly detection configuration
         parameters used to produce this anomaly.
+    matching_sub: A subscription to which this anomaly is associated.
 
   Returns:
     An Anomaly entity, which is not yet put in the datastore.
@@ -459,7 +463,9 @@ def _MakeAnomalyEntity(change_point, test, stat, rows, config):
       alert_grouping=alert_grouping,
       earliest_input_timestamp=earliest_input_timestamp,
       latest_input_timestamp=latest_input_timestamp,
-      anomaly_config=config)
+      anomaly_config=config,
+      matching_subscription=matching_sub,
+  )
   raise ndb.Return(new_anomaly)
 
 

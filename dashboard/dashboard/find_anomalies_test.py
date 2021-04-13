@@ -19,11 +19,11 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import alert_group
 from dashboard.models import anomaly
-from dashboard.models import anomaly_config
 from dashboard.models import graph_data
 from dashboard.models import histogram
 from dashboard.models.subscription import Subscription
 from dashboard.models.subscription import VISIBILITY
+from dashboard.models.subscription import AnomalyConfig
 from tracing.value.diagnostics import reserved_infos
 from dashboard.sheriff_config_client import SheriffConfigClient
 
@@ -230,25 +230,34 @@ class ProcessAlertsTest(testing_common.TestCase):
 
     expected_calls = [
         mock.call(
-            [ModelMatcher('sheriff1'),
-             ModelMatcher('sheriff2')],
+            [ModelMatcher('sheriff1')],
             ModelMatcher('ChromiumGPU/linux-release/scrolling_benchmark/ref'),
             EndRevisionMatcher(10011)),
         mock.call(
-            [ModelMatcher('sheriff1'),
-             ModelMatcher('sheriff2')],
+            [ModelMatcher('sheriff1')],
             ModelMatcher('ChromiumGPU/linux-release/scrolling_benchmark/ref'),
             EndRevisionMatcher(10041)),
         mock.call(
-            [ModelMatcher('sheriff1'),
-             ModelMatcher('sheriff2')],
+            [ModelMatcher('sheriff1')],
             ModelMatcher('ChromiumGPU/linux-release/scrolling_benchmark/ref'),
-            EndRevisionMatcher(10061))
+            EndRevisionMatcher(10061)),
+        mock.call(
+            [ModelMatcher('sheriff2')],
+            ModelMatcher('ChromiumGPU/linux-release/scrolling_benchmark/ref'),
+            EndRevisionMatcher(10011)),
+        mock.call(
+            [ModelMatcher('sheriff2')],
+            ModelMatcher('ChromiumGPU/linux-release/scrolling_benchmark/ref'),
+            EndRevisionMatcher(10041)),
+        mock.call(
+            [ModelMatcher('sheriff2')],
+            ModelMatcher('ChromiumGPU/linux-release/scrolling_benchmark/ref'),
+            EndRevisionMatcher(10061)),
     ]
-    self.assertEqual(expected_calls, mock_email_sheriff.call_args_list)
+    self.assertListEqual(expected_calls, mock_email_sheriff.call_args_list)
 
     anomalies = anomaly.Anomaly.query().fetch()
-    self.assertEqual(len(anomalies), 3)
+    self.assertEqual(len(anomalies), 6)
     for a in anomalies:
       self.assertEqual(a.groups, [alert_group_key1, alert_group_key2])
 
@@ -274,12 +283,24 @@ class ProcessAlertsTest(testing_common.TestCase):
             direction=anomaly.UP,
             start_revision=10007,
             end_revision=10011,
-            subscription_names=['sheriff1', 'sheriff2'],
+            subscription_names=['sheriff1'],
             internal_only=False,
             units='ms',
             absolute_delta=50,
             statistic='avg'))
-
+    self.assertTrue(
+        AnomalyExists(
+            anomalies,
+            test.key,
+            percent_changed=100,
+            direction=anomaly.UP,
+            start_revision=10007,
+            end_revision=10011,
+            subscription_names=['sheriff2'],
+            internal_only=False,
+            units='ms',
+            absolute_delta=50,
+            statistic='avg'))
     self.assertTrue(
         AnomalyExists(
             anomalies,
@@ -288,12 +309,24 @@ class ProcessAlertsTest(testing_common.TestCase):
             direction=anomaly.DOWN,
             start_revision=10037,
             end_revision=10041,
-            subscription_names=['sheriff1', 'sheriff2'],
+            subscription_names=['sheriff1'],
             internal_only=False,
             units='ms',
             absolute_delta=-100,
             statistic='avg'))
-
+    self.assertTrue(
+        AnomalyExists(
+            anomalies,
+            test.key,
+            percent_changed=-50,
+            direction=anomaly.DOWN,
+            start_revision=10037,
+            end_revision=10041,
+            subscription_names=['sheriff2'],
+            internal_only=False,
+            units='ms',
+            absolute_delta=-100,
+            statistic='avg'))
     self.assertTrue(
         AnomalyExists(
             anomalies,
@@ -304,7 +337,20 @@ class ProcessAlertsTest(testing_common.TestCase):
             end_revision=10061,
             internal_only=False,
             units='ms',
-            subscription_names=['sheriff1', 'sheriff2'],
+            subscription_names=['sheriff1'],
+            absolute_delta=100,
+            statistic='avg'))
+    self.assertTrue(
+        AnomalyExists(
+            anomalies,
+            test.key,
+            percent_changed=sys.float_info.max,
+            direction=anomaly.UP,
+            start_revision=10057,
+            end_revision=10061,
+            internal_only=False,
+            units='ms',
+            subscription_names=['sheriff2'],
             absolute_delta=100,
             statistic='avg'))
 
@@ -375,8 +421,7 @@ class ProcessAlertsTest(testing_common.TestCase):
         graph_data.Row.parent_test == utils.OldStyleTestKey(test.key))
     row_data = query.fetch()
     rows = [(r.revision, r, r.value) for r in row_data]
-    mock_process_stat.assert_called_with(mock.ANY, mock.ANY, mock.ANY, rows,
-                                         None)
+    mock_process_stat.assert_called_with(mock.ANY, mock.ANY, rows, None)
 
     anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(len(anomalies), 1)
@@ -398,8 +443,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.put()
 
     @ndb.tasklet
-    def _AssertParams(config, test_entity, stat, rows, ref_rows):
-      del config
+    def _AssertParams(test_entity, stat, rows, ref_rows):
       del test_entity
       del stat
       del ref_rows
@@ -770,17 +814,8 @@ class ProcessAlertsTest(testing_common.TestCase):
                             }})
     test = utils.TestKey(('ChromiumPerf/linux-perf/sizes/method_count')).get()
     test_container_key = utils.GetTestContainerKey(test.key)
-    custom_config = {
-        'max_window_size': 10,
-        'min_absolute_change': 50,
-        'min_relative_change': 0,
-        'min_segment_size': 0,
-    }
-    anomaly_config.AnomalyConfig(
-        config=custom_config, patterns=[test.test_path]).put()
     test.UpdateSheriff()
     test.put()
-    self.assertEqual(custom_config, anomaly_config.GetAnomalyConfigDict(test))
     sample_data = [
         (6990, 100),
         (6991, 100),
@@ -801,7 +836,16 @@ class ProcessAlertsTest(testing_common.TestCase):
       graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
     test.UpdateSheriff()
     test.put()
-    s = Subscription(name='sheriff', visibility=VISIBILITY.PUBLIC)
+    s = Subscription(
+        name='sheriff',
+        visibility=VISIBILITY.PUBLIC,
+        anomaly_configs=[
+            AnomalyConfig(
+                max_window_size=10,
+                min_absolute_change=50,
+                min_relative_change=0,
+                min_segment_size=0)
+        ])
     with mock.patch.object(SheriffConfigClient, 'Match',
                            mock.MagicMock(return_value=([s], None))) as m:
       find_anomalies.ProcessTests([test.key])
@@ -1128,7 +1172,7 @@ class ProcessAlertsTest(testing_common.TestCase):
 
     alert = find_anomalies._MakeAnomalyEntity(
         _MakeSampleChangePoint(10011, 50, 100), test, 'avg', self._DataSeries(),
-        {}).get_result()
+        {}, Subscription()).get_result()
     self.assertIsNone(alert.ref_test)
 
   def testMakeAnomalyEntity_RefBuildSlash(self):
@@ -1145,7 +1189,7 @@ class ProcessAlertsTest(testing_common.TestCase):
 
     alert = find_anomalies._MakeAnomalyEntity(
         _MakeSampleChangePoint(10011, 50, 100), test, 'avg', self._DataSeries(),
-        {}).get_result()
+        {}, Subscription()).get_result()
     self.assertEqual(alert.ref_test.string_id(),
                      'ChromiumPerf/linux/page_cycler_v2/ref')
 
@@ -1163,7 +1207,7 @@ class ProcessAlertsTest(testing_common.TestCase):
 
     alert = find_anomalies._MakeAnomalyEntity(
         _MakeSampleChangePoint(10011, 50, 100), test, 'avg', self._DataSeries(),
-        {}).get_result()
+        {}, Subscription()).get_result()
     self.assertEqual(alert.ref_test.string_id(),
                      'ChromiumPerf/linux/page_cycler_v2/cnn_ref')
     self.assertIsNone(alert.display_start)
@@ -1187,7 +1231,7 @@ class ProcessAlertsTest(testing_common.TestCase):
 
     alert = find_anomalies._MakeAnomalyEntity(
         _MakeSampleChangePoint(300, 50, 100), test, 'avg', self._DataSeries(),
-        {}).get_result()
+        {}, Subscription()).get_result()
     self.assertEqual(alert.display_start, 203)
     self.assertEqual(alert.display_end, 302)
 
@@ -1248,7 +1292,7 @@ class ProcessAlertsTest(testing_common.TestCase):
 
     alert = find_anomalies._MakeAnomalyEntity(
         _MakeSampleChangePoint(10011, 50, 100), test, 'avg', self._DataSeries(),
-        {}).get_result()
+        {}, Subscription()).get_result()
 
     self.assertEqual(alert.ownership['component'], 'abc')
     self.assertListEqual(alert.ownership['emails'],
@@ -1285,7 +1329,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     entity.put()
     alert = find_anomalies._MakeAnomalyEntity(
         _MakeSampleChangePoint(10011, 50, 100), test, 'avg', self._DataSeries(),
-        {}).get_result()
+        {}, Subscription()).get_result()
     self.assertEqual(alert.alert_grouping, ['group123', 'group234'])
 
 

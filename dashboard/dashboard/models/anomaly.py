@@ -76,6 +76,7 @@ class Anomaly(internal_only_model.InternalOnlyModel):
 
   # The anomaly configuration used to generate this anomaly, associated with the
   # subscription.
+  matching_subscription = ndb.LocalStructuredProperty(subscription.Subscription)
   anomaly_config = ndb.JsonProperty()
 
   # Each Alert is related to one Test.
