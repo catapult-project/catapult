@@ -11,6 +11,7 @@ from dashboard.pinpoint.models.quest.execution import Execution
 
 from dashboard.pinpoint.models.quest.find_isolate import FindIsolate
 from dashboard.pinpoint.models.quest.run_gtest import RunGTest
+from dashboard.pinpoint.models.quest.run_lacros_telemetry_test import RunLacrosTelemetryTest
 from dashboard.pinpoint.models.quest.run_telemetry_test import RunTelemetryTest
 from dashboard.pinpoint.models.quest.run_vr_telemetry_test import RunVrTelemetryTest
 from dashboard.pinpoint.models.quest.run_webrtc_test import RunWebRtcTest
