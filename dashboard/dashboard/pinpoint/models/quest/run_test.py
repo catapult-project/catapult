@@ -263,7 +263,7 @@ class _RunTestExecution(execution_module.Execution):
       cas_root_ref = self._result_arguments.get('cas_root_ref')
       if cas_root_ref is not None:
         digest = cas_root_ref['digest']
-        url = 'https://cas-viewer.appspot.com/{}/{}/{}/tree'.format(
+        url = 'https://cas-viewer.appspot.com/{}/blobs/{}/{}/tree'.format(
             cas_root_ref['cas_instance'], digest['hash'], digest['size_bytes'])
         value = '{}/{}'.format(digest['hash'], digest['size_bytes'])
       else:

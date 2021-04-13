@@ -336,7 +336,7 @@ class RunTestFullTest(_RunTestExecutionTest):
                     'key': 'isolate',
                     'value': 'e3b0c44298fc1c149afbf4c8996fb/1',
                     'url': 'https://cas-viewer.appspot.com/'
-                           'projects/x/instances/default_instance/'
+                           'projects/x/instances/default_instance/blobs/'
                            'e3b0c44298fc1c149afbf4c8996fb/1/tree',
                 },
             ],

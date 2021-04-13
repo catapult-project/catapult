@@ -534,7 +534,7 @@ class FakeCASClient(object):
   _trees = {}
   _files = {}
 
-  def __init__(self, http):
+  def __init__(self):
     pass
 
   @staticmethod
