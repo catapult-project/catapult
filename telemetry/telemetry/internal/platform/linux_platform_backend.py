@@ -151,7 +151,7 @@ class LinuxPlatformBackend(
     if changed or not self.CanLaunchApplication('ipfw'):
       if not self._IsIpfwKernelModuleInstalled():
         subprocess.check_call(['/usr/bin/sudo', 'insmod', ipfw_mod])
-      os.chmod(ipfw_bin, 0755)
+      os.chmod(ipfw_bin, 0o755)
       subprocess.check_call(
           ['/usr/bin/sudo', 'cp', ipfw_bin, '/usr/local/sbin'])
 
