@@ -75,7 +75,7 @@ class GerritPatch(
     except KeyError:
       patch_info = gerrit_service.GetChange(
           self.server,
-          self.change,
+          str(self.change).strip(),
           fields=('ALL_REVISIONS', 'DETAILED_ACCOUNTS', 'COMMIT_FOOTERS'))
       revision_info = patch_info['revisions'][revision]
       url = '%s/c/%s/+/%d/%d' % (self.server, patch_info['project'],
