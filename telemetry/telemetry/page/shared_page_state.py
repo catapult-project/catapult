@@ -278,7 +278,7 @@ class SharedPageState(story_module.SharedState):
     if self._current_page.is_file:
       self.platform.SetHTTPServerDirectories(
           self._current_page.story_set.serving_dirs
-          | set([self._current_page.serving_dir]),
+          | {self._current_page.serving_dir},
           self._current_page.story_set.request_handler_class)
 
   @property

@@ -101,15 +101,15 @@ class Patcher(object):
     Instantiate a stub creator to bind and un-bind the file-related modules to
     the :py:mod:`pyfakefs` fake modules.
     '''
-    SKIPMODULES = set([None, fake_filesystem, fake_filesystem_glob,
-                      fake_filesystem_shutil, fake_tempfile, sys])
+    SKIPMODULES = {None, fake_filesystem, fake_filesystem_glob,
+                      fake_filesystem_shutil, fake_tempfile, sys}
     '''Stub nothing that is imported within these modules.
     `sys` is included to prevent `sys.path` from being stubbed with the fake
     `os.path`.
     '''
     assert None in SKIPMODULES, "sys.modules contains 'None' values; must skip them."
     
-    SKIPNAMES = set(['os', 'glob', 'path', 'shutil', 'tempfile'])
+    SKIPNAMES = {'os', 'glob', 'path', 'shutil', 'tempfile'}
         
     def __init__(self):
         # Attributes set by _findModules()

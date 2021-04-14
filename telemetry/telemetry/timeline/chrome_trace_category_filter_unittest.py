@@ -9,11 +9,11 @@ from telemetry.timeline import chrome_trace_category_filter
 
 class ChromeTraceCategoryFilterTest(unittest.TestCase):
   def CheckBasicCategoryFilters(self, cf):
-    self.assertEquals(set(['x']), set(cf.included_categories))
-    self.assertEquals(set(['y']), set(cf.excluded_categories))
+    self.assertEquals({'x'}, set(cf.included_categories))
+    self.assertEquals({'y'}, set(cf.excluded_categories))
     self.assertEquals(
-        set(['disabled-by-default-z']), set(cf.disabled_by_default_categories))
-    self.assertEquals(set(['DELAY(7;foo)']), set(cf.synthetic_delays))
+        {'disabled-by-default-z'}, set(cf.disabled_by_default_categories))
+    self.assertEquals({'DELAY(7;foo)'}, set(cf.synthetic_delays))
 
     self.assertTrue('x' in cf.filter_string)
     self.assertEquals(

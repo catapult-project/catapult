@@ -223,7 +223,7 @@ def plat_prepare(includes, packages, excludes):
             '_emx_link',
         ])
 
-    excludes.update(set(['posix', 'nt', 'os2', 'mac', 'ce', 'riscos']) - set(sys.builtin_module_names))
+    excludes.update({'posix', 'nt', 'os2', 'mac', 'ce', 'riscos'} - set(sys.builtin_module_names))
 
     # Carbon.Res depends on this, but the module hasn't been present
     # for a while...

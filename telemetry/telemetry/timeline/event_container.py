@@ -92,7 +92,7 @@ class TimelineEventContainer(object):
   # optinal recurisve parameter and be implemented in terms fo IterAllEvents.
   def IterTimelineMarkers(self, names, recursive=True):
     if isinstance(names, basestring):
-      names = set([names])
+      names = {names}
     else:
       names = set(names)
 

@@ -72,16 +72,16 @@ class TestModuleGraph (unittest.TestCase):
 
     def test_listdir(self):
         # 1. Regular directory
-        self.assertEqual(set(os.listdir(os.path.join(TESTDATA, 'subdir'))), set(['file1.txt', 'file2.txt']))
+        self.assertEqual(set(os.listdir(os.path.join(TESTDATA, 'subdir'))), {'file1.txt', 'file2.txt'})
 
         # 2. Zipfile with files in directory
-        self.assertEqual(set(zipio.listdir(os.path.join(TESTDATA, 'zipped.egg'))), set([
-            'test.txt', 'subdir', 'subdir2', 'subdir3', 'subdir4']))
+        self.assertEqual(set(zipio.listdir(os.path.join(TESTDATA, 'zipped.egg'))), {
+            'test.txt', 'subdir', 'subdir2', 'subdir3', 'subdir4'})
 
         # 3. Zipfile with files in subdirectory
-        self.assertEqual(set(zipio.listdir(os.path.join(TESTDATA, 'zipped.egg', 'subdir'))), set(['file1.txt', 'file2.txt']))
-        self.assertEqual(set(zipio.listdir(os.path.join(TESTDATA, 'zipped.egg', 'subdir2'))), set(['subdir']))
-        self.assertEqual(set(zipio.listdir(os.path.join(TESTDATA, 'zipped.egg', 'subdir4', 'subdir6'))), set(['mydir']))
+        self.assertEqual(set(zipio.listdir(os.path.join(TESTDATA, 'zipped.egg', 'subdir'))), {'file1.txt', 'file2.txt'})
+        self.assertEqual(set(zipio.listdir(os.path.join(TESTDATA, 'zipped.egg', 'subdir2'))), {'subdir'})
+        self.assertEqual(set(zipio.listdir(os.path.join(TESTDATA, 'zipped.egg', 'subdir4', 'subdir6'))), {'mydir'})
 
         # 4. Zipfile with entry for directory, no files
         self.assertEqual(set(zipio.listdir(os.path.join(TESTDATA, 'zipped.egg', 'subdir3'))), set([]))

@@ -555,10 +555,10 @@ class TestModuleGraph (unittest.TestCase):
             pkgs = graph.nspackages
             self.assertTrue('namedpkg' in pkgs)
             self.assertEqual(set(pkgs['namedpkg']),
-                    set([
+                    {
                         os.path.join(TESTDATA, subdir, "parent", "namedpkg"),
                         os.path.join(TESTDATA, subdir, "child", "namedpkg"),
-                    ]))
+                    })
             self.assertFalse(os.path.exists(os.path.join(TESTDATA, subdir, "parent", "namedpkg", "__init__.py")))
             self.assertFalse(os.path.exists(os.path.join(TESTDATA, subdir, "child", "namedpkg", "__init__.py")))
 
@@ -609,10 +609,10 @@ class TestModuleGraph (unittest.TestCase):
         master = graph.createNode(modulegraph.Node, 'root')
         m = graph.run_script(script, master)
         self.assertEqual(list(graph.get_edges(master)[0])[0], m)
-        self.assertEqual(set(graph.get_edges(m)[0]), set([
+        self.assertEqual(set(graph.get_edges(m)[0]), {
             graph.findNode('sys'),
             graph.findNode('os'),
-        ]))
+        })
 
     @expectedFailure
     def test_import_hook(self):
@@ -778,7 +778,7 @@ class TestModuleGraph (unittest.TestCase):
             '''), '<test>', 'exec', 0, False)
         graph.scan_code(code, mod)
         modules = [node.identifier for node in graph.nodes()]
-        self.assertEqual(set(node_map), set(['sys', 'os.path', 'shutil']))
+        self.assertEqual(set(node_map), {'sys', 'os.path', 'shutil'})
 
 
         # from module import a, b, c

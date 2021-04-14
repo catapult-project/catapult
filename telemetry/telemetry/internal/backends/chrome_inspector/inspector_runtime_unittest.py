@@ -93,8 +93,8 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     iframe1 = TestVar(context_id=all_contexts_list[1])
     iframe2 = TestVar(context_id=all_contexts_list[2])
     iframe3 = TestVar(context_id=all_contexts_list[3])
-    self.assertEqual(set([iframe1, iframe2, iframe3]),
-                     set(['iframe1', 'iframe2', 'iframe3']))
+    self.assertEqual({iframe1, iframe2, iframe3},
+                     {'iframe1', 'iframe2', 'iframe3'})
 
     # Accessing a non-existent iframe throws an exception.
     self.assertRaises(

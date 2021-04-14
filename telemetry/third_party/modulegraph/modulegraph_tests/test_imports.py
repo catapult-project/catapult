@@ -154,7 +154,7 @@ class TestModuleGraphImport (unittest.TestCase):
         n = self.mf.findNode('pkg.mod')
         self.assertIsInstance(n, modulegraph.SourceModule)
         refs = set(self.mf.getReferences(n))
-        self.assertEqual(refs, set([self.mf.findNode('pkg')]))
+        self.assertEqual(refs, {self.mf.findNode('pkg')})
         ed = self.mf.edgeData(n, self.mf.findNode('pkg'))
         self.assertIsInstance(ed, modulegraph.DependencyInfo)
         self.assertEqual(ed, modulegraph.DependencyInfo(
@@ -169,7 +169,7 @@ class TestModuleGraphImport (unittest.TestCase):
             n2 = self.mf.findNode('pkg.mod')
         else:
             n2 = self.mf.findNode('mod')
-        self.assertEqual(refs, set([self.mf.findNode('pkg'), n2]))
+        self.assertEqual(refs, {self.mf.findNode('pkg'), n2})
         ed = self.mf.edgeData(n, n2)
         self.assertIsInstance(ed, modulegraph.DependencyInfo)
         self.assertEqual(ed, modulegraph.DependencyInfo(
@@ -180,7 +180,7 @@ class TestModuleGraphImport (unittest.TestCase):
         n = self.mf.findNode('pkg.relative')
         self.assertIsInstance(n, modulegraph.SourceModule)
         refs = set(self.mf.getReferences(n))
-        self.assertEqual(refs, set([self.mf.findNode('__future__'), self.mf.findNode('pkg'), self.mf.findNode('pkg.mod')]))
+        self.assertEqual(refs, {self.mf.findNode('__future__'), self.mf.findNode('pkg'), self.mf.findNode('pkg.mod')})
 
         ed = self.mf.edgeData(n, self.mf.findNode('pkg.mod'))
         self.assertIsInstance(ed, modulegraph.DependencyInfo)
@@ -201,7 +201,7 @@ class TestModuleGraphImport (unittest.TestCase):
         n = self.mf.findNode('pkg.toplevel')
         self.assertIsInstance(n, modulegraph.SourceModule)
         refs = set(self.mf.getReferences(n))
-        self.assertEqual(refs, set([self.mf.findNode('__future__'), self.mf.findNode('pkg'), self.mf.findNode('mod')]))
+        self.assertEqual(refs, {self.mf.findNode('__future__'), self.mf.findNode('pkg'), self.mf.findNode('mod')})
 
         ed = self.mf.edgeData(n, self.mf.findNode('mod'))
         self.assertIsInstance(ed, modulegraph.DependencyInfo)
@@ -222,7 +222,7 @@ class TestModuleGraphImport (unittest.TestCase):
         n = self.mf.findNode('pkg.subpkg')
         self.assertIsInstance(n, modulegraph.Package)
         refs = set(self.mf.getReferences(n))
-        self.assertEqual(refs, set([self.mf.findNode('pkg')]))
+        self.assertEqual(refs, {self.mf.findNode('pkg')})
 
         ed = self.mf.edgeData(n, self.mf.findNode('pkg'))
         self.assertIsInstance(ed, modulegraph.DependencyInfo)
@@ -233,7 +233,7 @@ class TestModuleGraphImport (unittest.TestCase):
         n = self.mf.findNode('pkg.subpkg.relative')
         self.assertIsInstance(n, modulegraph.SourceModule)
         refs = set(self.mf.getReferences(n))
-        self.assertEqual(refs, set([self.mf.findNode('__future__'), self.mf.findNode('pkg'), self.mf.findNode('pkg.subpkg'), self.mf.findNode('pkg.mod')]))
+        self.assertEqual(refs, {self.mf.findNode('__future__'), self.mf.findNode('pkg'), self.mf.findNode('pkg.subpkg'), self.mf.findNode('pkg.mod')})
 
         ed = self.mf.edgeData(n, self.mf.findNode('pkg.subpkg'))
         self.assertIsInstance(ed, modulegraph.DependencyInfo)
@@ -249,18 +249,18 @@ class TestModuleGraphImport (unittest.TestCase):
         n = self.mf.findNode('pkg.subpkg.relative2')
         self.assertIsInstance(n, modulegraph.SourceModule)
         refs = set(self.mf.getReferences(n))
-        self.assertEqual(refs, set([self.mf.findNode('pkg.subpkg'), self.mf.findNode('pkg.relimport'), self.mf.findNode('__future__')]))
+        self.assertEqual(refs, {self.mf.findNode('pkg.subpkg'), self.mf.findNode('pkg.relimport'), self.mf.findNode('__future__')})
 
         # 10. pkg.subpkg.mod2
         n = self.mf.findNode('pkg.subpkg.mod2')
         self.assertIsInstance(n, modulegraph.SourceModule)
         refs = set(self.mf.getReferences(n))
-        self.assertEqual(refs, set([
+        self.assertEqual(refs, {
             self.mf.findNode('__future__'),
             self.mf.findNode('pkg.subpkg'),
             self.mf.findNode('pkg.sub2.mod'),
             self.mf.findNode('pkg.sub2'),
-        ]))
+        })
 
 
     def testRootModule(self):

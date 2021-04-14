@@ -113,7 +113,7 @@ def IsUpdateDocsNeeded():
   already_documented_module_names = set(m.name
                                         for m in already_documented_modules)
 
-  current_module_names = set([m.__name__ for m in current_modules])
+  current_module_names = {m.__name__ for m in current_modules}
 
   if current_module_names != already_documented_module_names:
     return True

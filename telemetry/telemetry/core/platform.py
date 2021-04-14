@@ -334,7 +334,7 @@ class Platform(object):
     """Returns True if the HTTP server was started, False otherwise."""
     # pylint: disable=redefined-variable-type
     if isinstance(paths, basestring):
-      paths = set([paths])
+      paths = {paths}
     paths = set(os.path.realpath(p) for p in paths)
 
     # If any path is in a subdirectory of another, remove the subdirectory.

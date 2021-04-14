@@ -66,24 +66,24 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
     self.finder_options.browser_type = 'any'
     all_types = set(
         android_browser_finder.FindAllBrowserTypes())
-    expected_types = all_types - set(('exact', 'reference'))
+    expected_types = all_types - {'exact', 'reference'}
     possible_browsers = android_browser_finder._FindAllPossibleBrowsers(
         self.finder_options, self.fake_platform)
     self.assertEqual(
         expected_types,
-        set([b.browser_type for b in possible_browsers]))
+        {b.browser_type for b in possible_browsers})
 
   def testCanLaunchAlwaysTrueReturnsAllExceptExact(self):
     self.finder_options.browser_type = 'any'
     self.fs.CreateFile(self.expected_reference_build)
     all_types = set(
         android_browser_finder.FindAllBrowserTypes())
-    expected_types = all_types - set(('exact',))
+    expected_types = all_types - {'exact'}
     possible_browsers = android_browser_finder._FindAllPossibleBrowsers(
         self.finder_options, self.fake_platform)
     self.assertEqual(
         expected_types,
-        set([b.browser_type for b in possible_browsers]))
+        {b.browser_type for b in possible_browsers})
 
   def testCanLaunchAlwaysTrueWithExactApkReturnsAll(self):
     self.fs.CreateFile(
@@ -99,7 +99,7 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
         self.finder_options, self.fake_platform)
     self.assertEqual(
         expected_types,
-        set([b.browser_type for b in possible_browsers]))
+        {b.browser_type for b in possible_browsers})
 
   def testErrorWithUnknownExactApk(self):
     self.fs.CreateFile(
@@ -180,7 +180,7 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
     with mock.patch.object(
         self.fake_platform, 'InstallApplication') as m:
       possible_browser.UpdateExecutableIfNeeded()
-      m.assert_called_with('foo_bundle', modules=set(['base']))
+      m.assert_called_with('foo_bundle', modules={'base'})
 
   def testAndroid_Not_WebviewTagInTypExpectationsTags(self):
     self.finder_options.modules_to_install = ['base']

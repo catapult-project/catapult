@@ -107,11 +107,10 @@ class TestGraphUtil (unittest.TestCase):
             lambda n: n != "N.1.1.1", lambda n: n != "N.1.1.2.3" ])
 
         self.assertEqual(v,
-            set(["1", "1.1", "1.1.1", "1.1.2", "1.1.3",
-                "1.1.1.1", "1.1.1.2", "1.1.2.1", "1.1.2.2",
-                "1.1.2.3"]))
-        self.assertEqual(r, set([
-                "1.1.1", "1.1.2.3"]))
+                         {"1", "1.1", "1.1.1", "1.1.2", "1.1.3", "1.1.1.1",
+                          "1.1.1.2", "1.1.2.1", "1.1.2.2", "1.1.2.3"}
+                         )
+        self.assertEqual(r, {"1.1.1", "1.1.2.3"})
 
         o.sort()
         self.assertEqual(o,
@@ -124,11 +123,10 @@ class TestGraphUtil (unittest.TestCase):
             lambda n: n != "N.1.1.1", lambda n: n != "N.1.1.1.2" ])
 
         self.assertEqual(v,
-            set(["1", "1.1", "1.1.1", "1.1.2", "1.1.3",
-                "1.1.1.1", "1.1.1.2", "1.1.2.1", "1.1.2.2",
-                "1.1.2.3"]))
-        self.assertEqual(r, set([
-                "1.1.1", "1.1.1.2"]))
+                         {"1", "1.1", "1.1.1", "1.1.2", "1.1.3", "1.1.1.1",
+                          "1.1.1.2", "1.1.2.1", "1.1.2.2", "1.1.2.3"}
+                         )
+        self.assertEqual(r, {"1.1.1", "1.1.1.2"})
 
         self.assertEqual(o,
             [

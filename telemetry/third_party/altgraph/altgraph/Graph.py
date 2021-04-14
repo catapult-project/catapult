@@ -491,7 +491,7 @@ class Graph(object):
         The forward parameter specifies whether it is a forward or backward
         traversal.
         """
-        visited, stack = set([start]), deque([start])
+        visited, stack = {start}, deque([start])
 
         if forward:
             get_edges = self.out_edges
@@ -518,7 +518,7 @@ class Graph(object):
         condition callback is only called when node_data is not None.
         """
 
-        visited, stack = set([start]), deque([start])
+        visited, stack = {start}, deque([start])
 
         if forward:
             get_edges = self.out_edges
@@ -550,7 +550,7 @@ class Graph(object):
         traversal.  Returns a list of tuples where the first value is the hop
         value the second value is the node id.
         """
-        queue, visited = deque([(start, 0)]), set([start])
+        queue, visited = deque([(start, 0)]), {start}
 
         # the direction of the bfs depends on the edges that are sampled
         if forward:

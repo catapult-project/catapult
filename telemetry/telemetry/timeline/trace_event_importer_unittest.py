@@ -1110,7 +1110,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
          'id': '1234ABDF'},
     ]
 
-    expected_processes = set([52, 54])
+    expected_processes = {52, 54}
     expected_results = [['1234ABCD', 0, 21], ['1234ABDF', 110, 23]]
     trace_data = trace_data_module.CreateFromRawChromeEvents(events)
     m = timeline_model.TimelineModel(trace_data)

@@ -123,7 +123,7 @@ class CpuTracingAgentTest(unittest.TestCase):
 
     self.assertEquals(set(data[0].keys()), set(TRACE_EVENT_KEYS))
     self.assertEquals(set(data[0]['args']['snapshot'].keys()),
-                      set(['processes']))
+                      {'processes'})
     self.assertTrue(data[0]['args']['snapshot']['processes'])
     self.assertEquals(set(data[0]['args']['snapshot']['processes'][0].keys()),
                       set(SNAPSHOT_KEYS))

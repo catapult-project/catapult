@@ -78,7 +78,7 @@ class ChromeTraceCategoryFilter(object):
     if filter_string is None:
       return
 
-    filter_set = set([cf.strip() for cf in filter_string.split(',')])
+    filter_set = {cf.strip() for cf in filter_string.split(',')}
     for category in filter_set:
       self.AddFilter(category)
 

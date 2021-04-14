@@ -22,4 +22,4 @@ class PlatformBackendTest(unittest.TestCase):
             pb.__class__, '_InitPlatformIfNeeded', return_value=None):
           pb._platform = platform_module.Platform(pbe)
           self.assertEqual(set(pb.GetTypExpectationsTags()),
-                           set(['win', 'win-10', 'reference-debug']))
+                           {'win', 'win-10', 'reference-debug'})

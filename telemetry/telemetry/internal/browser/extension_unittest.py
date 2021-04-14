@@ -73,12 +73,14 @@ class ExtensionTest(unittest.TestCase):
     """Tests GetByExtensionId for a web app with multiple pages."""
     with self.CreateBrowserWithExtension('simple_app') as (browser, extension):
       extensions = browser.extensions.GetByExtensionId(extension.extension_id)
-      extension_urls = set([ext.EvaluateJavaScript('location.href;')
-                            for ext in extensions])
-      expected_urls = set([
+      extension_urls = {
+          ext.EvaluateJavaScript('location.href;') for ext in extensions
+      }
+      expected_urls = {
           'chrome-extension://' + extension.extension_id + '/' + path
           for path in ['main.html', 'second.html',
-                       '_generated_background_page.html']])
+                       '_generated_background_page.html']
+      }
       self.assertEqual(expected_urls, extension_urls)
 
 

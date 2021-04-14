@@ -107,7 +107,7 @@ def filter_stack(graph, head, filters):
       in *removes*.
     """
 
-    visited, removes, orphans = set([head]), set(), set()
+    visited, removes, orphans = {head}, set(), set()
     stack = deque([(head, head)])
     get_data = graph.node_data
     get_edges = graph.out_edges
