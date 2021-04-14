@@ -5,6 +5,7 @@
 import logging
 import os
 import unittest
+import six
 
 from telemetry.internal import story_runner
 from telemetry import page
@@ -86,7 +87,7 @@ class StorySetSmokeTest(unittest.TestCase):
     self.assertTrue(
         # We use basestring instead of str because story's URL can be string of
         # unicode.
-        isinstance(story.url, basestring),
+        isinstance(story.url, six.string_types),
         msg='page %s \'s url must have type string' % story.name)
     self.assertIsInstance(
         story.make_javascript_deterministic,

@@ -6,7 +6,7 @@ import os
 import shutil
 import tempfile
 import unittest
-
+import six
 import mock
 
 from py_utils import cloud_storage  # pylint: disable=import-error
@@ -88,7 +88,7 @@ class WprArchiveInfoTest(unittest.TestCase):
 
     assert isinstance(wpr_files, list)
     for wpr_file in wpr_files:
-      assert isinstance(wpr_file, basestring)
+      assert isinstance(wpr_file, six.string_types)
       with open(os.path.join(self.tmp_dir, wpr_file), 'w') as f:
         f.write(archive_data)
     return archive_info.WprArchiveInfo.FromFile(

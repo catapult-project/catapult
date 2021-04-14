@@ -9,6 +9,7 @@ import re
 import subprocess
 import threading
 import time
+import six
 
 from telemetry.core import android_platform
 from telemetry.core import exceptions
@@ -418,7 +419,7 @@ class AndroidPlatformBackend(
     Args:
       application: The full package name string of the application to kill.
     """
-    assert isinstance(application, basestring)
+    assert isinstance(application, six.string_types)
     self._device.KillAll(application, blocking=True, quiet=True, as_root=True)
 
   def LaunchApplication(
@@ -472,7 +473,8 @@ class AndroidPlatformBackend(
 
   def RunCommand(self, command):
     return '\n'.join(self._device.RunShellCommand(
-        command, shell=isinstance(command, basestring), check_return=True))
+        command,
+        shell=isinstance(command, six.string_types), check_return=True))
 
   def SetRelaxSslCheck(self, value):
     old_flag = self._device.GetProp('socket.relaxsslcheck')

@@ -6,6 +6,7 @@ import os
 import subprocess
 import sys
 import time
+import six
 
 from telemetry.core import local_server
 from telemetry.core import memory_cache_http_server
@@ -333,7 +334,7 @@ class Platform(object):
   def SetHTTPServerDirectories(self, paths, handler_class=None):
     """Returns True if the HTTP server was started, False otherwise."""
     # pylint: disable=redefined-variable-type
-    if isinstance(paths, basestring):
+    if isinstance(paths, six.string_types):
       paths = {paths}
     paths = set(os.path.realpath(p) for p in paths)
 

@@ -14,6 +14,7 @@ import re
 import shlex
 import sys
 import traceback
+import six
 
 
 class Override(object):
@@ -96,7 +97,7 @@ class AdbDevice(object):
 
   def RunShellCommand(self, args, **kwargs):
     del kwargs  # unused
-    if isinstance(args, basestring):
+    if isinstance(args, six.string_types):
       args = shlex.split(args)
     handler = self.shell_command_handlers[args[0]]
     return handler(args)

@@ -8,7 +8,10 @@ https://code.google.com/p/trace-viewer/
 """
 
 import logging
+
 from operator import attrgetter
+
+import six
 
 from telemetry.timeline import bounds
 from telemetry.timeline import event_container
@@ -204,7 +207,7 @@ class TimelineModel(event_container.TimelineEventContainer):
     raise an error.
     """
     # Make sure names are in a list and remove all None names
-    if isinstance(timeline_marker_names, basestring):
+    if isinstance(timeline_marker_names, six.string_types):
       timeline_marker_names = [timeline_marker_names]
     names = [x for x in timeline_marker_names if x is not None]
 

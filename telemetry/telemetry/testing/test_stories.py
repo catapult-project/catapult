@@ -18,6 +18,7 @@ classes to work with these kinds of stories.
 
 import posixpath
 import urlparse
+import six
 
 import mock
 
@@ -153,7 +154,7 @@ class DummyStorySet(story_module.StorySet):
     self._abridging_tag = abridging_tag
     assert stories, 'There should be at least one story.'
     for story in stories:
-      if isinstance(story, basestring):
+      if isinstance(story, six.string_types):
         story = DummyStory(story)
       self.AddStory(story)
 

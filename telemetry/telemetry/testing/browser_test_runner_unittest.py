@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 import json
+import six
 
 from telemetry import decorators
 from telemetry import project_config
@@ -48,7 +49,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
     def _IsLeafNode(node):
       test_dict = node[1]
       return ('expected' in test_dict and
-              isinstance(test_dict['expected'], basestring))
+              isinstance(test_dict['expected'], six.string_types))
     node_queues = []
     for t in test_result['tests']:
       node_queues.append((t, test_result['tests'][t]))

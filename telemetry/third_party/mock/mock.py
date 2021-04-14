@@ -35,6 +35,7 @@ __version__ = '1.0.1'
 
 import pprint
 import sys
+import six
 
 try:
     import inspect
@@ -1596,7 +1597,7 @@ class _patch_dict(object):
     """
 
     def __init__(self, in_dict, values=(), clear=False, **kwargs):
-        if isinstance(in_dict, basestring):
+        if isinstance(in_dict, six.string_types):
             in_dict = _importer(in_dict)
         self.in_dict = in_dict
         # support any argument supported by dict(...) constructor
@@ -1993,7 +1994,7 @@ class _Call(tuple):
             name, args, kwargs = value
         elif _len == 2:
             first, second = value
-            if isinstance(first, basestring):
+            if isinstance(first, six.string_types):
                 name = first
                 if isinstance(second, tuple):
                     args = second
@@ -2003,7 +2004,7 @@ class _Call(tuple):
                 args, kwargs = first, second
         elif _len == 1:
             value, = value
-            if isinstance(value, basestring):
+            if isinstance(value, six.string_types):
                 name = value
             elif isinstance(value, tuple):
                 args = value
@@ -2047,7 +2048,7 @@ class _Call(tuple):
             if isinstance(value, tuple):
                 other_args = value
                 other_kwargs = {}
-            elif isinstance(value, basestring):
+            elif isinstance(value, six.string_types):
                 other_name = value
                 other_args, other_kwargs = (), {}
             else:
@@ -2057,7 +2058,7 @@ class _Call(tuple):
             # len 2
             # could be (name, args) or (name, kwargs) or (args, kwargs)
             first, second = other
-            if isinstance(first, basestring):
+            if isinstance(first, six.string_types):
                 other_name = first
                 if isinstance(second, tuple):
                     other_args, other_kwargs = second, {}

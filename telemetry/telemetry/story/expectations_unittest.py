@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import unittest
+import six
 
 
 from telemetry.core import os_version as os_version_module
@@ -42,7 +43,7 @@ class MockBrowserFinderOptions(object):
 
   @browser_type.setter
   def browser_type(self, t):
-    assert isinstance(t, basestring)
+    assert isinstance(t, six.string_types)
     self._browser_type = t
 
 

@@ -1,6 +1,8 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import six
+
 from telemetry.timeline import chrome_trace_category_filter
 from telemetry.timeline import tracing_config
 from telemetry.web_perf import story_test
@@ -79,7 +81,7 @@ class Options(object):
       self.AddTimelineBasedMetric(metric)
 
   def AddTimelineBasedMetric(self, metric):
-    assert isinstance(metric, basestring)
+    assert isinstance(metric, six.string_types)
     if self._timeline_based_metrics is None:
       self._timeline_based_metrics = []
     self._timeline_based_metrics.append(metric)
@@ -100,7 +102,7 @@ class Options(object):
     """
     assert isinstance(metrics, list)
     for metric in metrics:
-      assert isinstance(metric, basestring)
+      assert isinstance(metric, six.string_types)
     self._timeline_based_metrics = metrics
 
   def GetTimelineBasedMetrics(self):
