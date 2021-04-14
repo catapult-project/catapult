@@ -342,7 +342,7 @@ def RetrieveCASOutput(cas_root_ref, path, client=None):
     cas_client = cas_service.GetRBECASService()
 
   def _GetTree(cas_ref):
-    return cas_client.GetTree(cas_ref)['directories'][0]
+    return cas_client.GetTree(cas_ref)[0]['directories'][0]
 
   def _GetNodeByName(name, nodes):
     for node in nodes:
@@ -361,7 +361,7 @@ def RetrieveCASOutput(cas_root_ref, path, client=None):
   node = _GetNodeByName(path[-1], tree['files'])
   response = cas_client.BatchRead(
       cas_root_ref['cas_instance'], [node['digest']])
-  return response['responses'][0].get('data')
+  return response['responses'][0].get('data', '')
 
 
 def RetrieveOutputJsonFromCAS(cas_root_ref, path):

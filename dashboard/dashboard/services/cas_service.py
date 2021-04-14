@@ -46,7 +46,7 @@ class RBECASService(object):
       raise ValueError('Invalid digest for RBE-CAS')
     return {
         'hash': digest['hash'],
-        'sizeBytes': digest.get('sizeBytes') or str(digest.get('size_bytes')),
+        'sizeBytes': digest.get('sizeBytes') or str(digest.get('size_bytes', 0)),
     }
 
   def GetTree(self, cas_ref, page_size=None, page_token=None):

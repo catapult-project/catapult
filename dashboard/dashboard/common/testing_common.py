@@ -549,7 +549,7 @@ class FakeCASClient(object):
       raise NotImplementedError()
     digest = self._NormalizeDigest(cas_ref['digest'])
     key = (digest['hash'], digest['sizeBytes'])
-    return {'directories': [self._trees[cas_ref['cas_instance']][key]]}
+    return [{'directories': [self._trees[cas_ref['cas_instance']][key]]}]
 
   def BatchRead(self, cas_instance, digests):
     digests = [self._NormalizeDigest(d) for d in digests]
