@@ -32,6 +32,7 @@ IP_ALLOWLIST_KEY = 'ip_whitelist'
 SERVICE_ACCOUNT_KEY = 'service_account'
 PINPOINT_REPO_EXCLUSION_KEY = 'pinpoint_repo_exclusions'
 EMAIL_SCOPE = 'https://www.googleapis.com/auth/userinfo.email'
+CLOUD_SCOPE = 'https://www.googleapis.com/auth/cloud-platform'
 _PROJECT_ID_KEY = 'project_id'
 _DEFAULT_CUSTOM_METRIC_VAL = 1
 OAUTH_SCOPES = ('https://www.googleapis.com/auth/userinfo.email',)
