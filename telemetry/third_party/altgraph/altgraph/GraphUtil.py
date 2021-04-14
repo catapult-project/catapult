@@ -38,7 +38,7 @@ def generate_random_graph(node_num, edge_num, self_loops=False, multi_edges=Fals
             continue
 
         # multiple edge defense
-        if g.edge_by_node(head,tail) is not None and not multi_edges:
+        if g.edge_by_node(head, tail) is not None and not multi_edges:
             continue
 
         # add the edge
@@ -65,7 +65,7 @@ def generate_scale_free_graph(steps, growth_num, self_loops=False, multi_edges=F
         for j in range(i + 1, growth_num):
             store.append(i)
             store.append(j)
-            graph.add_edge(i,j)
+            graph.add_edge(i, j)
 
     # generate
     for node in range(growth_num, steps * growth_num):

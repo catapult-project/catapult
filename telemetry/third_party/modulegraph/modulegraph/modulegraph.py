@@ -180,7 +180,7 @@ def find_module(name, path=None):
         if importer is None:
             continue
 
-        if sys.version_info[:2] >= (3,3) and hasattr(importer, 'find_loader'):
+        if sys.version_info[:2] >= (3, 3) and hasattr(importer, 'find_loader'):
             loader, portions = importer.find_loader(name)
 
         else:
@@ -707,7 +707,7 @@ class ModuleGraph(ObjectGraph):
             except ImportError:
                 ImpImporter = pkg_resources.ImpWrapper
 
-        if sys.version_info[:2] >= (3,3):
+        if sys.version_info[:2] >= (3, 3):
             import importlib.machinery
             ImpImporter = importlib.machinery.FileFinder
 
@@ -1290,7 +1290,7 @@ class ModuleGraph(ObjectGraph):
             HAVE_ARGUMENT=_Bchr(dis.HAVE_ARGUMENT),
             unpack=struct.unpack):
 
-        extended_import = bool(sys.version_info[:2] >= (2,5))
+        extended_import = bool(sys.version_info[:2] >= (2, 5))
 
         code = co.co_code
         constants = co.co_consts
@@ -1325,7 +1325,7 @@ class ModuleGraph(ObjectGraph):
 
         # Python >=2.5: LOAD_CONST flags, LOAD_CONST names, IMPORT_NAME name
         # Python < 2.5: LOAD_CONST names, IMPORT_NAME name
-        extended_import = bool(sys.version_info[:2] >= (2,5))
+        extended_import = bool(sys.version_info[:2] >= (2, 5))
 
         code = co.co_code
         constants = co.co_consts
@@ -1525,8 +1525,8 @@ class ModuleGraph(ObjectGraph):
             #if isinstance(d, (ExcludedModule, MissingModule, BadModule)):
             #    return None
             s = '<f0> ' + type(data).__name__
-            for i,v in enumerate(data.infoTuple()[:1], 1):
-                s += '| <f%d> %s' % (i,v)
+            for i, v in enumerate(data.infoTuple()[:1], 1):
+                s += '| <f%d> %s' % (i, v)
             return {'label':s, 'shape':'record'}
 
 

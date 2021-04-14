@@ -253,7 +253,7 @@ def parse_setup_cfg():
 
         metadata['entry_points']['console_scripts'] = v.splitlines()
 
-    if sys.version_info[:2] <= (2,6):
+    if sys.version_info[:2] <= (2, 6):
         try:
             metadata['tests_require'] += ", unittest2"
         except KeyError:

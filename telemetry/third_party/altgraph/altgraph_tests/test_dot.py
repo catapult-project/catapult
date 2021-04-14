@@ -10,14 +10,14 @@ class TestDot (unittest.TestCase):
 
     def test_constructor(self):
         g = Graph.Graph([
-                (1,2),
-                (1,3),
-                (1,4),
-                (2,4),
-                (2,6),
-                (2,7),
-                (7,4),
-                (6,1),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 4),
+                (2, 6),
+                (2, 7),
+                (7, 4),
+                (6, 1),
             ]
         )
 
@@ -44,7 +44,7 @@ class TestDot (unittest.TestCase):
         self.assertEqual(dot.edges, edges)
 
 
-        dot = Dot.Dot(g, nodes=[1,2],
+        dot = Dot.Dot(g, nodes=[1, 2],
                 edgefn=lambda node: list(sorted(g.out_nbrs(node)))[:-1],
                 nodevisitor=lambda node: {'label': node},
                 edgevisitor=lambda head, tail: {'label': (head, tail) },
@@ -63,19 +63,19 @@ class TestDot (unittest.TestCase):
         self.assertEqual(dot.neato, '/usr/local/bin/neato')
         self.assertEqual(dot.type, 'graph')
 
-        self.assertEqual(dot.nodes, dict([(x, {'label': x}) for x in [1,2]]))
+        self.assertEqual(dot.nodes, dict([(x, {'label': x}) for x in [1, 2]]))
 
         edges = {}
-        for head in [1,2]:
+        for head in [1, 2]:
             edges[head] = {}
             for tail in list(sorted(g.out_nbrs(head)))[:-1]:
-                if tail not in [1,2]: continue
+                if tail not in [1, 2]: continue
                 edges[head][tail] = {'label': (head, tail) }
 
         self.assertEqual(dot.edges[1], edges[1])
         self.assertEqual(dot.edges, edges)
 
-        self.assertRaises(GraphError, Dot.Dot, g, nodes=[1,2, 9])
+        self.assertRaises(GraphError, Dot.Dot, g, nodes=[1, 2, 9])
 
     def test_style(self):
         g = Graph.Graph([])
@@ -92,14 +92,14 @@ class TestDot (unittest.TestCase):
 
     def test_node_style(self):
         g = Graph.Graph([
-                (1,2),
-                (1,3),
-                (1,4),
-                (2,4),
-                (2,6),
-                (2,7),
-                (7,4),
-                (6,1),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 4),
+                (2, 6),
+                (2, 7),
+                (7, 4),
+                (6, 1),
             ]
         )
 
@@ -124,30 +124,30 @@ class TestDot (unittest.TestCase):
 
     def test_edge_style(self):
         g = Graph.Graph([
-                (1,2),
-                (1,3),
-                (1,4),
-                (2,4),
-                (2,6),
-                (2,7),
-                (7,4),
-                (6,1),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 4),
+                (2, 6),
+                (2, 7),
+                (7, 4),
+                (6, 1),
             ]
         )
 
         dot = Dot.Dot(g)
 
         self.assertEqual(dot.edges[1][2], {})
-        dot.edge_style(1,2, foo='bar')
+        dot.edge_style(1, 2, foo='bar')
         self.assertEqual(dot.edges[1][2], {'foo': 'bar'})
 
-        dot.edge_style(1,2, foo2='2bar')
+        dot.edge_style(1, 2, foo2='2bar')
         self.assertEqual(dot.edges[1][2], {'foo2': '2bar'})
 
         self.assertEqual(dot.edges[1][3], {})
 
         self.assertFalse(6 in dot.edges[1])
-        dot.edge_style(1,6, foo2='2bar')
+        dot.edge_style(1, 6, foo2='2bar')
         self.assertEqual(dot.edges[1][6], {'foo2': '2bar'})
 
         self.assertRaises(GraphError, dot.edge_style, 1, 9, a=1)
@@ -156,14 +156,14 @@ class TestDot (unittest.TestCase):
 
     def test_iter(self):
         g = Graph.Graph([
-                (1,2),
-                (1,3),
-                (1,4),
-                (2,4),
-                (2,6),
-                (2,7),
-                (7,4),
-                (6,1),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 4),
+                (2, 6),
+                (2, 7),
+                (7, 4),
+                (6, 1),
             ]
         )
 
@@ -171,8 +171,8 @@ class TestDot (unittest.TestCase):
         dot.style(graph="foobar")
         dot.node_style(1, key='value')
         dot.node_style(2, key='another', key2='world')
-        dot.edge_style(1,4, key1='value1', key2='value2')
-        dot.edge_style(2,4, key1='valueA')
+        dot.edge_style(1, 4, key1='value1', key2='value2')
+        dot.edge_style(2, 4, key1='valueA')
 
         self.assertEqual(list(iter(dot)), list(dot.iterdot()))
 
@@ -247,14 +247,14 @@ class TestDot (unittest.TestCase):
 
     def test_save(self):
         g = Graph.Graph([
-                (1,2),
-                (1,3),
-                (1,4),
-                (2,4),
-                (2,6),
-                (2,7),
-                (7,4),
-                (6,1),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 4),
+                (2, 6),
+                (2, 7),
+                (7, 4),
+                (6, 1),
             ]
         )
 
@@ -262,8 +262,8 @@ class TestDot (unittest.TestCase):
         dot.style(graph="foobar")
         dot.node_style(1, key='value')
         dot.node_style(2, key='another', key2='world')
-        dot.edge_style(1,4, key1='value1', key2='value2')
-        dot.edge_style(2,4, key1='valueA')
+        dot.edge_style(1, 4, key1='value1', key2='value2')
+        dot.edge_style(2, 4, key1='valueA')
 
         fn = 'test_dot.dot'
         self.assertTrue(not os.path.exists(fn))
@@ -283,23 +283,23 @@ class TestDot (unittest.TestCase):
 
     def test_img(self):
         g = Graph.Graph([
-                (1,2),
-                (1,3),
-                (1,4),
-                (2,4),
-                (2,6),
-                (2,7),
-                (7,4),
-                (6,1),
+                (1, 2),
+                (1, 3),
+                (1, 4),
+                (2, 4),
+                (2, 6),
+                (2, 7),
+                (7, 4),
+                (6, 1),
             ]
         )
 
         dot = Dot.Dot(g, dot='/usr/local/bin/!!dot', dotty='/usr/local/bin/!!dotty', neato='/usr/local/bin/!!neato')
-        dot.style(size='10,10', rankdir='RL', page='5, 5' , ranksep=0.75)
-        dot.node_style(1, label='BASE_NODE',shape='box', color='blue')
+        dot.style(size='10,10', rankdir='RL', page='5, 5', ranksep=0.75)
+        dot.node_style(1, label='BASE_NODE', shape='box', color='blue')
         dot.node_style(2, style='filled', fillcolor='red')
-        dot.edge_style(1,4, style='dotted')
-        dot.edge_style(2,4, arrowhead='dot', label='binds', labelangle='90')
+        dot.edge_style(1, 4, style='dotted')
+        dot.edge_style(2, 4, arrowhead='dot', label='binds', labelangle='90')
 
         system_cmds = []
         def fake_system(cmd):

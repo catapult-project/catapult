@@ -105,7 +105,7 @@ class TestGraph (unittest.TestCase):
         graph.restore_all_edges()
         self.assertEqual(graph.number_of_edges(), 2)
 
-        self.assertEqual(graph.edge_by_id(e1), (1,2))
+        self.assertEqual(graph.edge_by_id(e1), (1, 2))
         self.assertRaises(GraphError, graph.edge_by_id, (e1+1)*(e2+1)+1)
 
         self.assertEqual(list(sorted(graph.edge_list())), [e1, e2])
@@ -538,7 +538,7 @@ class TestGraph (unittest.TestCase):
     def test_edges_complex(self):
         g = Graph()
         g.add_edge(1, 2)
-        e = g.edge_by_node(1,2)
+        e = g.edge_by_node(1, 2)
         g.hide_edge(e)
         g.hide_node(2)
         self.assertRaises(GraphError, g.restore_edge, e)
@@ -629,16 +629,16 @@ class TestGraph (unittest.TestCase):
         self.assertEqual(graph.number_of_nodes(), 4)
         self.assertEqual(graph.number_of_edges(), 4)
         try:
-            graph.edge_by_node(1,2)
-            graph.edge_by_node(2,3)
-            graph.edge_by_node(1,3)
-            graph.edge_by_node(3,4)
+            graph.edge_by_node(1, 2)
+            graph.edge_by_node(2, 3)
+            graph.edge_by_node(1, 3)
+            graph.edge_by_node(3, 4)
         except GraphError:
             self.fail("Incorrect graph")
 
         self.assertEqual(graph.edge_data(graph.edge_by_node(2, 3)), 'a')
 
-        self.assertRaises(GraphError, Graph, [(1,2,3,4)])
+        self.assertRaises(GraphError, Graph, [(1, 2, 3, 4)])
 
 if __name__ == "__main__": # pragma: no cover
     unittest.main()

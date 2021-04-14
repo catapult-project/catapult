@@ -4,7 +4,7 @@ altgraph.GraphStat - Functions providing various graph statistics
 '''
 import sys
 
-def degree_dist(graph, limits=(0,0), bin_num=10, mode='out'):
+def degree_dist(graph, limits=(0, 0), bin_num=10, mode='out'):
     '''
     Computes the degree distribution for a graph.
 
@@ -34,7 +34,7 @@ def degree_dist(graph, limits=(0,0), bin_num=10, mode='out'):
     return results
 
 _EPS = 1.0/(2.0**32)
-def _binning(values, limits=(0,0), bin_num=10):
+def _binning(values, limits=(0, 0), bin_num=10):
     '''
     Bins data that falls between certain limits, if the limits are (0, 0) the
     minimum and maximum values are used.
@@ -68,6 +68,6 @@ def _binning(values, limits=(0,0), bin_num=10):
     center = (bin_size/2) + min_val
     for i, y in enumerate(bins):
         x = center + bin_size * i
-        result.append( (x,y) )
+        result.append( (x, y) )
 
     return result

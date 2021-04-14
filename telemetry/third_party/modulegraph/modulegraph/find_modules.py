@@ -311,7 +311,7 @@ def _replacePackages():
     REPLACEPACKAGES = {
         '_xmlplus':     'xml',
     }
-    for k,v in REPLACEPACKAGES.items():
+    for k, v in REPLACEPACKAGES.items():
         modulegraph.replacePackage(k, v)
 
 _replacePackages()

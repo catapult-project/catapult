@@ -259,7 +259,7 @@ class TestFunctions (unittest.TestCase):
 
         info = modulegraph.moduleInfoForPath("/somewhere/else/file.py")
         self.assertEqual(info[0], "file")
-        if sys.version_info[:2] >= (3,4):
+        if sys.version_info[:2] >= (3, 4):
             self.assertEqual(info[1], "r")
         else:
             self.assertEqual(info[1], "U")
@@ -282,7 +282,7 @@ class TestFunctions (unittest.TestCase):
             self.assertEqual(info[1], "rb")
             self.assertEqual(info[2], imp.C_EXTENSION)
 
-    if sys.version_info[:2] > (2,5):
+    if sys.version_info[:2] > (2, 5):
         exec(textwrap.dedent('''\
             def test_deprecated(self):
                 saved_add = modulegraph.addPackagePath
