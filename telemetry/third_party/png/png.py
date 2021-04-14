@@ -2275,7 +2275,7 @@ except:
     except:
         # Expect to get here on Python 2.2
         def array(typecode, init=()):
-            if type(init) == str:
+            if isinstance(init, str):
                 return map(ord, init)
             return list(init)
 

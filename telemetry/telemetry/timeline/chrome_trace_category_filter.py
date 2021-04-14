@@ -143,8 +143,7 @@ class ChromeTraceCategoryFilter(object):
     categories = []
     for l in lists:
       if stable_output:
-        l = list(l)
-        l.sort()
+        l = sorted(l)
       categories.extend(l)
     return ','.join(categories)
 

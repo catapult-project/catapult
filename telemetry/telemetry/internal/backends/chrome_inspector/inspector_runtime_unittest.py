@@ -84,8 +84,7 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
       py_utils.WaitFor(lambda: TestVarReady(context_id), timeout=10)
       return self._tab.EvaluateJavaScript('testVar', context_id=context_id)
 
-    all_contexts_list = list(self._tab.EnableAllContexts())
-    all_contexts_list.sort()
+    all_contexts_list = sorted(self._tab.EnableAllContexts())
     # Access parent page using EvaluateJavaScriptInContext.
     host_context = all_contexts_list[0]
     self.assertEquals(TestVar(host_context), 'host')

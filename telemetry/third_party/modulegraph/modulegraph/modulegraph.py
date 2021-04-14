@@ -1354,7 +1354,7 @@ class ModuleGraph(ObjectGraph):
                     level = -1
                     fromlist = co.co_consts[arg1]
 
-                assert fromlist is None or type(fromlist) is tuple
+                assert fromlist is None or isinstance(fromlist, tuple)
                 oparg, = unpack('<H', code[i - 2:i])
                 name = co.co_names[oparg]
                 have_star = False
@@ -1476,8 +1476,7 @@ class ModuleGraph(ObjectGraph):
         print(header % {"TITLE": title}, file=out)
 
         def sorted_namelist(mods):
-            lst = [os.path.basename(mod.identifier) for mod in mods if mod]
-            lst.sort()
+            lst = sorted([os.path.basename(mod.identifier) for mod in mods if mod])
             return lst
         for name, m in mods:
             content = ""
@@ -1648,8 +1647,7 @@ class ModuleGraph(ObjectGraph):
         print("%-15s %-25s %s" % ("Class", "Name", "File"))
         print("%-15s %-25s %s" % ("-----", "----", "----"))
         # Print modules found
-        sorted = [(os.path.basename(mod.identifier), mod) for mod in self.flatten()]
-        sorted.sort()
+        sorted = sorted([(os.path.basename(mod.identifier), mod) for mod in self.flatten()])
         for (name, m) in sorted:
             print("%-15s %-25s %s" % (type(m).__name__, name, m.filename or ""))
 

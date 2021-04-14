@@ -601,7 +601,7 @@ class MockObject(MockAnything):
             attr = getattr(class_to_mock, method)
             if callable(attr):
                 self._known_methods.add(method)
-            elif not (type(attr) is property):
+            elif not (isinstance(attr, property)):
                 # treating properties as class vars makes little sense.
                 self._known_vars.add(method)
 
@@ -1409,7 +1409,7 @@ class IsA(Comparator):
         except TypeError:
             # Check raw types if there was a type error.    This is helpful for
             # things like cStringIO.StringIO.
-            return type(rhs) == type(self._class_name)
+            return isinstance(rhs, type(self._class_name))
 
     def _IsSubClass(self, clazz):
         """Check to see if the IsA comparators class is a subclass of clazz.
@@ -1426,7 +1426,7 @@ class IsA(Comparator):
         except TypeError:
             # Check raw types if there was a type error.    This is helpful for
             # things like cStringIO.StringIO.
-            return type(clazz) == type(self._class_name)
+            return isinstance(clazz, type(self._class_name))
 
     def __repr__(self):
         return 'mox.IsA(%s) ' % str(self._class_name)

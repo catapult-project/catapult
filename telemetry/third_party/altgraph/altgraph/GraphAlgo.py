@@ -54,7 +54,7 @@ def shortest_path(graph, start, end):
 
     D, P = dijkstra(graph, start, end)
     Path = []
-    while 1:
+    while True:
         Path.append(end)
         if end == start: break
         end = P[end]
@@ -97,7 +97,7 @@ class _priorityDictionary(dict):
         while heap[0][1] not in self or self[heap[0][1]] != heap[0][0]:
             lastItem = heap.pop()
             insertionPoint = 0
-            while 1:
+            while True:
                 smallChild = 2*insertionPoint+1
                 if smallChild+1 < len(heap) and heap[smallChild] > heap[smallChild+1] :
                     smallChild += 1

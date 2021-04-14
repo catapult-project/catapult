@@ -904,8 +904,7 @@ class TestModuleGraph (unittest.TestCase):
                     expected.append([type(n).__name__, n.identifier])
 
             expected.sort()
-            actual = [item.split() for item in lines[3:]]
-            actual.sort()
+            actual = sorted([item.split() for item in lines[3:]])
             self.assertEqual(expected, actual)
 
 

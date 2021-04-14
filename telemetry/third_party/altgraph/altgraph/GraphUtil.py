@@ -29,7 +29,7 @@ def generate_random_graph(node_num, edge_num, self_loops=False, multi_edges=Fals
     for node in nodes:
         g.add_node(node)
 
-    while 1:
+    while True:
         head = random.choice(nodes)
         tail = random.choice(nodes)
 

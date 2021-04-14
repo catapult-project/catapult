@@ -66,8 +66,7 @@ def _TestIndicesForShard(total_shards, shard_index, num_tests):
   return range(shard_index, num_tests, total_shards)
 
 def _MedianTestTime(test_times):
-  times = test_times.values()
-  times.sort()
+  times = sorted(test_times.values())
   if len(times) == 0:
     return 0
   halfLen = len(times) / 2
