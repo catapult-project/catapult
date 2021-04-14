@@ -46,10 +46,10 @@ class TestPyfakefsUnittest(fake_filesystem_unittest.TestCase): # pylint: disable
     def test_file(self):
         '''Fake `file()` function is bound'''
         self.assertFalse(os.path.exists('/fake_file.txt'))
-        with file('/fake_file.txt', 'w') as f:
+        with open('/fake_file.txt', 'w') as f:
             f.write("This test file was created using the file() function.\n")
         self.assertTrue(self.fs.Exists('/fake_file.txt'))
-        with file('/fake_file.txt') as f:
+        with open('/fake_file.txt') as f:
             content = f.read()
         self.assertEqual(content,
                          'This test file was created using the file() function.\n')

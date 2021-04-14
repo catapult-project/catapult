@@ -55,7 +55,7 @@ class BrowserBackend(app_backend.AppBackend):
   def GetLogFileContents(self):
     if not self.log_file_path:
       return 'No log file'
-    with file(self.log_file_path) as f:
+    with open(self.log_file_path) as f:
       return f.read()
 
   def UploadLogsToCloudStorage(self):
@@ -162,9 +162,10 @@ class BrowserBackend(app_backend.AppBackend):
 
   def _CollectPeriodicScreenshots(self, start_time, frequency_ms):
     self._CollectScreenshot(logging.INFO, "periodic.png", start_time)
-    self._periodic_screenshot_timer = threading.Timer(frequency_ms / 1000.0,
-                                                      self._CollectPeriodicScreenshots,
-                                                      [start_time, frequency_ms])
+    self._periodic_screenshot_timer = threading.Timer(
+        frequency_ms / 1000.0,
+        self._CollectPeriodicScreenshots,
+        [start_time, frequency_ms])
     if self._collect_periodic_screenshots:
       self._periodic_screenshot_timer.start()
 
