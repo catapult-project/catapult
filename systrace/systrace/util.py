@@ -61,7 +61,7 @@ def get_tracing_path(device_serial=None):
     /sys/kernel/tracing for device with tracefs support;
     /sys/kernel/debug/tracing if support can't be determined.
   """
-  mount_info_args = ['mount']
+  tracefs_path_cmd = ['ls', '-d', '/sys/kernel/tracing']
 
   if device_serial is None:
     parser = OptionParserIgnoreErrors()
@@ -69,8 +69,8 @@ def get_tracing_path(device_serial=None):
     options, _ = parser.parse_args()
     device_serial = options.device_serial
 
-  adb_output, adb_return_code = run_adb_shell(mount_info_args, device_serial)
-  if adb_return_code == 0 and 'debugfs' not in adb_output:
+  _, adb_return_code = run_adb_shell(tracefs_path_cmd, device_serial, )
+  if adb_return_code == 0:
     return '/sys/kernel/tracing'
   return '/sys/kernel/debug/tracing'
 
