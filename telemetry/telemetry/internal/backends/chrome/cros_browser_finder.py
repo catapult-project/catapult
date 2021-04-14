@@ -265,7 +265,7 @@ def FindAllAvailableBrowsers(finder_options, device):
   # Check ssh
   try:
     plat = platform_module.GetPlatformForDevice(device, finder_options)
-  except cros_interface.LoginException, ex:
+  except cros_interface.LoginException as ex:
     if isinstance(ex, cros_interface.KeylessLoginRequiredException):
       logging.warn('Could not ssh into %s. Your device must be configured',
                    finder_options.cros_remote)

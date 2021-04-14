@@ -141,7 +141,7 @@ class LinuxPlatformBackend(
           ipfw_bin, cloud_storage.INTERNAL_BUCKET)
       changed |= cloud_storage.GetIfChanged(
           ipfw_mod, cloud_storage.INTERNAL_BUCKET)
-    except cloud_storage.CloudStorageError, e:
+    except cloud_storage.CloudStorageError as e:
       logging.error(str(e))
       logging.error('You may proceed by manually building and installing'
                     'dummynet for your kernel. See: '

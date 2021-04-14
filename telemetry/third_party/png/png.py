@@ -1882,7 +1882,7 @@ class Reader:
             while True:
                 try:
                     type, data = self.chunk(lenient=lenient)
-                except ValueError, e:
+                except ValueError as e:
                     raise ChunkError(e.args[0])
                 if type == 'IEND':
                     # http://www.w3.org/TR/PNG/#11IEND
@@ -3854,5 +3854,5 @@ def _main(argv):
 if __name__ == '__main__':
     try:
         _main(sys.argv)
-    except Error, e:
+    except Error as e:
         print(e, file=sys.stderr)

@@ -109,7 +109,7 @@ class RunTestsCommand(command_line.OptparseCommand):
 
     try:
       possible_browser = browser_finder.FindBrowser(args)
-    except browser_finder_exceptions.BrowserFinderException, ex:
+    except browser_finder_exceptions.BrowserFinderException as ex:
       parser.error(ex)
 
     if not possible_browser:

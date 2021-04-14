@@ -169,7 +169,7 @@ class WprArchiveInfo(object):
       try:
         cloud_storage.Insert(self._bucket, target_wpr_file_hash,
                              target_wpr_file_path)
-      except cloud_storage.CloudStorageError, e:
+      except cloud_storage.CloudStorageError as e:
         logging.warning('Failed to upload wpr file %s to cloud storage. '
                         'Error:%s' % target_wpr_file_path, e)
 

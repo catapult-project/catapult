@@ -4,7 +4,7 @@ def div(a, b):
     try:
         return a/b
 
-    except ZeroDivisionError, exc:
+    except ZeroDivisionError as exc:
         return None
 
 class MyClass (object):
