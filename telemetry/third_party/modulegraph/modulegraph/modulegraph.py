@@ -476,7 +476,8 @@ class BaseModule(Node):
         self.packagepath = path
 
     def infoTuple(self):
-        return tuple(filter(None, (self.identifier, self.filename, self.packagepath)))
+        return tuple([f for f in
+                      (self.identifier, self.filename, self.packagepath) if f])
 
 class BuiltinModule(BaseModule):
     pass

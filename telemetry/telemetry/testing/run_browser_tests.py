@@ -154,7 +154,7 @@ def LoadTestCasesToBeRun(
             if post_test_filter_matcher(t)]
   else:
     test_cases.sort(key=lambda t: t.shortName())
-    test_cases = filter(post_test_filter_matcher, test_cases)
+    test_cases = [t for t in test_cases if post_test_filter_matcher(t)]
     test_indices = _TestIndicesForShard(
         total_shards, shard_index, len(test_cases))
     if debug_shard_distributions:
