@@ -193,7 +193,7 @@ class LocalServerController(object):
     # TODO(crbug.com/953365): This is a terrible infinite loop scenario
     # and we should fix it.
     while len(self._local_servers_by_class):
-      server = self._local_servers_by_class.itervalues().next()
+      server = next(self._local_servers_by_class.itervalues())
       try:
         server.Close()
       except Exception: # pylint: disable=broad-except

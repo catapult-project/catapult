@@ -89,7 +89,7 @@ try:
     next
 except NameError:
     def next(obj):
-        return obj.next()
+        return next(obj)
 
 
 BaseExceptions = (BaseException,)
