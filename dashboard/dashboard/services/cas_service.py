@@ -41,8 +41,7 @@ class RBECASService(object):
   # Normalize the digest to what RBE-CAS API accepted.
   @staticmethod
   def _NormalizeDigest(digest):
-    if 'hash' not in digest or (
-        'sizeBytes' not in digest and 'size_bytes' not in digest):
+    if 'hash' not in digest:
       raise ValueError('Invalid digest for RBE-CAS')
     return {
         'hash': digest['hash'],
