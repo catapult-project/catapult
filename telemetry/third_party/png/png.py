@@ -208,7 +208,7 @@ _adam7 = ((0, 0, 8, 8),
 def group(s, n):
     # See
     # http://www.python.org/doc/2.6/library/functions.html#zip
-    return zip(*[iter(s)]*n)
+    return list(zip(*[iter(s)]*n))
 
 def isarray(x):
     """Same as ``isinstance(x, array)`` except on Python 2.2, where it
@@ -2059,7 +2059,7 @@ class Reader:
                     row = group(row, planes)
                     opa = map(it.__ne__, row)
                     opa = map(maxval.__mul__, opa)
-                    opa = zip(opa) # convert to 1-tuples
+                    opa = list(zip(opa)) # convert to 1-tuples
                     yield array(typecode,
                       itertools.chain(*map(operator.add, row, opa)))
             pixels = itertrns(pixels)
@@ -2750,7 +2750,7 @@ class Test(unittest.TestCase):
         return self.helperLtrns((0,))
     def helperLtrns(self, transparent):
         """Helper used by :meth:`testLtrns*`."""
-        pixels = zip([0x00, 0x38, 0x4c, 0x54, 0x5c, 0x40, 0x38, 0x00])
+        pixels = list(zip([0x00, 0x38, 0x4c, 0x54, 0x5c, 0x40, 0x38, 0x00]))
         o = BytesIO()
         w = Writer(8, 8, greyscale=True, bitdepth=1, transparent=transparent)
         w.write_packed(o, pixels)
