@@ -82,6 +82,19 @@ class FromDictTest(unittest.TestCase):
     self.assertEqual(quest.relative_cwd, expected.relative_cwd)
     self.assertEqual(quest, expected)
 
+  def testGtestFilterWithMidWordUppercase(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['story'] = 'fOO__stOry'
+    extra_args = _BASE_EXTRA_ARGS + ['--gtest_filter=*.FOO__StOry*']
+    quest = run_webrtc_test.RunWebRtcTest.FromDict(arguments)
+    expected = run_webrtc_test.RunWebRtcTest('server', run_test_test.DIMENSIONS,
+                                             extra_args, _BASE_SWARMING_TAGS,
+                                             _WEBRTCTEST_COMMAND,
+                                             'out/builder_name')
+    self.assertEqual(quest.command, expected.command)
+    self.assertEqual(quest.relative_cwd, expected.relative_cwd)
+    self.assertEqual(quest, expected)
+
   def testGtestFilterRampUp(self):
     arguments = dict(_BASE_ARGUMENTS)
     arguments['story'] = 'rampdown'
