@@ -196,6 +196,9 @@ def _TearDownSystemAppModification(device,
                                    timeout=None,
                                    retries=None):
   try:
+    # Ensure that the device is online & available
+    device.WaitUntilFullyBooted()
+
     # The function may be re-entered after the the device loses root
     # privilege. For instance if the adb server is restarted before
     # re-entering the function then the device may lose root privilege.
