@@ -269,7 +269,7 @@ class Forwarder(object):
   def GetHostLog():
     if not os.path.exists(Forwarder._HOST_FORWARDER_LOG):
       return ''
-    with file(Forwarder._HOST_FORWARDER_LOG, 'r') as f:
+    with open(Forwarder._HOST_FORWARDER_LOG, 'r') as f:
       return f.read()
 
   @staticmethod

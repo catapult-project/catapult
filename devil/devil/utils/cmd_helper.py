@@ -394,10 +394,13 @@ def _IterProcessStdoutQueue(process,
   _IterProcessStdoutFcntl on all platforms.
   """
   # pylint: disable=unused-argument
-  import Queue
+  if six.PY3:
+    import queue
+  else:
+    import Queue as queue
   import threading
 
-  stdout_queue = Queue.Queue()
+  stdout_queue = queue.Queue()
 
   def read_process_stdout():
     # TODO(jbudorick): Pick an appropriate read size here.
@@ -424,7 +427,7 @@ def _IterProcessStdoutQueue(process,
         if not s:
           break
         yield s
-      except Queue.Empty:
+      except queue.Empty:
         yield None
   finally:
     try:

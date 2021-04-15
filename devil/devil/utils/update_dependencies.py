@@ -135,13 +135,13 @@ def UpdateDependency(dependency_name, dependency_info, local_path, platform):
 
 def UpdateChromiumDependencies(dependencies, args):
   deps_by_platform = collections.defaultdict(list)
-  for dep_name, dep_info in _CHROMIUM_DEPS.iteritems():
+  for dep_name, dep_info in _CHROMIUM_DEPS.items():
     archs = dep_info.get('archs', [])
     for a in archs:
       deps_by_platform[(a.get('cpu'), a.get('platform'))].append(
           (dep_name, dep_info.get('build_path'), dep_info.get('target_name')))
 
-  for arch, arch_deps in deps_by_platform.iteritems():
+  for arch, arch_deps in deps_by_platform.items():
     targets = [target_name for _n, _b, target_name in arch_deps]
     cpu, platform = arch
     output_dir = os.path.join(args.chromium_src_dir, 'out-devil-deps', platform)

@@ -362,7 +362,8 @@ def _CreateAdbWrapper(device):
 
 
 def _FormatPartialOutputError(output):
-  lines = output.splitlines() if isinstance(output, six.string_types) else output
+  lines = output.splitlines() \
+          if isinstance(output, six.string_types) else output
   message = ['Partial output found:']
   if len(lines) > 11:
     message.extend('- %s' % line for line in lines[:5])
@@ -2045,7 +2046,7 @@ class DeviceUtils(object):
         paths = paths_not_in_cache
       sums.update(dict(md5sum.CalculateDeviceMd5Sums(paths, self)))
       if self._enable_device_files_cache:
-        for path, checksum in sums.iteritems():
+        for path, checksum in sums.items():
           self._cache['device_path_checksums'][path] = checksum
       return sums
     try:
@@ -2104,7 +2105,7 @@ class DeviceUtils(object):
     host_checksums, device_checksums = reraiser_thread.RunAsync(
         (calculate_host_checksums, calculate_device_checksums))
     stale_apks = [
-        k for (k, v) in host_checksums.iteritems() if v not in device_checksums
+        k for (k, v) in host_checksums.items() if v not in device_checksums
     ]
     return stale_apks, set(host_checksums.values())
 
@@ -2997,7 +2998,9 @@ class DeviceUtils(object):
     assert isinstance(
         property_name,
         six.string_types), ("property_name is not a string: %r" % property_name)
-    assert isinstance(value, six.string_types), "value is not a string: %r" % value
+    assert isinstance(
+        value,
+        six.string_types), "value is not a string: %r" % value
 
     self.RunShellCommand(['setprop', property_name, value], check_return=True)
     prop_cache = self._cache['getprop']

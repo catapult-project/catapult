@@ -2,6 +2,7 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+from __future__ import print_function
 
 import contextlib
 import os
@@ -207,19 +208,19 @@ class AdbCompatibilityTest(device_test_case.DeviceTestCase):
 
   @classmethod
   def tearDownClass(cls):
-    print
-    print
-    print 'tested %s' % adb_wrapper.AdbWrapper.GetAdbPath()
-    print '  %s' % adb_wrapper.AdbWrapper.Version()
-    print 'connected devices:'
+    print('')
+    print('')
+    print('tested %s' % adb_wrapper.AdbWrapper.GetAdbPath())
+    print('  %s' % adb_wrapper.AdbWrapper.Version())
+    print('connected devices:')
     try:
       for d in adb_wrapper.AdbWrapper.Devices():
-        print '  %s' % d
+        print('  %s' % d)
     except device_errors.AdbCommandFailedError:
-      print '  <failed to list devices>'
+      print('  <failed to list devices>')
       raise
     finally:
-      print
+      print('')
 
 
 if __name__ == '__main__':

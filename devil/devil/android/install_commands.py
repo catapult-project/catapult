@@ -43,7 +43,7 @@ def InstallCommands(device):
 
   device.RunShellCommand(['mkdir', '-p', BIN_DIR, _FRAMEWORK_DIR],
                          check_return=True)
-  for command, main_class in _COMMANDS.iteritems():
+  for command, main_class in _COMMANDS.items():
     shell_command = _SHELL_COMMAND_FORMAT % (file_system.TEST_EXECUTABLE_DIR,
                                              main_class)
     shell_file = '%s/%s' % (BIN_DIR, command)

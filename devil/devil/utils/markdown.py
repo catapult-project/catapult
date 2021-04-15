@@ -192,7 +192,7 @@ def md_module(module_obj, module_link=None):
             and not name.startswith('_'))
 
   stuff_to_doc = [
-      obj for name, obj in sorted(module_obj.__dict__.iteritems())
+      obj for name, obj in sorted(module_obj.__dict__.items())
       if should_doc(name)
   ]
 
@@ -200,7 +200,7 @@ def md_module(module_obj, module_link=None):
   functions_to_doc = []
 
   for s in stuff_to_doc:
-    if isinstance(s, types.TypeType):
+    if isinstance(s, type):
       classes_to_doc.append(s)
     elif isinstance(s, types.FunctionType):
       functions_to_doc.append(s)
@@ -248,7 +248,7 @@ def md_class(class_obj):
             and (name.startswith('__') or not name.startswith('_')))
 
   methods_to_doc = [
-      obj for name, obj in sorted(class_obj.__dict__.iteritems())
+      obj for name, obj in sorted(class_obj.__dict__.items())
       if should_doc(name, obj)
   ]
 

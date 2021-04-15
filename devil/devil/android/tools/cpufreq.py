@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 """A script to manipulate device CPU frequency."""
+from __future__ import print_function
 
 import argparse
 import os
@@ -28,13 +29,13 @@ def SetScalingGovernor(device, args):
 def GetScalingGovernor(device, _args):
   p = perf_control.PerfControl(device)
   for cpu, governor in p.GetScalingGovernor():
-    print '%s %s: %s' % (str(device), cpu, governor)
+    print('%s %s: %s' % (str(device), cpu, governor))
 
 
 def ListAvailableGovernors(device, _args):
   p = perf_control.PerfControl(device)
   for cpu, governors in p.ListAvailableGovernors():
-    print '%s %s: %s' % (str(device), cpu, pprint.pformat(governors))
+    print('%s %s: %s' % (str(device), cpu, pprint.pformat(governors)))
 
 
 def main(raw_args):

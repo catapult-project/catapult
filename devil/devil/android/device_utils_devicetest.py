@@ -285,7 +285,7 @@ class PsOutputCompatibilityTests(device_test_case.DeviceTestCase):
 
     # Check column names at each index match expected values.
     header = lines[0].split()
-    for column, idx in device_utils._PS_COLUMNS.iteritems():
+    for column, idx in device_utils._PS_COLUMNS.items():
       column = column.upper()
       self.assertEqual(
           header[idx], column,
@@ -295,7 +295,7 @@ class PsOutputCompatibilityTests(device_test_case.DeviceTestCase):
     # Check pid and ppid are numeric values.
     for line in lines[1:]:
       row = line.split()
-      row = {k: row[i] for k, i in device_utils._PS_COLUMNS.iteritems()}
+      row = {k: row[i] for k, i in device_utils._PS_COLUMNS.items()}
       for key in ('pid', 'ppid'):
         self.assertTrue(
             row[key].isdigit(),

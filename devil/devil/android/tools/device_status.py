@@ -174,7 +174,7 @@ def _LogStatuses(statuses):
       logger.info('  OS build fingerprint: %s',
                   status.get('ro.build.fingerprint'))
       logger.info('  Battery state:')
-      for k, v in status.get('battery', {}).iteritems():
+      for k, v in status.get('battery', {}).items():
         logger.info('    %s: %s', k, v)
       logger.info('  IMEI slice: %s', status.get('imei_slice'))
       logger.info('  WiFi IP: %s', status.get('wifi_ip'))

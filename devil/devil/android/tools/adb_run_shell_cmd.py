@@ -2,6 +2,7 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+from __future__ import print_function
 
 import argparse
 import json
@@ -40,7 +41,7 @@ def main():
   data = {}
   for device, output in zip(devices, p_out):
     for line in output:
-      print '%s: %s' % (device, line)
+      print('%s: %s' % (device, line))
     data[str(device)] = output
 
   if args.json_output:

@@ -51,7 +51,7 @@ class SystemAppDeviceTest(device_test_case.DeviceTestCase):
         pass
 
       with system_app.EnableSystemAppModification(self._device):
-        for cached_apk, install_path in self._cached_apks.iteritems():
+        for cached_apk, install_path in self._cached_apks.items():
           try:
             with device_temp_file.DeviceTempFile(self._device.adb) as tmp:
               self._device.adb.Push(cached_apk, tmp.name)

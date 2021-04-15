@@ -4,6 +4,8 @@
 
 import logging
 
+import six
+
 logger = logging.getLogger(__name__)
 
 _LOCK_SCREEN_SETTINGS_PATH = '/data/system/locksettings.db'
@@ -11,6 +13,7 @@ _ALTERNATE_LOCK_SCREEN_SETTINGS_PATH = (
     '/data/data/com.android.providers.settings/databases/settings.db')
 PASSWORD_QUALITY_UNSPECIFIED = '0'
 _COMPATIBLE_BUILD_TYPES = ['userdebug', 'eng']
+_JAVA_MAX_INT = 2147483647
 
 ENABLE_LOCATION_SETTINGS = [
     # Note that setting these in this order is required in order for all of
@@ -128,14 +131,23 @@ class ContentSettings(dict):
 
   @staticmethod
   def _GetTypeBinding(value):
+    """Maps a value to a Java type which can represent it.
+
+    This is based on the type of the data in python, but the
+    types of the two languages don't always map 1:1.
+    """
     if isinstance(value, bool):
       return 'b'
     if isinstance(value, float):
       return 'f'
-    if isinstance(value, int):
-      return 'i'
-    if isinstance(value, long):
-      return 'l'
+    if six.PY2:
+      if isinstance(value, int):
+        return 'i'
+      if isinstance(value, long):
+        return 'l'
+    else:
+      if isinstance(value, int):
+        return 'l' if value > _JAVA_MAX_INT else 'i'
     if isinstance(value, str):
       return 's'
     raise ValueError('Unsupported type %s' % type(value))

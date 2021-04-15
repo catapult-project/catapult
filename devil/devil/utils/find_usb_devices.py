@@ -194,7 +194,7 @@ class USBDeviceNode(USBNode):
     logger.info('%s Device %d (%s)', port_chain, self.device_num, self.desc)
     if info:
       logger.info('%s', self.info)
-    for (port, device) in self._port_to_node.iteritems():
+    for (port, device) in self._port_to_node.items():
       device.Display('%s%d:' % (port_chain, port), info=info)
 
 
@@ -238,7 +238,7 @@ class USBBusNode(USBNode):
   #override
   def Display(self, port_chain='', info=False):
     logger.info('=== %s ===', self.desc)
-    for (port, device) in self._port_to_node.iteritems():
+    for (port, device) in self._port_to_node.items():
       device.Display('%s%d:' % (port_chain, port), info=info)
 
 

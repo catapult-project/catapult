@@ -5,11 +5,18 @@
 
 import contextlib
 import fcntl
-import httplib
 import logging
 import os
 import socket
 import traceback
+
+import six
+
+# pylint: disable=wrong-import-order
+if six.PY2:
+  from httplib import (HTTPConnection, HTTPException)
+else:
+  from http.client import (HTTPConnection, HTTPException)
 
 logger = logging.getLogger(__name__)
 
@@ -162,8 +169,8 @@ def IsHttpServerConnectable(host,
   for i in range(0, tries):
     client_error = None
     try:
-      with contextlib.closing(
-          httplib.HTTPConnection(host, port, timeout=timeout)) as http:
+      with contextlib.closing(HTTPConnection(host, port,
+                                             timeout=timeout)) as http:
         # Output some debug information when we have tried more than 2 times.
         http.set_debuglevel(i >= 2)
         http.request(command, path)
@@ -174,7 +181,7 @@ def IsHttpServerConnectable(host,
         client_error = ('Bad response: %s %s version %s\n  ' %
                         (r.status, r.reason, r.version) + '\n  '.join(
                             [': '.join(h) for h in r.getheaders()]))
-    except (httplib.HTTPException, socket.error) as e:
+    except (HTTPException, socket.error) as e:
       # Probably too quick connecting: try again.
       exception_error_msgs = traceback.format_exception_only(type(e), e)
       if exception_error_msgs:

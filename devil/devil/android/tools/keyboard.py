@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 """Use your keyboard as your phone's keyboard. Experimental."""
+from __future__ import print_function
 
 import argparse
 import copy
@@ -72,8 +73,8 @@ def Keyboard(device, stream_itr):
       if k:
         device.SendKeyEvent(k)
       else:
-        print
-        print '(No mapping for character 0x%x)' % ord(c)
+        print('')
+        print('(No mapping for character 0x%x)' % ord(c))
   except KeyboardInterrupt:
     pass
 

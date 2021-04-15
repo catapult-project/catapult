@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 """Captures a video from an Android device."""
+from __future__ import print_function
 
 import argparse
 import logging
@@ -160,14 +161,14 @@ def main():
       root, ext = os.path.splitext(host_file)
       f = '%s_%s%s' % (root, str(device), ext)
     f = recorder.Pull(f)
-    print 'Video written to %s' % os.path.abspath(f)
+    print('Video written to %s' % os.path.abspath(f))
 
   parallel_devices = device_utils.DeviceUtils.parallel(script_common.GetDevices(
       args.devices, args.denylist_file),
                                                        asyn=True)
   stop_recording = threading.Event()
   running_recording = parallel_devices.pMap(record_video, stop_recording)
-  print 'Recording. Press Enter to stop.',
+  print('Recording. Press Enter to stop.', end=' ')
   sys.stdout.flush()
   raw_input()
   stop_recording.set()

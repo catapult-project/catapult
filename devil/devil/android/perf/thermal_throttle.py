@@ -4,6 +4,8 @@
 
 import logging
 
+import six
+
 logger = logging.getLogger(__name__)
 
 
@@ -102,7 +104,7 @@ class ThermalThrottle(object):
     log = self._device.RunShellCommand(['dmesg', '-c'],
                                        large_output=True,
                                        check_return=True)
-    degree_symbol = unichr(0x00B0)
+    degree_symbol = six.unichr(0x00B0)
     for line in log:
       if self._detector.BecameThrottled(line):
         if not self._throttled:

@@ -48,8 +48,8 @@ def main():
       root, ext = os.path.splitext(host_file)
       f = '%s_%s%s' % (root, str(device), ext)
     f = device.TakeScreenshot(f)
-    print 'Screenshot for device %s written to %s' % (str(device),
-                                                      os.path.abspath(f))
+    print('Screenshot for device %s written to %s' %
+          (str(device), os.path.abspath(f)))
 
   device_utils.DeviceUtils.parallel(devices).pMap(screenshot)
   return 0

@@ -4,6 +4,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 """Tests for the AdbWrapper class."""
+from __future__ import print_function
 
 import os
 import tempfile
@@ -90,12 +91,12 @@ class TestAdbWrapper(device_test_case.DeviceTestCase):
 
   def testRebootWaitForDevice(self):
     self._adb.Reboot()
-    print 'waiting for device to reboot...'
+    print('waiting for device to reboot...')
     while self._adb.GetState() == 'device':
       time.sleep(1)
     self._adb.WaitForDevice()
     self.assertEqual(self._adb.GetState(), 'device')
-    print 'waiting for package manager...'
+    print('waiting for package manager...')
     while True:
       try:
         android_path = self._adb.Shell('pm path android')
