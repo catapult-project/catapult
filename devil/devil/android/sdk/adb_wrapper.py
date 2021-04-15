@@ -129,7 +129,7 @@ def _IsExtraneousLine(line, send_cmd):
   return send_cmd.rstrip() in line
 
 
-@decorators.WithExplicitTimeoutAndRetries(timeout=30, retries=3)
+@decorators.WithExplicitTimeoutAndRetries(timeout=60, retries=3)
 def RestartServer():
   """Restarts the adb server.
 
