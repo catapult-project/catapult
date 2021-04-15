@@ -3,19 +3,19 @@
 # found in the LICENSE file.
 
 import abc
+import six
 
 
 class FrameReadError(Exception):
   pass
 
 
-class FrameGenerator(object):
+class FrameGenerator(six.with_metaclass(abc.ABCMeta, object)):
   """ Defines an interface for reading input frames.
 
   Attributes:
     _generator: A reference to the created generator.
   """
-  __metaclass__ = abc.ABCMeta
 
   def __init__(self):
     """ Initializes the FrameGenerator object. """

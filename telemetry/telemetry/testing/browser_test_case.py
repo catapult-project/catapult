@@ -8,6 +8,7 @@ import os
 import sys
 import types
 import unittest
+import six
 
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.util import path
@@ -51,8 +52,8 @@ class _MetaBrowserTestCase(type):
     return WrappedMethod
 
 
-class BrowserTestCase(unittest.TestCase):
-  __metaclass__ = _MetaBrowserTestCase
+class BrowserTestCase(
+    six.with_metaclass(_MetaBrowserTestCase, unittest.TestCase)):
   _possible_browser = None
   _platform = None
   _browser = None

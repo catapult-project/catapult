@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+import six
 
 from telemetry.core import exceptions
 
@@ -22,9 +23,7 @@ class ServiceWorkerState(object):
 
 # TODO(achuith, dtu, nduca): Add unit tests specifically for WebContents,
 # independent of Tab.
-class WebContents(object):
-
-  __metaclass__ = trace_event.TracedMetaClass
+class WebContents(six.with_metaclass(trace_event.TracedMetaClass, object)):
 
   """Represents web contents in the browser"""
   def __init__(self, inspector_backend):

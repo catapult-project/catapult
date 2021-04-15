@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import six
+
 from py_trace_event import trace_event
 
 from telemetry import decorators
@@ -23,10 +25,8 @@ class PageActionFailed(Exception):
   pass
 
 
-class PageAction(object):
+class PageAction(six.with_metaclass(trace_event.TracedMetaClass, object)):
   """Represents an action that a user might try to perform to a page."""
-
-  __metaclass__ = trace_event.TracedMetaClass
 
   def __init__(self, timeout=DEFAULT_TIMEOUT):
     """Initialization function.

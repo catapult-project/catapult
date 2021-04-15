@@ -2,17 +2,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import six
+
 from py_trace_event import trace_event
 
 from telemetry.util import wpr_modes
 
-class SharedState(object):
+class SharedState(six.with_metaclass(trace_event.TracedMetaClass, object)):
   """A class that manages the test state across multiple stories.
   It's styled on unittest.TestCase for handling test setup & teardown logic.
 
   """
-
-  __metaclass__ = trace_event.TracedMetaClass
 
   #pylint: disable=unused-argument
   def __init__(self, test, finder_options, story_set, possible_browser):

@@ -7,6 +7,7 @@ import logging
 import socket
 import sys
 import time
+import six
 
 from py_trace_event import trace_event
 
@@ -44,14 +45,12 @@ def _HandleInspectorWebSocketExceptions(func):
   return Inner
 
 
-class InspectorBackend(object):
+class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
   """Class for communicating with a devtools client.
 
   The owner of an instance of this class is responsible for calling
   Disconnect() before disposing of the instance.
   """
-
-  __metaclass__ = trace_event.TracedMetaClass
 
   def __init__(self, devtools_client, context, timeout=120):
     self._websocket = inspector_websocket.InspectorWebsocket()

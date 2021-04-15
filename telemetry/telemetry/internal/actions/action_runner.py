@@ -5,6 +5,7 @@
 import logging
 import time
 import urlparse
+import six
 
 from telemetry.core import exceptions
 from telemetry.internal.actions import page_action
@@ -45,9 +46,7 @@ _MEMORY_DUMP_WAIT_TIME = 3
 _GARBAGE_COLLECTION_PROPAGATION_TIME = 6
 
 
-class ActionRunner(object):
-
-  __metaclass__ = trace_event.TracedMetaClass
+class ActionRunner(six.with_metaclass(trace_event.TracedMetaClass, object)):
 
   def __init__(self, tab, skip_waits=False):
     self._tab = tab

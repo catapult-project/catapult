@@ -2,12 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import six
+
 from py_trace_event import trace_event
 
 
-class AppBackend(object):
-
-  __metaclass__ = trace_event.TracedMetaClass
+class AppBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
 
   def __init__(self, app_type, platform_backend):
     super(AppBackend, self).__init__()
