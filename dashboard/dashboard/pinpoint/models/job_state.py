@@ -317,12 +317,13 @@ class JobState(object):
             comparison_magnitude = 0.5
         else:
           comparison_magnitude = 1.0
-        comparison, p_value, low_threshold, high_threshold = compare.Compare(
-            exceptions_a, exceptions_b, attempt_count, FUNCTIONAL,
-            comparison_magnitude)
-        logging.debug(
-            'p-value = %.4f (low = %.4f, high = %.4f), comparison = %s',
-            p_value, low_threshold, high_threshold, comparison)
+        comparison, _, _, _ = compare.Compare(
+            exceptions_a,
+            exceptions_b,
+            attempt_count,
+            FUNCTIONAL,
+            comparison_magnitude,
+        )
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
         elif comparison == compare.UNKNOWN:
@@ -349,12 +350,13 @@ class JobState(object):
           comparison_magnitude = 1.0
 
         sample_count = (len(all_a_values) + len(all_b_values)) // 2
-        comparison, p_value, low_threshold, high_threshold = compare.Compare(
-            all_a_values, all_b_values, sample_count, PERFORMANCE,
-            comparison_magnitude)
-        logging.debug(
-            'p-value = %.4f (low = %.4f, high = %.4f), comparison = %s',
-            p_value, low_threshold, high_threshold, comparison)
+        comparison, _, _, _ = compare.Compare(
+            all_a_values,
+            all_b_values,
+            sample_count,
+            PERFORMANCE,
+            comparison_magnitude,
+        )
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
         elif comparison == compare.UNKNOWN:
