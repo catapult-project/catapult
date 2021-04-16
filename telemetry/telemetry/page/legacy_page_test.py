@@ -22,7 +22,12 @@ class MeasurementFailure(Failure):
   """Exception raised when an undesired but designed-for problem."""
 
 
-class LegacyPageTest(six.with_metaclass(trace_event.TracedMetaClass, object)):
+if six.PY2:
+  LegacyPageTestBase = object
+else:
+  LegacyPageTestBase = six.with_metaclass(trace_event.TracedMetaClass, object)
+
+class LegacyPageTest(LegacyPageTestBase):
   """A class styled on unittest.TestCase for creating page-specific tests.
 
   Note that this method of measuring browser's performance is obsolete and only
@@ -43,6 +48,9 @@ class LegacyPageTest(six.with_metaclass(trace_event.TracedMetaClass, object)):
              'document.body.children.length')
          results.AddMeasurement('body_children', 'count', body_child_count)
   """
+
+  if six.PY2:
+    __metaclass__ = trace_event.TracedMetaClass
 
   def __init__(self):
     self.options = None

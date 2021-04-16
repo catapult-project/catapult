@@ -46,7 +46,15 @@ _MEMORY_DUMP_WAIT_TIME = 3
 _GARBAGE_COLLECTION_PROPAGATION_TIME = 6
 
 
-class ActionRunner(six.with_metaclass(trace_event.TracedMetaClass, object)):
+if six.PY2:
+  ActionRunnerBase = object
+else:
+  ActionRunnerBase = six.with_metaclass(trace_event.TracedMetaClass, object)
+
+class ActionRunner(ActionRunnerBase):
+
+  if six.PY2:
+    __metaclass__ = trace_event.TracedMetaClass
 
   def __init__(self, tab, skip_waits=False):
     self._tab = tab
