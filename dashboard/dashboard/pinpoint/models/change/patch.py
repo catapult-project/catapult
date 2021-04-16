@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import collections
 import datetime
+import logging
 import re
 import urlparse
 
@@ -73,29 +74,38 @@ class GerritPatch(
       d.update(commit_cache.Get(self.id_string))
       d['created'] = d['created'].isoformat()
     except KeyError:
-      patch_info = gerrit_service.GetChange(
-          self.server,
-          str(self.change).strip(),
-          fields=('ALL_REVISIONS', 'DETAILED_ACCOUNTS', 'COMMIT_FOOTERS'))
-      revision_info = patch_info['revisions'][revision]
-      url = '%s/c/%s/+/%d/%d' % (self.server, patch_info['project'],
-                                 patch_info['_number'],
-                                 revision_info['_number'])
-      author = revision_info['uploader']['email']
-      created = datetime.datetime.strptime(revision_info['created'],
-                                           '%Y-%m-%d %H:%M:%S.%f000')
-      subject = patch_info['subject']
-      current_revision = patch_info['current_revision']
-      message = patch_info['revisions'][current_revision]['commit_with_footers']
+      try:
+        patch_info = gerrit_service.GetChange(
+            self.server,
+            str(self.change).strip(),
+            fields=('ALL_REVISIONS', 'DETAILED_ACCOUNTS', 'COMMIT_FOOTERS'))
+        revision_info = patch_info['revisions'][revision]
+        url = '%s/c/%s/+/%d/%d' % (
+            self.server,
+            patch_info['project'],
+            patch_info['_number'],
+            revision_info['_number'],
+        )
+        author = revision_info['uploader']['email']
+        created = datetime.datetime.strptime(
+            revision_info['created'],
+            '%Y-%m-%d %H:%M:%S.%f000',
+        )
+        subject = patch_info['subject']
+        current_revision = patch_info['current_revision']
+        message = patch_info['revisions'][current_revision][
+            'commit_with_footers']
 
-      d.update({
-          'url': url,
-          'author': author,
-          'created': created.isoformat(),
-          'subject': subject,
-          'message': message,
-      })
-      commit_cache.Put(self.id_string, url, author, created, subject, message)
+        d.update({
+            'url': url,
+            'author': author,
+            'created': created.isoformat(),
+            'subject': subject,
+            'message': message,
+        })
+        commit_cache.Put(self.id_string, url, author, created, subject, message)
+      except gerrit_service.NotFoundError:
+        logging.warning('Failed to retrieve change %s', revision)
 
     return d
 

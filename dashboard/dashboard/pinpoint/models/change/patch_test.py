@@ -5,6 +5,7 @@
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
+from dashboard.services import gerrit_service
 
 from dashboard.pinpoint.models.change import patch
 from dashboard.pinpoint.models import errors
@@ -114,6 +115,17 @@ class GerritPatchTest(test.TestCase):
         'message': 'Subject\n\nCommit message.\nChange-Id: I0123456789abcdef',
     }
     self.assertEqual(p.AsDict(), expected)
+
+  def testAsDict_MissingPatch(self):
+    p = Patch('unknown revision')
+    self.get_change.side_effect = gerrit_service.NotFoundError(
+        msg='Change ID not found', content=None)
+    self.assertEqual(
+        p.AsDict(), {
+            'server': 'https://codereview.com',
+            'change': 'repo~branch~id',
+            'revision': 'unknown revision',
+        })
 
   def testAsDict_WithNewlines(self):
     p = Patch(revision='current revision\n')
