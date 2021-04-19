@@ -60,7 +60,11 @@ def _PrintFormattedTrace(processed_tb, frame, exception_string=None):
   # Format the traceback.
   print('Traceback (most recent call last):', file=sys.stderr)
   for filename, line, function, text in processed_tb:
-    filename = os.path.abspath(filename)
+    try:
+      filename = os.path.abspath(filename)
+    except OSError:
+      # Unable to convert filename to absolute path, just keep it unchanged.
+      pass
     print('  %s at %s:%d' % (function, filename, line), file=sys.stderr)
     print('    %s' % text, file=sys.stderr)
 
