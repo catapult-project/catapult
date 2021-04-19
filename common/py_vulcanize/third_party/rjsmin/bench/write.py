@@ -34,6 +34,7 @@ Usage::
     -t table  Table file to write to (like docs/_userdoc/benchmark.txt).
 
 """
+from __future__ import print_function
 if __doc__:
     __doc__ = __doc__.encode('ascii').decode('unicode_escape')
 __author__ = r"Andr\xe9 Malo".encode('ascii').decode('unicode_escape')
@@ -303,20 +304,20 @@ def main(argv=None):
         opts, args = _getopt.getopt(argv, "hp:t:", ["help"])
     except getopt.GetoptError:
         e = _sys.exc_info()[0](_sys.exc_info()[1])
-        print >> _sys.stderr, "%s\nTry %s -mbench.write --help" % (
-            e,
-            _os.path.basename(_sys.executable),
-        )
+        print(
+            "%s\nTry %s -mbench.write --help" % (
+                e,
+                _os.path.basename(_sys.executable),
+            ), file=_sys.stderr)
         _sys.exit(2)
 
     plain, table = None, None
     for key, value in opts:
         if key in ("-h", "--help"):
-            print >> _sys.stderr, (
+            print(
                 "%s -mbench.write [-p plain] [-t table] <pickled" % (
                     _os.path.basename(_sys.executable),
-                )
-            )
+                ), file=_sys.stderr)
             _sys.exit(0)
         elif key == '-p':
             plain = str(value)

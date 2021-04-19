@@ -4,6 +4,7 @@
 
 """Start and stop Web Page Replay."""
 
+from __future__ import print_function
 import logging
 import os
 import re
@@ -136,7 +137,8 @@ class ReplayServer(object):
       cur_cwd = os.getcwd()
       os.chdir(go_folder)
       try:
-        print subprocess.check_output(['go', 'build', os.path.join(go_folder, 'wpr.go')])
+        print(subprocess.check_output(
+            ['go', 'build', os.path.join(go_folder, 'wpr.go')]))
       except subprocess.CalledProcessError:
         exit(1)
       os.chdir(cur_cwd)
@@ -392,7 +394,7 @@ class ReplayServer(object):
       if logging.getLogger('').isEnabledFor(log_level):
         logging.log(log_level, output)
       else:
-        print output
+        print(output)
 
     os.remove(self._temp_log_file_path)
     self._temp_log_file_path = None

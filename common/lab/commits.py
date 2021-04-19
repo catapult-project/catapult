@@ -5,6 +5,7 @@
 
 """Print statistics about the rate of commits to a repository."""
 
+from __future__ import print_function
 import datetime
 import itertools
 import json
@@ -87,18 +88,18 @@ def main():
       commit_durations.append((time1 - time2).total_seconds() / 60.)
     commit_durations.sort()
 
-    print 'REPOSITORY:', repository
-    print 'Start Date:', min(commit_times), 'PDT'
-    print '  End Date:', max(commit_times), 'PDT'
-    print '  Duration:', max(commit_times) - min(commit_times)
-    print '         n:', len(commit_times)
+    print('REPOSITORY:', repository)
+    print('Start Date:', min(commit_times), 'PDT')
+    print('  End Date:', max(commit_times), 'PDT')
+    print('  Duration:', max(commit_times) - min(commit_times))
+    print('         n:', len(commit_times))
 
     for p in (0.25, 0.50, 0.90):
       percentile = Percentile(commit_durations, p)
-      print '%3d%% commit duration:' % (p * 100), '%6.1fm' % percentile
+      print('%3d%% commit duration:' % (p * 100), '%6.1fm' % percentile)
     mean = math.fsum(commit_durations) / len(commit_durations)
-    print 'Mean commit duration:', '%6.1fm' % mean
-    print
+    print('Mean commit duration:', '%6.1fm' % mean)
+    print()
 
 
 if __name__ == '__main__':

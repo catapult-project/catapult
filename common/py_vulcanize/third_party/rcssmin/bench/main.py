@@ -34,6 +34,7 @@ Usage::
     -p file   File to write the benchmark results in (pickled)
 
 """
+from __future__ import print_function
 if __doc__:
     __doc__ = __doc__.encode('ascii').decode('unicode_escape')
 __author__ = r"Andr\xe9 Malo".encode('ascii').decode('unicode_escape')
@@ -199,20 +200,20 @@ def main(argv=None):
         opts, args = _getopt.getopt(argv, "hc:p:", ["help"])
     except getopt.GetoptError:
         e = _sys.exc_info()[0](_sys.exc_info()[1])
-        print >> _sys.stderr, "%s\nTry %s -mbench.main --help" % (
-            e,
-            _os.path.basename(_sys.executable),
-        )
+        print(
+            "%s\nTry %s -mbench.main --help" % (
+                e,
+                _os.path.basename(_sys.executable),
+            ), file=_sys.stderr)
         _sys.exit(2)
 
     count, pickle = 10, None
     for key, value in opts:
         if key in ("-h", "--help"):
-            print >> _sys.stderr, (
+            print(
                 "%s -mbench.main [-c count] [-p file] cssfile ..." % (
                     _os.path.basename(_sys.executable),
-                )
-            )
+                ), file=_sys.stderr)
             _sys.exit(0)
         elif key == '-c':
             count = int(value)

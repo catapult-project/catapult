@@ -21,6 +21,7 @@
 
 Setup utilities.
 """
+from __future__ import print_function
 __author__ = u"Andr\xe9 Malo"
 __docformat__ = "restructuredtext en"
 
@@ -29,7 +30,7 @@ try:
 except ImportError:
     class log(object):
         def info(self, value):
-            print value
+            print(value)
         def debug(self, value):
             pass
     log = log()

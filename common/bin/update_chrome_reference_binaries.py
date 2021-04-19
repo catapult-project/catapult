@@ -12,6 +12,7 @@ Usage:
   $ git cl upload
 """
 
+from __future__ import print_function
 import argparse
 import collections
 import logging
@@ -263,10 +264,10 @@ def _ResolveChromiumRemotePath(channel, platform, version_info):
   closest_snapshot = _FindClosestChromiumSnapshot(
       branch_base_position, build_dir)
   if closest_snapshot != branch_base_position:
-    print ('Channel %s corresponds to commit position ' % channel +
-            '%d on %s, ' % (branch_base_position, platform) +
-            'but closest chromium snapshot available on ' +
-            '%s is %d' % (_CHROMIUM_GS_BUCKET, closest_snapshot))
+    print('Channel %s corresponds to commit position ' % channel +
+          '%d on %s, ' % (branch_base_position, platform) +
+          'but closest chromium snapshot available on ' +
+          '%s is %d' % (_CHROMIUM_GS_BUCKET, closest_snapshot))
   return RemotePath(bucket=_CHROMIUM_GS_BUCKET,
                     path = ('%s/%s/%s' % (build_dir, closest_snapshot,
                                         platform_info.chromium_info.zip_name)))
@@ -348,11 +349,11 @@ def _RemoveKeystoneFromBuild(location):
 
 def _NeedsUpdate(config, binary, channel, platform, version_info):
   channel_version = version_info.version
-  print 'Checking %s (%s channel) on %s' % (binary, channel, platform)
+  print('Checking %s (%s channel) on %s' % (binary, channel, platform))
   current_version = config.GetVersion('%s_%s' % (binary, channel), platform)
-  print 'current: %s, channel: %s' % (current_version, channel_version)
+  print('current: %s, channel: %s' % (current_version, channel_version))
   if current_version and current_version == channel_version:
-    print 'Already up to date.'
+    print('Already up to date.')
     return False
   return True
 
@@ -372,7 +373,7 @@ def UpdateBuilds(args):
           _QueuePlatformUpdate('chromium', platform, version_info,
                                config, channel)
 
-  print 'Updating builds with downloaded binaries'
+  print('Updating builds with downloaded binaries')
   config.ExecuteUpdateJobs(force=True)
 
 

@@ -21,8 +21,9 @@
 
 Shell utilities.
 """
-from __future__ import generators
 
+from __future__ import generators
+from __future__ import print_function
 __author__ = u"Andr\xe9 Malo"
 __docformat__ = "restructuredtext en"
 
@@ -346,7 +347,7 @@ def spawn(*argv, **kwargs):
 
     echo = kwargs.get('echo')
     if echo:
-        print ' '.join(argv)
+        print(' '.join(argv))
     filepipe = kwargs.get('filepipe')
     if filepipe:
         return _filepipespawn(

@@ -21,6 +21,7 @@
 
 Shell utilities.
 """
+from __future__ import print_function
 __author__ = "Andr\xe9 Malo"
 __docformat__ = "restructuredtext en"
 
