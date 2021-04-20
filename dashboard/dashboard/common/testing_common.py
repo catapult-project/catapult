@@ -555,7 +555,8 @@ class FakeCASClient(object):
     digests = [self._NormalizeDigest(d) for d in digests]
     return {
         'responses': [{
-            'data': self._files[cas_instance][(d['hash'], d['sizeBytes'])],
+            'data': base64.encodestring(
+                self._files[cas_instance][(d['hash'], d['sizeBytes'])]),
             'digest': d,
             'status': {},
         } for d in digests]

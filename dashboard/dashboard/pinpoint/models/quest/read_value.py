@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import base64
 import collections
 import itertools
 import json
@@ -361,7 +362,8 @@ def RetrieveCASOutput(cas_root_ref, path, client=None):
   node = _GetNodeByName(path[-1], tree['files'])
   response = cas_client.BatchRead(
       cas_root_ref['cas_instance'], [node['digest']])
-  return response['responses'][0].get('data', '')
+  data = response['responses'][0].get('data', '')
+  return base64.decodestring(data)
 
 
 def RetrieveOutputJsonFromCAS(cas_root_ref, path):
