@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import division
 import numbers
 
 from telemetry.internal.actions import page_action
@@ -37,6 +38,7 @@ class RepeatableScrollAction(page_action.PageAction):
     # Set up a browser driven repeating scroll. The delay between the scrolls
     # should be unaffected by render thread responsivness (or lack there of).
     tab.SynthesizeScrollGesture(
+        #2To3-division: this line is unchanged as result is expected floats.
         x=int(self._windowsize[0] / 2),
         y=int(self._windowsize[1] / 2),
         x_distance=int(self._x_scroll_distance_ratio * self._windowsize[0]),

@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import division
 from telemetry import decorators
 
 from telemetry.internal.actions import page_action
@@ -38,7 +39,7 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
   # Test flaky on chromeos: https://crbug.com/826527.
   @decorators.Disabled('chromeos')
   def testRepeatableScrollActionNoRepeats(self):
-    expected_scroll = (self._window_height / 2) - 1
+    expected_scroll = (self._window_height // 2) - 1
     self.assertLess(
         expected_scroll,
         self._available_scroll,
@@ -62,7 +63,7 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
   # Flaky on chromeos: https://crbug.com/932104.
   @decorators.Disabled('chromeos')
   def testRepeatableScrollActionTwoRepeats(self):
-    expected_scroll = ((self._window_height / 2) - 1) * 3
+    expected_scroll = ((self._window_height // 2) - 1) * 3
     self.assertLess(
         expected_scroll,
         self._available_scroll,

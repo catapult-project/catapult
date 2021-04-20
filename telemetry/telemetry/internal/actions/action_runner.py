@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import division
 import logging
 import time
 import urlparse
@@ -681,6 +682,7 @@ class ActionRunner(ActionRunnerBase):
     """
     for _ in xrange(repeat_count):
       self._RunAction(KeyPressAction(key, timeout=timeout))
+      #2To3-division: this line is unchanged as result is expected floats.
       self.Wait(repeat_delay_ms / 1000.0)
 
   def EnterText(self, text, character_delay_ms=100,

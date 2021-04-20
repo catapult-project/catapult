@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import division
 import unittest
 
 from telemetry.internal.util import external_modules
@@ -25,6 +26,7 @@ else:
       l2 = np.asfarray((0, 0, 0, 1))
       self.assertTrue(self.cv_util.AreLinesOrthogonal(l1, l2, 0))
       self.assertTrue(self.cv_util.AreLinesOrthogonal(l2, l1, 0))
+      #2To3-division: these lines are unchanged as result is expected floats.
       self.assertFalse(self.cv_util.AreLinesOrthogonal(l1, l1,
                                                        np.pi / 2 - 1e-10))
       self.assertFalse(self.cv_util.AreLinesOrthogonal(l2, l2,

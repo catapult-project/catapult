@@ -166,6 +166,7 @@ And now, my famous members
 from __future__ import generators
 
 from __future__ import print_function
+from __future__ import division
 from functools import reduce
 __version__ = "$URL$ $Rev$"
 
@@ -189,6 +190,7 @@ try:
 except ImportError:
     pass
 
+# 2To3-division: the / operations with float as operands are not changed.
 
 __all__ = ['Image', 'Reader', 'Writer', 'write_chunks', 'from_array']
 
@@ -604,7 +606,7 @@ class Writer:
         self.color_planes = (3, 1)[self.greyscale or self.colormap]
         self.planes = self.color_planes + self.alpha
         # :todo: fix for bitdepth < 8
-        self.psize = (self.bitdepth/8) * self.planes
+        self.psize = (self.bitdepth / 8) * self.planes
 
     def make_palette(self):
         """Create the byte sequences for a ``PLTE`` and if necessary a
@@ -743,7 +745,7 @@ class Writer:
             # Pack into bytes
             assert self.bitdepth < 8
             # samples per byte
-            spb = int(8/self.bitdepth)
+            spb = int(8 // self.bitdepth)
             def extend(sl):
                 a = array('B', sl)
                 # Adding padding bytes so we can group into a whole
@@ -862,7 +864,7 @@ class Writer:
         if self.interlace:
             pixels = array('B')
             pixels.fromfile(infile,
-                            (self.bitdepth/8) * self.color_planes *
+                            (self.bitdepth // 8) * self.color_planes *
                             self.width * self.height)
             self.write_passes(outfile, self.array_scanlines_interlace(pixels))
         else:
@@ -875,15 +877,15 @@ class Writer:
         """
         pixels = array('B')
         pixels.fromfile(ppmfile,
-                        (self.bitdepth/8) * self.color_planes *
+                        (self.bitdepth // 8) * self.color_planes *
                         self.width * self.height)
         apixels = array('B')
         apixels.fromfile(pgmfile,
-                         (self.bitdepth/8) *
+                         (self.bitdepth // 8) *
                          self.width * self.height)
         pixels = interleave_planes(pixels, apixels,
-                                   (self.bitdepth/8) * self.color_planes,
-                                   (self.bitdepth/8))
+                                   (self.bitdepth // 8) * self.color_planes,
+                                   (self.bitdepth // 8))
         if self.interlace:
             self.write_passes(outfile, self.array_scanlines_interlace(pixels))
         else:
@@ -946,7 +948,7 @@ class Writer:
             if xstart >= self.width:
                 continue
             # Pixels per row (of reduced image)
-            ppr = int(math.ceil((self.width-xstart)/float(xstep)))
+            ppr = int(math.ceil((self.width-xstart) / float(xstep)))
             # number of values in reduced image row.
             row_len = ppr*self.planes
             for y in range(ystart, self.height, ystep):
@@ -1581,7 +1583,7 @@ class Reader:
             # line.
             recon = None
             # Pixels per row (reduced pass image)
-            ppr = int(math.ceil((self.width-xstart)/float(xstep)))
+            ppr = int(math.ceil((self.width-xstart) / float(xstep)))
             # Row size in bytes for this pass.
             row_size = int(math.ceil(self.psize * ppr))
             for y in range(ystart, self.height, ystep):
@@ -1619,11 +1621,11 @@ class Reader:
                 return raw
             if self.bitdepth == 16:
                 raw = tostring(raw)
-                return array('H', struct.unpack('!%dH' % (len(raw)//2), raw))
+                return array('H', struct.unpack('!%dH' % (len(raw) // 2), raw))
             assert self.bitdepth < 8
             width = self.width
             # Samples per byte
-            spb = 8//self.bitdepth
+            spb = 8 // self.bitdepth
             out = array('B')
             mask = 2**self.bitdepth - 1
             shifts = map(self.bitdepth.__mul__, reversed(range(spb)))
@@ -1643,12 +1645,12 @@ class Reader:
         if self.bitdepth == 16:
             bytes = tostring(bytes)
             return array('H',
-              struct.unpack('!%dH' % (len(bytes)//2), bytes))
+              struct.unpack('!%dH' % (len(bytes) // 2), bytes))
         assert self.bitdepth < 8
         if width is None:
             width = self.width
         # Samples per byte
-        spb = 8//self.bitdepth
+        spb = 8 // self.bitdepth
         out = array('B')
         mask = 2**self.bitdepth - 1
         shifts = map(self.bitdepth.__mul__, reversed(range(spb)))
@@ -1797,7 +1799,7 @@ class Reader:
             self.alpha = alpha
             self.color_planes = color_planes
             self.planes = planes
-            self.psize = float(self.bitdepth)/float(8) * planes
+            self.psize = float(self.bitdepth) / float(8) * planes
             if int(self.psize) == self.psize:
                 self.psize = int(self.psize)
             self.row_bytes = int(math.ceil(self.width * self.psize))
@@ -1840,7 +1842,7 @@ class Reader:
                 if not self.plte:
                     warnings.warn("PLTE chunk is required before tRNS chunk.")
                 else:
-                    if len(data) > len(self.plte)/3:
+                    if len(data) > len(self.plte) // 3:
                         # Was warning, but promoted to Error as it
                         # would otherwise cause pain later on.
                         raise FormatError("tRNS chunk is too long.")
@@ -2093,7 +2095,7 @@ class Reader:
         sourcemaxval = 2**info['bitdepth']-1
         del info['bitdepth']
         info['maxval'] = float(maxval)
-        factor = float(maxval)/float(sourcemaxval)
+        factor = float(maxval) / float(sourcemaxval)
         def iterfloat():
             for row in pixels:
                 yield map(factor.__mul__, row)

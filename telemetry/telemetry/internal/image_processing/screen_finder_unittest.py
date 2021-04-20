@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import division
 import copy
 import math
 import os
@@ -185,6 +186,7 @@ else:
       corners = ((1000, 1000), (0, 1000), (0, 0), (1000, 0))
       sf._prev_corners = np.asfarray(corners, np.float32)
       dist = math.sqrt(sf.MAX_INTERFRAME_MOTION)
+      #2To3-division: these lines are unchanged as result is expected floats.
       sidedist1 = math.sqrt(sf.MAX_INTERFRAME_MOTION) / math.sqrt(2) - (1e-13)
       sidedist2 = math.sqrt(sf.MAX_INTERFRAME_MOTION) / math.sqrt(2) + (1e-13)
       point1 = (corners[3][0] + dist, corners[3][1])

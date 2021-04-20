@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import division
 import logging
 import os
 import posixpath
@@ -162,6 +163,7 @@ class BrowserBackend(app_backend.AppBackend):
 
   def _CollectPeriodicScreenshots(self, start_time, frequency_ms):
     self._CollectScreenshot(logging.INFO, "periodic.png", start_time)
+    #2To3-division: this line is unchanged as result is expected floats.
     self._periodic_screenshot_timer = threading.Timer(
         frequency_ms / 1000.0,
         self._CollectPeriodicScreenshots,
@@ -190,7 +192,8 @@ class BrowserBackend(app_backend.AppBackend):
         if start_time:
           # Prepend time since test started to path
           test_time = datetime.now() - start_time
-          suffix = str(test_time.total_seconds()).replace('.', '_') + '-' + suffix
+          suffix = str(test_time.total_seconds()).replace(
+              '.', '_') + '-' + suffix
 
         artifact_name = posixpath.join(
             'debug_screenshots', 'screenshot-%s' % suffix)

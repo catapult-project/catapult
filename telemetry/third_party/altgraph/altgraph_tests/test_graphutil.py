@@ -1,6 +1,10 @@
+from __future__ import division
 import unittest
 from altgraph import GraphUtil
 from altgraph import Graph, GraphError
+
+# 2To3-division: the / operations here are not converted to // as the results
+# are expected floats.
 
 class TestGraphUtil (unittest.TestCase):
 

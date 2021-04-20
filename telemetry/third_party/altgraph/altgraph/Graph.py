@@ -13,8 +13,12 @@ altgraph.Graph - Base Graph class
   #--Nathan Denny, May 27, 1999
 """
 
+from __future__ import division
 from altgraph import GraphError
 from collections import deque
+
+# 2To3-division: the / operations here are not converted to // as the results
+# are expected floats.
 
 class Graph(object):
     """

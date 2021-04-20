@@ -1,7 +1,11 @@
+from __future__ import division
 import unittest
 
 from altgraph import GraphError
 from altgraph.Graph import Graph
+
+# 2To3-division: the / operations here are not converted to // as the results
+# are expected floats.
 
 class TestGraph (unittest.TestCase):
 
@@ -559,11 +563,11 @@ class TestGraph (unittest.TestCase):
         self.assertEqual(g.clust_coef(1), 0)
 
         g.add_edge(2, 3)
-        self.assertEqual(g.clust_coef(1), 1./6)
+        self.assertEqual(g.clust_coef(1), 1. / 6)
         g.add_edge(2, 4)
-        self.assertEqual(g.clust_coef(1), 2./6)
+        self.assertEqual(g.clust_coef(1), 2. / 6)
         g.add_edge(4, 2)
-        self.assertEqual(g.clust_coef(1), 3./6)
+        self.assertEqual(g.clust_coef(1), 3. / 6)
 
         g.add_edge(2, 3)
         g.add_edge(2, 4)

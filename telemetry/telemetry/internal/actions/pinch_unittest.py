@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import division
 from telemetry import decorators
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import pinch
@@ -78,6 +79,7 @@ class PinchActionTest(tab_test_case.TabTestCase):
     # TODO(bokan): I landed changes in M65 (https://crrev.com/c/784213) that
     # should make this significantly better. We can tighten up the bounds once
     # that's in ref builds.
+    #2To3-division: this line is unchanged as result is expected floats.
     self.assertAlmostEqual(scale, starting_scale / 2, delta=0.2 * scale)
 
   # Test that the anchor ratio correctly centers the pinch gesture at the
@@ -106,8 +108,8 @@ class PinchActionTest(tab_test_case.TabTestCase):
     offset_x = self._tab.EvaluateJavaScript('window.visualViewport.offsetLeft')
     offset_y = self._tab.EvaluateJavaScript('window.visualViewport.offsetTop')
 
-    self.assertGreater(offset_x, width / 2)
-    self.assertGreater(offset_y, height / 2)
+    self.assertGreater(offset_x, width // 2)
+    self.assertGreater(offset_y, height // 2)
 
     # TODO(bokan): This early-out can be removed once setPageScaleFactor (M64)
     # rolls into the ref builds.
@@ -130,5 +132,5 @@ class PinchActionTest(tab_test_case.TabTestCase):
     offset_x = self._tab.EvaluateJavaScript('window.visualViewport.offsetLeft')
     offset_y = self._tab.EvaluateJavaScript('window.visualViewport.offsetTop')
 
-    self.assertLess(offset_x + width / 2.5, width / 2)
-    self.assertLess(offset_y + height / 2.5, height / 2)
+    self.assertLess(offset_x + width // 2.5, width // 2)
+    self.assertLess(offset_y + height // 2.5, height // 2)

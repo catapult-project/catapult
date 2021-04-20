@@ -5,6 +5,7 @@
 """Print prettier and more detailed exceptions."""
 
 from __future__ import print_function
+from __future__ import division
 import logging
 import math
 import os
@@ -104,6 +105,7 @@ def _AbbreviateMiddleOfString(target, middle, max_length):
 
   if len(target) <= max_length:
     return target
+  #2To3-division: these lines are unchanged as result is expected floats.
   half_length = (max_length - len(middle)) / 2.
   return (target[:int(math.floor(half_length))] + middle +
           target[-int(math.ceil(half_length)):])

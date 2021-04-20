@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import division
 import contextlib
 import ctypes
 import logging
@@ -72,7 +73,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
   @decorators.Cache
   def GetSystemTotalPhysicalMemory(self):
     performance_info = self._GetPerformanceInfo()
-    return performance_info.PhysicalTotal * performance_info.PageSize / 1024
+    return performance_info.PhysicalTotal * performance_info.PageSize // 1024
 
   def KillProcess(self, pid, kill_process_tree=False):
     # os.kill for Windows is Python 2.7.

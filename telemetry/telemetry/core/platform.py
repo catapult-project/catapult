@@ -1,6 +1,7 @@
 # Copyright 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+from __future__ import division
 import logging as real_logging
 import os
 import subprocess
@@ -509,6 +510,7 @@ class Platform(object):
     results = {'samples': samples}
     if samples > 0:
       for ii in range(0, len(indices)):
+        #2To3-division: this line is unchanged as sums[] are floats.
         results[labels[ii]] = sums[ii] / samples
 
     os.remove(output_path)

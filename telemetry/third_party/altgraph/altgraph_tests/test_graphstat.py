@@ -1,8 +1,12 @@
+from __future__ import division
 import unittest
 
 from altgraph import GraphStat
 from altgraph import Graph
 import sys
+
+# 2To3-division: the / operations here are not converted to // as the results
+# are expected floats.
 
 class TestDegreesDist (unittest.TestCase):
 
@@ -56,13 +60,14 @@ class TestBinning (unittest.TestCase):
         binSize = 100 / 15.0
         result = [0]*15
         for i in range(100):
-            bin = int(i/binSize)
+            bin = int(i / binSize)
             try:
                 result[bin] += 1
             except IndexError:
                 pass
 
-        result = [ (i * binSize + binSize/2, result[i]) for i in range(len(result))]
+        result = [(i * binSize + binSize / 2, result[i])
+                  for i in range(len(result))]
 
         self.assertEqual(result, out)
 

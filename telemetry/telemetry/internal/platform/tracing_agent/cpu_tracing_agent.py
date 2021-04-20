@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import division
 import logging
 import os
 import re
@@ -170,6 +171,7 @@ class WindowsProcessCollector(ProcessCollector):
     # is given in bytes. In order to convert this to percent of physical memory
     # occupied by the process, we divide by the amount of total physical memory
     # on the machine.
+    #2To3-division: these lines are unchanged as result is expected floats.
     percent_memory = float(token_list[-1]) / self._physicalMemoryBytes * 100
 
     return {

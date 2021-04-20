@@ -2,12 +2,15 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import division
 import math
 import random
 import unittest
 
 from telemetry.util import statistics
 
+# 2To3-division: the / operations here are not converted to // as the results
+# are expected floats.
 
 def Relax(samples, iterations=10):
   """Lloyd relaxation in 1D.
@@ -50,12 +53,13 @@ class StatisticsUnitTest(unittest.TestCase):
     self.assertEquals(normalized_samples, [0.5, 0.5])
     self.assertEquals(scale, 1.0)
 
-    samples = [0.0, 1.0/3.0, 2.0/3.0, 1.0]
+    samples = [0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0]
     normalized_samples, scale = statistics.NormalizeSamples(samples)
-    self.assertEquals(normalized_samples, [1.0/8.0, 3.0/8.0, 5.0/8.0, 7.0/8.0])
+    self.assertEquals(normalized_samples,
+                      [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0])
     self.assertEquals(scale, 0.75)
 
-    samples = [1.0/8.0, 3.0/8.0, 5.0/8.0, 7.0/8.0]
+    samples = [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0]
     normalized_samples, scale = statistics.NormalizeSamples(samples)
     self.assertEquals(normalized_samples, samples)
     self.assertEquals(scale, 1.0)
@@ -95,19 +99,19 @@ class StatisticsUnitTest(unittest.TestCase):
     d = statistics.Discrepancy(samples)
     self.assertEquals(d, 1.0)
 
-    samples = [1.0/8.0, 3.0/8.0, 5.0/8.0, 7.0/8.0]
+    samples = [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0]
     d = statistics.Discrepancy(samples)
     self.assertEquals(d, 0.25)
 
-    samples = [1.0/8.0, 5.0/8.0, 5.0/8.0, 7.0/8.0]
+    samples = [1.0 / 8.0, 5.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0]
     d = statistics.Discrepancy(samples)
     self.assertEquals(d, 0.5)
 
-    samples = [1.0/8.0, 3.0/8.0, 5.0/8.0, 5.0/8.0, 7.0/8.0]
+    samples = [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0]
     d = statistics.Discrepancy(samples)
     self.assertEquals(d, 0.4)
 
-    samples = [0.0, 1.0/3.0, 2.0/3.0, 1.0]
+    samples = [0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0]
     d = statistics.Discrepancy(samples)
     self.assertEquals(d, 0.5)
 
@@ -179,13 +183,13 @@ class StatisticsUnitTest(unittest.TestCase):
 
   def testArithmeticMean(self):
     # The ArithmeticMean function computes the simple average.
-    self.assertAlmostEquals(40/3.0, statistics.ArithmeticMean([10, 10, 20]))
+    self.assertAlmostEquals(40 / 3.0, statistics.ArithmeticMean([10, 10, 20]))
     self.assertAlmostEquals(15.0, statistics.ArithmeticMean([10, 20]))
     # If the 'count' is zero, then zero is returned.
     self.assertEquals(0, statistics.ArithmeticMean([]))
 
   def testStandardDeviation(self):
-    self.assertAlmostEquals(math.sqrt(2/3.0),
+    self.assertAlmostEquals(math.sqrt(2 / 3.0),
                             statistics.StandardDeviation([1, 2, 3]))
     self.assertEquals(0, statistics.StandardDeviation([1]))
     self.assertEquals(0, statistics.StandardDeviation([]))

@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import division
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import utils
 from telemetry.util import js_template
@@ -45,6 +46,7 @@ class PinchAction(page_action.PageAction):
         "visualViewport" in window
             ? visualViewport.scale
             : window.outerWidth / window.innerWidth'""")
+    #2To3-division: this line is unchanged as result is expected floats.
     return 3.0 / current_scale_factor
 
   def RunAction(self, tab):

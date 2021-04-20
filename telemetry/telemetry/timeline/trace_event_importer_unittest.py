@@ -4,12 +4,15 @@
 
 # pylint: disable=too-many-lines
 
+from __future__ import division
 import unittest
 
 import telemetry.timeline.counter as tracing_counter
 import telemetry.timeline.model as timeline_model
 from tracing.trace_data import trace_data as trace_data_module
 
+# 2To3-division: those lines like xxx / 1000.0 are unchanged as result is
+# expected floats.
 
 def FindEventNamed(events, name):
   for event in events:
@@ -853,8 +856,8 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual('a', parent_slice.name)
     self.assertEqual('foo', parent_slice.category)
     self.assertEqual(0, parent_slice.start)
-    self.assertAlmostEqual(17/1000.0, parent_slice.thread_start)
-    self.assertAlmostEqual(25/1000.0, parent_slice.thread_end)
+    self.assertAlmostEqual(17 / 1000.0, parent_slice.thread_start)
+    self.assertAlmostEqual(25 / 1000.0, parent_slice.thread_end)
 
     self.assertEqual(2, len(parent_slice.sub_slices))
     sub_slice = parent_slice.sub_slices[0]

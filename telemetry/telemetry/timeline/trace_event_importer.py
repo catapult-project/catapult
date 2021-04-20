@@ -7,6 +7,7 @@ This is a port of the trace event importer from
 https://code.google.com/p/trace-viewer/
 """
 
+from __future__ import division
 import collections
 
 import telemetry.timeline.async_slice as tracing_async_slice
@@ -15,7 +16,8 @@ from telemetry.timeline import importer
 from telemetry.timeline import memory_dump_event
 from tracing.trace_data import trace_data as trace_data_module
 
-
+# 2To3-division: those lines like xxx / 1000.0 are unchanged as result is
+# expected floats.
 class TraceEventTimelineImporter(importer.TimelineImporter):
   def __init__(self, model, trace_data):
     super(TraceEventTimelineImporter, self).__init__(model, trace_data)

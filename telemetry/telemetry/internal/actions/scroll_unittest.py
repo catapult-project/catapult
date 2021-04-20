@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import division
 from telemetry import decorators
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import scroll
@@ -147,7 +148,7 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     # Ensure the layout viewport isn't scrolled but the visual is.
     self.assertGreater(
         self._tab.EvaluateJavaScript('window.visualViewport.offsetTop'),
-        screenHeight / 2 - 1)
+        screenHeight // 2 - 1)
     self.assertEqual(self._tab.EvaluateJavaScript('window.scrollY'), 0)
 
     self._RunScrollDistanceTest(

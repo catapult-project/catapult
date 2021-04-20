@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 from __future__ import print_function
+from __future__ import division
 import os
 import sys
 import json
@@ -69,7 +70,7 @@ def _MedianTestTime(test_times):
   times = sorted(test_times.values())
   if len(times) == 0:
     return 0
-  halfLen = len(times) / 2
+  halfLen = len(times) // 2
   if len(times) % 2:
     return times[halfLen]
   else:

@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import division
 import posixpath
 import re
 
@@ -153,6 +154,7 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
   def __init__(self, process, dump_events):
     assert dump_events
 
+    #2To3-division: these lines are unchanged as result is expected floats.
     start_time = min(event['ts'] for event in dump_events) / 1000.0
     duration = max(event['ts'] for event in dump_events) / 1000.0 - start_time
     super(ProcessMemoryDumpEvent, self).__init__('memory', 'memory_dump',

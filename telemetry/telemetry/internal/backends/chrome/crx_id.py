@@ -9,6 +9,7 @@ and 'http://stackoverflow.com/questions/'
 for docs on the format.
 """
 
+from __future__ import division
 import base64
 import os
 import hashlib
@@ -32,7 +33,7 @@ def HexToMPDecimal(hex_chars):
   base = ord('a')
   for i in xrange(len(hex_chars)):
     value = ord(hex_chars[i])
-    dig1 = value / 16
+    dig1 = value // 16
     dig2 = value % 16
     result += chr(dig1 + base)
     result += chr(dig2 + base)
@@ -45,7 +46,7 @@ def HexTo256(hex_chars):
   result = []
   for i in xrange(len(hex_chars)):
     value = ord(hex_chars[i])
-    dig1 = value / 16
+    dig1 = value // 16
     dig2 = value % 16
     result.append('0x' + hex(dig1)[2:] + hex(dig2)[2:])
   return '{%s}' % ', '.join(result)
@@ -127,4 +128,4 @@ def GetCRXAppID(filename, from_file_path=False, is_win_path=False):
   pub_key = GetPublicKey(filename, from_file_path, is_win_path=is_win_path)
   pub_key_hash = hashlib.sha256(pub_key).digest()
   # AppID is the MPDecimal of only the first 128 bits of the hash.
-  return HexToMPDecimal(pub_key_hash[:128/8])
+  return HexToMPDecimal(pub_key_hash[:128//8])

@@ -4,8 +4,11 @@
 
 """A collection of statistical utility functions to be used by metrics."""
 
+from __future__ import division
 import math
 
+# 2To3-division: the / operations here are not converted to // as the results
+# are expected floats.
 
 def Clamp(value, low=0.0, high=1.0):
   """Clamp a value between some low and high value."""
@@ -262,7 +265,7 @@ def GeneralizedMean(values, exponent):
   sum_of_powers = 0.0
   for v in values:
     sum_of_powers += v ** exponent
-  return (sum_of_powers / len(values)) ** (1.0/exponent)
+  return (sum_of_powers / len(values)) ** (1.0 / exponent)
 
 
 def Median(values):
@@ -295,7 +298,7 @@ def Percentile(values, percentile):
   elif percentile >= (n - 0.5) / n:
     return sorted_values[-1]
   else:
-    floor_index = int(math.floor(n * percentile -  0.5))
+    floor_index = int(math.floor(n * percentile - 0.5))
     floor_value = sorted_values[floor_index]
     ceil_value = sorted_values[floor_index+1]
     alpha = n * percentile - 0.5 - floor_index
