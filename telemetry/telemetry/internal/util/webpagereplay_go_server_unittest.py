@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 import unittest
-import urllib2
+import six.moves.urllib.request # pylint: disable=import-error
 
 import mock
 
@@ -33,15 +33,15 @@ class WebPageReplayGoServerTest(unittest.TestCase):
       self.assertIsNotNone(server.https_port)
 
       # Make sure that we can establish connection to HTTP port.
-      req = urllib2.Request(
+      req = six.moves.urllib.request.Request(
           'http://www.example.com/', origin_req_host='127.0.0.1')
-      r = urllib2.urlopen(req)
+      r = six.moves.urllib.request.urlopen(req)
       self.assertEquals(r.getcode(), 200)
 
       # Make sure that we can establish connection to HTTPS port.
-      req = urllib2.Request(
+      req = six.moves.urllib.request.Request(
           'https://www.example.com/', origin_req_host='127.0.0.1')
-      r = urllib2.urlopen(req)
+      r = six.moves.urllib.request.urlopen(req)
       self.assertEquals(r.getcode(), 200)
 
   @decorators.Disabled('chromeos')  # crbug.com/801641

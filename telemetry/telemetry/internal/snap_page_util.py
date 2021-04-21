@@ -10,9 +10,9 @@ import json
 import re
 import shutil
 import sys
-import urllib2
-
 from io import BytesIO
+
+import six.moves.urllib.request # pylint: disable=import-error
 
 from telemetry.core import util
 from telemetry.internal.browser import browser_finder
@@ -91,7 +91,7 @@ def _FetchImages(image_dir, frame_number, external_images):
                  'url=%s].' % (frame_number, i, image_count, image_file,
                                image_url))
     try:
-      image_request = urllib2.urlopen(image_url)
+      image_request = six.moves.urllib.request.urlopen(image_url)
     except IOError as e:
       print('Error fetching image [local_file=%s, url=%s, message=%s].' % (
           image_file, image_url, e))

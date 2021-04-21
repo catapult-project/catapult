@@ -33,7 +33,7 @@ from modulegraph import zipio
 if sys.version_info[0] == 2:
     from StringIO import StringIO as BytesIO
     from StringIO import StringIO
-    from  urllib import pathname2url
+    from  six.moves.urllib.request import pathname2url
     def _Bchr(value):
         return chr(value)
 

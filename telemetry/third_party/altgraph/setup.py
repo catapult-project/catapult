@@ -29,7 +29,7 @@ import tarfile
 try:
     import urllib.request as urllib
 except ImportError:
-    import urllib
+    import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 from distutils import log
 try:
     from hashlib import md5
@@ -296,7 +296,7 @@ try:
 
     def get_pypi_src_download(package):
         url = 'https://pypi.python.org/pypi/%s/json'%(package,)
-        fp = urllib.urlopen(url)
+        fp = six.moves.urllib.request.urlopen(url)
         try:
             try:
                 data = fp.read()
@@ -324,7 +324,7 @@ except ImportError:
 
     def get_pypi_src_download(package):
         url = 'https://pypi.python.org/pypi/%s/json'%(package,)
-        fp = urllib.urlopen(url)
+        fp = six.moves.urllib.request.urlopen(url)
         try:
             try:
                 data = fp.read()
@@ -438,7 +438,7 @@ def download_setuptools(packagename, to_dir):
     try:
         from urllib.request import urlopen
     except ImportError:
-        from urllib2 import urlopen
+        from six.moves.urllib.request import urlopen
 
     chksum, url = get_pypi_src_download(packagename)
     tgz_name = os.path.basename(url)
@@ -580,7 +580,7 @@ else:
             import shutil
             import zipfile
             import os
-            import urllib
+            import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
             import StringIO
             from base64 import standard_b64encode
             import httplib
