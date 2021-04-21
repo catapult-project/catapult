@@ -23,6 +23,9 @@ def _AddRegularKey(keys, windows_virtual_key_code):
     assert k not in _KEY_MAP, 'Duplicate key: %s' % k
     _KEY_MAP[k] = (windows_virtual_key_code, k)
 
+def GetKey(key_name):
+  return _KEY_MAP.get(key_name)
+
 _AddSpecialKey('PageUp', 0x21)
 _AddSpecialKey('PageDown', 0x22)
 _AddSpecialKey('End', 0x23)
@@ -31,6 +34,7 @@ _AddSpecialKey('ArrowLeft', 0x25)
 _AddSpecialKey('ArrowUp', 0x26)
 _AddSpecialKey('ArrowRight', 0x27)
 _AddSpecialKey('ArrowDown', 0x28)
+_AddSpecialKey('Esc', 0x1B)
 
 _AddSpecialKey('Return', 0x0D, text='\x0D')
 _AddSpecialKey('Delete', 0x2E, text='\x7F')

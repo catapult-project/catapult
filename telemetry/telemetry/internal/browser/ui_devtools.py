@@ -23,6 +23,9 @@ MOUSE_EVENT_WHEEL_DIRECTION_DOWN = 'down'
 MOUSE_EVENT_WHEEL_DIRECTION_LEFT = 'left'
 MOUSE_EVENT_WHEEL_DIRECTION_RIGHT = 'right'
 
+KEY_EVENT_TYPE_KEY_PRESSED = 'keyPressed'
+KEY_EVENT_TYPE_KEY_RELEASED = 'keyReleased'
+
 
 class UIDevTools(object):
   """This class is mainly used to interact with native UI
@@ -53,3 +56,20 @@ class UIDevTools(object):
                                                         y,
                                                         button,
                                                         wheel_direction)
+
+  # pylint: disable=redefined-builtin
+  def DispatchKeyEvent(self,
+                       node_id,
+                       type=KEY_EVENT_TYPE_KEY_PRESSED,
+                       key_code=0,
+                       code=0,
+                       flags=0,
+                       key=0,
+                       is_char=False):
+    return self._ui_devtools_backend.DispatchKeyEvent(node_id,
+                                                      type,
+                                                      key_code,
+                                                      code,
+                                                      flags,
+                                                      key,
+                                                      is_char)

@@ -166,3 +166,28 @@ class UIDevToolsClientBackend(object):
         }
     }
     return self._browser_websocket.SyncRequest(request, timeout=60)
+
+  # pylint: disable=redefined-builtin
+  def DispatchKeyEvent(self,
+                       node_id,
+                       type,
+                       key_code,
+                       code,
+                       flags,
+                       key,
+                       is_char):
+    request = {
+        'method': 'DOM.dispatchKeyEvent',
+        'params': {
+            'nodeId': node_id,
+            'event': {
+                'type': type,
+                'keyCode': key_code,
+                'code': code,
+                'flags': flags,
+                'key': key,
+                'isChar': is_char,
+            },
+        }
+    }
+    return self._browser_websocket.SyncRequest(request, timeout=60)
