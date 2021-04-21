@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import unittest
+import six
 
 from telemetry.timeline import memory_dump_event
 import mock
@@ -14,23 +15,24 @@ def MakeRawMemoryDumpEvent(dump_id='123456ABCDEF', pid=1234, start=0,
   def vm_region(mapped_file, byte_stats):
     return {
         'mf': mapped_file,
-        'bs': {k: hex(v) for k, v in byte_stats.iteritems()}
+        'bs': {k: hex(v) for k, v in six.iteritems(byte_stats)}
     }
 
   def attrs(sizes):
     return {'attrs': {k: {'value': hex(v), 'units': 'bytes'}
-                      for k, v in sizes.iteritems()}}
+                      for k, v in six.iteritems(sizes)}}
 
   if allocators is None:
     allocators = {}
 
   event = {'ph': 'v', 'id': dump_id, 'pid': pid, 'ts': start * 1000,
            'args': {'dumps': {'allocators': {
-               name: attrs(sizes) for name, sizes in allocators.iteritems()}}}}
+               name: attrs(sizes) for name, sizes in
+               six.iteritems(allocators)}}}}
   if mmaps:
     event['args']['dumps']['process_mmaps'] = {
         'vm_regions': [vm_region(mapped_file, byte_stats)
-                       for mapped_file, byte_stats in mmaps.iteritems()]}
+                       for mapped_file, byte_stats in six.iteritems(mmaps)]}
 
   return event
 
@@ -113,7 +115,7 @@ class ProcessMemoryDumpEventUnitTest(unittest.TestCase):
         '/Devices': DEVICE_GPU}
 
     self.assertTrue(memory_dump.has_mmaps)
-    for path, value in EXPECTED.iteritems():
+    for path, value in six.iteritems(EXPECTED):
       self.assertEquals(
           value,
           memory_dump.GetMemoryBucket(path).GetValue('proportional_resident'))
@@ -138,7 +140,7 @@ class ProcessMemoryDumpEventUnitTest(unittest.TestCase):
     }
 
     self.assertTrue(memory_dump.has_mmaps)
-    for path, value in EXPECTED_MMAPS.iteritems():
+    for path, value in six.iteritems(EXPECTED_MMAPS):
       self.assertEquals(
           value,
           memory_dump.GetMemoryBucket(path).GetValue('proportional_resident'))

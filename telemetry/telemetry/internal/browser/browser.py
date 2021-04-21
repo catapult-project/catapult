@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import logging
+import six
 
 from py_utils import cloud_storage
 from py_utils import exc_util
@@ -120,11 +121,11 @@ class Browser(app.App):
         if not trim_logs:
           if system_info.gpu.aux_attributes:
             logs.append(' GPU Attributes:')
-            for k, v in sorted(system_info.gpu.aux_attributes.iteritems()):
+            for k, v in sorted(six.iteritems(system_info.gpu.aux_attributes)):
               logs.append('  %-20s: %s' % (k, v))
           if system_info.gpu.feature_status:
             logs.append(' Feature Status:')
-            for k, v in sorted(system_info.gpu.feature_status.iteritems()):
+            for k, v in sorted(six.iteritems(system_info.gpu.feature_status)):
               logs.append('  %-20s: %s' % (k, v))
           if system_info.gpu.driver_bug_workarounds:
             logs.append(' Driver Bug Workarounds:')

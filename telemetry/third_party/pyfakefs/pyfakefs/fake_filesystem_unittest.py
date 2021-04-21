@@ -119,7 +119,7 @@ class Patcher(object):
         self._shutilModules = None
         self._tempfileModules = None
         self._findModules()
-        assert None not in vars(self).values(), \
+        assert None not in list(vars(self).values()), \
                 "_findModules() missed the initialization of an instance variable"
         
         # Attributes set by _refresh()
@@ -134,7 +134,7 @@ class Patcher(object):
         # _isStale is set by tearDown(), reset by _refresh()
         self._isStale = True
         self._refresh()
-        assert None not in vars(self).values(), \
+        assert None not in list(vars(self).values()), \
                 "_refresh() missed the initialization of an instance variable"
         assert self._isStale == False, "_refresh() did not reset _isStale"
         

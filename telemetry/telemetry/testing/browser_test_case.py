@@ -24,7 +24,7 @@ class _MetaBrowserTestCase(type):
 
   def __new__(mcs, name, bases, dct):
     new_dct = {}
-    for attributeName, attribute in dct.iteritems():
+    for attributeName, attribute in six.iteritems(dct):
       if (isinstance(attribute, types.FunctionType) and
           attributeName.startswith('test')):
         attribute = mcs._PrintBrowserStandardOutputAndLogOnFailure(attribute)

@@ -16,7 +16,7 @@ PROFILE_TYPE_MAPPING = {
 def GetProfileTypes():
   """Returns a list of all command line options that can be specified for
   profile type."""
-  return BASE_PROFILE_TYPES + PROFILE_TYPE_MAPPING.keys()
+  return BASE_PROFILE_TYPES + list(PROFILE_TYPE_MAPPING.keys())
 
 def GetProfileDir(profile_type):
   """Given a |profile_type| (as returned by GetProfileTypes()), return the

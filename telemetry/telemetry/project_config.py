@@ -73,11 +73,11 @@ class ProjectConfig(object):
     if self._benchmarks is None:
       benchmarks = []
       for search_dir in self.benchmark_dirs:
-        benchmarks.extend(discover.DiscoverClasses(
+        benchmarks.extend(list(discover.DiscoverClasses(
             search_dir,
             self.top_level_dir,
             benchmark.Benchmark,
-            index_by_class_name=True).values())
+            index_by_class_name=True).values()))
       self._benchmarks = benchmarks
     return list(self._benchmarks)
 

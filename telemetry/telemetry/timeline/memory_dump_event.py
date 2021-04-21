@@ -5,6 +5,7 @@
 from __future__ import division
 import posixpath
 import re
+import six
 
 from telemetry.timeline import event as timeline_event
 
@@ -118,16 +119,16 @@ MMAPS_METRICS = {
 class MemoryBucket(object):
   """Simple object to hold and aggregate memory values."""
   def __init__(self):
-    self._bucket = dict.fromkeys(BUCKET_ATTRS.iterkeys(), 0)
+    self._bucket = dict.fromkeys(six.iterkeys(BUCKET_ATTRS), 0)
 
   def __repr__(self):
     values = ', '.join('%s=%d' % (src_key, self._bucket[dst_key])
                        for dst_key, src_key
-                       in sorted(BUCKET_ATTRS.iteritems()))
+                       in sorted(six.iteritems(BUCKET_ATTRS)))
     return '%s[%s]' % (type(self).__name__, values)
 
   def AddRegion(self, byte_stats):
-    for dst_key, src_key in BUCKET_ATTRS.iteritems():
+    for dst_key, src_key in six.iteritems(BUCKET_ATTRS):
       self._bucket[dst_key] += int(byte_stats.get(src_key, '0'), 16)
 
   def GetValue(self, name):
@@ -182,7 +183,7 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
     self._allocators = {}
     parent_path = ''
     parent_has_size = False
-    for allocator_name, size_values in sorted(allocator_dumps.iteritems()):
+    for allocator_name, size_values in sorted(six.iteritems(allocator_dumps)):
       if ((allocator_name.startswith(parent_path) and parent_has_size) or
           allocator_name.startswith('global/')):
         continue
@@ -197,7 +198,7 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
           name_parts[1] == 'android_memtrack'):
         allocator_name = '_'.join(name_parts[1:3])
       allocator = self._allocators.setdefault(allocator_name, {})
-      for size_key, size_value in size_values['attrs'].iteritems():
+      for size_key, size_value in six.iteritems(size_values['attrs']):
         if size_value['units'] == 'bytes':
           allocator[size_key] = (allocator.get(size_key, 0)
                                  + int(size_value['value'], 16))
@@ -228,7 +229,7 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
 
   def __repr__(self):
     values = ['pid=%d' % self.process.pid]
-    for key, value in sorted(self.GetMemoryUsage().iteritems()):
+    for key, value in sorted(six.iteritems(self.GetMemoryUsage())):
       values.append('%s=%d' % (key, value))
     values_str = ', '.join(values)
     return '%s[%s]' % (type(self).__name__, values_str)
@@ -264,7 +265,7 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
   def GetMemoryUsage(self):
     """Get a dictionary with the memory usage of this process."""
     usage = {}
-    for name, values in self._allocators.iteritems():
+    for name, values in six.iteritems(self._allocators):
       # If you wish to track more attributes here, make sure they are correctly
       # calculated by the ProcessMemoryDumpEvent method. All dumps whose parent
       # has "size" attribute are ignored to avoid double counting. So, the
@@ -277,7 +278,7 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
         usage[name] = values['memtrack_pss']
     if self.has_mmaps:
       usage.update((key, self.GetMemoryValue(*value))
-                   for key, value in MMAPS_METRICS.iteritems())
+                   for key, value in six.iteritems(MMAPS_METRICS))
     return usage
 
 
@@ -332,7 +333,7 @@ class GlobalMemoryDump(object):
 
   def __repr__(self):
     values = ['id=%s' % self.dump_id]
-    for key, value in sorted(self.GetMemoryUsage().iteritems()):
+    for key, value in sorted(six.iteritems(self.GetMemoryUsage())):
       values.append('%s=%d' % (key, value))
     values_str = ', '.join(values)
     return '%s[%s]' % (type(self).__name__, values_str)
@@ -341,6 +342,6 @@ class GlobalMemoryDump(object):
     """Get the aggregated memory usage over all processes in this dump."""
     result = {}
     for dump in self._process_dumps:
-      for key, value in dump.GetMemoryUsage().iteritems():
+      for key, value in six.iteritems(dump.GetMemoryUsage()):
         result[key] = result.get(key, 0) + value
     return result

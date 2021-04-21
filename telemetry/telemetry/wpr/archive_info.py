@@ -8,6 +8,7 @@ import os
 import shutil
 import tempfile
 import time
+import six
 
 from py_utils import cloud_storage  # pylint: disable=import-error
 
@@ -103,7 +104,7 @@ class WprArchiveInfo(object):
 
     try:
       story_archives = self._data['archives']
-      download_names = set(story_archives.iterkeys())
+      download_names = set(six.iterkeys(story_archives))
       if story_names is not None:
         download_names.intersection_update(story_names)
       for story_name in download_names:

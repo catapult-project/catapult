@@ -102,7 +102,7 @@ def _get_handshake_headers(resource, host, port, options):
     if "header" in options:
         header = options["header"]
         if isinstance(header, dict):
-            header = map(": ".join, header.items())
+            header = map(": ".join, list(header.items()))
         headers.extend(header)
 
     cookie = options.get("cookie", None)

@@ -8,6 +8,7 @@ import os
 import shutil
 import sys
 import tempfile
+import six
 
 import dependency_manager  # pylint: disable=import-error
 
@@ -420,7 +421,7 @@ def FindAllAvailableBrowsers(finder_options, device):
         'dev': '/opt/google/chrome-unstable'
     }
 
-    for version, root in versions.iteritems():
+    for version, root in six.iteritems(versions):
       browser_path = os.path.join(root, 'chrome')
       if path_module.IsExecutable(browser_path):
         browsers.append(PossibleDesktopBrowser(version, finder_options,

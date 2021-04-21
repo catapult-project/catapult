@@ -47,9 +47,9 @@ def GetHostPlatform():
 def _IterAllPlatformBackendClasses():
   platform_dir = os.path.dirname(os.path.realpath(
       platform_backend_module.__file__))
-  return discover.DiscoverClasses(
+  return six.itervalues(discover.DiscoverClasses(
       platform_dir, util.GetTelemetryDir(),
-      platform_backend_module.PlatformBackend).itervalues()
+      platform_backend_module.PlatformBackend))
 
 
 def GetPlatformForDevice(device, finder_options, logging=real_logging):

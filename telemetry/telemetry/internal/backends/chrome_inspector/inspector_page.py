@@ -78,7 +78,7 @@ class InspectorPage(object):
         'method': 'Page.enable'
         }
     res = self._inspector_websocket.SyncRequest(request, timeout)
-    assert len(res['result'].keys()) == 0
+    assert len(res['result']) == 0
 
   def WaitForNavigate(self, timeout=60):
     """Waits for the navigation to complete.

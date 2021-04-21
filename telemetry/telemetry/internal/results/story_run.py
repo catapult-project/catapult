@@ -332,7 +332,7 @@ class StoryRun(object):
 
     Returns an iterator over artifacts.
     """
-    for name, artifact in self._artifacts.iteritems():
+    for name, artifact in six.iteritems(self._artifacts):
       if subdir is None or name.startswith(posixpath.join(subdir, '')):
         yield artifact
 

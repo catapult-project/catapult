@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import re
+import six
 
 from telemetry.timeline import chrome_trace_category_filter
 
@@ -44,7 +45,7 @@ def _ConvertDictKeysToCamelCaseRecursively(data):
   if isinstance(data, dict):
     return {_ConvertStringToCamelCase(k):
             _ConvertDictKeysToCamelCaseRecursively(v)
-            for k, v in data.iteritems()}
+            for k, v in six.iteritems(data)}
   elif isinstance(data, list):
     return map(_ConvertDictKeysToCamelCaseRecursively, data)
   else:

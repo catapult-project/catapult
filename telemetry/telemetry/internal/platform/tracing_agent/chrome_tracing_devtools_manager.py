@@ -5,6 +5,9 @@
 # A singleton map from platform backends to maps of uniquely-identifying
 # remote port (which may be the same as local port) to DevToolsClientBackend.
 # There is no guarantee that the devtools agent is still alive.
+
+import six
+
 _platform_backends_to_devtools_clients_maps = {}
 
 
@@ -14,7 +17,7 @@ def _RemoveStaleDevToolsClient(platform_backend):
       platform_backend, {})
   devtools_clients_map = {
       port: client
-      for port, client in devtools_clients_map.iteritems()
+      for port, client in six.iteritems(devtools_clients_map)
       if client.IsAlive()
       }
   _platform_backends_to_devtools_clients_maps[platform_backend] = (
@@ -38,7 +41,7 @@ def GetDevToolsClients(platform_backend):
       platform_backend, {})
   if not devtools_clients_map:
     return []
-  return devtools_clients_map.values()
+  return list(devtools_clients_map.values())
 
 def GetActiveDevToolsClients(platform_backend):
   """Get DevTools clients that are still connectable."""

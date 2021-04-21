@@ -231,7 +231,7 @@ def RunTests(args):
         options.top_level_dir,
         base_class=serially_executed_browser_test_case.
         SeriallyExecutedBrowserTestCase)
-    browser_test_classes = modules_to_classes.values()
+    browser_test_classes = list(modules_to_classes.values())
 
   _ValidateDistinctNames(browser_test_classes)
 

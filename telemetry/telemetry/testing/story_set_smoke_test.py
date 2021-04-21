@@ -24,9 +24,9 @@ class StorySetSmokeTest(unittest.TestCase):
   def GetAllStorySetClasses(self, story_sets_dir, top_level_dir):
     # We can't test page sets that aren't directly constructible since we
     # don't know what arguments to put for the constructor.
-    return discover.DiscoverClasses(story_sets_dir, top_level_dir,
-                                    story_module.StorySet,
-                                    directly_constructable=True).values()
+    return list(discover.DiscoverClasses(story_sets_dir, top_level_dir,
+                                         story_module.StorySet,
+                                         directly_constructable=True).values())
 
   def CheckArchive(self, story_set):
     """Verify that all URLs of pages in story_set have an associated archive."""

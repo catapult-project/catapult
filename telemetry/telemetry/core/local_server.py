@@ -13,6 +13,7 @@ import re
 import subprocess
 import sys
 import time
+import six
 
 from telemetry.core import util
 
@@ -187,13 +188,13 @@ class LocalServerController(object):
 
   @property
   def local_servers(self):
-    return self._local_servers_by_class.values()
+    return list(self._local_servers_by_class.values())
 
   def Close(self):
     # TODO(crbug.com/953365): This is a terrible infinite loop scenario
     # and we should fix it.
     while len(self._local_servers_by_class):
-      server = next(self._local_servers_by_class.itervalues())
+      server = next(six.itervalues(self._local_servers_by_class))
       try:
         server.Close()
       except Exception: # pylint: disable=broad-except

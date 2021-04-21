@@ -3,6 +3,7 @@ altgraph.GraphAlgo - Graph algorithms
 =====================================
 '''
 from altgraph import GraphError
+import six
 
 def dijkstra(graph, start, end=None):
     """
@@ -127,7 +128,7 @@ class _priorityDictionary(dict):
         dict.__setitem__(self, key, val)
         heap = self.__heap
         if len(heap) > 2 * len(self):
-            self.__heap = [(v, k) for k, v in self.iteritems()]
+            self.__heap = [(v, k) for k, v in six.iteritems(self)]
             self.__heap.sort()  # builtin sort probably faster than O(n)-time heapify
         else:
             newPair = (val, key)

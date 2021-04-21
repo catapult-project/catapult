@@ -636,7 +636,7 @@ class NonCallableMock(Base):
 
         >>> attrs = {'method.return_value': 3, 'other.side_effect': KeyError}
         >>> mock.configure_mock(**attrs)"""
-        for arg, val in sorted(kwargs.items(),
+        for arg, val in sorted(list(kwargs.items()),
                                # we sort on the number of dots so that
                                # attributes are set before we set attributes on
                                # attributes

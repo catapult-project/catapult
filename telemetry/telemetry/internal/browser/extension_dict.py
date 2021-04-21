@@ -26,7 +26,7 @@ class ExtensionDict(object):
 
   def keys(self):
     # pylint: disable=invalid-name
-    return self._extension_backend.keys()
+    return list(self._extension_backend.keys())
 
   def GetByExtensionId(self, extension_id):
     """Returns a list of extensions given an extension id. This is useful for

@@ -9,6 +9,7 @@ import sys
 import tempfile
 import unittest
 import logging
+import six
 
 import mock
 
@@ -329,7 +330,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
     if method_exceptions:
       root_mock.configure_mock(**{
           path + '.side_effect': exception
-          for path, exception in method_exceptions.iteritems()})
+          for path, exception in six.iteritems(method_exceptions)})
 
     return root_mock
 

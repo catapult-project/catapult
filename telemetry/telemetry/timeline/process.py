@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import six
+
 import telemetry.timeline.counter as tracing_counter
 import telemetry.timeline.event as event_module
 import telemetry.timeline.event_container as event_container
@@ -39,9 +41,9 @@ class Process(event_container.TimelineEventContainer):
     return self._counters
 
   def IterChildContainers(self):
-    for thread in self._threads.itervalues():
+    for thread in six.itervalues(self._threads):
       yield thread
-    for counter in self._counters.itervalues():
+    for counter in six.itervalues(self._counters):
       yield counter
 
   def IterEventsInThisContainer(self, event_type_predicate, event_predicate):
@@ -51,7 +53,7 @@ class Process(event_container.TimelineEventContainer):
       yield self._trace_buffer_overflow_event
     if (self._memory_dump_events and
         event_type_predicate(memory_dump_event.ProcessMemoryDumpEvent)):
-      for memory_dump in self._memory_dump_events.itervalues():
+      for memory_dump in six.itervalues(self._memory_dump_events):
         if event_predicate(memory_dump):
           yield memory_dump
 
@@ -79,7 +81,7 @@ class Process(event_container.TimelineEventContainer):
       return ctr
 
   def AutoCloseOpenSlices(self, max_timestamp, thread_time_bounds):
-    for thread in self._threads.itervalues():
+    for thread in six.itervalues(self._threads):
       thread.AutoCloseOpenSlices(max_timestamp, thread_time_bounds[thread].max)
 
   def SetTraceBufferOverflowTimestamp(self, timestamp):
@@ -95,7 +97,7 @@ class Process(event_container.TimelineEventContainer):
     self._memory_dump_events[memory_dump.dump_id] = memory_dump
 
   def FinalizeImport(self):
-    for thread in self._threads.itervalues():
+    for thread in six.itervalues(self._threads):
       thread.FinalizeImport()
-    for counter in self._counters.itervalues():
+    for counter in six.itervalues(self._counters):
       counter.FinalizeImport()
