@@ -35,8 +35,16 @@ class Cancel(api_request_handler.ApiRequestHandler):
 
     # Enforce first that only the users that started the job and administrators
     # can cancel jobs.
-    email = utils.GetEmail()
-    if not utils.IsAdministrator() and email != job.user:
+    requester_email = utils.GetEmail()
+    delegated_email = args.get('user')
+
+    # Here, we check that the requester email is in a list of service accounts
+    # that we support delegation for.
+    if delegated_email and utils.IsAllowedToDelegate(requester_email):
+      email = delegated_email
+    else:
+      email = requester_email
+    if not utils.IsAdministrator(email) and email != job.user:
       raise api_request_handler.ForbiddenError()
 
     # Truncate the reason down to 255 caracters including ellipses.

@@ -491,11 +491,12 @@ def IsInternalUser():
   return is_internal_user
 
 
-def IsAdministrator():
+def IsAdministrator(email=None):
   """Checks whether the user is an administrator of the Dashboard."""
   if IsDevAppserver():
     return True
-  email = GetEmail()
+  if not email:
+    email = GetEmail()
   if not email:
     return False
   cached = GetCachedIsAdministrator(email)
@@ -641,6 +642,12 @@ def IsTryjobUser():
   email = GetEmail()
   return bool(email) and IsGroupMember(
       identity=email, group='project-pinpoint-tryjob-access')
+
+
+def IsAllowedToDelegate(email):
+  return bool(email) and IsGroupMember(
+      identity=email,
+      group='project-pinpoint-service-account-delegation-access')
 
 
 @ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, xg=True)

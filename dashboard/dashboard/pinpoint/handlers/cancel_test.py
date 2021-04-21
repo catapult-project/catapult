@@ -38,6 +38,8 @@ class CancelJobTest(test.TestCase):
                      mock.MagicMock(return_value=False))
   @mock.patch.object(cancel.utils, 'IsTryjobUser',
                      mock.MagicMock(return_value=True))
+  @mock.patch.object(cancel.utils, 'IsAllowedToDelegate',
+                     mock.MagicMock(return_value=False))
   def testCancelKnownJobByOwner(self):
     job = job_module.Job.New((), (), user='lovely.user@example.com', bug_id=123)
     scheduler.Schedule(job)
@@ -60,6 +62,8 @@ class CancelJobTest(test.TestCase):
                      mock.MagicMock(return_value=True))
   @mock.patch.object(cancel.utils, 'IsTryjobUser',
                      mock.MagicMock(return_value=True))
+  @mock.patch.object(cancel.utils, 'IsAllowedToDelegate',
+                     mock.MagicMock(return_value=False))
   def testCancelKnownJobByAdmin(self):
     job = job_module.Job.New((), (), user='lovely.user@example.com', bug_id=123)
     scheduler.Schedule(job)
@@ -81,6 +85,8 @@ class CancelJobTest(test.TestCase):
                      mock.MagicMock(return_value=False))
   @mock.patch.object(cancel.utils, 'IsTryjobUser',
                      mock.MagicMock(return_value=True))
+  @mock.patch.object(cancel.utils, 'IsAllowedToDelegate',
+                     mock.MagicMock(return_value=False))
   def testCancelUnknownJob(self):
     job = job_module.Job.New((), (), user='lovely.user@example.com')
     scheduler.Schedule(job)
@@ -128,6 +134,8 @@ class CancelJobTest(test.TestCase):
                      mock.MagicMock(return_value=False))
   @mock.patch.object(cancel.utils, 'IsTryjobUser',
                      mock.MagicMock(return_value=True))
+  @mock.patch.object(cancel.utils, 'IsAllowedToDelegate',
+                     mock.MagicMock(return_value=False))
   def testCancelForbiddenUser(self):
     job = job_module.Job.New((), (), user='lovely.user@example.com')
     scheduler.Schedule(job)
@@ -138,6 +146,68 @@ class CancelJobTest(test.TestCase):
             'reason': 'testing!'
         },
         status=403)
+
+  @mock.patch.object(cancel.utils, 'GetEmail',
+                     mock.MagicMock(return_value='another.user@example.com'))
+  @mock.patch.object(cancel.utils, 'IsAdministrator',
+                     mock.MagicMock(return_value=False))
+  @mock.patch.object(cancel.utils, 'IsTryjobUser',
+                     mock.MagicMock(return_value=True))
+  @mock.patch.object(cancel.utils, 'IsAllowedToDelegate',
+                     mock.MagicMock(return_value=True))
+  def testCancelDelegationSupported(self):
+    job = job_module.Job.New((), (), user='lovely.user@example.com')
+    scheduler.Schedule(job)
+    self.addCleanup(scheduler.Cancel, job)
+    self.Post(
+        '/api/job/cancel', {
+            'user': job.user,
+            'job_id': job.job_id,
+            'reason': 'testing!'
+        },
+        status=200)
+
+  @mock.patch.object(
+      cancel.utils, 'GetEmail',
+      mock.MagicMock(return_value='some-service-account@example.com'))
+  @mock.patch.object(cancel.utils, 'IsAdministrator',
+                     mock.MagicMock(return_value=False))
+  @mock.patch.object(cancel.utils, 'IsTryjobUser',
+                     mock.MagicMock(return_value=True))
+  @mock.patch.object(cancel.utils, 'IsAllowedToDelegate',
+                     mock.MagicMock(return_value=False))
+  def testCancelDelegationRejected(self):
+    job = job_module.Job.New((), (), user='lovely.user@example.com')
+    scheduler.Schedule(job)
+    self.addCleanup(scheduler.Cancel, job)
+    self.Post(
+        '/api/job/cancel', {
+            'user': job.user,
+            'job_id': job.job_id,
+            'reason': 'testing!'
+        },
+        status=403)
+
+  @mock.patch.object(
+      cancel.utils, 'GetEmail',
+      mock.MagicMock(return_value='some-service-account@example.com'))
+  @mock.patch.object(cancel.utils, 'IsAdministrator',
+                     mock.MagicMock(return_value=True))
+  @mock.patch.object(cancel.utils, 'IsTryjobUser',
+                     mock.MagicMock(return_value=True))
+  @mock.patch.object(cancel.utils, 'IsAllowedToDelegate',
+                     mock.MagicMock(return_value=True))
+  def testCancelDelegationForAnAdminWorks(self):
+    job = job_module.Job.New((), (), user='lovely.user@example.com')
+    scheduler.Schedule(job)
+    self.addCleanup(scheduler.Cancel, job)
+    self.Post(
+        '/api/job/cancel', {
+            'user': 'admin@example.com',
+            'job_id': job.job_id,
+            'reason': 'testing!'
+        },
+        status=200)
 
   @mock.patch.object(cancel.utils, 'GetEmail',
                      mock.MagicMock(return_value='lovely.user@example.com'))
