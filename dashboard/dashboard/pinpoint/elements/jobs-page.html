@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/components/app-route/app-route.html">
 
 <link rel="import" href="/elements/base-style.html">
+<link rel="import" href="/elements/job-search-tip.html">
 <link rel="import" href="/elements/jobs-page/jobs-table.html">
 <link rel="import" href="/elements/jobs-page/new-job-fab.html">
 <link rel="import" href="/elements/loading-wrapper.html">
@@ -34,6 +35,7 @@ found in the LICENSE file.
       <span id="job-count" class="badge">
         [[jobCount(jobs)]]
       </span>
+      <job-search-tip></job-search-tip>
     </h1>
     <loading-wrapper url="/api/jobs" headers="[[authHeaders]]" response="{{jobs}}">
       <jobs-table id="jobs-table"
