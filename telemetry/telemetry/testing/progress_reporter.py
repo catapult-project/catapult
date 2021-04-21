@@ -62,7 +62,7 @@ class TestRunner(object):
     result.startTestRun()
     try:
       options_for_unittests.Push(args)
-      for _ in xrange(repeat_count):
+      for _ in range(repeat_count):
         test(result)
     finally:
       options_for_unittests.Pop()

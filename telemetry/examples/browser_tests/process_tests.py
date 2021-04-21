@@ -20,7 +20,7 @@ class FailIfSetUpProcessCalledTwice(
   @classmethod
   def GenerateTestCases_DummyTest(cls, options):
     del options  # Unused.
-    for i in xrange(0, 3):
+    for i in range(0, 3):
       yield 'Dummy_%i' % i, ()
 
   def DummyTest(self):
@@ -40,7 +40,7 @@ class FailIfTearDownProcessCalledTwice(
   @classmethod
   def GenerateTestCases_DummyTest(cls, options):
     del options  # Unused.
-    for i in xrange(0, 3):
+    for i in range(0, 3):
       yield 'Dummy_%i' % i, ()
 
   def DummyTest(self):

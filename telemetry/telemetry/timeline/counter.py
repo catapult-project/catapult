@@ -78,7 +78,7 @@ class Counter(event_container.TimelineEventContainer):
     # Pass event_predicate a reused CounterSample instance to avoid
     # creating a ton of garbage for rejected samples.
     test_sample = CounterSample(self, 0)
-    for i in xrange(len(self.timestamps)):
+    for i in range(len(self.timestamps)):
       test_sample._sample_index = i  # pylint: disable=protected-access
       if event_predicate(test_sample):
         yield CounterSample(self, i)
@@ -102,9 +102,9 @@ class Counter(event_container.TimelineEventContainer):
       return
 
     max_total = None
-    for i in xrange(self.num_samples):
+    for i in range(self.num_samples):
       total = 0
-      for j in xrange(self.num_series):
+      for j in range(self.num_series):
         total += self.samples[i * self.num_series + j]
         self.totals.append(total)
       if max_total is None or total > max_total:

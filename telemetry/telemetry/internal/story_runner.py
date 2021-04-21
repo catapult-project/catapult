@@ -114,7 +114,8 @@ def CaptureLogsAsArtifacts(results):
       yield
 
 
-def _RunStoryAndProcessErrorIfNeeded(story, results, state, test, finder_options):
+def _RunStoryAndProcessErrorIfNeeded(
+    story, results, state, test, finder_options):
   def ProcessError(log_message):
     logging.exception(log_message)
     state.DumpStateUponStoryRunFailure(results)
@@ -296,7 +297,7 @@ def RunStorySet(test, story_set, finder_options, results,
   # pylint: disable=too-many-nested-blocks
   try:
     pageset_repeat = finder_options.pageset_repeat
-    for storyset_repeat_counter in xrange(pageset_repeat):
+    for storyset_repeat_counter in range(pageset_repeat):
       for story in stories:
         if not state:
           # Construct shared state by using a copy of finder_options. Shared
@@ -322,7 +323,8 @@ def RunStorySet(test, story_set, finder_options, results,
               if finder_options.wait_for_cpu_temp:
                 state.platform.WaitForCpuTemperature(38.0)
               _WaitForThermalThrottlingIfNeeded(state.platform)
-            _RunStoryAndProcessErrorIfNeeded(story, results, state, test, finder_options)
+            _RunStoryAndProcessErrorIfNeeded(story, results, state, test,
+                                             finder_options)
           except _UNHANDLEABLE_ERRORS as exc:
             interruption = (
                 'Benchmark execution interrupted by a fatal exception: %r' %

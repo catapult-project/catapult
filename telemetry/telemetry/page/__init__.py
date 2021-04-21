@@ -78,7 +78,7 @@ class Page(story.Story):
     current_tab = shared_state.current_tab
     # Collect garbage from previous run several times to make the results more
     # stable if needed.
-    for _ in xrange(0, 5):
+    for _ in range(0, 5):
       current_tab.CollectGarbage()
     action_runner = action_runner_module.ActionRunner(
         current_tab, skip_waits=self.skip_waits)

@@ -24,7 +24,7 @@ def generate_random_graph(node_num, edge_num, self_loops=False, multi_edges=Fals
         if edge_num > max_edges:
             raise GraphError("inconsistent arguments to 'generate_random_graph'")
 
-    nodes = range(node_num)
+    nodes = list(range(node_num))
 
     for node in nodes:
         g.add_node(node)

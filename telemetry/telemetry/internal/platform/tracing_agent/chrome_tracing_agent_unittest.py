@@ -209,7 +209,7 @@ class ChromeTracingAgentTest(unittest.TestCase):
     # port as devtool 2.
     self.assertFalse(devtool4.is_tracing_running)
 
-    for _ in xrange(5):
+    for _ in range(5):
       self.FlushTracing(tracing_agent1)
       self.assertTrue(devtool1.is_tracing_running)
       self.assertFalse(devtool2.is_tracing_running)

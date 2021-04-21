@@ -387,7 +387,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
   def testExecutingTestsInSortedOrder(self):
     alphabetical_tests = []
     prefix = 'browser_tests.simple_numeric_test.SimpleTest.Alphabetical_'
-    for i in xrange(20):
+    for i in range(20):
       alphabetical_tests.append(prefix + str(i))
     for c in string.uppercase[:26]:
       alphabetical_tests.append(prefix + c)
@@ -399,12 +399,12 @@ class BrowserTestRunnerTest(unittest.TestCase):
 
   def shardingRangeTestHelper(self, total_shards, num_tests):
     shard_indices = []
-    for shard_index in xrange(0, total_shards):
+    for shard_index in range(0, total_shards):
       shard_indices.append(run_browser_tests._TestIndicesForShard(
           total_shards, shard_index, num_tests))
     # Make assertions about ranges
     num_tests_run = 0
-    for i in xrange(0, len(shard_indices)):
+    for i in range(0, len(shard_indices)):
       cur_indices = shard_indices[i]
       num_tests_in_shard = len(cur_indices)
       if i < num_tests:
@@ -416,19 +416,19 @@ class BrowserTestRunnerTest(unittest.TestCase):
 
     # Assert that we run all of the tests exactly once.
     all_indices = set()
-    for i in xrange(0, len(shard_indices)):
+    for i in range(0, len(shard_indices)):
       cur_indices = shard_indices[i]
       all_indices.update(cur_indices)
     self.assertEquals(num_tests_run, num_tests)
     self.assertEquals(num_tests_run, len(all_indices))
 
   def testShardsWithPrimeNumTests(self):
-    for total_shards in xrange(1, 20):
+    for total_shards in range(1, 20):
       # Nice non-prime number
       self.shardingRangeTestHelper(total_shards, 101)
 
   def testShardsWithDivisibleNumTests(self):
-    for total_shards in xrange(1, 6):
+    for total_shards in range(1, 6):
       self.shardingRangeTestHelper(total_shards, 8)
 
   def testShardBoundaryConditions(self):

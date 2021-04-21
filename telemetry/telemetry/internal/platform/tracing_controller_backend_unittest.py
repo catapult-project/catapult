@@ -181,7 +181,7 @@ class TracingControllerBackendTest(unittest.TestCase):
     self.assertIsNotNone(self.controller._current_state.builder)
 
     # Flush tracing several times.
-    for _ in xrange(5):
+    for _ in range(5):
       self.controller.FlushTracing()
       self.assertTrue(self.controller.is_tracing_running)
       self.assertIs(self.controller._current_state.config, self.config)

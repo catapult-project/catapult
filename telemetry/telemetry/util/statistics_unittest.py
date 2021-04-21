@@ -17,14 +17,14 @@ def Relax(samples, iterations=10):
 
   Keeps the position of the first and last sample.
   """
-  for _ in xrange(0, iterations):
+  for _ in range(0, iterations):
     voronoi_boundaries = []
-    for i in xrange(1, len(samples)):
+    for i in range(1, len(samples)):
       voronoi_boundaries.append((samples[i] + samples[i-1]) * 0.5)
 
     relaxed_samples = []
     relaxed_samples.append(samples[0])
-    for i in xrange(1, len(samples)-1):
+    for i in range(1, len(samples)-1):
       relaxed_samples.append(
           (voronoi_boundaries[i-1] + voronoi_boundaries[i]) * 0.5)
     relaxed_samples.append(samples[-1])
@@ -35,7 +35,7 @@ def CreateRandomSamples(num_samples):
   samples = []
   position = 0.0
   samples.append(position)
-  for _ in xrange(1, num_samples):
+  for _ in range(1, num_samples):
     position += random.random()
     samples.append(position)
   return samples
@@ -73,7 +73,7 @@ class StatisticsUnitTest(unittest.TestCase):
     must be less than or equal to the discrepancy of the original samples.
     """
     random.seed(1234567)
-    for _ in xrange(0, 10):
+    for _ in range(0, 10):
       samples = CreateRandomSamples(10)
       samples = statistics.NormalizeSamples(samples)[0]
       d = statistics.Discrepancy(samples)
@@ -160,7 +160,7 @@ class StatisticsUnitTest(unittest.TestCase):
     solution.
     """
     random.seed(1234567)
-    for _ in xrange(0, 5):
+    for _ in range(0, 5):
       samples = CreateRandomSamples(10)
       samples = statistics.NormalizeSamples(samples)[0]
       d = statistics.Discrepancy(samples)

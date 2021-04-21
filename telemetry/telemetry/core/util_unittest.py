@@ -28,7 +28,7 @@ class TestGetSequentialFileName(unittest.TestCase):
 
   def testGetSequentialFileNameWithOtherSequentialFiles(self):
     # Create test_000.json, test_001.json, test_002.json in test directory.
-    for i in xrange(3):
+    for i in range(3):
       with open(
           os.path.join(self.test_directory, 'test_%03d.json' % i), 'w') as _:
         pass

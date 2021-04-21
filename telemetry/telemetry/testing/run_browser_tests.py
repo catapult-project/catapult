@@ -64,7 +64,7 @@ def _TestIndicesForShard(total_shards, shard_index, num_tests):
   groups of related tests, which can skew runtimes. See
   https://crbug.com/1028298.
   """
-  return range(shard_index, num_tests, total_shards)
+  return list(range(shard_index, num_tests, total_shards))
 
 def _MedianTestTime(test_times):
   times = sorted(test_times.values())
@@ -98,7 +98,7 @@ def _SplitShardsByTime(test_cases, total_shards, test_times,
                        debug_shard_distributions):
   median = _MedianTestTime(test_times)
   shards = []
-  for i in xrange(total_shards):
+  for i in range(total_shards):
     shards.append({'total_time': 0.0, 'tests': []})
   test_cases.sort(key=lambda t: _TestTime(t, test_times, median),
                   reverse=True)
@@ -115,7 +115,7 @@ def _SplitShardsByTime(test_cases, total_shards, test_times,
   for t in test_cases:
     min_shard_index = 0
     min_shard_time = None
-    for i in xrange(total_shards):
+    for i in range(total_shards):
       if min_shard_time is None or shards[i]['total_time'] < min_shard_time:
         min_shard_index = i
         min_shard_time = shards[i]['total_time']
@@ -160,7 +160,7 @@ def LoadTestCasesToBeRun(
         total_shards, shard_index, len(test_cases))
     if debug_shard_distributions:
       tmp_shards = []
-      for i in xrange(total_shards):
+      for i in range(total_shards):
         tmp_indices = _TestIndicesForShard(
             total_shards, i, len(test_cases))
         tmp_tests = [test_cases[index] for index in tmp_indices]

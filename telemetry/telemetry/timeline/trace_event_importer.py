@@ -374,7 +374,7 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
           async_slice.args = events[0]['event']['args']
 
           # Create sub_slices for each step.
-          for j in xrange(1, len(events)):
+          for j in range(1, len(events)):
             sub_name = name
             if events[j - 1]['event']['ph'] == 'T':
               sub_name = name + ':' + events[j - 1]['event']['args']['step']

@@ -22,7 +22,7 @@ class SimpleShardingTest(
   @classmethod
   def GenerateTestCases_PassingTest(cls, options):
     del options  # unused
-    for i in xrange(10):
+    for i in range(10):
       yield 'passing_test_' + str(i), (i,)
 
   def PassingTest(self, a):

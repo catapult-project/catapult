@@ -47,9 +47,9 @@ else:
     @decorators.Isolated
     def testBasicFunctionality(self):
       def CheckCorners(corners, expected):
-        for i in xrange(len(corners)):
-          for j in xrange(len(corners[i])):
-            self.assertAlmostEqual(corners[i][j], expected[i][j], delta=1.1)
+        for i, corner in enumerate(corners):
+          for j, val in enumerate(corner):
+            self.assertAlmostEqual(val, expected[i][j], delta=1.1)
       expected = [[314, 60], [168, 58], [162, 274], [311, 276]]
       sf = self._GetScreenFinder('screen_3_frames.mov')
       self.assertTrue(sf.HasNext())

@@ -486,7 +486,7 @@ class AndroidPlatformBackend(
 
     Limit the number in case we have an error loop or we are failing to dismiss.
     """
-    for _ in xrange(10):
+    for _ in range(10):
       if not self._device.DismissCrashDialogIfNeeded():
         break
 

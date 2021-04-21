@@ -237,8 +237,8 @@ class ScreenFinder(object):
       points and the lines that intersect there of all lines in the array that
       are more than 45 degrees apart."""
     intersections = np.empty((0, 3), np.float32)
-    for i in xrange(0, len(lines)):
-      for j in xrange(i + 1, len(lines)):
+    for i in range(0, len(lines)):
+      for j in range(i + 1, len(lines)):
         # Filter lines that are less than 45 (or greater than 135) degrees
         # apart.
         if not cv_util.AreLinesOrthogonal(lines[i], lines[j], (np.pi / 4.0)):
@@ -270,7 +270,7 @@ class ScreenFinder(object):
 
   def _HasMovedFast(self, corners, prev_corners):
     min_dist = np.zeros(4, np.float32)
-    for i in xrange(4):
+    for i in range(4):
       dist = np.min(cv_util.SqDistances(corners, prev_corners[i]))
       min_dist[i] = dist
     # 3 corners can move up to one pixel before we consider the screen to have
@@ -345,7 +345,7 @@ class ScreenFinder(object):
     # that the corner is not erroneous by ensuring it makes a rectangle with
     # the 3 known good corners.
     if len(filtered) == 4:
-      for i in xrange(4):
+      for i in range(4):
         point_info = (filtered[i].corner_location,
                       filtered[i].line1,
                       filtered[i].line2)
@@ -358,8 +358,8 @@ class ScreenFinder(object):
     # Ensure corners are sorted properly, inserting nans for missing corners.
     sorted_corners = np.empty((4, 2), np.float32)
     sorted_corners[:] = np.nan
-    for i in xrange(len(filtered_corners)):
-      sorted_corners[corner_indices[i]] = filtered_corners[i]
+    for i, filtered_corner in enumerate(filtered_corners):
+      sorted_corners[corner_indices[i]] = filtered_corner
 
     # From this point on, our corners arrays are guaranteed to have 4
     # elements, though some may be nan.
@@ -371,7 +371,7 @@ class ScreenFinder(object):
         and len(filtered_corners) == 4)
     if self._prev_corners is not None and not reset_corners:
       sqdists = cv_util.SqDistances(self._prev_corners, sorted_corners)
-      for i in xrange(4):
+      for i in range(4):
         if np.isnan(sorted_corners[i][0]):
           continue
         if sqdists[i] > self.MAX_INTERFRAME_MOTION:
@@ -454,7 +454,7 @@ class ScreenFinder(object):
       self._anglesp5 = angles + self.SMALL_ANGLE
       self._anglesm5 = angles - self.SMALL_ANGLE
     results = []
-    for i in xrange(len(y_range)):
+    for i, _ in enumerate(y_range):
       # Generate our filters for which points belong to which quadrant.
       one = np.where((self._anglesp5 <= line_angles[i, 1]) &
                      (self._anglesm5 >= line_angles[i, 0]))
@@ -538,7 +538,7 @@ class ScreenFinder(object):
 
     # De-dup corners.
     c_old = None
-    for i in xrange(len(corner_data) - 1, 0, -1):
+    for i in range(len(corner_data) - 1, 0, -1):
       if corner_data[i].corner_index != corner_data[i - 1].corner_index:
         c_old = None
         continue
@@ -615,7 +615,7 @@ class ScreenFinder(object):
     # intersections representing corners to see if we can find a more exact
     # corner, as the position of the intersections is noisy and not always
     # perfectly accurate.
-    for i in xrange(4):
+    for i in range(4):
       corner = sorted_corners[i]
       if np.isnan(corner[0]):
         real_corners[i] = np.nan
@@ -664,13 +664,13 @@ class ScreenFinder(object):
     starting_x = w - 1 if left else 0
     cx = starting_x
     if top:
-      y_range = xrange(h - 1, -1, -1)
+      y_range = range(h - 1, -1, -1)
     else:
-      y_range = xrange(0, h, 1)
+      y_range = range(0, h, 1)
     if left:
-      x_range = xrange(w - 1, -1, -1)
+      x_range = range(w - 1, -1, -1)
     else:
-      x_range = xrange(0, w, 1)
+      x_range = range(0, w, 1)
     for y in y_range:
       for x in x_range:
         if img[y][x] == 255:
@@ -717,7 +717,7 @@ class ScreenFinder(object):
                    self._frame_generator.CurrentFrameNumber)
     # Replace missing new_corners with either nearest intersection to previous
     # corner, or previous corner if no intersections are found.
-    for i in xrange(0, 4):
+    for i in range(0, 4):
       if not np.isnan(new_corners[i][0]):
         self._lost_corners[i] = False
         continue
@@ -756,7 +756,7 @@ class ScreenFinder(object):
       The final corner positions."""
     if self._avg_corners is None:
       self._avg_corners = np.asfarray(corners, np.float32)
-    for i in xrange(0, 4):
+    for i in range(0, 4):
       # Keep an exponential moving average of the corner location to reduce
       # noise.
       new_contrib = np.multiply(self.CORNER_AVERAGE_WEIGHT, corners[i])

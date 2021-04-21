@@ -947,9 +947,9 @@ class RunBenchmarkTest(unittest.TestCase):
     self.assertEqual(len(test_results), 31)
 
     expected = []
-    expected.extend(('story_%i' % i, 'PASS') for i in xrange(10, 30))
+    expected.extend(('story_%i' % i, 'PASS') for i in range(10, 30))
     expected.append(('story_30', 'FAIL'))
-    expected.extend(('story_%i' % i, 'SKIP') for i in xrange(31, 41))
+    expected.extend(('story_%i' % i, 'SKIP') for i in range(31, 41))
 
     for (story, status), result in zip(expected, test_results):
       self.assertEqual(result['testPath'], 'fake_benchmark/%s' % story)
