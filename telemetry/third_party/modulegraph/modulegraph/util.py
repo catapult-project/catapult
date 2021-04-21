@@ -7,6 +7,8 @@ import re
 import marshal
 import warnings
 
+#2to3: modernize tried to convert unicode to six.text_type but the type should
+# be handled already. Leaving this untouched.
 try:
     unicode
 except NameError:

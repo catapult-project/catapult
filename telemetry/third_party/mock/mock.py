@@ -66,7 +66,9 @@ else:
                 f.__wrapped__ = func
                 return f
             return inner
-
+      
+#2to3: modernize tried to convert unicode to six.text_type but the type should
+# be handled already. Leaving this untouched.
 try:
     unicode
 except NameError:

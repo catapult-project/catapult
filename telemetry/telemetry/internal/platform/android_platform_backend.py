@@ -622,7 +622,7 @@ class AndroidPlatformBackend(
     """
     def decode_line(line):
       try:
-        uline = unicode(line, encoding='utf-8')
+        uline = six.text_type(line, encoding='utf-8')
         return uline.encode('ascii', 'backslashreplace')
       except Exception: # pylint: disable=broad-except
         logging.error('Error encoding UTF-8 logcat line as ASCII.')
