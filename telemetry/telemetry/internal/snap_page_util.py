@@ -13,6 +13,7 @@ import sys
 from io import BytesIO
 
 import six.moves.urllib.request # pylint: disable=import-error
+from six.moves import input # pylint: disable=redefined-builtin
 
 from telemetry.core import util
 from telemetry.internal.browser import browser_finder
@@ -116,7 +117,7 @@ def _SnapPageToFile(finder_options, url, interactive, snapshot_path,
     tab = browser.tabs[0]
     tab.Navigate(url)
     if interactive:
-      raw_input(
+      input(
           'Activating interactive mode. Press enter after you finish '
           "interacting with the page to snapshot the page's DOM content.")
 

@@ -7,6 +7,7 @@ import logging
 import time
 import six
 import six.moves.urllib.parse # pylint: disable=import-error
+from six.moves import input # pylint: disable=redefined-builtin
 
 from telemetry.core import exceptions
 from telemetry.internal.actions import page_action
@@ -818,7 +819,7 @@ class ActionRunner(ActionRunnerBase):
     the page execution and inspect the browser state before
     continuing.
     """
-    raw_input("Interacting... Press Enter to continue.")
+    input("Interacting... Press Enter to continue.")
 
   def RepaintContinuously(self, seconds):
     """Continuously repaints the visible content.

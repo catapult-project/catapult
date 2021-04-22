@@ -8,6 +8,7 @@ import socket
 import sys
 import time
 import six
+from six.moves import input # pylint: disable=redefined-builtin
 
 from py_trace_event import trace_event
 
@@ -652,9 +653,9 @@ class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
 
   def _WaitForInspectorToGoAway(self):
     self._websocket.Disconnect()
-    raw_input('The connection to Chrome was lost to the inspector ui.\n'
-              'Please close the inspector and press enter to resume '
-              'Telemetry run...')
+    input('The connection to Chrome was lost to the inspector ui.\n'
+          'Please close the inspector and press enter to resume '
+          'Telemetry run...')
     raise exceptions.DevtoolsTargetCrashException(
         self.app, 'Devtool connection with the browser was interrupted due to '
         'the opening of an inspector.')

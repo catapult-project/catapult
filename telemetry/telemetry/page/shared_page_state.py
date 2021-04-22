@@ -5,6 +5,7 @@
 import logging
 import os
 import shutil
+from six.moves import input # pylint: disable=redefined-builtin
 
 from telemetry.core import exceptions
 from telemetry.core import platform as platform_module
@@ -152,8 +153,8 @@ class SharedPageState(story_module.SharedState):
 
   def _AllowInteractionForStage(self, stage):
     if self._finder_options.pause == stage:
-      raw_input('Pausing for interaction at %s... Press Enter to continue.' %
-                stage)
+      input('Pausing for interaction at %s... Press Enter to continue.' %
+            stage)
 
   def _StartBrowser(self, page):
     assert self._browser is None
