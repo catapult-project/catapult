@@ -168,6 +168,7 @@ from __future__ import generators
 from __future__ import print_function
 from __future__ import division
 from functools import reduce
+from six.moves import map
 __version__ = "$URL$ $Rev$"
 
 from array import array
@@ -1633,7 +1634,7 @@ class Reader:
                 out.extend(map(lambda i: mask&(o>>i), shifts))
             return out[:width]
 
-        return itertools.imap(asvalues, rows)
+        return map(asvalues, rows)
 
     def serialtoflat(self, bytes, width=None):
         """Convert serial format (byte stream) pixel data to flat row
@@ -1923,7 +1924,7 @@ class Reader:
             arraycode = 'BH'[self.bitdepth>8]
             # Like :meth:`group` but producing an array.array object for
             # each row.
-            pixels = itertools.imap(lambda *row: array(arraycode, row),
+            pixels = map(lambda *row: array(arraycode, row),
                        *[iter(self.deinterlace(raw))]*self.width*self.planes)
         else:
             pixels = self.iterboxed(self.iterstraight(raw))
@@ -2872,7 +2873,7 @@ class Test(unittest.TestCase):
         import itertools
 
         i = itertools.islice(itertools.count(10), 20)
-        i = itertools.imap(lambda x: [x, x, x], i)
+        i = map(lambda x: [x, x, x], i)
         img = from_array(i, 'RGB;5', dict(height=20))
         f = open('testiter.png', 'wb')
         img.save(f)
