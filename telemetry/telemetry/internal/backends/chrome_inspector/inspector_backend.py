@@ -325,11 +325,14 @@ class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
             'Exception thrown when trying to capture console output: %s' %
             repr(e))
       # Rethrow with the original stack trace for better debugging.
-      raise py_utils.TimeoutException, \
+      six.reraise(
+          py_utils.TimeoutException,
           py_utils.TimeoutException(
-              'Timeout after %ss while waiting for JavaScript:' % timeout +
-              condition + '\n' +  e.message + '\n' + debug_message), \
+              'Timeout after %ss while waiting for JavaScript:'
+              % timeout + condition + '\n' +  e.message + '\n' + debug_message
+          ),
           sys.exc_info()[2]
+      )
 
 
   def AddTimelineMarker(self, marker):
@@ -698,7 +701,7 @@ class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
     new_error.AddDebuggingMessage(original_error_msg)
     self._AddDebuggingInformation(new_error)
 
-    raise new_error, None, sys.exc_info()[2]
+    six.reraise(new_error, None, sys.exc_info()[2])
 
   def _AddDebuggingInformation(self, error):
     """Adds debugging information to error.

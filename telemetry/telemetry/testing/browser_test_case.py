@@ -5,7 +5,6 @@
 from functools import wraps
 import logging
 import os
-import sys
 import types
 import unittest
 import six
@@ -37,18 +36,12 @@ class _MetaBrowserTestCase(type):
     def WrappedMethod(self):
       try:  # pylint: disable=broad-except
         method(self)
-      except Exception:
-        exc_info = sys.exc_info()
-
+      except Exception: # pylint: disable=broad-except
         if self._browser:
           self._browser.DumpStateUponFailure()
         else:
           logging.warning('Cannot dump browser state: No browser.')
-
-        # Re-raise the original exception. Note that we can't just use 'raise'
-        # without any arguments because an exception might have been thrown when
-        # dumping the state of the browser.
-        raise exc_info[0], exc_info[1], exc_info[2]
+        raise
     return WrappedMethod
 
 

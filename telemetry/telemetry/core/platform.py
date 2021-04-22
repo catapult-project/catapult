@@ -5,7 +5,6 @@ from __future__ import division
 import logging as real_logging
 import os
 import subprocess
-import sys
 import time
 import six
 
@@ -67,10 +66,9 @@ def GetPlatformForDevice(device, finder_options, logging=real_logging):
                                                            finder_options))
         return _REMOTE_PLATFORMS[device.guid]
     return None
-  except Exception:
-    current_exception = sys.exc_info()
+  except Exception: # pylint: disable=broad-except
     logging.error('Fail to create platform instance for %s.', device.name)
-    raise current_exception[0], current_exception[1], current_exception[2]
+    raise
 
 
 class Platform(object):

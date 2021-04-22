@@ -6,6 +6,7 @@ import logging
 import re
 import socket
 import sys
+import six
 
 from py_utils import exc_util
 from py_utils import retry_util
@@ -307,7 +308,7 @@ class _DevToolsClientBackend(object):
     except devtools_http.DevToolsClientUrlError:
       error = TabNotFoundError(
           'Unable to close tab, tab id not found: %s' % tab_id)
-      raise error, None, sys.exc_info()[2]
+      six.reraise(error, None, sys.exc_info()[2])
 
   def ActivateTab(self, tab_id, timeout):
     """Activates the tab with the given id.
@@ -322,7 +323,7 @@ class _DevToolsClientBackend(object):
     except devtools_http.DevToolsClientUrlError:
       error = TabNotFoundError(
           'Unable to activate tab, tab id not found: %s' % tab_id)
-      raise error, None, sys.exc_info()[2]
+      six.reraise(error, None, sys.exc_info()[2])
 
   def GetUrl(self, tab_id):
     """Returns the URL of the tab with |tab_id|, as reported by devtools.
