@@ -1,8 +1,8 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import BaseHTTPServer
-import SimpleHTTPServer
+import six.moves.BaseHTTPServer # pylint: disable=import-error
+import six.moves.SimpleHTTPServer # pylint: disable=import-error
 
 from telemetry import decorators
 from telemetry.core import local_server
@@ -10,7 +10,7 @@ from telemetry.testing import tab_test_case
 
 
 class SimpleLocalServerBackendRequestHandler(
-    SimpleHTTPServer.SimpleHTTPRequestHandler):
+    six.moves.SimpleHTTPServer.SimpleHTTPRequestHandler):
 
   def do_GET(self):
     msg = """<!DOCTYPE html>
@@ -30,12 +30,12 @@ hello world
     pass
 
 
-class SimpleLocalServerBackend(BaseHTTPServer.HTTPServer,
+class SimpleLocalServerBackend(six.moves.BaseHTTPServer.HTTPServer,
                                local_server.LocalServerBackend):
 
   def __init__(self):
-    BaseHTTPServer.HTTPServer.__init__(self, ('127.0.0.1', 0),
-                                       SimpleLocalServerBackendRequestHandler)
+    six.moves.BaseHTTPServer.HTTPServer.__init__(
+        self, ('127.0.0.1', 0), SimpleLocalServerBackendRequestHandler)
     local_server.LocalServerBackend.__init__(self)
 
   def StartAndGetNamedPorts(self, args, handler_class=None):

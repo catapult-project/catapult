@@ -3,10 +3,11 @@
 # found in the LICENSE file.
 
 import errno
-import httplib
 import json
 import socket
 import sys
+
+import six.moves.http_client  # pylint: disable=import-error
 
 from telemetry.core import exceptions
 
@@ -40,8 +41,9 @@ class DevToolsHttp(object):
     assert not self._conn
     try:
       host_port = '127.0.0.1:%i' % self._devtools_port
-      self._conn = httplib.HTTPConnection(host_port, timeout=timeout)
-    except (socket.error, httplib.HTTPException) as e:
+      self._conn = six.moves.http_client.HTTPConnection(
+          host_port, timeout=timeout)
+    except (socket.error, six.moves.http_client.HTTPException) as e:
       raise DevToolsClientConnectionError, (e,), sys.exc_info()[2]
 
   def Disconnect(self):
@@ -51,7 +53,7 @@ class DevToolsHttp(object):
 
     try:
       self._conn.close()
-    except (socket.error, httplib.HTTPException) as e:
+    except (socket.error, six.moves.http_client.HTTPException) as e:
       raise DevToolsClientConnectionError, (e,), sys.exc_info()[2]
     finally:
       self._conn = None
@@ -87,7 +89,7 @@ class DevToolsHttp(object):
       self._conn.request('GET', endpoint)
       response = self._conn.getresponse()
       return response.read()
-    except (socket.error, httplib.HTTPException) as e:
+    except (socket.error, six.moves.http_client.HTTPException) as e:
       self.Disconnect()
       if isinstance(e, socket.error) and e.errno == errno.ECONNREFUSED:
         raise DevToolsClientUrlError, (e,), sys.exc_info()[2]

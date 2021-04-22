@@ -4,7 +4,7 @@
 import inspect
 import logging
 import os
-import urlparse
+import six.moves.urllib.parse # pylint: disable=import-error
 
 from py_utils import cloud_storage  # pylint: disable=import-error
 
@@ -145,7 +145,7 @@ class Page(story.Story):
 
   @property
   def _scheme(self):
-    return urlparse.urlparse(self.url).scheme
+    return six.moves.urllib.parse.urlparse(self.url).scheme
 
   @property
   def is_file(self):
@@ -158,7 +158,7 @@ class Page(story.Story):
     assert self.is_file
     # Because ? is a valid character in a filename,
     # we have to treat the URL as a non-file by removing the scheme.
-    parsed_url = urlparse.urlparse(self.url[7:])
+    parsed_url = six.moves.urllib.parse.urlparse(self.url[7:])
     return os.path.normpath(os.path.join(
         self._base_dir, parsed_url.netloc + parsed_url.path))
 

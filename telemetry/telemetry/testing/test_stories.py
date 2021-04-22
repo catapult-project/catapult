@@ -17,8 +17,8 @@ classes to work with these kinds of stories.
 """
 
 import posixpath
-import urlparse
 import six
+import six.moves.urllib.parse # pylint: disable=import-error
 
 import mock
 
@@ -209,6 +209,6 @@ class TestSharedState(story_module.SharedState):
 def _StoryNameFromUrl(url):
   """Turns e.g. 'file://path/to/name.html' into just 'name'."""
   # Strip off URI scheme, params and query; keep only netloc and path.
-  uri = urlparse.urlparse(url)
+  uri = six.moves.urllib.parse.urlparse(url)
   filepath = posixpath.basename(uri.netloc + uri.path)
   return posixpath.splitext(posixpath.basename(filepath))[0]

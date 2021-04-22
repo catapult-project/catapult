@@ -47,7 +47,7 @@ import fake_filesystem_glob
 import fake_filesystem_shutil
 import fake_tempfile
 if sys.version_info < (3,):
-    import __builtin__ as builtins
+    import six.moves.builtins as builtins
 else:
     import builtins
 

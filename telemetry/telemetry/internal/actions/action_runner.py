@@ -5,8 +5,8 @@
 from __future__ import division
 import logging
 import time
-import urlparse
 import six
+import six.moves.urllib.parse # pylint: disable=import-error
 
 from telemetry.core import exceptions
 from telemetry.internal.actions import page_action
@@ -185,7 +185,7 @@ class ActionRunner(ActionRunnerBase):
     evaluated when the navigation is committed. This is after the context of
     the page exists, but before any script on the page itself has executed.
     """
-    if urlparse.urlparse(url).scheme == 'file':
+    if six.moves.urllib.parse.urlparse(url).scheme == 'file':
       url = self._tab.browser.platform.http_server.UrlOf(url[7:])
 
     self._RunAction(NavigateAction(

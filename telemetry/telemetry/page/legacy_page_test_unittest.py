@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import urlparse
+import six.moves.urllib.parse # pylint: disable=import-error
 
 from telemetry.page import legacy_page_test
 from telemetry.testing import legacy_page_test_case
@@ -28,7 +28,7 @@ class LegacyPageTestTests(legacy_page_test_case.LegacyPageTestCase):
       def ValidateAndMeasurePage(self, page, tab, results):
         del page  # Unused.
         query = tab.EvaluateJavaScript('window.location.search').lstrip('?')
-        for name, value in urlparse.parse_qsl(query):
+        for name, value in six.moves.urllib.parse.parse_qsl(query):
           results.AddMeasurement(name, 'count', int(value))
 
     page_test = PageTestWithMeasurements()

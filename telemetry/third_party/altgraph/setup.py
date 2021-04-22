@@ -38,7 +38,7 @@ except ImportError:
     from md5 import md5
 
 if sys.version_info[0] == 2:
-    from ConfigParser import RawConfigParser, NoOptionError, NoSectionError
+    from six.moves.configparser import RawConfigParser, NoOptionError, NoSectionError
 else:
     from configparser import RawConfigParser, NoOptionError, NoSectionError
 
@@ -583,8 +583,8 @@ else:
             import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
             import StringIO
             from base64 import standard_b64encode
-            import httplib
-            import urlparse
+            import six.moves.http_client
+            import six.moves.urllib.parse
 
             # Extract the package name from distutils metadata
             meta = self.distribution.metadata
@@ -659,13 +659,13 @@ else:
             self.announce("Uploading documentation to %s"%(self.repository,), log.INFO)
 
             schema, netloc, url, params, query, fragments = \
-                    urlparse.urlparse(self.repository)
+                    six.moves.urllib.parse.urlparse(self.repository)
 
 
             if schema == 'http':
-                http = httplib.HTTPConnection(netloc)
+                http = six.moves.http_client.HTTPConnection(netloc)
             elif schema == 'https':
-                http = httplib.HTTPSConnection(netloc)
+                http = six.moves.http_client.HTTPSConnection(netloc)
             else:
                 raise AssertionError("unsupported schema "+schema)
 
