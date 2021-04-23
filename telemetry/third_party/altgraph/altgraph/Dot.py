@@ -102,6 +102,7 @@ Valid attributes
     - for more details on how to control the graph drawing process see the
       `graphviz reference <http://www.research.att.com/sw/tools/graphviz/refs.html>`_.
 '''
+from __future__ import absolute_import
 import os
 import warnings
 

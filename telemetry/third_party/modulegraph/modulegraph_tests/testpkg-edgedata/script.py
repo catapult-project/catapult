@@ -1,4 +1,5 @@
 
+from __future__ import absolute_import
 import toplevel_existing
 import toplevel_nonexisting
 

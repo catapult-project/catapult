@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 from __future__ import division
+from __future__ import absolute_import
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import utils
 from telemetry.util import js_template

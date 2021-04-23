@@ -3,6 +3,7 @@ altgraph.GraphUtil - Utility classes and functions
 ==================================================
 '''
 
+from __future__ import absolute_import
 import random
 from collections import deque
 from altgraph import Graph

@@ -8,6 +8,7 @@ https://code.google.com/p/trace-viewer/
 """
 
 from __future__ import division
+from __future__ import absolute_import
 import collections
 import six
 

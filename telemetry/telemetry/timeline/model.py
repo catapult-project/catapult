@@ -7,6 +7,7 @@ trace_viewer project:
 https://code.google.com/p/trace-viewer/
 """
 
+from __future__ import absolute_import
 import logging
 
 from operator import attrgetter

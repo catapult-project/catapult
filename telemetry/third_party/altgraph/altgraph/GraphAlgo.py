@@ -2,6 +2,7 @@
 altgraph.GraphAlgo - Graph algorithms
 =====================================
 '''
+from __future__ import absolute_import
 from altgraph import GraphError
 import six
 

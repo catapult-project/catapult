@@ -4,6 +4,7 @@
 
 """Common media action functions."""
 
+from __future__ import absolute_import
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import utils
 

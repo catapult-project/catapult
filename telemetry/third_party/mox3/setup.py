@@ -14,6 +14,7 @@
 # limitations under the License.
 
 # THIS FILE IS MANAGED BY THE GLOBAL REQUIREMENTS REPO - DO NOT EDIT
+from __future__ import absolute_import
 import setuptools
 
 # In python < 2.7.4, a lazy loading of package `pbr` will break

@@ -4,6 +4,7 @@
 
 """Finds browsers that can be controlled by telemetry."""
 
+from __future__ import absolute_import
 import logging
 
 from telemetry import decorators

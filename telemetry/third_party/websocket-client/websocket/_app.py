@@ -18,11 +18,9 @@ Copyright (C) 2010 Hiroki Ohtani(liris)
     Foundation, Inc., 51 Franklin Street, Fifth Floor,
     Boston, MA  02110-1335  USA
 
-"""
-
-"""
 WebSocketApp provides higher level APIs.
 """
+from __future__ import absolute_import
 import select
 import sys
 import threading

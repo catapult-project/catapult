@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 """Finds Fuchsia browsers that can be started and controlled by telemetry."""
 
+from __future__ import absolute_import
 import os
 import platform
 

@@ -20,6 +20,7 @@ Test the :py:class`pyfakefs.example` module to demonstrate the usage of the
 :py:class`pyfakefs.fake_filesystem_unittest.TestCase` base class.
 """
 
+from __future__ import absolute_import
 import os
 import sys
 if sys.version_info < (2, 7):
@@ -27,9 +28,9 @@ if sys.version_info < (2, 7):
 else:
     import unittest
 
-import fake_filesystem_unittest
+from . import fake_filesystem_unittest
 # The module under test is pyfakefs.example
-import example
+from . import example
 
 
 def load_tests(loader, tests, ignore):

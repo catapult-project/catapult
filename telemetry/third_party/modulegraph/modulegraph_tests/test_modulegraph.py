@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import unittest
 from modulegraph import modulegraph
 import pkg_resources

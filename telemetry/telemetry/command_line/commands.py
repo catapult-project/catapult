@@ -4,6 +4,7 @@
 """Defines the commands provided by Telemetry: Run, List."""
 
 from __future__ import print_function
+from __future__ import absolute_import
 import json
 import logging
 import optparse

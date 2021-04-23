@@ -13,6 +13,7 @@ ended_event_timeout_in_seconds, which forces the action to wait until
 playing and ended events get fired respectively.
 """
 
+from __future__ import absolute_import
 from telemetry.core import exceptions
 from telemetry.internal.actions import media_action
 from telemetry.internal.actions import page_action

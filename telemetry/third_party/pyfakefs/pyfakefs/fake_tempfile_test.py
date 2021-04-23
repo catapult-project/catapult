@@ -18,6 +18,7 @@
 
 #pylint: disable-all
 
+from __future__ import absolute_import
 import stat
 import sys
 if sys.version_info < (2, 7):
@@ -30,8 +31,8 @@ try:
 except ImportError:
   import io  # pylint: disable-msg=C6204
 
-import fake_filesystem
-import fake_tempfile
+from . import fake_filesystem
+from . import fake_tempfile
 
 
 class FakeLogging(object):

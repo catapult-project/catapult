@@ -19,13 +19,14 @@ a FakeFilesystem object.
 """
 #pylint: disable-all
 
+from __future__ import absolute_import
 import errno
 import logging
 import os
 import stat
 import tempfile
 
-import fake_filesystem
+from . import fake_filesystem
 
 try:
   import StringIO as io  # pylint: disable-msg=C6204

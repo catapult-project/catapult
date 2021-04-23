@@ -39,13 +39,14 @@ retrofitted to use `pyfakefs` by simply changing their base class from
 `:py:class`pyfakefs.fake_filesystem_unittest.TestCase`.
 """
 
+from __future__ import absolute_import
 import sys
 import unittest
 import doctest
-import fake_filesystem
-import fake_filesystem_glob
-import fake_filesystem_shutil
-import fake_tempfile
+from . import fake_filesystem
+from . import fake_filesystem_glob
+from . import fake_filesystem_shutil
+from . import fake_tempfile
 if sys.version_info < (3,):
     import six.moves.builtins as builtins
 else:

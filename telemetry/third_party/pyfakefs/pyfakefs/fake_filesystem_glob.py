@@ -31,11 +31,12 @@ Usage:
 ['new-file']
 """
 
+from __future__ import absolute_import
 import fnmatch
 import glob
 import os
 
-import fake_filesystem
+from . import fake_filesystem
 
 
 class FakeGlobModule(object):
@@ -112,7 +113,7 @@ class FakeGlobModule(object):
 def _RunDoctest():
   # pylint: disable-msg=C6111,C6204,W0406
   import doctest
-  import fake_filesystem_glob
+  from . import fake_filesystem_glob
   return doctest.testmod(fake_filesystem_glob)
 
 

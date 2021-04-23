@@ -7,6 +7,7 @@ Bitmap is a basic wrapper for image pixels. It includes some basic processing
 tools: crop, find bounding box of a color and compute histogram of color values.
 """
 
+from __future__ import absolute_import
 import array
 import cStringIO
 import struct

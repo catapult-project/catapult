@@ -38,6 +38,7 @@ In Python 2 the `file()` built-in is also bound to the fake `open()`.  `file()`
 was eliminated in Python 3.
 """
 
+from __future__ import absolute_import
 import os
 import glob
 import shutil
