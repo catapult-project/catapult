@@ -1,5 +1,4 @@
 
-from __future__ import absolute_import
 ds = {
     'name': [
         list(1)

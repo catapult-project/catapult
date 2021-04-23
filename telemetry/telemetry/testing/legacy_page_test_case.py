@@ -4,7 +4,6 @@
 
 """Provide a TestCase to facilitate testing LegacyPageTest instances."""
 
-from __future__ import absolute_import
 import shutil
 import tempfile
 import unittest

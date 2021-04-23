@@ -10,7 +10,6 @@ underscore are intended to be implementation details, and should not
 be subclassed; however, some, like FakeBrowser, have public APIs that
 may need to be called in tests.
 """
-from __future__ import absolute_import
 import types
 
 from telemetry.core import debug_data

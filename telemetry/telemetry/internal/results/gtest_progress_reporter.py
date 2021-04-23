@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 from __future__ import print_function
 
-from __future__ import absolute_import
 from telemetry.internal.results import story_run
 
 

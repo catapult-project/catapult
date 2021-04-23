@@ -5,7 +5,6 @@
 # pylint: disable=import-error
 # pylint: disable=no-name-in-module
 from __future__ import print_function
-from __future__ import absolute_import
 import distutils.spawn as spawn
 import logging
 import os

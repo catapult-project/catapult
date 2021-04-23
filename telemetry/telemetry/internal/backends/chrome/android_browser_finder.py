@@ -4,7 +4,6 @@
 
 """Finds android browsers that can be started and controlled by telemetry."""
 
-from __future__ import absolute_import
 import contextlib
 import logging
 import os

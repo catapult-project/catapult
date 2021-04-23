@@ -14,7 +14,6 @@ get stale relatively quickly and produce hard-to-diagnose issues such as
 dependencies for stack symbolization.
 """
 
-from __future__ import absolute_import
 import datetime
 import logging
 import os

@@ -6,7 +6,6 @@
 # remote port (which may be the same as local port) to DevToolsClientBackend.
 # There is no guarantee that the devtools agent is still alive.
 
-from __future__ import absolute_import
 import six
 
 _platform_backends_to_devtools_clients_maps = {}

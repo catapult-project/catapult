@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 """A helper for common operations in ssh forwarding"""
-from __future__ import absolute_import
 import re
 
 import py_utils

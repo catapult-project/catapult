@@ -10,7 +10,6 @@ for docs on the format.
 """
 
 from __future__ import division
-from __future__ import absolute_import
 import base64
 import os
 import hashlib

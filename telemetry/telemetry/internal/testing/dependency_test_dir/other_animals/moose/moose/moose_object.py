@@ -3,8 +3,7 @@
 # found in the LICENSE file.
 
 from __future__ import print_function
-from __future__ import absolute_import
-from .horn import horn_object  # pylint: disable=relative-import
+from horn import horn_object  # pylint: disable=relative-import
 
 class Moose(object):
   def __init__(self):

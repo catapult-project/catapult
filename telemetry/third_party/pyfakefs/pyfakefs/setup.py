@@ -17,8 +17,7 @@
 # limitations under the License.
 
 
-from __future__ import absolute_import
-from .fake_filesystem import __version__
+from fake_filesystem import __version__
 
 import os
 

@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from __future__ import absolute_import
 import sys
 
 from telemetry.testing import serially_executed_browser_test_case

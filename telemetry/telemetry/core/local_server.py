@@ -5,7 +5,6 @@
 # TODO(aiolos): this should be moved to catapult/base after the repo move.
 # It is used by tracing in tvcm/browser_controller.
 from __future__ import print_function
-from __future__ import absolute_import
 import collections
 import json
 import logging

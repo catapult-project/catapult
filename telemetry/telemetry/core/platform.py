@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 from __future__ import division
-from __future__ import absolute_import
 import logging as real_logging
 import os
 import subprocess

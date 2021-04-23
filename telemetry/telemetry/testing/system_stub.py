@@ -7,7 +7,6 @@
 This test allows one to test code that itself uses os, sys, and subprocess.
 """
 
-from __future__ import absolute_import
 import ntpath
 import os
 import posixpath

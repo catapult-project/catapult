@@ -15,7 +15,6 @@
 # This is a fork of the pymox library intended to work with Python 3.
 # The file was modified by quermit@gmail.com and dawid.fatyga@gmail.com
 
-from __future__ import absolute_import
 import inspect
 
 

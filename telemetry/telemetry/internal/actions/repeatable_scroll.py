@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 from __future__ import division
-from __future__ import absolute_import
 import numbers
 
 from telemetry.internal.actions import page_action

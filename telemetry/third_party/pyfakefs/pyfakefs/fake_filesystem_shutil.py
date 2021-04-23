@@ -40,7 +40,6 @@ Remove a fake_filesystem directory tree:
 False
 """
 
-from __future__ import absolute_import
 import errno
 import os
 import shutil
@@ -213,7 +212,7 @@ class FakeShutilModule(object):
 def _RunDoctest():
   # pylint: disable-msg=C6111,C6204,W0406
   import doctest
-  from . import fake_filesystem_shutil
+  import fake_filesystem_shutil
   return doctest.testmod(fake_filesystem_shutil)
 
 

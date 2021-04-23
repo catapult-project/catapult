@@ -7,7 +7,6 @@
 # TODO(https://crbug.com/1023458): Remove this once artifact implementations are
 # unified.
 
-from __future__ import absolute_import
 import logging
 import os
 

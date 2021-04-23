@@ -5,7 +5,6 @@
 # pylint: disable=too-many-lines
 
 from __future__ import division
-from __future__ import absolute_import
 import unittest
 
 import telemetry.timeline.counter as tracing_counter

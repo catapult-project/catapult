@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from modulegraph import zipio
 import os
 import time

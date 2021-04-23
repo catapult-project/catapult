@@ -22,7 +22,6 @@ artifact_logger.RegisterArtifactImplementation(self.results)
 artifact_logger.CreateArtifact('some/crash/stack.txt', GetStackTrace())
 """
 
-from __future__ import absolute_import
 import datetime
 
 from telemetry.internal.results import (

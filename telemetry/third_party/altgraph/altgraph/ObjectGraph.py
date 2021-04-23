@@ -7,7 +7,6 @@ graphident is the key for the object in the graph
 """
 
 from __future__ import print_function
-from __future__ import absolute_import
 from altgraph import GraphError
 from altgraph.Graph import Graph
 from altgraph.GraphUtil import filter_stack

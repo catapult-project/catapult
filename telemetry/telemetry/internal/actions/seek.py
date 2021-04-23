@@ -16,7 +16,6 @@ Action parameters are:
 - label: A suffix string to name the seek perf measurement.
 """
 
-from __future__ import absolute_import
 from telemetry.core import exceptions
 from telemetry.internal.actions import media_action
 from telemetry.internal.actions import page_action

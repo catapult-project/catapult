@@ -12,7 +12,6 @@ this interface. The old bitmap implementation (image_util_bitmap_impl) is used
 as a fallback when numpy is not present."""
 
 # pylint: disable=wrong-import-position
-from __future__ import absolute_import
 import base64
 
 from telemetry.internal.util import external_modules

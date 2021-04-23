@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 """Finds CrOS browsers that can be started and controlled by telemetry."""
 
-from __future__ import absolute_import
 import logging
 import os
 import platform

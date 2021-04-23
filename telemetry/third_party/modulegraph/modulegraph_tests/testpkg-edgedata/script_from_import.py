@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from pkg import toplevel_existing
 from pkg import toplevel_nonexisting
 

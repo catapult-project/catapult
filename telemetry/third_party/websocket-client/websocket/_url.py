@@ -20,7 +20,6 @@ Copyright (C) 2010 Hiroki Ohtani(liris)
 
 """
 
-from __future__ import absolute_import
 import os
 import socket
 import struct

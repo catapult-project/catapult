@@ -18,7 +18,6 @@
 
 #pylint: disable-all
 
-from __future__ import absolute_import
 import os #@UnusedImport
 import os.path
 import shutil
@@ -31,7 +30,7 @@ if sys.version_info < (2, 7):
 else:
     import unittest
 
-from . import fake_filesystem
+import fake_filesystem
 
 
 def Sep(path):

@@ -4,7 +4,6 @@
 
 from __future__ import division
 
-from __future__ import absolute_import
 from telemetry.internal.image_processing import _bitmap
 
 

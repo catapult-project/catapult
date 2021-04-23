@@ -5,7 +5,6 @@
 """This module provides implementations of common computer Vision operations."""
 
 from __future__ import division
-from __future__ import absolute_import
 from telemetry.internal.util import external_modules
 
 np = external_modules.ImportRequiredModule('numpy')

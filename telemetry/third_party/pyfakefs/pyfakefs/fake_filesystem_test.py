@@ -16,7 +16,6 @@
 
 """Unittest for fake_filesystem module."""
 
-from __future__ import absolute_import
 import errno
 import os
 import re
@@ -28,7 +27,7 @@ if sys.version_info < (2, 7):
 else:
     import unittest
 
-from . import fake_filesystem
+import fake_filesystem
 
 
 def _GetDummyTime(start_time, increment):

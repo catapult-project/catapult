@@ -10,7 +10,6 @@ if unit tests are not running.
 This allows multiple unit tests to use a specific
 browser, in face of multiple options."""
 
-from __future__ import absolute_import
 import os
 
 from telemetry.internal import story_runner

@@ -4,7 +4,6 @@
 
 """Tests for page_action."""
 
-from __future__ import absolute_import
 import unittest
 
 from telemetry.internal.actions import page_action

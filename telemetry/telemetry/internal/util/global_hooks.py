@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 """Hooks that apply globally to all scripts that import or use Telemetry."""
-from __future__ import absolute_import
 import signal
 import sys
 

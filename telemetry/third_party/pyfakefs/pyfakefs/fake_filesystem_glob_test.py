@@ -16,7 +16,6 @@
 
 """Test for fake_filesystem_glob."""
 
-from __future__ import absolute_import
 import doctest
 import sys
 if sys.version_info < (2, 7):
@@ -24,8 +23,8 @@ if sys.version_info < (2, 7):
 else:
     import unittest
 
-from . import fake_filesystem
-from . import fake_filesystem_glob
+import fake_filesystem
+import fake_filesystem_glob
 
 
 class FakeGlobUnitTest(unittest.TestCase):

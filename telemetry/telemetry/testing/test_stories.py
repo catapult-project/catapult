@@ -16,7 +16,6 @@ This module also provides helpers to easily create story sets and other related
 classes to work with these kinds of stories.
 """
 
-from __future__ import absolute_import
 import posixpath
 import six
 import six.moves.urllib.parse # pylint: disable=import-error

@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 """A wrapper for common cmd operations"""
 
-from __future__ import absolute_import
 import logging
 import os
 import subprocess

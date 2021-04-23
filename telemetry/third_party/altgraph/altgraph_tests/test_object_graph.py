@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import unittest
 import sys
 from altgraph.ObjectGraph import ObjectGraph

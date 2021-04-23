@@ -6,7 +6,6 @@
 # actually talking to the device. This would improve our coverage quite
 # a bit.
 
-from __future__ import absolute_import
 import os
 import shutil
 import socket

@@ -7,7 +7,6 @@ should return True or False. Currently returns
 True, but that might do the wrong thing with
 data-files that are zipfiles.
 """
-from __future__ import absolute_import
 import os as _os
 import zipfile as _zipfile
 import errno as _errno

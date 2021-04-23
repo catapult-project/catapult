@@ -82,7 +82,6 @@ True
 True
 """
 
-from __future__ import absolute_import
 import errno
 import heapq
 import os
@@ -2196,7 +2195,7 @@ class FakeFileOpen(object):
 def _RunDoctest():
   # pylint: disable-msg=C6204
   import doctest
-  from . import fake_filesystem  # pylint: disable-msg=W0406
+  import fake_filesystem  # pylint: disable-msg=W0406
   return doctest.testmod(fake_filesystem)
 
 

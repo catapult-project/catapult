@@ -4,7 +4,6 @@
 
 """Finds devices that can be controlled by telemetry."""
 
-from __future__ import absolute_import
 from telemetry.internal.platform import android_device
 from telemetry.internal.platform import cros_device
 from telemetry.internal.platform import desktop_device

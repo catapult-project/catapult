@@ -14,7 +14,6 @@ altgraph.Graph - Base Graph class
 """
 
 from __future__ import division
-from __future__ import absolute_import
 from altgraph import GraphError
 from collections import deque
 
