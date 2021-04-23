@@ -29,6 +29,7 @@ from ._exceptions import *
 from ._http import *
 from ._logging import *
 from ._socket import *
+from six.moves import map
 
 if six.PY3:
     from base64 import encodebytes as base64encode
@@ -102,7 +103,7 @@ def _get_handshake_headers(resource, host, port, options):
     if "header" in options:
         header = options["header"]
         if isinstance(header, dict):
-            header = map(": ".join, list(header.items()))
+            header = list(map(": ".join, list(header.items())))
         headers.extend(header)
 
     cookie = options.get("cookie", None)

@@ -29,6 +29,7 @@ from itertools import count
 
 from modulegraph import util
 from modulegraph import zipio
+from six.moves import map
 
 if sys.version_info[0] == 2:
     from StringIO import StringIO as BytesIO
@@ -1507,7 +1508,7 @@ class ModuleGraph(ObjectGraph):
 
     def itergraphreport(self, name='G', flatpackages=()):
         # XXX: Can this be implemented using Dot()?
-        nodes = map(self.graph.describe_node, self.graph.iterdfs(self))
+        nodes = list(map(self.graph.describe_node, self.graph.iterdfs(self)))
         describe_edge = self.graph.describe_edge
         edges = deque()
         packagenodes = set()

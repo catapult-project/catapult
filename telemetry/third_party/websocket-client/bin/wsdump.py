@@ -11,6 +11,7 @@ import six
 from six.moves.urllib.parse import urlparse
 
 import websocket
+from six.moves import map
 
 try:
     import readline
@@ -130,7 +131,7 @@ def main():
     if args.nocert:
         opts = {"cert_reqs": websocket.ssl.CERT_NONE, "check_hostname": False}
     if args.headers:
-        options['header'] = map(str.strip, args.headers.split(','))
+        options['header'] = list(map(str.strip, args.headers.split(',')))
     ws = websocket.create_connection(args.url, sslopt=opts, **options)
     if args.raw:
         console = NonInteractive()

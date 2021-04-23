@@ -18,6 +18,7 @@ import six.moves.BaseHTTPServer # pylint: disable=import-error
 import six.moves.SimpleHTTPServer # pylint: disable=import-error
 import six.moves.socketserver # pylint: disable=import-error
 import six.moves.urllib.parse # pylint: disable=import-error
+from six.moves import map # pylint: disable=redefined-builtin
 
 from telemetry.core import local_server
 

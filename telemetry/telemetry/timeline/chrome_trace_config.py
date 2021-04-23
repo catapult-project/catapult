@@ -4,6 +4,7 @@
 
 import re
 import six
+from six.moves import map # pylint: disable=redefined-builtin
 
 from telemetry.timeline import chrome_trace_category_filter
 
@@ -47,7 +48,7 @@ def _ConvertDictKeysToCamelCaseRecursively(data):
             _ConvertDictKeysToCamelCaseRecursively(v)
             for k, v in six.iteritems(data)}
   elif isinstance(data, list):
-    return map(_ConvertDictKeysToCamelCaseRecursively, data)
+    return list(map(_ConvertDictKeysToCamelCaseRecursively, data))
   else:
     return data
 

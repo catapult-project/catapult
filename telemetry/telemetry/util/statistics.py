@@ -6,6 +6,7 @@
 
 from __future__ import division
 import math
+from six.moves import map # pylint: disable=redefined-builtin
 
 # 2To3-division: the / operations here are not converted to // as the results
 # are expected floats.

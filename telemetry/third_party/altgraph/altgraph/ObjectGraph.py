@@ -10,6 +10,7 @@ from __future__ import print_function
 from altgraph import GraphError
 from altgraph.Graph import Graph
 from altgraph.GraphUtil import filter_stack
+from six.moves import map
 
 class ObjectGraph(object):
     """
@@ -184,7 +185,8 @@ class ObjectGraph(object):
         Print a debug message with the given level
         """
         if s and level <= self.debug:
-            print ("%s%s %s" % ("  " * self.indent, s, ' '.join(map(repr, args))))
+            print("%s%s %s" %
+                  ("  " * self.indent, s, ' '.join(map(repr, args))))
 
     def msgin(self, level, s, *args):
         """

@@ -4,6 +4,8 @@
 
 import subprocess
 
+from six.moves import map # pylint: disable=redefined-builtin
+
 from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry.core import platform
@@ -129,7 +131,7 @@ class Video(object):
         output += line
         if 'Video:' in line:
           dimensions = line.split(',')[2]
-          dimensions = map(int, dimensions.split()[0].split('x'))
+          dimensions = list(map(int, dimensions.split()[0].split('x')))
           break
       proc.communicate()
       assert dimensions, ('Failed to determine video dimensions. output=%s' %

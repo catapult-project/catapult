@@ -719,7 +719,7 @@ def importExternalTestCases(unittest,
     """
 
     testFiles = recursiveGlob(root, pathPattern)
-    testModules = map(lambda x:x[len(root)+1:-3].replace('/', '.'), testFiles)
+    testModules = [x[len(root)+1:-3].replace('/', '.') for x in testFiles]
     if package is not None:
         testModules = [(package + '.' + m) for m in testModules]
 
