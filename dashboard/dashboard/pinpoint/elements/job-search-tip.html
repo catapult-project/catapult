@@ -9,6 +9,11 @@ found in the LICENSE file.
 <link rel="import" href="/components/paper-icon-button/paper-icon-button.html">
 <dom-module id="job-search-tip">
   <template>
+    <style>
+      :host {
+        display: inline-block;
+      }
+    </style>
     <paper-button icon="help" title="search help" on-tap="help.open()"></paper-button>
     <paper-dialog id="help">
       <h2>Filtering jobs with the CLI</h2>
@@ -29,4 +34,10 @@ found in the LICENSE file.
       <pre>pinpoint list-jobs --help</pre>
     </paper-dialog>
   </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'job-search-tip',
+    });
+  </script>
 </dom-module>
