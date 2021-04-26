@@ -131,6 +131,18 @@ class _TestConditionByWinVersion(_TestCondition):
     return platform.GetOSVersionName() == self._version
 
 
+class _TestConditionFuchsiaWebEngineShell(_TestCondition):
+  def ShouldDisable(self, platform, finder_options):
+    return (platform.GetOSName() == 'fuchsia' and
+            finder_options.browser_type.startswith('web-engine-shell'))
+
+  def __str__(self):
+    return 'Fuchsia with web-engine-shell'
+
+  def GetSupportedPlatformNames(self):
+    return {'fuchsia'}
+
+
 class _TestConditionLogicalAndConditions(_TestCondition):
   def __init__(self, conditions, name):
     self._conditions = conditions
@@ -214,6 +226,7 @@ ANDROID_GO_WEBVIEW = _TestConditionLogicalAndConditions(
     [ANDROID_GO, ANDROID_WEBVIEW], 'Android Go Webview')
 ANDROID_PIXEL2_WEBVIEW = _TestConditionLogicalAndConditions(
     [ANDROID_PIXEL2, ANDROID_WEBVIEW], 'Pixel2 Webview')
+FUCHSIA_WEB_ENGINE_SHELL = _TestConditionFuchsiaWebEngineShell()
 
 EXPECTATION_NAME_MAP = {
     'All': ALL,
@@ -244,4 +257,5 @@ EXPECTATION_NAME_MAP = {
     'Nexus5X_Webview': ANDROID_NEXUS5X_WEBVIEW,
     'Android_Go_Webview': ANDROID_GO_WEBVIEW,
     'Pixel2_Webview': ANDROID_PIXEL2_WEBVIEW,
+    'Fuchsia_WebEngineShell': FUCHSIA_WEB_ENGINE_SHELL,
 }
