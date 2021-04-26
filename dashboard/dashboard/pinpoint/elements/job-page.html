@@ -249,18 +249,39 @@ found in the LICENSE file.
         return job.status.toLowerCase() === 'queued';
       },
 
+      formatDate(dateString) {
+        /** We want to use a subset of the ISO format to keep datetimes
+          * consistent independent of the user's locale, but still present a
+          * localized date.
+          */
+        function pad(n) {
+          if (n < 10) {
+            return '0' + n;
+          }
+          return n;
+        }
+
+        const d = new Date(dateString + 'Z');
+        return d.getFullYear() +
+          '-' + pad(d.getMonth() + 1) +
+          '-' + pad(d.getDate()) +
+          ' T' + pad(d.getHours()) +
+          ':' + pad(d.getMinutes()) +
+          ':' + pad(d.getSeconds());
+      },
+
       createTime(job) {
         if (!job) {
-          return false;
+          return 'N/A';
         }
-        return new Date(job.created + 'Z').toLocaleString();
+        return this.formatDate(job.created);
       },
 
       startTime(job) {
         if (!job || job.started_time === null) {
           return 'N/A';
         }
-        return new Date(job.started_time + 'Z').toLocaleString();
+        return this.formatDate(job.started_time);
       },
 
       formatQueueUrl(configuration) {
