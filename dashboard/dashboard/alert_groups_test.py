@@ -343,15 +343,8 @@ class GroupReportTest(GroupReportTestBase):
     group.put()
     # Create Issue
     self._CallHandler()
-    # ...Nothing should happen here
+    # Out of active window
     group.updated = datetime.datetime.utcnow() - datetime.timedelta(days=10)
-    self._CallHandler()
-    group = alert_group.AlertGroup.Get('test_suite',
-                                       alert_group.AlertGroup.Type.test_suite,
-                                       None)[0]
-    self.assertEqual(group.name, 'test_suite')
-    # Issue closed
-    self.fake_issue_tracker.issue['state'] = 'closed'
     # Archive Group
     self._CallHandler()
     group = alert_group.AlertGroup.Get('test_suite',

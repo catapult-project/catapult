@@ -826,7 +826,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             anomalies=ndb.get_multi(anomalies),
             issue=self._issue_tracker.issue,
         ))
-    self.assertEqual(True, group.get().active)
+    self.assertEqual(False, group.get().active)
 
   def testBisect_GroupTriaged(self):
     anomalies = [

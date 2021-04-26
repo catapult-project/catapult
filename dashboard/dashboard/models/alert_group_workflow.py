@@ -199,8 +199,7 @@ class AlertGroupWorkflow(object):
       self._UpdateIssue(update.issue, update.anomalies, added)
     # Trigger actions
     group = self._group
-    if group.updated + self._config.active_window < update.now and (
-        group.status in {group.Status.untriaged, group.Status.closed}):
+    if group.updated + self._config.active_window < update.now:
       self._Archive()
     elif group.created + self._config.triage_delay < update.now and (
         group.status in {group.Status.untriaged}):
