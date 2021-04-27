@@ -23,7 +23,9 @@ from apache_beam.options.pipeline_options import (GoogleCloudOptions,
 from apache_beam.options.value_provider import (NestedValueProvider,
                                                 ValueProvider)
 from apache_beam.typehints import (with_input_types, with_output_types)
+import numpy as np
 import scipy.stats
+import scipy.stats.mstats
 
 from bq_export.utils import WriteToPartitionedBigQuery, FloatHack
 
@@ -99,8 +101,17 @@ def SampleValuesStatsBy(pcoll, *key_columns):
 def SummariseSamples(pcoll, key_columns):
   def KeyCols(elem):
     return beam.Row(**{k: getattr(elem, k) for k in key_columns})
-  def Stats(arr):
+  def Stats(samples):
+    # First, convert the Python list of floats to a numpy array, to save
+    # scipy from repeatedly converting it implicitly.
+    arr = np.array(samples, dtype=np.float64)
+
+    # Immediately clear the Python list to minimise memory pressure.
+    samples.clear()
+
+    # Calculate the various summary statistics.
     stats = scipy.stats.describe(arr)
+    quartiles = scipy.stats.mstats.mquantiles(arr)
     return beam.Row(
         num_samples=stats.nobs,
         kurtosis=stats.kurtosis,
@@ -109,7 +120,12 @@ def SummariseSamples(pcoll, key_columns):
         variance=stats.variance,
         min=stats.minmax[0],
         max=stats.minmax[1],
-        mean=stats.mean)
+        mean=stats.mean,
+        first_quartile=quartiles[0],
+        median=quartiles[1],
+        third_quartile=quartiles[2],
+        cv=scipy.stats.mstats.variation(arr),
+    )
 
   return (
       pcoll
@@ -149,6 +165,7 @@ def FlattenForBQ(pcoll, fixed_cols_provider):
     # TODO: try temp_file_format=AVRO on the BQ writer instead of needing
     # FloatHack?
     d['variance'] = FloatHack(d['variance'])
+    d['cv'] = FloatHack(d['cv'])
     return d
   return pcoll | beam.Map(FlattenElement)
 
@@ -255,6 +272,10 @@ def main():
    `min` FLOAT64,
    `max` FLOAT64,
    mean FLOAT64,
+   first_quartile FLOAT64,
+   median FLOAT64,
+   third_quartile FLOAT64,
+   cv FLOAT64,
    )
   PARTITION BY `date`
   CLUSTER BY measurement;
@@ -274,6 +295,10 @@ def main():
    `min` FLOAT64,
    `max` FLOAT64,
    mean FLOAT64,
+   first_quartile FLOAT64,
+   median FLOAT64,
+   third_quartile FLOAT64,
+   cv FLOAT64,
    )
   PARTITION BY `date`
   CLUSTER BY bot_group, bot, measurement;
@@ -292,6 +317,10 @@ def main():
           {'name': 'min', 'type': 'FLOAT', 'mode': 'NULLABLE'},
           {'name': 'max', 'type': 'FLOAT', 'mode': 'NULLABLE'},
           {'name': 'mean', 'type': 'FLOAT', 'mode': 'NULLABLE'},
+          {'name': 'first_quartile', 'type': 'FLOAT', 'mode': 'NULLABLE'},
+          {'name': 'median', 'type': 'FLOAT', 'mode': 'NULLABLE'},
+          {'name': 'third_quartile', 'type': 'FLOAT', 'mode': 'NULLABLE'},
+          {'name': 'cv', 'type': 'FLOAT', 'mode': 'NULLABLE'},
       ],
   }
 
@@ -311,6 +340,10 @@ def main():
           {'name': 'min', 'type': 'FLOAT', 'mode': 'NULLABLE'},
           {'name': 'max', 'type': 'FLOAT', 'mode': 'NULLABLE'},
           {'name': 'mean', 'type': 'FLOAT', 'mode': 'NULLABLE'},
+          {'name': 'first_quartile', 'type': 'FLOAT', 'mode': 'NULLABLE'},
+          {'name': 'median', 'type': 'FLOAT', 'mode': 'NULLABLE'},
+          {'name': 'third_quartile', 'type': 'FLOAT', 'mode': 'NULLABLE'},
+          {'name': 'cv', 'type': 'FLOAT', 'mode': 'NULLABLE'},
       ],
   }
 
