@@ -10,6 +10,9 @@ import subprocess
 from telemetry.core import util
 
 FUCHSIA_BROWSERS = ['web-engine-shell']
+_LLVM_SYMBOLIZER_PATH = os.path.join(
+    util.GetCatapultDir(), '..', 'llvm-build', 'Release+Asserts', 'bin',
+    'llvm-symbolizer')
 
 
 class CommandRunner(object):
@@ -66,7 +69,7 @@ class CommandRunner(object):
 
 
 def StartSymbolizerForProcessIfPossible(input_file, output_file, build_id_file):
-  """Starts a symbolizer process if possible.
+  """Starts an llvm symbolizer process if possible.
 
     Args:
       input_file: Input file to be symbolized.
@@ -77,13 +80,14 @@ def StartSymbolizerForProcessIfPossible(input_file, output_file, build_id_file):
     Returns:
       A subprocess.Popen object for the started process, None if symbolizer
       fails to start."""
-  if os.path.isfile(build_id_file):
+  if (os.path.isfile(_LLVM_SYMBOLIZER_PATH) and
+      os.path.isfile(build_id_file)):
     sdk_root = os.path.join(util.GetCatapultDir(), '..', 'fuchsia-sdk', 'sdk')
-    symbolizer = os.path.join(sdk_root, 'tools', 'x64', 'symbolizer')
-    symbolizer_cmd = [
-        symbolizer, '--build-id-dir', os.path.join(sdk_root, '.build-id'),
-        '--ids-txt', build_id_file
-    ]
+    symbolizer = os.path.join(sdk_root, 'tools', 'x64', 'symbolize')
+    symbolizer_cmd = [symbolizer,
+                      '-ids-rel', '-llvm-symbolizer', _LLVM_SYMBOLIZER_PATH,
+                      '-build-id-dir', os.path.join(sdk_root, '.build-id')]
+    symbolizer_cmd.extend(['-ids', build_id_file])
 
     logging.debug('Running "%s".' % ' '.join(symbolizer_cmd))
     return subprocess.Popen(symbolizer_cmd,
