@@ -183,6 +183,8 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         '--ash-disable-system-sounds',
         # Skip user image selection screen, and post login screens.
         '--oobe-skip-postlogin',
+        # Enable OOBE test API
+        '--enable-oobe-test-api',
         # Debug logging.
         '--vmodule=%s' % vmodule,
         # Enable crash dumping.
