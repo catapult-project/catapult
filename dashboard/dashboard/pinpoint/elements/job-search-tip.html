@@ -14,7 +14,9 @@ found in the LICENSE file.
         display: inline-block;
       }
     </style>
-    <paper-button icon="help" title="search help" on-tap="help.open()"></paper-button>
+    <paper-icon-button icon="help" title="search help"
+      on-tap="{{showDialog}}">
+    </paper-icon-button>
     <paper-dialog id="help">
       <h2>Filtering jobs with the CLI</h2>
       <p>
@@ -38,6 +40,9 @@ found in the LICENSE file.
     'use strict';
     Polymer({
       is: 'job-search-tip',
+      showDialog: function () {
+        this.$.help.toggle();
+      },
     });
   </script>
 </dom-module>
