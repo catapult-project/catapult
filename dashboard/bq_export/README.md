@@ -7,12 +7,20 @@ This README briefly describes how to run and deploy those pipelines.
 
 ## Directory overview
 
+### Export pipelines
+
 | Script name              | Entity type exported | Type of export       |
 |--------------------------|----------------------|----------------------|
 | `export_anomalies.py`    | Anomaly              | Incremental (by day) |
 | `export_rows.py`         | Row                  | Incremental (by day) |
 | `export_jobs.py`         | Job                  | Incremental (by day) |
 | `export_testmetadata.py` | TestMetadata         | Full                 |
+
+### Other pipelines
+
+| Script name     | Purpose                                               |
+|-----------------|-------------------------------------------------------|
+| `calc_stats.py` | Calculate signal quality statistics from Rows export. |
 
 ## Set up a development environment
 
