@@ -143,6 +143,8 @@ class RunTestsCommand(command_line.OptparseCommand):
     runner = typ.Runner()
     if self.stream:
       runner.host.stdout = self.stream
+    if hasattr(args, 'disable_resultsink'):
+      runner.args.disable_resultsink = args.disable_resultsink
 
     if args.no_browser:
       possible_browser = None

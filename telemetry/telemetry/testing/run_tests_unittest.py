@@ -103,7 +103,11 @@ class RunTestsUnitTest(unittest.TestCase):
     temp_file.close()
     temp_file_name = temp_file.name
     try:
-      passed_args = []
+      passed_args = [
+          # We don't want the underlying tests to report their results to
+          # ResultDB.
+          '--disable-resultsink',
+      ]
       if test_name:
         passed_args.append(test_name)
       if no_browser:
