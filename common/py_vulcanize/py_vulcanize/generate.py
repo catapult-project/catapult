@@ -203,7 +203,7 @@ def _MinifyCSS(css_text):
       os.path.join(py_vulcanize_path, 'third_party', 'rcssmin', 'rcssmin.py'))
 
   with tempfile.NamedTemporaryFile() as _:
-    rcssmin_args = ['python', rcssmin_path]
+    rcssmin_args = [sys.executable, rcssmin_path]
     p = subprocess.Popen(rcssmin_args,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
