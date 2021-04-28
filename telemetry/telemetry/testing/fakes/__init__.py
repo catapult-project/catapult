@@ -304,6 +304,7 @@ class _FakeBrowserFinderOptions(browser_options_module.BrowserFinderOptions):
       FakePossibleBrowser(
           execute_on_startup=execute_on_startup,
           execute_after_browser_creation=execute_after_browser_creation)
+    self.capture_screen_video = False
 
 def CreateBrowserFinderOptions(browser_type=None, execute_on_startup=None,
                                execute_after_browser_creation=None):

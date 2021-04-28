@@ -67,7 +67,6 @@ class BrowserFinderOptions(optparse.Values):
     self.interval_profiling_periods = []
     self.interval_profiling_frequency = 1000
     self.interval_profiler_options = ''
-    self.capture_screen_video = False
 
     self.experimental_system_tracing = False
     self.experimental_system_data_sources = False
