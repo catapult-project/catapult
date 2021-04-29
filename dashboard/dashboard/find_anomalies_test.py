@@ -205,6 +205,7 @@ class ProcessAlertsTest(testing_common.TestCase):
 
     alert_group_key1 = alert_group.AlertGroup(
         name='scrolling_benchmark',
+        domain='ChromiumGPU',
         subscription_name='sheriff1',
         status=alert_group.AlertGroup.Status.untriaged,
         active=True,
@@ -213,6 +214,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     ).put()
     alert_group_key2 = alert_group.AlertGroup(
         name='scrolling_benchmark',
+        domain='ChromiumGPU',
         subscription_name='sheriff2',
         status=alert_group.AlertGroup.Status.untriaged,
         active=True,

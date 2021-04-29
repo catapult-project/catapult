@@ -37,7 +37,7 @@ def _ProcessUngroupedAlerts():
 
   logging.info('Processing un-grouped alerts.')
   reserved = alert_group.AlertGroup.Type.reserved
-  ungrouped_list = alert_group.AlertGroup.Get('Ungrouped', reserved, None)
+  ungrouped_list = alert_group.AlertGroup.Get('Ungrouped', reserved)
   if not ungrouped_list:
     alert_group.AlertGroup(name='Ungrouped', group_type=reserved,
                            active=True).put()
