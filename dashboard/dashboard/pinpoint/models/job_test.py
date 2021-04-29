@@ -101,6 +101,11 @@ class JobTest(test.TestCase):
     self.assertEqual(d['estimate']['timings'][2], 100)
     self.assertEqual(d['estimate']['tags'], ['try', 'linux'])
 
+  def testAsDictOptions_Inputs(self):
+    j = job.Job.New((), (), bug_id=123456)
+    d = j.AsDict([job.OPTION_INPUTS])
+    self.assertEqual(d['state'], [])
+
   @mock.patch.object(job.timing_record, 'GetSimilarHistoricalTimings',
                      mock.MagicMock(return_value=None))
   @mock.patch.object(job.scheduler, 'QueueStats',

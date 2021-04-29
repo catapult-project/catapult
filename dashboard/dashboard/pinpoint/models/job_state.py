@@ -234,15 +234,21 @@ class JobState(object):
     functools.reduce(Comparison, self._changes, None)
     return differences
 
-  def AsDict(self):
+  def AsDict(self, options=None):
 
     def Transform(change):
-      return ({
-          'attempts': [attempt.AsDict() for attempt in self._attempts[change]],
+      result = {
           'change': change.AsDict(),
-          'comparisons': {},
-          'result_values': self.ResultValues(change),
-      }, change)
+      }
+      if 'INPUTS' not in options:
+        result.update({
+            'attempts': [
+                attempt.AsDict() for attempt in self._attempts[change]
+            ],
+            'comparisons': {},
+            'result_values': self.ResultValues(change),
+        })
+      return result, change
 
     def CollectStates(states, change_b):
       if len(states) == 0:
@@ -251,9 +257,11 @@ class JobState(object):
 
       transformed_a, change_a = states.pop()
       transformed_b, change_b = Transform(change_b)
-      comparison = self._Compare(change_a, change_b)
-      transformed_a['comparisons']['next'] = comparison
-      transformed_b['comparisons']['prev'] = comparison
+      if 'INPUTS' not in options:
+        comparison = self._Compare(change_a, change_b)
+        transformed_a['comparisons']['next'] = comparison
+        transformed_b['comparisons']['prev'] = comparison
+
       states.extend([(transformed_a, change_a), (transformed_b, change_b)])
       return states
 

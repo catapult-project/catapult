@@ -49,6 +49,7 @@ _MAX_RECOVERABLE_RETRIES = 3
 OPTION_STATE = 'STATE'
 OPTION_TAGS = 'TAGS'
 OPTION_ESTIMATE = 'ESTIMATE'
+OPTION_INPUTS = 'INPUTS'
 
 COMPARISON_MODES = job_state.COMPARISON_MODES
 
@@ -776,7 +777,7 @@ class Job(ndb.Model):
     if not options:
       return d
 
-    if OPTION_STATE in options:
+    if OPTION_STATE in options or OPTION_INPUTS in options:
       if self.use_execution_engine:
         d.update(
             task_module.Evaluate(
@@ -785,7 +786,7 @@ class Job(ndb.Model):
                     type='serialize', target_task=None, payload={}),
                 job_serializer.Serializer()) or {})
       else:
-        d.update(self.state.AsDict())
+        d.update(self.state.AsDict(options))
     if OPTION_ESTIMATE in options and not self.started:
       d.update(self._GetRunTimeEstimate())
     if OPTION_TAGS in options:
