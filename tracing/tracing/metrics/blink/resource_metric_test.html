@@ -28,10 +28,10 @@ tr.b.unittest.testSuite(function() {
           args: {url},
         }));
       };
-      emitEvent(1000, 'blink', 'ResourceFetcher::requestResource', 'A.js', 0.1);
-      emitEvent(2001, 'blink', 'ignore', 'A.js', 0.1);
+      emitEvent(1000, 'blink.resource', 'ResourceFetcher::requestResource', 'A.js', 0.1);
+      emitEvent(2001, 'blink.resource', 'ignore', 'A.js', 0.1);
       emitEvent(2002, 'ignore', 'ignore', 'A.js', 0.1);
-      emitEvent(3200, 'blink', 'ResourceFetcher::requestResource', 'b.js', 0.1);
+      emitEvent(3200, 'blink.resource', 'ResourceFetcher::requestResource', 'b.js', 0.1);
       emitEvent(4201, 'ignore', 'ResourceFetcher::requestResource', 'b.js', 0.1);
     });
 
