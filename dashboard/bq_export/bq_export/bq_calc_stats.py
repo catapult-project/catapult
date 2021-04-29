@@ -15,6 +15,7 @@ from __future__ import absolute_import
 
 
 import datetime
+import math
 from typing import Dict, Any, TypeVar, List
 
 import apache_beam as beam
@@ -125,6 +126,8 @@ def SummariseSamples(pcoll, key_columns):
         median=quartiles[1],
         third_quartile=quartiles[2],
         cv=scipy.stats.mstats.variation(arr),
+        std_dev=math.sqrt(stats.variance),
+        std_err=scipy.stats.sem(arr),
     )
 
   return (
@@ -166,6 +169,8 @@ def FlattenForBQ(pcoll, fixed_cols_provider):
     # FloatHack?
     d['variance'] = FloatHack(d['variance'])
     d['cv'] = FloatHack(d['cv'])
+    d['std_dev'] = FloatHack(d['std_dev'])
+    d['std_err'] = FloatHack(d['std_err'])
     return d
   return pcoll | beam.Map(FlattenElement)
 
@@ -276,6 +281,8 @@ def main():
    median FLOAT64,
    third_quartile FLOAT64,
    cv FLOAT64,
+   std_dev FLOAT64,
+   std_err FLOAT64,
    )
   PARTITION BY `date`
   CLUSTER BY measurement;
@@ -299,6 +306,8 @@ def main():
    median FLOAT64,
    third_quartile FLOAT64,
    cv FLOAT64,
+   std_dev FLOAT64,
+   std_err FLOAT64,
    )
   PARTITION BY `date`
   CLUSTER BY bot_group, bot, measurement;
@@ -321,6 +330,8 @@ def main():
           {'name': 'median', 'type': 'FLOAT', 'mode': 'NULLABLE'},
           {'name': 'third_quartile', 'type': 'FLOAT', 'mode': 'NULLABLE'},
           {'name': 'cv', 'type': 'FLOAT', 'mode': 'NULLABLE'},
+          {'name': 'std_dev', 'type': 'FLOAT', 'mode': 'NULLABLE'},
+          {'name': 'std_err', 'type': 'FLOAT', 'mode': 'NULLABLE'},
       ],
   }
 
@@ -344,6 +355,8 @@ def main():
           {'name': 'median', 'type': 'FLOAT', 'mode': 'NULLABLE'},
           {'name': 'third_quartile', 'type': 'FLOAT', 'mode': 'NULLABLE'},
           {'name': 'cv', 'type': 'FLOAT', 'mode': 'NULLABLE'},
+          {'name': 'std_dev', 'type': 'FLOAT', 'mode': 'NULLABLE'},
+          {'name': 'std_err', 'type': 'FLOAT', 'mode': 'NULLABLE'},
       ],
   }
 
