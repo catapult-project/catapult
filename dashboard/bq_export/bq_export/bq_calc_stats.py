@@ -19,6 +19,8 @@ import math
 from typing import Dict, Any, TypeVar, List
 
 import apache_beam as beam
+from apache_beam.io.gcp.datastore.v1new import datastoreio
+import apache_beam.io.gcp.datastore.v1new.types as ds_types
 from apache_beam.options.pipeline_options import (GoogleCloudOptions,
                                                   PipelineOptions)
 from apache_beam.options.value_provider import (NestedValueProvider,
@@ -175,6 +177,24 @@ def FlattenForBQ(pcoll, fixed_cols_provider):
   return pcoll | beam.Map(FlattenElement)
 
 
+def CreateEntity(elem):
+  """Make a SignalQualitySampleStats entity from summarised stats."""
+  key = ds_types.Key(
+      [
+          'SignalQuality',
+          '{bot_group}/{bot}/{measurement}'.format(**elem[0].as_dict()),
+          'SignalQualitySampleStats',
+          '0',  # version
+      ],
+      project='chromeperf',
+  )
+  entity = ds_types.Entity(key)
+  properties = elem[1].as_dict()
+  properties['updated_time'] = datetime.datetime.now()
+  entity.set_properties(properties)
+  return entity
+
+
 class CalcStatsOptions(PipelineOptions):
 
   @classmethod
@@ -191,6 +211,11 @@ class CalcStatsOptions(PipelineOptions):
         '--dataset',
         help='BigQuery dataset name.  Overrideable for testing/dev purposes.',
         default='chromeperf_dashboard_data')
+    parser.add_argument(
+        '--export_to_datastore',
+        help=('Export stats to DataStore as well as BigQuery.  This is off by '
+              'default (so that backfills of historical data do not '
+              'accidentally override current stats).'), action='store_true')
 
   def GetFixedColumnsProvider(self):
     def DateTransform(yyyymmdd):
@@ -396,6 +421,15 @@ def main():
            element_to_yyyymmdd_fn=DateToYYYYMMDD,
            additional_bq_parameters={
                'clustering': {'fields': ['bot_group', 'bot', 'measurement']}}))
+
+  if stats_options.export_to_datastore:
+    _ = (
+        stats_by_bg_b_m
+        | 'CreateEntity(SignalQuality)' >> beam.Map(CreateEntity)
+        | beam.Reshuffle()
+        | datastoreio.WriteToDatastore('chromeperf')
+    )
+
 
   result = p.run()
   result.wait_until_finish()
