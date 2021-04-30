@@ -109,7 +109,8 @@ class Oobe(web_contents.WebContents):
       self.ExecuteJavaScript('Oobe.showAddUserForTesting()')
 
     py_utils.WaitFor(self._GaiaWebviewContext, 20)
-    self._NavigateWebviewLogin(username, password, wait_for_close=True)
+    self._NavigateWebviewLogin(username, password,
+                               wait_for_close=not enterprise_enroll)
 
     if enterprise_enroll:
       self.WaitForJavaScriptCondition(
