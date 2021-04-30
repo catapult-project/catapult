@@ -35,37 +35,31 @@ class RefreshJobsTest(test.TestCase):
     job.started = True
     job.updated = datetime.datetime.utcnow() - datetime.timedelta(hours=8)
     job.put()
-    job._Schedule = mock.MagicMock()
-    job.Fail = mock.MagicMock()
     self.assertTrue(job.running)
     self.testapp.get('/cron/refresh-jobs')
     self.ExecuteDeferredTasks('default')
-    self.assertTrue(job._Schedule.called)
-    self.assertFalse(job.Fail.called)
+    job = job_module.JobFromId(job.job_id)
 
   def testGetWithQueuedJobs(self):
     queued_job = job_module.Job.New((), ())
-    queued_job._Schedule = mock.MagicMock()
-    queued_job.Fail = mock.MagicMock()
+    queued_job.put()
     running_job = job_module.Job.New((), ())
     running_job.task = '123'
     running_job.started = True
     running_job.updated = datetime.datetime.utcnow() - datetime.timedelta(
         hours=24)
     running_job.put()
-    running_job._Schedule = mock.MagicMock()
-    running_job.Fail = mock.MagicMock()
     self.assertFalse(queued_job.running)
     self.assertTrue(running_job.running)
     self.testapp.get('/cron/refresh-jobs')
+    running_job = job_module.JobFromId(running_job.job_id)
+    queued_job = job_module.JobFromId(queued_job.job_id)
     self.ExecuteDeferredTasks('default')
-    self.assertFalse(queued_job._Schedule.called)
-    self.assertTrue(running_job._Schedule.called)
+    self.assertFalse(queued_job.running)
+    self.assertTrue(running_job.running)
 
   def testGetWithCancelledJobs(self):
     cancelled_job = job_module.Job.New((), ())
-    cancelled_job._Schedule = mock.MagicMock()
-    cancelled_job.Fail = mock.MagicMock()
     cancelled_job.started = True
     cancelled_job.updated = datetime.datetime.utcnow() - datetime.timedelta(
         hours=24)
@@ -75,8 +69,10 @@ class RefreshJobsTest(test.TestCase):
     self.assertFalse(cancelled_job.running)
     self.testapp.get('/cron/refresh-jobs')
     self.ExecuteDeferredTasks('default')
-    self.assertFalse(cancelled_job._Schedule.called)
-    self.assertFalse(cancelled_job.Fail.called)
+    cancelled_job = job_module.JobFromId(cancelled_job.job_id)
+    self.assertTrue(cancelled_job.cancelled)
+    self.assertFalse(cancelled_job.running)
+    self.assertEqual(cancelled_job.status, 'Cancelled')
 
   def testGet_RetryLimit(self):
     j1 = job_module.Job.New((), ())
@@ -120,8 +116,6 @@ class RefreshJobsTest(test.TestCase):
     j2.started = True
     j2.updated = datetime.datetime.utcnow() - datetime.timedelta(hours=8)
     j2.put()
-    j2._Schedule = mock.MagicMock()
-    j2.Fail = mock.MagicMock()
 
     layered_cache.Set(refresh_jobs._JOB_CACHE_KEY % j2.job_id,
                       {'retries': refresh_jobs._JOB_MAX_RETRIES + 1})
@@ -129,9 +123,6 @@ class RefreshJobsTest(test.TestCase):
     self.testapp.get('/cron/refresh-jobs')
 
     self.ExecuteDeferredTasks('default')
-
     self.assertFalse(j1._Schedule.called)
-    self.assertFalse(j1.Fail.called)
-
-    self.assertFalse(j2._Schedule.called)
-    self.assertFalse(j2.Fail.called)
+    j2 = job_module.JobFromId(j2.job_id)
+    self.assertEqual(j2.status, 'Failed')

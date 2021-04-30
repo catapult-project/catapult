@@ -48,16 +48,12 @@ def _ProcessFrozenJob(job_id):
   key = _JOB_CACHE_KEY % job_id
   info = layered_cache.Get(key) or {'retries': 0}
 
-  if info.get('retries') == _JOB_MAX_RETRIES:
+  retries = info.setdefault('retries', 0)
+  if retries >= _JOB_MAX_RETRIES:
     info['retries'] += 1
     layered_cache.Set(key, info, days_to_keep=30)
-    job.Fail(errors.REFRESH_FAILURE)
-    job.put()
-    logging.error('Failed retry for job %s', job_id)
-    return
-  elif info.get('retries') > _JOB_MAX_RETRIES:
-    logging.error('Exceeded maximum retries (%s) for job %s', _JOB_MAX_RETRIES,
-                  job_id)
+    job.Fail(errors.JobRetryFailed())
+    logging.error('Retry #%d: failed retrying job %s', retries, job_id)
     return
 
   info['retries'] += 1

@@ -586,16 +586,35 @@ class Job(ndb.Model):
         self.project,
         _retry_options=RETRY_OPTIONS)
 
-  def _UpdateGerritIfNeeded(self):
+  def _UpdateGerritIfNeeded(self, success=True):
     if self.gerrit_server and self.gerrit_change_id:
+      icon = _ROUND_PUSHPIN if success else _CRYING_CAT_FACE
+      state = 'complete' if success else 'failed'
       deferred.defer(
           _UpdateGerritDeferred,
           self.gerrit_server,
           self.gerrit_change_id,
-          '%s Job complete.\n\nSee results at: %s' % (_ROUND_PUSHPIN, self.url),
-          _retry_options=RETRY_OPTIONS)
+          '%s Job %s.\n\nSee results at: %s' % (icon, state, self.url),
+          _retry_options=RETRY_OPTIONS,
+      )
 
   def Fail(self, exception=None):
+    # Short-circuit jobs failure updates when we are not the first one to mark a
+    # job done.
+    first_done = MarkDone(self.job_id)
+    if self.use_execution_engine and not first_done:
+      return
+
+    # Set these explicitly on this instance, since we know that at this point
+    # the job has already been marked done in storage.
+    if not self.started:
+      self.started = True
+      self.started_time = datetime.datetime.utcnow()
+
+    self.done = True
+
+    # What follows are the details we are providing when posting updates to the
+    # associated bug.
     tb = traceback.format_exc() or ''
     title = _CRYING_CAT_FACE + ' Pinpoint job stopped with an error.'
     exc_info = sys.exc_info()
@@ -618,13 +637,9 @@ class Job(ndb.Model):
         'category': category,
     }
     self.task = None
+    self.put()
 
     comment = '\n'.join((title, self.url, '', exc_message))
-
-    # Short-circuit jobs failure updates when we are not the first one to mark a
-    # job done.
-    if self.use_execution_engine and not MarkDone(self.job_id):
-      return
 
     deferred.defer(
         _PostBugCommentDeferred,
@@ -633,7 +648,9 @@ class Job(ndb.Model):
         project=self.project,
         labels=job_bug_update.ComputeLabelUpdates(['Pinpoint-Job-Failed']),
         send_email=True,
-        _retry_options=RETRY_OPTIONS)
+        _retry_options=RETRY_OPTIONS,
+    )
+    self._UpdateGerritIfNeeded(success=False)
     scheduler.Complete(self)
 
   def _Schedule(self, countdown=_TASK_INTERVAL):
