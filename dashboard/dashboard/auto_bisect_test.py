@@ -249,7 +249,7 @@ class StartNewBisectForBugTest(testing_common.TestCase):
         end_revision=12500,
         median_before_anomaly=100,
         median_after_anomaly=200).put()
-    a = anomaly.Anomaly(
+    anomaly.Anomaly(
         bug_id=333,
         project_id='test_project',
         test=test_key2,
@@ -258,11 +258,8 @@ class StartNewBisectForBugTest(testing_common.TestCase):
         median_before_anomaly=100,
         median_after_anomaly=200).put()
     result = auto_bisect.StartNewBisectForBug(333, 'test_project')
-    self.assertNotIn('error', result)
-    self.assertEqual({
-        'alert': a.urlsafe(),
-        'test_path': test_key2.id()
-    }, json.loads(mock_new.call_args[0][0]['tags']))
+    # We now require a specific story when bisecting with Pinpoint.
+    self.assertIn('error', result)
 
 
 if __name__ == '__main__':
