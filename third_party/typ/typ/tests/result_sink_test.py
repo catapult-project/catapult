@@ -31,6 +31,16 @@ DEFAULT_LUCI_CONTEXT = {
 }
 ARTIFACT_DIR = os.path.join('artifact', 'dir')
 FAKE_TEST_PATH = '/src/some/test.py'
+HTML_SUMMARY = ('<p><text-artifact artifact-id="typ_stdout"/></p>'
+                '<p><text-artifact artifact-id="typ_stderr"/></p>')
+STDOUT_STDERR_ARTIFACTS = {
+    'typ_stdout': {
+        'contents': base64.b64encode('stdout')
+    },
+    'typ_stderr': {
+        'contents': base64.b64encode('stderr')
+    }
+}
 
 
 def CreateResult(input_dict):
@@ -77,9 +87,8 @@ def CreateExpectedTestResult(
         'status': status or json_results.ResultType.Pass,
         'expected': expected or True,
         'duration': duration or '1.000000000s',
-        'summaryHtml': (summary_html
-                        or '<pre>stdout: stdout\nstderr: stderr</pre>'),
-        'artifacts': artifacts or {},
+        'summaryHtml': summary_html or HTML_SUMMARY,
+        'artifacts': artifacts or STDOUT_STDERR_ARTIFACTS,
         'tags': tags or [
             {'key': 'test_name', 'value': test_id},
             {'key': 'typ_expectation', 'value': json_results.ResultType.Pass},
@@ -200,14 +209,14 @@ class ResultSinkReporterTest(unittest.TestCase):
         self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[0]),
                          expected_result)
 
-    def testReportIndividualTestResultLongSummary(self):
+    def testReportIndividualTestResultHtmlSummaryUnicode(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
         rsr = ResultSinkReporterWithFakeSrc(self._host)
         result = CreateResult({
             'name': 'test_name',
             'actual': json_results.ResultType.Pass,
-            'out': 'a' * 4097,
-            'err': '',
+            'out': 'stdout\u00A5',
+            'err': 'stderr\u00A5',
         })
         rsr._post = StubWithRetval(0)
         rsr.report_individual_test_result(
@@ -215,72 +224,43 @@ class ResultSinkReporterTest(unittest.TestCase):
                 CreateTestExpectations(), FAKE_TEST_PATH)
 
         test_result = GetTestResultFromPostedJson(rsr._post.args[0])
-        truncated_summary = '<pre>stdout: %s%s' % (
-            'a' * (result_sink.MAX_HTML_SUMMARY_LENGTH
-                   - len(result_sink.TRUNCATED_SUMMARY_MESSAGE)
-                   - 13),
-            result_sink.TRUNCATED_SUMMARY_MESSAGE
-        )
-        artifact_contents = 'stdout: %s\nstderr: ' % ('a' * 4097)
         expected_result = CreateExpectedTestResult(
-                summary_html=truncated_summary,
-                artifacts={
-                    'Test Log': {
-                        'contents': base64.b64encode(artifact_contents)
-                    }
-                })
+            artifacts={
+                'typ_stdout': {
+                    'contents': base64.b64encode('stdout\u00A5'.encode('utf-8'))
+                },
+                'typ_stderr': {
+                    'contents': base64.b64encode('stderr\u00A5'.encode('utf-8'))
+                }
+            })
         self.assertEqual(test_result, expected_result)
 
-    def testReportIndividualTestResultLongSummaryUnicode(self):
-        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
-        rsr = ResultSinkReporterWithFakeSrc(self._host)
-        result = CreateResult({
-            'name': 'test_name',
-            'actual': json_results.ResultType.Pass,
-            'out': u'\u00A5' + 'a' * 4096,
-            'err': '',
-        })
-        rsr._post = StubWithRetval(0)
+    def testReportIndividualTestResultConflictingOutputKeys(self):
+      self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+      rsr = ResultSinkReporterWithFakeSrc(self._host)
+      rsr._post = lambda: 1/0
+      result = CreateResult({
+          'name': 'test_name',
+          'actual': 'json_results.ResultType.Pass',
+          'artifacts': {
+              'typ_stdout': [''],
+          },
+      })
+      with self.assertRaises(AssertionError):
         rsr.report_individual_test_result(
-                'test_name_prefix.', result, ARTIFACT_DIR,
+                'test_name_name_prefix', result, ARTIFACT_DIR,
                 CreateTestExpectations(), FAKE_TEST_PATH)
-
-        test_result = GetTestResultFromPostedJson(rsr._post.args[0])
-        truncated_summary = '<pre>stdout: %s%s' % (
-            u'\u00A5' + 'a' * (result_sink.MAX_HTML_SUMMARY_LENGTH
-                               - len(result_sink.TRUNCATED_SUMMARY_MESSAGE)
-                               - 15),
-            result_sink.TRUNCATED_SUMMARY_MESSAGE
-        )
-        self.assertEqual(len(truncated_summary.encode('utf-8')),
-                         result_sink.MAX_HTML_SUMMARY_LENGTH)
-        artifact_contents = 'stdout: %s\nstderr: ' % (u'\u00A5' + 'a' * 4096)
-        expected_result = CreateExpectedTestResult(
-                summary_html=truncated_summary,
-                artifacts={
-                    'Test Log': {
-                        'contents': base64.b64encode(
-                                artifact_contents.encode('utf-8'))
-                    }
-                })
-        self.assertEqual(test_result, expected_result)
-
-    def testReportIndividualTestResultConflictingKeyLongSummary(self):
-        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
-        rsr = ResultSinkReporterWithFakeSrc(self._host)
-        rsr._post = lambda: 1/0
-        result = CreateResult({
-            'name': 'test_name',
-            'actual': json_results.ResultType.Pass,
-            'artifacts': {
-                'Test Log': [''],
-            },
-            'out': 'a' * 4097,
-        })
-        with self.assertRaises(AssertionError):
-            rsr.report_individual_test_result(
-                    'test_name_prefix', result, ARTIFACT_DIR,
-                    CreateTestExpectations(), FAKE_TEST_PATH)
+      result = CreateResult({
+          'name': 'test_name',
+          'actual': 'json_results.ResultType.Pass',
+          'artifacts': {
+              'typ_stderr': [''],
+          },
+      })
+      with self.assertRaises(AssertionError):
+        rsr.report_individual_test_result(
+                'test_name_name_prefix', result, ARTIFACT_DIR,
+                CreateTestExpectations(), FAKE_TEST_PATH)
 
     def testReportIndividualTestResultSingleArtifact(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
@@ -291,7 +271,7 @@ class ResultSinkReporterTest(unittest.TestCase):
             'actual': json_results.ResultType.Pass,
             'artifacts': {
                 'artifact_name': ['some_artifact'],
-            },
+            }
         })
         retval = rsr.report_individual_test_result(
                 'test_name_prefix.', results, ARTIFACT_DIR,
@@ -299,14 +279,16 @@ class ResultSinkReporterTest(unittest.TestCase):
         self.assertEqual(retval, 2)
 
         test_result = GetTestResultFromPostedJson(rsr._post.args[0])
+        expected_artifacts = {
+            'artifact_name': {
+                'filePath': self._host.join(self._host.getcwd(),
+                                            ARTIFACT_DIR,
+                                            'some_artifact'),
+            },
+        }
+        expected_artifacts.update(STDOUT_STDERR_ARTIFACTS)
         expected_result = CreateExpectedTestResult(
-                artifacts={
-                    'artifact_name': {
-                        'filePath': self._host.join(self._host.getcwd(),
-                                                    ARTIFACT_DIR,
-                                                    'some_artifact'),
-                    },
-                })
+                artifacts=expected_artifacts)
         self.assertEqual(test_result, expected_result)
 
     def testReportIndividualTestResultMultipleArtifacts(self):
@@ -326,19 +308,21 @@ class ResultSinkReporterTest(unittest.TestCase):
         self.assertEqual(retval, 2)
 
         test_result = GetTestResultFromPostedJson(rsr._post.args[0])
+        expected_artifacts = {
+            'artifact_name-file0': {
+                'filePath': self._host.join(self._host.getcwd(),
+                                            ARTIFACT_DIR,
+                                            'some_artifact'),
+            },
+            'artifact_name-file1': {
+                'filePath': self._host.join(self._host.getcwd(),
+                                            ARTIFACT_DIR,
+                                            'another_artifact'),
+            },
+        }
+        expected_artifacts.update(STDOUT_STDERR_ARTIFACTS)
         expected_result = CreateExpectedTestResult(
-                artifacts={
-                    'artifact_name-file0': {
-                        'filePath': self._host.join(self._host.getcwd(),
-                                                    ARTIFACT_DIR,
-                                                    'some_artifact'),
-                    },
-                    'artifact_name-file1': {
-                        'filePath': self._host.join(self._host.getcwd(),
-                                                    ARTIFACT_DIR,
-                                                    'another_artifact'),
-                    },
-                })
+                artifacts=expected_artifacts)
         self.assertEqual(test_result, expected_result)
 
     def testReportResultEarlyReturnIfNotSupported(self):
@@ -353,12 +337,6 @@ class ResultSinkReporterTest(unittest.TestCase):
         with self.assertRaises(AssertionError):
             result_sink._create_json_test_result(
                 'test_id', 'InvalidStatus', False, {}, {}, '', 1, {})
-
-    def testCreateJsonTestResultInvalidSummary(self):
-        with self.assertRaises(AssertionError):
-            result_sink._create_json_test_result(
-                'test_id', json_results.ResultType.Pass, True, {}, {},
-                'a' * 4097, 1, {})
 
     def testCreateJsonTestResultBasic(self):
         retval = result_sink._create_json_test_result(

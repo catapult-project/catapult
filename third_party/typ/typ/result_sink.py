@@ -21,7 +21,6 @@ See go/resultdb and go/resultsink for more details.
 """
 
 import base64
-import cgi
 import json
 import os
 import sys
@@ -40,12 +39,8 @@ VALID_STATUSES = {
     'ABORT',
     'SKIP',
 }
-# The maximum allowed size is 4096 bytes as per
-# https://source.chromium.org/chromium/infra/infra/+/master:go/src/go.chromium.org/luci/resultdb/proto/v1/test_result.proto;drc=ca12b9f52b27f064b0fa47c39baa3b011ffa5790;l=96
-MAX_HTML_SUMMARY_LENGTH = 4096
-TRUNCATED_SUMMARY_KEY = 'Test Log'
-TRUNCATED_SUMMARY_MESSAGE = ('...Full output in "%s" artifact.</pre>' %
-                             TRUNCATED_SUMMARY_KEY)
+STDOUT_KEY = 'typ_stdout'
+STDERR_KEY = 'typ_stderr'
 
 
 class ResultSinkReporter(object):
@@ -136,7 +131,8 @@ class ResultSinkReporter(object):
 
         artifacts = {}
         original_artifacts = result.artifacts or {}
-        assert TRUNCATED_SUMMARY_KEY not in original_artifacts
+        assert STDOUT_KEY not in original_artifacts
+        assert STDERR_KEY not in original_artifacts
         if original_artifacts:
             assert artifact_output_dir
             if not os.path.isabs(artifact_output_dir):
@@ -158,19 +154,15 @@ class ResultSinkReporter(object):
                             artifact_output_dir, artifact_filepaths[0]),
                 }
 
-        summary_content = 'stdout: %s\nstderr: %s' % (
-                cgi.escape(result.out), cgi.escape(result.err))
-        summary_content = summary_content.encode('utf-8')
-        html_summary = '<pre>%s</pre>' % summary_content
-        truncated_summary = None
-        if len(html_summary) > MAX_HTML_SUMMARY_LENGTH:
-            truncated_summary = (html_summary[:MAX_HTML_SUMMARY_LENGTH
-                                              - len(TRUNCATED_SUMMARY_MESSAGE)]
-                                 + TRUNCATED_SUMMARY_MESSAGE)
-            artifacts[TRUNCATED_SUMMARY_KEY] = {
-                'contents': base64.b64encode(summary_content)
-            }
-        html_summary = truncated_summary or html_summary
+        artifacts[STDOUT_KEY] = {
+            'contents': base64.b64encode(result.out.encode('utf-8'))
+        }
+        artifacts[STDERR_KEY] = {
+            'contents': base64.b64encode(result.err.encode('utf-8'))
+        }
+        html_summary = ('<p><text-artifact artifact-id="%s"/></p>'
+                        '<p><text-artifact artifact-id="%s"/></p>' % (
+                            STDOUT_KEY, STDERR_KEY))
 
         test_location_in_repo = self._convert_path_to_repo_path(
             test_file_location)
@@ -202,7 +194,6 @@ class ResultSinkReporter(object):
             tag_list: A list of tuples of (str, str), each element being a
                     key/value pair to add as tags to the reported result.
             html_summary: A string containing HTML summarizing the test run.
-                    Must be <= |MAX_HTML_SUMMARY_LENGTH|.
             duration: How long the test took in seconds.
             test_metadata: A dict containing additional test metadata to upload.
 
@@ -278,8 +269,7 @@ def _create_json_test_result(
                 either a filepath or base64-encoded artifact content.
         tag_list: A list of tuples of (str, str), each element being a
                     key/value pair to add as tags to the reported result.
-        html_summary: A string containing HTML summarizing the test run. Must be
-                <= |MAX_HTML_SUMMARY_LENGTH|.
+        html_summary: A string containing HTML summarizing the test run.
         duration: How long the test took in seconds.
         test_metadata: A dict containing additional test metadata to upload.
 
@@ -288,7 +278,6 @@ def _create_json_test_result(
         ResultSink.
     """
     assert status in VALID_STATUSES
-    assert len(html_summary) <= MAX_HTML_SUMMARY_LENGTH
     # This is based off the protobuf in
     # https://source.chromium.org/chromium/infra/infra/+/master:go/src/go.chromium.org/luci/resultdb/sink/proto/v1/test_result.proto
     test_result = {
