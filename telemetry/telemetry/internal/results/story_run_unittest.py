@@ -103,7 +103,6 @@ class StoryRunTest(unittest.TestCase):
                   },
                   'tags': [
                       {'key': 'shard', 'value': '7'},
-                      {'key': 'story_tag', 'value': 'all'},
                       {'key': 'story_tag', 'value': 'tag1'},
                       {'key': 'story_tag', 'value': 'tag2'},
                       {'key': 'tbmv2', 'value': 'metric1'},
