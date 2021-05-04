@@ -3,6 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
+
 import os
 import subprocess
 import sys
@@ -13,13 +15,13 @@ _TELEMETRY_BIN_DIR = os.path.abspath(
 
 
 def main(args):
-  print 'Fetching Telemetry dependencies...'
+  print('Fetching Telemetry dependencies...')
   subprocess.check_call(
       [sys.executable,
        os.path.join(_TELEMETRY_BIN_DIR, 'fetch_telemetry_binary_dependencies')])
 
-  print 'Done fetching Telemetry dependencies.'
-  print 'Running Telemetry tests...'
+  print('Done fetching Telemetry dependencies.')
+  print('Running Telemetry tests...')
   subprocess.check_call(
       [sys.executable, os.path.join(_TELEMETRY_BIN_DIR, 'run_tests')] + args)
 
