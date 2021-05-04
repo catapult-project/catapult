@@ -7,7 +7,10 @@ import os
 import shutil
 import tempfile
 import unittest
-import StringIO
+try:
+  from StringIO import StringIO as stringIO
+except ImportError:
+  from io import StringIO as stringIO
 
 import mock
 
@@ -57,7 +60,7 @@ class SnapPageTest(unittest.TestCase):
     self.platform.SetHTTPServerDirectories(path.GetUnittestDataDir())
     html_file_path = os.path.join(path.GetUnittestDataDir(), 'green_rect.html')
     url = self.platform.http_server.UrlOf(html_file_path)
-    outfile = StringIO.StringIO()
+    outfile = stringIO()
     test_dir = tempfile.mkdtemp()
     try:
       snap_page_util._SnapPageToFile(
@@ -80,7 +83,7 @@ class SnapPageTest(unittest.TestCase):
       self.platform.SetHTTPServerDirectories(path.GetUnittestDataDir())
       url = self.platform.http_server.UrlOf(
           os.path.join(path.GetUnittestDataDir(), src_html_filename))
-      outfile = StringIO.StringIO()
+      outfile = stringIO()
 
       # Load the test image file's content so that we can return it
       # from the mocked url request as if we'd actually fetched the

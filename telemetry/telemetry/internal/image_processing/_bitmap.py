@@ -8,7 +8,12 @@ tools: crop, find bounding box of a color and compute histogram of color values.
 """
 
 import array
-import cStringIO
+
+try:
+  from StringIO import StringIO as stringIO
+except ImportError:
+  from io import BytesIO as stringIO
+
 import struct
 import subprocess
 import warnings
@@ -212,7 +217,7 @@ class Bitmap(object):
         'Using pure python png decoder, which could be very slow. To speed up, '
         'consider installing numpy & cv2 (OpenCV).')
     diff_img = png.from_array(diff, mode='RGB')
-    output = cStringIO.StringIO()
+    output = stringIO()
     try:
       diff_img.save(output)
       diff = Bitmap.FromPng(output.getvalue())

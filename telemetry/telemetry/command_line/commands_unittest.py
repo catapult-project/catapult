@@ -2,8 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+
+try:
+  from StringIO import StringIO as stringIO
+except ImportError:
+  from io import StringIO as stringIO
 import json
-import StringIO
 import unittest
 
 from telemetry import benchmark
@@ -45,8 +49,8 @@ class BenchmarkDisabled(benchmark.Benchmark):
 class PrintBenchmarkListTests(unittest.TestCase):
 
   def setUp(self):
-    self._stream = StringIO.StringIO()
-    self._json_stream = StringIO.StringIO()
+    self._stream = stringIO()
+    self._json_stream = stringIO()
     self._mock_possible_browser = mock.MagicMock()
     self._mock_possible_browser.browser_type = 'TestBrowser'
 
