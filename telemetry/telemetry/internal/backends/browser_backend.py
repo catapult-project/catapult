@@ -461,3 +461,10 @@ class BrowserBackend(app_backend.AppBackend):
 
   def GetUIDevtoolsBackend(self, port): # pylint: disable=unused-argument
     raise exceptions.StoryActionError('UI Devtools not supported')
+
+  def GetWindowForTarget(self, target_id): # pylint: disable=unused-argument
+    raise exceptions.StoryActionError('Get Window For Target not supported')
+
+  def SetWindowBounds(
+      self, window_id, bounds): # pylint: disable=unused-argument
+    raise exceptions.StoryActionError('Set Window Bounds not supported')

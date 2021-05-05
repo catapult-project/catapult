@@ -365,3 +365,9 @@ class Browser(app.App):
     '''UI Devtools is mainly used to interact with native UI'''
     return ui_devtools.UIDevTools(
         self._browser_backend.GetUIDevtoolsBackend(port))
+
+  def GetWindowForTarget(self, target_id):
+    return self._browser_backend.GetWindowForTarget(target_id)
+
+  def SetWindowBounds(self, window_id, bounds):
+    self._browser_backend.SetWindowBounds(window_id, bounds)

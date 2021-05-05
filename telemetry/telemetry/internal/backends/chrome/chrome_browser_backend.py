@@ -311,3 +311,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   def GetUIDevtoolsBackend(self, port):
     return ui_devtools_client_backend.GetUIDevtoolsBackend(port, self)
+
+  def GetWindowForTarget(self, target_id):
+    return self.devtools_client.GetWindowForTarget(target_id)
+
+  def SetWindowBounds(self, window_id, bounds):
+    self.devtools_client.SetWindowBounds(window_id, bounds)

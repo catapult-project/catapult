@@ -512,6 +512,25 @@ class _DevToolsClientBackend(object):
     }
     self._browser_websocket.SyncRequest(request, timeout)
 
+  def GetWindowForTarget(self, target_id):
+    request = {
+        'method': 'Browser.getWindowForTarget',
+        'params': {
+            'targetId': target_id
+        }
+    }
+    return self._browser_websocket.SyncRequest(request, timeout=30)
+
+  def SetWindowBounds(self, window_id, bounds):
+    request = {
+        'method': 'Browser.setWindowBounds',
+        'params': {
+            'windowId': window_id,
+            'bounds': bounds
+        }
+    }
+    self._browser_websocket.SyncRequest(request, timeout=30)
+
 
 class _DevToolsContextMapBackend(object):
   def __init__(self, devtools_client):
