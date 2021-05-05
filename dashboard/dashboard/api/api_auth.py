@@ -24,6 +24,8 @@ OAUTH_CLIENT_ID_ALLOWLIST = [
     '975044924533-p122oecs8h6eibv5j5a8fmj82b0ct0nk.apps.googleusercontent.com',
     # This oauth client id is used to monitor the rendering benchmark.
     '401211562413-g8hq6k75vr2767p1vspbs3vu9vscgrot.apps.googleusercontent.com',
+    # This oauth client id is used for go/motionmark-dashboard.
+    '147086511812-51cesludd5bhjqsmmooe7lgd6mndjq0j.apps.googleusercontent.com',
     # This oauth client id is used to upload histograms from the perf waterfall.
     '113172445342431053212',
     # This oauth client id used to upload histograms from cronet bots.
