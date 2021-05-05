@@ -10,6 +10,7 @@ See design doc for details:
 https://docs.google.com/document/u/1/d/12D7tkhZi887g9d0U2askU9JypU_wYiEI7Lw0bfwxUgA
 """
 
+from __future__ import absolute_import
 import logging
 from telemetry.core import exceptions
 

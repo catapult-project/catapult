@@ -27,6 +27,7 @@ test_mox.py test suite.
 See test_mox.MoxTestBaseTest for how this class is actually used.
 """
 
+from __future__ import absolute_import
 import os
 
 from mox3 import mox

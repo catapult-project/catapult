@@ -19,6 +19,7 @@ Copyright (C) 2010 Hiroki Ohtani(liris)
     Boston, MA 02110-1335  USA
 
 """
+from __future__ import absolute_import
 __all__ = ["HAVE_SSL", "ssl", "SSLError"]
 
 try:

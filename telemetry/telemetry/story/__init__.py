@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
 from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry.story.shared_state import SharedState

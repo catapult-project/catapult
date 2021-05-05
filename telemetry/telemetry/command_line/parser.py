@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 """Builds the command line parser, processes args, and runs commands."""
 
+from __future__ import absolute_import
 import argparse
 import logging
 import sys

@@ -17,6 +17,7 @@ Action parameters are:
 - use_touch: boolean value to specify if gesture should use touch input or not.
 """
 
+from __future__ import absolute_import
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import utils
 from telemetry.util import js_template

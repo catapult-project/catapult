@@ -4,6 +4,7 @@
 
 """Start and stop Web Page Replay."""
 
+from __future__ import absolute_import
 import logging
 
 from telemetry.internal.util import binary_manager

@@ -19,6 +19,7 @@
 Test the :py:class`pyfakefs.fake_filesystem_unittest.TestCase` base class.
 """
 
+from __future__ import absolute_import
 import os
 import glob
 import shutil
@@ -28,7 +29,7 @@ if sys.version_info < (2, 7):
     import unittest2 as unittest
 else:
     import unittest
-import fake_filesystem_unittest
+from . import fake_filesystem_unittest
 import pytest
 
 class TestPyfakefsUnittest(fake_filesystem_unittest.TestCase): # pylint: disable=R0904

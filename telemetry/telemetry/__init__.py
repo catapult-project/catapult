@@ -6,6 +6,7 @@
 # For some reason pylint thinks this import is at wrong position
 # pylint: disable=wrong-import-position
 from __future__ import print_function
+from __future__ import absolute_import
 # pylint: enable=wrong-import-position
 
 import os

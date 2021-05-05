@@ -3,6 +3,7 @@ altgraph.GraphStat - Functions providing various graph statistics
 =================================================================
 '''
 from __future__ import division
+from __future__ import absolute_import
 import sys
 
 # 2To3-division: the / operations here are not converted to // as the results

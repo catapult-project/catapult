@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import six.moves.urllib.request, six.moves.urllib.error, six.moves.urllib.parse
 
 # 2To3-division: this file is skipped as this is version specific implemetation.

@@ -16,6 +16,7 @@
 
 """Unittest for fake_filesystem_shutil."""
 
+from __future__ import absolute_import
 import stat
 import time
 import sys
@@ -24,8 +25,8 @@ if sys.version_info < (2, 7):
 else:
     import unittest
 
-import fake_filesystem
-import fake_filesystem_shutil
+from . import fake_filesystem
+from . import fake_filesystem_shutil
 
 
 class FakeShutilModuleTest(unittest.TestCase):

@@ -16,15 +16,16 @@
 
 """A test suite that runs all tests for pyfakefs at once."""
 
+from __future__ import absolute_import
 import unittest
 
-import fake_filesystem_glob_test
-import fake_filesystem_shutil_test
-import fake_filesystem_test
-import fake_filesystem_vs_real_test
-import fake_tempfile_test
-import fake_filesystem_unittest_test
-import example_test
+from . import fake_filesystem_glob_test
+from . import fake_filesystem_shutil_test
+from . import fake_filesystem_test
+from . import fake_filesystem_vs_real_test
+from . import fake_tempfile_test
+from . import fake_filesystem_unittest_test
+from . import example_test
 
 
 class AllTests(unittest.TestSuite):

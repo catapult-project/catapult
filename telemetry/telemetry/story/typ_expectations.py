@@ -12,6 +12,7 @@ Example:
   disabled_story = expectations.IsStoryDisabled('story1')
 '''
 
+from __future__ import absolute_import
 from typ import expectations_parser
 from typ import json_results
 

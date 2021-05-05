@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 """Finds desktop browsers that can be started and controlled by telemetry."""
 
+from __future__ import absolute_import
 import logging
 import os
 import shutil

@@ -4,6 +4,7 @@
 
 """Start and stop tsproxy."""
 
+from __future__ import absolute_import
 from py_utils import ts_proxy_server
 
 
