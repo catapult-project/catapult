@@ -94,7 +94,8 @@ tr.exportTo('tr.ui.tracks', function() {
    * a single track but provide no information themselves.
    */
   function stripSlice_(slice) {
-    if (slice.subSlices !== undefined && slice.subSlices.length === 1) {
+    if (slice.subSlices !== undefined && slice.subSlices.length === 1
+        && !slice.args) {
       const subSlice = slice.subSlices[0];
       if (tr.b.math.approximately(subSlice.start, slice.start, 1) &&
           tr.b.math.approximately(subSlice.duration, slice.duration, 1)) {
