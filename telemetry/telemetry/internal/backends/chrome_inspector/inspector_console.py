@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 try:
-  from StringIO import StringIO as stringIO
+  from StringIO import StringIO
 except ImportError:
-  from io import StringIO as stringIO
+  from io import StringIO
 
 from telemetry.internal.backends.chrome_inspector import websocket
 
@@ -31,7 +31,7 @@ class InspectorConsole(object):
           '%s\n' % self._last_message)
 
   def GetCurrentConsoleOutputBuffer(self, timeout=10):
-    self._message_output_stream = stringIO()
+    self._message_output_stream = StringIO()
     self._EnableConsoleOutputStream(timeout)
     try:
       self._inspector_websocket.DispatchNotifications(timeout)

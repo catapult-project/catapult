@@ -4,9 +4,9 @@
 
 
 try:
-  from StringIO import StringIO as stringIO
+  from StringIO import StringIO
 except ImportError:
-  from io import StringIO as stringIO
+  from io import StringIO
 import json
 import unittest
 
@@ -49,8 +49,8 @@ class BenchmarkDisabled(benchmark.Benchmark):
 class PrintBenchmarkListTests(unittest.TestCase):
 
   def setUp(self):
-    self._stream = stringIO()
-    self._json_stream = stringIO()
+    self._stream = StringIO()
+    self._json_stream = StringIO()
     self._mock_possible_browser = mock.MagicMock()
     self._mock_possible_browser.browser_type = 'TestBrowser'
 
