@@ -15,6 +15,7 @@ from dashboard.common import utils
 
 _MAX_JOBS_TO_FETCH = 100
 _MAX_JOBS_TO_COUNT = 1000
+_DEFAULT_FILTERED_JOBS = 40
 
 
 class Jobs(webapp2.RequestHandler):
@@ -28,7 +29,7 @@ class Jobs(webapp2.RequestHandler):
 
 
 def _GetJobs(options, query_filter):
-  query = job_module.Job.query().order(-job_module.Job.created)
+  query = job_module.Job.query()
 
   # Query filters should a string as described in https://google.aip.dev/160
   # We implement a simple parser for the query_filter provided, to allow us to
@@ -44,14 +45,23 @@ def _GetJobs(options, query_filter):
           continue
         yield p
 
+  has_filter = False
   for f in _ParseExpressions():
     if f.startswith('user='):
+      has_filter = True
       query = query.filter(job_module.Job.user == f[len('user='):])
     elif f.startswith('configuration='):
+      has_filter = True
       query = query.filter(
           job_module.Job.configuration == f[len('configuration='):])
+    elif f.startswith('comparison_mode='):
+      has_filter = True
+      query = query.filter(
+          job_module.Job.comparison_mode == f[len('comparison_mode='):])
 
-  job_future = query.fetch_async(limit=_MAX_JOBS_TO_FETCH)
+  query = query.order(-job_module.Job.created)
+  limit = _MAX_JOBS_TO_FETCH if not has_filter else _DEFAULT_FILTERED_JOBS
+  job_future = query.fetch_async(limit=limit)
   count_future = query.count_async(limit=_MAX_JOBS_TO_COUNT)
 
   result = {

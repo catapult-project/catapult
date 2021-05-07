@@ -155,6 +155,35 @@ indexes:
   - name: created
     direction: desc
 
+# Used to query for jobs with filters on comparison_mode.
+- kind: Job
+  properties:
+  - name: comparison_mode
+  - name: created
+    direction: desc
+
+- kind: Job
+  properties:
+  - name: comparison_mode
+  - name: user
+  - name: created
+    direction: desc
+
+- kind: Job
+  properties:
+  - name: comparison_mode
+  - name: configuration
+  - name: created
+    direction: desc
+
+- kind: Job
+  properties:
+  - name: comparison_mode
+  - name: user
+  - name: configuration
+  - name: created
+    direction: desc
+
 # Used in find_anomalies.GetRowsToAnalyze when getting latest points,
 # with projection query for properties revision, value, and timestamp.
 - kind: Row
