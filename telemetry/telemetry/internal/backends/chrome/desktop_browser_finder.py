@@ -202,6 +202,9 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
           self.CleanUpEnvironment()
           self.SetUpEnvironment(saved_browser_options)
         else:
+          logging.warning('This might be because of software compositing being'
+                          ' disabled. Please try again with'
+                          ' --allow-software-compositing flag.')
           raise
 
   def GetBrowserStartupArgs(self, browser_options):
