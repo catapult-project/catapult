@@ -9,6 +9,7 @@ same markup, but all Beautiful Soup trees can be traversed with the
 methods tested here.
 """
 
+from __future__ import absolute_import
 import copy
 import pickle
 import re
@@ -30,6 +31,7 @@ from bs4.testing import (
     SoupTest,
     skipIf,
 )
+import six
 
 XML_BUILDER_PRESENT = (builder_registry.lookup("xml") is not None)
 LXML_PRESENT = (builder_registry.lookup("lxml") is not None)
@@ -1393,7 +1395,7 @@ class TestSubstitutions(SoupTest):
 
     def test_prettify_outputs_unicode_by_default(self):
         soup = self.soup("<a></a>")
-        self.assertEqual(unicode, type(soup.prettify()))
+        self.assertEqual(six.text_type, type(soup.prettify()))
 
     def test_prettify_can_encode_data(self):
         soup = self.soup("<a></a>")

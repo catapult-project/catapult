@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from collections import defaultdict
 import itertools
 import sys
@@ -6,6 +7,7 @@ from bs4.element import (
     ContentMetaAttributeValue,
     whitespace_re
     )
+import six
 
 __all__ = [
     'HTMLTreeBuilder',
@@ -159,7 +161,7 @@ class TreeBuilder(object):
                     # value is a whitespace-separated list of
                     # values. Split it into a list.
                     value = attrs[attr]
-                    if isinstance(value, basestring):
+                    if isinstance(value, six.string_types):
                         values = whitespace_re.split(value)
                     else:
                         # html5lib sometimes calls setAttributes twice

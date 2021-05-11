@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+import six
 __all__ = [
     'HTML5TreeBuilder',
     ]
@@ -37,7 +39,7 @@ class HTML5TreeBuilder(HTMLTreeBuilder):
         doc = parser.parse(markup, encoding=self.user_specified_encoding)
 
         # Set the character encoding detected by the tokenizer.
-        if isinstance(markup, unicode):
+        if isinstance(markup, six.text_type):
             # We need to special-case this because html5lib sets
             # charEncoding to UTF-8 if it gets Unicode input.
             doc.original_encoding = None
@@ -124,7 +126,7 @@ class Element(html5lib.treebuilders._base.Node):
 
     def appendChild(self, node):
         string_child = child = None
-        if isinstance(node, basestring):
+        if isinstance(node, six.string_types):
             # Some other piece of code decided to pass in a string
             # instead of creating a TextElement object to contain the
             # string.
@@ -139,7 +141,7 @@ class Element(html5lib.treebuilders._base.Node):
         else:
             child = node.element
 
-        if not isinstance(child, basestring) and child.parent is not None:
+        if not isinstance(child, six.string_types) and child.parent is not None:
             node.element.extract()
 
         if (string_child and self.element.contents
@@ -152,7 +154,7 @@ class Element(html5lib.treebuilders._base.Node):
             old_element.replace_with(new_element)
             self.soup._most_recent_element = new_element
         else:
-            if isinstance(node, basestring):
+            if isinstance(node, six.string_types):
                 # Create a brand new NavigableString from this string.
                 child = self.soup.new_string(node)
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tests of Beautiful Soup as a whole."""
 
+from __future__ import absolute_import
 import logging
 import unittest
 import sys
@@ -26,11 +27,12 @@ from bs4.testing import (
     skipIf,
 )
 import warnings
+import six
 
 try:
     from bs4.builder import LXMLTreeBuilder, LXMLTreeBuilderForXML
     LXML_PRESENT = True
-except ImportError, e:
+except ImportError as e:
     LXML_PRESENT = False
 
 PYTHON_2_PRE_2_7 = (sys.version_info < (2,7))
@@ -204,7 +206,7 @@ class TestEncodingConversion(SoupTest):
             ascii = b"<foo>a</foo>"
             soup_from_ascii = self.soup(ascii)
             unicode_output = soup_from_ascii.decode()
-            self.assertTrue(isinstance(unicode_output, unicode))
+            self.assertTrue(isinstance(unicode_output, six.text_type))
             self.assertEqual(unicode_output, self.document_for(ascii.decode()))
             self.assertEqual(soup_from_ascii.original_encoding.lower(), "utf-8")
         finally:

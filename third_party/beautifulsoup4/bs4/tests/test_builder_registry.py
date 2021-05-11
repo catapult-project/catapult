@@ -1,5 +1,6 @@
 """Tests of the builder registry."""
 
+from __future__ import absolute_import
 import unittest
 
 from bs4 import BeautifulSoup

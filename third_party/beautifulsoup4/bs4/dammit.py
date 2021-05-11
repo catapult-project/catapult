@@ -7,11 +7,14 @@ Feed Parser. It works best on XML and XML, but it does not rewrite the
 XML or HTML to reflect a new encoding; that's the tree builder's job.
 """
 
+from __future__ import absolute_import
 import codecs
-from htmlentitydefs import codepoint2name
+from six.moves.html_entities import codepoint2name
 import re
 import logging
 import string
+from six import unichr
+import six
 
 # Import a library to autodetect character encodings.
 chardet_type = None
@@ -340,9 +343,9 @@ class UnicodeDammit:
         self.detector = EncodingDetector(markup, override_encodings, is_html)
 
         # Short-circuit if the data is in Unicode to begin with.
-        if isinstance(markup, unicode) or markup == '':
+        if isinstance(markup, six.text_type) or markup == '':
             self.markup = markup
-            self.unicode_markup = unicode(markup)
+            self.unicode_markup = six.text_type(markup)
             self.original_encoding = None
             return
 
@@ -425,7 +428,7 @@ class UnicodeDammit:
     def _to_unicode(self, data, encoding, errors="strict"):
         '''Given a string and its encoding, decodes the string into Unicode.
         %encoding is a string recognized by encodings.aliases'''
-        return unicode(data, encoding, errors)
+        return six.text_type(data, encoding, errors)
 
     @property
     def declared_html_encoding(self):
