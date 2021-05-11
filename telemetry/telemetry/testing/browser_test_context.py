@@ -4,7 +4,6 @@
 
 from __future__ import absolute_import
 import copy
-import sets
 
 
 _global_test_context = None
@@ -46,7 +45,7 @@ class TypTestContext(object):
     assert self._finder_options
     assert self._test_class
     self._frozen = True
-    self._test_cases_ids_to_run = sets.ImmutableSet(self._test_cases_ids_to_run)
+    self._test_cases_ids_to_run = frozenset(self._test_cases_ids_to_run)
     self._client_configs = tuple(self._client_configs)
     self._expectations_files = tuple(self._expectations_files)
 
