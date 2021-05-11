@@ -76,7 +76,7 @@ class AndroidActionRunner(object):
     # spaces.
     words = string.split(' ')
     for i in range(0, len(words)):
-      if i is not 0:
+      if i != 0:
         self.InputKeyEvent(keyevent.KEYCODE_SPACE)
       self._platform_backend.device.RunShellCommand(
           ['input', 'text', words[i]], check_return=True)
