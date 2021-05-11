@@ -311,7 +311,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
   """
   def setUp(self):
     self.finder_options = options_for_unittests.GetCopy()
-    self.finder_options.periodic_screenshot_frequency_ms = 0
+    self.finder_options.periodic_screenshot_frequency_ms = None
 
   def _CreateErrorProcessingMock(self, method_exceptions=None,
                                  legacy_test=False):

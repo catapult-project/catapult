@@ -241,6 +241,11 @@ def RunStorySet(test, story_set, finder_options, results,
     finder_options.browser_options.browser_type = possible_browser.browser_type
   else:
     possible_browser = _GetPossibleBrowser(finder_options)
+
+  if (finder_options.periodic_screenshot_frequency_ms and
+      possible_browser.target_os == "android"):
+    raise ValueError("Periodic screenshots are not compatible with Android!")
+
   platform_tags = possible_browser.GetTypExpectationsTags()
   logging.info('The following expectations condition tags were generated %s',
                str(platform_tags))

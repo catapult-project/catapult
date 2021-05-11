@@ -228,6 +228,7 @@ class FakePossibleBrowser(object):
     self.execute_on_startup = execute_on_startup
     self.execute_after_browser_creation = execute_after_browser_creation
     self.browser_options = None  # This is set in SetUpEnvironment.
+    self.target_os = os_name
 
   @property
   def returned_browser(self):

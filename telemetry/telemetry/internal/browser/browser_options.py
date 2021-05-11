@@ -202,7 +202,10 @@ class BrowserFinderOptions(optparse.Values):
     group.add_option(
         '--periodic-screenshot-frequency-ms',
         dest='periodic_screenshot_frequency_ms', type=int,
-        help='During each story, capture a screenshot every x ms and save it to a file.')
+        help='During each story, capture a screenshot every x ms and '
+             'save it to a file (Linux/Windows/[La]CrOS only).'
+             'NOTE: This significantly impacts performance, '
+             'so it should only be used while debugging.')
     parser.add_option_group(group)
 
     # Platform options
