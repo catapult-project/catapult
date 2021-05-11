@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 import os
 import re
 import stat
@@ -45,7 +46,7 @@ def convert_perfetto_trace(in_file):
     with open(traceconv_path, 'w') as out:
       out.write(traceconv.read())
   except urllib2.URLError:
-    print 'Could not download traceconv to convert the Perfetto trace.'
+    print('Could not download traceconv to convert the Perfetto trace.')
     sys.exit(1)
   os.chmod(traceconv_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
   return subprocess.call([traceconv_path, 'systrace', in_file, T2T_OUTPUT]) == 0

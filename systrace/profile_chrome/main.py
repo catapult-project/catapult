@@ -4,6 +4,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 import logging
 import optparse
 import os
@@ -126,7 +127,7 @@ When in doubt, just try out --trace-frame-viewer.
 
   if options.atrace_categories in ['list', 'help']:
     atrace_agent.list_categories(atrace_agent.get_config(options))
-    print '\n'
+    print('\n')
     return 0
 
   if (perf_tracing_agent.PerfProfilerAgent.IsSupported() and

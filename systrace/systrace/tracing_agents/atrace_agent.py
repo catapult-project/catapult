@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 import optparse
 import platform
 import re
@@ -61,9 +62,9 @@ def list_categories(config):
     # work around platform bug where rs tag would corrupt trace until M(Api23)
     categories = [c for c in categories if not re.match(r'^\s*rs\s*-', c)]
 
-  print '\n'.join(categories)
+  print('\n'.join(categories))
   if not devutils.HasRoot():
-    print '\nNOTE: more categories may be available with adb root\n'
+    print('\nNOTE: more categories may be available with adb root\n')
 
 
 def get_available_categories(config, device_sdk_version):
@@ -188,7 +189,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
     self._categories = [x for x in self._categories.split(',') if
         x in avail_cats]
     if unavailable:
-      print 'These categories are unavailable: ' + ' '.join(unavailable)
+      print('These categories are unavailable: ' + ' '.join(unavailable))
     self._device_utils = device_utils.DeviceUtils(config.device_serial_number)
     self._device_serial_number = config.device_serial_number
     self._tracer_args = _construct_atrace_args(config,
@@ -293,8 +294,8 @@ class AtraceAgent(tracing_agents.TracingAgent):
       trace_data = strip_and_decompress_trace(trace_data)
 
     if not trace_data:
-      print >> sys.stderr, ('No data was captured.  Output file was not '
-                            'written.')
+      print('No data was captured.  Output file was not written.',
+            file=sys.stderr)
       sys.exit(1)
 
     if _FIX_MISSING_TGIDS:

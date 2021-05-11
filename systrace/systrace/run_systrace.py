@@ -15,6 +15,7 @@ the kernel.  It creates an HTML file for visualizing the trace.
 # support Python 3 yet.
 
 # pylint: disable=wrong-import-position
+from __future__ import print_function
 import sys
 
 version = sys.version_info[:2]
@@ -121,7 +122,7 @@ def initialize_devil():
   """Initialize devil to use adb from $PATH"""
   adb_path = find_adb()
   if adb_path is None:
-    print >> sys.stderr, "Unable to find adb, is it in your path?"
+    print("Unable to find adb, is it in your path?", file=sys.stderr)
     sys.exit(1)
   devil_dynamic_config = {
     'config_type': 'BaseConfig',

@@ -4,6 +4,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function   # pylint: disable=wrong-import-position
+
 import codecs
 import optparse
 import os
@@ -78,7 +80,8 @@ def update(no_auto_update=False, no_min=False, force_update=False):
     new_rev = get_catapult_rev_in_git_()
     if not new_rev:
       # Source tree could be missing git metadata.
-      print >> sys.stderr, 'Warning: Couldn\'t determine current git revision.'
+      print('Warning: Couldn\'t determine current git revision.',
+            file=sys.stderr)
       new_rev = UNKNOWN_REVISION_
 
   need_update = False
@@ -98,11 +101,11 @@ def update(no_auto_update=False, no_min=False, force_update=False):
       need_update = True
 
   if not need_update:
-    print 'Update skipped.'
+    print('Update skipped.')
     return
 
-  print 'Generating viewer file %s with revision %s.' % (
-            SYSTRACE_TRACE_VIEWER_HTML_FILE, new_rev)
+  print('Generating viewer file %s with revision %s.' % (
+            SYSTRACE_TRACE_VIEWER_HTML_FILE, new_rev))
 
   # Generate the vulcanized result.
   with codecs.open(SYSTRACE_TRACE_VIEWER_HTML_FILE,
