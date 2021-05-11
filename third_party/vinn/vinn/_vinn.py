@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
 import argparse
 import logging
 import os
@@ -16,6 +17,8 @@ import threading
 import re
 import json
 import tempfile
+import six
+from six.moves import range
 
 
 _V8_DIR = os.path.abspath(
@@ -221,12 +224,12 @@ def RunFile(file_path, source_paths=None, js_args=None, v8_args=None,
         if trial == _NUM_TRIALS - 1:
           logging.error(
               'Failed to run file with D8 after %s tries.', _NUM_TRIALS)
-          raise t, v, tb
+          six.reraise(t, v, tb)
         logging.warn('Hit error %s. Retrying after sleeping.', v)
         time.sleep(10)
         continue
       # Re-raise original exception.
-      raise t, v, tb
+      six.reraise(t, v, tb)
     _RemoveTreeWithRetry(temp_dir)
     break
   return result
@@ -265,7 +268,7 @@ def RunJsString(js_string, source_paths=None, js_args=None, v8_args=None,
     except:
       logging.error('Failed to remove temp dir %s.', temp_dir)
     # Re-raise original exception.
-    raise t, v, tb
+    six.reraise(t, v, tb)
   _RemoveTreeWithRetry(temp_dir)
   return result
 

@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
 import json
 import os
 import re
@@ -9,6 +10,7 @@ import sys
 import shutil
 import tempfile
 import unittest
+from six.moves import range
 
 sys.path.append(
     os.path.join(os.path.dirname(__file__), '..', '..', 'mock'))
@@ -358,7 +360,7 @@ def _GenerateLineByLineDiff(actual, expected):
   results.append('**Actual    : num lines =  %i' % len(actual_lines))
   results.append('**Expected  : num lines = %i' % len(expected_lines))
 
-  for i in xrange(0, max_num_lines):
+  for i in range(0, max_num_lines):
     expected_current_line = expected_lines[i] if i < len(expected_lines) else ''
     actual_current_line = actual_lines[i] if i < len(actual_lines) else ''
     if actual_current_line == expected_current_line:
