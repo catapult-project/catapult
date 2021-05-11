@@ -26,6 +26,8 @@ class _StoryMatcher(object):
   def __nonzero__(self):
     return self._regex is not None
 
+  __bool__ = __nonzero__
+
   def HasMatch(self, story):
     return self and bool(self._regex.search(story.name))
 
@@ -37,6 +39,8 @@ class _StoryTagMatcher(object):
 
   def __nonzero__(self):
     return self._tags is not None
+
+  __bool__ = __nonzero__
 
   def HasLabelIn(self, story):
     return self and bool(story.tags.intersection(self._tags))
