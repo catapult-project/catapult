@@ -101,8 +101,8 @@ def try_create_agent(config):
   # Check device SDK version.
   device_sdk_version = util.get_device_sdk_version()
   if device_sdk_version < version_codes.JELLY_BEAN_MR2:
-    print ('Device SDK versions < 18 (Jellybean MR2) not supported.\n'
-           'Your device SDK version is %d.' % device_sdk_version)
+    print('Device SDK versions < 18 (Jellybean MR2) not supported.\n'
+          'Your device SDK version is %d.' % device_sdk_version)
     return None
 
   return AtraceAgent(device_sdk_version,
