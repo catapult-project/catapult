@@ -99,6 +99,20 @@ class CrOSBrowserMockCreationTest(unittest.TestCase):
     with self._CreateBrowser('cros-chrome', with_oobe=True) as browser:
       self.assertIsNotNone(browser)
 
+  def testGetBrowserStartupArgsWithOOBE(self):
+    possible_browser = cros_browser_finder.PossibleCrOSBrowser(
+        'cros-chrome', self.finder_options, self.mock_platform,
+        is_guest=False)
+    browser_options = self.finder_options.browser_options
+    browser_options.mute_audio = False
+    browser_options.expect_policy_fetch = False
+    browser_options.disable_gaia_services = False
+    browser_options.gaia_login = True
+
+    startup_args = possible_browser.GetBrowserStartupArgs(browser_options)
+
+    self.assertNotIn('--oobe-skip-to-login', startup_args)
+
 
 def IsRemote():
   return bool(options_for_unittests.GetCopy().cros_remote)

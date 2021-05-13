@@ -201,12 +201,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     if not browser_options.expect_policy_fetch:
       startup_args.append('--allow-failed-policy-fetch-for-test')
 
-    # If we're using GAIA, skip to login screen, enable GaiaActionButtons
-    # feature, and do not disable GAIA services.
-    if browser_options.gaia_login:
-      startup_args.append('--oobe-skip-to-login')
-      startup_args.append('--enable-features=GaiaActionButtons')
-    elif browser_options.disable_gaia_services:
+    if browser_options.disable_gaia_services:
       startup_args.append('--disable-gaia-services')
 
     trace_config_file = (self._platform_backend.tracing_controller_backend
