@@ -156,9 +156,9 @@ def _RunCommand(args):
   stdout, stderr = gsutil.communicate()
 
   if gsutil.returncode:
-    raise GetErrorObjectForCloudStorageStderr(stderr)
+    raise GetErrorObjectForCloudStorageStderr(stderr.decode('utf-8'))
 
-  return stdout
+  return stdout.decode('utf-8')
 
 
 def GetErrorObjectForCloudStorageStderr(stderr):
@@ -590,4 +590,4 @@ def CalculateHash(file_path):
 
 def ReadHash(hash_path):
   with open(hash_path, 'rb') as f:
-    return f.read(1024).rstrip()
+    return f.read(1024).rstrip().decode('utf-8')
