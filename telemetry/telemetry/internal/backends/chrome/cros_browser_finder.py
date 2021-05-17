@@ -150,7 +150,6 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     os_browser_backend.Start(startup_args)
 
     if self._app_type == 'lacros-chrome':
-      os_browser_backend._platform_backend.tracing_controller_backend.FlushTracing()
       lacros_chrome_browser_backend = lacros_browser_backend.LacrosBrowserBackend(
           self._platform_backend, self._browser_options,
           self.browser_directory, self.profile_directory,
