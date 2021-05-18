@@ -430,6 +430,18 @@ class NewTest(_NewTest):
     self.assertEqual('some_chart', job.benchmark_arguments.chart)
     self.assertEqual(None, job.benchmark_arguments.statistic)
 
+  def testNewHasBatchId(self):
+    request = dict(_BASE_REQUEST)
+    request.update({
+        'chart': 'some_chart',
+        'story': 'some_story',
+        'story_tags': 'some_tag,some_other_tag',
+        'batch_id': 'some-identifier',
+    })
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    self.assertEqual(job.batch_id, 'some-identifier')
+
   def testNewPostsCreationMessage(self):
     tracker = mock.MagicMock()
     tracker.AddBugComment.return_value = None

@@ -41,6 +41,7 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
     self.assertEqual(
         {
             'arguments': mock.ANY,
+            'batch_id': None,
             'bug_id': None,
             'project': 'chromium',
             'cancel_reason': None,
@@ -87,6 +88,8 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
         {
             'arguments':
                 mock.ANY,
+            'batch_id':
+                None,
             'bug_id':
                 None,
             'project':

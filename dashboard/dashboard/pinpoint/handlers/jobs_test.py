@@ -173,3 +173,47 @@ class JobsTest(test.TestCase):
     expected_job_dict = job.AsDict([job_module.OPTION_STATE])
     expected_job_dict['user'] = expected_automation_email
     self.assertEqual(expected_job_dict, sorted_data[-1])
+
+  @mock.patch.object(utils,
+                     'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)
+  @mock.patch.object(jobs.utils, 'GetEmail',
+                     mock.MagicMock(return_value=_SERVICE_ACCOUNT_EMAIL))
+  @mock.patch.object(results2_module, 'GetCachedResults2', return_value="")
+  def testGet_WithBatchId(self, _):
+    expected_bot = 'some-bot'
+    some_user = 'some-user@example.com'
+    job = job_module.Job.New(
+        (),
+        (),
+        user=some_user,
+        arguments={
+            'configuration': expected_bot,
+        },
+        comparison_mode='try',
+        batch_id='some-id',
+    )
+    job_module.Job.New((), (), user=_SERVICE_ACCOUNT_EMAIL)
+    job_module.Job.New(
+        (),
+        (),
+        user=_SERVICE_ACCOUNT_EMAIL,
+        arguments={
+            'configuration': expected_bot,
+        },
+        comparison_mode='try',
+    )
+    data = json.loads(
+        self.testapp.get('/api/jobs?o=STATE&filter=batch_id=some-id').body)
+    self.assertEqual(1, data['count'])
+    self.assertEqual(1, len(data['jobs']))
+    got_job = data['jobs'][0]
+    self.assertEqual(got_job['user'], some_user)
+    self.assertEqual(got_job['configuration'], expected_bot)
+    self.assertEqual(got_job['comparison_mode'], 'try')
+    self.assertEqual(got_job['batch_id'], 'some-id')
+
+    sorted_data = sorted(data['jobs'], key=lambda d: d['job_id'])
+    self.maxDiff = None
+    expected_job_dict = job.AsDict([job_module.OPTION_STATE])
+    expected_job_dict['user'] = some_user
+    self.assertEqual(expected_job_dict, sorted_data[-1])

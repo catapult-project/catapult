@@ -18,14 +18,27 @@ _MAX_JOBS_TO_COUNT = 1000
 _DEFAULT_FILTERED_JOBS = 40
 
 
+class Error(Exception):
+  pass
+
+
+class InvalidInput(Error):
+  pass
+
+
 class Jobs(webapp2.RequestHandler):
   """Shows an overview of recent anomalies for perf sheriffing."""
 
   def get(self):
-    self.response.out.write(
-        json.dumps(
-            _GetJobs(self.request.get_all('o'),
-                     self.request.get_all('filter'))))
+    try:
+      self.response.out.write(
+          json.dumps(
+              _GetJobs(
+                  self.request.get_all('o'), self.request.get_all('filter'))))
+    except InvalidInput as e:
+      self.response.set_status(400)
+      logging.exception(e)
+      self.response.out.write(json.dumps({'error': e.message}))
 
 
 def _GetJobs(options, query_filter):
@@ -46,6 +59,7 @@ def _GetJobs(options, query_filter):
         yield p
 
   has_filter = False
+  has_batch_filter = False
   for f in _ParseExpressions():
     if f.startswith('user='):
       has_filter = True
@@ -58,9 +72,21 @@ def _GetJobs(options, query_filter):
       has_filter = True
       query = query.filter(
           job_module.Job.comparison_mode == f[len('comparison_mode='):])
+    elif f.startswith('batch_id='):
+      has_batch_filter = True
+      batch_id = f[len('batch_id='):]
+      if not batch_id:
+        raise InvalidInput('batch_id when specified must not be empty')
+      query = query.filter(job_module.Job.batch_id == batch_id)
+
+  if has_filter and has_batch_filter:
+    raise InvalidInput('batch ids are mutually exclusive with job filters')
 
   query = query.order(-job_module.Job.created)
-  limit = _MAX_JOBS_TO_FETCH if not has_filter else _DEFAULT_FILTERED_JOBS
+  limit = None
+  if not has_batch_filter:
+    limit = _MAX_JOBS_TO_FETCH if not has_filter else _DEFAULT_FILTERED_JOBS
+
   job_future = query.fetch_async(limit=limit)
   count_future = query.count_async(limit=_MAX_JOBS_TO_COUNT)
 

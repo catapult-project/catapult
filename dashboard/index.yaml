@@ -184,6 +184,13 @@ indexes:
   - name: created
     direction: desc
 
+# Index jobs by batch id.
+- kind: Job
+  properties:
+  - name: batch_id
+  - name: created
+    direction: desc
+
 # Used in find_anomalies.GetRowsToAnalyze when getting latest points,
 # with projection query for properties revision, value, and timestamp.
 - kind: Row

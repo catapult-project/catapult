@@ -241,6 +241,9 @@ class Job(ndb.Model):
   # Priority for scheduling purposes. Lower numbers indicate higher priority.
   priority = ndb.IntegerProperty(default=0)
 
+  # Jobs can be part of batches, which have an id provided by the creator.
+  batch_id = ndb.StringProperty()
+
   @classmethod
   def _post_get_hook(cls, key, future):  # pylint: disable=unused-argument
     e = future.get_result()
@@ -279,7 +282,8 @@ class Job(ndb.Model):
           user=None,
           priority=None,
           use_execution_engine=False,
-          project='chromium'):
+          project='chromium',
+          batch_id=None):
     """Creates a new Job, adds Changes to it, and puts it in the Datstore.
 
     Args:
@@ -305,6 +309,7 @@ class Job(ndb.Model):
         execution engine. Currently defaulted to False, but will be switched to
         True and eventually removed as an option later.
       project: A Monorail project ID.
+      batch_id: An ID provided to link multiple jobs together.
 
     Returns:
       A Job object.
@@ -329,7 +334,9 @@ class Job(ndb.Model):
         cancelled=False,
         use_execution_engine=use_execution_engine,
         priority=priority,
-        project=project)
+        project=project,
+        batch_id=batch_id,
+    )
 
     # Pull out the benchmark arguments to the top-level.
     job.benchmark_arguments = BenchmarkArguments.FromArgs(args)
@@ -789,6 +796,7 @@ class Job(ndb.Model):
         'exception': self.exception_details_dict,
         'status': self.status,
         'cancel_reason': self.cancel_reason,
+        'batch_id': self.batch_id,
     }
 
     if not options:

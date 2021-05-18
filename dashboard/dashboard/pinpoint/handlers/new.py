@@ -123,7 +123,8 @@ def _CreateJob(request):
       user=user,
       priority=priority,
       use_execution_engine=use_execution_engine,
-      project=project)
+      project=project,
+      batch_id=arguments.get('batch_id'))
 
   if use_execution_engine:
     # TODO(dberris): We need to figure out a way to get the arguments to be more
