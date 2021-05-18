@@ -69,10 +69,15 @@ def ProcessAlertGroups():
     deferred.defer(
         _ProcessAlertGroup,
         group.key,
-        _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0))
+        _queue='update-alert-group-queue',
+        _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0),
+    )
 
-  deferred.defer(_ProcessUngroupedAlerts,
-                 _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0))
+  deferred.defer(
+      _ProcessUngroupedAlerts,
+      _queue='update-alert-group-queue',
+      _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0),
+  )
 
 
 class AlertGroupsHandler(request_handler.RequestHandler):
@@ -95,5 +100,7 @@ class AlertGroupsHandler(request_handler.RequestHandler):
     # Do not retry failed tasks.
     deferred.defer(
         ProcessAlertGroups,
-        _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0))
+        _queue='update-alert-group-queue',
+        _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0),
+    )
     self.response.write('OK')

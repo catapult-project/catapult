@@ -27,6 +27,11 @@ queue:
      task_retry_limit: 8
      min_backoff_seconds: 2
 
+# AlertGroup
+ - name: update-alert-group-queue
+   rate: 20/s
+   retry_parameters:
+     task_retry_limit: 0
 
  # Pinpoint
  - name: job-queue

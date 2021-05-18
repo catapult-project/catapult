@@ -55,7 +55,7 @@ class GroupReportTestBase(testing_common.TestCase):
 
   def _CallHandler(self):
     result = self.testapp.get('/alert_groups_update')
-    self.ExecuteDeferredTasks('default')
+    self.ExecuteDeferredTasks('update-alert-group-queue')
     return result
 
   def _SetUpMocks(self, mock_get_sheriff_client):
@@ -136,7 +136,7 @@ class GroupReportTest(GroupReportTestBase):
       self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     self.testapp.get('/alert_groups_update')
-    self.ExecuteDeferredTasks('default')
+    self.ExecuteDeferredTasks('update-alert-group-queue')
     # Add anomalies
     a1 = self._AddAnomaly()
     a2 = self._AddAnomaly(start_revision=50, end_revision=150)
@@ -158,7 +158,7 @@ class GroupReportTest(GroupReportTestBase):
       self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     self.testapp.get('/alert_groups_update')
-    self.ExecuteDeferredTasks('default')
+    self.ExecuteDeferredTasks('update-alert-group-queue')
     # Add anomalies
     a1 = self._AddAnomaly()
     a2 = self._AddAnomaly(start_revision=50, end_revision=150)
@@ -184,7 +184,7 @@ class GroupReportTest(GroupReportTestBase):
   def testMultipleAltertsGroupingDifferentBot(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     self.testapp.get('/alert_groups_update')
-    self.ExecuteDeferredTasks('default')
+    self.ExecuteDeferredTasks('update-alert-group-queue')
     # Add anomalies
     a1 = self._AddAnomaly()
     a2 = self._AddAnomaly(start_revision=50, end_revision=150)
@@ -203,7 +203,7 @@ class GroupReportTest(GroupReportTestBase):
   def testMultipleAltertsGroupingDifferentSuite(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     self.testapp.get('/alert_groups_update')
-    self.ExecuteDeferredTasks('default')
+    self.ExecuteDeferredTasks('update-alert-group-queue')
     # Add anomalies
     a1 = self._AddAnomaly()
     a2 = self._AddAnomaly(start_revision=50, end_revision=150)
@@ -227,7 +227,7 @@ class GroupReportTest(GroupReportTestBase):
   def testMultipleAltertsGroupingOverrideSuite(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     self.testapp.get('/alert_groups_update')
-    self.ExecuteDeferredTasks('default')
+    self.ExecuteDeferredTasks('update-alert-group-queue')
     # Add anomalies
     a1 = self._AddAnomaly(test='master/bot/test_suite/measurement/test_case', )
     a2 = self._AddAnomaly(
@@ -281,7 +281,7 @@ class GroupReportTest(GroupReportTestBase):
                                   auto_bisect_enable=True),
     ], None)
     self.testapp.get('/alert_groups_update')
-    self.ExecuteDeferredTasks('default')
+    self.ExecuteDeferredTasks('update-alert-group-queue')
     # Add anomaly
     a1 = self._AddAnomaly()
     # Create Group
@@ -325,7 +325,7 @@ class GroupReportTest(GroupReportTestBase):
   def testMultipleAltertsGroupingPointRange(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     self.testapp.get('/alert_groups_update')
-    self.ExecuteDeferredTasks('default')
+    self.ExecuteDeferredTasks('update-alert-group-queue')
     # Add anomalies
     a1 = self._AddAnomaly(start_revision=100, end_revision=100)
     a2 = self._AddAnomaly(start_revision=100, end_revision=100)
