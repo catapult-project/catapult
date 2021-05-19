@@ -11,8 +11,6 @@ _CATAPULT_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', '..'))
 _TESTS = [
     {'path': os.path.join(
-        _CATAPULT_PATH, 'common', 'eslint', 'bin', 'run_tests')},
-    {'path': os.path.join(
         _CATAPULT_PATH, 'common', 'py_trace_event', 'bin', 'run_tests')},
     {'path': os.path.join(
         _CATAPULT_PATH, 'common', 'py_utils', 'bin', 'run_tests')},

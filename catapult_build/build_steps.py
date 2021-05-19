@@ -75,11 +75,6 @@ _CATAPULT_TESTS = [
         'disabled': ['mac', 'win'],
     },
     {
-        'name': 'eslint Tests',
-        'path': 'common/eslint/bin/run_tests',
-        'disabled': ['android'],
-    },
-    {
         'name': 'Native Heap Symbolizer Tests',
         'path': 'tracing/bin/run_symbolizer_tests',
         'disabled': ['android'],

@@ -25,7 +25,6 @@ def _GetPathsToPrepend(input_api):
   return [
       project_dir,
 
-      input_api.os_path.join(catapult_dir, 'common', 'eslint'),
       input_api.os_path.join(catapult_dir, 'common', 'py_utils'),
       input_api.os_path.join(catapult_dir, 'common', 'py_vulcanize'),
       input_api.os_path.join(catapult_dir, 'dashboard'),

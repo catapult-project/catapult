@@ -45,7 +45,6 @@ group("telemetry_chrome_test_support") {
 
   data += [
     "common/bin/",
-    "common/eslint/",
     "common/lab/",
     "common/py_trace_event/",
     "common/py_utils/",
