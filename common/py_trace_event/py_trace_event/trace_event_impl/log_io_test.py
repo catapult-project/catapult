@@ -2,13 +2,14 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+from __future__ import absolute_import
 import logging
 import os
 import sys
 import unittest
 
-from log import *
-from parsed_trace_events import *
+from .log import *
+from .parsed_trace_events import *
 from py_utils import tempfile_ext
 
 

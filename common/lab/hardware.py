@@ -5,11 +5,12 @@
 
 """Query build slave hardware info, and print it to stdout as csv."""
 
+from __future__ import absolute_import
 import csv
 import json
 import logging
+import six
 import sys
-import urllib2
 
 
 _MASTERS = [
@@ -50,11 +51,11 @@ def main():
   writer.writeheader()
 
   for master_name in _MASTERS:
-    master_data = json.load(urllib2.urlopen(
+    master_data = json.load(six.moves.urllib.request.urlopen(
         'http://build.chromium.org/p/%s/json/slaves' % master_name))
 
-    slaves = sorted(master_data.iteritems(),
-                    key=lambda x: (x[1]['builders'].keys(), x[0]))
+    slaves = sorted(six.iteritems(master_data),
+                    key=lambda x: (list(x[1]['builders'].keys()), x[0]))
     for slave_name, slave_data in slaves:
       for builder_name in slave_data['builders']:
         row = {
@@ -76,7 +77,7 @@ def main():
               row[key] = value
 
         # Munge keys.
-        row = {key.replace('_', ' '): value for key, value in row.iteritems()}
+        row = {key.replace('_', ' '): value for key, value in six.iteritems(row)}
         if 'osfamily' in row:
           row['os family'] = row.pop('osfamily')
         if 'product name' not in row and slave_name.startswith('slave'):

@@ -5,6 +5,7 @@
 
 """Tests for strip_js_comments module."""
 
+from __future__ import absolute_import
 import unittest
 
 from py_vulcanize import strip_js_comments

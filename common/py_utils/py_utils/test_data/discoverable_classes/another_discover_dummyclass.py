@@ -9,6 +9,7 @@
 # Suppress complaints about unable to import class.  The directory path is
 # added at runtime by telemetry test runner.
 #pylint: disable=import-error
+from __future__ import absolute_import
 from discoverable_classes import discover_dummyclass
 
 

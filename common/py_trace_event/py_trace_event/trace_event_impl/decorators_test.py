@@ -2,12 +2,12 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import decorators
+from __future__ import absolute_import
+from . import decorators
 import logging
 import unittest
 
-from trace_test import TraceTest
-#from .trace_test import TraceTest
+from .trace_test import TraceTest
 
 def generator():
   yield 1

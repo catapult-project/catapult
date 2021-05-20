@@ -5,6 +5,7 @@
 
 """Tests for the module module, which contains Module and related classes."""
 
+from __future__ import absolute_import
 import os
 import unittest
 

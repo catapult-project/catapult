@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
 import symbol
 
 from py_utils.refactor.annotated_symbol import base_symbol

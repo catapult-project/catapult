@@ -4,6 +4,7 @@
 
 """Utility function for stripping comments out of JavaScript source code."""
 
+from __future__ import absolute_import
 import re
 
 

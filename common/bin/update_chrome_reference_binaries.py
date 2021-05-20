@@ -13,15 +13,16 @@ Usage:
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
 import argparse
 import collections
 import logging
 import os
+import six
 import shutil
 import subprocess
 import sys
 import tempfile
-import urllib2
 import zipfile
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'py_utils'))
@@ -171,7 +172,7 @@ def _ChannelVersionsMap(channel):
 
 def _OmahaReportVersionInfo(channel):
   url ='https://omahaproxy.appspot.com/all?channel=%s' % channel
-  lines = urllib2.urlopen(url).readlines()
+  lines = six.moves.urllib.request.urlopen(url).readlines()
   return [l.split(',') for l in lines]
 
 

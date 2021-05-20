@@ -5,9 +5,11 @@
 """ Functions to write trace data in perfetto protobuf format.
 """
 
+from __future__ import absolute_import
 import collections
 
-import perfetto_proto_classes as proto
+from . import perfetto_proto_classes as proto
+import six
 
 CLOCK_BOOTTIME = 6
 CLOCK_TELEMETRY = 64
@@ -128,7 +130,7 @@ def write_event(output, ph, category, name, ts, args, tid):
   legacy_event.name_iid = _intern_event_name(name, packet, tid)
   packet.track_event.legacy_event = legacy_event
 
-  for name, value in args.iteritems():
+  for name, value in six.iteritems(args):
     debug_annotation = proto.DebugAnnotation()
     debug_annotation.name = name
     if isinstance(value, int):

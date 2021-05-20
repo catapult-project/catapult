@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
 import contextlib
 import logging
 import platform
@@ -112,7 +113,7 @@ class TimerTest(unittest.TestCase):
   # Smoke Test.
   def testMonotonic(self):
     time_one = trace_time.Now()
-    for _ in xrange(1000):
+    for _ in range(1000):
       time_two = trace_time.Now()
       self.assertLessEqual(time_one, time_two)
       time_one = time_two

@@ -1,20 +1,23 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+from __future__ import absolute_import
 import contextlib
 import inspect
 import time
 import functools
 
-import log
+from . import log
 from py_trace_event import trace_time
+import six
+from six.moves import map
 
 
 @contextlib.contextmanager
 def trace(name, **kwargs):
   category = "python"
   start = trace_time.Now()
-  args_to_log = {key: repr(value) for key, value in kwargs.iteritems()}
+  args_to_log = {key: repr(value) for key, value in six.iteritems(kwargs)}
   log.add_trace_event("B", start, category, name, args_to_log)
   try:
     yield
@@ -42,7 +45,7 @@ def traced(*args):
         default = None
       return (name, arg_index, default)
 
-    args_to_log = map(arg_spec_tuple, arg_names)
+    args_to_log = list(map(arg_spec_tuple, arg_names))
 
     @functools.wraps(func)
     def traced_function(*args, **kwargs):

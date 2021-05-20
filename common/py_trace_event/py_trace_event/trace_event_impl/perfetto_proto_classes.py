@@ -15,6 +15,7 @@ Definitions of perfetto messages can be found here:
 https://android.googlesource.com/platform/external/perfetto/+/refs/heads/master/protos/perfetto/trace/
 """
 
+from __future__ import absolute_import
 import encoder
 import wire_format
 

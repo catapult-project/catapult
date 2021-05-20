@@ -1,8 +1,8 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+from __future__ import absolute_import
 import multiprocessing
-import log
 import time
 
 
@@ -16,6 +16,7 @@ class ProcessSubclass(_RealProcess):
     self._shim = shim
 
   def run(self,*args,**kwargs):
+    from . import log
     log._disallow_tracing_control()
     try:
       r = _RealProcess.run(self, *args, **kwargs)
@@ -37,6 +38,7 @@ class ProcessShim():
     self._proc.start()
 
   def terminate(self):
+    from . import log
     if log.trace_is_enabled():
       # give the flush a chance to finish --> TODO: find some other way.
       time.sleep(0.25)

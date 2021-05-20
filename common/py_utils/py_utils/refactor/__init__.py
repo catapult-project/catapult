@@ -8,6 +8,7 @@ This module provides components for modifying and querying Python code. They can
 be used to build custom refactorings and linters.
 """
 
+from __future__ import absolute_import
 import functools
 import multiprocessing
 

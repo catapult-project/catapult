@@ -4,6 +4,7 @@
 
 """Wrappers for gsutil, for basic interaction with Google Cloud Storage."""
 
+from __future__ import absolute_import
 import collections
 import contextlib
 import hashlib

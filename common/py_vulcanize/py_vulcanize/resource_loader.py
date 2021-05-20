@@ -4,6 +4,7 @@
 
 """ResourceFinder is a helper class for finding resources given their name."""
 
+from __future__ import absolute_import
 import codecs
 import os
 

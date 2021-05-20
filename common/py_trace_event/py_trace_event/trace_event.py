@@ -1,7 +1,9 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+from __future__ import absolute_import
 from py_trace_event import trace_time
+import six
 
 
 r"""Instrumentation-based profiling for Python.
@@ -48,7 +50,7 @@ in the child processes.
 """
 
 try:
-  import trace_event_impl
+  from . import trace_event_impl
 except ImportError:
   trace_event_impl = None
 
@@ -88,7 +90,7 @@ if trace_event_impl:
     trace_event_impl.trace_flush()
 
   def trace_begin(name, **kwargs):
-    args_to_log = {key: repr(value) for key, value in kwargs.iteritems()}
+    args_to_log = {key: repr(value) for key, value in six.iteritems(kwargs)}
     trace_event_impl.add_trace_event("B", trace_time.Now(), "python", name,
                                      args_to_log)
 

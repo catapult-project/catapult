@@ -7,6 +7,7 @@ It would be named logging, but other modules in this directory use the default
 logging module, so that would break them.
 """
 
+from __future__ import absolute_import
 import contextlib
 import logging
 
