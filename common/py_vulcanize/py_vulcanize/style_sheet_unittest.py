@@ -39,7 +39,7 @@ class StyleSheetUnittest(unittest.TestCase):
 .x .y {
     background-image: url(data:image/jpeg;base64,%s);
 }
-""" % base64.standard_b64encode('hello world'), inlined)
+""" % base64.standard_b64encode(b'hello world'), inlined)
 
   def testURLResolveFails(self):
     fs = fake_fs.FakeFS()

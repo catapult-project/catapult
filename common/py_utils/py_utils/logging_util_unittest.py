@@ -6,7 +6,7 @@ import logging
 import unittest
 
 try:
-  from six import StringIO
+  from StringIO import StringIO
 except ImportError:
   from io import StringIO
 
