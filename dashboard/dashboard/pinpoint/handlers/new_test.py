@@ -204,6 +204,33 @@ class NewTest(_NewTest):
         job.state._changes[0].id_string,
         'chromium@3 + %s' % ('https://lalala/repo~branch~id/abc123',))
 
+  def testComparisonModeTry_BaseAndExpFlags(self):
+    request = dict(_BASE_REQUEST)
+    del request['end_git_hash']
+    del request['start_git_hash']
+    request['comparison_mode'] = 'try'
+    base_args = [
+        '--extra-browser-args',
+        'something',
+    ]
+    exp_args = [
+        '--extra-browser-args',
+        'something-else',
+    ]
+    request['base_extra_args'] = json.dumps(base_args)
+    request['experiment_extra_args'] = json.dumps(exp_args)
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    self.assertEqual(job.comparison_mode, 'try')
+    self.assertEqual(
+        str(job.state._changes[0]),
+        'base: chromium@3 (%s)' % (', '.join(base_args)),
+    )
+    self.assertEqual(
+        str(job.state._changes[1]),
+        'exp: chromium@3 (%s)' % (', '.join(exp_args)),
+    )
+
   def testComparisonModeTry_BaseNoPatchAndExperimentCommitPatch(self):
     request = dict(_BASE_REQUEST)
     request['comparison_mode'] = 'try'

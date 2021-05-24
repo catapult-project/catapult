@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import collections
+import json
 
 try:
   from itertools import zip_longest
@@ -17,7 +18,8 @@ from dashboard.pinpoint.models.change import commit as commit_module
 from dashboard.pinpoint.models.change import patch as patch_module
 
 
-class Change(collections.namedtuple('Change', ('commits', 'patch'))):
+class Change(
+    collections.namedtuple('Change', ('commits', 'patch', 'label', 'args'))):
   """A particular set of Commits with or without an additional patch applied.
 
   For example, a Change might sync to src@9064a40 and catapult@8f26966,
@@ -26,23 +28,63 @@ class Change(collections.namedtuple('Change', ('commits', 'patch'))):
 
   __slots__ = ()
 
-  def __new__(cls, commits, patch=None):
+  def __new__(cls, commits, patch=None, label=None, args=None):
     """Creates a Change.
 
     Args:
       commits: An iterable of Commits representing this Change's dependencies.
       patch: An optional Patch to apply to the Change.
+      label: An optional string to label a Change.
+      args: A list of strings associated with a Change.
     """
     if not (commits or patch):
       raise TypeError('At least one commit or patch required.')
-    return super(Change, cls).__new__(cls, tuple(commits), patch)
+    return super(Change, cls).__new__(
+        cls,
+        tuple(commits),
+        patch,
+        label,
+        json.dumps(args) if args else None,
+    )
 
   def __str__(self):
     """Returns an informal short string representation of this Change."""
-    string = ' '.join(str(commit).strip() for commit in self.commits)
+    string = '%s: ' % (self.change_label) if self.change_label else ''
+    string += ' '.join(str(commit).strip() for commit in self.commits)
     if self.patch:
       string += ' + ' + str(self.patch)
+    args = self.change_args
+    if args:
+      string += ' (%s)' % (', '.join(args),)
     return string
+
+  def __getnewargs__(self):
+    """Return arguments to be used in the call to __new__().
+
+    It's important that this function is in-sync with the arguments of __new__()
+    to adhere to the pickle protocol. This allows us to perform
+    backwards-compatible pickle loading, as new fields are added to the type.
+
+    See
+    https://docs.python.org/2.7/library/pickle.html#pickling-and-unpickling-normal-class-instances
+    (for Python 2.7) details.
+    """
+    return (self.commits, self.patch, self.change_label, self.change_args)
+
+  @property
+  def change_label(self):
+    if not hasattr(self, 'label'):
+      return None
+    return getattr(self, 'label', None)
+
+  @property
+  def change_args(self):
+    if not hasattr(self, 'label'):
+      return None
+    args = getattr(self, 'args')
+    if not args:
+      return None
+    return json.loads(args)
 
   @property
   def id_string(self):
@@ -96,8 +138,9 @@ class Change(collections.namedtuple('Change', ('commits', 'patch'))):
       raise NotImplementedError(
           "Pinpoint builders don't yet support multiple patches.")
     patch = self.patch or other.patch
-
-    return Change(commits, patch)
+    label = self.change_label or other.change_label
+    args = self.change_args or other.change_args
+    return Change(commits, patch, label, args)
 
   def AsDict(self):
     result = {
@@ -106,6 +149,12 @@ class Change(collections.namedtuple('Change', ('commits', 'patch'))):
 
     if self.patch:
       result['patch'] = self.patch.AsDict()
+
+    if self.change_args:
+      result['args'] = self.change_args
+
+    if self.change_label:
+      result['label'] = self.change_label
 
     return result
 
@@ -131,8 +180,10 @@ class Change(collections.namedtuple('Change', ('commits', 'patch'))):
       patch = patch_module.GerritPatch.FromDict(data['patch'])
     else:
       patch = None
+    label = data.get('label')
+    args = data.get('args')
 
-    return cls(commits, patch=patch)
+    return cls(commits, patch=patch, label=label, args=args)
 
   @classmethod
   def Midpoint(cls, change_a, change_b):

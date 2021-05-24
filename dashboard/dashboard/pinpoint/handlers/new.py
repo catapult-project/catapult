@@ -173,6 +173,16 @@ def _CreateJob(request):
   return job
 
 
+def _ParseExtraArgs(args):
+  extra_args = []
+  if args:
+    try:
+      extra_args = json.loads(args)
+    except ValueError:
+      extra_args = shlex.split(args)
+  return extra_args
+
+
 def _ArgumentsWithConfiguration(original_arguments):
   # "configuration" is a special argument that maps to a list of preset
   # arguments. Pull any arguments from the specified "configuration", if any.
@@ -197,19 +207,13 @@ def _ArgumentsWithConfiguration(original_arguments):
           # inputs as a JSON list of strings.
           provided_args = new_arguments.get('extra_test_args', '')
           extra_test_args = []
+
           if provided_args:
-            try:
-              extra_test_args = json.loads(provided_args)
-            except ValueError:
-              extra_test_args = shlex.split(provided_args)
+            extra_test_args = _ParseExtraArgs(provided_args)
 
-          try:
-            configured_args = json.loads(v)
-          except ValueError:
-            configured_args = shlex.split(v)
-
-          new_arguments['extra_test_args'] = json.dumps(extra_test_args +
-                                                        configured_args)
+          configured_args = _ParseExtraArgs(v)
+          new_arguments['extra_test_args'] = json.dumps(
+              extra_test_args + configured_args,)
         else:
           new_arguments.setdefault(k, v)
 
@@ -282,8 +286,22 @@ def _ValidateChangesForTry(arguments):
   if not exp_patch:
     exp_patch = patch
 
-  change_1 = change.Change(commits=(commit_1,), patch=base_patch)
-  change_2 = change.Change(commits=(commit_2,), patch=exp_patch)
+  base_extra_args = _ParseExtraArgs(arguments.get('base_extra_args', ''))
+  logging.debug('Base extra args: %s', base_extra_args)
+  change_1 = change.Change(
+      commits=(commit_1,),
+      patch=base_patch,
+      label='base',
+      args=base_extra_args or None,
+  )
+  exp_extra_args = _ParseExtraArgs(arguments.get('experiment_extra_args', ''))
+  logging.debug('Experiment extra args: %s', exp_extra_args)
+  change_2 = change.Change(
+      commits=(commit_2,),
+      patch=exp_patch,
+      label='exp',
+      args=exp_extra_args or None,
+  )
   return change_1, change_2
 
 

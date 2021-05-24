@@ -32,19 +32,9 @@ def ChangeDependentArgs(args, change):
   extra_args = list(args)
   extra_args += ('--results-label', str(change))
   if '--story-filter' in extra_args:
-    # TODO(crbug.com/982027): The --run-full-story-set flag was added to
-    # Chromium at revision http://crrev.com/675459, on Jul 9th, 2019. If we
-    # use this flag for changes before then, then Telemetry will fail. We can
-    # move the following code to run without checking commit_position as part
-    # of the _ExtraTestArgs method once we no longer need to be able to run
-    # Pinpoint against changes that old.
-    commit_position = change.base_commit.AsDict().get('commit_position')
-    if commit_position is None or commit_position >= 675459:
-      # Since benchmarks are run in abridged form by default, we need to
-      # add the argument --run-full-story-set to make sure that if someone
-      # chooses to run a specific story we will run it even if it is not
-      # in the abridged version of the story set.
-      extra_args.append('--run-full-story-set')
+    extra_args.append('--run-full-story-set')
+  if change.change_args:
+    extra_args.extend(change.change_args)
   return extra_args
 
 

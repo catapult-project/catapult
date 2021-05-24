@@ -6,6 +6,10 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from collections import namedtuple
+from StringIO import StringIO
+import pickle
+
 from dashboard.pinpoint.models.change import change
 from dashboard.pinpoint.models.change import commit
 from dashboard.pinpoint.models.change import commit_test
@@ -216,6 +220,43 @@ class ChangeTest(test.TestCase):
 
     expected = Change(chromium=123, catapult=456, patch=False)
     self.assertEqual(c, expected)
+
+
+OldChange = namedtuple('OldChange', ('commits', 'patch'))
+
+
+class CustomUnpickler(pickle.Unpickler):
+
+  def find_class(self, module, name):
+    # If we see the Change types we're looking for, we should make it load the
+    # actual Change name.
+    if name == 'OldChange':
+      return change.Change
+    return pickle.Unpickler.find_class(self, module, name)
+
+
+class PickleTest(test.TestCase):
+
+  def setUp(self):
+    super(PickleTest, self).setUp()
+    self.maxDiff = None
+
+  def testBackwardsCompatibility(self):
+    old_commit = commit.Commit('chromium', 'aaaaaaaa')
+    old = OldChange([old_commit], None)
+    string_io = StringIO()
+    p = pickle.Pickler(string_io)
+    p.dump(old)
+
+    # Now attempt to unpickle into the current definition, and ensure it works
+    # just fine.
+    pickled_data = string_io.getvalue()
+    new = CustomUnpickler(StringIO(pickled_data)).load()
+    self.assertEqual(old.patch, new.patch)
+    self.assertEqual(len(old.commits), len(new.commits))
+    self.assertIsNone(new.change_label)
+    self.assertIsNone(new.change_args)
+    self.assertEqual(type(new), change.Change)
 
 
 class MidpointTest(test.TestCase):
