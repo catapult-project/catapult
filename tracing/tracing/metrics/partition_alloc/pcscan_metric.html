@@ -61,6 +61,8 @@ tr.exportTo('tr.metrics.pa', function() {
             'Time for clearing quarantine entries'),
         scanner_total: createNumericForProcess('', processName, 'scanner',
             'Total time for PCScan execution on concurrent threads'),
+        mutator_scan_stack: createNumericForProcess('scan_stack', processName, 'mutator',
+            'Time for scanning stack for quarantine pointers on mutator threads'),
         mutator_scan: createNumericForProcess('scan', processName, 'mutator',
             'Time for scanning heap for quarantine pointers on mutator threads'),
         mutator_clear: createNumericForProcess('clear', processName, 'mutator',
@@ -82,6 +84,8 @@ tr.exportTo('tr.metrics.pa', function() {
         hists.scanner_clear.addSample(slice.duration);
       } else if (slice.title === 'PCScan.Scanner') {
         hists.scanner_total.addSample(slice.duration);
+      } else if (slice.title === 'PCScan.Mutator.ScanStack') {
+        hists.mutator_scan_stack.addSample(slice.duration);
       } else if (slice.title === 'PCScan.Mutator.Scan') {
         hists.mutator_scan.addSample(slice.duration);
       } else if (slice.title === 'PCScan.Mutator.Clear') {
