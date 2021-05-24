@@ -134,9 +134,9 @@ def _write_header():
     )
   else:
     if _format == JSON:
-      _log_file.write(b'[')
+      _log_file.write('[')
     elif _format == JSON_WITH_METADATA:
-      _log_file.write(b'{"traceEvents": [\n')
+      _log_file.write('{"traceEvents": [\n')
     else:
       raise TraceException("Unknown format: %s" % _format)
     json.dump({
@@ -148,7 +148,7 @@ def _write_header():
         "name": "process_argv",
         "args": {"argv": sys.argv},
     }, _log_file)
-    _log_file.write(b'\n')
+    _log_file.write('\n')
 
 
 @_locked
@@ -170,9 +170,12 @@ def _trace_enable(log_file=None, format=None):
     if _format == PROTOBUF:
       log_file = open("%s.pb" % n, "ab", False)
     else:
-      log_file = open("%s.json" % n, "ab", False)
+      log_file = open("%s.json" % n, "a")
   elif isinstance(log_file, six.string_types):
-    log_file = open("%s" % log_file, "ab", False)
+    if _format == PROTOBUF:
+      log_file = open("%s" % log_file, "ab", False)
+    else:
+      log_file = open("%s" % log_file, "a")
   elif not hasattr(log_file, 'fileno'):
     raise TraceException(
         "Log file must be None, a string, or file-like object with a fileno()")
@@ -229,7 +232,7 @@ def _write_cur_events():
       )
   elif _format in (JSON, JSON_WITH_METADATA):
     for e in _cur_events:
-      _log_file.write(b",\n")
+      _log_file.write(",\n")
       json.dump(e, _log_file)
   else:
     raise TraceException("Unknown format: %s" % _format)
@@ -245,9 +248,9 @@ def _write_footer():
     # been written in a special proto message.
     pass
   elif _format == JSON_WITH_METADATA:
-    _log_file.write(b'],\n"metadata": ')
+    _log_file.write('],\n"metadata": ')
     json.dump(_benchmark_metadata, _log_file)
-    _log_file.write(b'}')
+    _log_file.write('}')
   else:
     raise TraceException("Unknown format: %s" % _format)
 

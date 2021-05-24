@@ -457,7 +457,7 @@ class TraceEventTests(unittest.TestCase):
   def testFormatProtobuf(self):
     with self._test_trace(format=trace_event.PROTOBUF):
       trace_event.trace_flush()
-      with open(self._log_path, 'r') as f:
+      with open(self._log_path, 'rb') as f:
         self.assertGreater(len(f.read()), 0)
 
   def testAddMetadata(self):
@@ -497,7 +497,7 @@ class TraceEventTests(unittest.TestCase):
           story_run_index=0,
       )
       trace_event.trace_disable()
-      with open(self._log_path, 'r') as f:
+      with open(self._log_path, 'rb') as f:
         self.assertGreater(len(f.read()), 0)
 
   def testAddMetadataInJsonFormatRaises(self):
@@ -520,7 +520,7 @@ class TraceEventTests(unittest.TestCase):
     )
     with self._test_trace(format=trace_event.PROTOBUF):
       trace_event.trace_disable()
-      with open(self._log_path, 'r') as f:
+      with open(self._log_path, 'rb') as f:
         self.assertGreater(len(f.read()), 0)
 
 
