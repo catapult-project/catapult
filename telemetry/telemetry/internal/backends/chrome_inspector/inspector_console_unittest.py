@@ -18,7 +18,7 @@ class TabConsoleTest(tab_test_case.TabTestCase):
     def GotLog():
       current = self._tab.EvaluateJavaScript('window.__logCount')
       return current > initial
-    py_utils.WaitFor(GotLog, 5)
+    py_utils.WaitFor(GotLog, 10)
 
     console_output = (
         self._tab._inspector_backend.GetCurrentConsoleOutputBuffer())
