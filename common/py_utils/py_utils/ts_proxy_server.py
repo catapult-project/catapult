@@ -127,7 +127,7 @@ class TsProxyServer(object):
   def _ReadLineTsProxyStdout(self, timeout):
     def ReadSingleLine():
       try:
-        return self._proc.stdout.readline().strip()
+        return self._proc.stdout.readline().strip().decode("utf-8")
       except IOError:
         # Add a sleep to avoid trying to read self._proc.stdout too often.
         if self._non_blocking:
@@ -140,7 +140,7 @@ class TsProxyServer(object):
     del retries  # handled by the decorator
     logging.info('Issuing command to ts_proxy_server: %s', command_string)
     command_output = []
-    self._proc.stdin.write('%s\n' % command_string)
+    self._proc.stdin.write(('%s\n' % command_string).encode('utf-8'))
     def CommandStatusIsRead():
       self._proc.stdin.flush()
       self._proc.stdout.flush()
