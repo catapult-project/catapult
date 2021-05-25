@@ -214,7 +214,7 @@ def _MinifyCSS(css_text):
       sys.stderr.write('rCSSmin exited with error code %d' % errorcode)
       sys.stderr.write(res[1])
       raise Exception('Failed to generate css for %s.' % css_text)
-    return res[0]
+    return res[0].decode('utf-8')
 
 
 def GenerateStandaloneHTMLAsString(*args, **kwargs):

@@ -57,7 +57,7 @@ class ParsedStyleSheet(object):
       ext = os.path.splitext(image.absolute_path)[1]
       data = base64.standard_b64encode(image.contents)
 
-      return 'url(data:image/%s;base64,%s)' % (ext[1:], data)
+      return 'url(data:image/%s;base64,%s)' % (ext[1:], data.decode('utf-8'))
 
     # I'm assuming we only have url()'s associated with images
     return re.sub('url\((?P<quote>"|\'|)(?P<url>[^"\'()]*)(?P=quote)\)',
