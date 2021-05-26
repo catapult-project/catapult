@@ -50,4 +50,5 @@ class FakeFSUnittest(unittest.TestCase):
       r = next(gen)
       self.assertEquals((os.path.normpath('/x/w2/w3'), [], ['z3.txt']), r)
 
-      self.assertRaises(StopIteration, gen.next)
+      with self.assertRaises(StopIteration):
+        next(gen)

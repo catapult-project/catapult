@@ -9,9 +9,10 @@ from __future__ import print_function
 import codecs
 import collections
 import os
+import six
 import sys
 
-import six
+from io import BytesIO
 
 if six.PY3:
   import builtins
@@ -24,6 +25,13 @@ class WithableStringIO(six.StringIO):
   def __exit__(self, *args):
     pass
 
+class WithableBytesIO(BytesIO):
+
+  def __enter__(self, *args):
+    return self
+
+  def __exit__(self, *args):
+    pass
 
 class FakeFS(object):
 
@@ -89,7 +97,11 @@ class FakeFS(object):
     if mode == 'r' or mode == 'rU' or mode == 'rb':
       if path not in self._file_contents:
         return self._real_open(path, mode)
-      return WithableStringIO(self._file_contents[path])
+
+      if mode == 'rb':
+        return WithableBytesIO(self._file_contents[path])
+      else:
+        return WithableStringIO(self._file_contents[path])
 
     raise NotImplementedError()
 
@@ -100,7 +112,11 @@ class FakeFS(object):
     if mode == 'r' or mode == 'rU' or mode == 'rb':
       if path not in self._file_contents:
         return self._real_open(path, mode)
-      return WithableStringIO(self._file_contents[path])
+
+      if mode == 'rb':
+        return WithableBytesIO(self._file_contents[path])
+      else:
+        return WithableStringIO(self._file_contents[path])
 
     raise NotImplementedError()
 
