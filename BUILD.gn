@@ -55,6 +55,7 @@ group("telemetry_chrome_test_support") {
     "third_party/WebOb/",
     "third_party/apiclient/",
     "third_party/beautifulsoup4/",
+    "third_party/beautifulsoup4-4.9.3/",
     "third_party/cachetools/",
     "third_party/certifi/",
     "third_party/chai/",
@@ -67,6 +68,7 @@ group("telemetry_chrome_test_support") {
     "third_party/gae_ts_mon/",
     "third_party/google-auth/",
     "third_party/graphy/",
+    "third_party/html5lib-1.1/",
     "third_party/html5lib-python/",
     "third_party/httplib2/",
     "third_party/idb/",
@@ -99,6 +101,7 @@ group("telemetry_chrome_test_support") {
     "third_party/uritemplate/",
     "third_party/urllib3/",
     "third_party/webapp2/",
+    "third_party/webencodings-0.5.1/",
     "third_party/webtest/",
   ]
 

@@ -208,7 +208,7 @@ def _MinifyCSS(css_text):
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
-    res = p.communicate(input=css_text)
+    res = p.communicate(input=css_text.encode('utf-8'))
     errorcode = p.wait()
     if errorcode != 0:
       sys.stderr.write('rCSSmin exited with error code %d' % errorcode)
@@ -279,7 +279,7 @@ def GenerateStandaloneHTMLToFile(output_file,
 
       text = style_sheet.contents_with_inlined_images
       if minify:
-        text = _MinifyCSS(text).decode('utf-8')
+        text = _MinifyCSS(text)
       return '<style>\n%s\n</style>' % text
 
   for module in load_sequence:

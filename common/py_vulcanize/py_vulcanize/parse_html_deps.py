@@ -37,6 +37,11 @@ def _InitBeautifulSoup():
     html5lib_path = os.path.join(catapult_path, 'third_party', 'html5lib-python')
   _AddToPathIfNeeded(html5lib_path)
 
+  if six.PY3:
+    webencodings_path = os.path.join(
+        catapult_path, 'third_party', 'webencodings-0.5.1')
+    _AddToPathIfNeeded(webencodings_path)
+
   six_path = os.path.join(catapult_path, 'third_party', 'six')
   _AddToPathIfNeeded(six_path)
 
