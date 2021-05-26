@@ -91,8 +91,12 @@ class PageTestResultsTest(unittest.TestCase):
           raise ValueError('expected error')
 
     self.assertTrue(results.benchmark_interrupted)
-    self.assertEqual(results.benchmark_interruption,
-                     "ValueError('expected error',)")
+    # In Python2, the exc_value has a extra comma like:
+    #     ValueError('expected error',)
+    # while in Python3, exc_value is like:
+    #     ValueError('expected error')
+    self.assertIn("ValueError('expected error'",
+                  results.benchmark_interruption)
 
   def testPassesNoSkips(self):
     with self.CreateResults() as results:
