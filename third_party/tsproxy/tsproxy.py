@@ -56,6 +56,23 @@ except Exception:
   pass
 
 
+if sys.version_info.major == 3:
+  # In Python 2, data from/to the socket are stored in character strings,
+  # and the built-in ord() and chr() functions are used to convert between
+  # characters and integers.
+  #
+  # In Python 3, data are stored in bytes, and we need to redefine ord and
+  # chr functions to make it work.
+
+  def ord(x):
+    # In Python 3, indexing a byte string returns an int, no conversion needed.
+    return x
+
+  def chr(x):
+    # Convert a byte into bytes of length 1.
+    return bytes([x])
+
+
 def PrintMessage(msg):
   # Print the message to stdout & flush to make sure that the message is not
   # buffered when tsproxy is run as a subprocess.
@@ -234,7 +251,7 @@ class TCPConnection(asyncore.dispatcher):
     asyncore.dispatcher.__init__(self)
     self.client_id = client_id
     self.state = self.STATE_IDLE
-    self.buffer = ''
+    self.buffer = b''
     self.addr = None
     self.dns_thread = None
     self.hostname = None
@@ -427,7 +444,7 @@ class Socks5Connection(asyncore.dispatcher):
     self.hostname = None
     self.port = None
     self.requested_address = None
-    self.buffer = ''
+    self.buffer = b''
     self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
     self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 128 * 1024)
     self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 128 * 1024)
