@@ -104,7 +104,7 @@ class LocalServer(object):
     named_ports_re = re.compile('LocalServerBackend started: (?P<port>.+)')
     # TODO: This will hang if the subprocess doesn't print the correct output.
     while self._subprocess.poll() is None:
-      line = self._subprocess.stdout.readline()
+      line = str(self._subprocess.stdout.readline().decode('utf-8'))
       print(line)
       m = named_ports_re.match(line)
       if m:

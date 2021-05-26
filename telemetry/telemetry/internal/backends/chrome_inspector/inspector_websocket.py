@@ -113,7 +113,7 @@ class InspectorWebsocket(object):
       req['id'] = self._next_request_id
       self._next_request_id += 1
       data = json.dumps(req)
-      self._socket.send(data)
+      self._socket.send(data.encode('utf-8'))
       if logging.getLogger().isEnabledFor(logging.DEBUG):
         logging.debug('sent [%s]', json.dumps(req, indent=2, sort_keys=True))
     except websocket.WebSocketException as err:

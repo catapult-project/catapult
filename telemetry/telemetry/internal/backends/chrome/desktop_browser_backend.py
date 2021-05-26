@@ -150,7 +150,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self.LogStartCommand(cmd, env)
 
     if not self.browser_options.show_stdout:
-      self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
+      self._tmp_output_file = tempfile.NamedTemporaryFile('w')
       self._proc = subprocess.Popen(
           cmd, stdout=self._tmp_output_file, stderr=subprocess.STDOUT, env=env)
     else:
