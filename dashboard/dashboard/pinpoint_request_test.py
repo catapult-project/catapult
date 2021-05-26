@@ -23,6 +23,40 @@ from dashboard.models import graph_data
 from dashboard.services import pinpoint_service
 
 
+_DEFAULT_START_COMMIT = 'abcd1234'
+_DEFAULT_END_COMMENT = 'efgh5678'
+_DEFAULT_TEST_ARGS = ''
+_DEFAULT_BUG_ID = 1
+_DEFAULT_PIN = ''
+_DEFAULT_BISECT_MODE = 'performance'
+
+
+def GenerateTryRequestParams(params):
+  if 'start_commit' not in params:
+    params['start_commit'] = _DEFAULT_START_COMMIT
+  if 'end_commit' not in params:
+    params['end_commit'] = _DEFAULT_END_COMMENT
+  if 'extra_test_args' not in params:
+    params['extra_test_args'] = _DEFAULT_TEST_ARGS
+
+  return params
+
+
+def GenerateBisectRequestParams(params):
+  if 'start_commit' not in params:
+    params['start_commit'] = _DEFAULT_START_COMMIT
+  if 'end_commit' not in params:
+    params['end_commit'] = _DEFAULT_END_COMMENT
+  if 'bisect_mode' not in params:
+    params['bisect_mode'] = _DEFAULT_BISECT_MODE
+  if 'pin' not in params:
+    params['pin'] = _DEFAULT_PIN
+  if 'bug_id' not in params:
+    params['bug_id'] = _DEFAULT_BUG_ID
+
+  return params
+
+
 class PinpointNewPrefillRequestHandlerTest(testing_common.TestCase):
 
   def setUp(self):
@@ -73,18 +107,9 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(utils, 'IsValidSheriffUser',
                      mock.MagicMock(return_value=True))
   def testPost_NoStoryFilter(self):
-    response = self.testapp.post(
-        '/pinpoint/new',
-        params={
-            'test_path':
-                'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-            'start_commit':
-                'abcd1234',
-            'end_commit':
-                'efgh5678',
-            'extra_test_args':
-                '',
-        })
+    params = GenerateTryRequestParams(
+        {'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo'})
+    response = self.testapp.post('/pinpoint/new', params=params)
     self.assertEqual({u'error': u'Story is required.'},
                      json.loads(response.body))
 
@@ -106,13 +131,10 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(utils, 'IsValidSheriffUser',
                      mock.MagicMock(return_value=True))
   def testPinpointParams_StoryFilterSet(self):
-    params = {
+    params = GenerateTryRequestParams({
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'extra_test_args': '',
         'story_filter': 'story',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
     self.assertEqual('story', results['story'])
@@ -120,13 +142,10 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(utils, 'IsValidSheriffUser',
                      mock.MagicMock(return_value=True))
   def testPinpointParams_ComparisonMode_Try(self):
-    params = {
+    params = GenerateTryRequestParams({
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'extra_test_args': '',
         'story_filter': 'required',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
     self.assertEqual('try', results['comparison_mode'])
@@ -144,13 +163,11 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(utils, 'IsValidSheriffUser',
                      mock.MagicMock(return_value=True))
   def testPinpointParams_IsolateTarget_VRTests(self):
-    params = {
+    params = GenerateTryRequestParams({
         'test_path': 'ChromiumPerf/mac/xr.static.foo/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
         'extra_test_args': json.dumps(['--extra-trace-args', 'abc,123,foo']),
         'story_filter': 'required',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
     self.assertEqual('vr_perf_tests', results['target'])
@@ -158,13 +175,11 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(utils, 'IsValidSheriffUser',
                      mock.MagicMock(return_value=True))
   def testPinpointParams_IsolateTarget_Telemetry(self):
-    params = {
+    params = GenerateTryRequestParams({
         'test_path': 'ChromiumPerf/mac/system_health/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
         'extra_test_args': json.dumps(['--extra-trace-args', 'abc,123,foo']),
         'story_filter': 'required',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
     self.assertEqual('mac', results['configuration'])
@@ -179,18 +194,12 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(utils, 'IsValidSheriffUser',
                      mock.MagicMock(return_value=True))
   def testPinpointParams_IsolateTarget_WebviewTelemetry(self):
-    params = {
+    params = GenerateTryRequestParams({
         'test_path':
             'ChromiumPerf/Android Nexus5X WebView Perf/system_health/foo',
-        'start_commit':
-            'abcd1234',
-        'end_commit':
-            'efgh5678',
-        'extra_test_args':
-            '',
         'story_filter':
             'required',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
     self.assertEqual('Android Nexus5X WebView Perf', results['configuration'])
@@ -203,13 +212,10 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(utils, 'IsValidSheriffUser',
                      mock.MagicMock(return_value=True))
   def testPinpointParams_IsolateTarget_LacrosEve(self):
-    params = {
+    params = GenerateTryRequestParams({
         'test_path': 'ChromiumPerf/lacros-eve-perf/system_health/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'extra_test_args': '',
         'story_filter': 'required',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
     self.assertEqual('lacros-eve-perf', results['configuration'])
@@ -221,16 +227,31 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
 
   @mock.patch.object(utils, 'IsValidSheriffUser',
                      mock.MagicMock(return_value=True))
+  def testPinpointParams_IsolateTarget_FuchsiaPerf_WebEngine(self):
+    params = GenerateTryRequestParams({
+        'test_path': 'ChromiumPerf/fuchsia-perf-fyi/system_health/foo',
+        'story_filter': 'required',
+    })
+    results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
+
+    self.assertEqual('fuchsia-perf-fyi', results['configuration'])
+    self.assertEqual('system_health', results['benchmark'])
+    self.assertEqual('performance_web_engine_test_suite', results['target'])
+    self.assertEqual('foo@chromium.org', results['user'])
+    self.assertEqual('abcd1234', results['base_git_hash'])
+    self.assertEqual('efgh5678', results['end_git_hash'])
+
+  @mock.patch.object(utils, 'IsValidSheriffUser',
+                     mock.MagicMock(return_value=True))
   @mock.patch.object(pinpoint_request.crrev_service, 'GetNumbering',
                      mock.MagicMock(return_value={'git_sha': 'abcd'}))
   def testPinpointParams_ConvertsCommitsToGitHashes(self):
-    params = {
+    params = GenerateTryRequestParams({
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
         'start_commit': '1234',
         'end_commit': '5678',
-        'extra_test_args': '',
         'story_filter': 'required',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
     self.assertEqual('abcd', results['base_git_hash'])
@@ -240,13 +261,10 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
                      mock.MagicMock(return_value=True))
   @mock.patch.object(pinpoint_request.crrev_service, 'GetNumbering')
   def testPinpointParams_SkipsConvertingHashes(self, mock_crrev):
-    params = {
+    params = GenerateTryRequestParams({
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'extra_test_args': '',
         'story_filter': 'required',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
     self.assertEqual('abcd1234', results['base_git_hash'])
@@ -258,13 +276,12 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(pinpoint_request.crrev_service, 'GetNumbering')
   def testPinpointParams_V8(self, mock_crrev):
     mock_crrev.return_value = {'git_sha': 'acbd'}
-    params = {
+    params = GenerateTryRequestParams({
         'test_path': 'internal.client.v8/Pixel2/v8/JSTests/Array/Total',
         'start_commit': '1234',
         'end_commit': '5678',
-        'extra_test_args': '',
         'story_filter': 'required',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromPerfTryParams(params)
 
     self.assertEqual('', results['target'])
@@ -411,16 +428,11 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
         median_after_anomaly=10)
     anomaly_entity.put()
 
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path': 'ChromiumPerf/mac/cc_perftests/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'bug_id': 1,
-        'bisect_mode': 'performance',
         'story_filter': 'required',
-        'pin': '',
         'alerts': json.dumps([anomaly_entity.key.urlsafe()])
-    }
+    })
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
     self.assertEqual(9, results['comparison_magnitude'])
@@ -434,15 +446,10 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
                             {'cc_perftests': {
                                 'foo': {}
                             }})
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path': 'ChromiumPerf/mac/cc_perftests/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'bug_id': 1,
-        'bisect_mode': 'performance',
         'story_filter': 'required',
-        'pin': '',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
     self.assertEqual('mac', results['configuration'])
@@ -463,15 +470,10 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
                             {'system_health': {
                                 'foo': {}
                             }})
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path': 'ChromiumPerf/mac/system_health/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'bug_id': 1,
         'story_filter': 'foo',
-        'pin': '',
-        'bisect_mode': 'performance',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
     self.assertEqual('mac', results['configuration'])
@@ -492,22 +494,12 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
                             {'system_health': {
                                 'foo': {}
                             }})
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path':
             'ChromiumPerf/Android Nexus5X WebView Perf/system_health/foo',
-        'start_commit':
-            'abcd1234',
-        'end_commit':
-            'efgh5678',
-        'bug_id':
-            1,
-        'bisect_mode':
-            'performance',
         'story_filter':
             'required',
-        'pin':
-            '',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
     self.assertEqual('Android Nexus5X WebView Perf', results['configuration'])
@@ -527,15 +519,10 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
                             {'system_health': {
                                 'foo': {}
                             }})
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path': 'ChromiumPerf/lacros-eve-perf/system_health/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'bug_id': 1,
-        'bisect_mode': 'performance',
         'story_filter': 'required',
-        'pin': '',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
     self.assertEqual('lacros-eve-perf', results['configuration'])
@@ -550,20 +537,38 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
 
   @mock.patch.object(utils, 'IsValidSheriffUser',
                      mock.MagicMock(return_value=True))
+  def testPinpointParams_IsolateTarget_FuchsiaPerf_WebEngine(self):
+    testing_common.AddTests(['ChromiumPerf'], ['fuchsia-perf-fyi'],
+                            {'system_health': {
+                                'foo': {}
+                            }})
+    params = GenerateBisectRequestParams({
+        'test_path': 'ChromiumPerf/fuchsia-perf-fyi/system_health/foo',
+        'story_filter': 'required',
+    })
+    results = pinpoint_request.PinpointParamsFromBisectParams(params)
+
+    self.assertEqual('fuchsia-perf-fyi', results['configuration'])
+    self.assertEqual('system_health', results['benchmark'])
+    self.assertEqual('foo', results['chart'])
+    self.assertEqual('performance_web_engine_test_suite', results['target'])
+    self.assertEqual('foo@chromium.org', results['user'])
+    self.assertEqual('abcd1234', results['start_git_hash'])
+    self.assertEqual('efgh5678', results['end_git_hash'])
+    self.assertEqual('performance', results['comparison_mode'])
+    self.assertEqual(1, results['bug_id'])
+
+  @mock.patch.object(utils, 'IsValidSheriffUser',
+                     mock.MagicMock(return_value=True))
   def testPinpointParams_Metric_TopLevelOnly(self):
     testing_common.AddTests(['ChromiumPerf'], ['mac'],
                             {'blink_perf': {
                                 'foo': {}
                             }})
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path': 'ChromiumPerf/mac/blink_perf/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'bug_id': 1,
-        'bisect_mode': 'performance',
         'story_filter': 'required',
-        'pin': '',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
     self.assertEqual('foo', results['chart'])
@@ -577,15 +582,10 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
                                     'http___bar.html': {}
                                 }
                             }})
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path': 'ChromiumPerf/mac/blink_perf/foo/http___bar.html',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'bug_id': 1,
-        'bisect_mode': 'performance',
         'story_filter': 'required',
-        'pin': '',
-    }
+    })
     t = graph_data.TestMetadata(
         id=params['test_path'], unescaped_story_name='http://bar.html')
     t.UpdateSheriff()
@@ -607,15 +607,10 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
                 }
             }
         }})
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path': 'ChromiumPerf/mac/blink_perf/foo/label/bar.html',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'bug_id': 1,
-        'bisect_mode': 'performance',
         'story_filter': 'required',
-        'pin': '',
-    }
+    })
     t = graph_data.TestMetadata(id=params['test_path'],)
     t.UpdateSheriff()
     t.put()
@@ -628,15 +623,11 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(utils, 'IsValidSheriffUser',
                      mock.MagicMock(return_value=True))
   def testPinpointParams_BisectMode_Invalid_RaisesError(self):
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path': 'ChromiumPerf/mac/blink_perf/foo/label/bar.html',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'bug_id': 1,
         'bisect_mode': 'foo',
         'story_filter': 'required',
-        'pin': '',
-    }
+    })
     t = graph_data.TestMetadata(id=params['test_path'],)
     t.UpdateSheriff()
     t.put()
@@ -646,15 +637,11 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(utils, 'IsValidSheriffUser',
                      mock.MagicMock(return_value=True))
   def testPinpointParams_BisectMode_Functional(self):
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path': 'ChromiumPerf/mac/blink_perf/foo/label/bar.html',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'bug_id': 1,
         'bisect_mode': 'functional',
         'story_filter': 'required',
-        'pin': '',
-    }
+    })
     t = graph_data.TestMetadata(id=params['test_path'],)
     t.UpdateSheriff()
     t.put()
@@ -671,15 +658,12 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
                             {'system_health': {
                                 'foo': {}
                             }})
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
         'start_commit': '1234',
         'end_commit': '5678',
-        'bug_id': '',
-        'bisect_mode': 'performance',
         'story_filter': 'required',
-        'pin': '',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
     self.assertEqual('abcd', results['start_git_hash'])
@@ -693,15 +677,11 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
                             {'system_health': {
                                 'foo': {}
                             }})
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
         'bug_id': '',
-        'bisect_mode': 'performance',
         'story_filter': 'required',
-        'pin': '',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
     self.assertEqual('abcd1234', results['start_git_hash'])
@@ -718,15 +698,11 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
                               {'system_health': {
                                   'foo_%s' % s: {}
                               }})
-      params = {
+      params = GenerateBisectRequestParams({
           'test_path': 'ChromiumPerf/mac/system_health/foo_%s' % s,
-          'start_commit': 'abcd1234',
-          'end_commit': 'efgh5678',
-          'bisect_mode': 'performance',
           'story_filter': 'required',
-          'pin': '',
           'bug_id': -1,
-      }
+      })
       results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
       self.assertEqual(s, results['statistic'])
@@ -739,15 +715,11 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
                             {'system_health': {
                                 'foo': {}
                             }})
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo',
-        'start_commit': 'abcd1234',
-        'end_commit': 'efgh5678',
-        'bug_id': '',
-        'bisect_mode': 'performance',
         'story_filter': 'required',
         'pin': 'https://path/to/patch',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
     self.assertEqual('https://path/to/patch', results['pin'])
@@ -765,15 +737,13 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
                                     }
                                 }
                             }})
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path': 'internal.client.v8/Pixel2/v8/JSTests/Array/Total',
         'start_commit': '1234',
         'end_commit': '5678',
-        'bug_id': 1,
-        'bisect_mode': 'performance',
         'story_filter': 'required',
         'pin': 'https://path/to/patch',
-    }
+    })
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
     self.assertNotIn('grouping_label', results)
@@ -813,22 +783,16 @@ class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
                             {'system_health': {
                                 'foo': {}
                             }})
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path':
             'ChromiumPerf/Android Nexus5X WebView Perf/system_health/foo',
         'start_commit':
             '1051',
         'end_commit':
             '1151',
-        'bug_id':
-            1,
-        'bisect_mode':
-            'performance',
         'story_filter':
             'required',
-        'pin':
-            '',
-    }
+    })
     t = graph_data.TestMetadata(id=params['test_path'])
     t.put()
 
@@ -864,22 +828,16 @@ class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
                             {'system_health': {
                                 'foo': {}
                             }})
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path':
             'ChromiumPerf/Android Nexus5X WebView Perf/system_health/foo',
         'start_commit':
             'abc',
         'end_commit':
             'def',
-        'bug_id':
-            1,
-        'bisect_mode':
-            'performance',
         'story_filter':
             'required',
-        'pin':
-            '',
-    }
+    })
     t = graph_data.TestMetadata(id=params['test_path'])
     t.put()
 
@@ -906,22 +864,16 @@ class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
                             {'system_health': {
                                 'foo': {}
                             }})
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path':
             'ChromiumPerf/Android Nexus5X WebView Perf/system_health/foo',
         'start_commit':
             '1050',
         'end_commit':
             '1150',
-        'bug_id':
-            1,
-        'bisect_mode':
-            'performance',
         'story_filter':
             'required',
-        'pin':
-            '',
-    }
+    })
     t = graph_data.TestMetadata(id=params['test_path'])
     t.put()
 
@@ -938,22 +890,16 @@ class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
                             {'system_health': {
                                 'foo': {}
                             }})
-    params = {
+    params = GenerateBisectRequestParams({
         'test_path':
             'ChromiumPerf/Android Nexus5X WebView Perf/system_health/foo',
         'start_commit':
             '1051',
         'end_commit':
             '1151',
-        'bug_id':
-            1,
-        'bisect_mode':
-            'performance',
         'story_filter':
             'required',
-        'pin':
-            '',
-    }
+    })
     a = anomaly_config.AnomalyConfig()
     a.config = {'min_segment_size': 1}
     a.patterns = ['*/*/*/*']

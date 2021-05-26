@@ -167,6 +167,10 @@ def GetIsolateTarget(bot_name, suite):
   if 'eve' in bot_name.lower():
     return 'performance_test_suite_eve'
 
+  # WebEngine tests are specific to Fuchsia devices only.
+  if 'fuchsia-perf' in bot_name.lower():
+    return 'performance_web_engine_test_suite'
+
   return 'performance_test_suite'
 
 
