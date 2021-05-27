@@ -208,7 +208,7 @@ def _MinifyCSS(css_text):
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
-    res = p.communicate(input=css_text.encode('utf-8'))
+    res = p.communicate(input=css_text)
     errorcode = p.wait()
     if errorcode != 0:
       sys.stderr.write('rCSSmin exited with error code %d' % errorcode)
