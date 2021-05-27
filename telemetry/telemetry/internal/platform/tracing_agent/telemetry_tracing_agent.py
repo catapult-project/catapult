@@ -4,6 +4,7 @@
 
 from __future__ import absolute_import
 import logging
+import sys
 import tempfile
 
 from telemetry.internal.platform import tracing_agent
@@ -12,6 +13,10 @@ from tracing.trace_data import trace_data
 from py_trace_event import trace_event
 from py_trace_event import trace_time
 
+if sys.version_info.major == 3:
+  TEMP_FILE_MODE = 'w+'
+else:
+  TEMP_FILE_MODE = 'w+b'
 
 def IsAgentEnabled():
   """Returns True if the agent is currently enabled and tracing."""
@@ -112,7 +117,8 @@ class TelemetryTracingAgent(tracing_agent.TracingAgent):
     # Create a temporary file and pass the opened file-like object to
     # trace_event.trace_enable(); the file will be closed on trace_disable(),
     # and later passed to a trace data builder in CollectAgentTraceData().
-    self._trace_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+    self._trace_file = tempfile.NamedTemporaryFile(
+        mode=TEMP_FILE_MODE, delete=False, suffix=suffix)
     trace_event.trace_enable(self._trace_file, format=trace_format)
     assert self.is_tracing, 'Failed to start Telemetry tracing'
     return True

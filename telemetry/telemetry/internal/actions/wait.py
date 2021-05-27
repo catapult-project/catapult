@@ -22,6 +22,6 @@ class WaitForElementAction(page_action.ElementPageAction):
       six.reraise(
           py_utils.TimeoutException,
           py_utils.TimeoutException(
-              'Timeout while waiting for element.\n' + e.message),
+              'Timeout while waiting for element.\n' + repr(e)),
           sys.exc_info()[2]
       )

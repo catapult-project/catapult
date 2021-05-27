@@ -314,7 +314,7 @@ class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
 
     try:
       return py_utils.WaitFor(IsJavaScriptExpressionTrue, timeout)
-    except py_utils.TimeoutException as e:
+    except py_utils.TimeoutException as toe:
       # Try to make timeouts a little more actionable by dumping console output.
       debug_message = None
       try:
@@ -330,7 +330,7 @@ class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
           py_utils.TimeoutException,
           py_utils.TimeoutException(
               'Timeout after %ss while waiting for JavaScript:'
-              % timeout + condition + '\n' +  e.message + '\n' + debug_message
+              % timeout + condition + '\n' + repr(toe) + '\n' + debug_message
           ),
           sys.exc_info()[2]
       )
