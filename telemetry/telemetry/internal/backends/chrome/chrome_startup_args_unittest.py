@@ -4,6 +4,7 @@
 
 from __future__ import absolute_import
 import unittest
+import six
 import mock
 
 from telemetry import project_config
@@ -47,6 +48,10 @@ class StartupArgsTest(unittest.TestCase):
 
 class ReplayStartupArgsTest(unittest.TestCase):
   """Test expected inputs for GetReplayArgs."""
+  def setUp(self):
+    if six.PY3:
+      self.assertItemsEqual = self.assertCountEqual
+
   def testReplayOffGivesEmptyArgs(self):
     network_backend = mock.Mock()
     network_backend.is_open = False
