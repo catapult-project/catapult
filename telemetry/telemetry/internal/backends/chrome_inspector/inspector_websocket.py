@@ -22,7 +22,7 @@ class WebSocketException(exceptions.Error):
   """
   def __init__(self, websocket_error):
     msg = 'WebSocketException of type %s. Error message: %s' % (
-        type(websocket_error), websocket_error.message)
+        type(websocket_error), repr(websocket_error))
     super(WebSocketException, self).__init__(msg)
     self._websocket_error_type = type(websocket_error)
 

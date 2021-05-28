@@ -111,7 +111,7 @@ class InspectorBackendList(collections.Sequence):
         self._filtered_context_ids.append(context['id'])
 
     # Clean up any backends for contexts that have gone away.
-    for context_id in self._wrapper_dict.keys():
+    for context_id in list(self._wrapper_dict.keys()):
       if context_id not in self._filtered_context_ids:
         del self._wrapper_dict[context_id]
 

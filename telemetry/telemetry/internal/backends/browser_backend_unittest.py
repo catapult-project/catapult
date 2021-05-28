@@ -15,7 +15,7 @@ import mock
 
 class BrowserBackendLogsUploadingUnittest(unittest.TestCase):
   def testUploadingToCLoudStorage(self):
-    temp_file = tempfile.NamedTemporaryFile(delete=False)
+    temp_file = tempfile.NamedTemporaryFile(delete=False, mode='w+')
     temp_file_name = temp_file.name
     try:
       temp_file.write('This is a\ntest log file.\n')

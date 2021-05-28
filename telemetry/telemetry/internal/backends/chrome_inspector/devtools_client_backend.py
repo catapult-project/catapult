@@ -573,7 +573,7 @@ class _DevToolsContextMapBackend(object):
     # Remove InspectorBackend that is not in the current inspectable
     # contexts list.
     context_ids = [context['id'] for context in contexts]
-    for context_id in self._inspector_backends_dict.keys():
+    for context_id in list(self._inspector_backends_dict.keys()):
       if context_id not in context_ids:
         backend = self._inspector_backends_dict[context_id]
         backend.Disconnect()

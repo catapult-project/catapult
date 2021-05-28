@@ -115,7 +115,7 @@ class MockResponse(object):
         return self._headers
 
     def getheaders(self, name):
-        self._headers.getheaders(name)
+        self._headers.get(name)
 
 
 def extract_cookies_to_jar(jar, request, response):
