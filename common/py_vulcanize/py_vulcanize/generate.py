@@ -83,7 +83,7 @@ def _MinifyJS(input_js):
 
   with tempfile.NamedTemporaryFile() as _:
     args = [
-        'python',
+        sys.executable,
         rjsmin_path
     ]
     p = subprocess.Popen(args,
