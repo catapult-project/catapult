@@ -94,7 +94,7 @@ def _MinifyJS(input_js):
     errorcode = p.wait()
     if errorcode != 0:
       sys.stderr.write('rJSmin exited with error code %d' % errorcode)
-      sys.stderr.write(res[1])
+      sys.stderr.write(res[1].decode('utf-8'))
       raise Exception('Failed to minify, omgah')
     return res[0].decode('utf-8')
 
