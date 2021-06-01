@@ -14,11 +14,11 @@ class ReadRemotePortTests(unittest.TestCase):
   @decorators.Disabled('win')  # https://crbug.com/793256
   def testReadRemotePort(self):
     sample_output = [
-        '', '', 'Allocated port 42360 for remote forward to localhost:12345']
+        b'', b'', b'Allocated port 42360 for remote forward to localhost:12345']
 
     with tempfile.NamedTemporaryFile() as cros_stderr:
       for line in sample_output:
-        cros_stderr.write(line + '\n')
+        cros_stderr.write(line + b'\n')
       cros_stderr.flush()
       remote_port = forwarder_utils.ReadRemotePort(cros_stderr.name)
 

@@ -206,7 +206,7 @@ class BrowserCreationTest(unittest.TestCase):
       browser_module.Browser(
           self.mock_browser_backend, self.mock_platform_backend,
           self.fake_startup_args)
-    self.assertIn('Boom!', context.exception.message)
+    self.assertIn('Boom!', repr(context.exception))
 
 
 class TestBrowserCreation(unittest.TestCase):

@@ -21,7 +21,7 @@ def _ParsePsProcessString(line):
   Example of `ps` command output:
   '3.4 8.0 31887 31447 com.app.Webkit'
   """
-  token_list = line.strip().split()
+  token_list = line.strip().decode('utf-8').split()
   if len(token_list) < 5:
     raise ValueError('Line has too few tokens: %s.' % token_list)
 
@@ -227,7 +227,7 @@ class LinuxProcessCollector(ProcessCollector):
 
   def _GetProcessesAsStrings(self):
     # Skip the header row and strip the trailing newline.
-    return subprocess.check_output(self._SHELL_COMMAND).strip().split('\n')[1:]
+    return subprocess.check_output(self._SHELL_COMMAND).strip().split(b'\n')[1:]
 
   def _ParseProcessString(self, proc_string):
     return _ParsePsProcessString(proc_string)

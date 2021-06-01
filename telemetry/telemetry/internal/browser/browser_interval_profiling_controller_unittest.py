@@ -106,7 +106,7 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
       profiling_mod.BrowserIntervalProfilingController(
           possible_browser, 'system_wide', ['period1'], 1, [])
     self.assertTrue('System-wide profiling is not supported on Android.'
-                    in context.exception)
+                    in repr(context.exception))
 
   def testSupportedAndroidWithProfilerOptions(self):
     possible_browser = FakePossibleBrowser(
@@ -118,7 +118,7 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
           possible_browser, '', ['period1'], 1, ['some profiler options'])
     self.assertTrue(
         'Additional arguments to the profiler is not supported on Android.'
-        in context.exception)
+        in repr(context.exception))
 
   def testUnsupportedAndroidWithValidSamplePeriod(self):
     possible_browser = FakePossibleBrowser(
@@ -209,7 +209,7 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
           possible_browser, 'system_wide', ['period1'], 1, [])
     self.assertTrue('Only profiling renderer main thread is supported on Linux.'
                     ' Got process name \"system_wide\" and thread name \"\".'
-                    in context.exception)
+                    in repr(context.exception))
 
   def testLinuxWithProfilerOptions(self):
     possible_browser = FakePossibleBrowser(FakeLinuxPlatformBackend())
@@ -220,7 +220,7 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
           possible_browser, '', ['period1'], 1, ['some profiler options'])
     self.assertTrue(
         'Additional arguments to the profiler is not supported on Linux.'
-        in context.exception)
+        in repr(context.exception))
 
   def testChromeOSWithValidSamplePeriod(self):
     possible_browser = FakePossibleBrowser(FakeChromeOSPlatformBackend())
@@ -273,7 +273,7 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
           ['some profiler options'])
     self.assertTrue(
         'Thread name should be empty for system-wide profiling on ChromeOS.'
-        ' Got thread name \"some_thread\".' in context.exception)
+        ' Got thread name \"some_thread\".' in repr(context.exception))
 
   def testChromeOSWithOutSystemWideProfiling(self):
     possible_browser = FakePossibleBrowser(FakeChromeOSPlatformBackend())
@@ -285,7 +285,7 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
     self.assertTrue(
         'Only system-wide profiling is supported on ChromeOS.'
         ' Got process name \"\".'
-        in context.exception)
+        in repr(context.exception))
 
   def testChromeOSWithOutProfilerOptions(self):
     possible_browser = FakePossibleBrowser(FakeChromeOSPlatformBackend())
@@ -295,7 +295,7 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
       profiling_mod.BrowserIntervalProfilingController(
           possible_browser, 'system_wide', ['period1'], 1, [])
     self.assertTrue('Profiler options must be provided to run the linux perf'
-                    ' tool on ChromeOS.' in context.exception)
+                    ' tool on ChromeOS.' in repr(context.exception))
 
   def testChromeOSWithProfilerOptionsContainsInvalidPerfCommand(self):
     possible_browser = FakePossibleBrowser(FakeChromeOSPlatformBackend())
@@ -308,7 +308,7 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
     self.assertTrue(
         'Only the record and stat perf subcommands are allowed.'
         ' Got \"random\" perf subcommand.'
-        in context.exception)
+        in repr(context.exception))
 
   def testChromeOSWithProfilerOptionsContainsOutputFlag(self):
     possible_browser = FakePossibleBrowser(FakeChromeOSPlatformBackend())
@@ -322,7 +322,7 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
         "Cannot pass the output filename flag in the profiler options."
         " Constructed command ['/usr/bin/perf', 'record', '-o', 'file',"
         " '-a']."
-        in context.exception)
+        in repr(context.exception))
 
   def testChromeOSWithProfilerOptionsContainsSubcommand(self):
     possible_browser = FakePossibleBrowser(FakeChromeOSPlatformBackend())
@@ -336,7 +336,7 @@ class BrowserIntervalProfilingControllerTest(unittest.TestCase):
         "Cannot pass a command to run in the profiler options."
         " Constructed command ['/usr/bin/perf', 'record', '--',"
         " 'some subcommand', '-a']."
-        in context.exception)
+        in repr(context.exception))
 
   def testUnsupportedPlatformWithValidSamplePeriod(self):
     possible_browser = FakePossibleBrowser(FakeWindowsPlatformBackend())
