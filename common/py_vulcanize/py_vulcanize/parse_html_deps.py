@@ -8,6 +8,7 @@ from __future__ import print_function
 
 import os
 import sys
+import warnings
 
 from py_vulcanize import html_generation_controller
 from py_vulcanize import js_utils
@@ -26,6 +27,10 @@ def _InitBeautifulSoup():
       os.path.join(os.path.dirname(__file__),
                    os.path.pardir, os.path.pardir, os.path.pardir))
   if six.PY3:
+    # Filter out warnings related to soupsieve from beautifulsoup.
+    # We do not need it and it generates unnecessary warnings during build.
+    warnings.filterwarnings('ignore', message='.*soupsieve.*',
+        category=UserWarning, module='bs4')
     bs_path = os.path.join(catapult_path, 'third_party', 'beautifulsoup4-4.9.3', 'py3k')
   else:
     bs_path = os.path.join(catapult_path, 'third_party', 'beautifulsoup4')
