@@ -12,7 +12,9 @@ import webapp2
 
 from dashboard.pinpoint.models import job as job_module
 from dashboard.common import utils
+from google.appengine.datastore import datastore_query
 
+_BATCH_FETCH_TIMEOUT = 200
 _MAX_JOBS_TO_FETCH = 100
 _MAX_JOBS_TO_COUNT = 1000
 _DEFAULT_FILTERED_JOBS = 40
@@ -84,11 +86,14 @@ def _GetJobs(options, query_filter):
 
   query = query.order(-job_module.Job.created)
   limit = None
-  if not has_batch_filter:
+  timeout_qo = datastore_query.QueryOptions()
+  if has_batch_filter:
+    timeout_qo = datastore_query.QueryOptions(deadline=_BATCH_FETCH_TIMEOUT)
+  else:
     limit = _MAX_JOBS_TO_FETCH if not has_filter else _DEFAULT_FILTERED_JOBS
 
-  job_future = query.fetch_async(limit=limit)
-  count_future = query.count_async(limit=_MAX_JOBS_TO_COUNT)
+  job_future = query.fetch_async(limit=limit, options=timeout_qo)
+  count_future = query.count_async(limit=_MAX_JOBS_TO_COUNT, options=timeout_qo)
 
   result = {
       'jobs': [],
