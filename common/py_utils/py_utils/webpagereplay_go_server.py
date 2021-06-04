@@ -12,7 +12,7 @@ import signal
 import subprocess
 import sys
 import tempfile
-import urllib
+import six.moves.urllib.request # pylint: disable=import-error
 
 import py_utils
 from py_utils import atexit_with_log
@@ -422,7 +422,8 @@ class ReplayServer(object):
     """
     url = '%s://%s:%s/%s' % (
         protocol, self._replay_host, self._started_ports[protocol], url_path)
-    return urllib.urlopen(url, proxies={})
+
+    return six.moves.urllib.request.FancyURLopener({}).open(url) # pylint: disable=no-member
 
 def _ResetInterruptHandler():
   """Reset the interrupt handler back to the default.

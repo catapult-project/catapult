@@ -72,7 +72,7 @@ class SnapPageTest(unittest.TestCase):
     finally:
       shutil.rmtree(test_dir)
 
-  @mock.patch('urllib2.urlopen')
+  @mock.patch('six.moves.urllib.request.urlopen')
   def testSnappingPageWithImage(self, mock_urlopen):
     test_dir = tempfile.mkdtemp()
     try:

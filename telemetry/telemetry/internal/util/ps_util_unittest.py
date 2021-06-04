@@ -51,8 +51,8 @@ class PsUtilTest(unittest.TestCase):
     if len(subprocess_ids):
       for subprocess_id in subprocess_ids:
         self.assertFalse(
-            str(subprocess_id) in e.exception.message,
+            str(subprocess_id) in repr(e.exception),
             'The pid %d causing timeout should not exist. Exception: %s' % (
-                subprocess_id, e.exception.message
+                subprocess_id, repr(e.exception)
             ))
 
