@@ -460,7 +460,7 @@ class BrowserBackend(app_backend.AppBackend):
       self, behavior, downloadPath, timeout): # pylint: disable=unused-argument
     raise exceptions.StoryActionError('Set download behavior not supported')
 
-  def GetUIDevtoolsBackend(self, port): # pylint: disable=unused-argument
+  def GetUIDevtoolsBackend(self):
     raise exceptions.StoryActionError('UI Devtools not supported')
 
   def GetWindowForTarget(self, target_id): # pylint: disable=unused-argument

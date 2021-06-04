@@ -59,6 +59,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self._build_dir = build_dir
 
     self._devtools_client = None
+    self._ui_devtools_client = None
 
     self._extensions_to_load = browser_options.extensions_to_load
     if not supports_extensions and len(self._extensions_to_load) > 0:
@@ -251,6 +252,10 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       self._devtools_client.Close()
       self._devtools_client = None
 
+    if self._ui_devtools_client:
+      self._ui_devtools_client.Close()
+      self._ui_devtools_client = None
+
 
   def GetSystemInfo(self):
     try:
@@ -310,8 +315,12 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   def SetDownloadBehavior(self, behavior, downloadPath, timeout):
     self.devtools_client.SetDownloadBehavior(behavior, downloadPath, timeout)
 
-  def GetUIDevtoolsBackend(self, port):
-    return ui_devtools_client_backend.GetUIDevtoolsBackend(port, self)
+  def GetUIDevtoolsBackend(self):
+    if not self._ui_devtools_client:
+      port = self._FindUIDevtoolsPort()
+      self._ui_devtools_client = ui_devtools_client_backend.GetUIDevtoolsBackend(
+          port, self)
+    return self._ui_devtools_client
 
   def GetWindowForTarget(self, target_id):
     return self.devtools_client.GetWindowForTarget(target_id)

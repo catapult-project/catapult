@@ -75,6 +75,16 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     browser_target = lines[1] if len(lines) >= 2 else None
     return devtools_port, browser_target
 
+  def _FindUIDevtoolsPort(self):
+    devtools_file_path = '/home/chronos/UIDevToolsActivePort'
+    # GetFileContents may rise IOError or OSError, the caller will retry.
+    lines = self._cri.GetFileContents(devtools_file_path).splitlines()
+    if not lines:
+      raise EnvironmentError('UIDevTools file empty')
+
+    devtools_port = int(lines[0])
+    return devtools_port
+
   def GetPid(self):
     return self._cri.GetChromePid()
 

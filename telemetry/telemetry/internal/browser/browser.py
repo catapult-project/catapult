@@ -362,10 +362,10 @@ class Browser(app.App):
   def supports_inspecting_webui(self, value):
     self._supports_inspecting_webui = value
 
-  def GetUIDevtools(self, port=None):
+  def GetUIDevtools(self):
     '''UI Devtools is mainly used to interact with native UI'''
     return ui_devtools.UIDevTools(
-        self._browser_backend.GetUIDevtoolsBackend(port))
+        self._browser_backend.GetUIDevtoolsBackend())
 
   def GetWindowForTarget(self, target_id):
     return self._browser_backend.GetWindowForTarget(target_id)
