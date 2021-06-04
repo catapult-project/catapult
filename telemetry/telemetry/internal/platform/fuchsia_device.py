@@ -125,8 +125,10 @@ def FindAllAvailableDevices(options):
   if options.browser_type not in fuchsia_interface.FUCHSIA_BROWSERS:
     return []
 
-  if platform.system() != 'Linux' or platform.machine() != 'x86_64':
-    logging.warning('Fuchsia in Telemetry only supports Linux x64 hosts.')
+  if (platform.system() != 'Linux' or (
+      platform.machine() != 'x86_64' and platform.machine() != 'aarch64')):
+    logging.warning(
+        'Fuchsia in Telemetry only supports Linux x64 or arm64hosts.')
     return []
 
   # If the ssh port of the device has been forwarded to a port on the host,
