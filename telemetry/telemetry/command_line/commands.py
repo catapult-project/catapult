@@ -55,7 +55,7 @@ def _GetStoriesWithTags(b):
         'name': s.name,
         'tags': list(s.tags)
     })
-  return sorted(stories_info)
+  return sorted(stories_info, key=lambda story: story['name'])
 
 
 def PrintBenchmarkList(
