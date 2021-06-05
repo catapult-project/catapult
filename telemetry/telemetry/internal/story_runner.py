@@ -261,7 +261,9 @@ def RunStorySet(test, story_set, finder_options, results,
   # Sort the stories based on the archive name, to minimize how often the
   # network replay-server needs to be restarted.
   if wpr_archive_info:
-    stories = sorted(stories, key=wpr_archive_info.WprFilePathForStory)
+    stories = sorted(
+        stories,
+        key=lambda story: wpr_archive_info.WprFilePathForStory(story) or '')
 
   if finder_options.print_only:
     if finder_options.print_only == 'tags':
