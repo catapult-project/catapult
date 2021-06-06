@@ -2,11 +2,24 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 from __future__ import absolute_import
+import functools
+import sys
 import telemetry.timeline.async_slice as async_slice_module
 import telemetry.timeline.event_container as event_container
 import telemetry.timeline.flow_event as flow_event_module
 import telemetry.timeline.sample as sample_module
 import telemetry.timeline.slice as slice_module
+
+if sys.version_info.major == 3:
+  def cmp(x, y):  # pylint: disable=redefined-builtin
+    """
+    Replacement for built-in function cmp that was removed in Python 3
+
+    Compare the two objects x and y and return an integer according to
+    the outcome. The return value is negative if x < y, zero if x == y
+    and strictly positive if x > y.
+    """
+    return (x > y) - (x < y)
 
 
 class Thread(event_container.TimelineEventContainer):
@@ -234,7 +247,8 @@ class Thread(event_container.TimelineEventContainer):
 
     self._all_slices.extend(self._newly_added_slices)
 
-    sorted_slices = sorted(self._newly_added_slices, cmp=CompareSlices)
+    sorted_slices = sorted(
+        self._newly_added_slices, key=functools.cmp_to_key(CompareSlices))
     root_slice = sorted_slices[0]
     self._toplevel_slices.append(root_slice)
     for s in sorted_slices[1:]:

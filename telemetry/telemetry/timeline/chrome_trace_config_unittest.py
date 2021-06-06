@@ -33,7 +33,7 @@ class ChromeTraceConfigTests(unittest.TestCase):
     # Trace config for startup tracing.
     self.assertEquals({
         'excluded_categories': ['y'],
-        'included_categories': ['x', 'disabled-by-default-z'],
+        'included_categories': sorted(['x', 'disabled-by-default-z']),
         'record_mode': 'record-until-full',
         'synthetic_delays': ['DELAY(7;foo)']
     }, config.GetChromeTraceConfigForStartupTracing())
@@ -41,7 +41,7 @@ class ChromeTraceConfigTests(unittest.TestCase):
     # Trace config for DevTools (modern API).
     self.assertEquals({
         'excludedCategories': ['y'],
-        'includedCategories': ['x', 'disabled-by-default-z'],
+        'includedCategories': sorted(['x', 'disabled-by-default-z']),
         'recordMode': 'recordUntilFull',
         'syntheticDelays': ['DELAY(7;foo)']
     }, config.GetChromeTraceConfigForDevTools())
@@ -51,7 +51,7 @@ class ChromeTraceConfigTests(unittest.TestCase):
     # Test enable systrace with trace config for startup tracing.
     self.assertEquals({
         'excluded_categories': ['y'],
-        'included_categories': ['x', 'disabled-by-default-z'],
+        'included_categories': sorted(['x', 'disabled-by-default-z']),
         'record_mode': 'record-until-full',
         'synthetic_delays': ['DELAY(7;foo)'],
         'enable_systrace': True
@@ -60,7 +60,7 @@ class ChromeTraceConfigTests(unittest.TestCase):
     # And test again with modern API.
     self.assertEquals({
         'excludedCategories': ['y'],
-        'includedCategories': ['x', 'disabled-by-default-z'],
+        'includedCategories': sorted(['x', 'disabled-by-default-z']),
         'recordMode': 'recordUntilFull',
         'syntheticDelays': ['DELAY(7;foo)'],
         'enableSystrace': True

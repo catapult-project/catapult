@@ -21,7 +21,8 @@ class CounterIterEventsInThisContainerTest(unittest.TestCase):
 
   def assertIsEmptyIterator(self, itr):
     self.assertIsInstance(itr, types.GeneratorType)
-    self.assertRaises(StopIteration, itr.next)
+    with self.assertRaises(StopIteration):
+      next(itr)
 
   def testEmptyTimestamps(self):
     self.assertIsEmptyIterator(self.counter.IterEventsInThisContainer(

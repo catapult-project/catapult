@@ -155,12 +155,13 @@ class ChromeTraceCategoryFilter(object):
 
     result = {}
     if self._included_categories or self._disabled_by_default_categories:
-      result[INCLUDED_CATEGORIES_PARAM] = list(
-          self._included_categories | self._disabled_by_default_categories)
+      result[INCLUDED_CATEGORIES_PARAM] = sorted(list(
+          self._included_categories | self._disabled_by_default_categories))
     if self._excluded_categories:
-      result[EXCLUDED_CATEGORIES_PARAM] = list(self._excluded_categories)
+      result[EXCLUDED_CATEGORIES_PARAM] = sorted(list(
+          self._excluded_categories))
     if self._synthetic_delays:
-      result[SYNTHETIC_DELAYS_PARAM] = list(self._synthetic_delays)
+      result[SYNTHETIC_DELAYS_PARAM] = sorted(list(self._synthetic_delays))
     return result
 
   def AddDisabledByDefault(self, category):

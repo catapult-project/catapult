@@ -198,7 +198,7 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
 
     self.assertFalse(memory_dump.has_mmaps)
     self.assertEquals(4, len(list(memory_dump.IterProcessMemoryDumps())))
-    self.assertItemsEqual([1, 2, 3, 4], memory_dump.pids)
+    self.assertEqual([1, 2, 3, 4], sorted(memory_dump.pids))
     self.assertAlmostEquals(7.0, memory_dump.start)
     self.assertAlmostEquals(16.0, memory_dump.end)
     self.assertAlmostEquals(9.0, memory_dump.duration)
@@ -220,7 +220,7 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
             '/dev/ashmem/other-ashmem': {'pss': ASHMEM_2}})])
 
     self.assertTrue(memory_dump.has_mmaps)
-    self.assertItemsEqual([1, 2, 3, 4], memory_dump.pids)
+    self.assertEqual([1, 2, 3, 4], sorted(memory_dump.pids))
     self.assertEquals({'mmaps_overall_pss': sum(ALL[:5]),
                        'mmaps_private_dirty': DIRTY_1 + DIRTY_2,
                        'mmaps_java_heap': JAVA_HEAP_1 + JAVA_HEAP_2,
