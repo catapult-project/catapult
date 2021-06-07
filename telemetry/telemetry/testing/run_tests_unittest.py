@@ -145,7 +145,7 @@ class RunTestsUnitTest(unittest.TestCase):
                           'crbug.com/123 [ {tags} ] {test} [ {expectations} ]')
                          .format(expectations=expectations, tags=test_tags,
                                  test=full_test_name))
-    expectations_file = tempfile.NamedTemporaryFile(delete=False)
+    expectations_file = tempfile.NamedTemporaryFile(delete=False, mode='w+')
     expectations_file.write(test_expectations)
     results = tempfile.NamedTemporaryFile(delete=False)
     results.close()

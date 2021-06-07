@@ -4,10 +4,17 @@
 
 from __future__ import absolute_import
 import os
+import sys
+import io
 import unittest
 
 from telemetry.testing import system_stub
 from telemetry.internal.testing import system_stub_test_module
+
+if sys.version_info.major == 3:
+  OPEN_FILE_TYPE = io.TextIOWrapper
+else:
+  OPEN_FILE_TYPE = file
 
 class CloudStorageTest(unittest.TestCase):
   SUCCESS_FILE_HASH = 'success'.zfill(40)
@@ -248,4 +255,4 @@ class CloudStorageTest(unittest.TestCase):
     stubs.Restore()
     # This will throw an error if the open stub wasn't restored correctly.
     f = system_stub_test_module.SystemStubTest.TestOpen(file_path)
-    self.assertEqual(type(f), file)
+    self.assertEqual(type(f), OPEN_FILE_TYPE)
