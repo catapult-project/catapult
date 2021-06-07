@@ -10,6 +10,7 @@
 from __future__ import absolute_import
 import logging
 import os
+import six
 
 from telemetry.internal.results import story_run
 
@@ -45,7 +46,11 @@ class ArtifactCompatibilityWrapper(object):
 class TelemetryArtifactCompatibilityWrapper(ArtifactCompatibilityWrapper):
   """Wrapper around Telemetry's story_run.StoryRun class."""
   def CreateArtifact(self, name, data):
-    with self._artifact_impl.CreateArtifact(name) as f:
+    if six.PY2 or isinstance(data, bytes):
+      mode = 'w+b'
+    else:
+      mode = 'w+'
+    with self._artifact_impl.CreateArtifact(name, mode=mode) as f:
       f.write(data)
 
 
