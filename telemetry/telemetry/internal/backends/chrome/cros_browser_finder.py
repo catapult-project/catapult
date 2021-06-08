@@ -186,6 +186,8 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         '--oobe-skip-postlogin',
         # Enable OOBE test API
         '--enable-oobe-test-api',
+        # Force launch browser
+        '--force_launch_browser',
         # Debug logging.
         '--vmodule=%s' % vmodule,
         # Enable crash dumping.
