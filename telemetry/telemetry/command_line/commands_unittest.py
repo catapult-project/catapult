@@ -93,8 +93,8 @@ class PrintBenchmarkListTests(unittest.TestCase):
                  {
                      'name': 'dummy_page',
                      'tags': [
-                         'foo',
-                         'bar'
+                         'bar',
+                         'foo'
                      ]
                  }
              ]

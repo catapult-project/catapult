@@ -152,7 +152,7 @@ class Story(object):
 
   def GetStoryTagsList(self):
     """Return a list of strings with story tags and grouping keys."""
-    return list(self.tags) + [
+    return sorted(list(self.tags)) + [
         '%s:%s' % kv for kv in six.iteritems(self.grouping_keys)]
 
   def GetExtraTracingMetrics(self):

@@ -53,7 +53,7 @@ def _GetStoriesWithTags(b):
   for s in story_set:
     stories_info.append({
         'name': s.name,
-        'tags': list(s.tags)
+        'tags': sorted(list(s.tags))
     })
   return sorted(stories_info, key=lambda story: story['name'])
 
