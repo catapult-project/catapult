@@ -16,7 +16,6 @@ from __future__ import division
 from __future__ import print_function
 
 from tests.utils import HttpMockSequenceWithDiscovery
-from google.auth import credentials
 from google.cloud import datastore
 import base64
 import service
@@ -37,9 +36,7 @@ class LuciPollingTest(unittest.TestCase):
             'GAE_SERVICE': 'sheriff-config',
         },
         'datastore_client':
-            datastore.Client(
-                credentials=credentials.AnonymousCredentials(),
-                project='chromeperf'),
+            datastore.Client(project='chromeperf'),
         'http':
             HttpMockSequenceWithDiscovery([({
                 'status': '200'
@@ -309,9 +306,7 @@ class LuciPollingTest(unittest.TestCase):
             'GAE_SERVICE': 'sheriff-config',
         },
         'datastore_client':
-            datastore.Client(
-                credentials=credentials.AnonymousCredentials(),
-                project='chromeperf'),
+            datastore.Client(project='chromeperf'),
         'http':
             HttpMockSequenceWithDiscovery([({
                 'status': '200'
@@ -512,9 +507,7 @@ class LuciContentChangesTest(unittest.TestCase):
             'GAE_SERVICE': 'sheriff-config',
         },
         'datastore_client':
-            datastore.Client(
-                credentials=credentials.AnonymousCredentials(),
-                project='chromeperf'),
+            datastore.Client(project='chromeperf'),
         'http':
             HttpMockSequenceWithDiscovery([({
                 'status': '200'
@@ -535,9 +528,7 @@ class LuciContentChangesTest(unittest.TestCase):
             'GAE_SERVICE': 'sheriff-config',
         },
         'datastore_client':
-            datastore.Client(
-                credentials=credentials.AnonymousCredentials(),
-                project='chromeperf'),
+            datastore.Client(project='chromeperf'),
         'http':
             HttpMockSequenceWithDiscovery([({
                 'status': '200'
@@ -596,9 +587,7 @@ subscriptions: {
             'GAE_SERVICE': 'sheriff-config',
         },
         'datastore_client':
-            datastore.Client(
-                credentials=credentials.AnonymousCredentials(),
-                project='chromeperf'),
+            datastore.Client(project='chromeperf'),
         'http':
             HttpMockSequenceWithDiscovery([({
                 'status': '200'
