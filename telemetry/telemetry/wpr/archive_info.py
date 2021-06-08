@@ -157,7 +157,7 @@ class WprArchiveInfo(object):
 
     # Update the hash file.
     with open(target_wpr_file_path + '.sha1', 'wb') as f:
-      f.write(target_wpr_file_hash)
+      f.write(target_wpr_file_hash.encode('utf-8'))
       f.flush()
 
     self._WriteToFile()
