@@ -194,10 +194,14 @@ class AlertGroupWorkflow(object):
           if a.median_before_anomaly != 0. else float('Inf'))
 
     added = self._UpdateAnomalies(update.anomalies)
+
     if update.issue:
       self._UpdateStatus(update.issue)
-      self._UpdateIssue(update.issue, update.anomalies, added)
-    # Trigger actions
+      if self._UpdateIssue(update.issue, update.anomalies, added):
+        # Only operate on alert group if nothing updated to prevent flooding
+        # monorail if some operations keep failing.
+        return self._CommitGroup()
+
     group = self._group
     if group.updated + self._config.active_window < update.now:
       self._Archive()
@@ -223,6 +227,10 @@ class AlertGroupWorkflow(object):
       self._group.status = self._group.Status.triaged
 
   def _UpdateIssue(self, issue, anomalies, added):
+    """Update the status of the monorail issue.
+
+    Returns True if the issue was changed.
+    """
     for a in anomalies:
       if a.bug_id is None and a.auto_triage_enable:
         a.project_id = self._group.project_id
@@ -236,14 +244,14 @@ class AlertGroupWorkflow(object):
     if all(a.recovered for a in anomalies if not a.is_improvement):
       if issue.get('state') == 'open':
         self._CloseBecauseRecovered()
-      return
+      return True
 
     new_regressions, subscriptions = self._GetRegressions(added)
     all_regressions, _ = self._GetRegressions(anomalies)
 
     # Only update issue if there is at least one regression
     if not new_regressions:
-      return
+      return False
 
     closed_by_pinpoint = False
     for c in sorted(
@@ -263,6 +271,7 @@ class AlertGroupWorkflow(object):
                                      subscriptions)
     else:
       self._FileNormalUpdate(all_regressions, new_regressions, subscriptions)
+    return True
 
   def _CloseBecauseRecovered(self):
     self._issue_tracker.AddBugComment(
