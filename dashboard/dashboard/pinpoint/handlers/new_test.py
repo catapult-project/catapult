@@ -174,6 +174,13 @@ class NewTest(_NewTest):
         job.state._changes[1].id_string,
         'chromium@3 + %s' % ('https://lalala/repo~branch~id/abc123',))
 
+  def testComparisonModeTry_InvalidPatch(self):
+    request = dict(_BASE_REQUEST)
+    request['comparison_mode'] = 'try'
+    request['patch'] = 'https://lalala/c/123/4'
+    response = self.Post('/api/new', request, status=400)
+    self.assertIn('error', json.loads(response.body))
+
   def testComparisonModeTry_ApplyBaseAndExperimentPatchLegacy(self):
     request = dict(_BASE_REQUEST)
     request['comparison_mode'] = 'try'

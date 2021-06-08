@@ -14,6 +14,7 @@ from dashboard.api import api_request_handler
 from dashboard.common import bot_configurations
 from dashboard.common import utils
 from dashboard.pinpoint.models import change
+from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models import quest as quest_module
@@ -306,51 +307,57 @@ def _ValidateChangesForTry(arguments):
 
 
 def _ValidateChanges(comparison_mode, arguments):
-  changes = arguments.get('changes')
-  if changes:
-    # FromData() performs input validation.
-    return [change.Change.FromData(c) for c in json.loads(changes)]
+  try:
+    changes = arguments.get('changes')
+    if changes:
+      # FromData() performs input validation.
+      return [change.Change.FromData(c) for c in json.loads(changes)]
 
-  # There are valid cases where a tryjob requests a base_git_hash and an
-  # end_git_hash without a patch. Let's check first whether we're finding the
-  # right combination of inputs here.
-  if comparison_mode == job_state.TRY:
-    return _ValidateChangesForTry(arguments)
+    # There are valid cases where a tryjob requests a base_git_hash and an
+    # end_git_hash without a patch. Let's check first whether we're finding the
+    # right combination of inputs here.
+    if comparison_mode == job_state.TRY:
+      return _ValidateChangesForTry(arguments)
 
-  # Everything else that follows only applies to bisections.
-  assert (comparison_mode == job_state.FUNCTIONAL
-          or comparison_mode == job_state.PERFORMANCE)
+    # Everything else that follows only applies to bisections.
+    assert (comparison_mode == job_state.FUNCTIONAL
+            or comparison_mode == job_state.PERFORMANCE)
 
-  if 'start_git_hash' not in arguments or 'end_git_hash' not in arguments:
-    raise ValueError(
-        'bisections require both a start_git_hash and an end_git_hash')
+    if 'start_git_hash' not in arguments or 'end_git_hash' not in arguments:
+      raise ValueError(
+          'bisections require both a start_git_hash and an end_git_hash')
 
-  commit_1 = change.Commit.FromDict({
-      'repository': arguments.get('repository'),
-      'git_hash': arguments.get('start_git_hash'),
-  })
+    commit_1 = change.Commit.FromDict({
+        'repository': arguments.get('repository'),
+        'git_hash': arguments.get('start_git_hash'),
+    })
 
-  commit_2 = change.Commit.FromDict({
-      'repository': arguments.get('repository'),
-      'git_hash': arguments.get('end_git_hash'),
-  })
+    commit_2 = change.Commit.FromDict({
+        'repository': arguments.get('repository'),
+        'git_hash': arguments.get('end_git_hash'),
+    })
 
-  if 'patch' in arguments:
-    patch = change.GerritPatch.FromUrl(arguments['patch'])
-  else:
-    patch = None
+    if 'patch' in arguments:
+      patch = change.GerritPatch.FromUrl(arguments['patch'])
+    else:
+      patch = None
 
-  # If we find a patch in the request, this means we want to apply it even to
-  # the start commit.
-  change_1 = change.Change(commits=(commit_1,), patch=patch)
-  change_2 = change.Change(commits=(commit_2,), patch=patch)
+    # If we find a patch in the request, this means we want to apply it even to
+    # the start commit.
+    change_1 = change.Change(commits=(commit_1,), patch=patch)
+    change_2 = change.Change(commits=(commit_2,), patch=patch)
 
-  return change_1, change_2
+    return change_1, change_2
+  except errors.BuildGerritURLInvalid as e:
+    raise ValueError(str(e))
 
 
 def _ValidatePatch(patch_data):
   if patch_data:
-    patch_details = change.GerritPatch.FromData(patch_data)
+    try:
+      patch_details = change.GerritPatch.FromData(patch_data)
+    except errors.BuildGerritURLInvalid as e:
+      raise ValueError(str(e))
     return patch_details.server, patch_details.change
   return None, None
 
