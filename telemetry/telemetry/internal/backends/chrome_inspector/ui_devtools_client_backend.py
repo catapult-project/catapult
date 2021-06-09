@@ -9,8 +9,6 @@ import socket
 from telemetry.internal.backends.chrome_inspector import devtools_http
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 
-DEFAULT_UI_DEVTOOLS_PORT = 9223
-
 # These are possible exceptions raised when the DevTools agent is not ready
 # to accept incomming connections.
 _DEVTOOLS_CONNECTION_ERRORS = (
@@ -22,7 +20,7 @@ _DEVTOOLS_CONNECTION_ERRORS = (
 def GetUIDevtoolsBackend(port, app_backend, browser_target='/0'):
   client = UIDevToolsClientBackend(app_backend)
   try:
-    client.Connect(port or DEFAULT_UI_DEVTOOLS_PORT, browser_target)
+    client.Connect(port, browser_target)
     logging.info('DevTools agent connected at %s', client)
     # Enable UI DevTools agents. This is required on Mac so we will be
     # notified about future updates.

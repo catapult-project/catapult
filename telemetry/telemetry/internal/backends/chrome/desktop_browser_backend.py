@@ -109,9 +109,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     devtools_file_path = os.path.join(self.profile_directory,
                                       UI_DEVTOOLS_ACTIVE_PORT_FILE)
     if not os.path.isfile(devtools_file_path):
-      raise EnvironmentError('UIDevTools file does not exist yet. '
-                             'Did you launch browser with '
-                             '--enable-ui-devtools=0?')
+      raise EnvironmentError('UIDevTools file does not exist yet')
     lines = None
     if os.stat(devtools_file_path).st_size > 0:
       with open(devtools_file_path) as f:

@@ -315,11 +315,23 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   def SetDownloadBehavior(self, behavior, downloadPath, timeout):
     self.devtools_client.SetDownloadBehavior(behavior, downloadPath, timeout)
 
+  def _GetUIDevtoolsBackend(self):
+    try:
+      port = self._FindUIDevtoolsPort()
+    except EnvironmentError:
+      return None
+    return ui_devtools_client_backend.GetUIDevtoolsBackend(
+        port, self)
+
   def GetUIDevtoolsBackend(self):
     if not self._ui_devtools_client:
-      port = self._FindUIDevtoolsPort()
-      self._ui_devtools_client = ui_devtools_client_backend.GetUIDevtoolsBackend(
-          port, self)
+      try:
+        self._ui_devtools_client = py_utils.WaitFor(
+            self._GetUIDevtoolsBackend,
+            timeout=10)
+      except Exception as e:
+        raise Exception('%s Did you launch browser with '
+                        '--enable-ui-devtools=0?' % e)
     return self._ui_devtools_client
 
   def GetWindowForTarget(self, target_id):
