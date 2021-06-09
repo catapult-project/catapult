@@ -1040,6 +1040,12 @@ def _run_one_test(child, test_input):
         test_name_to_load = child.test_name_prefix + test_name
         try:
             suite = child.loader.loadTestsFromName(test_name_to_load)
+            # From Python 3.5, AttributeError will not be thrown when calling
+            # LoadTestsFromName. Instead, it adds error messages in the loader.
+            # As a result, the original handling cannot kick in properly. We
+            # now check the error message and throw exception as needed.
+            if hasattr(child.loader, 'errors') and child.loader.errors:
+                raise AttributeError(child.loader.errors)
         except Exception as e:
             ex_str = ('loadTestsFromName("%s") failed: %s\n%s\n' %
                       (test_name_to_load, e, traceback.format_exc()))
