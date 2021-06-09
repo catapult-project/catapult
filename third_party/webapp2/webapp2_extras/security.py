@@ -25,10 +25,10 @@ _rng = random.SystemRandom()
 
 HEXADECIMAL_DIGITS = string.digits + 'abcdef'
 DIGITS = string.digits
-LOWERCASE_ALPHA = string.lowercase
-UPPERCASE_ALPHA = string.uppercase
-LOWERCASE_ALPHANUMERIC = string.lowercase + string.digits
-UPPERCASE_ALPHANUMERIC = string.uppercase + string.digits
+LOWERCASE_ALPHA = string.ascii_lowercase
+UPPERCASE_ALPHA = string.ascii_uppercase
+LOWERCASE_ALPHANUMERIC = string.ascii_lowercase + string.digits
+UPPERCASE_ALPHANUMERIC = string.ascii_uppercase + string.digits
 ALPHA = string.letters
 ALPHANUMERIC = string.letters + string.digits
 ASCII_PRINTABLE = string.letters + string.digits + string.punctuation

@@ -988,18 +988,19 @@ def _setup_process(host, worker_num, child):
 
 def _teardown_process(child):
     res = None
-    e = None
+    exc = None
     if child.teardown_fn:
         try:
             res = child.teardown_fn(child, child.context_after_setup)
         except Exception as e:
+            exc = e
             pass
 
     if child.cov:  # pragma: no cover
         child.cov.stop()
         child.cov.save()
 
-    return (child.worker_num, res, e)
+    return (child.worker_num, res, exc)
 
 
 def _run_one_test(child, test_input):

@@ -318,7 +318,8 @@ def _ValidateTestMethodname(test_name):
 def GenerateTestCases(test_class, finder_options):
   test_cases = []
   for name, method in inspect.getmembers(
-      test_class, predicate=inspect.ismethod):
+      test_class,
+      predicate=lambda x: inspect.isfunction(x) or inspect.ismethod(x)):
     if name.startswith('test'):
       # Do not allow method names starting with "test" in these
       # subclasses, to avoid collisions with Python's unit test runner.

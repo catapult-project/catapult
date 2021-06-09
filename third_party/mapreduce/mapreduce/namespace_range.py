@@ -37,8 +37,8 @@ from google.appengine.ext import db
 from google.appengine.ext.db import metadata
 
 NAMESPACE_CHARACTERS = ''.join(sorted(string.digits +
-                                      string.lowercase +
-                                      string.uppercase +
+                                      string.ascii_lowercase +
+                                      string.ascii_uppercase +
                                       '._-'))
 MAX_NAMESPACE_LENGTH = 100
 MIN_NAMESPACE = ''

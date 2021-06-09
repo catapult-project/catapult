@@ -85,11 +85,11 @@ class BrowserTestRunnerTest(unittest.TestCase):
         benchmark_dirs=[
             os.path.join(util.GetTelemetryDir(), 'examples', 'browser_tests')]
     )
-    temp_file = tempfile.NamedTemporaryFile(delete=False)
+    temp_file = tempfile.NamedTemporaryFile(delete=False, mode='w+')
     temp_file.close()
     temp_file_name = temp_file.name
     if expectations:
-      expectations_file = tempfile.NamedTemporaryFile(delete=False)
+      expectations_file = tempfile.NamedTemporaryFile(delete=False, mode='w+')
       expectations_file.write(expectations)
       expectations_file.close()
       extra_args.extend(['-X', expectations_file.name] +
@@ -390,9 +390,9 @@ class BrowserTestRunnerTest(unittest.TestCase):
     prefix = 'browser_tests.simple_numeric_test.SimpleTest.Alphabetical_'
     for i in range(20):
       alphabetical_tests.append(prefix + str(i))
-    for c in string.uppercase[:26]:
+    for c in string.ascii_uppercase[:26]:
       alphabetical_tests.append(prefix + c)
-    for c in string.lowercase[:26]:
+    for c in string.ascii_lowercase[:26]:
       alphabetical_tests.append(prefix + c)
     alphabetical_tests.sort()
     self._RunTest(
@@ -448,7 +448,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
         benchmark_dirs=[
             os.path.join(util.GetTelemetryDir(), 'examples', 'browser_tests')]
     )
-    temp_file = tempfile.NamedTemporaryFile(delete=False)
+    temp_file = tempfile.NamedTemporaryFile(delete=False, mode='w+')
     temp_file.close()
     temp_file_name = temp_file.name
     opt_args = []
@@ -536,7 +536,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
             'passing_test_9': 0.5,
         }
     }
-    temp_file = tempfile.NamedTemporaryFile(delete=False)
+    temp_file = tempfile.NamedTemporaryFile(delete=False, mode='w+')
     temp_file.close()
     temp_file_name = temp_file.name
     with open(temp_file_name, 'w') as f:

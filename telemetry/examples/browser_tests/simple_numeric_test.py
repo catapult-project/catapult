@@ -35,9 +35,9 @@ class SimpleTest(
     del options  # unused
     prefix = 'Alphabetical_'
     test_names = []
-    for character in string.lowercase[:26]:
+    for character in string.ascii_lowercase[:26]:
       test_names.append(prefix + character)
-    for character in string.uppercase[:26]:
+    for character in string.ascii_uppercase[:26]:
       test_names.append(prefix + character)
     for num in range(20):
       test_names.append(prefix + str(num))
@@ -51,7 +51,8 @@ class SimpleTest(
   def AlphabeticalTest(self):
     test_name = self.id()
     global _PREV_TEST_NAME # pylint: disable=global-statement
-    self.assertLess(_PREV_TEST_NAME, test_name)
+    if _PREV_TEST_NAME:
+      self.assertLess(_PREV_TEST_NAME, test_name)
     _PREV_TEST_NAME = test_name
 
   def AdderTest(self, a, b, partial_sum):
