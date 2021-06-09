@@ -24,7 +24,7 @@ class InspectorLog(object):
       entry = message['params']['entry']
       if entry['level'] == 'error':
         # External log messages may contain non-ASCII characters.
-        text = entry['text'].encode('ascii', 'backslashreplace')
+        text = entry['text'].encode('ascii', 'backslashreplace').decode('ascii')
         logging.warning('DevTools console [%s]: %s %s',
                         entry['source'], text, entry.get('url', ''))
 
