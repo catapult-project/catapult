@@ -160,7 +160,9 @@ bool PixelsEqual(const unsigned char* pixel1, const unsigned char* pixel2,
 
 static inline
 bool PixelsEqual(const unsigned char* pixel, int color, int tolerance) {
-  unsigned char pixel2[3] = { color >> 16, color >> 8, color };
+  unsigned char pixel2[3] = {static_cast<unsigned char>(color >> 16),
+                             static_cast<unsigned char>(color >> 8),
+                             static_cast<unsigned char>(color)};
   return PixelsEqual(pixel, pixel2, tolerance);
 }
 
