@@ -223,6 +223,7 @@ class TracingController(object):
       # of the trace result, which will be dealt with above)
       except:
         print('Warning: Exception getting results from %s:' % str(agent))
+        print('Try checking android device storage permissions for chrome')
         print(sys.exc_info()[0])
         raise
     self.all_results = all_results
