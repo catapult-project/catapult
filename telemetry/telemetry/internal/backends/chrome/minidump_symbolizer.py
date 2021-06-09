@@ -62,7 +62,7 @@ class MinidumpSymbolizer(object):
       with open(minidump, 'rb') as infile:
         minidump += '.stripped'
         with open(minidump, 'wb') as outfile:
-          outfile.write(''.join(infile.read().partition('MDMP')[1:]))
+          outfile.write(b''.join(infile.read().partition(b'MDMP')[1:]))
 
     symbols_dir = self._symbols_dir
     if not symbols_dir:

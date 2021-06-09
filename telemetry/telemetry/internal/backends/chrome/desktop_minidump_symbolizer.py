@@ -8,6 +8,8 @@ import os
 import re
 import subprocess
 
+import six
+
 from telemetry.internal.backends.chrome import minidump_symbolizer
 from telemetry.internal.util import local_first_binary_manager
 from telemetry.internal.util import path
@@ -88,6 +90,10 @@ class DesktopMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
     except subprocess.CalledProcessError as e:
       # For some reason minidump_dump always fails despite successful dumping.
       minidump_output = e.output
+
+    if six.PY3:
+      # pylint: disable=redefined-variable-type
+      minidump_output = minidump_output.decode('utf-8')
 
     minidump_binary_re = re.compile(r'\W+\(code_file\)\W+=\W\"(.*)\"')
     for minidump_line in minidump_output.splitlines():
