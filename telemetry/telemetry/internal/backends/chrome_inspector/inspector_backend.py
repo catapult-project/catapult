@@ -702,7 +702,7 @@ class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
     new_error.AddDebuggingMessage(original_error_msg)
     self._AddDebuggingInformation(new_error)
 
-    six.reraise(new_error, None, sys.exc_info()[2])
+    six.reraise(type(new_error), new_error, sys.exc_info()[2])
 
   def _AddDebuggingInformation(self, error):
     """Adds debugging information to error.
