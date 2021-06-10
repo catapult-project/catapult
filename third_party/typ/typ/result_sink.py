@@ -114,8 +114,8 @@ class ResultSinkReporter(object):
         raw_typ_expected_results = (
                 expectations.expectations_for(result.name).raw_results
                 if expectations
-                else [expectations_parser.RESULT_TAGS[
-                        json_results.ResultType.Pass]])
+                else [expectations_parser.RESULT_TAGS[t]
+                      for t in result.expected])
         result_is_expected = result.actual in result.expected
 
         tag_list = [
