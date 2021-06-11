@@ -120,11 +120,11 @@ def _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs):
 
   if response['status'] == '404':
     raise NotFoundError(
-        'HTTP status code %s: %s' % (response['status'], repr(content[0:100])),
+        'HTTP status code %s: %s' % (response['status'], repr(content[0:200])),
         content)
   if not response['status'].startswith('2'):
     raise RequestError(
         'Failure in request for `%s`; HTTP status code %s: %s' %
-        (url, response['status'], repr(content[0:100])), content)
+        (url, response['status'], repr(content[0:200])), content)
 
   return content
