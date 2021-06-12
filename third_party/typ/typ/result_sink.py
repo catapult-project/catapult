@@ -27,6 +27,7 @@ import sys
 
 import requests
 
+from typ import host
 from typ import json_results
 from typ import expectations_parser
 
@@ -44,24 +45,24 @@ STDERR_KEY = 'typ_stderr'
 
 
 class ResultSinkReporter(object):
-    def __init__(self, host, disable=False):
+    def __init__(self, host=None, disable=False):
         """Class for interacting with ResultDB's ResultSink.
 
         Args:
             host: A host.Host or host_fake.FakeHost instance.
             disable: Whether to explicitly disable ResultSink integration.
         """
-        self._host = host
+        self.host = host or host.Host()
         self._sink = None
         self._chromium_src_dir = None
         if disable:
             return
 
-        luci_context_file = self._host.getenv('LUCI_CONTEXT')
+        luci_context_file = self.host.getenv('LUCI_CONTEXT')
         if not luci_context_file:
             return
         self._sink = json.loads(
-                self._host.read_text_file(luci_context_file)).get('result_sink')
+                self.host.read_text_file(luci_context_file)).get('result_sink')
         if not self._sink:
             return
 
@@ -136,8 +137,8 @@ class ResultSinkReporter(object):
         if original_artifacts:
             assert artifact_output_dir
             if not os.path.isabs(artifact_output_dir):
-                artifact_output_dir = self._host.join(
-                        self._host.getcwd(), artifact_output_dir)
+                artifact_output_dir = self.host.join(
+                        self.host.getcwd(), artifact_output_dir)
 
         for artifact_name, artifact_filepaths in original_artifacts.items():
             # The typ artifact implementation supports multiple artifacts for
@@ -145,12 +146,12 @@ class ResultSinkReporter(object):
             if len(artifact_filepaths) > 1:
                 for index, filepath in enumerate(artifact_filepaths):
                     artifacts[artifact_name + '-file%d' % index] = {
-                        'filePath': self._host.join(
+                        'filePath': self.host.join(
                                 artifact_output_dir, filepath),
                     }
             else:
                 artifacts[artifact_name] = {
-                    'filePath': self._host.join(
+                    'filePath': self.host.join(
                             artifact_output_dir, artifact_filepaths[0]),
                 }
 
@@ -241,16 +242,16 @@ class ResultSinkReporter(object):
         chromium_src_dir = self._get_chromium_src_dir()
         assert chromium_src_dir in filepath
         repo_location = filepath.replace(chromium_src_dir, '//', 1)
-        repo_location = repo_location.replace(self._host.sep, '/')
+        repo_location = repo_location.replace(self.host.sep, '/')
         return repo_location
 
     def _get_chromium_src_dir(self):
         if not self._chromium_src_dir:
-          src_dir = self._host.abspath(
-                  self._host.join(self._host.dirname(__file__),
+          src_dir = self.host.abspath(
+                  self.host.join(self.host.dirname(__file__),
                                   '..', '..', '..', '..', '..'))
-          if not src_dir.endswith(self._host.sep):
-              src_dir += self._host.sep
+          if not src_dir.endswith(self.host.sep):
+              src_dir += self.host.sep
           self._chromium_src_dir = src_dir
         return self._chromium_src_dir
 
