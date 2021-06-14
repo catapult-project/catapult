@@ -177,7 +177,9 @@ class ParseTests(unittest.TestCase):
                 </template>
               </polymer-element>"""
     parser = parse_html_deps.HTMLModuleParser()
-    self.assertRaises(lambda: parser.Parse(html))
+    with self.assertRaises(Exception):
+      parsed = parser.Parse(html)
+      parsed.html_contents_without_links_and_script()
 
   def test_nested_templates(self):
     orig_html = """<template>
