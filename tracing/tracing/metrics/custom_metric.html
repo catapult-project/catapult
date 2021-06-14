@@ -13,11 +13,11 @@ found in the LICENSE file.
 /**
  * This metric is used for custom performance benchmark.
  * It captures the following:
- * - Recorded trace events with name starts with "custom_metric:" on the C++
- * side.
- * - Duration between performance.mark('<YOUR_METRIC_NAME>:benchmark_begin')
- * and performance.mark('<YOUR_METRIC_NAME>:benchmark_end') on the JS side.
- * - performance.mark('<YOUR_METRIC_NAME>:<YOUR_METRIC_VALUE>:benchmark_value')
+ * - Metrics reported by telemetry in the format of
+ * performance.mark('custom_metric:manifest:[{"name":<METRIC_NAME1>},{"name":<METRIC_NAME2>}...]');
+ * - Duration between performance.mark('<METRIC_NAME>:benchmark_begin')
+ * and performance.mark('<METRIC_NAME>:benchmark_end') on the JS side.
+ * - performance.mark('<METRIC_NAME>:<METRIC_VALUE>:benchmark_value')
  * on the JS side.
  */
 tr.exportTo('tr.metrics', function() {
@@ -29,7 +29,7 @@ tr.exportTo('tr.metrics', function() {
       return;
     }
 
-    const TITLE_PREFIX = 'custom_metric:';
+    const metrics = getMetrics(chromeHelper);
     const traces = new Map();
     const benchmarkValues = new Map();
     // Collect trace events.
@@ -37,7 +37,7 @@ tr.exportTo('tr.metrics', function() {
       if (!helper.mainThread) continue;
       for (const slice of helper.mainThread.sliceGroup.slices.concat(
           helper.mainThread.asyncSliceGroup.slices)) {
-        if (!slice.error && slice.title.startsWith(TITLE_PREFIX)) {
+        if (!slice.error && metrics.has(slice.title)) {
           if (!traces.has(slice.title)) {
             traces.set(slice.title, []);
           }
@@ -53,8 +53,7 @@ tr.exportTo('tr.metrics', function() {
     const marks = new Map();
     for (const helper of Object.values(chromeHelper.rendererHelpers)) {
       for (const event of helper.mainThread.sliceGroup.childEvents()) {
-        const navId = getNavigationId(event);
-        if (!navId || !event.category.includes('blink.user_timing')) continue;
+        if (!event.category.includes('blink.user_timing')) continue;
         const {title} = event;
         const index = title.lastIndexOf(':');
         if (index === -1) {
@@ -94,19 +93,52 @@ tr.exportTo('tr.metrics', function() {
 
     // Generate histograms.
     traces.forEach((value, key) => {
-      histograms.createHistogram(key,
-          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-          value);
+      createMetricHistogram(histograms,
+                            key,
+                            tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+                            value,
+                            metrics.get(key));
     });
     benchmarkValues.forEach((value, key) => {
-      histograms.createHistogram(key,
-          tr.b.Unit.byName.unitlessNumber_smallerIsBetter,
-          value);
+      createMetricHistogram(histograms,
+                            key,
+                            tr.b.Unit.byName.unitlessNumber_smallerIsBetter,
+                            value,
+                            metrics.get(key));
     });
   }
 
-  function getNavigationId(event) {
-    return event.args.data && event.args.data.navigationId;
+  // Get metrics from performance.mark()
+  function getMetrics(chromeHelper) {
+    const CUSTOM_METRIC_MANIFEST_PREFIX = 'custom_metric:manifest:'
+    for (const helper of Object.values(chromeHelper.rendererHelpers)) {
+      for (const event of helper.mainThread.sliceGroup.childEvents()) {
+        if (!event.category.includes('blink.user_timing')) continue;
+        const {title} = event;
+        if (title.startsWith(CUSTOM_METRIC_MANIFEST_PREFIX)) {
+          const result = JSON.parse(title.substring(CUSTOM_METRIC_MANIFEST_PREFIX.length));
+          return new Map(result.map(event => [event.name, event]));
+        }
+      }
+    }
+    return new Map();
+  }
+
+  // Create histogram with default unit and
+  // read unit and description from the metric manifest if available.
+  function createMetricHistogram(histograms, key, defaultUnit, value, metric) {
+    let unit = metric && metric.unit;
+    if (unit) {
+      unit = tr.b.Unit.fromJSON(unit);
+    }
+    const description = metric && metric.description;
+    const histogram = histograms.createHistogram(key,
+        unit || defaultUnit,
+        value);
+    if (description) {
+      histogram.description = description;
+    }
+    return histogram;
   }
 
   tr.metrics.MetricRegistry.register(customMetric, {
