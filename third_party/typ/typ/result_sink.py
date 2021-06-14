@@ -27,7 +27,7 @@ import sys
 
 import requests
 
-from typ import host
+from typ import host as typ_host
 from typ import json_results
 from typ import expectations_parser
 
@@ -49,10 +49,10 @@ class ResultSinkReporter(object):
         """Class for interacting with ResultDB's ResultSink.
 
         Args:
-            host: A host.Host or host_fake.FakeHost instance.
+            host: A typ_host.Host or host_fake.FakeHost instance.
             disable: Whether to explicitly disable ResultSink integration.
         """
-        self.host = host or host.Host()
+        self.host = host or typ_host.Host()
         self._sink = None
         self._chromium_src_dir = None
         if disable:
