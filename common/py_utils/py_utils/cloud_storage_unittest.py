@@ -64,7 +64,7 @@ class CloudStorageFakeFsUnitTest(BaseFakeFsUnitTest):
       popen.return_value = p_mock
       p_mock.returncode = 1
       for stderr in communicate_strs:
-        p_mock.communicate.return_value = ('', stderr)
+        p_mock.communicate.return_value = ('', stderr.encode('utf-8'))
         self.assertRaises(error, cloud_storage._RunCommand, [])
 
   def testRunCommandCredentialsError(self):
@@ -125,7 +125,7 @@ class CloudStorageFakeFsUnitTest(BaseFakeFsUnitTest):
     subprocess_mock.Popen.return_value = p_mock
     p_mock.communicate.return_value = (
         '',
-        'CommandException: One or more URLs matched no objects.\n')
+        b'CommandException: One or more URLs matched no objects.\n')
     p_mock.returncode_result = 1
     self.assertFalse(cloud_storage.Exists('fake bucket',
                                           'fake remote path'))
@@ -205,7 +205,7 @@ class CloudStorageFakeFsUnitTest(BaseFakeFsUnitTest):
     os.environ['SWARMING_HEADLESS'] = '1'
 
     mock_gsutil = mock_popen()
-    mock_gsutil.communicate = mock.MagicMock(return_value=('a', 'b'))
+    mock_gsutil.communicate = mock.MagicMock(return_value=(b'a', b'b'))
     mock_gsutil.returncode = None
 
     cloud_storage.Copy('bucket1', 'bucket2', 'remote_path1', 'remote_path2')

@@ -51,7 +51,7 @@ class TemporaryFilesTest(fake_filesystem_unittest.TestCase):
   def testNamedTemporaryFile(self):
     with tempfile_ext.NamedTemporaryFile() as f:
       self.assertTrue(os.path.isfile(f.name))
-      f.write('<data>')
+      f.write(b'<data>')
       f.close()
       self.assertTrue(os.path.exists(f.name))
       with open(f.name) as f2:
