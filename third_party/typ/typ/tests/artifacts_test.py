@@ -49,7 +49,7 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
     host = FakeHost()
     output_dir = '%stmp' % host.sep
     ar = artifacts.Artifacts(
-      output_dir, host, iteration=1, test_name='a.b.c')
+      output_dir, host, iteration=1, artifacts_base_dir='a.b.c')
     file_rel_path = host.join('stdout', 'test.jpg')
     ar.CreateArtifact('artifact_name', file_rel_path, b'contents')
     self.assertEqual(
@@ -61,7 +61,7 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
     host = FakeHost()
     output_dir = '%stmp' % host.sep
     ar = artifacts.Artifacts(
-      output_dir, host, iteration=0, test_name='retry_1')
+      output_dir, host, iteration=0, artifacts_base_dir='retry_1')
     file_rel_path = host.join('stdout', 'test.jpg')
     ar.CreateArtifact('artifact_name', file_rel_path, b'contents')
     ar1 = artifacts.Artifacts(
@@ -74,7 +74,7 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
     host = FakeHost()
     output_dir = '%stmp' % host.sep
     ar = artifacts.Artifacts(
-      output_dir, host, iteration=0, test_name='a.b.c', intial_results_base_dir=True)
+      output_dir, host, iteration=0, artifacts_base_dir='a.b.c', intial_results_base_dir=True)
     file_rel_path = host.join('stdout', 'test.txt')
     ar.CreateArtifact('artifact_name', file_rel_path, 'contents',
                       write_as_text=True)
@@ -93,7 +93,7 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
     host = FakeHost()
     output_dir = '%stmp' % host.sep
     ar = artifacts.Artifacts(
-      output_dir, host, iteration=0, test_name='a.b.c', intial_results_base_dir=True)
+      output_dir, host, iteration=0, artifacts_base_dir='a.b.c', intial_results_base_dir=True)
     file_rel_path = host.join('stdout', 'test.jpg')
     ar.CreateArtifact('artifact_name', file_rel_path, b'contents')
     self.assertEqual(

@@ -23,7 +23,7 @@ else:
 from typ.host import Host
 
 class Artifacts(object):
-  def __init__(self, output_dir, host, iteration=0, test_name='',
+  def __init__(self, output_dir, host, iteration=0, artifacts_base_dir='',
                intial_results_base_dir=False, repeat_tests=False):
     """Creates an artifact results object.
 
@@ -38,7 +38,7 @@ class Artifacts(object):
             unless the intial_results_base_dir argument is set to True. If it set
             to true then a "intial" sub directory will be created and that is
             where the artifacts will be saved.
-      * test_name if the argument is specified. If it is not specified,
+      * artifacts_base_dir if the argument is specified. If it is not specified,
             then the files will be saved to the retry_x, intial or the output_dir directory.
       * relative file path
     For example,  an artifact with path "images/screenshot.png" for the first iteration of
@@ -55,7 +55,7 @@ class Artifacts(object):
     args:
       output_dir: Output directory where artifacts will be saved.
       iteration: Retry attempt number for test.
-      test_name: Name of test, which will be used to create a sub directory for test artifacts
+      artifacts_base_dir: Name of test, which will be used to create a sub directory for test artifacts
       intial_results_base_dir: Flag to create a sub directory for initial results
       repeat_tests: Flag to signal that tests are repeated and therefore the verification to prevent
           overwriting of artifacts should be skipped
@@ -64,7 +64,7 @@ class Artifacts(object):
     """
     self._output_dir = output_dir
     self._iteration = iteration
-    self._test_base_dir = test_name
+    self._artifacts_base_dir = artifacts_base_dir
     # A map of artifact names to their filepaths relative to the output
     # directory.
     self.artifacts = {}
@@ -74,7 +74,7 @@ class Artifacts(object):
     self._host = host
 
   def ArtifactsSubDirectory(self):
-    sub_dir = self._test_base_dir
+    sub_dir = self._artifacts_base_dir
     if self._iteration:
         sub_dir = self._host.join(sub_dir, 'retry_%d' % self._iteration)
     elif self._intial_results_base_dir:
