@@ -7,6 +7,7 @@ Function/method decorators that provide timeout and retry logic.
 
 import functools
 import itertools
+import logging
 import sys
 
 import six
@@ -18,6 +19,8 @@ from devil.utils import timeout_retry
 
 DEFAULT_TIMEOUT_ATTR = '_default_timeout'
 DEFAULT_RETRIES_ATTR = '_default_retries'
+
+logger = logging.getLogger(__name__)
 
 
 def _TimeoutRetryWrapper(f,
@@ -55,10 +58,13 @@ def _TimeoutRetryWrapper(f,
         # Don't wrap if there's already an outer timeout thread.
         return impl()
       else:
-        desc = '%s(%s)' % (f.__name__, ', '.join(
-            itertools.chain(
-                (str(a) for a in args),
-                ('%s=%s' % (k, str(v)) for k, v in six.iteritems(kwargs)))))
+        if logger.isEnabledFor(logging.DEBUG):
+          desc = '%s(%s)' % (f.__name__, ', '.join(
+              itertools.chain(
+                  (str(a) for a in args),
+                  ('%s=%s' % (k, str(v)) for k, v in six.iteritems(kwargs)))))
+        else:
+          desc = '%s(...)' % (f.__name__)
         return timeout_retry.Run(
             impl, timeout, retries, desc=desc, retry_if_func=retry_if_func)
     except reraiser_thread.TimeoutError as e:
