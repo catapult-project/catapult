@@ -84,8 +84,7 @@ class ReraiseTests(unittest.TestCase):
 
     self.assertLogMatches(re.compile(
         r'While handling a FakeConnectionError, .* was also raised:\n'
-        r'Traceback \(most recent call last\):\n'
-        r'.*\n'
+        r'.*'
         r'FakeDisconnectionError: Oops!\n', re.DOTALL))
     self.assertCountEqualPy23(client.called, ['Connect', 'Disconnect'])
 
@@ -133,8 +132,7 @@ class ReraiseTests(unittest.TestCase):
 
     self.assertLogMatches(re.compile(
         r'While handling a FakeProcessingError, .* was also raised:\n'
-        r'Traceback \(most recent call last\):\n'
-        r'.*\n'
+        r'.*'
         r'FakeCleanupError: Oops!\n', re.DOTALL))
     self.assertCountEqualPy23(worker.called, ['Process', 'Cleanup'])
 
