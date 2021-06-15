@@ -15,9 +15,9 @@ found in the LICENSE file.
  * It captures the following:
  * - Metrics reported by telemetry in the format of
  * performance.mark('custom_metric:manifest:[{"name":<METRIC_NAME1>},{"name":<METRIC_NAME2>}...]');
- * - Duration between performance.mark('<METRIC_NAME>:benchmark_begin')
- * and performance.mark('<METRIC_NAME>:benchmark_end') on the JS side.
- * - performance.mark('<METRIC_NAME>:<METRIC_VALUE>:benchmark_value')
+ * - Duration between performance.mark('<METRIC_NAME>:metric_begin')
+ * and performance.mark('<METRIC_NAME>:metric_end') on the JS side.
+ * - performance.mark('<METRIC_NAME>:<METRIC_VALUE>:metric_value')
  * on the JS side.
  */
 tr.exportTo('tr.metrics', function() {
@@ -47,9 +47,9 @@ tr.exportTo('tr.metrics', function() {
     }
 
     // Collect performance.mark().
-    const BENCHMARK_BEGIN = 'benchmark_begin';
-    const BENCHMARK_END = 'benchmark_end';
-    const BENCHMARK_VALUE = 'benchmark_value';
+    const METRIC_BEGIN = 'metric_begin';
+    const METRIC_END = 'metric_end';
+    const METRIC_VALUE = 'metric_value';
     const marks = new Map();
     for (const helper of Object.values(chromeHelper.rendererHelpers)) {
       for (const event of helper.mainThread.sliceGroup.childEvents()) {
@@ -61,9 +61,9 @@ tr.exportTo('tr.metrics', function() {
         }
         const name = title.substring(0, index);
         const lastPart = title.substring(index + 1);
-        if (lastPart === BENCHMARK_BEGIN) {
+        if (lastPart === METRIC_BEGIN) {
           marks.set(name, event);
-        } else if (lastPart === BENCHMARK_END) {
+        } else if (lastPart === METRIC_END) {
           if (!marks.has(name)) {
             continue;
           }
@@ -74,7 +74,7 @@ tr.exportTo('tr.metrics', function() {
           }
           traces.get(name).push(range.duration);
           marks.delete(name);
-        } else if (lastPart === BENCHMARK_VALUE) {
+        } else if (lastPart === METRIC_VALUE) {
           const index2 = name.lastIndexOf(':');
           if (index2 === -1) {
             continue;

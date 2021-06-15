@@ -54,13 +54,13 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(hist2.min, 18.0);
     assert.strictEqual(hist2.average, 18.0);
     // metric3 is not collected because
-    // ":benchmark_begin" and ":benchmark_end" are missing.
+    // ":metric_begin" and ":metric_end" are missing.
     assert.isUndefined(histograms.getHistogramNamed('metric3'));
     // metric4 is not collected because
-    // ":benchmark_end" is missing.
+    // ":metric_end" is missing.
     assert.isUndefined(histograms.getHistogramNamed('metric4'));
     // metric5 is not collected because
-    // ":benchmark_begin" is missing.
+    // ":metric_begin" is missing.
     assert.isUndefined(histograms.getHistogramNamed('metric5'));
     const hist3 = histograms.getHistogramNamed('metric6');
     assert.strictEqual(hist3.numValues, 2);
@@ -174,27 +174,27 @@ tr.b.unittest.testSuite(function() {
   function addPerformanceMark(thread) {
     [
       {
-        title: 'metric1:benchmark_begin',
+        title: 'metric1:metric_begin',
         start: 10,
       },
       {
-        title: 'metric1:benchmark_end',
+        title: 'metric1:metric_end',
         start: 15,
       },
       {
-        title: 'metric1:benchmark_begin',
+        title: 'metric1:metric_begin',
         start: 17,
       },
       {
-        title: 'metric1:benchmark_end',
+        title: 'metric1:metric_end',
         start: 19,
       },
       {
-        title: 'metric2:benchmark_begin',
+        title: 'metric2:metric_begin',
         start: 2,
       },
       {
-        title: 'metric2:benchmark_end',
+        title: 'metric2:metric_end',
         start: 20,
       },
       {
@@ -202,27 +202,27 @@ tr.b.unittest.testSuite(function() {
         start: 25,
       },
       {
-        title: 'metric4:benchmark_begin',
+        title: 'metric4:metric_begin',
         start: 5,
       },
       {
-        title: 'metric5:benchmark_end',
+        title: 'metric5:metric_end',
         start: 10,
       },
       {
-        title: 'metric6:49:benchmark_value',
+        title: 'metric6:49:metric_value',
         start: 10,
       },
       {
-        title: 'metric6:51:benchmark_value',
+        title: 'metric6:51:metric_value',
         start: 20,
       },
       {
-        title: 'metric7:invalid value:benchmark_value',
+        title: 'metric7:invalid value:metric_value',
         start: 10,
       },
       {
-        title: 'metric8:benchmark_value',
+        title: 'metric8:metric_value',
         start: 10,
       }
     ].forEach(slice => {
