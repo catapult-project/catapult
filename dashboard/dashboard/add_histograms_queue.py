@@ -51,6 +51,14 @@ DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES = {
         'r_webrtc_git',
     reserved_infos.WEBRTC_INTERNAL_REVISIONS.name:
         'r_webrtc_internal_cl',
+    reserved_infos.WEBRTC_INTERNAL_SIRIUS_REVISIONS.name:
+        'r_webrtc_internal_sirius_cl',
+    reserved_infos.WEBRTC_INTERNAL_VEGA_REVISIONS.name:
+        'r_webrtc_internal_vega_cl',
+    reserved_infos.WEBRTC_INTERNAL_CANOPUS_REVISIONS.name:
+        'r_webrtc_internal_canopus_cl',
+    reserved_infos.WEBRTC_INTERNAL_ARCTURUS_REVISIONS.name:
+        'r_webrtc_internal_arcturus_cl',
     reserved_infos.FUCHSIA_GARNET_REVISIONS.name:
         'r_fuchsia_garnet_git',
     reserved_infos.FUCHSIA_PERIDOT_REVISIONS.name:
