@@ -69,6 +69,11 @@ DETERMINISTIC_DEVICE_SETTINGS = [
             ('auto_time_zone', 0),
             ('development_settings_enabled', 1),
 
+            # Flag for hiding system error dialogs such as crash and ANR
+            # dialogs.
+            # Type: int ( 0 = show, 1 = hide )
+            ('hide_error_dialogs', 1),
+
             # Flag for allowing ActivityManagerService to send ACTION_APP_ERROR
             # intens on application crashes and ANRs. If this is disabled, the
             # crash/ANR dialog will never display the "Report" button.
