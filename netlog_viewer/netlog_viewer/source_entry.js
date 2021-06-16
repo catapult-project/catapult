@@ -340,13 +340,13 @@ class SourceEntry {
   /**
    * Creates a table printer for the SourceEntry.
    */
-  createTablePrinter() {
+  createTablePrinter(forSearch=false) {
     return createLogEntryTablePrinter(
         this.entries_,
         SourceTracker.getInstance().getUseRelativeTimes() ?
           timeutil.getBaseTime() :
           0,
-        Constants.clientInfo.numericDate);
+        Constants.clientInfo.numericDate, forSearch);
   }
 }
 

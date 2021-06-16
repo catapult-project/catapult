@@ -23,10 +23,11 @@ let proxySettingsToString;
    * Creates a TablePrinter for use by the above two functions.  baseTime is
    * the time relative to which other times are displayed.
    */
-  createLogEntryTablePrinter = function(logEntries, baseTime, logCreationTime) {
+  createLogEntryTablePrinter = function(logEntries, baseTime, logCreationTime,
+                                        forSearch=false) {
     const entries = LogGroupEntry.createArrayFrom(logEntries);
     const tablePrinter = new TablePrinter();
-    const parameterOutputter = new ParameterOutputter(tablePrinter);
+    const parameterOutputter = new ParameterOutputter(tablePrinter, forSearch);
 
     if (entries.length === 0) {
       return tablePrinter;
@@ -112,6 +113,25 @@ let proxySettingsToString;
     const stCell = tablePrinter.addCell(eventTime - startTime);
     stCell.alignRight = true;
     tablePrinter.addCell('] ');
+  }
+
+  /** Append an ASCII representation of the bytes for search filtering
+   *  purposes. ASCII codes 32 though 126 display the corresponding
+   *  characters, nulls are represented by spaces, and any other
+   *  character is represented by a period.
+  */
+  function writeBytesAsSearchableString(bytes, out) {
+    let result = ' ';
+    bytes.forEach(curByte => {
+      if (curByte >= 0x20 && curByte <= 0x7E) {
+        result += String.fromCharCode(curByte);
+      } else if (curByte === 0x00) {
+        result += ' ';
+      } else {
+        result += '.';
+      }
+    });
+    out.writeLine(result);
   }
 
   /**
@@ -200,8 +220,18 @@ let proxySettingsToString;
     /**
      * @constructor
      */
-    constructor(tablePrinter) {
+    constructor(tablePrinter, forSearch=false) {
       this.tablePrinter_ = tablePrinter;
+      this.forSearch_ = forSearch;
+    }
+
+    /**
+     * Returns |true| if this ParameterOutputter is being used
+     * to write output that will be used for search filtering
+     * rather than display to the end-user.
+    */
+    isForSearch() {
+      return this.forSearch_;
     }
 
     /**
@@ -375,8 +405,12 @@ let proxySettingsToString;
     if (key === 'bytes' && typeof value === 'string') {
       const bytes = tryParseBase64ToBytes(value);
       if (bytes) {
-        out.writeArrowKey(key);
-        writeHexString(bytes, out);
+        if (out.isForSearch()) {
+          writeBytesAsSearchableString(bytes, out);
+        } else {
+          out.writeArrowKey(key);
+          writeHexString(bytes, out);
+        }
         return;
       }
     }

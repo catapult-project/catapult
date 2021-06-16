@@ -210,7 +210,7 @@ var SourceFilterParser = (function() {
         match = true;
       } else {
         if (!tablePrinter)
-          tablePrinter = sourceEntry.createTablePrinter();
+          tablePrinter = sourceEntry.createTablePrinter(true /* forSearch */);
         match = tablePrinter.search(text);
       }
       if (negated)
