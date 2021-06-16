@@ -195,7 +195,7 @@ def FetchBinaryDependencies(
 
     except dependency_manager.NoPathFoundError as e:
       logging.error('Error when trying to prefetch paths for %s: %s',
-                    target_platform, e.message)
+                    target_platform, e)
 
   if fetch_devil_deps:
     devil_env.config.Initialize()
