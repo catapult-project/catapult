@@ -165,6 +165,7 @@ class StartupTracingTest(unittest.TestCase):
 
   @decorators.Isolated
   @decorators.Disabled('chromeos')  # https://crbug.com/920454
+  @decorators.Disabled('win')  # https://crbug.com/1220402
   def testStopTracingWhileBrowserIsRunning(self):
     self.tracing_controller.StartTracing(self.config)
     with self.possible_browser.BrowserSession(self.browser_options) as browser:
