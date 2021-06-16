@@ -81,7 +81,7 @@ class ResultSinkReporter(object):
 
     def report_individual_test_result(
             self, test_name_prefix, result, artifact_output_dir, expectations,
-            test_file_location):
+            test_file_location, test_file_line):
         """Reports typ results for a single test to ResultSink.
 
         Inputs are typically similar to what is passed to
@@ -100,6 +100,8 @@ class ResultSinkReporter(object):
             expectations: An expectations_parser.TestExpectations instance, or
                     None if one is not available.
             test_file_location: A string containing the path to the file
+                    containing the test.
+            test_file_line: An int indicating the source file line number
                     containing the test.
 
         Returns:
@@ -171,7 +173,8 @@ class ResultSinkReporter(object):
             'name': test_id,
             'location': {
                 'repo': 'https://chromium.googlesource.com/chromium/src',
-                'fileName': test_location_in_repo
+                'fileName': test_location_in_repo,
+                'line': test_file_line,
             },
         }
 

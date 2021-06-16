@@ -1104,10 +1104,21 @@ def _run_one_test(child, test_input):
                                     expected_results, child.has_expectations,
                                     art.artifacts)
     test_location = inspect.getsourcefile(test_case.__class__)
+    test_method = getattr(test_case, test_case._testMethodName)
+    # Test methods are often wrapped by decorators such as @mock. Try to get to
+    # the actual test method instead of the wrapper.
+    if hasattr(test_method, '__wrapped__'):
+      test_method = test_method.__wrapped__
+    # Some tests are generated and don't have valid line numbers. Such test
+    # methods also have a source location different from module location.
+    if inspect.getsourcefile(test_method) == test_location:
+      test_line = inspect.getsourcelines(test_method)[1]
+    else:
+      test_line = None
     result.result_sink_retcode =\
             child.result_sink_reporter.report_individual_test_result(
                 child.test_name_prefix, result, child.artifact_output_dir,
-                child.expectations, test_location)
+                child.expectations, test_location, test_line)
     return (result, should_retry_on_failure)
 
 
