@@ -12,6 +12,8 @@ import sys
 import tempfile
 import time
 
+import six
+
 from dependency_manager import exceptions as dependency_exceptions
 from telemetry.internal.util import local_first_binary_manager
 
@@ -69,8 +71,13 @@ class MinidumpSymbolizer(object):
       symbols_dir = tempfile.mkdtemp()
     try:
       self._GenerateBreakpadSymbols(symbols_dir, minidump)
-      return subprocess.check_output([stackwalk, minidump, symbols_dir],
-                                     stderr=open(os.devnull, 'w'))
+      output = subprocess.check_output([stackwalk, minidump, symbols_dir],
+                                       stderr=open(os.devnull, 'w'))
+      # This can be removed once fully switched to Python 3 by passing text=True
+      # to the check_output call above.
+      if not isinstance(output, six.string_types):
+        output = output.decode('utf-8')  # pylint: disable=redefined-variable-type
+      return output
     finally:
       if not self._symbols_dir:
         shutil.rmtree(symbols_dir)

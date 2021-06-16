@@ -10,6 +10,8 @@ import os
 import subprocess
 import time
 
+import six
+
 import dependency_manager  # pylint: disable=import-error
 
 from telemetry.internal.util import local_first_binary_manager
@@ -133,6 +135,10 @@ class MinidumpFinder(object):
         crashpad_database_util, '--database=' + minidump_dir,
         '--show-pending-reports', '--show-completed-reports',
         '--show-all-report-info'])
+    # This can be removed once fully switched to Python 3 by setting text=True
+    # when calling check_output above.
+    if not isinstance(report_output, six.string_types):
+      report_output = report_output.decode('utf-8')  # pylint: disable=redefined-variable-type
 
     last_indentation = -1
     reports_list = []

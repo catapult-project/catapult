@@ -58,7 +58,11 @@ class TypArtifactCompatibilityWrapper(ArtifactCompatibilityWrapper):
   """Wrapper around typ's Artifacts class"""
   def CreateArtifact(self, name, data):
     file_relative_path = name.replace('/', os.sep)
-    self._artifact_impl.CreateArtifact(name, file_relative_path, data)
+    as_text = False
+    if isinstance(data, six.string_types):
+      as_text = True
+    self._artifact_impl.CreateArtifact(
+        name, file_relative_path, data, write_as_text=as_text)
 
 
 class LoggingArtifactCompatibilityWrapper(ArtifactCompatibilityWrapper):
