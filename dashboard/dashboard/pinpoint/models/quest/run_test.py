@@ -337,9 +337,14 @@ class _RunTestExecution(execution_module.Execution):
     # datastore module)
     if self._IsCasDigest(self._isolate_hash):
       cas_hash, cas_size = self._isolate_hash.split('/', 1)
+      instance = self._isolate_server
+      # This is a workaround for build cached uploaded before crrev/c/2964515
+      # landed. We can delete it after all caches expired.
+      if instance.startswith('https://'):
+        instance = _CAS_DEFAULT_INSTANCE
       input_ref = {
           'cas_input_root': {
-              'cas_instance': _CAS_DEFAULT_INSTANCE,
+              'cas_instance': instance,
               'digest': {
                   'hash': cas_hash,
                   'size_bytes': int(cas_size),

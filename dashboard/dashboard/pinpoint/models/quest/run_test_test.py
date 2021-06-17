@@ -248,7 +248,7 @@ class RunTestFullTest(_RunTestExecutionTest):
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
                 'user@example.com'))
 
-    execution = quest.Start('change_1', 'isolate server', 'xxxxxxxx/111')
+    execution = quest.Start('change_1', 'cas_instance', 'xxxxxxxx/111')
 
     swarming_task_result.assert_not_called()
     swarming_tasks_new.assert_not_called()
@@ -259,24 +259,25 @@ class RunTestFullTest(_RunTestExecutionTest):
 
     swarming_task_result.assert_not_called()
     self.assertEqual(swarming_tasks_new.call_count, 1)
-    self.assertNewTaskHasDimensions(swarming_tasks_new, {
-        'task_slices': [{
-            'expiration_secs': '86400',
-            'properties': {
-                'cas_input_root': {
-                    'cas_instance': run_test._CAS_DEFAULT_INSTANCE,
-                    'digest': {
-                        'hash': 'xxxxxxxx',
-                        'size_bytes': 111,
+    self.assertNewTaskHasDimensions(
+        swarming_tasks_new, {
+            'task_slices': [{
+                'expiration_secs': '86400',
+                'properties': {
+                    'cas_input_root': {
+                        'cas_instance': 'cas_instance',
+                        'digest': {
+                            'hash': 'xxxxxxxx',
+                            'size_bytes': 111,
+                        },
                     },
-                },
-                'extra_args': ['arg'],
-                'dimensions': DIMENSIONS,
-                'execution_timeout_secs': mock.ANY,
-                'io_timeout_secs': mock.ANY,
-            }
-        }]
-    })
+                    'extra_args': ['arg'],
+                    'dimensions': DIMENSIONS,
+                    'execution_timeout_secs': mock.ANY,
+                    'io_timeout_secs': mock.ANY,
+                }
+            }]
+        })
     self.assertFalse(execution.completed)
     self.assertFalse(execution.failed)
 
