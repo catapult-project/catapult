@@ -47,6 +47,7 @@ class FakeContextMap(object):
 
 class FakeDevtoolsClient(object):
   def __init__(self, remote_port, platform_backend):
+    self.has_tracing_client = True
     self.is_alive = True
     self.is_tracing_running = False
     self.remote_port = remote_port

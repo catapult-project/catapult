@@ -51,10 +51,10 @@ _DEVTOOLS_CONNECTION_ERRORS = (
     socket.error)
 
 
-def GetDevToolsBackEndIfReady(devtools_port, app_backend, browser_target=None):
+def GetDevToolsBackEndIfReady(devtools_port, app_backend, browser_target=None, enable_tracing=True):
   client = _DevToolsClientBackend(app_backend)
   try:
-    client.Connect(devtools_port, browser_target)
+    client.Connect(devtools_port, browser_target, enable_tracing)
     logging.info('DevTools agent ready at %s', client)
   except _DEVTOOLS_CONNECTION_ERRORS as exc:
     logging.info('DevTools agent at %s not ready yet: %s', client, exc)
@@ -137,9 +137,13 @@ class _DevToolsClientBackend(object):
   def is_tracing_running(self):
     return self._tracing_backend.is_tracing_running
 
-  def Connect(self, devtools_port, browser_target):
+  @property
+  def has_tracing_client(self):
+    return self._tracing_backend != None
+
+  def Connect(self, devtools_port, browser_target, enable_tracing=True):
     try:
-      self._Connect(devtools_port, browser_target)
+      self._Connect(devtools_port, browser_target, enable_tracing)
     except:
       self.Close()  # Close any connections made if failed to connect to all.
       raise
@@ -161,13 +165,14 @@ class _DevToolsClientBackend(object):
     if self.platform_backend.GetOSName() == 'fuchsia':
       self._WaitForConnection()
 
-  def _Connect(self, devtools_port, browser_target):
+  def _Connect(self, devtools_port, browser_target, enable_tracing):
     """Attempt to connect to the DevTools client.
 
     Args:
       devtools_port: The devtools_port uniquely identifies the DevTools agent.
       browser_target: An optional string to override the default path used to
         establish a websocket connection with the browser inspector.
+      enable_tracing: Defines if a tracing_client is created.
 
     Raises:
       Any of _DEVTOOLS_CONNECTION_ERRORS if failed to establish the connection.
@@ -192,10 +197,11 @@ class _DevToolsClientBackend(object):
     # If there is a trace_config it means that Telemetry has already started
     # Chrome tracing via a startup config. The TracingBackend also needs needs
     # this config to initialize itself correctly.
-    trace_config = (
-        self.platform_backend.tracing_controller_backend.GetChromeTraceConfig())
-    self._tracing_backend = tracing_backend.TracingBackend(
-        self._browser_websocket, trace_config)
+    if enable_tracing:
+      trace_config = (
+          self.platform_backend.tracing_controller_backend.GetChromeTraceConfig())
+      self._tracing_backend = tracing_backend.TracingBackend(
+          self._browser_websocket, trace_config)
 
   @exc_util.BestEffort
   def Close(self):
@@ -376,6 +382,9 @@ class _DevToolsClientBackend(object):
           for Chrome tracing. Can be set to 'ReportEvents'.
         timeout: Time waited for websocket to receive a response.
     """
+    if not self._tracing_backend:
+      return
+
     assert trace_config and trace_config.enable_chrome_trace
     return self._tracing_backend.StartTracing(
         trace_config.chrome_trace_config, transfer_mode, timeout)
@@ -385,6 +394,9 @@ class _DevToolsClientBackend(object):
     self._tracing_backend.RecordClockSyncMarker(sync_id)
 
   def StopChromeTracing(self):
+    if not self._tracing_backend:
+      return
+
     assert self.is_tracing_running
     try:
       backend = self.FirstTabBackend()
@@ -415,6 +427,9 @@ class _DevToolsClientBackend(object):
     return next(self._IterInspectorBackends(['page']), None)
 
   def CollectChromeTracingData(self, trace_data_builder, timeout=120):
+    if not self._tracing_backend:
+      return
+
     self._tracing_backend.CollectTraceData(trace_data_builder, timeout)
 
   # This call may be made early during browser bringup and may cause the
@@ -444,6 +459,9 @@ class _DevToolsClientBackend(object):
       TracingUnexpectedResponseException: If the response contains an error
       or does not contain the expected result.
     """
+    if not self._tracing_backend:
+      return None
+
     return self._tracing_backend.DumpMemory(
         timeout=timeout,
         detail_level=detail_level)

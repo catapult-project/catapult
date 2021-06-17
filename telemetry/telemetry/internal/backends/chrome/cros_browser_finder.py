@@ -142,7 +142,8 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         self._platform_backend, self._browser_options,
         self.browser_directory, self.profile_directory,
         self._is_guest, self._DEFAULT_CHROME_ENV,
-        build_dir=self._build_dir)
+        build_dir=self._build_dir,
+        enable_tracing=self._app_type != 'lacros-chrome')
 
     if self._browser_options.create_browser_with_oobe:
       return cros_browser_with_oobe.CrOSBrowserWithOOBE(

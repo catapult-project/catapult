@@ -29,7 +29,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   def __init__(self, platform_backend, browser_options,
                browser_directory, profile_directory,
-               supports_extensions, supports_tab_control, build_dir=None):
+               supports_extensions, supports_tab_control, build_dir=None,
+               enable_tracing=True):
     """
     Args:
       platform_backend: The platform_backend.PlatformBackend instance to use.
@@ -47,6 +48,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
           was built in, for finding debug artifacts. Can be None if the browser
           was not locally built, or the directory otherwise cannot be
           determined.
+      enable_tracing: Defines if a tracing_client is created.
     """
     super(ChromeBrowserBackend, self).__init__(
         platform_backend=platform_backend,
@@ -54,6 +56,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         supports_extensions=supports_extensions,
         tab_list_backend=tab_list_backend.TabListBackend)
     self._browser_directory = browser_directory
+    self._enable_tracing = enable_tracing
     self._profile_directory = profile_directory
     self._supports_tab_control = supports_tab_control
     self._build_dir = build_dir
@@ -116,7 +119,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     return devtools_client_backend.GetDevToolsBackEndIfReady(
         devtools_port=devtools_port,
         app_backend=self,
-        browser_target=browser_target)
+        browser_target=browser_target,
+        enable_tracing=self._enable_tracing)
 
   def BindDevToolsClient(self):
     """Find an existing DevTools agent and bind this browser backend to it."""

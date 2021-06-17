@@ -60,6 +60,8 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     if not devtools_clients:
       return False
     for client in devtools_clients:
+      if not client.has_tracing_client:
+        continue
       if client.is_tracing_running:
         raise ChromeTracingStartedError(
             'Tracing is already running on devtools at port %s on platform'
@@ -108,6 +110,8 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
 
     has_clock_synced = False
     for client in devtools_clients:
+      if not client.has_tracing_client:
+        continue
       try:
         timestamp = trace_time.Now()
         client.RecordChromeClockSyncMarker(sync_id)
