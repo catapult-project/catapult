@@ -34,7 +34,8 @@ try:
   subprocess.check_call(['vulcanize', in_html,
                          '--inline-scripts', '--inline-css', '--strip-comments',
                          '--redirect', '/components|' + components_dir,
-                         '--redirect', '/third_party|' + project.catapult_third_party_path,
+                         '--redirect', '/third_party|'
+                            + project.catapult_third_party_path,
                          '--out-html', out_html])
 except OSError:
   sys.stderr.write('''
@@ -46,5 +47,3 @@ To install vulcanize on Linux:
 '''[1:])
   sys.exit(1)
 
-for fn in glob.glob(os.path.join(src_dir, "*.png")):
-    shutil.copyfile(fn, os.path.join(out_dir, os.path.split(fn)[1]))

@@ -16,9 +16,16 @@ cd "../netlog_viewer"
 if [[ ! -d "components" ]]; then
     echo "Creating symlink to components"
     ln -s ../../third_party/polymer/components/
+fi
+
+# Make sure third_party/ exists, as it is needed to load JSZip.
+if [[ ! -d "third_party" ]]; then
+    echo "Creating third_party to catapult/thirdparty"
+    ln -s ../../third_party/
 
     # NOTE: On Windows the equivalent is:
     #   mklink components ..\..\third_party\polymer\components
+    #   mklink third_party ..\..\third_party
 fi
 
 # Start a static HTTP server
