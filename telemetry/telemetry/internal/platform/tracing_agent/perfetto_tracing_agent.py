@@ -44,7 +44,8 @@ class PerfettoTracingAgent(tracing_agent.TracingAgent):
       self._device.RunShellCommand(['setprop', 'ctl.stop', TRACED_PROBES])
       for service in [TRACED, TRACED_PROBES]:
         self._device.KillAll(service, exact=True, quiet=True,
-                             signum=device_signal.SIGTERM, timeout=STOP_TIMEOUT)
+                             signum=device_signal.SIGTERM, timeout=STOP_TIMEOUT,
+                             as_root=True)
 
       self._PushFilesAndStartService(platform_backend.GetArchName())
 
@@ -116,7 +117,8 @@ class PerfettoTracingAgent(tracing_agent.TracingAgent):
     # Shut down the sideloaded service and restart the system one.
     for service in [TRACED, TRACED_PROBES]:
       self._device.KillAll(service, exact=True, blocking=True,
-                           signum=device_signal.SIGTERM, timeout=STOP_TIMEOUT)
+                           signum=device_signal.SIGTERM, timeout=STOP_TIMEOUT,
+                           as_root=True)
     self._device.RunShellCommand(['setprop', 'ctl.start', TRACED])
     self._device.RunShellCommand(['setprop', 'ctl.start', TRACED_PROBES])
 
