@@ -145,6 +145,11 @@ When in doubt, just try out --trace-frame-viewer.
     logging.warning('Using the "webview" category in atrace together with '
                     'Chrome tracing results in duplicate trace events.')
 
+  # Ensure compatibility between trace_format and write_json flags.
+  # trace_format is preferred. write_json is supported for backward
+  # compatibility reasons.
+  flags.ParseFormatFlags(options)
+
   if options.output_file:
     options.output_file = os.path.expanduser(options.output_file)
   result = profiler.CaptureProfile(
@@ -153,7 +158,7 @@ When in doubt, just try out --trace-frame-viewer.
       _PROFILE_CHROME_AGENT_MODULES,
       output=options.output_file,
       compress=options.compress,
-      write_json=options.write_json)
+      trace_format=options.trace_format)
   if options.view:
     if sys.platform == 'darwin':
       os.system('/usr/bin/open %s' % os.path.abspath(result))

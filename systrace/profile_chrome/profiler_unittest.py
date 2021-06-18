@@ -34,7 +34,7 @@ class ProfilerTest(unittest.TestCase):
   @decorators.ClientOnlyTest
   def testCaptureJsonProfile(self):
     result = profiler.CaptureProfile(self._tracing_options, 1,
-                                     [fake_agent_2], write_json=True)
+                                     [fake_agent_2], trace_format='json')
 
     try:
       self.assertFalse(result.endswith('.html'))
@@ -48,7 +48,7 @@ class ProfilerTest(unittest.TestCase):
   def testCaptureMultipleProfiles(self):
     result = profiler.CaptureProfile(self._tracing_options, 1,
                                      [fake_agent_1, fake_agent_2],
-                                     write_json=True)
+                                     trace_format='json')
 
     try:
       self.assertTrue(result.endswith('.zip'))

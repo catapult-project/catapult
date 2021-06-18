@@ -12,8 +12,8 @@ from systrace import output_generator
 from systrace import tracing_controller
 
 
-def _GetResults(trace_results, controller, output, compress, write_json,
-                interval):
+def _GetResults(trace_results, controller, output, compress,
+                interval, trace_format='html'):
   ui.PrintMessage('Downloading...')
 
   # Wait for the trace file to get written.
@@ -34,7 +34,7 @@ def _GetResults(trace_results, controller, output, compress, write_json,
 
   result = None
   trace_results = output_generator.MergeTraceResultsIfNeeded(trace_results)
-  if not write_json:
+  if trace_format == 'html':
     ui.PrintMessage('Writing trace HTML...')
     html_file = output or trace_results[0].source_name + '.html'
     result = output_generator.GenerateHTMLOutput(trace_results, html_file)
@@ -59,7 +59,7 @@ def _GetResults(trace_results, controller, output, compress, write_json,
 
 
 def CaptureProfile(options, interval, modules, output=None,
-                   compress=False, write_json=False):
+                   compress=False, trace_format='html'):
   """Records a profiling trace saves the result to a file.
 
   Args:
@@ -70,7 +70,8 @@ def CaptureProfile(options, interval, modules, output=None,
     output: Output file name or None to use an automatically generated name.
     compress: If True, the result will be compressed either with gzip or zip
         depending on the number of captured subtraces.
-    write_json: If True, prefer JSON output over HTML.
+    trace_format: Format of trace file html|json|proto. Default is html for
+        legacy reasons.
 
   Returns:
     Path to saved profile.
@@ -104,5 +105,5 @@ def CaptureProfile(options, interval, modules, output=None,
     if interval:
       ui.PrintMessage('done')
 
-  return _GetResults(all_results, controller, output, compress, write_json,
-                     interval)
+  return _GetResults(all_results, controller, output, compress,
+                     interval, trace_format)

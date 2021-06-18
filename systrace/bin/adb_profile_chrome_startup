@@ -92,6 +92,11 @@ def main():
   options.device = device
   options.package_info = package_info
 
+  # Ensure compatibility between trace_format and write_json flags.
+  # trace_format is preferred. write_json is supported for backward
+  # compatibility reasons.
+  flags.ParseFormatFlags(options)
+
   # TODO(washingtonp): Once Systrace uses all of the profile_chrome agents,
   # manually setting these options will no longer be necessary and should be
   # removed.
@@ -107,7 +112,7 @@ def main():
                                    _CHROME_STARTUP_MODULES,
                                    output=options.output_file,
                                    compress=options.compress,
-                                   write_json=options.write_json)
+                                   trace_format=options.trace_format)
   if options.view:
     if sys.platform == 'darwin':
       os.system('/usr/bin/open %s' % os.path.abspath(result))
