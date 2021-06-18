@@ -211,6 +211,11 @@ def main(args=None):
       default=False,
       help='Run only the Dashboard and Pinpoint tests',
       action='store_true')
+  parser.add_argument(
+      '--use_python3',
+      default=False,
+      help='Run Catapult Tests using vpython3',
+      action='store_true')
   args = parser.parse_args(args)
 
   dashboard_protos_path = os.path.join(args.api_path_checkout, 'dashboard',
@@ -332,7 +337,13 @@ def main(args=None):
       continue
     step = {'name': test['name'], 'env': {}}
 
-    executable = 'vpython.bat' if sys.platform == 'win32' else 'vpython'
+    if args.use_python3:
+      vpython_executable = "vpython3"
+    else:
+      vpython_executable = "vpython"
+
+    executable = 'vpython.bat' if sys.platform == 'win32' \
+      else vpython_executable
 
     # Always add the appengine SDK path.
     step['env']['PYTHONPATH'] = args.app_engine_sdk_pythonpath
