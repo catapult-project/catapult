@@ -33,6 +33,7 @@ from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import diagnostic_ref
 from tracing.value.diagnostics import reserved_infos
 
+# Note: annotation names should shorter than add_point._MAX_COLUMN_NAME_LENGTH.
 DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES = {
     reserved_infos.CHROMIUM_COMMIT_POSITIONS.name:
         'r_commit_pos',
@@ -52,13 +53,13 @@ DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES = {
     reserved_infos.WEBRTC_INTERNAL_REVISIONS.name:
         'r_webrtc_internal_cl',
     reserved_infos.WEBRTC_INTERNAL_SIRIUS_REVISIONS.name:
-        'r_webrtc_internal_sirius_cl',
+        'r_webrtc_sirius_cl',
     reserved_infos.WEBRTC_INTERNAL_VEGA_REVISIONS.name:
-        'r_webrtc_internal_vega_cl',
+        'r_webrtc_vega_cl',
     reserved_infos.WEBRTC_INTERNAL_CANOPUS_REVISIONS.name:
-        'r_webrtc_internal_canopus_cl',
+        'r_webrtc_canopus_cl',
     reserved_infos.WEBRTC_INTERNAL_ARCTURUS_REVISIONS.name:
-        'r_webrtc_internal_arcturus_cl',
+        'r_webrtc_arcturus_cl',
     reserved_infos.FUCHSIA_GARNET_REVISIONS.name:
         'r_fuchsia_garnet_git',
     reserved_infos.FUCHSIA_PERIDOT_REVISIONS.name:
