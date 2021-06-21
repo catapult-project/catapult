@@ -127,6 +127,47 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
     self.assertEqual(execution.result_arguments, expected_result_arguments)
     self.assertEqual(execution.AsDict(), expected_as_dict)
 
+  def testIsolateLookupFallbackSuccess(self):
+    quest = find_isolate.FindIsolate(
+        'Mac Builder',
+        'not_real_target',
+        'luci.bucket',
+        fallback_target='telemetry_perf_tests')
+
+    # Propagate a thing that looks like a job.
+    quest.PropagateJob(
+        FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
+                'user@example.com'))
+
+    execution = quest.Start(change_test.Change(123))
+    execution.Poll()
+
+    expected_result_arguments = {
+        'isolate_server': 'https://isolate.server',
+        'isolate_hash': '7c7e90be',
+    }
+    expected_as_dict = {
+        'completed':
+            True,
+        'exception':
+            None,
+        'details': [
+            {
+                'key': 'builder',
+                'value': 'Mac Builder',
+            },
+            {
+                'key': 'isolate',
+                'value': '7c7e90be',
+                'url': 'https://isolate.server/browse?digest=7c7e90be',
+            },
+        ],
+    }
+    self.assertExecutionSuccess(execution)
+    self.assertEqual(execution.result_values, ())
+    self.assertEqual(execution.result_arguments, expected_result_arguments)
+    self.assertEqual(execution.AsDict(), expected_as_dict)
+
 
 @mock.patch('dashboard.services.buildbucket_service.GetJobStatus')
 @mock.patch('dashboard.services.buildbucket_service.Put')

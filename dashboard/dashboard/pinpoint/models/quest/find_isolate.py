@@ -24,17 +24,19 @@ BUCKET = 'master.tryserver.chromium.perf'
 
 class FindIsolate(quest.Quest):
 
-  def __init__(self, builder, target, bucket):
+  def __init__(self, builder, target, bucket, fallback_target=None):
     self._builder_name = builder
     self._target = target
     self._bucket = bucket
+    self._fallback_target = fallback_target
 
     self._previous_builds = {}
     self._build_tags = collections.OrderedDict()
 
   def __eq__(self, other):
     return (isinstance(other, type(self)) and self._bucket == other._bucket
-            and self._builder_name == other._builder_name)
+            and self._builder_name == other._builder_name
+            and self._fallback_target == other._fallback_target)
 
   def __str__(self):
     return 'Build'
@@ -52,8 +54,14 @@ class FindIsolate(quest.Quest):
       self._build_tags = collections.OrderedDict()
 
   def Start(self, change):
-    return _FindIsolateExecution(self._builder_name, self._target, self._bucket,
-                                 change, self._previous_builds, self.build_tags)
+    return _FindIsolateExecution(
+        self._builder_name,
+        self._target,
+        self._bucket,
+        change,
+        self._previous_builds,
+        self.build_tags,
+        fallback_target=self._fallback_target)
 
   def PropagateJob(self, job):
     self._build_tags = BuildTagsFromJob(job)
@@ -64,18 +72,29 @@ class FindIsolate(quest.Quest):
       if arg not in arguments:
         raise TypeError('Missing "{0}" argument'.format(arg))
 
-    return cls(arguments['builder'], arguments['target'], arguments['bucket'])
+    return cls(
+        arguments['builder'],
+        arguments['target'],
+        arguments['bucket'],
+        fallback_target=arguments.get('fallback_target'))
 
 
 class _FindIsolateExecution(execution.Execution):
 
-  def __init__(self, builder_name, target, bucket, change, previous_builds,
-               build_tags):
+  def __init__(self,
+               builder_name,
+               target,
+               bucket,
+               change,
+               previous_builds,
+               build_tags,
+               fallback_target=None):
     super(_FindIsolateExecution, self).__init__()
     self._builder_name = builder_name
     self._target = target
     self._bucket = bucket
     self._change = change
+    self._fallback_target = fallback_target
 
     # previous_builds is shared among all Executions of the same Quest.
     self._previous_builds = previous_builds
@@ -133,7 +152,16 @@ class _FindIsolateExecution(execution.Execution):
                                                  self._change, self._target)
     except KeyError:
       logging.debug('NOT found in isolate cache')
-      return False
+      if self._fallback_target:
+        try:
+          isolate_server, isolate_hash = isolate.Get(self._builder_name,
+                                                     self._change,
+                                                     self._fallback_target)
+        except KeyError:
+          logging.debug('fallback NOT found in isolate cache')
+          return False
+      else:
+        return False
 
     result_arguments = {
         'isolate_server': isolate_server,
@@ -168,15 +196,21 @@ class _FindIsolateExecution(execution.Execution):
     suffix = 'with_patch' if 'patch_storage' in properties else 'without_patch'
     key = '_'.join(('swarm_hashes', commit_position, suffix))
 
+    target_to_use = self._target
+
     if self._target not in properties[key]:
-      raise errors.BuildIsolateNotFound()
+      if self._fallback_target and self._fallback_target in properties[key]:
+        target_to_use = self._fallback_target
+      else:
+        raise errors.BuildIsolateNotFound()
 
     # Cache the isolate information.
-    isolate.Put([(self._builder_name, self._change, self._target,
-                  properties['isolate_server'], properties[key][self._target])])
+    isolate.Put([(self._builder_name, self._change, target_to_use,
+                  properties['isolate_server'], properties[key][target_to_use])
+                ])
     result_arguments = {
         'isolate_server': properties['isolate_server'],
-        'isolate_hash': properties[key][self._target],
+        'isolate_hash': properties[key][target_to_use],
     }
     self._Complete(result_arguments=result_arguments)
 
