@@ -59,7 +59,8 @@ class TraceDataBuilderTest(unittest.TestCase):
 
   def testAddTraceFileFor(self):
     original_data = {'msg': 'The answer is 42'}
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.json') as source:
+    with tempfile.NamedTemporaryFile(
+        delete=False, suffix='.json', mode='w+') as source:
       json.dump(original_data, source)
     with trace_data.TraceDataBuilder() as builder:
       builder.AddTraceFileFor(trace_data.CHROME_TRACE_PART, source.name)
@@ -72,7 +73,7 @@ class TraceDataBuilderTest(unittest.TestCase):
     original_data = {'msg': 'The answer is 42'}
     with trace_data.TraceDataBuilder() as builder:
       with builder.OpenTraceHandleFor(
-          trace_data.CHROME_TRACE_PART, suffix='.json') as handle:
+          trace_data.CHROME_TRACE_PART, suffix='.json', mode='w+') as handle:
         handle.write(json.dumps(original_data))
       out_data = builder.AsData().GetTraceFor(trace_data.CHROME_TRACE_PART)
 
