@@ -360,6 +360,13 @@ def main(args=None):
       step['env']['CHROME_DEVEL_SANDBOX'] = '/opt/chromium/chrome_sandbox'
     if test.get('outputs_presentation_json'):
       step['outputs_presentation_json'] = True
+    # TODO(crbug/1221663):
+    # Before python 3 conversion is finished, the try jobs with use_python3 are
+    # experimental. We want to see all possible failure and thus we don't want
+    # to try job to quit before all tests are finished.
+    # This condition will be removed when the python 3 conversion is done.
+    if args.use_python3:
+      step['always_run'] = True
     steps.append(step)
   with open(args.output_json, 'w') as outfile:
     json.dump(steps, outfile)
