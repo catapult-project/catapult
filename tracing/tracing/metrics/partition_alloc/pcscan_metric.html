@@ -32,8 +32,8 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.metrics.pa', function() {
   function pcscanMetric(histograms, model) {
-    function createNumericForProcess(name, processName, context, desc) {
-      function createNumericForEventTime(name, desc) {
+    function createTimeNumericForProcess(name, processName, context, desc) {
+      function createNumeric(name, desc) {
         const n = new tr.v.Histogram(name,
             tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
         n.description = desc;
@@ -48,33 +48,77 @@ tr.exportTo('tr.metrics.pa', function() {
       }
       const scheme = ['pa', 'pcscan', processName, context];
       if (name) scheme.push(name);
-      return createNumericForEventTime(scheme.join(':'), desc);
+      return createNumeric(scheme.join(':'), desc);
     }
+
+    function createSizeNumericForProcess(name, processName, desc) {
+      function createNumeric(name, desc) {
+        const n = new tr.v.Histogram(name,
+            tr.b.Unit.byName.sizeInBytes_smallerIsBetter);
+        n.description = desc;
+        n.customizeSummaryOptions({
+          avg: true,
+          count: true,
+          max: true,
+          min: true,
+          std: true,
+          sum: true});
+        return n;
+      }
+      const scheme = ['pa', 'pcscan', processName, name];
+      return createNumeric(scheme.join(':'), desc);
+    }
+
+    function createPercentNumericForProcess(name, processName, desc) {
+      function createNumeric(name, desc) {
+        const n = new tr.v.Histogram(name,
+            tr.b.Unit.byName.normalizedPercentage_smallerIsBetter);
+        n.description = desc;
+        n.customizeSummaryOptions({
+          avg: true,
+          count: true,
+          max: true,
+          min: true,
+          std: true,
+          sum: true});
+        return n;
+      }
+      const scheme = ['pa', 'pcscan', processName, name];
+      return createNumeric(scheme.join(':'), desc);
+    }
+
 
     function createHistsForProcess(processName) {
       return {
-        scanner_scan: createNumericForProcess('scan', processName, 'scanner',
+        scanner_scan: createTimeNumericForProcess('scan', processName, 'scanner',
             'Time for scanning heap for quarantine pointers on concurrent threads'),
-        scanner_sweep: createNumericForProcess('sweep', processName, 'scanner',
+        scanner_sweep: createTimeNumericForProcess('sweep', processName, 'scanner',
             'Time for sweeping quarantine'),
-        scanner_clear: createNumericForProcess('clear', processName, 'scanner',
+        scanner_clear: createTimeNumericForProcess('clear', processName, 'scanner',
             'Time for clearing quarantine entries'),
-        scanner_total: createNumericForProcess('', processName, 'scanner',
+        scanner_total: createTimeNumericForProcess('', processName, 'scanner',
             'Total time for PCScan execution on concurrent threads'),
-        mutator_scan_stack: createNumericForProcess('scan_stack', processName, 'mutator',
+        mutator_scan_stack: createTimeNumericForProcess('scan_stack', processName, 'mutator',
             'Time for scanning stack for quarantine pointers on mutator threads'),
-        mutator_scan: createNumericForProcess('scan', processName, 'mutator',
+        mutator_scan: createTimeNumericForProcess('scan', processName, 'mutator',
             'Time for scanning heap for quarantine pointers on mutator threads'),
-        mutator_clear: createNumericForProcess('clear', processName, 'mutator',
+        mutator_clear: createTimeNumericForProcess('clear', processName, 'mutator',
             'Time for clearing heap quarantine entries on mutator threads'),
-        mutator_total: createNumericForProcess('', processName, 'mutator',
+        mutator_total: createTimeNumericForProcess('', processName, 'mutator',
             'Total time for PCScan execution on mutator threads (inside safepoints)'),
+        survived_quarantine_size: createSizeNumericForProcess(
+            'survived_quarantine_size', processName,
+            'Size in bytes of survived quarantined objects after each *Scan cycle'),
+        survived_quarantine_percent: createPercentNumericForProcess(
+            'survived_quarantine_percent', processName,
+            'Percent of survived quarantined objects after a *Scan cycle relative ' +
+            'to the size of quarantined objects before the cycle'),
       };
     }
 
-    function addSample(hists, slice) {
-      if (!(slice instanceof tr.model.ThreadSlice)) return;
+    function addSliceSample(hists, slice) {
       if (slice.category !== 'partition_alloc') return;
+      if (!(slice instanceof tr.model.ThreadSlice)) return;
 
       if (slice.title === 'PCScan.Scanner.Scan') {
         hists.scanner_scan.addSample(slice.duration);
@@ -95,6 +139,22 @@ tr.exportTo('tr.metrics.pa', function() {
       }
     }
 
+    function addCounterSample(hists, counter) {
+      if (counter.category !== 'partition_alloc') return;
+      if (!(counter instanceof tr.model.Counter)) return;
+
+      for (const series of counter.series) {
+        for (const sample of series.samples) {
+          if (counter.name === 'PCScan.SurvivedQuarantineSize') {
+            hists.survived_quarantine_size.addSample(sample.value);
+          } else if (counter.name === 'PCScan.SurvivedQuarantinePercent') {
+            // Divide by 1000, since StatsCollector multiplies it by 1000.
+            hists.survived_quarantine_percent.addSample(sample.value / 1000);
+          }
+        }
+      }
+    }
+
     function addHistsForProcess(processHists, processHelpers) {
       for (const helper of Object.values(processHelpers)) {
         const processName = tr.e.chrome.chrome_processes.
@@ -103,7 +163,10 @@ tr.exportTo('tr.metrics.pa', function() {
           processHists.set(processName, createHistsForProcess(processName));
         }
         for (const slice of helper.process.getDescendantEvents()) {
-          addSample(processHists.get(processName), slice);
+          addSliceSample(processHists.get(processName), slice);
+        }
+        for (const tid in helper.process.counters) {
+          addCounterSample(processHists.get(processName), helper.process.counters[tid]);
         }
       }
     }

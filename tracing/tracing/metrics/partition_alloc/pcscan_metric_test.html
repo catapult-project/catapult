@@ -23,6 +23,7 @@ tr.b.unittest.testSuite(function() {
       const process = (processName === CHROME_PROCESS_NAMES.RENDERER ?
         model.rendererProcess : model.browserProcess);
       const thread = process.getOrCreateThread(2);
+      // Create slices.
       thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'partition_alloc',
         title: 'PCScan.Scanner',
@@ -87,6 +88,17 @@ tr.b.unittest.testSuite(function() {
         cpuStart: 248,
         cpuDuration: 42
       }));
+      // Create counters.
+      const quarantineSizeCounter = process.getOrCreateCounter('partition_alloc', 'PCScan.SurvivedQuarantineSize');
+      const quarantineSizeSeries = new tr.model.CounterSeries('value', 0);
+      quarantineSizeSeries.addCounterSample(1, 200000);
+      quarantineSizeSeries.addCounterSample(3, 300000);
+      quarantineSizeCounter.addSeries(quarantineSizeSeries);
+      const quarantineRateCounter = process.getOrCreateCounter('partition_alloc', 'PCScan.SurvivedQuarantinePercent');
+      const quarantineRateSeries = new tr.model.CounterSeries('value', 0);
+      quarantineRateSeries.addCounterSample(1, 0.14 * 1000);
+      quarantineRateSeries.addCounterSample(3, 0.21 * 1000);
+      quarantineRateCounter.addSeries(quarantineRateSeries);
     });
   }
 
@@ -109,6 +121,10 @@ tr.b.unittest.testSuite(function() {
         'pa:pcscan:' + processName + ':mutator:scan').average, 1e-2);
     assert.closeTo(42, histograms.getHistogramNamed(
         'pa:pcscan:' + processName + ':scanner:sweep').average, 1e-2);
+    assert.closeTo(250000, histograms.getHistogramNamed(
+        'pa:pcscan:' + processName + ':survived_quarantine_size').average, 1e-2);
+    assert.closeTo(0.175, histograms.getHistogramNamed(
+        'pa:pcscan:' + processName + ':survived_quarantine_percent').average, 1e-2);
   }
 
   test('pcscanMetricForBrowser', function() {
