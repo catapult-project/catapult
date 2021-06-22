@@ -80,6 +80,8 @@ WEBRTC_INTERNAL_CANOPUS_REVISIONS = _Info(
     'webrtcInternalCanopusRevisions', 'GenericSet', str)
 WEBRTC_INTERNAL_ARCTURUS_REVISIONS = _Info(
     'webrtcInternalArcturusRevisions', 'GenericSet', str)
+WEBRTC_INTERNAL_CAPELLA_REVISIONS = _Info(
+    'webrtcInternalCapellaRevisions', 'GenericSet', str)
 
 
 def _CreateCachedInfoTypes():
