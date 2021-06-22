@@ -285,7 +285,9 @@ def _create_json_test_result(
         A dict containing the provided data in a format that is ingestable by
         ResultSink.
     """
-    assert status in VALID_STATUSES
+    if status not in VALID_STATUSES:
+        raise ValueError('Status %r is not in the VALID_STATUSES list' % status)
+
     # This is based off the protobuf in
     # https://source.chromium.org/chromium/infra/infra/+/master:go/src/go.chromium.org/luci/resultdb/sink/proto/v1/test_result.proto
     test_result = {

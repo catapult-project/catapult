@@ -338,7 +338,7 @@ class ResultSinkReporterTest(unittest.TestCase):
                 '<pre>summary</pre>', 1, {}), 0, {})
 
     def testCreateJsonTestResultInvalidStatus(self):
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             result_sink._create_json_test_result(
                 'test_id', 'InvalidStatus', False, {}, {}, '', 1, {})
 
