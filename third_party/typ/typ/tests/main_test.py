@@ -236,11 +236,6 @@ class TestCli(test_case.MainTestCase):
                         '1 test passed, 0 skipped, 0 failures.\n'), err='')
 
     def test_coverage(self):
-        # TODO(crbug.com/1217850): Figure out why this isn't working
-        # in py3. Do we need to update coverage?
-        if sys.version_info.major == 3:
-            return
-
         try:
             import coverage  # pylint: disable=W0612
             files = {
@@ -646,11 +641,6 @@ class TestCli(test_case.MainTestCase):
         self.assertIn('1 test passed, 0 skipped, 1 failure.\n', out)
 
     def test_load_tests_multiple_workers(self):
-        # TODO(crbug.com/1217853) Figure out why this isn't working under
-        # py3 and/or possibly running in parallel on mac.
-        if sys.platform in ('darwin', 'win32'):
-            return
-
         _, out, _, _ = self.check([], files=LOAD_TEST_FILES, ret=1, err='')
 
         # The output for this test is nondeterministic since we may run
@@ -851,11 +841,6 @@ class TestCli(test_case.MainTestCase):
                          r'1 test passed in \d+.\d+s, 0 skipped, 0 failures.'))
 
     def test_test_results_server(self):
-        # TODO(crbug.com/1217853) Figure out why this isn't working under
-        # py3 (and/or possibly running in parallel on mac).
-        if sys.platform in ('darwin', 'win32'):
-            return
-
         server = test_result_server_fake.start()
         self.assertNotEqual(server, None, 'could not start fake server')
 
@@ -880,10 +865,7 @@ class TestCli(test_case.MainTestCase):
         self.assertTrue(payload.endswith('--\r\n'))
         self.assertNotEqual(server.log.getvalue(), '')
 
-    # TODO(crbug.com/1032848) The typ unit tests hang whenever they run on
-    # mac with multiple processes. We need to investigate the root cause
-    # and fix it.
-    def disabled_test_test_results_server_error(self):
+    def test_test_results_server_error(self):
         server = test_result_server_fake.start(code=500)
         self.assertNotEqual(server, None, 'could not start fake server')
 
@@ -903,10 +885,7 @@ class TestCli(test_case.MainTestCase):
         finally:
             _ = server.stop()
 
-    # TODO(crbug.com/1032848) The typ unit tests hang whenever they run on
-    # mac with multiple processes. We need to investigate the root cause
-    # and fix it.
-    def disabled_test_test_results_server_not_running(self):
+    def test_test_results_server_not_running(self):
         self.check(['--test-results-server', 'http://localhost:99999',
                     '--master-name', 'fake_master',
                     '--builder-name', 'fake_builder',

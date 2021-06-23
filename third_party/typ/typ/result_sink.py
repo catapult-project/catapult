@@ -158,12 +158,12 @@ class ResultSinkReporter(object):
                 }
 
         artifacts[STDOUT_KEY] = {
-            'contents': (base64.b64encode(
-                             result.out.encode('utf-8')).decode('utf-8'))
+            'contents': base64.b64encode(
+                            result.out.encode('utf-8')).decode('utf-8')
         }
         artifacts[STDERR_KEY] = {
-            'contents': (base64.b64encode(
-                             result.err.encode('utf-8')).decode('utf-8'))
+            'contents': base64.b64encode(
+                            result.err.encode('utf-8')).decode('utf-8')
         }
         html_summary = ('<p><text-artifact artifact-id="%s"/></p>'
                         '<p><text-artifact artifact-id="%s"/></p>' % (
