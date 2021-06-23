@@ -36,10 +36,10 @@ HTML_SUMMARY = ('<p><text-artifact artifact-id="typ_stdout"/></p>'
                 '<p><text-artifact artifact-id="typ_stderr"/></p>')
 STDOUT_STDERR_ARTIFACTS = {
     'typ_stdout': {
-        'contents': base64.b64encode('stdout')
+        'contents': base64.b64encode(b'stdout').decode('utf-8')
     },
     'typ_stderr': {
-        'contents': base64.b64encode('stderr')
+        'contents': base64.b64encode(b'stderr').decode('utf-8')
     }
 }
 
@@ -122,10 +122,10 @@ def CreateTestExpectations(expectation_definitions=None):
         tags |= set(t)
         results |= set(r)
     data = '# tags: [ %s ]\n# results: [ %s ]\n%s' % (
-            ' '.join(tags), ' '.join(results), '\n'.join(lines))
+            ' '.join(sorted(tags)), ' '.join(sorted(results)), '\n'.join(lines))
     # TODO(crbug.com/1148060): Remove the passing in of tags to the constructor
     # once tags are properly updated through parse_tagged_list().
-    expectations = expectations_parser.TestExpectations(list(tags))
+    expectations = expectations_parser.TestExpectations(sorted(tags))
     expectations.parse_tagged_list(data)
     return expectations
 
@@ -231,10 +231,10 @@ class ResultSinkReporterTest(unittest.TestCase):
         expected_result = CreateExpectedTestResult(
             artifacts={
                 'typ_stdout': {
-                    'contents': base64.b64encode('stdout\u00A5'.encode('utf-8'))
+                    'contents': base64.b64encode('stdout\u00A5'.encode('utf-8')).decode('utf-8')
                 },
                 'typ_stderr': {
-                    'contents': base64.b64encode('stderr\u00A5'.encode('utf-8'))
+                    'contents': base64.b64encode('stderr\u00A5'.encode('utf-8')).decode('utf-8')
                 }
             })
         self.assertEqual(test_result, expected_result)

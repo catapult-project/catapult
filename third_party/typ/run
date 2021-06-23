@@ -81,12 +81,7 @@ class Runner(object):
 
     def run_tests(self, _args):
         # Test running the typ module directly if it is in sys.path.
-        # TODO(crbug.com/1032848) The typ unit tests hang whenever they run on
-        # mac with multiple processes. We need to investigate the root cause
-        # and fix it.
         args = []
-        if sys.platform == 'darwin':
-            args.append('--jobs=1')
 
         self.call([
             self._python, '-m', 'typ',

@@ -126,15 +126,15 @@ class Expectation(object):
         if self._reason:
             self._string_value += self._reason + ' '
         if self.raw_tags:
-            self._string_value += '[ %s ] ' % ' '.join(self.raw_tags)
+            self._string_value += '[ %s ] ' % ' '.join(sorted(self.raw_tags))
         self._string_value += pattern + ' '
-        self._string_value += '[ %s ]' % ' '.join(self.raw_results)
+        self._string_value += '[ %s ]' % ' '.join(sorted(self.raw_results))
         if self._trailing_comments:
             self._string_value += self._trailing_comments
 
     def add_expectations(self, results, reason=None):
         if reason:
-            self._reason = ' '.join(set(self._reason.split() + reason.split()))
+            self._reason = ' '.join(sorted(set(self._reason.split() + reason.split())))
         if not results <= self._results:
             self._results = frozenset(self._results | results)
             self._raw_results = sorted(
@@ -602,7 +602,7 @@ class TestExpectations(object):
                     test=test, results=self._results, tags=self._exp_tags,
                     retry_on_failure=self._should_retry_on_failure,
                     conflict_resolution=self._conflict_resolution,
-                    is_slow_test=self._is_slow_test, reason=' '.join(self._reasons),
+                    is_slow_test=self._is_slow_test, reason=' '.join(sorted(self._reasons)),
                     trailing_comments=self._trailing_comments)
 
         # If we didn't find an exact match, check for matching globs. Match by
@@ -621,7 +621,7 @@ class TestExpectations(object):
                             test=test, results=self._results, tags=self._exp_tags,
                             retry_on_failure=self._should_retry_on_failure,
                             conflict_resolution=self._conflict_resolution,
-                            is_slow_test=self._is_slow_test, reason=' '.join(self._reasons),
+                            is_slow_test=self._is_slow_test, reason=' '.join(sorted(self._reasons)),
                             trailing_comments=self._trailing_comments)
 
         # Nothing matched, so by default, the test is expected to pass.
