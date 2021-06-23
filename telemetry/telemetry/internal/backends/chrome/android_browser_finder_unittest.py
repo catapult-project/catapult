@@ -256,24 +256,29 @@ class SelectDefaultBrowserTest(unittest.TestCase):
 
 class SetUpProfileBrowserTest(unittest.TestCase):
 
-  @decorators.Disabled('all')  # http://crbug.com/905359
+  @decorators.Enabled('android')
   def testPushEmptyProfile(self):
     finder_options = options_for_unittests.GetCopy()
     finder_options.browser_options.profile_dir = None
     browser_to_create = browser_finder.FindBrowser(finder_options)
+    profile_dir = browser_to_create.profile_directory
+    device = browser_to_create._platform_backend.device
+
+    # Depending on Android version, the profile directory may have a 'lib'
+    # folder. This folder must not be deleted when we push an empty profile.
+    # Remember the existence of this folder so that we can check for accidental
+    # deletion later.
+    has_lib_dir = 'lib' in device.ListDirectory(profile_dir, as_root=True)
 
     try:
       # SetUpEnvironment will call RemoveProfile on the device, due to the fact
       # that there is no input profile directory in BrowserOptions.
       browser_to_create.SetUpEnvironment(finder_options.browser_options)
 
-      profile_dir = browser_to_create.profile_directory
-      device = browser_to_create._platform_backend.device
-
-       # "lib" is created after installing the browser, and pushing / removing
-       # the profile should never modify it.
-      profile_paths = device.ListDirectory(profile_dir)
-      expected_paths = ['lib']
+      # On some devices, "lib" is created after installing the browser,
+      # and pushing / removing the profile should never modify it.
+      profile_paths = device.ListDirectory(profile_dir, as_root=True)
+      expected_paths = ['lib'] if has_lib_dir else []
       self.assertEqual(expected_paths, profile_paths)
 
     finally:

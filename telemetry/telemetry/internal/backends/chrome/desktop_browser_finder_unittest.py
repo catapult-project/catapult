@@ -195,7 +195,7 @@ class LinuxFindTest(fake_filesystem_unittest.TestCase):
   def DoFindAllTypes(self):
     return [b.browser_type for b in self.DoFindAll()]
 
-  @decorators.Disabled('android')  # http://crbug.com/905359
+  @decorators.Disabled('android')  # Test not applicable to Android
   def testFindAllWithCheckout(self):
     # CHROMIUM_OUTPUT_DIR affects the outcome of the tests, so temporarily
     # remove it from the environment.
@@ -218,7 +218,7 @@ class LinuxFindTest(fake_filesystem_unittest.TestCase):
 
     self.assertFalse(self.DoFindAllTypes())
 
-  @decorators.Disabled('android')  # http://crbug.com/905359
+  @decorators.Disabled('android')  # Test not applicable to Android
   def testFindWithProvidedExecutable(self):
     self.CreateBrowser('/foo/chrome')
     self._finder_options.browser_executable = '/foo/chrome'
@@ -237,7 +237,7 @@ class LinuxFindTest(fake_filesystem_unittest.TestCase):
       self.DoFindAllTypes()
     self.assertIn('does not exist or is not executable', str(cm.exception))
 
-  @decorators.Disabled('android')  # http://crbug.com/905359
+  @decorators.Disabled('android')  # Test not applicable to Android
   def testFindAllWithInstalled(self):
     official_names = ['chrome', 'chrome-beta', 'chrome-unstable']
 
@@ -246,14 +246,14 @@ class LinuxFindTest(fake_filesystem_unittest.TestCase):
 
     self.assertEquals(set(self.DoFindAllTypes()), {'stable', 'beta', 'dev'})
 
-  @decorators.Disabled('android')  # http://crbug.com/905359
+  @decorators.Disabled('android')  # Test not applicable to Android
   def testFindAllSystem(self):
     self.CreateBrowser('/opt/google/chrome/chrome')
     os.symlink('/opt/google/chrome/chrome', '/usr/bin/google-chrome')
 
     self.assertEquals(set(self.DoFindAllTypes()), {'system', 'stable'})
 
-  @decorators.Disabled('android')  # http://crbug.com/905359
+  @decorators.Disabled('android')  # Test not applicable to Android
   def testFindAllSystemIsBeta(self):
     self.CreateBrowser('/opt/google/chrome/chrome')
     self.CreateBrowser('/opt/google/chrome-beta/chrome')
