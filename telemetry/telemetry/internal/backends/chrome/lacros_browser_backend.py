@@ -94,9 +94,6 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def GetPid(self):
     return self._cri.GetChromePid()
 
-  def __del__(self):
-    self.Close()
-
   def _ReformatArg(self, startup_args, arg_name):
     arg_str = '--' + arg_name + '='
     for i, arg in enumerate(startup_args):

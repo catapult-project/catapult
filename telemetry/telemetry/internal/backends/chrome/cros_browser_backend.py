@@ -90,9 +90,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def GetPid(self):
     return self._cri.GetChromePid()
 
-  def __del__(self):
-    self.Close()
-
   def Start(self, startup_args):
     if self._started:
       return

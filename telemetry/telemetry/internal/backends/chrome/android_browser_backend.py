@@ -201,9 +201,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def activity(self):
     return self._backend_settings.activity
 
-  def __del__(self):
-    self.Close()
-
   @exc_util.BestEffort
   def Close(self):
     super(AndroidBrowserBackend, self).Close()

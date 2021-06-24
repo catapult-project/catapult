@@ -315,9 +315,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._symbolized_minidump_paths.add(minidump_path)
     return (True, stack)
 
-  def __del__(self):
-    self.Close()
-
   def _TryCooperativeShutdown(self):
     if self.browser.platform.IsCooperativeShutdownSupported():
       # Ideally there would be a portable, cooperative shutdown
