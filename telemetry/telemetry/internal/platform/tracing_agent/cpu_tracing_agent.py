@@ -251,7 +251,7 @@ class MacProcessCollector(ProcessCollector):
 
   def _GetProcessesAsStrings(self):
     # Skip the header row and strip the trailing newline.
-    return subprocess.check_output(self._SHELL_COMMAND).strip().split('\n')[1:]
+    return subprocess.check_output(self._SHELL_COMMAND).strip().split(b'\n')[1:]
 
   def _ParseProcessString(self, proc_string):
     return _ParsePsProcessString(proc_string)

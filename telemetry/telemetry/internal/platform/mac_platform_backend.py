@@ -93,8 +93,10 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
 
   @decorators.Cache
   def GetOSVersionDetailString(self):
-    product = subprocess.check_output(['sw_vers', '-productVersion']).strip()
-    build = subprocess.check_output(['sw_vers', '-buildVersion']).strip()
+    product = subprocess.check_output(['sw_vers', '-productVersion'],
+                                      universal_newlines=True).strip()
+    build = subprocess.check_output(['sw_vers', '-buildVersion'],
+                                    universal_newlines=True).strip()
     return product + ' ' + build
 
   def CanTakeScreenshot(self):
