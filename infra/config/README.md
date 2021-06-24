@@ -1,1 +1,1 @@
-This directory contains config files for chrome-infra services.
+This directory contains config files for LUCI services.
