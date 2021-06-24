@@ -6,6 +6,7 @@
 from __future__ import absolute_import
 import logging
 import os
+import platform
 import subprocess
 
 from telemetry.core import util
@@ -66,6 +67,15 @@ class CommandRunner(object):
     return cmd_proc.returncode, stdout, stderr
 
 
+def _GetHostArchFromPlatform():
+  host_arch = platform.machine()
+  if host_arch == 'x86_64':
+    return 'x64'
+  elif host_arch == 'aarch64':
+    return 'arm64'
+  raise Exception('Unsupported host architecture: %s' % host_arch)
+
+
 def StartSymbolizerForProcessIfPossible(input_file, output_file, build_id_file):
   """Starts a symbolizer process if possible.
 
@@ -80,7 +90,8 @@ def StartSymbolizerForProcessIfPossible(input_file, output_file, build_id_file):
       fails to start."""
   if os.path.isfile(build_id_file):
     sdk_root = os.path.join(util.GetCatapultDir(), '..', 'fuchsia-sdk', 'sdk')
-    symbolizer = os.path.join(sdk_root, 'tools', 'x64', 'symbolizer')
+    symbolizer = os.path.join(sdk_root, 'tools', _GetHostArchFromPlatform(),
+                              'symbolizer')
     symbolizer_cmd = [
         symbolizer, '--build-id-dir', os.path.join(sdk_root, '.build-id'),
         '--ids-txt', build_id_file

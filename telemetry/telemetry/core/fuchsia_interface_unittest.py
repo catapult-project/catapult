@@ -4,11 +4,13 @@
 from __future__ import absolute_import
 import unittest
 
+from telemetry import decorators
 from telemetry.core import fuchsia_interface
 import mock
 
 class FuchsiaInterfaceTests(unittest.TestCase):
 
+  @decorators.Disabled('win')
   def testStartSymbolizerFailsWithoutBuildIdFile(self):
     test_build_id_file = 'build-id-file'
     def side_effect(path_to_file):
@@ -25,6 +27,7 @@ class FuchsiaInterfaceTests(unittest.TestCase):
                 None, None, test_build_id_file), None)
         self.assertEquals(popen_mock.call_count, 0)
 
+  @decorators.Disabled('win')
   def testStartSymbolizerSucceedsIfFilesFound(self):
     test_build_id_file = 'build-id-file'
     def side_effect(path_to_file):
