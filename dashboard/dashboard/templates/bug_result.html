@@ -258,7 +258,7 @@ This template contains HTML for the following things:
       <input type="text" name="owner" value="{{owner}}"><br><br>
       <b>cc:</b><br>
       <input type="text" name="cc" value="{{cc}}"><br><br>
-      <input type="submit">
+      <input type="submit" id="submit_bug_button">
     </form>
     {% elif confirmation_required %}
       <p>{{message}}</p>
@@ -286,6 +286,12 @@ This template contains HTML for the following things:
           window.close();
         }
         window.addEventListener('DOMContentLoaded', postClose, false);
+        var submit_bug_button = document.getElementById('submit_bug_button');
+        if (submit_bug_button) {
+          submit_bug_button.addEventListener('click', (E) => {
+            E.target.disabled = true;
+          });
+        }
       </script>
     {% endif %}
   </body>
