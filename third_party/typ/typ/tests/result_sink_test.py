@@ -91,7 +91,7 @@ def CreateExpectedTestResult(
         'summaryHtml': summary_html or HTML_SUMMARY,
         'artifacts': artifacts or STDOUT_STDERR_ARTIFACTS,
         'tags': tags or [
-            {'key': 'test_name', 'value': test_id},
+            {'key': 'test_name', 'value': test_id.split('.')[-1]},
             {'key': 'typ_expectation', 'value': json_results.ResultType.Pass},
             {'key': 'raw_typ_expectation', 'value': 'Pass'},
             {'key': 'typ_tag', 'value': 'bar_tag'},
@@ -206,7 +206,7 @@ class ResultSinkReporterTest(unittest.TestCase):
                 FAKE_TEST_LINE)
         self.assertEqual(retval, 2)
         expected_result = CreateExpectedTestResult(tags=[
-            {'key': 'test_name', 'value': 'test_name_prefix.test_name'},
+            {'key': 'test_name', 'value': 'test_name'},
             {'key': 'typ_expectation', 'value': json_results.ResultType.Pass},
             {'key': 'raw_typ_expectation', 'value': 'Pass'},
         ])

@@ -122,7 +122,7 @@ class ResultSinkReporter(object):
         result_is_expected = result.actual in result.expected
 
         tag_list = [
-            ('test_name', test_id),
+            ('test_name', result.name),
         ]
         for expectation in result.expected:
             tag_list.append(('typ_expectation', expectation))
