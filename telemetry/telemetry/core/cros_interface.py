@@ -35,7 +35,10 @@ def RunCmd(args, cwd=None, quiet=False):
 
 
 def GetAllCmdOutput(args, cwd=None, quiet=False):
-  return cmd_util.GetAllCmdOutput(args, cwd, quiet)
+  # GetAllCmdOutput returns bytes on Python 3. As the downstream codes are
+  # expecting strings, we decode the inpout here.
+  stdout, stderr = cmd_util.GetAllCmdOutput(args, cwd, quiet)
+  return (stdout.decode('utf-8'), stderr.decode('utf-8'))
 
 
 def StartCmd(args, cwd=None, quiet=False):
