@@ -86,7 +86,10 @@ class GroupReportTestBase(testing_common.TestCase):
     }
     default.update(kargs)
     default['test'] = utils.TestKey(default['test'])
-    graph_data.TestMetadata(key=default['test']).put()
+    graph_data.TestMetadata(
+        key=default['test'],
+        unescaped_story_name='story',
+    ).put()
     a = anomaly.Anomaly(**default)
     clt = sheriff_config_client.GetSheriffConfigClient()
     subscriptions, _ = clt.Match(a)
