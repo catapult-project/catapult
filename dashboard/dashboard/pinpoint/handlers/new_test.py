@@ -377,6 +377,18 @@ class NewTest(_NewTest):
     response = self.Post('/api/new', request, status=400)
     self.assertIn('error', json.loads(response.body))
 
+  def testFallbackTarget(self):
+    request = dict(_BASE_REQUEST)
+    request['target'] = 'performance_test_suite_android_chrome'
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    quests = job.state._quests
+    # Make sure we only have one quest with a fallback target and its fallback
+    # target is performance_test_suite.
+    self.assertEqual(
+        ['performance_test_suite'],
+        [q._fallback_target for q in quests if hasattr(q, '_fallback_target')])
+
   def testInvalidTestConfig(self):
     request = dict(_BASE_REQUEST)
     del request['configuration']

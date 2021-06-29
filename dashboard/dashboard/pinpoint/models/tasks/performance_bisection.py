@@ -654,10 +654,36 @@ class Serializer(evaluators.FilteringEvaluator):
 
 
 EXPERIMENTAL_TELEMETRY_BENCHMARKS = {
-    'performance_test_suite', 'performance_test_suite_eve',
-    'performance_webview_test_suite', 'performance_web_engine_test_suite',
-    'telemetry_perf_tests', 'telemetry_perf_webview_tests'
+    'performance_test_suite_eve',
+    'performance_webview_test_suite',
+    'performance_web_engine_test_suite',
+    'telemetry_perf_webview_tests',
 }
+SUFFIXED_EXPERIMENTAL_TELEMETRY_BENCHMARKS = {
+    'performance_test_suite',
+    'telemetry_perf_tests',
+}
+SUFFIXES = {
+    '',
+    '_android_chrome',
+    '_android_monochrome',
+    '_android_monochrome_bundle',
+    '_android_weblayer',
+    '_android_webview',
+    '_android_clank_chrome',
+    '_android_clank_monochrome',
+    '_android_clank_monochrome_64_32_bundle',
+    '_android_clank_monochrome_bundle',
+    '_android_clank_trichrome_bundle',
+    '_android_clank_trichrome_webview',
+    '_android_clank_trichrome_webview_bundle',
+    '_android_clank_webview',
+    '_android_clank_webview_bundle',
+}
+for test in SUFFIXED_EXPERIMENTAL_TELEMETRY_BENCHMARKS:
+  for suffix in SUFFIXES:
+    EXPERIMENTAL_TELEMETRY_BENCHMARKS.add(test + suffix)
+
 EXPERIMENTAL_VR_BENCHMARKS = {'vr_perf_tests'}
 EXPERIMENTAL_TARGET_SUPPORT = (
     EXPERIMENTAL_TELEMETRY_BENCHMARKS | EXPERIMENTAL_VR_BENCHMARKS)
