@@ -133,9 +133,12 @@ class DesktopMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
       # The vast majority of the symbol binaries for component builds on Mac
       # are .dylib, and none of them appear to contribute any additional
       # information. So, remove them to save a *lot* of time.
+      # Do process dylibs that aren't component build dylibs though.
+      bundled_dylib_re = re.compile(
+          r'Framework\.framework/Versions/\d+.\d+.\d+.\d+/Libraries/.*\.dylib')
       filtered_binaries = []
       for binary in symbol_binaries:
-        if not binary.endswith('.dylib'):
+        if not binary.endswith('.dylib') or bundled_dylib_re.search(binary):
           filtered_binaries.append(binary)
       symbol_binaries = filtered_binaries
     return symbol_binaries
