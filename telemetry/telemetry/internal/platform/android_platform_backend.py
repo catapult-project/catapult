@@ -622,9 +622,20 @@ class AndroidPlatformBackend(
       number_of_lines: Number of lines of log to return.
     """
     def decode_line(line):
+      # Both input and output are of 'str' type, in both Python 2 and 3.
+      # However, note that in Python 2 str is a series of bytes,
+      # while in Python 3 it is Unicode string.
       try:
-        uline = six.text_type(line, encoding='utf-8')
-        return uline.encode('ascii', 'backslashreplace')
+        if six.PY2:
+          # str -> unicode
+          uline = six.text_type(line, encoding='utf-8')
+          # unicode -> str (ASCII with special characters encoded)
+          return uline.encode('ascii', 'backslashreplace')
+        else:
+          # str -> bytes (ASCII with special characters encoded)
+          bline = line.encode('ascii', 'backslashreplace')
+          # bytes -> str
+          return bline.decode('ascii')
       except Exception: # pylint: disable=broad-except
         logging.error('Error encoding UTF-8 logcat line as ASCII.')
         return '<MISSING LOGCAT LINE: FAILED TO ENCODE>'

@@ -2492,9 +2492,9 @@ class DeviceUtilsWriteFileTest(DeviceUtilsTest):
   def testWriteFileWithPush_success(self):
     tmp_host = MockTempFile('/tmp/file/on.host')
     contents = 'some interesting contents'
-    with self.assertCalls((mock.call.tempfile.NamedTemporaryFile(), tmp_host),
-                          self.call.adb.Push('/tmp/file/on.host',
-                                             '/path/to/device/file')):
+    with self.assertCalls(
+        (mock.call.tempfile.NamedTemporaryFile(mode='w+'), tmp_host),
+        self.call.adb.Push('/tmp/file/on.host', '/path/to/device/file')):
       self.device._WriteFileWithPush('/path/to/device/file', contents)
     tmp_host.file.write.assert_called_once_with(contents)
 
@@ -2502,9 +2502,9 @@ class DeviceUtilsWriteFileTest(DeviceUtilsTest):
     tmp_host = MockTempFile('/tmp/file/on.host')
     contents = 'some interesting contents'
     with self.assertCalls(
-        (mock.call.tempfile.NamedTemporaryFile(), tmp_host),
-        (self.call.adb.Push('/tmp/file/on.host', '/path/to/device/file'),
-         self.CommandError())):
+        (mock.call.tempfile.NamedTemporaryFile(mode='w+'), tmp_host),
+        (self.call.adb.Push('/tmp/file/on.host',
+                            '/path/to/device/file'), self.CommandError())):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device._WriteFileWithPush('/path/to/device/file', contents)
 

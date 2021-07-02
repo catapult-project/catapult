@@ -2438,7 +2438,7 @@ class DeviceUtils(object):
       return self._ReadFileWithPull(device_path)
 
   def _WriteFileWithPush(self, device_path, contents):
-    with tempfile.NamedTemporaryFile() as host_temp:
+    with tempfile.NamedTemporaryFile(mode='w+') as host_temp:
       host_temp.write(contents)
       host_temp.flush()
       self.adb.Push(host_temp.name, device_path)
