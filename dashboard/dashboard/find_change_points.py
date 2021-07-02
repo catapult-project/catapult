@@ -95,7 +95,7 @@ def FindChangePoints(series,
     multiple_of_std_dev: Threshold for change as multiple of std. deviation.
 
   Returns:
-    A list with one ChangePoint object, or an empty list.
+    A list of zero to many ChangePoint object(s).
   """
   if len(series) < 2:
     return []  # Not enough points to possibly contain a valid split point.
