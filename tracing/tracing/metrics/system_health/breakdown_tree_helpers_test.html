@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
     // Add layout categories
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'blink',
-      title: 'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser',
+      title: 'HTMLDocumentParser::DeferredPumpTokenizerIfPossible',
       start: 200,
       duration: 200,
       cpuStart: 1160,
@@ -102,7 +102,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual({
       total: 150,
       events: {
-        'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser': 150
+        'HTMLDocumentParser::DeferredPumpTokenizerIfPossible': 150
       }
     }, breakdownTree.parseHTML);
     assert.deepEqual({
@@ -147,7 +147,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual({
       total: 100,
       events: {
-        'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser': 100
+        'HTMLDocumentParser::DeferredPumpTokenizerIfPossible': 100
       }
     }, breakdownTree.parseHTML);
     assert.deepEqual({
@@ -181,7 +181,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual({
       total: 120,
       events: {
-        'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser': 120
+        'HTMLDocumentParser::DeferredPumpTokenizerIfPossible': 120
       }
     }, breakdownTree.parseHTML);
     assert.deepEqual({
@@ -226,7 +226,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual({
       total: 80,
       events: {
-        'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser': 80
+        'HTMLDocumentParser::DeferredPumpTokenizerIfPossible': 80
       }
     }, breakdownTree.parseHTML);
     assert.deepEqual({
