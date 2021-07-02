@@ -167,16 +167,16 @@ def _ChangeList(job):
 
 
 def _JsonFromExecution(execution):
+  if hasattr(execution, '_cas_root_ref') and execution._cas_root_ref:
+    return read_value.RetrieveOutputJsonFromCAS(
+        execution._cas_root_ref,
+        execution._results_path,
+    )
+
   if hasattr(execution, '_results_filename'):
     results_filename = execution._results_filename
   else:
     results_filename = 'chartjson-output.json'
-
-  if hasattr(execution, '_cas_root_ref') and execution._cas_root_ref:
-    return read_value.RetrieveOutputJsonFromCAS(
-        execution._cas_root_ref,
-        results_filename,
-    )
 
   if hasattr(execution, '_isolate_server'):
     isolate_server = execution._isolate_server
