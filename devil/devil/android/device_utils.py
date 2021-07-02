@@ -3031,6 +3031,23 @@ class DeviceUtils(object):
     return self.GetProp('ro.product.cpu.abi', cache=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
+  def GetSupportedABIs(self, timeout=None, retries=None):
+    """Gets all ABIs supported by the device.
+
+    Args:
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      The device's supported ABIs list. For supported ABIs, the returned list
+      will consist of the values defined in devil.android.ndk.abis.
+
+    Raises:
+      CommandTimeoutError on timeout.
+    """
+    return self.GetProp('ro.product.cpu.abilist', cache=True).split(',')
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
   def GetFeatures(self, timeout=None, retries=None):
     """Returns the features supported on the device."""
     lines = self.RunShellCommand(['pm', 'list', 'features'], check_return=True)
@@ -3672,7 +3689,6 @@ class DeviceUtils(object):
 
     def supports_abi(abi, serial):
       if abis and abi not in abis:
-        logger.warning("Device %s doesn't support required ABIs.", serial)
         return False
       return True
 
@@ -3685,8 +3701,12 @@ class DeviceUtils(object):
           serial = adb.GetDeviceSerial()
           if not denylisted(serial):
             device = cls(_CreateAdbWrapper(adb), **kwargs)
-            if supports_abi(device.GetABI(), serial):
-              devices.append(device)
+            for supported_abi in device.GetSupportedABIs():
+              if supports_abi(supported_abi, serial):
+                devices.append(device)
+                break
+            else:
+              logger.warning("Device %s doesn't support required ABIs.", serial)
 
       if len(devices) == 0 and not allow_no_devices:
         raise device_errors.NoDevicesError()

@@ -437,6 +437,23 @@ Gets the SELinux security context for the given package.
 ```
 
 
+### DeviceUtils.GetSupportedABIs
+
+Gets all ABIs supported by the device.
+```
+    Args:
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      The device's supported ABIs list. For supported ABIs, the returned list
+      will consist of the values defined in devil.android.ndk.abis.
+
+    Raises:
+      CommandTimeoutError on timeout.
+```
+
+
 ### DeviceUtils.GetTracingPath
 
 Gets tracing path from the device.

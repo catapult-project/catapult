@@ -3389,8 +3389,10 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
     with self.assertCalls(
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
          [_AdbWrapperMock(s) for s in test_serials]),
-        (mock.call.devil.android.device_utils.DeviceUtils.GetABI(), abis.ARM),
-        (mock.call.devil.android.device_utils.DeviceUtils.GetABI(), abis.ARM)):
+        (mock.call.devil.android.device_utils.DeviceUtils.GetSupportedABIs(),
+         [abis.ARM]),
+        (mock.call.devil.android.device_utils.DeviceUtils.GetSupportedABIs(),
+         [abis.ARM])):
       denylist = mock.NonCallableMock(**{'Read.return_value': []})
       devices = device_utils.DeviceUtils.HealthyDevices(denylist)
     for serial, device in zip(test_serials, devices):
@@ -3402,7 +3404,8 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
     with self.assertCalls(
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
          [_AdbWrapperMock(s) for s in test_serials]),
-        (mock.call.devil.android.device_utils.DeviceUtils.GetABI(), abis.ARM)):
+        (mock.call.devil.android.device_utils.DeviceUtils.GetSupportedABIs(),
+         [abis.ARM])):
       denylist = mock.NonCallableMock(
           **{'Read.return_value': ['fedcba9876543210']})
       devices = device_utils.DeviceUtils.HealthyDevices(denylist)
@@ -3415,8 +3418,10 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
     with self.assertCalls(
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
          [_AdbWrapperMock(s) for s in test_serials]),
-        (mock.call.devil.android.device_utils.DeviceUtils.GetABI(), abis.ARM),
-        (mock.call.devil.android.device_utils.DeviceUtils.GetABI(), abis.ARM),
+        (mock.call.devil.android.device_utils.DeviceUtils.GetSupportedABIs(),
+         [abis.ARM]),
+        (mock.call.devil.android.device_utils.DeviceUtils.GetSupportedABIs(),
+         [abis.ARM]),
         (mock.call.devil.android.device_errors.MultipleDevicesError(mock.ANY),
          _MockMultipleDevicesError())):
       with self.assertRaises(_MockMultipleDevicesError):
@@ -3427,8 +3432,20 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
     with self.assertCalls(
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
          [_AdbWrapperMock(s) for s in test_serials]),
-        (mock.call.devil.android.device_utils.DeviceUtils.GetABI(), abis.ARM)):
+        (mock.call.devil.android.device_utils.DeviceUtils.GetSupportedABIs(),
+         [abis.ARM])):
       devices = device_utils.DeviceUtils.HealthyDevices(device_arg=None)
+    self.assertEquals(1, len(devices))
+
+  def testHealthyDevices_noneDeviceArg_one_attached_multi_abi(self):
+    test_serials = ['0123456789abcdef']
+    with self.assertCalls(
+        (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
+         [_AdbWrapperMock(s) for s in test_serials]),
+        (mock.call.devil.android.device_utils.DeviceUtils.GetSupportedABIs(),
+         [abis.ARM, abis.X86])):
+      devices = device_utils.DeviceUtils.HealthyDevices(device_arg=None,
+                                                        abis=[abis.X86])
     self.assertEquals(1, len(devices))
 
   def testHealthyDevices_noneDeviceArg_no_attached(self):
@@ -3458,9 +3475,24 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
     with self.assertCalls(
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
          [_AdbWrapperMock(s) for s in test_serials]),
-        (mock.call.devil.android.device_utils.DeviceUtils.GetABI(), abis.ARM),
-        (mock.call.devil.android.device_utils.DeviceUtils.GetABI(), abis.ARM)):
+        (mock.call.devil.android.device_utils.DeviceUtils.GetSupportedABIs(),
+         [abis.ARM]),
+        (mock.call.devil.android.device_utils.DeviceUtils.GetSupportedABIs(),
+         [abis.ARM])):
       devices = device_utils.DeviceUtils.HealthyDevices(device_arg=())
+    self.assertEquals(2, len(devices))
+
+  def testHealthyDevices_EmptyListDeviceArg_multiple_attached_multi_abi(self):
+    test_serials = ['0123456789abcdef', 'fedcba9876543210']
+    with self.assertCalls(
+        (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
+         [_AdbWrapperMock(s) for s in test_serials]),
+        (mock.call.devil.android.device_utils.DeviceUtils.GetSupportedABIs(),
+         [abis.X86]),
+        (mock.call.devil.android.device_utils.DeviceUtils.GetSupportedABIs(),
+         [abis.ARM, abis.X86])):
+      devices = device_utils.DeviceUtils.HealthyDevices(device_arg=(),
+                                                        abis=[abis.X86])
     self.assertEquals(2, len(devices))
 
   def testHealthyDevices_EmptyListDeviceArg_ANDROID_SERIAL(self):
@@ -3539,8 +3571,10 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
     with self.assertCalls(
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
          [_AdbWrapperMock(s) for s in test_serials]),
-        (mock.call.devil.android.device_utils.DeviceUtils.GetABI(), abis.ARM),
-        (mock.call.devil.android.device_utils.DeviceUtils.GetABI(), abis.ARM)):
+        (mock.call.devil.android.device_utils.DeviceUtils.GetSupportedABIs(),
+         [abis.ARM]),
+        (mock.call.devil.android.device_utils.DeviceUtils.GetSupportedABIs(),
+         [abis.ARM])):
       with self.assertRaises(device_errors.NoDevicesError):
         device_utils.DeviceUtils.HealthyDevices(
             device_arg=[], retries=0, abis=[abis.ARM_64])
@@ -3550,9 +3584,10 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
     with self.assertCalls(
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
          [_AdbWrapperMock(s) for s in test_serials]),
-        (mock.call.devil.android.device_utils.DeviceUtils.GetABI(),
-         abis.ARM_64),
-        (mock.call.devil.android.device_utils.DeviceUtils.GetABI(), abis.ARM)):
+        (mock.call.devil.android.device_utils.DeviceUtils.GetSupportedABIs(),
+         [abis.ARM_64]),
+        (mock.call.devil.android.device_utils.DeviceUtils.GetSupportedABIs(),
+         [abis.ARM])):
       devices = device_utils.DeviceUtils.HealthyDevices(
           device_arg=[], retries=0, abis=[abis.ARM_64])
     self.assertEquals(1, len(devices))
