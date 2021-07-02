@@ -167,15 +167,24 @@ def _ChangeList(job):
 
 
 def _JsonFromExecution(execution):
-  if hasattr(execution, '_isolate_server'):
-    isolate_server = execution._isolate_server
-  else:
-    isolate_server = 'https://isolateserver.appspot.com'
-  isolate_hash = execution._isolate_hash
   if hasattr(execution, '_results_filename'):
     results_filename = execution._results_filename
   else:
     results_filename = 'chartjson-output.json'
 
-  return read_value.RetrieveOutputJson(isolate_server, isolate_hash,
-                                       results_filename)
+  if hasattr(execution, '_cas_root_ref') and execution._cas_root_ref:
+    return read_value.RetrieveOutputJsonFromCAS(
+        execution._cas_root_ref,
+        results_filename,
+    )
+
+  if hasattr(execution, '_isolate_server'):
+    isolate_server = execution._isolate_server
+  else:
+    isolate_server = 'https://isolateserver.appspot.com'
+  isolate_hash = execution._isolate_hash
+  return read_value.RetrieveOutputJson(
+      isolate_server,
+      isolate_hash,
+      results_filename,
+  )
