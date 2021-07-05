@@ -275,6 +275,43 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(100, hist.running.mean);
   });
 
+  test('timeToLargestContentfulPaint_NoMultipleReporting', function() {
+    // Test that we do not report the same sample value multiple times if there
+    // is more than one renderer.
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const browerMain = model.browserMain;
+      browerMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: tr.e.chrome.LCP_CANDIDATE_EVENT_TITLE,
+        start: 400,
+        duration: 0.0,
+        args: {
+          data: { durationInMilliseconds: 100, type: 'text', size: 1000,
+                  inMainFrame: true },
+          main_frame_tree_node_id: 12345,
+        }
+      }));
+
+      const rendererProcess1 = model.rendererProcess;
+      const mainThread1 = model.rendererMain;
+      addNavigationStart_(mainThread1, 50,
+          {isLoadingMainFrame: true, documentLoaderURL: 'http://example.com'});
+
+      const rendererProcess2 = model.getOrCreateProcess(10);
+      const mainThread2 = rendererProcess2.getOrCreateThread(10);
+      mainThread2.name = 'CrRendererMain';
+
+      addNavigationStart_(mainThread2, 100,
+          {isLoadingMainFrame: true, documentLoaderURL: 'http://example.com'});
+    });
+
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('largestContentfulPaint');
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(100, hist.running.mean);
+  });
+
   test('timeToLargestContentfulPaint_LastCandidate', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const browerMain = model.browserMain;

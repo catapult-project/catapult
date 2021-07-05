@@ -752,11 +752,18 @@ tr.exportTo('tr.metrics.sh', function() {
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
 
+    // Layout Shift and LCP are reported in the browser process, so we do not
+    // need to loop over the renderers to add samples.
     const allLayoutShiftSamples = findAllLayoutShiftSamples(chromeHelper);
     addSamplesToHistogram(
         allLayoutShiftSamples,
         allLayoutShiftHistogram,
         histograms);
+
+    const lcpSamples = findLargestContentfulPaintHistogramSamples(
+        chromeHelper.browserHelper.mainThread.sliceGroup.slices);
+    addSamplesToHistogram(
+        lcpSamples, largestContentfulPaintHistogram, histograms);
 
     for (const pid in chromeHelper.rendererHelpers) {
       const rendererHelper = chromeHelper.rendererHelpers[pid];
@@ -764,11 +771,6 @@ tr.exportTo('tr.metrics.sh', function() {
 
       const samplesSet =
           collectLoadingMetricsForRenderer(rendererHelper);
-
-      const lcpSamples = findLargestContentfulPaintHistogramSamples(
-          chromeHelper.browserHelper.mainThread.sliceGroup.slices);
-      addSamplesToHistogram(
-          lcpSamples, largestContentfulPaintHistogram, histograms);
 
       addSamplesToHistogram(
           samplesSet.firstPaintSamples, firstPaintHistogram, histograms);
