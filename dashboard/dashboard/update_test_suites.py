@@ -139,15 +139,10 @@ def _CreateTestSuiteDict():
     Where 'mas', 'dep', and 'des' are abbreviations for 'masters',
     'deprecated', and 'description', respectively.
   """
-  suites = _FetchSuites()
   result = collections.defaultdict(lambda: {'suites': []})
 
-  for s in suites:
+  for s in _FetchSuites():
     result[s.test_name]['suites'].append(s)
-
-  # Don't need suites anymore since they've been binned by test_name in result,
-  # so we can drop the reference and they'll be freed in the loop.
-  suites = None
 
   # Should have a dict of {suite: [all suites]}
   # Now generate masters
@@ -180,7 +175,6 @@ def _FetchSuites():
   """Fetches Tests with deprecated and description projections."""
   suite_query = graph_data.TestMetadata.query(
       graph_data.TestMetadata.parent_test == None)
-  suites = []
   cursor = None
   more = True
   try:
@@ -191,10 +185,11 @@ def _FetchSuites():
           projection=['deprecated', 'description'],
           use_cache=False,
           use_memcache=False)
-      suites.extend(some_suites)
+      for s in some_suites:
+        yield s
   except datastore_errors.Timeout:
-    logging.error('Timeout after fetching %d test suites.', len(suites))
-  return suites
+    logging.error('Timeout fetching test suites.')
+  return
 
 
 def _GetTestSubPath(key):
