@@ -3,6 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+"""Runs all devil tests under python2."""
+
 import os
 import sys
 
@@ -11,10 +13,15 @@ _CATAPULT_PATH = os.path.abspath(
 _DEVIL_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 sys.path.append(_CATAPULT_PATH)
+import six
 from catapult_build import run_with_typ
 
 
 def main():
+  if six.PY3:
+    print('Somehow running under python3.')
+    return 1
+
   # Tests mock out internal details of methods, and the ANDROID_SERIAL can
   # change which internal methods are called. Since tests don't actually use
   # devices, it should be fine to delete the variable.
