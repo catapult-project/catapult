@@ -190,7 +190,8 @@ def RunTests(args, chrome_path):
     if sys.platform != 'win32':
       output = server_process.stderr.readline()
       port = re.search(
-          r'Now running on http://127.0.0.1:([\d]+)', output).group(1)
+          r'Now running on http://127.0.0.1:([\d]+)',
+          output.decode('utf-8')).group(1)
     if xvfb.ShouldStartXvfb():
       print('Starting xvfb...')
       xvfb_process = xvfb.StartXvfb()
