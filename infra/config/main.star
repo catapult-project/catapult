@@ -174,10 +174,13 @@ try_builder("Catapult Linux Tryserver", "Ubuntu")
 try_builder("Catapult Linux Tryserver Py3", "Ubuntu", experiment = 100, properties = {"use_python3": True})
 
 try_builder("Catapult Windows Tryserver", "Windows")
+try_builder("Catapult Windows Tryserver Py3", "Windows", experiment = 100, properties = {"use_python3": True})
 
 try_builder("Catapult Mac Tryserver", "Mac")
+try_builder("Catapult Mac Tryserver Py3", "Mac", experiment = 100, properties = {"use_python3": True})
 
 try_builder("Catapult Android Tryserver", "Android", dimensions = {"device_type": "bullhead"}, properties = {"platform": "android"})
+try_builder("Catapult Android Tryserver Py3", "Android", experiment = 100, dimensions = {"device_type": "bullhead"}, properties = {"platform": "android", "use_python3": True})
 
 try_builder("Catapult Presubmit", "Ubuntu", is_presubmit = True)
 
