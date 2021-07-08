@@ -80,6 +80,7 @@ class ReportTest(testing_common.TestCase):
                     'linux-release': False,
                 },
             },
+            'dep': False,
             'des': 'This should show up',
         },
         'dromaeo': {
@@ -93,6 +94,7 @@ class ReportTest(testing_common.TestCase):
                     'linux-release': False,
                 },
             },
+            'dep': False,
             'des': 'This should show up',
         },
     }

@@ -139,36 +139,24 @@ def _CreateTestSuiteDict():
     Where 'mas', 'dep', and 'des' are abbreviations for 'masters',
     'deprecated', and 'description', respectively.
   """
-  result = collections.defaultdict(lambda: {'suites': []})
+  result = collections.defaultdict(lambda: {'mas': {}, 'dep': True})
 
   for s in _FetchSuites():
-    result[s.test_name]['suites'].append(s)
+    v = result[s.test_name]
 
-  # Should have a dict of {suite: [all suites]}
-  # Now generate masters
-  for k, v in result.items():
-    current_suites = v['suites']
-    v['mas'] = {}
+    if 'des' not in v and s.description:
+      v['des'] = s.description
 
-    if current_suites:
-      if current_suites[0].description:
-        v['des'] = current_suites[0].description
+    # Only depreccate when all tests are deprecated
+    v['dep'] &= s.deprecated
 
-    if all(s.deprecated for s in current_suites):
-      v['dep'] = True
+    if s.master_name not in v['mas']:
+      v['mas'][s.master_name] = {}
+    if s.bot_name not in v['mas'][s.master_name]:
+      v['mas'][s.master_name][s.bot_name] = s.deprecated
 
-    for s in current_suites:
-      master_name = s.master_name
-      bot_name = s.bot_name
-      if not master_name in v['mas']:
-        v['mas'][master_name] = {}
-      if not bot_name in v['mas'][master_name]:
-        v['mas'][master_name][bot_name] = s.deprecated
-
-    # We don't need these suites anymore so free them.
-    del result[k]['suites']
-
-  return dict(result)
+  result.default_factory = None
+  return result
 
 
 def _FetchSuites():

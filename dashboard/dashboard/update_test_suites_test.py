@@ -98,6 +98,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'scrolling': {
                 'mas': {
@@ -106,6 +107,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'really': {
                 'mas': {
@@ -114,6 +116,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
         }, update_test_suites.FetchCachedTestSuites())
 
@@ -142,6 +145,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'internal_test': {
                 'mas': {
@@ -149,6 +153,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'internal_mac': False
                     }
                 },
+                'dep': False,
             },
             'scrolling': {
                 'mas': {
@@ -157,6 +162,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'really': {
                 'mas': {
@@ -165,6 +171,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
         }, update_test_suites.FetchCachedTestSuites())
 
@@ -181,6 +188,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'scrolling': {
                 'mas': {
@@ -189,6 +197,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'really': {
                 'mas': {
@@ -197,6 +206,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
         }, update_test_suites.FetchCachedTestSuites())
 
@@ -218,6 +228,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'scrolling': {
                 'mas': {
@@ -226,7 +237,8 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
-                'des': 'Description string.'
+                'des': 'Description string.',
+                'dep': False,
             },
             'really': {
                 'mas': {
@@ -235,6 +247,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
         }, update_test_suites.FetchCachedTestSuites())
 
@@ -256,6 +269,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'scrolling': {
                 'mas': {
@@ -264,6 +278,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'really': {
                 'mas': {
@@ -272,13 +287,15 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'sunspider': {
                 'mas': {
                     'ChromiumFYI': {
                         'linux': False
                     }
-                }
+                },
+                'dep': False,
             },
         }, update_test_suites._CreateTestSuiteDict())
 
@@ -302,6 +319,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'scrolling': {
                 'mas': {
@@ -310,6 +328,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'really': {
                 'mas': {
@@ -317,7 +336,8 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'mac': False,
                         'win7': True
                     }
-                }
+                },
+                'dep': False,
             },
         }, update_test_suites._CreateTestSuiteDict())
 
@@ -341,6 +361,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'scrolling': {
                 'mas': {
@@ -349,15 +370,16 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'really': {
-                'dep': True,
                 'mas': {
                     'Chromium': {
                         'mac': True,
                         'win7': True
                     }
-                }
+                },
+                'dep': True,
             },
         }, update_test_suites._CreateTestSuiteDict())
 
@@ -373,6 +395,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'scrolling': {
                 'mas': {
@@ -381,6 +404,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'really': {
                 'mas': {
@@ -388,7 +412,8 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'mac': False,
                         'win7': False
                     }
-                }
+                },
+                'dep': False,
             },
         }, update_test_suites._CreateTestSuiteDict())
 
@@ -412,6 +437,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'linux': False
                     }
                 },
+                'dep': False,
             },
             'scrolling': {
                 'mas': {
@@ -420,6 +446,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'win7': False
                     }
                 },
+                'dep': False,
             },
             'really': {
                 'mas': {
@@ -427,7 +454,8 @@ class ListTestSuitesTest(testing_common.TestCase):
                         'mac': False,
                         'win7': False
                     }
-                }
+                },
+                'dep': False,
             },
         }, update_test_suites._CreateTestSuiteDict())
 
