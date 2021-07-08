@@ -3469,6 +3469,9 @@ class DeviceUtils(object):
 
     def _FindFocusedWindow():
       match = None
+      # Note: This will fail to find system dialogs on Android Q+. System
+      # dialogs should not be shown on Android Q+ because we set
+      # hide_error_dialogs=1. http://crbug.com/1107896#c26
       # TODO(jbudorick): Try to grep the output on the device instead of using
       # large_output if/when DeviceUtils exposes a public interface for piped
       # shell command handling.
@@ -3485,9 +3488,18 @@ class DeviceUtils(object):
       return None
     package = match.group(2)
     logger.warning('Trying to dismiss %s dialog for %s', *match.groups())
-    self.SendKeyEvent(keyevent.KEYCODE_DPAD_RIGHT)
-    self.SendKeyEvent(keyevent.KEYCODE_DPAD_RIGHT)
-    self.SendKeyEvent(keyevent.KEYCODE_ENTER)
+
+    if self.build_version_sdk >= version_codes.NOUGAT:
+      # Broadcast does not work pre-N. Send broadcast because Android N+
+      # sometimes displays system dialog where only option is "Open app Again"
+      # when app crashes.
+      self.BroadcastIntent(
+          intent.Intent(action='android.intent.action.CLOSE_SYSTEM_DIALOGS'))
+    else:
+      self.SendKeyEvent(keyevent.KEYCODE_DPAD_RIGHT)
+      self.SendKeyEvent(keyevent.KEYCODE_DPAD_RIGHT)
+      self.SendKeyEvent(keyevent.KEYCODE_ENTER)
+
     match = _FindFocusedWindow()
     if match:
       logger.error('Still showing a %s dialog for %s', *match.groups())
