@@ -3,6 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 
@@ -37,12 +39,12 @@ def RunSnapItUnittest(finder_options):
     failed_tests = tab.EvaluateJavaScript('window.failedTests')
 
     for test in failed_tests:
-      print "Test '%s' failed" % test
+      print("Test '%s' failed" % test)
     if failed_tests:
-      print 'Failed %s tests (out of %s tests)' % (len(failed_tests), num_tests)
+      print('Failed %s tests (out of %s tests)' % (len(failed_tests), num_tests))
       return 1
     else:
-      print 'All %s tests passed' % num_tests
+      print('All %s tests passed' % num_tests)
       return 0
 
 
@@ -56,7 +58,7 @@ def main(args):
   xvfb_process = None
   try:
     if xvfb.ShouldStartXvfb():
-      print 'Starting xvfb...'
+      print('Starting xvfb...')
       xvfb_process = xvfb.StartXvfb()
 
     return RunSnapItUnittest(options)

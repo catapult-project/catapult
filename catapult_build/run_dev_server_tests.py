@@ -135,7 +135,11 @@ def GetChromeInfo(args):
     return ChromeInfo(path=chrome_path, version=None)
   else:
     channel = args.channel
-    if sys.platform == 'linux2' and channel == 'canary':
+    if sys.version_info.major == 3:
+      target = 'linux'
+    else:
+      target = 'linux2'
+    if sys.platform == target and channel == 'canary':
       channel = 'dev'
     assert channel in ['stable', 'beta', 'dev', 'canary']
 
