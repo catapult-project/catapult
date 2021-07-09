@@ -14,6 +14,9 @@ lucicfg.check_version("1.24.2", "Please update depot_tools")
 # Enable LUCI Realms support.
 lucicfg.enable_experiment("crbug.com/1085650")
 
+# TODO(https://crbug.com/1204962): ramp up to 100%.
+luci.builder.defaults.experiments.set({"luci.use_realms": 20})
+
 lucicfg.config(
     config_dir = "generated",
     fail_on_warnings = True,
