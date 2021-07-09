@@ -16,9 +16,6 @@ class AppBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
     self._app_type = app_type
     self._platform_backend = platform_backend
 
-  def __del__(self):
-    self.Close()
-
   def SetApp(self, app):
     self._app = app
 
