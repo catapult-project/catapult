@@ -162,7 +162,7 @@ def Run(func,
             watcher=thread_group.GetWatcher(),
             timeout=60,
             error_log_func=error_log_func)
-        if thread_group.IsAlive():
+        if thread_group.is_alive():
           logger.info('Still working on %s', desc)
         else:
           return thread_group.GetAllReturnValues()[0]

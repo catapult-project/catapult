@@ -34,7 +34,7 @@ class WeakConstant(object):
         initializer_thread.start()
         timeout_retry.WaitFor(
             lambda: initializer_thread.join(1) or not initializer_thread.
-            isAlive(),
+            is_alive(),
             wait_period=0)
         self._val = initializer_thread.GetReturnValue()
         self._initialized.set()
