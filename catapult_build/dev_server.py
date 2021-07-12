@@ -4,11 +4,12 @@
 
 from __future__ import print_function
 
+from __future__ import absolute_import
 import argparse
 import json
 import os
 import sys
-import urlparse
+import six.moves.urllib.parse # pylint: disable=import-error
 
 from hooks import install
 
@@ -169,7 +170,7 @@ class SimpleDirectoryHandler(webapp2.RequestHandler):
 class TestOverviewHandler(webapp2.RequestHandler):
   def get(self, *args, **kwargs):  # pylint: disable=unused-argument
     test_links = []
-    for name, path in kwargs.pop('pds').iteritems():
+    for name, path in kwargs.pop('pds').items():
       test_links.append(_LINK_ITEM % (path, name))
     quick_links = []
     for name, path in _QUICK_LINKS:
@@ -259,14 +260,14 @@ class DevServerApp(webapp2.WSGIApplication):
         continue
       rel = os.path.relpath(filename, source_path)
       unix_rel = _RelPathToUnixPath(rel)
-      url = urlparse.urljoin(mapped_path, unix_rel)
+      url = six.moves.urllib.parse.urljoin(mapped_path, unix_rel)
       return url
 
     path = SourcePathsHandler.GetServingPathForAbsFilename(
         self._all_source_paths, filename)
     if path is None:
       return None
-    return urlparse.urljoin('/', path)
+    return six.moves.urllib.parse.urljoin('/', path)
 
 
 def _AddPleaseExitMixinToServer(server):

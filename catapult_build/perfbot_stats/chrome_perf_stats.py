@@ -14,12 +14,15 @@ https://apis-explorer.appspot.com/apis-explorer/?
    base=https://chrome-infra-stats.appspot.com/_ah/api#p/
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import calendar
 import datetime
 import json
 import sys
-import urllib
-import urllib2
+import six.moves.urllib.request # pylint: disable=import-error
+import six.moves.urllib.parse # pylint: disable=import-error
+import six.moves.urllib.error # pylint: disable=import-error
 
 BUILDER_LIST_URL = ('https://chrome-infra-stats.appspot.com/'
                     '_ah/api/stats/v1/masters/chromium.perf')
@@ -33,7 +36,7 @@ USAGE = ('Usage: chrome_perf_stats.py <year> <month> <day>. If date is not '
 
 def main():
   if len(sys.argv) == 2 and sys.argv[0] == '--help':
-    print USAGE
+    print(USAGE)
     sys.exit(0)
   year = None
   month = None
@@ -41,22 +44,22 @@ def main():
   if len(sys.argv) == 4 or len(sys.argv) == 3:
     year = int(sys.argv[1])
     if year > 2016 or year < 2014:
-      print USAGE
+      print(USAGE)
       sys.exit(0)
     month = int(sys.argv[2])
     if month > 12 or month <= 0:
-      print USAGE
+      print(USAGE)
       sys.exit(0)
     if len(sys.argv) == 3:
-      days = range(1, calendar.monthrange(year, month)[1] + 1)
+      days = list(range(1, calendar.monthrange(year, month)[1] + 1))
     else:
       day = int(sys.argv[3])
       if day > 31 or day <= 0:
-        print USAGE
+        print(USAGE)
         sys.exit(0)
       days = [day]
   elif len(sys.argv) != 1:
-    print USAGE
+    print(USAGE)
     sys.exit(0)
   else:
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
@@ -64,7 +67,7 @@ def main():
     month = yesterday.month
     days = [yesterday.day]
 
-  response = urllib2.urlopen(BUILDER_LIST_URL)
+  response = six.moves.urllib.request.urlopen(BUILDER_LIST_URL)
   builders = [builder['name'] for builder in json.load(response)['builders']]
   success_rates = CalculateSuccessRates(year, month, days, builders)
   UploadToPerfDashboard(success_rates)
@@ -87,7 +90,7 @@ def _UpdateSuccessRatesWithResult(
 
 def _SummarizeSuccessRates(success_rates):
   overall_success_rates = []
-  for day, results in success_rates.iteritems():
+  for day, results in success_rates.items():
     success_rate_sum = 0
     success_rate_count = 0
     for rates in results.values():
@@ -131,8 +134,8 @@ def UploadToPerfDashboard(success_rates):
         }
     }
     url = 'https://chromeperf.appspot.com/add_point'
-    data = urllib.urlencode({'data': json.dumps(dashboard_data)})
-    urllib2.urlopen(url=url, data=data).read()
+    data = six.moves.urllib.parse.urlencode({'data': json.dumps(dashboard_data)})
+    six.moves.urllib.request.urlopen(url, data).read()
 
 
 def CalculateSuccessRates(year, month, days, builders):
@@ -143,8 +146,8 @@ def CalculateSuccessRates(year, month, days, builders):
       date_dict_str = '%d%02d%02d' % (year, month, day)
       for builder in builders:
         url = BUILDER_STATS_URL % (
-            urllib.quote(builder), urllib.quote(date_str))
-        response = urllib2.urlopen(url)
+            six.moves.urllib.parse.quote(builder), six.moves.urllib.parse.quote(date_str))
+        response = six.moves.urllib.request.urlopen(url)
         results = json.load(response)
         _UpdateSuccessRatesWithResult(
             success_rates, results, date_dict_str, builder)

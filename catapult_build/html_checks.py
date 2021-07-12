@@ -60,7 +60,7 @@ def CheckImportOrder(path, soup, results, output_api):
 
     grouped_hrefs[','.join(link.get('rel'))].append(link.get('href'))
 
-  for rel, actual_hrefs in grouped_hrefs.iteritems():
+  for rel, actual_hrefs in grouped_hrefs.items():
     expected_hrefs = list(sorted(set(actual_hrefs)))
     if actual_hrefs != expected_hrefs:
       error_text = (
