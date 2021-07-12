@@ -3713,7 +3713,10 @@ class DeviceUtils(object):
           serial = adb.GetDeviceSerial()
           if not denylisted(serial):
             device = cls(_CreateAdbWrapper(adb), **kwargs)
-            for supported_abi in device.GetSupportedABIs():
+            supported_abis = device.GetSupportedABIs()
+            if not supported_abis:
+              supported_abis = [device.GetABI()]
+            for supported_abi in supported_abis:
               if supports_abi(supported_abi, serial):
                 devices.append(device)
                 break

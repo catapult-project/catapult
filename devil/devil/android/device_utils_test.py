@@ -3478,6 +3478,18 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
       devices = device_utils.DeviceUtils.HealthyDevices(device_arg=None)
     self.assertEqual(1, len(devices))
 
+  def testHealthyDevices_noneDeviceArg_one_attached_old_props(self):
+    test_serials = ['0123456789abcdef']
+    with self.assertCalls(
+        (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
+         [_AdbWrapperMock(s) for s in test_serials]),
+        (mock.call.devil.android.device_utils.DeviceUtils.GetSupportedABIs(),
+         []),
+        (mock.call.devil.android.device_utils.DeviceUtils.GetABI(), [abis.ARM
+                                                                     ])):
+      devices = device_utils.DeviceUtils.HealthyDevices(device_arg=None)
+    self.assertEqual(1, len(devices))
+
   def testHealthyDevices_noneDeviceArg_one_attached_multi_abi(self):
     test_serials = ['0123456789abcdef']
     with self.assertCalls(
