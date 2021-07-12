@@ -89,9 +89,8 @@ tr.exportTo('tr.e.chrome', function() {
     findCandidates() {
       const finalLcpEvents = this.findFinalLcpEventOfEachNavigation(
           this.allBrowserEvents);
-      const finalCandidates = finalLcpEvents
-          .filter(finalLcpEvent =>
-            !LcpInvalidateEvent.isLcpInvalidateEvent(finalLcpEvent));
+      const finalCandidates = finalLcpEvents.filter(finalLcpEvent =>
+          !(finalLcpEvent instanceof LcpInvalidateEvent));
       return finalCandidates;
     }
 
