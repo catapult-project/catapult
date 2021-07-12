@@ -17,7 +17,7 @@ class DeviceDenylistTest(unittest.TestCase):
       pass
 
     test_denylist = device_denylist.Denylist(denylist_file.name)
-    self.assertEquals({}, test_denylist.Read())
+    self.assertEqual({}, test_denylist.Read())
 
   def testDenylistFileIsEmpty(self):
     try:
@@ -26,7 +26,7 @@ class DeviceDenylistTest(unittest.TestCase):
         pass
 
       test_denylist = device_denylist.Denylist(denylist_file.name)
-      self.assertEquals({}, test_denylist.Read())
+      self.assertEqual({}, test_denylist.Read())
 
     finally:
       if os.path.exists(denylist_file.name):

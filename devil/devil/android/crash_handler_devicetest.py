@@ -48,7 +48,7 @@ class DeviceCrashTest(device_test_case.DeviceTestCase):
                 as_root=True,
                 timeout=180),
             device=self.device)
-        self.assertEquals(
+        self.assertEqual(
             trigger_text,
             self.device.ReadFile(trigger_file.name, retries=0).strip())
         return True
@@ -71,7 +71,7 @@ class DeviceCrashTest(device_test_case.DeviceTestCase):
             retries=0)
         return True
 
-    self.assertEquals([True, True], reraiser_thread.RunAsync([crasher, victim]))
+    self.assertEqual([True, True], reraiser_thread.RunAsync([crasher, victim]))
 
 
 if __name__ == '__main__':

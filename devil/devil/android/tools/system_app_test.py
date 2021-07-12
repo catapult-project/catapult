@@ -86,7 +86,7 @@ class SystemAppTest(unittest.TestCase):
 
     paths = system_app._GetApplicationPaths(mock_device, _PACKAGE_NAME)
 
-    self.assertEquals([_PACKAGE_PATH], paths)
+    self.assertEqual([_PACKAGE_PATH], paths)
     mock_device.RunShellCommand.assert_called_once_with(
         _PM_LIST_PACKAGES_COMMAND, check_return=True)
 
@@ -99,7 +99,7 @@ class SystemAppTest(unittest.TestCase):
 
     paths = system_app._GetApplicationPaths(mock_device, _PACKAGE_NAME)
 
-    self.assertEquals([], paths)
+    self.assertEqual([], paths)
     mock_device.RunShellCommand.assert_called_once_with(
         _PM_LIST_PACKAGES_COMMAND, check_return=True)
 
@@ -111,7 +111,7 @@ class SystemAppTest(unittest.TestCase):
 
     paths = system_app._GetApplicationPaths(mock_device, _PACKAGE_NAME)
 
-    self.assertEquals([], paths)
+    self.assertEqual([], paths)
     mock_device.RunShellCommand.assert_called_once_with(
         _PM_LIST_PACKAGES_COMMAND, check_return=True)
 
@@ -124,7 +124,7 @@ class SystemAppTest(unittest.TestCase):
 
     paths = system_app._GetApplicationPaths(mock_device, '')
 
-    self.assertEquals([], paths)
+    self.assertEqual([], paths)
     mock_device.RunShellCommand.assert_called_once_with(
         _PM_LIST_PACKAGES_COMMAND[:-1] + [''], check_return=True)
 

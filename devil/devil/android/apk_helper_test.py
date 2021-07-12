@@ -198,35 +198,35 @@ class ApkHelperTest(mock_calls.TestCase):
   def testGetActivityName(self):
     with _MockAaptDump(_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals(helper.GetActivityName(),
-                        'org.chromium.abc.MainActivity')
+      self.assertEqual(helper.GetActivityName(),
+                       'org.chromium.abc.MainActivity')
 
   def testGetViewActivityName(self):
     with _MockAaptDump(_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals(helper.GetViewActivityName(),
-                        'org.chromium.ViewActivity')
+      self.assertEqual(helper.GetViewActivityName(),
+                       'org.chromium.ViewActivity')
 
   def testGetAllInstrumentations(self):
     with _MockAaptDump(_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
       all_instrumentations = helper.GetAllInstrumentations()
-      self.assertEquals(len(all_instrumentations), 2)
-      self.assertEquals(all_instrumentations[0]['android:name'],
-                        'org.chromium.RandomJUnit4TestRunner')
-      self.assertEquals(all_instrumentations[1]['android:name'],
-                        'org.chromium.RandomTestRunner')
+      self.assertEqual(len(all_instrumentations), 2)
+      self.assertEqual(all_instrumentations[0]['android:name'],
+                       'org.chromium.RandomJUnit4TestRunner')
+      self.assertEqual(all_instrumentations[1]['android:name'],
+                       'org.chromium.RandomTestRunner')
 
   def testGetPackageName(self):
     with _MockAaptDump(_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals(helper.GetPackageName(), 'org.chromium.abc')
+      self.assertEqual(helper.GetPackageName(), 'org.chromium.abc')
 
   def testGetPermssions(self):
     with _MockAaptDump(_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
       all_permissions = helper.GetPermissions()
-      self.assertEquals(len(all_permissions), 3)
+      self.assertEqual(len(all_permissions), 3)
       self.assertTrue('android.permission.INTERNET' in all_permissions)
       self.assertTrue(
           'android.permission.READ_EXTERNAL_STORAGE' in all_permissions)
@@ -236,7 +236,7 @@ class ApkHelperTest(mock_calls.TestCase):
   def testGetSplitName(self):
     with _MockAaptDump(_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals(helper.GetSplitName(), 'random_split')
+      self.assertEqual(helper.GetSplitName(), 'random_split')
 
   def testHasIsolatedProcesses_noApplication(self):
     with _MockAaptDump(_NO_APPLICATION):
@@ -261,56 +261,56 @@ class ApkHelperTest(mock_calls.TestCase):
   def testGetSingleInstrumentationName(self):
     with _MockAaptDump(_SINGLE_INSTRUMENTATION_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals('org.chromium.RandomTestRunner',
-                        helper.GetInstrumentationName())
+      self.assertEqual('org.chromium.RandomTestRunner',
+                       helper.GetInstrumentationName())
 
   def testGetSingleJUnit4InstrumentationName(self):
     with _MockAaptDump(_SINGLE_J4_INSTRUMENTATION_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals('org.chromium.RandomJ4TestRunner',
-                        helper.GetInstrumentationName())
+      self.assertEqual('org.chromium.RandomJ4TestRunner',
+                       helper.GetInstrumentationName())
 
   def testGetAllMetadata(self):
     with _MockAaptDump(_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals([('name1', 'value1'), ('name2', 'value2')],
-                        helper.GetAllMetadata())
+      self.assertEqual([('name1', 'value1'), ('name2', 'value2')],
+                       helper.GetAllMetadata())
 
   def testGetVersionCode(self):
     with _MockAaptDump(_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals(376300010, helper.GetVersionCode())
+      self.assertEqual(376300010, helper.GetVersionCode())
 
   def testGetVersionName(self):
     with _MockAaptDump(_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals('75.0.3763.0', helper.GetVersionName())
+      self.assertEqual('75.0.3763.0', helper.GetVersionName())
 
   def testGetMinSdkVersion_integerValue(self):
     with _MockAaptDump(_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals('21', helper.GetMinSdkVersion())
+      self.assertEqual('21', helper.GetMinSdkVersion())
 
   def testGetMinSdkVersion_stringValue(self):
     with _MockAaptDump(_TARGETING_PRE_RELEASE_Q_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals('Q', helper.GetMinSdkVersion())
+      self.assertEqual('Q', helper.GetMinSdkVersion())
 
   def testGetTargetSdkVersion_integerValue(self):
     with _MockAaptDump(_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals('28', helper.GetTargetSdkVersion())
+      self.assertEqual('28', helper.GetTargetSdkVersion())
 
   def testGetTargetSdkVersion_stringValue(self):
     with _MockAaptDump(_TARGETING_PRE_RELEASE_Q_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals('Q', helper.GetTargetSdkVersion())
+      self.assertEqual('Q', helper.GetTargetSdkVersion())
 
   def testGetSingleInstrumentationName_strippedNamespaces(self):
     with _MockAaptDump(_NO_NAMESPACE_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
-      self.assertEquals('org.chromium.RandomTestRunner',
-                        helper.GetInstrumentationName())
+      self.assertEqual('org.chromium.RandomTestRunner',
+                       helper.GetInstrumentationName())
 
   def testGetArchitectures(self):
     AbiPair = collections.namedtuple('AbiPair', ['abi32bit', 'abi64bit'])
@@ -320,27 +320,27 @@ class ApkHelperTest(mock_calls.TestCase):
     ]:
       with _MockListApkPaths([abi_pair.abi32bit]):
         helper = apk_helper.ApkHelper('')
-        self.assertEquals(
+        self.assertEqual(
             set([
                 os.path.basename(abi_pair.abi32bit),
                 os.path.basename(abi_pair.abi64bit)
             ]), set(helper.GetAbis()))
       with _MockListApkPaths([abi_pair.abi32bit, abi_pair.abi64bit]):
         helper = apk_helper.ApkHelper('')
-        self.assertEquals(
+        self.assertEqual(
             set([
                 os.path.basename(abi_pair.abi32bit),
                 os.path.basename(abi_pair.abi64bit)
             ]), set(helper.GetAbis()))
       with _MockListApkPaths([abi_pair.abi64bit]):
         helper = apk_helper.ApkHelper('')
-        self.assertEquals(
-            set([os.path.basename(abi_pair.abi64bit)]), set(helper.GetAbis()))
+        self.assertEqual(set([os.path.basename(abi_pair.abi64bit)]),
+                         set(helper.GetAbis()))
 
   def testGetSplitsApk(self):
     apk = apk_helper.ToHelper('abc.apk')
     with apk.GetApkPaths(_MockDeviceUtils()) as apk_paths:
-      self.assertEquals(apk_paths, ['abc.apk'])
+      self.assertEqual(apk_paths, ['abc.apk'])
 
   def testGetSplitsApkModulesException(self):
     apk = apk_helper.ToHelper('abc.apk')
@@ -359,8 +359,8 @@ class ApkHelperTest(mock_calls.TestCase):
         (mock.call.shutil.rmtree('/tmp')),
     ),\
     apk.GetApkPaths(_MockDeviceUtils()) as apk_paths:
-      self.assertEquals(apk_paths,
-                        ['/tmp/base-master.apk', '/tmp/foo-master.apk'])
+      self.assertEqual(apk_paths,
+                       ['/tmp/base-master.apk', '/tmp/foo-master.apk'])
 
   def testGetSplitsApksWithModules(self):
     apk = apk_helper.ToHelper('abc.apks')
@@ -376,7 +376,7 @@ class ApkHelperTest(mock_calls.TestCase):
         (mock.call.shutil.rmtree('/tmp')),
     ),\
     apk.GetApkPaths(_MockDeviceUtils(), ['bar']) as apk_paths:
-      self.assertEquals(apk_paths, [
+      self.assertEqual(apk_paths, [
           '/tmp/base-master.apk', '/tmp/foo-master.apk', '/tmp/bar-master.apk'
       ])
 
@@ -395,7 +395,7 @@ class ApkHelperTest(mock_calls.TestCase):
     ),\
         apk.GetApkPaths(_MockDeviceUtils(),
                         additional_locales=['es-ES', 'fr-CA']) as apk_paths:
-      self.assertEquals(
+      self.assertEqual(
           apk_paths,
           ['/tmp/base-master.apk', '/tmp/base-es.apk', '/tmp/base-fr.apk'])
 
@@ -414,7 +414,7 @@ class ApkHelperTest(mock_calls.TestCase):
             'base.apk', ['split1.apk', 'split2.apk', 'split3.apk'],
             allow_cached_props=False), ['split2.apk'])),\
       apk.GetApkPaths(device) as apk_paths:
-      self.assertEquals(apk_paths, ['base.apk', 'split2.apk'])
+      self.assertEqual(apk_paths, ['base.apk', 'split2.apk'])
 
   def testGetSplitsBundleScript(self):
     apk = apk_helper.ToHelper('abc_bundle')
@@ -437,8 +437,8 @@ class ApkHelperTest(mock_calls.TestCase):
         (mock.call.shutil.rmtree('/tmp2')),
     ),\
     apk.GetApkPaths(device, modules=['bar']) as apk_paths:
-      self.assertEquals(apk_paths,
-                        ['/tmp2/base-master.apk', '/tmp2/bar-master.apk'])
+      self.assertEqual(apk_paths,
+                       ['/tmp2/base-master.apk', '/tmp2/bar-master.apk'])
 
 
 if __name__ == '__main__':

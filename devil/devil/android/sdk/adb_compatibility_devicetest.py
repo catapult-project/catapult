@@ -70,7 +70,7 @@ class AdbCompatibilityTest(device_test_case.DeviceTestCase):
         [adb_wrapper.AdbWrapper.GetAdbPath(), 'start-server'])
 
     # verify that the server is now online
-    self.assertEquals(0, start_server_status)
+    self.assertEqual(0, start_server_status)
     self.assertIsNotNone(
         timeout_retry.WaitFor(
             lambda: bool(_hostAdbPids()), wait_period=0.1, max_tries=10))
@@ -143,7 +143,7 @@ class AdbCompatibilityTest(device_test_case.DeviceTestCase):
       with self.assertRaises(device_errors.AdbShellCommandFailedError):
         under_test.Shell('ls %s' % dest)
       under_test.Push(src, dest)
-      self.assertEquals(dest, under_test.Shell('ls %s' % dest).strip())
+      self.assertEqual(dest, under_test.Shell('ls %s' % dest).strip())
 
   def testPush_fileToDirectory(self):
     under_test = self.getTestInstance()
@@ -154,8 +154,8 @@ class AdbCompatibilityTest(device_test_case.DeviceTestCase):
       with self.assertRaises(device_errors.AdbShellCommandFailedError):
         under_test.Shell('ls %s' % resulting_file)
       under_test.Push(src, dest)
-      self.assertEquals(resulting_file,
-                        under_test.Shell('ls %s' % resulting_file).strip())
+      self.assertEqual(resulting_file,
+                       under_test.Shell('ls %s' % resulting_file).strip())
 
   def testPush_directoryToDirectory(self):
     under_test = self.getTestInstance()
@@ -165,9 +165,8 @@ class AdbCompatibilityTest(device_test_case.DeviceTestCase):
       with self.assertRaises(device_errors.AdbShellCommandFailedError):
         under_test.Shell('ls %s' % dest)
       under_test.Push(src, dest)
-      self.assertEquals(
-          sorted(os.listdir(src)),
-          sorted(under_test.Shell('ls %s' % dest).strip().split()))
+      self.assertEqual(sorted(os.listdir(src)),
+                       sorted(under_test.Shell('ls %s' % dest).strip().split()))
 
   def testPush_directoryToExistingDirectory(self):
     under_test = self.getTestInstance()
@@ -179,7 +178,7 @@ class AdbCompatibilityTest(device_test_case.DeviceTestCase):
         under_test.Shell('ls %s' % resulting_directory)
       under_test.Shell('mkdir %s' % resulting_directory)
       under_test.Push(src, dest)
-      self.assertEquals(
+      self.assertEqual(
           sorted(os.listdir(src)),
           sorted(under_test.Shell('ls %s' % resulting_directory).split()))
 

@@ -106,7 +106,7 @@ class CpuTemperatureLetCpuCoolToTemperatureTest(CpuTemperatureTest):
     self.mock_device.ReadFile = mock.Mock(side_effect=self.cooling_down0)
     self.cpu_temp.LetCpuCoolToTemperature(42)
     self.mock_device.ReadFile.assert_called()
-    self.assertEquals(self.mock_device.ReadFile.call_count, 24)
+    self.assertEqual(self.mock_device.ReadFile.call_count, 24)
 
   cooling_down1 = [45000 for _ in range(8)] + [41000 for _ in range(16)]
 
@@ -115,7 +115,7 @@ class CpuTemperatureLetCpuCoolToTemperatureTest(CpuTemperatureTest):
     self.mock_device.ReadFile = mock.Mock(side_effect=self.cooling_down1)
     self.cpu_temp.LetCpuCoolToTemperature(42)
     self.mock_device.ReadFile.assert_called()
-    self.assertEquals(self.mock_device.ReadFile.call_count, 16)
+    self.assertEqual(self.mock_device.ReadFile.call_count, 16)
 
   constant_temp = [45000 for _ in range(40)]
 
@@ -124,7 +124,7 @@ class CpuTemperatureLetCpuCoolToTemperatureTest(CpuTemperatureTest):
     self.mock_device.ReadFile = mock.Mock(side_effect=self.constant_temp)
     self.cpu_temp.LetCpuCoolToTemperature(42)
     self.mock_device.ReadFile.assert_called()
-    self.assertEquals(self.mock_device.ReadFile.call_count, 24)
+    self.assertEqual(self.mock_device.ReadFile.call_count, 24)
 
 
 if __name__ == '__main__':

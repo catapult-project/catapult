@@ -218,75 +218,75 @@ class USBScriptTest(unittest.TestCase):
   def testGetTTYDevices(self):
     pp = find_usb_devices.GetAllPhysicalPortToTTYMaps([TEST_HUB])
     result = list(pp)
-    self.assertEquals(result[0], {
+    self.assertEqual(result[0], {
         7: 'ttyUSB0',
         5: 'ttyUSB1',
         3: 'ttyUSB2',
         2: 'ttyUSB5',
         1: 'ttyUSB3'
     })
-    self.assertEquals(result[1], {1: 'ttyUSB4'})
+    self.assertEqual(result[1], {1: 'ttyUSB4'})
 
   def testGetPortDeviceMapping(self):
     pp = find_usb_devices.GetAllPhysicalPortToBusDeviceMaps([TEST_HUB])
     result = list(pp)
-    self.assertEquals(result[0], {
+    self.assertEqual(result[0], {
         7: (2, 21),
         5: (2, 22),
         3: (2, 24),
         2: (2, 26),
         1: (2, 25)
     })
-    self.assertEquals(result[1], {1: (2, 102)})
+    self.assertEqual(result[1], {1: (2, 102)})
 
   def testGetSerialMapping(self):
     pp = find_usb_devices.GetAllPhysicalPortToSerialMaps([TEST_HUB])
     result = list(pp)
-    self.assertEquals(result[0], {
+    self.assertEqual(result[0], {
         7: 'UsbDevice0',
         5: 'UsbDevice1',
         3: 'UsbDevice2',
         1: 'UsbDevice3'
     })
-    self.assertEquals(result[1], {})
+    self.assertEqual(result[1], {})
 
   def testFastDeviceDescriptions(self):
     bd = find_usb_devices.GetBusNumberToDeviceTreeMap()
     dev_foo = bd[1].FindDeviceNumber(11)
     dev_bar = bd[1].FindDeviceNumber(12)
     dev_usb_device_p7_h1_t0 = bd[2].FindDeviceNumber(21)
-    self.assertEquals(dev_foo.desc, 'FAST foo')
-    self.assertEquals(dev_bar.desc, 'FAST bar')
-    self.assertEquals(dev_usb_device_p7_h1_t0.desc,
-                      'ID 0403:6001 usb_device_p7_h1_t0')
+    self.assertEqual(dev_foo.desc, 'FAST foo')
+    self.assertEqual(dev_bar.desc, 'FAST bar')
+    self.assertEqual(dev_usb_device_p7_h1_t0.desc,
+                     'ID 0403:6001 usb_device_p7_h1_t0')
 
   def testDeviceDescriptions(self):
     bd = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=False)
     dev_foo = bd[1].FindDeviceNumber(11)
     dev_bar = bd[1].FindDeviceNumber(12)
     dev_usb_device_p7_h1_t0 = bd[2].FindDeviceNumber(21)
-    self.assertEquals(dev_foo.desc, 'foo')
-    self.assertEquals(dev_bar.desc, 'bar')
-    self.assertEquals(dev_usb_device_p7_h1_t0.desc,
-                      'ID 0403:6001 usb_device_p7_h1_t0')
+    self.assertEqual(dev_foo.desc, 'foo')
+    self.assertEqual(dev_bar.desc, 'bar')
+    self.assertEqual(dev_usb_device_p7_h1_t0.desc,
+                     'ID 0403:6001 usb_device_p7_h1_t0')
 
   def testDeviceInformation(self):
     bd = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=False)
     dev_foo = bd[1].FindDeviceNumber(11)
     dev_bar = bd[1].FindDeviceNumber(12)
     dev_usb_device_p7_h1_t0 = bd[2].FindDeviceNumber(21)
-    self.assertEquals(dev_foo.info['id'], 1011)
-    self.assertEquals(dev_bar.info['id'], 1012)
-    self.assertEquals(dev_usb_device_p7_h1_t0.info['id'], 2021)
+    self.assertEqual(dev_foo.info['id'], 1011)
+    self.assertEqual(dev_bar.info['id'], 1012)
+    self.assertEqual(dev_usb_device_p7_h1_t0.info['id'], 2021)
 
   def testSerialNumber(self):
     bd = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=False)
     dev_foo = bd[1].FindDeviceNumber(11)
     dev_bar = bd[1].FindDeviceNumber(12)
     dev_usb_device_p7_h1_t0 = bd[2].FindDeviceNumber(21)
-    self.assertEquals(dev_foo.serial, 'FooSerial')
-    self.assertEquals(dev_bar.serial, 'BarSerial')
-    self.assertEquals(dev_usb_device_p7_h1_t0.serial, 'UsbDevice0')
+    self.assertEqual(dev_foo.serial, 'FooSerial')
+    self.assertEqual(dev_bar.serial, 'BarSerial')
+    self.assertEqual(dev_usb_device_p7_h1_t0.serial, 'UsbDevice0')
 
 
 if __name__ == "__main__":

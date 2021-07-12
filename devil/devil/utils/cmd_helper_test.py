@@ -18,20 +18,21 @@ with devil_env.SysPath(devil_env.PYMOCK_PATH):
 
 class CmdHelperSingleQuoteTest(unittest.TestCase):
   def testSingleQuote_basic(self):
-    self.assertEquals('hello', cmd_helper.SingleQuote('hello'))
+    self.assertEqual('hello', cmd_helper.SingleQuote('hello'))
 
   def testSingleQuote_withSpaces(self):
-    self.assertEquals("'hello world'", cmd_helper.SingleQuote('hello world'))
+    self.assertEqual("'hello world'", cmd_helper.SingleQuote('hello world'))
 
   def testSingleQuote_withUnsafeChars(self):
-    self.assertEquals("""'hello'"'"'; rm -rf /'""",
-                      cmd_helper.SingleQuote("hello'; rm -rf /"))
+    self.assertEqual("""'hello'"'"'; rm -rf /'""",
+                     cmd_helper.SingleQuote("hello'; rm -rf /"))
 
   def testSingleQuote_dontExpand(self):
     test_string = 'hello $TEST_VAR'
     cmd = 'TEST_VAR=world; echo %s' % cmd_helper.SingleQuote(test_string)
-    self.assertEquals(test_string,
-                      cmd_helper.GetCmdOutput(cmd, shell=True).rstrip())
+    self.assertEqual(test_string,
+                     cmd_helper.GetCmdOutput(cmd, shell=True).rstrip())
+
 
 class CmdHelperGetCmdStatusAndOutputTest(unittest.TestCase):
   def testGetCmdStatusAndOutput_success(self):
@@ -47,50 +48,48 @@ class CmdHelperGetCmdStatusAndOutputTest(unittest.TestCase):
 
 class CmdHelperDoubleQuoteTest(unittest.TestCase):
   def testDoubleQuote_basic(self):
-    self.assertEquals('hello', cmd_helper.DoubleQuote('hello'))
+    self.assertEqual('hello', cmd_helper.DoubleQuote('hello'))
 
   def testDoubleQuote_withSpaces(self):
-    self.assertEquals('"hello world"', cmd_helper.DoubleQuote('hello world'))
+    self.assertEqual('"hello world"', cmd_helper.DoubleQuote('hello world'))
 
   def testDoubleQuote_withUnsafeChars(self):
-    self.assertEquals('''"hello\\"; rm -rf /"''',
-                      cmd_helper.DoubleQuote('hello"; rm -rf /'))
+    self.assertEqual('''"hello\\"; rm -rf /"''',
+                     cmd_helper.DoubleQuote('hello"; rm -rf /'))
 
   def testSingleQuote_doExpand(self):
     test_string = 'hello $TEST_VAR'
     cmd = 'TEST_VAR=world; echo %s' % cmd_helper.DoubleQuote(test_string)
-    self.assertEquals('hello world',
-                      cmd_helper.GetCmdOutput(cmd, shell=True).rstrip())
+    self.assertEqual('hello world',
+                     cmd_helper.GetCmdOutput(cmd, shell=True).rstrip())
 
 
 class CmdHelperShinkToSnippetTest(unittest.TestCase):
   def testShrinkToSnippet_noArgs(self):
-    self.assertEquals('foo', cmd_helper.ShrinkToSnippet(['foo'], 'a', 'bar'))
-    self.assertEquals("'foo foo'",
-                      cmd_helper.ShrinkToSnippet(['foo foo'], 'a', 'bar'))
-    self.assertEquals('"$a"\' bar\'',
-                      cmd_helper.ShrinkToSnippet(['foo bar'], 'a', 'foo'))
-    self.assertEquals('\'foo \'"$a"',
-                      cmd_helper.ShrinkToSnippet(['foo bar'], 'a', 'bar'))
-    self.assertEquals('foo"$a"',
-                      cmd_helper.ShrinkToSnippet(['foobar'], 'a', 'bar'))
+    self.assertEqual('foo', cmd_helper.ShrinkToSnippet(['foo'], 'a', 'bar'))
+    self.assertEqual("'foo foo'",
+                     cmd_helper.ShrinkToSnippet(['foo foo'], 'a', 'bar'))
+    self.assertEqual('"$a"\' bar\'',
+                     cmd_helper.ShrinkToSnippet(['foo bar'], 'a', 'foo'))
+    self.assertEqual('\'foo \'"$a"',
+                     cmd_helper.ShrinkToSnippet(['foo bar'], 'a', 'bar'))
+    self.assertEqual('foo"$a"',
+                     cmd_helper.ShrinkToSnippet(['foobar'], 'a', 'bar'))
 
   def testShrinkToSnippet_singleArg(self):
-    self.assertEquals("foo ''",
-                      cmd_helper.ShrinkToSnippet(['foo', ''], 'a', 'bar'))
-    self.assertEquals("foo foo",
-                      cmd_helper.ShrinkToSnippet(['foo', 'foo'], 'a', 'bar'))
-    self.assertEquals('"$a" "$a"',
-                      cmd_helper.ShrinkToSnippet(['foo', 'foo'], 'a', 'foo'))
-    self.assertEquals('foo "$a""$a"',
-                      cmd_helper.ShrinkToSnippet(['foo', 'barbar'], 'a', 'bar'))
-    self.assertEquals(
-        'foo "$a"\' \'"$a"',
-        cmd_helper.ShrinkToSnippet(['foo', 'bar bar'], 'a', 'bar'))
-    self.assertEquals(
-        'foo "$a""$a"\' \'',
-        cmd_helper.ShrinkToSnippet(['foo', 'barbar '], 'a', 'bar'))
-    self.assertEquals(
+    self.assertEqual("foo ''",
+                     cmd_helper.ShrinkToSnippet(['foo', ''], 'a', 'bar'))
+    self.assertEqual("foo foo",
+                     cmd_helper.ShrinkToSnippet(['foo', 'foo'], 'a', 'bar'))
+    self.assertEqual('"$a" "$a"',
+                     cmd_helper.ShrinkToSnippet(['foo', 'foo'], 'a', 'foo'))
+    self.assertEqual('foo "$a""$a"',
+                     cmd_helper.ShrinkToSnippet(['foo', 'barbar'], 'a', 'bar'))
+    self.assertEqual('foo "$a"\' \'"$a"',
+                     cmd_helper.ShrinkToSnippet(['foo', 'bar bar'], 'a', 'bar'))
+    self.assertEqual('foo "$a""$a"\' \'',
+                     cmd_helper.ShrinkToSnippet(['foo', 'barbar '], 'a', 'bar'))
+    self.assertEqual(
         'foo \' \'"$a""$a"\' \'',
         cmd_helper.ShrinkToSnippet(['foo', ' barbar '], 'a', 'bar'))
 
@@ -214,7 +213,7 @@ class CmdHelperIterCmdOutputLinesTest(unittest.TestCase):
         output_sequence=self._SIMPLE_OUTPUT_SEQUENCE) as mock_proc:
       for num, line in enumerate(
           cmd_helper._IterCmdOutputLines(mock_proc, 'mock_proc'), 1):
-        self.assertEquals(num, int(line))
+        self.assertEqual(num, int(line))
 
   def testIterCmdOutputLines_unicode(self):
     output_sequence = [
@@ -222,7 +221,7 @@ class CmdHelperIterCmdOutputLinesTest(unittest.TestCase):
     ]
     with _MockProcess(output_sequence=output_sequence) as mock_proc:
       lines = list(cmd_helper._IterCmdOutputLines(mock_proc, 'mock_proc'))
-      self.assertEquals(lines[1], "Hello")
+      self.assertEqual(lines[1], "Hello")
 
   def testIterCmdOutputLines_exitStatusFail(self):
     with self.assertRaises(subprocess.CalledProcessError):
@@ -231,7 +230,7 @@ class CmdHelperIterCmdOutputLinesTest(unittest.TestCase):
           return_value=1) as mock_proc:
         for num, line in enumerate(
             cmd_helper._IterCmdOutputLines(mock_proc, 'mock_proc'), 1):
-          self.assertEquals(num, int(line))
+          self.assertEqual(num, int(line))
         # after reading all the output we get an exit status of 1
 
   def testIterCmdOutputLines_exitStatusIgnored(self):
@@ -241,7 +240,7 @@ class CmdHelperIterCmdOutputLinesTest(unittest.TestCase):
       for num, line in enumerate(
           cmd_helper._IterCmdOutputLines(
               mock_proc, 'mock_proc', check_status=False), 1):
-        self.assertEquals(num, int(line))
+        self.assertEqual(num, int(line))
 
   def testIterCmdOutputLines_exitStatusSkipped(self):
     with _MockProcess(
@@ -249,7 +248,7 @@ class CmdHelperIterCmdOutputLinesTest(unittest.TestCase):
         return_value=1) as mock_proc:
       for num, line in enumerate(
           cmd_helper._IterCmdOutputLines(mock_proc, 'mock_proc'), 1):
-        self.assertEquals(num, int(line))
+        self.assertEqual(num, int(line))
         # no exception will be raised because we don't attempt to read past
         # the end of the output and, thus, the status never gets checked
         if num == 2:
@@ -266,11 +265,11 @@ class CmdHelperIterCmdOutputLinesTest(unittest.TestCase):
           cmd_helper._IterCmdOutputLines(
               mock_proc, 'mock_proc', iter_timeout=5), 1):
         if num <= 2:
-          self.assertEquals(num, int(line))
+          self.assertEqual(num, int(line))
         elif num == 3:
-          self.assertEquals(None, line)
+          self.assertEqual(None, line)
         elif num == 4:
-          self.assertEquals('Awake', line)
+          self.assertEqual('Awake', line)
         else:
           self.fail()
 

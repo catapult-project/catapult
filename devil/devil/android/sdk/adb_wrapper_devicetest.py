@@ -70,7 +70,7 @@ class TestAdbWrapper(device_test_case.DeviceTestCase):
     self._adb.Push(path, device_path)
     files = dict(self._adb.Ls('/data/local/tmp'))
     self.assertTrue('testfile.txt' in files)
-    self.assertEquals(3, files['testfile.txt'].st_size)
+    self.assertEqual(3, files['testfile.txt'].st_size)
     self.assertEqual(self._adb.Shell('cat %s' % device_path), 'foo')
     self._adb.Pull(device_path, local_tmpdir)
     with open(os.path.join(local_tmpdir, 'testfile.txt'), 'r') as f:

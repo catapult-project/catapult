@@ -11,13 +11,13 @@ from devil.utils import geometry as g
 class PointTest(unittest.TestCase):
   def testStr(self):
     p = g.Point(1, 2)
-    self.assertEquals(str(p), '(1, 2)')
+    self.assertEqual(str(p), '(1, 2)')
 
   def testAdd(self):
     p = g.Point(1, 2)
     q = g.Point(3, 4)
     r = g.Point(4, 6)
-    self.assertEquals(p + q, r)
+    self.assertEqual(p + q, r)
 
   def testAdd_TypeErrorWithInvalidOperands(self):
     # pylint: disable=pointless-statement
@@ -30,7 +30,7 @@ class PointTest(unittest.TestCase):
   def testMult(self):
     p = g.Point(1, 2)
     r = g.Point(2, 4)
-    self.assertEquals(2 * p, r)  # Multiply by scalar on the left.
+    self.assertEqual(2 * p, r)  # Multiply by scalar on the left.
 
   def testMult_TypeErrorWithInvalidOperands(self):
     # pylint: disable=pointless-statement
@@ -45,14 +45,14 @@ class PointTest(unittest.TestCase):
 class RectangleTest(unittest.TestCase):
   def testStr(self):
     r = g.Rectangle(g.Point(0, 1), g.Point(2, 3))
-    self.assertEquals(str(r), '[(0, 1), (2, 3)]')
+    self.assertEqual(str(r), '[(0, 1), (2, 3)]')
 
   def testCenter(self):
     r = g.Rectangle(g.Point(0, 1), g.Point(2, 3))
     c = g.Point(1, 2)
-    self.assertEquals(r.center, c)
+    self.assertEqual(r.center, c)
 
   def testFromJson(self):
     r1 = g.Rectangle(g.Point(0, 1), g.Point(2, 3))
     r2 = g.Rectangle.FromDict({'top': 1, 'left': 0, 'bottom': 3, 'right': 2})
-    self.assertEquals(r1, r2)
+    self.assertEqual(r1, r2)

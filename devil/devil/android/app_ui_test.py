@@ -81,7 +81,7 @@ class UiAppTest(unittest.TestCase):
   def assertNodeHasAttribs(self, node, attr):
     # pylint: disable=protected-access
     for key, value in attr.items():
-      self.assertEquals(node._GetAttribute(key), value)
+      self.assertEqual(node._GetAttribute(key), value)
 
   def assertTappedOnceAt(self, x, y):
     self.device.RunShellCommand.assert_called_once_with(
@@ -95,7 +95,7 @@ class UiAppTest(unittest.TestCase):
             'content-desc': None,
             'resource-id': 'com.example.app:id/actionbar_title',
         })
-    self.assertEquals(node.bounds, geometry.Rectangle([121, 50], [1424, 178]))
+    self.assertEqual(node.bounds, geometry.Rectangle([121, 50], [1424, 178]))
 
   def testFind_byContentDesc(self):
     node = self.app.GetUiNode(content_desc='Social')
@@ -105,7 +105,7 @@ class UiAppTest(unittest.TestCase):
             'content-desc': 'Social',
             'resource-id': 'com.example.app:id/image_view',
         })
-    self.assertEquals(node.bounds, geometry.Rectangle([16, 466], [128, 578]))
+    self.assertEqual(node.bounds, geometry.Rectangle([16, 466], [128, 578]))
 
   def testFind_byResourceId_autocompleted(self):
     node = self.app.GetUiNode(resource_id='image_view')
@@ -129,7 +129,7 @@ class UiAppTest(unittest.TestCase):
             'content-desc': 'Promotions',
             'resource-id': 'com.example.app:id/image_view',
         })
-    self.assertEquals(node.bounds, geometry.Rectangle([16, 578], [128, 690]))
+    self.assertEqual(node.bounds, geometry.Rectangle([16, 578], [128, 690]))
 
   def testFind_notFound(self):
     node = self.app.GetUiNode(resource_id='does_not_exist')

@@ -30,7 +30,7 @@ class GetDevicesTest(unittest.TestCase):
     with mock.patch(
         'devil.android.device_utils.DeviceUtils.HealthyDevices',
         return_value=devices):
-      self.assertEquals(devices, script_common.GetDevices(None, None))
+      self.assertEqual(devices, script_common.GetDevices(None, None))
 
   def testWithDevices(self):
     devices = [
@@ -40,8 +40,8 @@ class GetDevicesTest(unittest.TestCase):
     with mock.patch(
         'devil.android.device_utils.DeviceUtils.HealthyDevices',
         return_value=devices):
-      self.assertEquals([device_utils.DeviceUtils('456')],
-                        script_common.GetDevices(['456'], None))
+      self.assertEqual([device_utils.DeviceUtils('456')],
+                       script_common.GetDevices(['456'], None))
 
   def testMissingDevice(self):
     with mock.patch(
@@ -75,7 +75,7 @@ class InitializeEnvironmentTest(unittest.TestCase):
     with tempfile.NamedTemporaryFile() as f:
       args = self.parser.parse_args(['--adb-path=%s' % f.name])
       script_common.InitializeEnvironment(args)
-      self.assertEquals(f.name, devil_env.config.LocalPath('adb'))
+      self.assertEqual(f.name, devil_env.config.LocalPath('adb'))
 
   def testNonExistentAdb(self):
     with tempfile.NamedTemporaryFile() as f:

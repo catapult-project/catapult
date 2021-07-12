@@ -79,13 +79,13 @@ class ParallelizerTestObjectHelper(object):
 class ParallelizerTest(unittest.TestCase):
   def testInitEmptyList(self):
     r = parallelizer.Parallelizer([]).replace('a', 'b').pGet(0.1)
-    self.assertEquals([], r)
+    self.assertEqual([], r)
 
   def testMethodCall(self):
     test_data = ['abc_foo', 'def_foo', 'ghi_foo']
     expected = ['abc_bar', 'def_bar', 'ghi_bar']
     r = parallelizer.Parallelizer(test_data).replace('_foo', '_bar').pGet(0.1)
-    self.assertEquals(expected, r)
+    self.assertEqual(expected, r)
 
   def testMutate(self):
     devices = [ParallelizerTestObject(True) for _ in range(0, 10)]
@@ -98,7 +98,7 @@ class ParallelizerTest(unittest.TestCase):
     results = ParallelizerTestObject.parallel(devices).doReturnTheThing().pGet(
         1)
     self.assertTrue(isinstance(results, list))
-    self.assertEquals(10, len(results))
+    self.assertEqual(10, len(results))
     self.assertTrue(all(results))
 
   def testAllRaise(self):
@@ -135,9 +135,9 @@ class ParallelizerTest(unittest.TestCase):
       for i in range(0, parallel_device_count):
         with open(completion_files[i].name) as f:
           if i == exception_index:
-            self.assertEquals('', f.read())
+            self.assertEqual('', f.read())
           else:
-            self.assertEquals('complete', f.read())
+            self.assertEqual('complete', f.read())
     finally:
       for f in completion_files:
         os.remove(f.name)
@@ -157,14 +157,14 @@ class ParallelizerTest(unittest.TestCase):
     results = (ParallelizerTestObject.parallel(devices).helper.
                doReturnStringThing().pGet(1))
     self.assertTrue(isinstance(results, list))
-    self.assertEquals(10, len(results))
+    self.assertEqual(10, len(results))
     for i in range(0, 10):
-      self.assertEquals(str(i), results[i])
+      self.assertEqual(str(i), results[i])
 
   def testGetItem(self):
     devices = [ParallelizerTestObject(range(i, i + 10)) for i in range(0, 10)]
     results = ParallelizerTestObject.parallel(devices)[9].pGet(1)
-    self.assertEquals(list(range(9, 19)), results)
+    self.assertEqual(list(range(9, 19)), results)
 
 
 class SyncParallelizerTest(unittest.TestCase):

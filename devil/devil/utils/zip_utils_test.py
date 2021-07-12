@@ -40,4 +40,4 @@ class WriteZipFileTest(unittest.TestCase):
           'bar/file2.txt',
       ]
 
-      self.assertEquals(sorted(expected_files), sorted(actual.namelist()))
+      self.assertEqual(sorted(expected_files), sorted(actual.namelist()))

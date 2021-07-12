@@ -269,7 +269,7 @@ class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
     self.assertIn(self.device.GetProp('service.adb.root'), ('', '0'))
     self.device.EnableRoot()
     self.assertTrue(self.device.HasRoot())
-    self.assertEquals(self.device.GetProp('service.adb.root'), '1')
+    self.assertEqual(self.device.GetProp('service.adb.root'), '1')
 
 
 class PsOutputCompatibilityTests(device_test_case.DeviceTestCase):

@@ -59,13 +59,13 @@ class SharedPrefsTest(unittest.TestCase):
   def testPropertyLifetime(self):
     prefs = shared_prefs.SharedPrefs(self.device, 'com.some.package',
                                      'prefs.xml')
-    self.assertEquals(len(prefs), 0)  # collection is empty before loading
+    self.assertEqual(len(prefs), 0)  # collection is empty before loading
     prefs.SetInt('myValue', 444)
-    self.assertEquals(len(prefs), 1)
-    self.assertEquals(prefs.GetInt('myValue'), 444)
+    self.assertEqual(len(prefs), 1)
+    self.assertEqual(prefs.GetInt('myValue'), 444)
     self.assertTrue(prefs.HasProperty('myValue'))
     prefs.Remove('myValue')
-    self.assertEquals(len(prefs), 0)
+    self.assertEqual(len(prefs), 0)
     self.assertFalse(prefs.HasProperty('myValue'))
     with self.assertRaises(KeyError):
       prefs.GetInt('myValue')
@@ -74,7 +74,7 @@ class SharedPrefsTest(unittest.TestCase):
     prefs = shared_prefs.SharedPrefs(self.device, 'com.some.package',
                                      'prefs.xml')
     prefs.SetInt('myValue', 444)
-    self.assertEquals(prefs.PropertyType('myValue'), 'int')
+    self.assertEqual(prefs.PropertyType('myValue'), 'int')
     with self.assertRaises(TypeError):
       prefs.GetString('myValue')
     with self.assertRaises(TypeError):
@@ -83,20 +83,20 @@ class SharedPrefsTest(unittest.TestCase):
   def testLoad(self):
     prefs = shared_prefs.SharedPrefs(self.device, 'com.some.package',
                                      'prefs.xml')
-    self.assertEquals(len(prefs), 0)  # collection is empty before loading
+    self.assertEqual(len(prefs), 0)  # collection is empty before loading
     prefs.Load()
-    self.assertEquals(len(prefs), len(self.expected_data))
-    self.assertEquals(prefs.AsDict(), self.expected_data)
+    self.assertEqual(len(prefs), len(self.expected_data))
+    self.assertEqual(prefs.AsDict(), self.expected_data)
     self.assertFalse(prefs.changed)
 
   def testClear(self):
     prefs = shared_prefs.SharedPrefs(self.device, 'com.some.package',
                                      'prefs.xml')
     prefs.Load()
-    self.assertEquals(prefs.AsDict(), self.expected_data)
+    self.assertEqual(prefs.AsDict(), self.expected_data)
     self.assertFalse(prefs.changed)
     prefs.Clear()
-    self.assertEquals(len(prefs), 0)  # collection is empty now
+    self.assertEqual(len(prefs), 0)  # collection is empty now
     self.assertTrue(prefs.changed)
 
   def testCommit(self):
@@ -106,7 +106,7 @@ class SharedPrefsTest(unittest.TestCase):
                                      'other_prefs.xml')
     self.assertFalse(self.device.FileExists(prefs.path))  # file does not exist
     prefs.Load()
-    self.assertEquals(len(prefs), 0)  # file did not exist, collection is empty
+    self.assertEqual(len(prefs), 0)  # file did not exist, collection is empty
     prefs.SetInt('magicNumber', 42)
     prefs.SetFloat('myMetric', 3.14)
     prefs.SetLong('bigNumner', 6000000000)
@@ -121,9 +121,9 @@ class SharedPrefsTest(unittest.TestCase):
 
     prefs = shared_prefs.SharedPrefs(self.device, 'com.some.package',
                                      'other_prefs.xml')
-    self.assertEquals(len(prefs), 0)  # collection is empty before loading
+    self.assertEqual(len(prefs), 0)  # collection is empty before loading
     prefs.Load()
-    self.assertEquals(
+    self.assertEqual(
         prefs.AsDict(), {
             'magicNumber': 42,
             'myMetric': 3.14,
@@ -142,20 +142,20 @@ class SharedPrefsTest(unittest.TestCase):
                           new_xml)
     prefs.Commit()
     # Since we didn't change anything, Commit() should be a no-op.
-    self.assertEquals(
+    self.assertEqual(
         self.device.ReadFile(
             '/data/data/com.some.package/shared_prefs/prefs.xml'), new_xml)
     prefs.Commit(force_commit=True)
     # Forcing the commit should restore the originally read XML.
-    self.assertEquals(
+    self.assertEqual(
         self.device.ReadFile(
             '/data/data/com.some.package/shared_prefs/prefs.xml'), INITIAL_XML)
 
   def testAsContextManager_onlyReads(self):
     with shared_prefs.SharedPrefs(self.device, 'com.some.package',
                                   'prefs.xml') as prefs:
-      self.assertEquals(prefs.AsDict(), self.expected_data)  # loaded and ready
-    self.assertEquals(self.device.WriteFile.call_args_list, [])  # did not write
+      self.assertEqual(prefs.AsDict(), self.expected_data)  # loaded and ready
+    self.assertEqual(self.device.WriteFile.call_args_list, [])  # did not write
 
   def testAsContextManager_readAndWrite(self):
     type(self.device).build_version_sdk = mock.PropertyMock(
@@ -172,7 +172,7 @@ class SharedPrefsTest(unittest.TestCase):
       # changes persisted
       self.assertTrue(prefs.GetBoolean('featureEnabled'))
       self.assertFalse(prefs.HasProperty('someHashValue'))
-      self.assertEquals(prefs.GetString('newString'), 'hello')
+      self.assertEqual(prefs.GetString('newString'), 'hello')
       self.assertTrue(prefs.HasProperty('databaseVersion'))  # still there
 
   def testAsContextManager_commitAborted(self):
@@ -184,11 +184,11 @@ class SharedPrefsTest(unittest.TestCase):
         prefs.SetString('newString', 'hello')
         prefs.SetInt('newString', 123)  # oops!
 
-    self.assertEquals(self.device.WriteFile.call_args_list, [])  # did not write
+    self.assertEqual(self.device.WriteFile.call_args_list, [])  # did not write
     with shared_prefs.SharedPrefs(self.device, 'com.some.package',
                                   'prefs.xml') as prefs:
       # contents were not modified
-      self.assertEquals(prefs.AsDict(), self.expected_data)
+      self.assertEqual(prefs.AsDict(), self.expected_data)
 
   def testEncryptedPath(self):
     type(self.device).build_version_sdk = mock.PropertyMock(

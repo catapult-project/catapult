@@ -44,9 +44,9 @@ class Md5SumTest(unittest.TestCase):
     with mock.patch(
         'devil.utils.cmd_helper.GetCmdOutput', new=mock_get_cmd_output):
       out = md5sum.CalculateHostMd5Sums(test_path)
-      self.assertEquals(1, len(out))
+      self.assertEqual(1, len(out))
       self.assertTrue('/test/host/file.dat' in out)
-      self.assertEquals('0123456789abcdef', out['/test/host/file.dat'])
+      self.assertEqual('0123456789abcdef', out['/test/host/file.dat'])
       mock_get_cmd_output.assert_called_once_with(
           [HOST_MD5_EXECUTABLE, "-gz", mock.ANY])
 
@@ -57,11 +57,11 @@ class Md5SumTest(unittest.TestCase):
     with mock.patch(
         'devil.utils.cmd_helper.GetCmdOutput', new=mock_get_cmd_output):
       out = md5sum.CalculateHostMd5Sums(test_paths)
-      self.assertEquals(2, len(out))
+      self.assertEqual(2, len(out))
       self.assertTrue('/test/host/file0.dat' in out)
-      self.assertEquals('0123456789abcdef', out['/test/host/file0.dat'])
+      self.assertEqual('0123456789abcdef', out['/test/host/file0.dat'])
       self.assertTrue('/test/host/file1.dat' in out)
-      self.assertEquals('123456789abcdef0', out['/test/host/file1.dat'])
+      self.assertEqual('123456789abcdef0', out['/test/host/file1.dat'])
       mock_get_cmd_output.assert_called_once_with(
           [HOST_MD5_EXECUTABLE, "-gz", mock.ANY])
 
@@ -70,7 +70,7 @@ class Md5SumTest(unittest.TestCase):
     device.RunShellCommand = mock.Mock(side_effect=Exception())
 
     out = md5sum.CalculateDeviceMd5Sums([], device)
-    self.assertEquals(0, len(out))
+    self.assertEqual(0, len(out))
 
   def testCalculateDeviceMd5Sums_singlePath(self):
     test_path = '/storage/emulated/legacy/test/file.dat'
@@ -81,11 +81,11 @@ class Md5SumTest(unittest.TestCase):
 
     with mock.patch('os.path.getsize', return_value=1337):
       out = md5sum.CalculateDeviceMd5Sums(test_path, device)
-      self.assertEquals(1, len(out))
+      self.assertEqual(1, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file.dat' in out)
-      self.assertEquals('0123456789abcdef',
-                        out['/storage/emulated/legacy/test/file.dat'])
-      self.assertEquals(1, len(device.RunShellCommand.call_args_list))
+      self.assertEqual('0123456789abcdef',
+                       out['/storage/emulated/legacy/test/file.dat'])
+      self.assertEqual(1, len(device.RunShellCommand.call_args_list))
 
   def testCalculateDeviceMd5Sums_list(self):
     test_path = [
@@ -101,14 +101,14 @@ class Md5SumTest(unittest.TestCase):
 
     with mock.patch('os.path.getsize', return_value=1337):
       out = md5sum.CalculateDeviceMd5Sums(test_path, device)
-      self.assertEquals(2, len(out))
+      self.assertEqual(2, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file0.dat' in out)
-      self.assertEquals('0123456789abcdef',
-                        out['/storage/emulated/legacy/test/file0.dat'])
+      self.assertEqual('0123456789abcdef',
+                       out['/storage/emulated/legacy/test/file0.dat'])
       self.assertTrue('/storage/emulated/legacy/test/file1.dat' in out)
-      self.assertEquals('123456789abcdef0',
-                        out['/storage/emulated/legacy/test/file1.dat'])
-      self.assertEquals(1, len(device.RunShellCommand.call_args_list))
+      self.assertEqual('123456789abcdef0',
+                       out['/storage/emulated/legacy/test/file1.dat'])
+      self.assertEqual(1, len(device.RunShellCommand.call_args_list))
 
   def testCalculateDeviceMd5Sums_generator(self):
     test_path = ('/storage/emulated/legacy/test/file%d.dat' % n
@@ -123,14 +123,14 @@ class Md5SumTest(unittest.TestCase):
 
     with mock.patch('os.path.getsize', return_value=1337):
       out = md5sum.CalculateDeviceMd5Sums(test_path, device)
-      self.assertEquals(2, len(out))
+      self.assertEqual(2, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file0.dat' in out)
-      self.assertEquals('0123456789abcdef',
-                        out['/storage/emulated/legacy/test/file0.dat'])
+      self.assertEqual('0123456789abcdef',
+                       out['/storage/emulated/legacy/test/file0.dat'])
       self.assertTrue('/storage/emulated/legacy/test/file1.dat' in out)
-      self.assertEquals('123456789abcdef0',
-                        out['/storage/emulated/legacy/test/file1.dat'])
-      self.assertEquals(1, len(device.RunShellCommand.call_args_list))
+      self.assertEqual('123456789abcdef0',
+                       out['/storage/emulated/legacy/test/file1.dat'])
+      self.assertEqual(1, len(device.RunShellCommand.call_args_list))
 
   def testCalculateDeviceMd5Sums_singlePath_linkerWarning(self):
     # See crbug/479966
@@ -147,11 +147,11 @@ class Md5SumTest(unittest.TestCase):
 
     with mock.patch('os.path.getsize', return_value=1337):
       out = md5sum.CalculateDeviceMd5Sums(test_path, device)
-      self.assertEquals(1, len(out))
+      self.assertEqual(1, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file.dat' in out)
-      self.assertEquals('0123456789abcdef',
-                        out['/storage/emulated/legacy/test/file.dat'])
-      self.assertEquals(1, len(device.RunShellCommand.call_args_list))
+      self.assertEqual('0123456789abcdef',
+                       out['/storage/emulated/legacy/test/file.dat'])
+      self.assertEqual(1, len(device.RunShellCommand.call_args_list))
 
   def testCalculateDeviceMd5Sums_list_fileMissing(self):
     test_path = [
@@ -168,11 +168,11 @@ class Md5SumTest(unittest.TestCase):
 
     with mock.patch('os.path.getsize', return_value=1337):
       out = md5sum.CalculateDeviceMd5Sums(test_path, device)
-      self.assertEquals(1, len(out))
+      self.assertEqual(1, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file0.dat' in out)
-      self.assertEquals('0123456789abcdef',
-                        out['/storage/emulated/legacy/test/file0.dat'])
-      self.assertEquals(1, len(device.RunShellCommand.call_args_list))
+      self.assertEqual('0123456789abcdef',
+                       out['/storage/emulated/legacy/test/file0.dat'])
+      self.assertEqual(1, len(device.RunShellCommand.call_args_list))
 
   def testCalculateDeviceMd5Sums_requiresBinary(self):
     test_path = '/storage/emulated/legacy/test/file.dat'
@@ -194,11 +194,11 @@ class Md5SumTest(unittest.TestCase):
         'os.path.isdir', return_value=True), (mock.patch(
             'os.path.getsize', return_value=1337)):
       out = md5sum.CalculateDeviceMd5Sums(test_path, device)
-      self.assertEquals(1, len(out))
+      self.assertEqual(1, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file.dat' in out)
-      self.assertEquals('0123456789abcdef',
-                        out['/storage/emulated/legacy/test/file.dat'])
-      self.assertEquals(3, len(device.RunShellCommand.call_args_list))
+      self.assertEqual('0123456789abcdef',
+                       out['/storage/emulated/legacy/test/file.dat'])
+      self.assertEqual(3, len(device.RunShellCommand.call_args_list))
       device.adb.Push.assert_called_once_with('test/out/directory/md5sum_dist',
                                               '/data/local/tmp/md5sum')
 

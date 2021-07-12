@@ -34,7 +34,7 @@ class WeakConstantTest(unittest.TestCase):
     """Ensure that the first read calls the initializer."""
     initializer = mock.Mock(return_value='initializer called')
     test_constant = lazy.WeakConstant(initializer)
-    self.assertEquals('initializer called', test_constant.read())
+    self.assertEqual('initializer called', test_constant.read())
     initializer.assert_called_once_with()
 
   def testInitialized(self):
@@ -43,7 +43,7 @@ class WeakConstantTest(unittest.TestCase):
     test_constant = lazy.WeakConstant(initializer)
     test_constant._initialized.set()
     test_constant._val = 'initializer not called'
-    self.assertEquals('initializer not called', test_constant.read())
+    self.assertEqual('initializer not called', test_constant.read())
     self.assertFalse(initializer.mock_calls)  # assert not called
 
   def testFirstCallHangs(self):
@@ -53,8 +53,8 @@ class WeakConstantTest(unittest.TestCase):
 
     initializer = mock.Mock(side_effect=dyn)
     test_constant = lazy.WeakConstant(initializer)
-    self.assertEquals('second try worked!',
-                      timeout_retry.Run(test_constant.read, 1, 1))
+    self.assertEqual('second try worked!',
+                     timeout_retry.Run(test_constant.read, 1, 1))
     initializer.assert_has_calls([mock.call(), mock.call()])
 
 

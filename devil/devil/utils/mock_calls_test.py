@@ -61,7 +61,7 @@ class TestCaseWithAssertCallsTest(mock_calls.TestCase):
     return thing
 
   def testCallTarget_succeds(self):
-    self.assertEquals(self.adb.Shell, self.call_target(self.call.adb.Shell))
+    self.assertEqual(self.adb.Shell, self.call_target(self.call.adb.Shell))
 
   def testCallTarget_failsExternal(self):
     with self.assertRaises(ValueError):
@@ -76,18 +76,18 @@ class TestCaseWithAssertCallsTest(mock_calls.TestCase):
       self.call_target(self.call.adb.RunShell('cmd').append)
 
   def testPatchCall_method(self):
-    self.assertEquals(42, self.get_answer())
+    self.assertEqual(42, self.get_answer())
     with self.patch_call(self.call.get_answer, return_value=123):
-      self.assertEquals(123, self.get_answer())
-    self.assertEquals(42, self.get_answer())
+      self.assertEqual(123, self.get_answer())
+    self.assertEqual(42, self.get_answer())
 
   def testPatchCall_attribute_method(self):
     with self.patch_call(self.call.adb.Shell, return_value='hello'):
-      self.assertEquals('hello', self.adb.Shell('echo hello'))
+      self.assertEqual('hello', self.adb.Shell('echo hello'))
 
   def testPatchCall_global(self):
     with self.patch_call(mock.call.os.getcwd, return_value='/some/path'):
-      self.assertEquals('/some/path', os.getcwd())
+      self.assertEqual('/some/path', os.getcwd())
 
   def testPatchCall_withSideEffect(self):
     with self.patch_call(self.call.adb.Shell, side_effect=ValueError):
@@ -95,17 +95,17 @@ class TestCaseWithAssertCallsTest(mock_calls.TestCase):
         self.adb.Shell('echo hello')
 
   def testPatchCall_property(self):
-    self.assertEquals(version_codes.LOLLIPOP, self.adb.build_version_sdk)
+    self.assertEqual(version_codes.LOLLIPOP, self.adb.build_version_sdk)
     with self.patch_call(
         self.call.adb.build_version_sdk, return_value=version_codes.KITKAT):
-      self.assertEquals(version_codes.KITKAT, self.adb.build_version_sdk)
-    self.assertEquals(version_codes.LOLLIPOP, self.adb.build_version_sdk)
+      self.assertEqual(version_codes.KITKAT, self.adb.build_version_sdk)
+    self.assertEqual(version_codes.LOLLIPOP, self.adb.build_version_sdk)
 
   def testAssertCalls_succeeds_simple(self):
-    self.assertEquals(42, self.get_answer())
+    self.assertEqual(42, self.get_answer())
     with self.assertCall(self.call.get_answer(), 123):
-      self.assertEquals(123, self.get_answer())
-    self.assertEquals(42, self.get_answer())
+      self.assertEqual(123, self.get_answer())
+    self.assertEqual(42, self.get_answer())
 
   def testAssertCalls_succeeds_multiple(self):
     with self.assertCalls(
@@ -113,11 +113,11 @@ class TestCaseWithAssertCallsTest(mock_calls.TestCase):
         (self.call.echo('hello'), 'hello'), (self.call.get_answer(), 11),
         self.call.adb.Push('this_file',
                            'that_file'), (self.call.get_answer(), 12)):
-      self.assertEquals(os.getcwd(), '/some/path')
-      self.assertEquals('hello', self.echo('hello'))
-      self.assertEquals(11, self.get_answer())
+      self.assertEqual(os.getcwd(), '/some/path')
+      self.assertEqual('hello', self.echo('hello'))
+      self.assertEqual(11, self.get_answer())
       self.adb.Push('this_file', 'that_file')
-      self.assertEquals(12, self.get_answer())
+      self.assertEqual(12, self.get_answer())
 
   def testAsserCalls_succeeds_withAction(self):
     with self.assertCall(self.call.adb.Shell('echo hello'), self.ShellError()):

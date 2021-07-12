@@ -36,7 +36,7 @@ class DecoratorsTest(unittest.TestCase):
       alwaysTimesOut(timeout=1, retries=0)
     elapsed_time = time.time() - start_time
     self.assertTrue(elapsed_time >= 1)
-    self.assertEquals(1, DecoratorsTest._decorated_function_called_count)
+    self.assertEqual(1, DecoratorsTest._decorated_function_called_count)
 
   def testFunctionDecoratorDoesRetries(self):
     """Tests that the base decorator handles the retries logic."""
@@ -49,7 +49,7 @@ class DecoratorsTest(unittest.TestCase):
 
     with self.assertRaises(device_errors.CommandFailedError):
       alwaysRaisesCommandFailedError(timeout=30, retries=10)
-    self.assertEquals(11, DecoratorsTest._decorated_function_called_count)
+    self.assertEqual(11, DecoratorsTest._decorated_function_called_count)
 
   def testFunctionDecoratorRequiresParams(self):
     """Tests that the base decorator requires timeout and retries params."""
@@ -68,8 +68,8 @@ class DecoratorsTest(unittest.TestCase):
     expected_retries = 1
     (actual_timeout, actual_retries) = (requiresExplicitTimeoutAndRetries(
         timeout=expected_timeout, retries=expected_retries))
-    self.assertEquals(expected_timeout, actual_timeout)
-    self.assertEquals(expected_retries, actual_retries)
+    self.assertEqual(expected_timeout, actual_timeout)
+    self.assertEqual(expected_retries, actual_retries)
 
   def testFunctionDecoratorTranslatesReraiserExceptions(self):
     """Tests that the explicit decorator translates reraiser exceptions."""
@@ -82,7 +82,7 @@ class DecoratorsTest(unittest.TestCase):
     with self.assertRaises(device_errors.CommandTimeoutError) as e:
       alwaysRaisesProvidedException(
           reraiser_thread.TimeoutError(exception_desc), timeout=10, retries=1)
-    self.assertEquals(exception_desc, str(e.exception))
+    self.assertEqual(exception_desc, str(e.exception))
 
   def testConditionalRetriesDecoratorRetries(self):
     def do_not_retry_no_adb_error(exc):
@@ -97,7 +97,7 @@ class DecoratorsTest(unittest.TestCase):
 
     with self.assertRaises(device_errors.CommandFailedError):
       alwaysRaisesCommandFailedError(timeout=10, retries=10)
-    self.assertEquals(11, actual_tries[0])
+    self.assertEqual(11, actual_tries[0])
 
   def testConditionalRetriesDecoratorDoesntRetry(self):
     def do_not_retry_no_adb_error(exc):
@@ -112,7 +112,7 @@ class DecoratorsTest(unittest.TestCase):
 
     with self.assertRaises(device_errors.NoAdbError):
       alwaysRaisesNoAdbError(timeout=10, retries=10)
-    self.assertEquals(1, actual_tries[0])
+    self.assertEqual(1, actual_tries[0])
 
   def testDefaultsFunctionDecoratorDoesTimeouts(self):
     """Tests that the defaults decorator handles timeout logic."""
@@ -128,14 +128,14 @@ class DecoratorsTest(unittest.TestCase):
       alwaysTimesOut()
     elapsed_time = time.time() - start_time
     self.assertTrue(elapsed_time >= 1)
-    self.assertEquals(1, DecoratorsTest._decorated_function_called_count)
+    self.assertEqual(1, DecoratorsTest._decorated_function_called_count)
 
     DecoratorsTest._decorated_function_called_count = 0
     with self.assertRaises(device_errors.CommandTimeoutError):
       alwaysTimesOut(timeout=2)
     elapsed_time = time.time() - start_time
     self.assertTrue(elapsed_time >= 2)
-    self.assertEquals(1, DecoratorsTest._decorated_function_called_count)
+    self.assertEqual(1, DecoratorsTest._decorated_function_called_count)
 
   def testDefaultsFunctionDecoratorDoesRetries(self):
     """Tests that the defaults decorator handles retries logic."""
@@ -148,12 +148,12 @@ class DecoratorsTest(unittest.TestCase):
 
     with self.assertRaises(device_errors.CommandFailedError):
       alwaysRaisesCommandFailedError()
-    self.assertEquals(11, DecoratorsTest._decorated_function_called_count)
+    self.assertEqual(11, DecoratorsTest._decorated_function_called_count)
 
     DecoratorsTest._decorated_function_called_count = 0
     with self.assertRaises(device_errors.CommandFailedError):
       alwaysRaisesCommandFailedError(retries=5)
-    self.assertEquals(6, DecoratorsTest._decorated_function_called_count)
+    self.assertEqual(6, DecoratorsTest._decorated_function_called_count)
 
   def testDefaultsFunctionDecoratorPassesValues(self):
     """Tests that the defaults decorator passes timeout and retries kwargs."""
@@ -162,15 +162,15 @@ class DecoratorsTest(unittest.TestCase):
     def alwaysReturnsTimeouts(timeout=None, retries=None):
       return timeout
 
-    self.assertEquals(30, alwaysReturnsTimeouts())
-    self.assertEquals(120, alwaysReturnsTimeouts(timeout=120))
+    self.assertEqual(30, alwaysReturnsTimeouts())
+    self.assertEqual(120, alwaysReturnsTimeouts(timeout=120))
 
     @decorators.WithTimeoutAndRetriesDefaults(30, 10)
     def alwaysReturnsRetries(timeout=None, retries=None):
       return retries
 
-    self.assertEquals(10, alwaysReturnsRetries())
-    self.assertEquals(1, alwaysReturnsRetries(retries=1))
+    self.assertEqual(10, alwaysReturnsRetries())
+    self.assertEqual(1, alwaysReturnsRetries(retries=1))
 
   def testDefaultsFunctionDecoratorTranslatesReraiserExceptions(self):
     """Tests that the explicit decorator translates reraiser exceptions."""
@@ -183,7 +183,7 @@ class DecoratorsTest(unittest.TestCase):
     with self.assertRaises(device_errors.CommandTimeoutError) as e:
       alwaysRaisesProvidedException(
           reraiser_thread.TimeoutError(exception_desc))
-    self.assertEquals(exception_desc, str(e.exception))
+    self.assertEqual(exception_desc, str(e.exception))
 
   def testExplicitFunctionDecoratorDoesTimeouts(self):
     """Tests that the explicit decorator handles timeout logic."""
@@ -199,7 +199,7 @@ class DecoratorsTest(unittest.TestCase):
       alwaysTimesOut()
     elapsed_time = time.time() - start_time
     self.assertTrue(elapsed_time >= 1)
-    self.assertEquals(1, DecoratorsTest._decorated_function_called_count)
+    self.assertEqual(1, DecoratorsTest._decorated_function_called_count)
 
   def testExplicitFunctionDecoratorDoesRetries(self):
     """Tests that the explicit decorator handles retries logic."""
@@ -212,7 +212,7 @@ class DecoratorsTest(unittest.TestCase):
 
     with self.assertRaises(device_errors.CommandFailedError):
       alwaysRaisesCommandFailedError()
-    self.assertEquals(11, DecoratorsTest._decorated_function_called_count)
+    self.assertEqual(11, DecoratorsTest._decorated_function_called_count)
 
   def testExplicitDecoratorTranslatesReraiserExceptions(self):
     """Tests that the explicit decorator translates reraiser exceptions."""
@@ -225,7 +225,7 @@ class DecoratorsTest(unittest.TestCase):
     with self.assertRaises(device_errors.CommandTimeoutError) as e:
       alwaysRaisesProvidedException(
           reraiser_thread.TimeoutError(exception_desc))
-    self.assertEquals(exception_desc, str(e.exception))
+    self.assertEqual(exception_desc, str(e.exception))
 
   class _MethodDecoratorTestObject(object):
     """An object suitable for testing the method decorator."""
@@ -295,7 +295,7 @@ class DecoratorsTest(unittest.TestCase):
         raise
     elapsed_time = time.time() - start_time
     self.assertTrue(elapsed_time >= 1)
-    self.assertEquals(1, test_obj.function_call_counters['alwaysTimesOut'])
+    self.assertEqual(1, test_obj.function_call_counters['alwaysTimesOut'])
 
   def testMethodDecoratorDoesRetries(self):
     """Tests that the method decorator handles retries logic."""
@@ -306,23 +306,23 @@ class DecoratorsTest(unittest.TestCase):
       except:
         traceback.print_exc()
         raise
-    self.assertEquals(
+    self.assertEqual(
         11, test_obj.function_call_counters['alwaysRaisesCommandFailedError'])
 
   def testMethodDecoratorPassesValues(self):
     """Tests that the method decorator passes timeout and retries kwargs."""
     test_obj = self._MethodDecoratorTestObject(
         self, default_timeout=42, default_retries=31)
-    self.assertEquals(42, test_obj.alwaysReturnsTimeout())
-    self.assertEquals(41, test_obj.alwaysReturnsTimeout(timeout=41))
-    self.assertEquals(31, test_obj.alwaysReturnsRetries())
-    self.assertEquals(32, test_obj.alwaysReturnsRetries(retries=32))
+    self.assertEqual(42, test_obj.alwaysReturnsTimeout())
+    self.assertEqual(41, test_obj.alwaysReturnsTimeout(timeout=41))
+    self.assertEqual(31, test_obj.alwaysReturnsRetries())
+    self.assertEqual(32, test_obj.alwaysReturnsRetries(retries=32))
 
   def testMethodDecoratorUsesMiniumumTimeout(self):
     test_obj = self._MethodDecoratorTestObject(
         self, default_timeout=42, default_retries=31)
-    self.assertEquals(100, test_obj.alwaysReturnsTimeoutWithMin())
-    self.assertEquals(41, test_obj.alwaysReturnsTimeoutWithMin(timeout=41))
+    self.assertEqual(100, test_obj.alwaysReturnsTimeoutWithMin())
+    self.assertEqual(41, test_obj.alwaysReturnsTimeoutWithMin(timeout=41))
 
   def testMethodDecoratorTranslatesReraiserExceptions(self):
     test_obj = self._MethodDecoratorTestObject(self)
@@ -331,7 +331,7 @@ class DecoratorsTest(unittest.TestCase):
     with self.assertRaises(device_errors.CommandTimeoutError) as e:
       test_obj.alwaysRaisesProvidedException(
           reraiser_thread.TimeoutError(exception_desc))
-    self.assertEquals(exception_desc, str(e.exception))
+    self.assertEqual(exception_desc, str(e.exception))
 
 
 if __name__ == '__main__':

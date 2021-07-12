@@ -398,18 +398,19 @@ class BatteryUtilsGetBatteryInfoTest(BatteryUtilsTest):
                                               '  level: 100',
                                               '  temperature: 321',
                                           ])):
-      self.assertEquals({
-          'AC powered': 'false',
-          'USB powered': 'true',
-          'level': '100',
-          'temperature': '321',
-      }, self.battery.GetBatteryInfo())
+      self.assertEqual(
+          {
+              'AC powered': 'false',
+              'USB powered': 'true',
+              'level': '100',
+              'temperature': '321',
+          }, self.battery.GetBatteryInfo())
 
   def testGetBatteryInfo_nothing(self):
     with self.assertCalls(
         (self.call.device.RunShellCommand(['dumpsys', 'battery'],
                                           check_return=True), [])):
-      self.assertEquals({}, self.battery.GetBatteryInfo())
+      self.assertEqual({}, self.battery.GetBatteryInfo())
 
 
 class BatteryUtilsGetChargingTest(BatteryUtilsTest):

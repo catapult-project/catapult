@@ -48,7 +48,7 @@ class FlagChangerTest(unittest.TestCase):
     self.assertTrue(self.device.PathExists(self.cmdline_path_legacy))
 
     changer = flag_changer.FlagChanger(self.device, 'chrome-command-line')
-    self.assertEquals(
+    self.assertEqual(
         changer._cmdline_path,  # pylint: disable=protected-access
         self.cmdline_path)
     self.assertFalse(self.device.PathExists(self.cmdline_path_legacy))
@@ -59,7 +59,7 @@ class FlagChangerTest(unittest.TestCase):
 
     changer = flag_changer.FlagChanger(
         self.device, 'chrome-command-line', use_legacy_path=True)
-    self.assertEquals(
+    self.assertEqual(
         changer._cmdline_path,  # pylint: disable=protected-access
         self.cmdline_path_legacy)
     self.assertFalse(self.device.PathExists(self.cmdline_path))

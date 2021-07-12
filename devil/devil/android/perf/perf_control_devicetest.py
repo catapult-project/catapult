@@ -26,10 +26,10 @@ class TestPerfControl(device_test_case.DeviceTestCase):
     try:
       perf.SetPerfProfilingMode()
       cpu_info = perf.GetCpuInfo()
-      self.assertEquals(len(perf._cpu_files), len(cpu_info))
+      self.assertEqual(len(perf._cpu_files), len(cpu_info))
       for _, online, governor in cpu_info:
         self.assertTrue(online)
-        self.assertEquals('performance', governor)
+        self.assertEqual('performance', governor)
     finally:
       perf.SetDefaultPerfMode()
 

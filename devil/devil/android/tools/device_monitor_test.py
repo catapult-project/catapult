@@ -100,7 +100,7 @@ class DeviceMonitorTest(unittest.TestCase):
     get_battery.return_value = self.battery
 
     status = device_monitor.get_all_status(None)
-    self.assertEquals(self.expected_status, status['devices'])
+    self.assertEqual(self.expected_status, status['devices'])
 
   @mock.patch('devil.android.battery_utils.BatteryUtils')
   @mock.patch('devil.android.device_utils.DeviceUtils.HealthyDevices')
@@ -119,7 +119,7 @@ class DeviceMonitorTest(unittest.TestCase):
     expected_status_no_battery['device_cereal'].pop('battery')
 
     status = device_monitor.get_all_status(None)
-    self.assertEquals(expected_status_no_battery, status['devices'])
+    self.assertEqual(expected_status_no_battery, status['devices'])
 
   @mock.patch('devil.android.battery_utils.BatteryUtils')
   @mock.patch('devil.android.device_utils.DeviceUtils.HealthyDevices')
@@ -135,7 +135,7 @@ class DeviceMonitorTest(unittest.TestCase):
     expected_status_no_ps['device_cereal'].pop('processes')
 
     status = device_monitor.get_all_status(None)
-    self.assertEquals(expected_status_no_ps, status['devices'])
+    self.assertEqual(expected_status_no_ps, status['devices'])
 
   @mock.patch('devil.android.battery_utils.BatteryUtils')
   @mock.patch('devil.android.device_utils.DeviceUtils.HealthyDevices')
@@ -149,7 +149,7 @@ class DeviceMonitorTest(unittest.TestCase):
     expected_status_no_temp['device_cereal'].pop('temp')
 
     status = device_monitor.get_all_status(None)
-    self.assertEquals(expected_status_no_temp, status['devices'])
+    self.assertEqual(expected_status_no_temp, status['devices'])
 
   @mock.patch('devil.android.battery_utils.BatteryUtils')
   @mock.patch('devil.android.device_utils.DeviceUtils.HealthyDevices')
@@ -167,7 +167,7 @@ class DeviceMonitorTest(unittest.TestCase):
     expected_status['bad_device'] = {'state': 'offline'}
 
     status = device_monitor.get_all_status(denylist)
-    self.assertEquals(expected_status, status['devices'])
+    self.assertEqual(expected_status, status['devices'])
 
   @mock.patch('devil.android.battery_utils.BatteryUtils')
   @mock.patch('devil.android.device_utils.DeviceUtils.HealthyDevices')
@@ -180,7 +180,7 @@ class DeviceMonitorTest(unittest.TestCase):
     expected_status_no_temp['device_cereal'].pop('temp')
 
     status = device_monitor.get_all_status(None)
-    self.assertEquals(self.expected_status, status['devices'])
+    self.assertEqual(self.expected_status, status['devices'])
 
 
 if __name__ == '__main__':

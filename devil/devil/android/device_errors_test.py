@@ -14,7 +14,7 @@ class DeviceErrorsTest(unittest.TestCase):
   def assertIsPicklable(self, original):
     pickled = pickle.dumps(original)
     reconstructed = pickle.loads(pickled)
-    self.assertEquals(original, reconstructed)
+    self.assertEqual(original, reconstructed)
 
   def testPicklable_AdbCommandFailedError(self):
     original = device_errors.AdbCommandFailedError(
