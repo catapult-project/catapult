@@ -3721,7 +3721,10 @@ class DeviceUtils(object):
                 devices.append(device)
                 break
             else:
-              logger.warning("Device %s doesn't support required ABIs.", serial)
+              logger.warning(
+                  "Device %s doesn't support required ABIs "
+                  "(supported: %s, required: %s)", serial,
+                  ','.join(supported_abis), ','.join(abis))
 
       if len(devices) == 0 and not allow_no_devices:
         raise device_errors.NoDevicesError()
