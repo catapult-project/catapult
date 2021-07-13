@@ -22,22 +22,33 @@ def main():
   parser.add_option("-d", "--device", dest="device",
                     help="device the test runs on", metavar="DEVICE")
   options, _args = parser.parse_args()  # pylint: disable=unused-variable
-  unfiltered_suite = unittest.TestLoader().discover(
+  loader = unittest.defaultTestLoader
+  unfiltered_suite = loader.discover(
       _SYSTRACE_DIR,
       pattern = '*_unittest.py',
       top_level_dir=_SYSTRACE_DIR)
   suite = unittest.TestSuite()
+  all_tests_loaded = True
+  if hasattr(loader, 'errors') and loader.errors:
+    sys.stderr.write(
+        '%d errors on discovering tests:\n'
+        % len(loader.errors))
+    for error in loader.errors:
+      sys.stderr.write(error)
+    all_tests_loaded = False
 
   for test_group in unfiltered_suite._tests:
     for inner_group in test_group:
+      if hasattr(unittest.loader, '_FailedTest') and \
+          isinstance(inner_group, unittest.loader._FailedTest):
+        continue
       for test in inner_group:
         method = getattr(
           test, test._testMethodName)  # pylint: disable=protected-access
         if not decorators.ShouldSkip(method, options.device):
           suite.addTest(test)
-
   result = unittest.TextTestRunner(verbosity=2).run(suite)
-  if result.wasSuccessful():
+  if result.wasSuccessful() and all_tests_loaded:
     sys.exit(0)
   else:
     sys.exit(1)

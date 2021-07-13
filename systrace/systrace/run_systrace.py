@@ -11,19 +11,11 @@ the kernel.  It creates an HTML file for visualizing the trace.
 """
 
 # Make sure we're using a new enough version of Python.
-# The flags= parameter of re.sub() is new in Python 2.7. And Systrace does not
-# support Python 3 yet.
+# The flags= parameter of re.sub() is new in Python 2.7.
 
 # pylint: disable=wrong-import-position
 from __future__ import print_function
 import sys
-
-version = sys.version_info[:2]
-if version != (2, 7):
-  sys.stderr.write('This script does not support Python %d.%d. '
-                   'Please use Python 2.7.\n' % version)
-  sys.exit(1)
-
 
 import optparse
 import os
