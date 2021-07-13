@@ -123,8 +123,10 @@ def _AllSdkThirdPartyLibraryPaths():
     if 'google-cloud-sdk' not in sdk_bin_path:
       continue
 
-    appengine_path = os.path.join(
-        os.path.dirname(sdk_bin_path), 'platform', 'google_appengine')
+    if not os.path.isdir(sdk_bin_path):
+      sdk_bin_path = os.path.dirname(sdk_bin_path)
+
+    appengine_path = os.path.join(sdk_bin_path, 'platform', 'google_appengine')
     paths.append(appengine_path)
     sys.path.insert(0, appengine_path)
     break
