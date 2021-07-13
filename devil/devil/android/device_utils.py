@@ -3045,7 +3045,11 @@ class DeviceUtils(object):
     Raises:
       CommandTimeoutError on timeout.
     """
-    return self.GetProp('ro.product.cpu.abilist', cache=True).split(',')
+    supported_abis = self.GetProp('ro.product.cpu.abilist', cache=True)
+    return [
+        supported_abi for supported_abi in supported_abis.split(',')
+        if supported_abi
+    ]
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetFeatures(self, timeout=None, retries=None):
