@@ -17,6 +17,12 @@ Do not use the github issue tracker.
 
 # Workflow
 
+*Note*: If you are a chromium project contributor and already have a `chromium/src`  checkout,
+you probably want to use the clone of this repo under that checkout's `third_party`
+directory instead of cloning and editing this repo directly.
+See [Contributing from a Chromium checkout](#contributing-from-a-chromium-checkout)
+for details.
+
 Install [depot_tools](
 https://www.chromium.org/developers/how-tos/install-depot-tools).
 
