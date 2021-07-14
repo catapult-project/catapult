@@ -7,6 +7,7 @@
 .settings
 .tags
 tags
+*,cover
 
 # Created by devil/devil/utils/update_dependencies.py.
 /out-devil-deps/
