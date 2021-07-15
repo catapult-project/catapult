@@ -31,8 +31,8 @@ class WaltAgentTest(unittest.TestCase):
   @decorators.HostOnlyTest
   def test_format_clock_sync_marker(self):
     actual_marker = walt_agent.format_clock_sync_marker(
-                    'some_sync_id', 12345678901234)
-    expected_marker = ('<0>-0  (-----) [001] ...1  12345.6789012: ' +
+                    'some_sync_id', 123456789012)
+    expected_marker = ('<0>-0  (-----) [001] ...1  123.456789012: ' +
                        'tracing_mark_write: trace_event_clock_sync: ' +
                        'name=some_sync_id\n')
     self.assertEqual(actual_marker, expected_marker)

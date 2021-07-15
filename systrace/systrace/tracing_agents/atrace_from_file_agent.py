@@ -8,7 +8,8 @@ import re
 import stat
 import subprocess
 import sys
-import urllib2
+from six.moves.urllib.request import urlopen  # pylint: disable=import-error
+from six.moves.urllib.error import URLError   # pylint: disable=import-error
 
 import py_utils
 
@@ -42,10 +43,10 @@ def convert_perfetto_trace(in_file):
   traceconv_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                           '../traceconv'))
   try:
-    traceconv = urllib2.urlopen('https://get.perfetto.dev/traceconv')
+    traceconv = urlopen('https://get.perfetto.dev/traceconv')
     with open(traceconv_path, 'w') as out:
       out.write(traceconv.read())
-  except urllib2.URLError:
+  except URLError:
     print('Could not download traceconv to convert the Perfetto trace.')
     sys.exit(1)
   os.chmod(traceconv_path, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)

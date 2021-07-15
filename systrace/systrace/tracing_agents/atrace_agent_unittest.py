@@ -4,7 +4,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import contextlib
 import logging
 import os
 import unittest
@@ -86,8 +85,8 @@ class AtraceAgentTest(unittest.TestCase):
 
   @decorators.HostOnlyTest
   def test_strip_and_decompress_trace(self):
-    with contextlib.nested(open(ATRACE_DATA_RAW, 'r'),
-                           open(ATRACE_DATA_STRIPPED, 'r')) as (f1, f2):
+    with open(ATRACE_DATA_RAW, 'r') as f1, \
+        open(ATRACE_DATA_STRIPPED, 'r') as f2:
       atrace_data_raw = f1.read()
       atrace_data_stripped = f2.read()
 
@@ -96,8 +95,8 @@ class AtraceAgentTest(unittest.TestCase):
 
   @decorators.HostOnlyTest
   def test_extract_tgids(self):
-    with contextlib.nested(open(ATRACE_PROCFS_DUMP, 'r'),
-                           open(ATRACE_EXTRACTED_TGIDS, 'r')) as (f1, f2):
+    with open(ATRACE_PROCFS_DUMP, 'r') as f1, \
+        open(ATRACE_EXTRACTED_TGIDS, 'r') as f2:
 
       atrace_procfs_dump = f1.read()
       atrace_procfs_extracted = f2.read()
@@ -109,9 +108,9 @@ class AtraceAgentTest(unittest.TestCase):
 
   @decorators.HostOnlyTest
   def test_fix_missing_tgids(self):
-    with contextlib.nested(open(ATRACE_EXTRACTED_TGIDS, 'r'),
-                           open(ATRACE_MISSING_TGIDS, 'r'),
-                           open(ATRACE_FIXED_TGIDS, 'r')) as (f1, f2, f3):
+    with open(ATRACE_EXTRACTED_TGIDS, 'r') as f1, \
+        open(ATRACE_MISSING_TGIDS, 'r') as f2, \
+        open(ATRACE_FIXED_TGIDS, 'r') as f3:
 
       atrace_data = f2.read()
       tgid_map = eval(f1.read())
