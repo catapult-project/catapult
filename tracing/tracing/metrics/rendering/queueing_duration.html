@@ -22,8 +22,8 @@ found in the LICENSE file.
  * ScheduledActionSendBeginMainFrame event in the compositor thread and the
  * corresponding BeginMainFrame event in the main thread.
  *
- * TODO(chiniforooshan): Does it make sense to just ignore data from OOPIF
- * processes, like what we are doing here?
+ * For OOPIF they might send a BeginMainFrame with the same ID, in those cases
+ * the earliest slice's time is used.
  */
 tr.exportTo('tr.metrics.rendering', function() {
   // Various tracing events.
@@ -38,7 +38,12 @@ tr.exportTo('tr.metrics.rendering', function() {
       if (slice.title !== title) continue;
       const id = slice.args.begin_frame_id;
       if (id === undefined) throw new Error('Event is missing begin_frame_id');
-      if (out.has(id)) throw new Error(`There must be exactly one ${title}`);
+      // If we've already seen an even with this name, we only track the first.
+      // Multiple ThreadProxy::BeginMainFrames can occur when OOPIF share the
+      // same origin and get routed to the same RendererMain.
+      if (out.has(id) && out[id] <= slice.start) {
+          continue;
+      }
       out.set(id, slice.start);
     }
     return out;
