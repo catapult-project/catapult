@@ -184,7 +184,7 @@ class DependencyManagerUtilTest(unittest.TestCase):
       dependency_manager_util.VerifySafeArchive(archive)
 
   def testVerifySafeArchiveFailsOnRelativePathWithPardir(self):
-    tmp_file = tempfile.NamedTemporaryFile(delete=False)
+    tmp_file = tempfile.NamedTemporaryFile(delete=False, mode='w+')
     tmp_file_name = tmp_file.name
     tmp_file.write('Bad file!')
     tmp_file.close()

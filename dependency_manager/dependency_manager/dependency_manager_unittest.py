@@ -4,6 +4,7 @@
 
 # pylint: disable=unused-argument
 
+import six
 import mock
 
 from pyfakefs import fake_filesystem_unittest
@@ -151,7 +152,7 @@ class DependencyManagerTest(fake_filesystem_unittest.TestCase):
                             dep3: {plat3: dep_info}}
 
     dep_manager._UpdateDependencies(base_config_mock)
-    self.assertItemsEqual(expected_lookup_dict, dep_manager._lookup_dict)
+    six.assertCountEqual(self, expected_lookup_dict, dep_manager._lookup_dict)
     self.assertFalse(dep_info.Update.called)
     self.assertFalse(dep_info_a.Update.called)
     self.assertFalse(dep_info_b.Update.called)
@@ -250,7 +251,7 @@ class DependencyManagerTest(fake_filesystem_unittest.TestCase):
                             dep1: {plat1: dep_info_c}}
 
     dep_manager._UpdateDependencies(base_config_mock)
-    self.assertItemsEqual(expected_lookup_dict, dep_manager._lookup_dict)
+    six.assertCountEqual(self, expected_lookup_dict, dep_manager._lookup_dict)
     dep_info_a.Update.assert_called_once_with(dep_info)
     self.assertFalse(dep_info.Update.called)
     self.assertFalse(dep_info_b.Update.called)

@@ -11,7 +11,7 @@ import dependency_manager
 def _CreateFile(path):
   """Create file at specific |path|, with specific |content|."""
   with open(path, 'wb') as f:
-    f.write('x')
+    f.write(b'x')
 
 
 def _ChangeFileTime(path, time0, days):
