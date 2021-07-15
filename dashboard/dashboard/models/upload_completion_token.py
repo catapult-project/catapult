@@ -70,10 +70,10 @@ class Token(internal_only_model.InternalOnlyModel):
     all_states.append(self.state_)
     if all(s == State.PENDING for s in all_states):
       return State.PENDING
-    if any(s in (State.PROCESSING, State.PENDING) for s in all_states):
-      return State.PROCESSING
     if any(s == State.FAILED for s in all_states):
       return State.FAILED
+    if any(s in (State.PROCESSING, State.PENDING) for s in all_states):
+      return State.PROCESSING
     return State.COMPLETED
 
   @classmethod

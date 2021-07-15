@@ -145,7 +145,7 @@ class UploadInfo(testing_common.TestCase):
         'file': None,
         'created': str(token.creation_time),
         'lastUpdated': str(token.update_time),
-        'state': 'PROCESSING',
+        'state': 'FAILED',
         'measurements': [
             {
                 'name': test_path1,

@@ -65,7 +65,7 @@ class UploadCompletionTokenTest(testing_common.TestCase):
 
     measurement1.state = upload_completion_token.State.FAILED
     measurement1.put()
-    self.assertEqual(token.state, upload_completion_token.State.PROCESSING)
+    self.assertEqual(token.state, upload_completion_token.State.FAILED)
 
     token.UpdateState(upload_completion_token.State.COMPLETED)
     measurement2.state = upload_completion_token.State.COMPLETED
