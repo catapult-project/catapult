@@ -651,6 +651,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
   def testWaitUntilFullyBooted_succeedsWithDefaults(self):
     with self.assertCalls(
         self.call.adb.WaitForDevice(),
+        # is_device_connection_ready
+        (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
         (self.call.adb.Shell('test -d /fake/storage/path'), ''),
@@ -664,6 +666,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
   def testWaitUntilFullyBooted_succeedsWithWifi(self):
     with self.assertCalls(
         self.call.adb.WaitForDevice(),
+        # is_device_connection_ready
+        (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
         (self.call.adb.Shell('test -d /fake/storage/path'), ''),
@@ -680,6 +684,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
   def testWaitUntilFullyBooted_succeedsWithDecryptFDE(self):
     with self.assertCalls(
         self.call.adb.WaitForDevice(),
+        # is_device_connection_ready
+        (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
         (self.call.adb.Shell('test -d /fake/storage/path'), ''),
@@ -696,6 +702,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
   def testWaitUntilFullyBooted_succeedsWithDecryptNotFDE(self):
     with self.assertCalls(
         self.call.adb.WaitForDevice(),
+        # is_device_connection_ready
+        (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
         (self.call.adb.Shell('test -d /fake/storage/path'), ''),
@@ -708,9 +716,29 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('vold.decrypt', cache=False), '')):
       self.device.WaitUntilFullyBooted(wifi=False, decrypt=True)
 
+  def testWaitUntilFullyBooted_deviceIsRock960(self):
+    with self.assertCalls(
+        self.call.adb.WaitForDevice(),
+        # is_device_connection_ready
+        (self.call.device.GetProp('ro.product.model'), 'rk3399'),
+        (self.call.device.GetProp('sys.usb.config'), 'mtp,adb'),
+        (self.call.device.GetProp('ro.product.model'), 'rk3399'),
+        (self.call.device.GetProp('sys.usb.config'), 'adb'),
+        # sd_card_ready
+        (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
+        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        # pm_ready
+        (self.call.device._GetApplicationPathsInternal(
+            'android', skip_cache=True), ['package:/some/fake/path']),
+        # boot_completed
+        (self.call.device.GetProp('sys.boot_completed', cache=False), '1')):
+      self.device.WaitUntilFullyBooted(wifi=False, decrypt=False)
+
   def testWaitUntilFullyBooted_deviceNotInitiallyAvailable(self):
     with self.assertCalls(
         self.call.adb.WaitForDevice(),
+        # is_device_connection_ready
+        (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), self.AdbCommandError()),
         # sd_card_ready
@@ -732,6 +760,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
   def testWaitUntilFullyBooted_deviceBrieflyOffline(self):
     with self.assertCalls(
         self.call.adb.WaitForDevice(),
+        # is_device_connection_ready
+        (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
         (self.call.adb.Shell('test -d /fake/storage/path'), ''),
@@ -748,6 +778,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
   def testWaitUntilFullyBooted_sdCardReadyFails_noPath(self):
     with self.assertCalls(
         self.call.adb.WaitForDevice(),
+        # is_device_connection_ready
+        (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), self.CommandError())):
       with self.assertRaises(device_errors.CommandFailedError):
@@ -756,6 +788,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
   def testWaitUntilFullyBooted_sdCardReadyFails_notExists(self):
     with self.assertCalls(
         self.call.adb.WaitForDevice(),
+        # is_device_connection_ready
+        (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
         (self.call.adb.Shell('test -d /fake/storage/path'), self.ShellError()),
@@ -772,6 +806,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
   def testWaitUntilFullyBooted_devicePmFails(self):
     with self.assertCalls(
         self.call.adb.WaitForDevice(),
+        # is_device_connection_ready
+        (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
         (self.call.adb.Shell('test -d /fake/storage/path'), ''),
@@ -790,6 +826,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
   def testWaitUntilFullyBooted_bootFails(self):
     with self.assertCalls(
         self.call.adb.WaitForDevice(),
+        # is_device_connection_ready
+        (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
         (self.call.adb.Shell('test -d /fake/storage/path'), ''),
@@ -809,6 +847,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
   def testWaitUntilFullyBooted_wifiFails(self):
     with self.assertCalls(
         self.call.adb.WaitForDevice(),
+        # is_device_connection_ready
+        (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
         (self.call.adb.Shell('test -d /fake/storage/path'), ''),
@@ -829,6 +869,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
   def testWaitUntilFullyBooted_decryptFails(self):
     with self.assertCalls(
         self.call.adb.WaitForDevice(),
+        # is_device_connection_ready
+        (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
         (self.call.adb.Shell('test -d /fake/storage/path'), ''),

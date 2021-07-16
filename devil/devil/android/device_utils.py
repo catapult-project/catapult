@@ -301,6 +301,11 @@ _DUMPSYS_PACKAGE_RE_STR =\
 PS_COLUMNS = ('name', 'pid', 'ppid')
 ProcessInfo = collections.namedtuple('ProcessInfo', PS_COLUMNS)
 
+# The list of Rock960 device family.
+ROCK960_DEVICE_LIST = [
+    'rk3399', 'rk3399-all', 'rk3399-box'
+]
+
 
 @decorators.WithExplicitTimeoutAndRetries(_DEFAULT_TIMEOUT, _DEFAULT_RETRIES)
 def GetAVDs():
@@ -1021,6 +1026,35 @@ class DeviceUtils(object):
       DeviceUnreachableError if the device becomes unresponsive.
     """
 
+    def is_device_connection_ready():
+      # Rock960 devices re-connect during boot process, presumably
+      # due to change in USB protocol configuration, which causes restart of adb
+      # daemon running on device and "re-connection" seen from adb client side.
+      # Since device is unreachable after disconnecting and before re-connecting
+      # for the second time, we must wait for re-connection and give control
+      # back to devil code only when sys.usb.config property, which allows us to
+      # differentiate between these states, switches to the right value. This
+      # way we avoid "device unreachable" errors occuring when re-connections
+      # happens.
+      try:
+        if self.GetProp('ro.product.model') not in ROCK960_DEVICE_LIST:
+          return True
+      except device_errors.CommandFailedError as e:
+        logging.warn('Failed to get product_model: %s', e)
+        return False
+      except device_errors.DeviceUnreachableError:
+        logging.warn('Failed to get product_model: device unreachable')
+        return False
+
+      try:
+        return self.GetProp('sys.usb.config') == 'adb'
+      except device_errors.CommandFailedError as e:
+        logging.warn('Failed to get prop "sys.usb.config": %s', e)
+        return False
+      except device_errors.DeviceUnreachableError:
+        logging.warn('Failed to get prop "sys.usb.config": device unreachable')
+        return False
+
     def sd_card_ready():
       try:
         self.RunShellCommand(
@@ -1060,6 +1094,8 @@ class DeviceUtils(object):
         return False
 
     self.adb.WaitForDevice()
+    # Rock960 devices connected twice. Wait for device ready.
+    timeout_retry.WaitFor(is_device_connection_ready)
     timeout_retry.WaitFor(sd_card_ready)
     timeout_retry.WaitFor(pm_ready)
     timeout_retry.WaitFor(boot_completed)
