@@ -532,7 +532,7 @@ class DeviceUtils(object):
     try:
       return self.adb.GetState() == 'device'
     except base_error.BaseError as exc:
-      logger.info('Failed to get state: %s', exc)
+      logger.info('Failed to get state: %s', exc, exc_info=True)
       return False
 
   @decorators.WithTimeoutAndRetriesFromInstance()
