@@ -1115,8 +1115,6 @@ class DeviceUtils(object):
 
   INSTALL_DEFAULT_TIMEOUT = 8 * _DEFAULT_TIMEOUT
   MODULES_SRC_DIRECTORY_PATH = '/data/local/tmp/modules'
-  MODULES_LOCAL_TESTING_PATH_TEMPLATE = (
-      '/sdcard/Android/data/{}/files/local_testing')
 
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=INSTALL_DEFAULT_TIMEOUT)
@@ -1197,15 +1195,9 @@ class DeviceUtils(object):
   def _FakeInstall(self, fake_apk_paths, fake_modules, package_name):
     with tempfile_ext.NamedTemporaryDirectory() as modules_dir:
       device_dir = posixpath.join(self.MODULES_SRC_DIRECTORY_PATH, package_name)
-      # Temporarily support both options until upstream switches to using local
-      # testing path only. Then support for src directory path can be removed.
-      # TODO(crbug.com/1220662): Remove MODULES_SRC_DIRECTORY_PATH.
-      device_dir2 = self.MODULES_LOCAL_TESTING_PATH_TEMPLATE.format(
-          package_name)
       if not fake_modules:
         # Push empty module dir to clear device dir and update the cache.
-        self.PushChangedFiles([(modules_dir, device_dir),
-                               (modules_dir, device_dir2)],
+        self.PushChangedFiles([(modules_dir, device_dir)],
                               delete_device_stale=True)
         return
 
@@ -1227,8 +1219,7 @@ class DeviceUtils(object):
 
       assert not still_need_master, (
           'Missing master apk file for %s' % still_need_master)
-      self.PushChangedFiles([(modules_dir, device_dir),
-                             (modules_dir, device_dir2)],
+      self.PushChangedFiles([(modules_dir, device_dir)],
                             delete_device_stale=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance(

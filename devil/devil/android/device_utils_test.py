@@ -1126,9 +1126,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
            mock_zip_temp_dir),
           (mock.call.os.rename('fake1-master.apk', '/test/tmp/dir/fake1.apk')),
           (self.call.device.PushChangedFiles(
-              [('/test/tmp/dir', '/data/local/tmp/modules/test.package'),
-               ('/test/tmp/dir',
-                '/sdcard/Android/data/test.package/files/local_testing')],
+              [('/test/tmp/dir', '/data/local/tmp/modules/test.package')],
               delete_device_stale=True)),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
           (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE), []),
