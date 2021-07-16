@@ -341,7 +341,7 @@ class MemoryMap(NodeWrapper):
     def file_offset(self, value):
       self._file_offset = value
 
-    def __cmp__(self, other):
+    def compare(self, other): # pylint: disable=invalid-name
       if isinstance(other, type(self)):
         other_start_address = other._start_address
       elif isinstance(other, six.integer_types):
@@ -354,6 +354,28 @@ class MemoryMap(NodeWrapper):
         return 1
       else:
         return 0
+
+    if six.PY2:
+      def __cmp__(self, other):
+        return self.compare(other)
+    else:
+      def __eq__(self, other):
+        return self.compare(other) == 0
+
+      def __ne__(self, other):
+        return self.compare(other) != 0
+
+      def __lt__(self, other):
+        return self.compare(other) < 0
+
+      def __le__(self, other):
+        return self.compare(other) <= 0
+
+      def __gt__(self, other):
+        return self.compare(other) > 0
+
+      def __ge__(self, other):
+        return self.compare(other) >= 0
 
     def __repr__(self):
       return 'Region(0x{:X} - 0x{:X}, {})'.format(
@@ -1654,7 +1676,11 @@ def FetchAndExtractBreakpadSymbols(symbol_base_directory,
 
 def OpenTraceFile(file_path, mode):
   if file_path.endswith('.gz'):
-    return gzip.open(file_path, mode + 'b')
+    if six.PY2:
+      return gzip.open(file_path, mode + 'b')
+    else:
+      return gzip.open( # pylint: disable=unexpected-keyword-arg
+          file_path, mode + 't', encoding='utf-8', newline='')
   else:
     return open(file_path, mode + 't')
 
