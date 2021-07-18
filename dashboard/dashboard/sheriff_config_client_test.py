@@ -159,7 +159,12 @@ class SheriffConfigClientTest(testing_common.TestCase):
             "visibility": "PUBLIC",
             "anomaly_configs": [
               {
-                "max_window_size": 200
+                "max_window_size": 200,
+                "min_segment_size": 6,
+                "min_absolute_change": 0,
+                "min_relative_change": 0.01,
+                "min_steppiness": 0.5,
+                "multiple_of_std_dev": 2.5
               }
             ]
           }
