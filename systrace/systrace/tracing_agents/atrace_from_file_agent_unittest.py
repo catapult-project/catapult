@@ -4,7 +4,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import contextlib
 import os
 import unittest
 
@@ -37,8 +36,8 @@ class AtraceFromFileAgentTest(unittest.TestCase):
                                 '-o',
                                 output_file_name])
         # and verify file contents
-        with contextlib.nested(open(output_file_name, 'r'),
-                               open(DECOMPRESSED_ATRACE_DATA, 'r')) as (f1, f2):
+        with open(output_file_name, 'r') as f1, \
+            open(DECOMPRESSED_ATRACE_DATA, 'r') as f2:
           full_trace = f1.read()
           expected_contents = f2.read()
           self.assertTrue(expected_contents in full_trace)
@@ -58,8 +57,8 @@ class AtraceFromFileAgentTest(unittest.TestCase):
                               '--from-file',
                               COMPRESSED_ATRACE_DATA])
       # and verify file contents
-      with contextlib.nested(open(output_file_name, 'r'),
-                             open(DECOMPRESSED_ATRACE_DATA, 'r')) as (f1, f2):
+      with open(output_file_name, 'r') as f1, \
+          open(DECOMPRESSED_ATRACE_DATA, 'r') as f2:
         full_trace = f1.read()
         expected_contents = f2.read()
         self.assertTrue(expected_contents in full_trace)

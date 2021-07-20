@@ -19,9 +19,9 @@ from systrace.tracing_agents import atrace_agent
 
 
 # ADB sends this text to indicate the beginning of the trace data.
-TRACE_START_REGEXP = r'TRACE\:'
+TRACE_START_REGEXP = br'TRACE\:'
 # Text that ADB sends, but does not need to be displayed to the user.
-ADB_IGNORE_REGEXP = r'^capturing trace\.\.\. done|^capturing trace\.\.\.'
+ADB_IGNORE_REGEXP = br'^capturing trace\.\.\. done|^capturing trace\.\.\.'
 
 T2T_OUTPUT = 'trace.systrace'
 

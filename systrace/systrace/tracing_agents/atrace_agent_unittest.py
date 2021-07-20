@@ -85,8 +85,8 @@ class AtraceAgentTest(unittest.TestCase):
 
   @decorators.HostOnlyTest
   def test_strip_and_decompress_trace(self):
-    with open(ATRACE_DATA_RAW, 'r') as f1, \
-        open(ATRACE_DATA_STRIPPED, 'r') as f2:
+    with open(ATRACE_DATA_RAW, 'rb') as f1, \
+        open(ATRACE_DATA_STRIPPED, 'rb') as f2:
       atrace_data_raw = f1.read()
       atrace_data_stripped = f2.read()
 
