@@ -65,13 +65,21 @@ luci.project(
 # Per-service tweaks.
 luci.logdog(gs_bucket = "chromium-luci-logdog")
 
+luci.bucket(name = "try")
+
+# Allow LED users to trigger swarming tasks directly when debugging try
+# builders.
+luci.binding(
+    realm = "try",
+    roles = "role/swarming.taskTriggerer",
+    groups = "flex-try-led-users",
+)
+
 luci.cq(
     status_host = "chromium-cq-status.appspot.com",
     submit_max_burst = 4,
     submit_burst_delay = 480 * time.second,
 )
-
-luci.bucket(name = "try")
 
 luci.cq_group(
     name = "catapult",
