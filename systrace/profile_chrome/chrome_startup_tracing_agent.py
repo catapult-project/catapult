@@ -20,7 +20,7 @@ from systrace import tracing_agents
 
 class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
   def __init__(self, device, package_info, webapk_package, cold, url,
-               trace_time=None, trace_format='html'):
+               categories=None, trace_time=None, trace_format='html'):
     tracing_agents.TracingAgent.__init__(self)
     self._device = device
     self._package_info = package_info
@@ -28,6 +28,7 @@ class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
     self._cold = cold
     self._logcat_monitor = self._device.GetLogcatMonitor()
     self._url = url
+    self._chrome_categories = categories
     self._trace_time = trace_time
     self._trace_format = trace_format
     self._trace_file = None
@@ -41,7 +42,11 @@ class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
   def _SetupTracing(self):
     # TODO(lizeb): Figure out how to clean up the command-line file when
     # _TearDownTracing() is not executed in StopTracing().
-    flags_to_add = ['--trace-startup', '--enable-perfetto']
+    flags_to_add = ['--enable-perfetto']
+    if self._chrome_categories is None:
+      flags_to_add.append('--trace-startup')
+    else:
+      flags_to_add.append('--trace-startup={}'.format(self._chrome_categories))
     if self._trace_time is not None:
       flags_to_add.append('--trace-startup-duration={}'
                           .format(self._trace_time))
@@ -158,8 +163,8 @@ def find_tracing_flags(current_flags):
 def try_create_agent(config):
   return ChromeStartupTracingAgent(config.device, config.package_info,
                                    config.webapk_package, config.cold,
-                                   config.url, config.trace_time,
-                                   config.trace_format)
+                                   config.url, config.chrome_categories,
+                                   config.trace_time, config.trace_format)
 
 def add_options(parser):
   options = optparse.OptionGroup(parser, 'Chrome startup tracing')
