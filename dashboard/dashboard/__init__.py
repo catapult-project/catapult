@@ -47,6 +47,7 @@ THIRD_PARTY_LIBRARIES = [
     'six',
     'uritemplate',
     'urllib3',
+    'webapp2',
     'webtest',
 ]
 
