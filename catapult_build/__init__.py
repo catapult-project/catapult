@@ -17,7 +17,12 @@ def _UpdateSysPathIfNeeded():
       catapult_path, 'third_party'))
   _AddToPathIfNeeded(os.path.join(catapult_path, 'common', 'py_utils'))
   _AddToPathIfNeeded(os.path.join(catapult_path, 'common', 'py_vulcanize'))
-  _AddToPathIfNeeded(os.path.join(catapult_third_party_path, 'beautifulsoup4'))
+  if sys.version_info.major == 2:
+    _AddToPathIfNeeded(
+        os.path.join(catapult_third_party_path, 'beautifulsoup4'))
+  else:
+    _AddToPathIfNeeded(
+        os.path.join(catapult_third_party_path, 'beautifulsoup4-4.9.3', 'py3k'))
   _AddToPathIfNeeded(os.path.join(catapult_third_party_path, 'html5lib-python'))
   _AddToPathIfNeeded(os.path.join(catapult_third_party_path, 'six'))
   _AddToPathIfNeeded(os.path.join(catapult_third_party_path, 'Paste'))

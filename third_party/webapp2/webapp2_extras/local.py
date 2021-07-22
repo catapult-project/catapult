@@ -20,10 +20,18 @@ except ImportError: # pragma: no cover
     except:
         # catch all, py.* fails with so many different errors.
         get_current_greenlet = int
-try:
-    from thread import get_ident as get_current_thread, allocate_lock
-except ImportError: # pragma: no cover
-    from dummy_thread import get_ident as get_current_thread, allocate_lock
+
+import six
+if six.PY3:
+    try:
+        from _thread import get_ident as get_current_thread, allocate_lock
+    except ImportError: # pragma: no cover
+        from _dummy_thread import get_ident as get_current_thread, allocate_lock
+else:
+    try:
+        from thread import get_ident as get_current_thread, allocate_lock
+    except ImportError: # pragma: no cover
+        from dummy_thread import get_ident as get_current_thread, allocate_lock
 
 
 # get the best ident function.  if greenlets are not installed we can
