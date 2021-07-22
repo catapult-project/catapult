@@ -127,8 +127,8 @@ def FindChangePoints(series,
     if passed_filter:
       change_points.append(point)
     else:
-      logging.debug('Rejected %s as potential index (%s); reason = %s',
-                    point, RevAndIdx(point[0]), reject_reason)
+      logging.info('Rejected %s as potential index (%s); reason = %s',
+                   point, RevAndIdx(point[0]), reject_reason)
 
   logging.info('E-Divisive potential change-points: %s',
                [RevAndIdx(idx) for idx, _ in change_points])
