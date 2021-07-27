@@ -54,11 +54,12 @@ tr.exportTo('tr.e.audits', function() {
       for (const slice of asyncSlices) {
         if (slice.title === 'PipelineReporter' &&
             slice.args.chrome_frame_reporter &&
-            slice.args.chrome_frame_reporter.state === 'STATE_DROPPED') {
+            slice.args.chrome_frame_reporter.state === 'STATE_DROPPED' &&
+            slice.args.chrome_frame_reporter.affects_smoothness) {
           const alertSlices = [slice].concat(slice.subSlices);
           alerts.push(new Alert(
               new EventInfo(
-                  'Dropped Frame',
+                  'Dropped Frame affecting smoothness',
                   'Frame was dropped (i.e. not produced/presented).'),
               slice.start,
               alertSlices));

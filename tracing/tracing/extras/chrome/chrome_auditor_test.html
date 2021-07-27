@@ -150,6 +150,30 @@ tr.b.unittest.testSuite(function() {
         }
       });
 
+      const missedFrameSliceNotAffectingSmoothness = newAsyncSliceEx({
+        title: 'PipelineReporter',
+        start: 200,
+        duration: 15,
+        args: {
+          chrome_frame_reporter: {
+            affects_smoothness: false,
+            state: 'STATE_DROPPED'
+          }
+        }
+      });
+
+      const missedFrameSliceAffectingSmoothness = newAsyncSliceEx({
+        title: 'PipelineReporter',
+        start: 200,
+        duration: 15,
+        args: {
+          chrome_frame_reporter: {
+            affects_smoothness: true,
+            state: 'STATE_DROPPED'
+          }
+        }
+      });
+
       const missedFrameSlice = newAsyncSliceEx({
         title: 'PipelineReporter',
         start: 200,
@@ -161,6 +185,8 @@ tr.b.unittest.testSuite(function() {
 
       m.compositorThread.asyncSliceGroup.push(noArgsFrameSlice);
       m.compositorThread.asyncSliceGroup.push(submittedFrameSlice);
+      m.compositorThread.asyncSliceGroup.push(missedFrameSliceNotAffectingSmoothness);
+      m.compositorThread.asyncSliceGroup.push(missedFrameSliceAffectingSmoothness);
       m.compositorThread.asyncSliceGroup.push(missedFrameSlice);
     }, tr.e.audits.ChromeAuditor);
 
