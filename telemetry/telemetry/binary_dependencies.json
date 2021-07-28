@@ -45,6 +45,10 @@
           "cloud_storage_hash": "32dbb38d1d54339013444be7c85090650edb1963",
           "download_path": "bin/android/armeabi-v7a/clear_system_cache"
         },
+        "android_x86": {
+          "cloud_storage_hash": "b0c6b5bde3f4e3148440d950b5db911fa57aec5f",
+          "download_path": "bin/android/x86/clear_system_cache"
+        },
         "linux_x86_64": {
           "cloud_storage_hash": "158e9cfe11f85e295783b67f8fed55f6eb6499b3",
           "download_path": "bin/linux/x86_64/clear_system_cache"
@@ -70,6 +74,10 @@
         "android_armeabi-v7a": {
           "cloud_storage_hash": "3a5ade8fbaffea3b0670bffaa845288db5e4d567",
           "download_path": "bin/android/armeabi-v7a/device_forwarder"
+        },
+        "android_x86": {
+          "cloud_storage_hash": "0cfcf7ea333337e10f0cb735924c6cea51609878",
+          "download_path": "bin/android/x86/device_forwarder"
         }
       }
     },
@@ -142,6 +150,10 @@
         "android_armeabi-v7a": {
           "cloud_storage_hash": "293c093c4487b2f1cdff6ed8c93b0214e45c4e7c",
           "download_path": "bin/android/armeabi-v7a/md5sum_bin"
+        },
+        "android_x86": {
+          "cloud_storage_hash": "12cc00d0804bd3b4757bd33b269206dfbd13b98b",
+          "download_path": "bin/android/x86/md5sum_bin"
         }
       }
     },
@@ -170,6 +182,10 @@
         "android_armeabi-v7a": {
           "cloud_storage_hash": "3add8b8d122af3099f4efd5e33c2c0d733dfe13c",
           "download_path": "bin/android/armeabi-v7a/memtrack_helper"
+        },
+        "android_x86": {
+          "cloud_storage_hash": "f7e70cb564be222c41dfbe549476ab18dfdec015",
+          "download_path": "bin/android/x86/memtrack_helper"
         }
       }
     },
