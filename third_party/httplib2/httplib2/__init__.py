@@ -12,6 +12,7 @@ Changelog:
 
 """
 
+from __future__ import print_function
 __author__ = "Joe Gregorio (joe@bitworking.org)"
 __copyright__ = "Copyright 2006, Joe Gregorio"
 __contributors__ = ["Thomas Broyer (t.broyer@ltgt.net)",
@@ -909,16 +910,16 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
                     self.sock.settimeout(self.timeout)
                     # End of difference from httplib.
                 if self.debuglevel > 0:
-                    print "connect: (%s, %s) ************" % (self.host, self.port)
+                    print("connect: (%s, %s) ************" % (self.host, self.port))
                     if use_proxy:
-                        print "proxy: %s ************" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass))
+                        print("proxy: %s ************" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass)))
 
                 self.sock.connect((self.host, self.port) + sa[2:])
             except socket.error, msg:
                 if self.debuglevel > 0:
-                    print "connect fail: (%s, %s)" % (self.host, self.port)
+                    print("connect fail: (%s, %s)" % (self.host, self.port))
                     if use_proxy:
-                        print "proxy: %s" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass))
+                        print("proxy: %s" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass)))
                 if self.sock:
                     self.sock.close()
                 self.sock = None
@@ -1035,9 +1036,9 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
                     sock, self.key_file, self.cert_file,
                     self.disable_ssl_certificate_validation, self.ca_certs)
                 if self.debuglevel > 0:
-                    print "connect: (%s, %s)" % (self.host, self.port)
+                    print("connect: (%s, %s)" % (self.host, self.port))
                     if use_proxy:
-                        print "proxy: %s" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass))
+                        print("proxy: %s" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass)))
                 if not self.disable_ssl_certificate_validation:
                     cert = self.sock.getpeercert()
                     hostname = self.host.split(':', 0)[0]
@@ -1063,9 +1064,9 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
                 raise
             except socket.error, msg:
                 if self.debuglevel > 0:
-                    print "connect fail: (%s, %s)" % (self.host, self.port)
+                    print("connect fail: (%s, %s)" % (self.host, self.port))
                     if use_proxy:
-                        print "proxy: %s" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass))
+                        print("proxy: %s" % str((proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass)))
                 if self.sock:
                     self.sock.close()
                 self.sock = None
