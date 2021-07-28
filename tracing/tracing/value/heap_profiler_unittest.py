@@ -38,8 +38,11 @@ class HeapProfilerUnitTest(unittest.TestCase):
     self.assertEquals(related_names.Get('HistogramBin'), 'heap:HistogramBin')
     self.assertEquals(related_names.Get('DiagnosticMap'), 'heap:DiagnosticMap')
 
-    properties = hist_size_hist.bins[33].diagnostic_maps[0]['properties']
-    types = hist_size_hist.bins[33].diagnostic_maps[0]['types']
+    diagnostic_bin = [
+        hist_bin for hist_bin in hist_size_hist.bins
+        if len(hist_bin.diagnostic_maps)][-1]
+    properties = diagnostic_bin.diagnostic_maps[0]['properties']
+    types = diagnostic_bin.diagnostic_maps[0]['types']
     self.assertGreater(len(properties), 3)
     self.assertGreater(properties.Get('_bins'), 1000)
     self.assertEquals(len(types), 4)
