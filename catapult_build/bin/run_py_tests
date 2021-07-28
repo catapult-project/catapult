@@ -21,6 +21,11 @@ if __name__ == '__main__':
   else:
     install.InstallHooks()
 
+  # For some reason the value of PYTHONPATH on try bot will cause import error
+  # when the test is invoked by vpython3. Removing the value as a workaround.
+  if sys.version_info.major == 3 and 'PYTHONPATH' in os.environ:
+    os.environ.pop('PYTHONPATH')
+
   from catapult_build import run_with_typ
   sys.exit(run_with_typ.Run(
       os.path.join(_CATAPULT, 'catapult_build'),
