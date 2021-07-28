@@ -75,10 +75,10 @@ class ViewerDataScript(generate.ExtraScript):
   def WriteToFile(self, output_file):
     output_file.write('<script id="viewer-data" type="%s">\n' % self._mime_type)
     compressed_trace = io.BytesIO()
-    with gzip.GzipFile(fileobj=compressed_trace, mode='w', mtime=0) as f:
-      f.write(self._trace_data_string)
+    with gzip.GzipFile(fileobj=compressed_trace, mode='wb', mtime=0) as f:
+      f.write(self._trace_data_string.encode('utf-8'))
     b64_content = base64.b64encode(compressed_trace.getvalue())
-    output_file.write(b64_content)
+    output_file.write(b64_content.decode('utf-8'))
     output_file.write('\n</script>\n')
 
 
@@ -118,9 +118,9 @@ def WriteHTMLForTracesToFile(trace_filenames, output_file, title='',
   trace_data_list = []
   for filename in trace_filenames:
     try:
-      with gzip.GzipFile(filename, 'r') as f:
+      with gzip.GzipFile(filename, 'rb') as f:
         # If filename is not gzipped, then read() will raise IOError.
-        trace_data = f.read()
+        trace_data = f.read().decode('utf-8')
     except IOError:
       with open(filename, 'r') as f:
         trace_data = f.read()

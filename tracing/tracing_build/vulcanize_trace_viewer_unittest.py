@@ -4,16 +4,11 @@
 
 import codecs
 import os
-import sys
 import unittest
 import tempfile
 
-if sys.version_info < (3,):
-  from tracing_build import vulcanize_trace_viewer
+from tracing_build import vulcanize_trace_viewer
 
-
-@unittest.skipIf(sys.version_info >= (3,),
-                 'py_vulcanize is not ported to python3')
 class Trace2HTMLTests(unittest.TestCase):
 
   def testWriteHTMLForTracesToFile(self):
