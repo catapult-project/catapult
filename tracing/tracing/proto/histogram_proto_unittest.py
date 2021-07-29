@@ -3,8 +3,16 @@
 # found in the LICENSE file.
 
 import unittest
+import sys
+from six.moves import reload_module
 
-from tracing.proto import histogram_proto
+# Some packages, such as protobuf, clobber the google
+# namespace package. This prevents that.
+# crbug/1233198
+if 'google' in sys.modules:
+  reload_module(sys.modules['google'])
+
+from tracing.proto import histogram_proto# pylint: disable=wrong-import-position
 
 
 class HistogramProtoUnittest(unittest.TestCase):
