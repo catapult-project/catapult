@@ -110,8 +110,7 @@ def _ListTestSuites():
   partial_tests = set()
   yield _ListTestSuitesAsync(test_suites, partial_tests)
   yield [_ListTestSuitesAsync(test_suites, None, key) for key in partial_tests]
-  test_suites = list(test_suites)
-  test_suites.sort()
+  test_suites = sorted(test_suites)
   raise ndb.Return(test_suites)
 
 

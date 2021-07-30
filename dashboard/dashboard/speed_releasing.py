@@ -405,7 +405,7 @@ def _GetUpdatedMilestoneDict(master_bot_pairs, tests):
   Checks to see which milestone_dict to use (Clank/Chromium), and updates
   the 'None' to be the newest revision for one of the specified tests.
   """
-  masters = set([m.split('/')[0] for m in master_bot_pairs])
+  masters = {m.split('/')[0] for m in master_bot_pairs}
   if 'ClankInternal' in masters:
     milestone_dict = CLANK_MILESTONES.copy()
   else:

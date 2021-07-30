@@ -209,7 +209,7 @@ class UpdateBuildStatusAction(
     properties = result_details['properties']
 
     # Validate whether the properties in the result include required data.
-    required_keys = set(['isolate_server', 'got_revision_cp'])
+    required_keys = {'isolate_server', 'got_revision_cp'}
     missing_keys = required_keys - set(properties)
     if missing_keys:
       self.task.payload.update({

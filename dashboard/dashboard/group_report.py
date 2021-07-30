@@ -170,7 +170,7 @@ def GetAlertsForKeys(keys):
     # Filter out anomalies that have been marked as invalid or ignore.
     # Include all anomalies with an overlapping revision range that have
     # been associated with a bug, or are not yet triaged.
-    requested_anomalies_set = set([a.key for a in requested_anomalies])
+    requested_anomalies_set = {a.key for a in requested_anomalies}
 
     def _IsValidAlert(a):
       if a.key in requested_anomalies_set:

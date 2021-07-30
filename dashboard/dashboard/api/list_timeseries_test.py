@@ -69,7 +69,7 @@ class ListTimeseriesTest(testing_common.TestCase):
     response = self.Post('/api/list_timeseries/v8', {'sheriff': 'all'})
     paths = json.loads(response.body)
     self.assertEqual(
-        set([
+        {
             'ChromiumPerf/mac/v8/sunspider/Total',
             'ChromiumPerf/mac/v8/octane/Total',
             'ChromiumPerf/mac/v8/octane',
@@ -82,7 +82,7 @@ class ListTimeseriesTest(testing_common.TestCase):
             'ChromiumPerf/win/v8/octane/Total',
             'ChromiumPerf/win/v8/octane',
             'ChromiumPerf/win/v8/memory/Total',
-        ]), set(paths))
+        }, set(paths))
 
   def testPost_AllSheriff_ListsAllV8Perf(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
@@ -91,7 +91,7 @@ class ListTimeseriesTest(testing_common.TestCase):
     response = self.Post('/api/list_timeseries/v8', {'sheriff': 'all'})
     paths = json.loads(response.body)
     self.assertEqual(
-        set([
+        {
             'ChromiumPerf/mac/v8/sunspider/Total',
             'ChromiumPerf/mac/v8/octane/Total',
             'ChromiumPerf/mac/v8/octane',
@@ -104,7 +104,7 @@ class ListTimeseriesTest(testing_common.TestCase):
             'ChromiumPerf/win/v8/octane/Total',
             'ChromiumPerf/win/v8/octane',
             'ChromiumPerf/win/v8/memory/Total',
-        ]), set(paths))
+        }, set(paths))
 
 
 if __name__ == '__main__':

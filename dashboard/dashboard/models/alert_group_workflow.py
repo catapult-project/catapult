@@ -373,7 +373,7 @@ class AlertGroupWorkflow(object):
     cc = list(set(e for s in subscriptions for e in s.bug_cc_emails))
     labels = list(
         set(l for s in subscriptions for l in s.bug_labels)
-        | set(['Chromeperf-Auto-Triaged']))
+        | {'Chromeperf-Auto-Triaged'})
     # We layer on some default labels if they don't conflict with any of the
     # provided ones.
     if not any(l.startswith('Pri-') for l in labels):
@@ -382,7 +382,7 @@ class AlertGroupWorkflow(object):
       labels.append('Type-Bug-Regression')
     if any(s.visibility == subscription.VISIBILITY.INTERNAL_ONLY
            for s in subscriptions):
-      labels = list(set(labels) | set(['Restrict-View-Google']))
+      labels = list(set(labels) | {'Restrict-View-Google'})
     return self.BugUpdateDetails(components, cc, labels)
 
   @staticmethod

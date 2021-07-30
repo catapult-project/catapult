@@ -105,7 +105,7 @@ TESTS_TO_FETCH = 5000
 
 def _GetMastersForSuite(suite):
   masters = list_tests.GetTestsMatchingPattern('*/*/%s' % suite)
-  masters = list(set([m.split('/')[0] for m in masters]))
+  masters = list({m.split('/')[0] for m in masters})
   return masters
 
 

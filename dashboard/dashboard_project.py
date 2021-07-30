@@ -83,10 +83,8 @@ class DashboardProject(object):
     if pred is None:
       pred = lambda x: True
     all_filenames = _FindAllFilesRecursive([self.dashboard_src_path])
-    test_module_filenames = [
-        x for x in all_filenames if _IsFilenameATest(x) and pred(x)
-    ]
-    test_module_filenames.sort()
+    test_module_filenames = sorted(
+        [x for x in all_filenames if _IsFilenameATest(x) and pred(x)])
 
     return [
         os.path.relpath(x, self.dashboard_root_path)

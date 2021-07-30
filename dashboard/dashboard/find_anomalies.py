@@ -394,12 +394,12 @@ def _MakeAnomalyEntity(change_point, test, stat, rows, config, matching_sub):
 
   queried_diagnostics = yield (
       histogram.SparseDiagnostic.GetMostRecentDataByNamesAsync(
-          suite_key,
-          set([
-              reserved_infos.BUG_COMPONENTS.name, reserved_infos.OWNERS.name,
+          suite_key, {
+              reserved_infos.BUG_COMPONENTS.name,
+              reserved_infos.OWNERS.name,
               reserved_infos.INFO_BLURB.name,
               reserved_infos.ALERT_GROUPING.name,
-          ])))
+          }))
 
   bug_components = queried_diagnostics.get(reserved_infos.BUG_COMPONENTS.name,
                                            {}).get('values')

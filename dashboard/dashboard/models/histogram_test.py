@@ -228,7 +228,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
 
     lookup_result = histogram.SparseDiagnostic.GetMostRecentDataByNamesSync(
         test_key,
-        set([reserved_infos.OWNERS.name, reserved_infos.BUG_COMPONENTS.name]))
+        {reserved_infos.OWNERS.name, reserved_infos.BUG_COMPONENTS.name})
 
     self.assertEqual(
         lookup_result.get(reserved_infos.OWNERS.name).get('values'),
@@ -256,7 +256,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
 
     lookup_result = histogram.SparseDiagnostic.GetMostRecentDataByNamesSync(
         test_key,
-        set([reserved_infos.OWNERS.name, reserved_infos.BUG_COMPONENTS.name]))
+        {reserved_infos.OWNERS.name, reserved_infos.BUG_COMPONENTS.name})
 
     self.assertEqual(
         lookup_result.get(reserved_infos.OWNERS.name).get('values'),
@@ -277,7 +277,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
 
     lookup_result = histogram.SparseDiagnostic.GetMostRecentDataByNamesSync(
         test_key,
-        set([reserved_infos.OWNERS.name, reserved_infos.BUG_COMPONENTS.name]))
+        {reserved_infos.OWNERS.name, reserved_infos.BUG_COMPONENTS.name})
 
     self.assertIsNone(lookup_result.get(reserved_infos.OWNERS.name))
     self.assertIsNone(lookup_result.get(reserved_infos.BUG_COMPONENTS.name))
@@ -314,7 +314,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
 
     # TODO(crbug.com/877809): assertRaises
     lookup_result = histogram.SparseDiagnostic.GetMostRecentDataByNamesSync(
-        test_key, set([reserved_infos.OWNERS.name]))
+        test_key, {reserved_infos.OWNERS.name})
     self.assertEqual(
         lookup_result.get(reserved_infos.OWNERS.name).get('values'),
         data_samples[1]['values'])

@@ -75,9 +75,8 @@ class EmailSheriffTest(testing_common.TestCase):
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(1, len(messages))
     self.assertEqual('gasper-alerts@google.com', messages[0].sender)
-    self.assertEqual(
-        set(['perf-sheriff-group@google.com', 'sullivan@google.com']),
-        set([s.strip() for s in messages[0].to.split(',')]))
+    self.assertEqual({'perf-sheriff-group@google.com', 'sullivan@google.com'},
+                     {s.strip() for s in messages[0].to.split(',')})
 
     name = 'dromaeo/dom on Win7'
     expected_subject = '100.0%% regression in %s at 10002:10004' % name
@@ -106,10 +105,10 @@ class EmailSheriffTest(testing_common.TestCase):
     self.assertEqual(1, len(messages))
     self.assertEqual('gasper-alerts@google.com', messages[0].sender)
     self.assertEqual(
-        set([
+        {
             'perf-sheriff-group@google.com', 'sonnyrao@google.com',
             'digit@google.com'
-        ]), set([s.strip() for s in messages[0].to.split(',')]))
+        }, {s.strip() for s in messages[0].to.split(',')})
 
   def testEmail_NoSheriffUrl_EmailSentToSheriffRotationEmailAddress(self):
     args = self._GetDefaultMailArgs()

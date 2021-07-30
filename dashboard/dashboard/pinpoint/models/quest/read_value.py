@@ -212,7 +212,7 @@ class ReadValueExecution(execution.Execution):
     histograms_by_path_optional_grouping_label = (
         CreateHistogramSetByTestPathDict(
             histograms, ignore_grouping_label=True))
-    test_paths_to_match = set([
+    test_paths_to_match = {
         histogram_helpers.ComputeTestPathFromComponents(
             self._metric,
             grouping_label=self._grouping_label,
@@ -222,7 +222,7 @@ class ReadValueExecution(execution.Execution):
             grouping_label=self._grouping_label,
             story_name=self._trace_or_story,
             needs_escape=False)
-    ])
+    }
     logging.debug('Test paths to match: %s', test_paths_to_match)
 
     try:
@@ -539,7 +539,7 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
             histograms, ignore_grouping_label=True))
     self._trace_urls = FindTraceUrls(histograms)
 
-    test_paths_to_match = set([
+    test_paths_to_match = {
         histogram_helpers.ComputeTestPathFromComponents(
             self._hist_name,
             grouping_label=self._grouping_label,
@@ -549,7 +549,7 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
             grouping_label=self._grouping_label,
             story_name=self._trace_or_story,
             needs_escape=False)
-    ])
+    }
     logging.debug('Test paths to match: %s', test_paths_to_match)
 
     # Have to pull out either the raw sample values, or the statistic

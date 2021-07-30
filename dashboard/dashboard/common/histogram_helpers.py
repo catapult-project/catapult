@@ -49,7 +49,7 @@ _LEGACY_BENCHMARKS = [
 ]
 _STATS_BLACKLIST = ['std', 'count', 'max', 'min', 'sum']
 
-SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set([
+SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES = {
     reserved_infos.ARCHITECTURES.name,
     reserved_infos.BENCHMARKS.name,
     reserved_infos.BENCHMARK_DESCRIPTIONS.name,
@@ -63,28 +63,27 @@ SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set([
     reserved_infos.OS_VERSIONS.name,
     reserved_infos.OWNERS.name,
     reserved_infos.PRODUCT_VERSIONS.name,
-])
+}
 
-HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES = set([
+HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES = {
     reserved_infos.ALERT_GROUPING.name,
     reserved_infos.DEVICE_IDS.name,
     reserved_infos.STORIES.name,
     reserved_infos.STORYSET_REPEATS.name,
     reserved_infos.STORY_TAGS.name,
-])
+}
 
 SPARSE_DIAGNOSTIC_NAMES = SUITE_LEVEL_SPARSE_DIAGNOSTIC_NAMES.union(
     HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_NAMES)
 
-ADD_HISTOGRAM_RELATED_DIAGNOSTICS = SPARSE_DIAGNOSTIC_NAMES.union(
-    set([
-        reserved_infos.BUILD_URLS.name,
-        reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
-        reserved_infos.LOG_URLS.name,
-        reserved_infos.POINT_ID.name,
-        reserved_infos.SUMMARY_KEYS.name,
-        reserved_infos.TRACE_URLS.name,
-    ]))
+ADD_HISTOGRAM_RELATED_DIAGNOSTICS = SPARSE_DIAGNOSTIC_NAMES.union({
+    reserved_infos.BUILD_URLS.name,
+    reserved_infos.CHROMIUM_COMMIT_POSITIONS.name,
+    reserved_infos.LOG_URLS.name,
+    reserved_infos.POINT_ID.name,
+    reserved_infos.SUMMARY_KEYS.name,
+    reserved_infos.TRACE_URLS.name,
+})
 
 
 def EscapeName(name):

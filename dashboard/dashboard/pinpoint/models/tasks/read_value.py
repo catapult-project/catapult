@@ -120,7 +120,7 @@ class ReadValueEvaluator(
         read_value_quest.CreateHistogramSetByTestPathDict(
             histograms, ignore_grouping_label=True))
     trace_urls = read_value_quest.FindTraceUrls(histograms)
-    test_paths_to_match = set([
+    test_paths_to_match = {
         histogram_helpers.ComputeTestPathFromComponents(
             histogram_name, grouping_label=grouping_label, story_name=story),
         histogram_helpers.ComputeTestPathFromComponents(
@@ -128,7 +128,7 @@ class ReadValueEvaluator(
             grouping_label=grouping_label,
             story_name=story,
             needs_escape=False)
-    ])
+    }
     logging.debug('Test paths to match: %s', test_paths_to_match)
     try:
       result_values = read_value_quest.ExtractValuesFromHistograms(
