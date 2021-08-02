@@ -16,6 +16,35 @@ _DEFAULT_EXTRA_ARGS = [
 
 _STORY_REGEX = re.compile(r'[^a-zA-Z0-9]')
 
+# crbug/1146949
+# Please keep this executable-argument mapping synced with perf waterfall:
+#  https://chromium.googlesource.com/chromium/src/+/main/tools/perf/core/bot_platforms.py
+_WATERFALL_ENABLED_GTEST_NAMES = {
+    'base_perftests': [
+        '--test-launcher-jobs=1', '--test-launcher-retry-limit=0'
+    ],
+    'components_perftests': ['--xvfb'],
+    'dawn_perf_tests': [
+        '--test-launcher-jobs=1', '--test-launcher-retry-limit=0'
+    ],
+    'gpu_perftests': [],
+    'load_library_perf_tests': [],
+    'performance_browser_tests': [
+        '--full-performance-run',
+        '--test-launcher-jobs=1',
+        '--test-launcher-retry-limit=0',
+        # Allow the full performance runs to take up to 60 seconds (rather
+        # than the default of 30 for normal CQ browser test runs).
+        '--ui-test-action-timeout=60000',
+        '--ui-test-action-max-timeout=60000',
+        '--test-launcher-timeout=60000',
+        '--gtest_filter=*/TabCapturePerformanceTest.*:'
+        '*/CastV2PerformanceTest.*',
+    ],
+    'tracing_perftests': [],
+    'views_perftests': ['--xvfb']
+}
+
 
 def _StoryToRegex(story_name):
   # Telemetry's --story-filter argument takes in a regex, not a
@@ -71,7 +100,18 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
     benchmark = arguments.get('benchmark')
     if not benchmark:
       raise TypeError('Missing "benchmark" argument.')
-    extra_test_args += ('--benchmarks', benchmark)
+
+    if benchmark in _WATERFALL_ENABLED_GTEST_NAMES:
+      # crbug/1146949
+      # Pass the correct arguments to run gtests on pinpoint.
+      # As we don't want to add dependency to chromium, the names of gtests are
+      # hard coded here, instead of loading from bot_platforms.py.
+      extra_test_args += ('--gtest-benchmark-name', benchmark)
+      extra_test_args += ('--non-telemetry', 'true')
+      pass_through_args = list(_WATERFALL_ENABLED_GTEST_NAMES[benchmark])
+      extra_test_args += ('--passthrough-arg', pass_through_args)
+    else:
+      extra_test_args += ('--benchmarks', benchmark)
 
     story = arguments.get('story')
     if story:
