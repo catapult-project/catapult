@@ -1164,11 +1164,15 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         return_value='notflounder'), (self.patch_call(
             self.call.device.build_version_sdk, return_value=23)):
       with self.assertCalls(
+          self.call.adb.Root(), self.call.adb.WaitForDevice(),
+          (self.call.device.HasRoot(), True),
           (mock.call.py_utils.tempfile_ext.NamedTemporaryDirectory(),
            mock_zip_temp_dir),
           (mock.call.os.rename('fake1-master.apk', '/test/tmp/dir/fake1.apk')),
           (self.call.device.PushChangedFiles(
-              [('/test/tmp/dir', '/data/local/tmp/modules/test.package')],
+              [('/test/tmp/dir', '/data/local/tmp/modules/test.package'),
+               ('/test/tmp/dir',
+                '/sdcard/Android/data/test.package/files/local_testing')],
               delete_device_stale=True)),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
           (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE), []),
