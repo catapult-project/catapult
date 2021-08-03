@@ -6,7 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import httplib
+from six.moves import http_client
 import socket
 import unittest
 
@@ -84,14 +84,14 @@ class FailureAndRetryTest(_RequestTest):
 
   def testHttpErrorCode(self):
     self._request.return_value = ({'status': '500'}, '')
-    with self.assertRaises(httplib.HTTPException):
+    with self.assertRaises(http_client.HTTPException):
       request.Request('https://example.com')
     self._request.assert_called_with('https://example.com', method='GET')
     self.assertEqual(self._request.call_count, 2)
 
   def testHttpException(self):
-    self._request.side_effect = httplib.HTTPException
-    with self.assertRaises(httplib.HTTPException):
+    self._request.side_effect = http_client.HTTPException
+    with self.assertRaises(http_client.HTTPException):
       request.Request('https://example.com')
     self._request.assert_called_with('https://example.com', method='GET')
     self.assertEqual(self._request.call_count, 2)
@@ -130,7 +130,7 @@ class FailureAndRetryTest(_RequestTest):
 
   def testHttpExceptionSuccessOnRetry(self):
     return_value = ({'status': '200'}, 'response')
-    self._request.side_effect = httplib.HTTPException, return_value
+    self._request.side_effect = http_client.HTTPException, return_value
     self._TestRetry()
 
   def testSocketErrorSuccessOnRetry(self):

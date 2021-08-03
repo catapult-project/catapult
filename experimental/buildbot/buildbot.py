@@ -3,7 +3,11 @@
 # found in the LICENSE file.
 
 import collections
-import cPickle
+try:
+  import cPickle
+except ImportError:
+  # pickle in python 3 uses the c version as cPickle in python 2.
+  import pickle as cPickle
 import json
 import logging
 import os

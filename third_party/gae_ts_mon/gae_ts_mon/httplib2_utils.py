@@ -2,9 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
 import collections
 import copy
-import httplib
+import six.moves.http_client
 import json
 import logging
 import os
@@ -12,7 +13,9 @@ import re
 import socket
 import sys
 import time
-import urllib
+import six.moves.urllib.request
+import six.moves.urllib.parse
+import six.moves.urllib.error
 
 import httplib2
 import oauth2client.client
@@ -117,9 +120,9 @@ def get_signed_jwt_assertion_credentials(credentials_filename,
       to this path. None means 'use default location'.
   """
   scope = scope or DEFAULT_SCOPES
-  if isinstance(scope, basestring):
+  if isinstance(scope, six.string_types):
     scope = [scope]
-  assert all(isinstance(s, basestring) for s in scope)
+  assert all(isinstance(s, six.string_types) for s in scope)
 
   key = load_service_account_credentials(
     credentials_filename,
@@ -199,7 +202,7 @@ class DelegateServiceAccountCredentials(
     self.access_token = None
 
   def _canonicalize_scopes(self, scopes):
-    if isinstance(scopes, basestring):
+    if isinstance(scopes, six.string_types):
       return [scopes]
     return scopes
 
@@ -213,8 +216,8 @@ class DelegateServiceAccountCredentials(
       self._http.request(
         uri='https://iamcredentials.googleapis.com/v1/projects/%s/'
             'serviceAccounts/%s:generateAccessToken' %
-            (urllib.quote_plus(self._project),
-             urllib.quote_plus(self._sa_email)),
+            (six.moves.urllib.parse.quote_plus(self._project),
+             six.moves.urllib.parse.quote_plus(self._sa_email)),
         method='POST',
         body=json.dumps(req),
         headers={
@@ -252,7 +255,7 @@ class RetriableHttp(object):
     self._max_tries = max_tries
     self._backoff_time = backoff_time
     self._retrying_statuses_fn = retrying_statuses_fn or \
-                                 set(range(500,599)).__contains__
+                                 set(range(500, 599)).__contains__
 
   def request(self, uri, method='GET', body=None, *args, **kwargs):
     for i in range(1, self._max_tries + 1):
@@ -330,7 +333,7 @@ class InstrumentedHttp(httplib2.Http):
     except (socket.error, socket.herror, socket.gaierror):
       self._update_metrics(http_metrics.STATUS_ERROR, start_time)
       raise
-    except (httplib.HTTPException, httplib2.HttpLib2Error) as ex:
+    except (six.moves.http_client.HTTPException, httplib2.HttpLib2Error) as ex:
       status = http_metrics.STATUS_EXCEPTION
       if 'Deadline exceeded while waiting for HTTP response' in str(ex):
         # Raised on Appengine (gae_override/httplib.py).
@@ -375,7 +378,7 @@ class HttpMock(object):
       new_headers = copy.copy(headers)
       new_headers['status'] = int(new_headers['status'])
 
-      if not isinstance(body, basestring):
+      if not isinstance(body, six.string_types):
         raise TypeError("'body' must be a string, got %s" % type(body))
       self._uris.append((compiled_uri, new_headers, body))
 

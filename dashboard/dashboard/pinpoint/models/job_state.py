@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import collections
 import functools
-import httplib
+from six.moves import http_client
 import logging
 
 from google.appengine.api import urlfetch_errors
@@ -177,7 +177,8 @@ class JobState(object):
       logging.debug('Edit list: %s', additional_changes)
       for index, change in additional_changes:
         self.AddChange(change, index)
-    except (httplib.HTTPException, urlfetch_errors.DeadlineExceededError) as e:
+    except (http_client.HTTPException,
+            urlfetch_errors.DeadlineExceededError) as e:
       logging.debug('Encountered error: %s', e)
       raise errors.RecoverableError(e)
 

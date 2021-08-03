@@ -6,7 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import httplib
+from six.moves import http_client
 import json
 import mock
 import unittest
@@ -168,7 +168,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
   def testNewBug_Failure_HTTPException(self):
     service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
     service._ExecuteRequest = mock.Mock(
-        side_effect=httplib.HTTPException('reason'))
+        side_effect=http_client.HTTPException('reason'))
     response = service.NewBug('Bug title', 'body', owner='someone@chromium.org')
     self.assertEqual(1, service._ExecuteRequest.call_count)
     self.assertIn('error', response)

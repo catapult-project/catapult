@@ -7,7 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import csv
-import StringIO
+import six
 import unittest
 
 import webapp2
@@ -97,7 +97,7 @@ class GraphCsvTest(testing_common.TestCase):
         status=status)
     if status != 200:
       return
-    for row in csv.reader(StringIO.StringIO(response.body)):
+    for row in csv.reader(six.StringIO(response.body)):
       response_rows.append(row)
     self.assertEqual(expected_result, response_rows)
 
@@ -105,7 +105,7 @@ class GraphCsvTest(testing_common.TestCase):
     self._AddMockData()
     response = self.testapp.get(
         '/graph_csv?test_path=ChromiumPerf/win7/dromaeo/dom')
-    for index, row, in enumerate(csv.reader(StringIO.StringIO(response.body))):
+    for index, row, in enumerate(csv.reader(six.StringIO(response.body))):
       # Skip the headers
       if index > 0:
         expected_rev = str(15000 + ((index - 1) * 5))
@@ -116,7 +116,7 @@ class GraphCsvTest(testing_common.TestCase):
     self._AddMockData()
     response = self.testapp.post('/graph_csv?',
                                  {'test_path': 'ChromiumPerf/win7/dromaeo/dom'})
-    for index, row, in enumerate(csv.reader(StringIO.StringIO(response.body))):
+    for index, row, in enumerate(csv.reader(six.StringIO(response.body))):
       # Skip the headers
       if index > 0:
         expected_rev = str(15000 + ((index - 1) * 5))

@@ -20,7 +20,11 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import cPickle as pickle
+try:
+  import cPickle as pickle
+except ImportError:
+  # pickle in python 3 uses the c version as cPickle in python 2.
+  import pickle
 
 from google.appengine.ext import ndb
 

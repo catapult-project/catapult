@@ -11,7 +11,7 @@ import decimal
 import ijson
 import json
 import logging
-import StringIO
+import six
 import sys
 import uuid
 import zlib
@@ -202,7 +202,7 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
       # Also always create upload completion token for such requests.
       token, token_info = self._CreateUploadCompletionToken()
       ProcessHistogramSet(
-          _LoadHistogramList(StringIO.StringIO(self.request.body)), token)
+          _LoadHistogramList(six.StringIO(self.request.body)), token)
       token.UpdateState(upload_completion_token.State.COMPLETED)
       return token_info
 

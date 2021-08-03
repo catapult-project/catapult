@@ -197,7 +197,7 @@ def rmtree(file_path):  # pragma: no cover
   for root, dirs, files in os.walk(file_path, topdown=False):
     # For POSIX:  making the directory writable guarantees removability.
     # Windows will ignore the non-read-only bits in the chmod value.
-    os.chmod(root, 0770)
+    os.chmod(root, 0o770)
     for name in files:
       remove_with_retry(os.remove, os.path.join(root, name))
     for name in dirs:

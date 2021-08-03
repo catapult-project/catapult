@@ -6,7 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import httplib
+from six.moves import http_client
 import json
 import logging
 
@@ -46,7 +46,7 @@ class IssueTrackerService(object):
         self._service = discovery.build(
             'monorail', 'v1', discoveryServiceUrl=_DISCOVERY_URI, http=http)
         break
-      except httplib.HTTPException as e:
+      except http_client.HTTPException as e:
         logging.error('Attempt #%d: %s', attempt, e)
         if attempt == MAX_DISCOVERY_RETRIES:
           raise
@@ -251,7 +251,7 @@ class IssueTrackerService(object):
     except errors.HttpError as e:
       reason = _GetErrorReason(e)
       return {'error': reason}
-    except httplib.HTTPException as e:
+    except http_client.HTTPException as e:
       return {'error': str(e)}
     return {'error': 'Unknown failure creating issue.'}
 

@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import collections
 import datetime
-import httplib
+from six.moves import http_client
 import time
 
 from google.appengine.ext import deferred
@@ -108,7 +108,7 @@ def _GetDiffCommitTimeFromJob(job):
       commit_time = datetime.datetime.strptime(diff['commits'][0]['created'],
                                                '%Y-%m-%dT%H:%M:%S')
       return commit_time
-  except httplib.HTTPException:
+  except http_client.HTTPException:
     return None
 
 

@@ -9,7 +9,7 @@ from __future__ import absolute_import
 import collections
 import json
 import logging
-import urlparse
+from six.moves.urllib import parse as urlparse
 
 from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import errors

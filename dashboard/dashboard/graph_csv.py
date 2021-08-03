@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import csv
 import logging
-import StringIO
+import six
 
 from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
@@ -56,7 +56,7 @@ class GraphCsvHandler(request_handler.RequestHandler):
 
     rows = self._GenerateRows(points, attributes)
 
-    output = StringIO.StringIO()
+    output = six.StringIO()
     csv.writer(output).writerows(rows)
     self.response.headers['Content-Type'] = 'text/csv'
     self.response.headers['Content-Disposition'] = (

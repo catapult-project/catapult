@@ -32,7 +32,11 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import cPickle
+try:
+  import cPickle
+except ImportError:
+  # pickle in python 3 uses the c version as cPickle in python 2.
+  import pickle as cPickle
 import datetime
 import logging
 

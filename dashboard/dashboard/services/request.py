@@ -6,7 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import httplib
+from six.moves import http_client
 import httplib2
 import json
 import socket
@@ -21,7 +21,7 @@ _CACHE_DURATION = 60 * 60 * 24 * 7  # 1 week.
 _VULNERABILITY_PREFIX = ")]}'\n"
 
 
-class RequestError(httplib.HTTPException):
+class RequestError(http_client.HTTPException):
 
   def __init__(self, msg, content):
     super(RequestError, self).__init__(msg)
@@ -64,8 +64,8 @@ def Request(url,
 
   Raises:
     NotFoundError: The HTTP status code is 404.
-    httplib.HTTPException: The request or response is malformed, or there is a
-        network or server error, or the HTTP status code is not 2xx.
+    http_client.HTTPException: The request or response is malformed, or there is
+        a network or server error, or the HTTP status code is not 2xx.
   """
   if use_cache and body:
     raise NotImplementedError('Caching not supported with request body.')
@@ -94,7 +94,7 @@ def Request(url,
     content = _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs)
   except NotFoundError:
     raise
-  except (httplib.HTTPException, socket.error,
+  except (http_client.HTTPException, socket.error,
           urlfetch_errors.InternalTransientError):
     # Retry once.
     content = _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs)

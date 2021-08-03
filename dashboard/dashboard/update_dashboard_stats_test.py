@@ -7,7 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import datetime
-import httplib
+from six.moves import http_client
 import mock
 import unittest
 import webapp2
@@ -197,7 +197,7 @@ class UpdateDashboardStatsTest(test.TestCase):
     self.assertTrue(mock_defer.called)
 
   @mock.patch.object(gerrit_service, 'GetChange',
-                     mock.MagicMock(side_effect=httplib.HTTPException))
+                     mock.MagicMock(side_effect=http_client.HTTPException))
   @mock.patch.object(update_dashboard_stats, '_ProcessAlerts', _StubFunc)
   @mock.patch.object(update_dashboard_stats, '_ProcessPinpointStats', _StubFunc)
   @mock.patch.object(change_module.Change, 'Midpoint',

@@ -27,7 +27,7 @@ def CommitInfo(repository_url, git_hash):
 
   Raises:
     NotFoundError: The repository or commit was not found in Gitiles.
-    httplib.HTTPException: A network or HTTP error occurred.
+    http_client.HTTPException: A network or HTTP error occurred.
   """
   # TODO: Update the docstrings in this file.
   url = '%s/+/%s?format=JSON' % (repository_url, git_hash)
@@ -55,7 +55,7 @@ def CommitRange(repository_url, first_git_hash, last_git_hash):
 
   Raises:
     NotFoundError: The repository or a commit was not found in Gitiles.
-    httplib.HTTPException: A network or HTTP error occurred.
+    http_client.HTTPException: A network or HTTP error occurred.
   """
   commits = []
   while last_git_hash:
@@ -85,7 +85,7 @@ def FileContents(repository_url, git_hash, path):
 
   Raises:
     NotFoundError: The repository, commit, or file was not found in Gitiles.
-    httplib.HTTPException: A network or HTTP error occurred.
+    http_client.HTTPException: A network or HTTP error occurred.
   """
   url = '%s/+/%s/%s?format=TEXT' % (repository_url, git_hash, path)
   response = request.Request(
