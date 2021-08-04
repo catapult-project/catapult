@@ -14,7 +14,7 @@ automatic_scaling:
 
 libraries:
 - name: jinja2
-  version: "2.6"
+  version: "2.7"
 - name: pycrypto
   version: "2.6"
 - name: webapp2
