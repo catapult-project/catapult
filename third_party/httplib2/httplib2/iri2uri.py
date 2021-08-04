@@ -4,7 +4,6 @@ iri2uri
 Converts an IRI to a URI.
 
 """
-import six
 __author__ = "Joe Gregorio (joe@bitworking.org)"
 __copyright__ = "Copyright 2006, Joe Gregorio"
 __contributors__ = []
@@ -13,7 +12,7 @@ __license__ = "MIT"
 __history__ = """
 """
 
-import six.moves.urllib.parse
+import urlparse
 
 
 # Convert an IRI to a URI following the rules in RFC 3987
@@ -67,13 +66,13 @@ def iri2uri(uri):
     """Convert an IRI to a URI. Note that IRIs must be
     passed in a unicode strings. That is, do not utf-8 encode
     the IRI before passing it into the function."""
-    if isinstance(uri ,six.text_type):
-        (scheme, authority, path, query, fragment) = six.moves.urllib.parse.urlsplit(uri)
+    if isinstance(uri ,unicode):
+        (scheme, authority, path, query, fragment) = urlparse.urlsplit(uri)
         authority = authority.encode('idna')
         # For each character in 'ucschar' or 'iprivate'
         #  1. encode as utf-8
         #  2. then %-encode each octet of that utf-8
-        uri = six.moves.urllib.parse.urlunsplit((scheme, authority, path, query, fragment))
+        uri = urlparse.urlunsplit((scheme, authority, path, query, fragment))
         uri = "".join([encode(c) for c in uri])
     return uri
 
