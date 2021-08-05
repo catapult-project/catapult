@@ -23,6 +23,30 @@
 #   https://chromium.googlesource.com/infra/infra/+/master/doc/users/vpython.md
 
 python_version: "3.8"
+
+# Used by:
+#   telemetry/
+#
+# This version must be compatible with the version range specified by
+# //telemetry/telemetry/internal/util/external_modules.py
+wheel: <
+  name: "infra/python/wheels/numpy/${vpython_platform}"
+  version: "version:1.19.5"
+>
+
+# Used by:
+#  telemetry/bin/fetch_telemetry_binary_dependencies
+wheel: <
+  name: "infra/python/wheels/pywin32/${vpython_platform}"
+  version: "version:300"
+  match_tag: <
+    platform: "win32"
+  >
+  match_tag: <
+    platform: "win_amd64"
+  >
+>
+
 # Used by:
 #   build/android/pylib/local/emulator/avd.py
 #   components/policy/test_support/policy_testserver.py
@@ -44,10 +68,6 @@ wheel: <
 # //third_party/catapult/telemetry/telemetry/internal/util/external_modules.py
 # However, the hope is that Telemetry's Python 3 migration will fix this, so
 # use the newer version that's currently available in CIPD for now.
-wheel: <
-  name: "infra/python/wheels/numpy/${vpython_platform}"
-  version: "version:1.19.5"
->
 wheel: <
   name: "infra/python/wheels/psutil/${vpython_platform}"
   version: "version:5.8.0"
