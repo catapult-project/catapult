@@ -127,17 +127,17 @@ def _PrintPairs(pairs, output_stream, prefix=''):
 
 class WprRecorder(object):
 
-  def __init__(self, base_dir, target, args=None):
-    self._base_dir = base_dir
+  def __init__(self, environment, target, args=None):
+    self._base_dir = environment.top_level_dir
     self._output_dir = tempfile.mkdtemp()
     try:
       self._options = self._CreateOptions()
-      self._benchmark = _MaybeGetInstanceOfClass(target, base_dir,
+      self._benchmark = _MaybeGetInstanceOfClass(target, self._base_dir,
                                                  benchmark.Benchmark)
       self._parser = self._options.CreateParser(usage='See %prog --help')
       self._AddCommandLineArgs()
       self._ParseArgs(args)
-      self._ProcessCommandLineArgs()
+      self._ProcessCommandLineArgs(environment)
       page_test = None
       if self._benchmark is not None:
         test = self._benchmark.CreatePageTest(self.options)
@@ -207,8 +207,9 @@ class WprRecorder(object):
     args_to_parse = sys.argv[1:] if args is None else args
     self._parser.parse_args(args_to_parse)
 
-  def _ProcessCommandLineArgs(self):
-    story_runner.ProcessCommandLineArgs(self._parser, self._options)
+  def _ProcessCommandLineArgs(self, environment):
+    story_runner.ProcessCommandLineArgs(self._parser, self._options,
+                                        environment)
 
     if self._options.use_live_sites:
       self._parser.error("Can't --use-live-sites while recording")
@@ -318,8 +319,7 @@ def Main(environment, **log_config_kwargs):
   # TODO(crbug.com/1111556): update WprRecorder so that it handles the
   # difference between recording a benchmark vs recording a story better based
   # on the distinction between args.benchmark & args.story
-  with WprRecorder(environment.top_level_dir,
-                   target, extra_args) as wpr_recorder:
+  with WprRecorder(environment, target, extra_args) as wpr_recorder:
     results = wpr_recorder.CreateResults()
     wpr_recorder.Record(results)
     wpr_recorder.HandleResults(results, args.upload)
