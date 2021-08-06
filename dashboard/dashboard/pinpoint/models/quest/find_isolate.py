@@ -193,10 +193,8 @@ class _FindIsolateExecution(execution.Execution):
     properties = json.loads(build['result_details_json'])['properties']
 
     commit_position = properties['got_revision_cp'].replace('@', '(at)')
-
-    key = '_'.join(('swarm_hashes', commit_position, 'with_patch'))
-    if key not in properties:
-      key = '_'.join(('swarm_hashes', commit_position, 'without_patch'))
+    suffix = 'with_patch' if 'patch_storage' in properties else 'without_patch'
+    key = '_'.join(('swarm_hashes', commit_position, suffix))
 
     target_to_use = self._target
 
