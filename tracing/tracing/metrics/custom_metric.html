@@ -34,16 +34,17 @@ tr.exportTo('tr.metrics', function() {
     const benchmarkValues = new Map();
     // Collect trace events.
     for (const helper of chromeHelper.browserHelpers) {
-      if (!helper.mainThread) continue;
-      for (const slice of helper.mainThread.sliceGroup.slices.concat(
-          helper.mainThread.asyncSliceGroup.slices)) {
-        if (!slice.error && metrics.has(slice.title)) {
-          if (!traces.has(slice.title)) {
-            traces.set(slice.title, []);
+      helper.iterAllThreads(function(thread) {
+        for (const slice of thread.sliceGroup.slices.concat(
+          thread.asyncSliceGroup.slices)) {
+          if (!slice.error && metrics.has(slice.title)) {
+            if (!traces.has(slice.title)) {
+              traces.set(slice.title, []);
+            }
+            traces.get(slice.title).push(slice.duration);
           }
-          traces.get(slice.title).push(slice.duration);
         }
-      }
+      });
     }
 
     // Collect performance.mark().

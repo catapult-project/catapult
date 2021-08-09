@@ -17,6 +17,8 @@ tr.b.unittest.testSuite(function() {
     const model = tr.c.TestUtils.newModel((model) => {
       const browserThread = setUpBrowserThread(model);
       addTraces(browserThread);
+      addSingleTrace(setUpOtherBrowserThread(model));
+      addSingleTrace(setUpOtherRendererThread(model));
       const rendererMainThread = setUpRendererMainThread(model);
       setMetrics(rendererMainThread);
     });
@@ -34,6 +36,10 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(hist3);
     const hist4 = histograms.getHistogramNamed('metric4');
     assert.strictEqual(hist4.numValues, 2);
+    // metric5 is collected from both other browser thread and
+    // other renderer thread.
+    const hist5 = histograms.getHistogramNamed('metric5');
+    assert.strictEqual(hist5.numValues, 2);
   });
 
   test('customMetric_collectPerformanceMark', function() {
@@ -89,6 +95,22 @@ tr.b.unittest.testSuite(function() {
     const mainThread = rendererProcess.getOrCreateThread(23);
     mainThread.name = 'CrRendererMain';
     return mainThread;
+  }
+
+  function setUpOtherBrowserThread(model) {
+    const BROWSER_PROCESS_ID = 1234;
+    const browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
+    const thread = browserProcess.getOrCreateThread(3);
+    thread.name = 'Other';
+    return thread;
+  }
+
+  function setUpOtherRendererThread(model) {
+    const RENDERER_PROCESS_ID = 2345;
+    const rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+    const thread = rendererProcess.getOrCreateThread(4);
+    thread.name = 'Other';
+    return thread;
   }
 
   function addEvent(mainThread, event) {
@@ -148,6 +170,16 @@ tr.b.unittest.testSuite(function() {
     });
   }
 
+  function addSingleTrace(thread) {
+    const slice = {
+      cat: 'browser',
+      title: 'metric5',
+      start: 1,
+      duration: 1,
+    };
+    thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(slice));
+  }
+
   function setMetrics(thread) {
     const traceEvents = [
       {
@@ -160,7 +192,10 @@ tr.b.unittest.testSuite(function() {
       },
       {
         name: "metric4",
-      }
+      },
+      {
+        name: "metric5",
+      },
     ]
     const report = `custom_metric:manifest:${JSON.stringify(traceEvents)}`;
     thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
