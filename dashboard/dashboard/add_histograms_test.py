@@ -236,7 +236,10 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     data = json.dumps(hs.AsDicts())
 
     post_histogram_res = self.PostAddHistogram({'data': data})
-    self.assertEqual(json.loads(post_histogram_res.body), None)
+    upload_token = json.loads(post_histogram_res.body)
+    self.assertIsNotNone(upload_token)
+    self.assertTrue('token' in upload_token)
+    self.assertTrue('file' in upload_token)
 
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
                                add_histograms.TASK_QUEUE_NAME)
