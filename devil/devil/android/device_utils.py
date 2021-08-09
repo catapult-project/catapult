@@ -1231,22 +1231,18 @@ class DeviceUtils(object):
     return set(p for p in apk_paths if IsFakeModulePath(p))
 
   def _FakeInstall(self, fake_apk_paths, fake_modules, package_name):
-    # Root is required to push files to /sdcard/Android/data for Android-11
-    # on emulator. It can work implicitly on certain devices but other devices
-    # like the emulator requires this to be done explicitly.
-    self.EnableRoot()
     with tempfile_ext.NamedTemporaryDirectory() as modules_dir:
       device_dir = posixpath.join(self.MODULES_SRC_DIRECTORY_PATH, package_name)
-      # Temporarily support both options until upstream switches to using local
-      # testing path only. Then support for src directory path can be removed.
-      # TODO(crbug.com/1220662): Remove MODULES_SRC_DIRECTORY_PATH.
-      device_dir2 = self.MODULES_LOCAL_TESTING_PATH_TEMPLATE.format(
-          package_name)
+      dest_dir = self.MODULES_LOCAL_TESTING_PATH_TEMPLATE.format(package_name)
       if not fake_modules:
+        # Temporarily support both options until upstream switches to using
+        # local testing path only. Then support for src directory path can be
+        # removed.
+        # TODO(crbug.com/1220662): Remove push empty dir and just use rm -rf.
         # Push empty module dir to clear device dir and update the cache.
-        self.PushChangedFiles([(modules_dir, device_dir),
-                               (modules_dir, device_dir2)],
+        self.PushChangedFiles([(modules_dir, device_dir)],
                               delete_device_stale=True)
+        self.RunShellCommand(['rm', '-rf', dest_dir], as_root=True)
         return
 
       still_need_master = set(fake_modules)
@@ -1267,9 +1263,16 @@ class DeviceUtils(object):
 
       assert not still_need_master, (
           'Missing master apk file for %s' % still_need_master)
-      self.PushChangedFiles([(modules_dir, device_dir),
-                             (modules_dir, device_dir2)],
+      self.PushChangedFiles([(modules_dir, device_dir)],
                             delete_device_stale=True)
+      # Create new directories until the parent of our destination since we
+      # want to copy that directory over from the temporary location. This
+      # indirection is necessary on Android 11 emulator as there is a permission
+      # issue for the files under /sdcard/Android/data.
+      self.RunShellCommand(
+          ['mkdir', '-p', posixpath.dirname(dest_dir)], as_root=True)
+      # TODO(crbug.com/1220662): Use mv when compatibility is no longer needed.
+      self.RunShellCommand(['cp', '-a', device_dir, dest_dir], as_root=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=INSTALL_DEFAULT_TIMEOUT)
