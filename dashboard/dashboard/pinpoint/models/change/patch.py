@@ -154,7 +154,7 @@ class GerritPatch(
 
     change_rev_match = re.match(r'^.*\/\+\/(\d+)(?:\/(\d+))?\/?$', url)
     change_match = re.match(r'^\/(\d+)\/?$', url_parts.path)
-    redirector_match = re.match(r'^/c/(\d+)\/?$', url_parts.path)
+    redirector_match = re.match(r'^/c/(\d+)(?:\/(\d+))?\/?$', url_parts.path)
     if change_rev_match:
       change = change_rev_match.group(1)
       revision = change_rev_match.group(2)
@@ -163,7 +163,7 @@ class GerritPatch(
       revision = None
     elif redirector_match:  # Supprt non-fully-resolved URLs
       change = redirector_match.group(1)
-      revision = None
+      revision = redirector_match.group(2)
     else:
       raise errors.BuildGerritURLInvalid(url)
 

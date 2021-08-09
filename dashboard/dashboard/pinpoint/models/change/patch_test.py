@@ -158,13 +158,12 @@ class GerritPatchTest(test.TestCase):
     self.assertEqual(p, Patch('other revision'))
 
   def testFromUrlAlternateFormat(self):
-    p = patch.GerritPatch.FromUrl(
-        'https://chromium-review.googlesource.com/c/658277')
-    self.assertEqual(
-        p,
-        Patch(
-            'current revision',
-            server='https://chromium-review.googlesource.com'))
+    p = patch.GerritPatch.FromUrl('https://codereview.com/c/658277')
+    self.assertEqual(p, Patch('current revision'))
+
+  def testFromUrlAlternateFormatWithRevision(self):
+    p = patch.GerritPatch.FromUrl('https://codereview.com/c/658277/3')
+    self.assertEqual(p, Patch('yet another revision'))
 
   def testFromGitClIssueUrl(self):
     p = patch.GerritPatch.FromUrl('https://codereview.com/658277/')
