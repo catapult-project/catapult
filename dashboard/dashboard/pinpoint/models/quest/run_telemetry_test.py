@@ -106,10 +106,12 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
       # Pass the correct arguments to run gtests on pinpoint.
       # As we don't want to add dependency to chromium, the names of gtests are
       # hard coded here, instead of loading from bot_platforms.py.
+      # Also, the list of pass_through_args is not handled correctly on swarming
+      # so we disassemble here and reassemable the list on server.
       extra_test_args += ('--gtest-benchmark-name', benchmark)
       extra_test_args += ('--non-telemetry', 'true')
       pass_through_args = list(_WATERFALL_ENABLED_GTEST_NAMES[benchmark])
-      extra_test_args += ('--passthrough-arg', pass_through_args)
+      extra_test_args += ('--passthrough-arg', ','.join(pass_through_args))
     else:
       extra_test_args += ('--benchmarks', benchmark)
 
