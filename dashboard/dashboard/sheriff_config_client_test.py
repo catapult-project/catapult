@@ -87,6 +87,7 @@ class SheriffConfigClientTest(testing_common.TestCase):
             bug_labels=['Lable1', 'Lable2'],
             bug_components=['foo>bar'],
             auto_triage_enable=False,
+            auto_merge_enable=False,
             auto_bisect_enable=False,
             monorail_project_id='non-chromium',
         ),
@@ -130,6 +131,7 @@ class SheriffConfigClientTest(testing_common.TestCase):
             bug_labels=['Lable1', 'Lable2'],
             bug_components=['foo>bar'],
             auto_triage_enable=False,
+            auto_merge_enable=False,
             auto_bisect_enable=False,
             monorail_project_id='non-chromium',
         ),
@@ -183,9 +185,63 @@ class SheriffConfigClientTest(testing_common.TestCase):
             bug_labels=['Lable1', 'Lable2'],
             bug_components=['foo>bar'],
             auto_triage_enable=False,
+            auto_merge_enable=False,
             auto_bisect_enable=False,
             monorail_project_id='non-chromium',
             anomaly_configs=[subscription.AnomalyConfig(max_window_size=200)]),
+    ]
+    self.assertEqual(clt.Match('Foo2/a/Bar2/b'), (expected, None))
+
+  def testMatchWithAutoTriageMergeAndBisectOptIn(self):
+    clt = sheriff_config_client.SheriffConfigClient()
+    response_text = """
+    {
+      "subscriptions": [
+        {
+          "config_set": "projects/catapult",
+          "revision": "c9d4943dc832e448f9786e244f918fdabc1e5303",
+          "subscription": {
+            "name": "Public Team1",
+            "rotation_url": "https://some/url",
+            "notification_email": "public@mail.com",
+            "monorail_project_id": "non-chromium",
+            "bug_labels": [
+              "Lable1",
+              "Lable2"
+            ],
+            "bug_components": [
+              "foo>bar"
+            ],
+            "visibility": "PUBLIC",
+            "auto_triage": {
+              "enable": true
+            },
+            "auto_merge": {
+              "enable": true
+            },
+            "auto_bisection": {
+              "enable": true
+            }
+          }
+        }
+      ]
+    }
+    """
+    clt._session = self._Session(self._Response(True, response_text))
+    expected = [
+        subscription.Subscription(
+            revision='c9d4943dc832e448f9786e244f918fdabc1e5303',
+            name='Public Team1',
+            rotation_url='https://some/url',
+            notification_email='public@mail.com',
+            visibility=subscription.VISIBILITY.PUBLIC,
+            bug_labels=['Lable1', 'Lable2'],
+            bug_components=['foo>bar'],
+            auto_triage_enable=True,
+            auto_merge_enable=True,
+            auto_bisect_enable=True,
+            monorail_project_id='non-chromium',
+        ),
     ]
     self.assertEqual(clt.Match('Foo2/a/Bar2/b'), (expected, None))
 

@@ -77,6 +77,7 @@ class SheriffConfigClient(object):
         bug_cc_emails=list(subscription.bug_cc_emails),
         visibility=subscription.visibility,
         auto_triage_enable=subscription.auto_triage.enable,
+        auto_merge_enable=subscription.auto_merge.enable,
         auto_bisect_enable=subscription.auto_bisection.enable,
         anomaly_configs=anomaly_configs,
     )

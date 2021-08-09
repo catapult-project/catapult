@@ -294,7 +294,59 @@ class ValidatorTest(unittest.TestCase):
                                ]
                              """)
 
-  def testValidAutoTriageAndAutoBisect(self):
+  def testInvalidRegexAutoMerge(self):
+    with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
+      _ = validator.Validate("""
+                               subscriptions: [
+                                 {
+                                   name: "Empty Regex",
+                                   contact_email: "bad-pattern@domain",
+                                   bug_labels: ["test-blocker"],
+                                   bug_components: ["Sample>Component"],
+                                   rules: {
+                                      match: [{regex: ".*"}]
+                                   }
+                                   auto_triage {
+                                     rules: {
+                                       match: {regex: ".*"}
+                                     }
+                                   }
+                                   auto_merge {
+                                     rules: {
+                                       match: {regex: "*"}
+                                     }
+                                   }
+                                 }
+                               ]
+                             """)
+    with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
+      _ = validator.Validate("""
+                               subscriptions: [
+                                 {
+                                   name: "Empty Regex",
+                                   contact_email: "bad-pattern@domain",
+                                   bug_labels: ["test-blocker"],
+                                   bug_components: ["Sample>Component"],
+                                   rules: {
+                                      match: [{regex: ".*"}]
+                                      exclude: [{regex: ".*"}]
+                                   }
+                                   auto_triage {
+                                     rules: {
+                                       match: {regex: ".*"}
+                                     }
+                                   }
+                                   auto_merge {
+                                     rules: {
+                                       match: {regex: ".*"}
+                                       exclude: {regex: "*"}
+                                     }
+                                   }
+                                 }
+                               ]
+                             """)
+
+  def testValidAutoTriageMergeAndBisect(self):
     _ = validator.Validate("""
                                subscriptions: [
                                  {
@@ -307,6 +359,12 @@ class ValidatorTest(unittest.TestCase):
                                       exclude: [{regex: ".*"}]
                                    }
                                    auto_triage {
+                                     rules: {
+                                       match: {regex: ".*"}
+                                       exclude: {regex: ".*"}
+                                     }
+                                   }
+                                   auto_merge {
                                      rules: {
                                        match: {regex: ".*"}
                                        exclude: {regex: ".*"}

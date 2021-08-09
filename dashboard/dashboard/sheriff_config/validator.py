@@ -140,6 +140,12 @@ def Validate(content):
          pattern) in enumerate(subscription.auto_triage.rules.exclude):
       ValidatePattern(index, pattern_idx, pattern, 'auto_triage.rules.exclude')
     for (pattern_idx,
+         pattern) in enumerate(subscription.auto_merge.rules.match):
+      ValidatePattern(index, pattern_idx, pattern, 'auto_merge.rules.match')
+    for (pattern_idx,
+         pattern) in enumerate(subscription.auto_merge.rules.exclude):
+      ValidatePattern(index, pattern_idx, pattern, 'auto_merge.rules.exclude')
+    for (pattern_idx,
          pattern) in enumerate(subscription.auto_bisection.rules.match):
       ValidatePattern(index, pattern_idx, pattern, 'auto_bisection.rules.match')
     for (pattern_idx,

@@ -404,9 +404,10 @@ class FakeIssueTrackerService(object):
     # TODO(dberris): In the future, actually generate the issue.
     self.issues.update({
         (kwargs.get('project', 'chromium'), self._bug_id_counter): {
-            k: v for k, v in itertools.chain(self._base_issue.items(), [(
-                'id', self._bug_id_counter
-            ), ('projectId', kwargs.get('project', 'chromium'))])
+            k: v
+            for k, v in itertools.chain(self._base_issue.items(), kwargs.items(
+            ), [('id', self._bug_id_counter
+                ), ('projectId', kwargs.get('project', 'chromium'))])
         }
     })
     result = {

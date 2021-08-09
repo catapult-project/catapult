@@ -116,6 +116,17 @@ message AutoTriage {
   };
 }
 
+// Sheriff can use enable flag or rules to select tests' groups being
+// automatically merged when corresponding bugs are marked as duplicate. But
+// when sending Match request to the sheriff-config service, we only respond
+// enable or not without rules. Available only if auto triage is enabled.
+message AutoMerge {
+  oneof auto_merge {
+    bool enable = 1;
+    Rules rules = 2;
+  };
+}
+
 // Sheriff can use enable flag or rules to select tests being auto bisected. But
 // when sending Match request to the sheriff-config service, we only respond
 // enable or not without rules.
@@ -131,7 +142,7 @@ message AutoBisection {
 // from sheriff-config.
 // A Subscription describes a configuration through which we determine routing
 // information for alerts generated to matching metrics.
-// Next ID: 15
+// Next ID: 16
 message Subscription {
   reserved 8;
   reserved "patterns";
@@ -167,6 +178,10 @@ message Subscription {
 
   // Enable automatic create issue based on alert group
   AutoTriage auto_triage = 11;
+
+  // Enable automatic merge of alert groups when issues are marked as
+  // duplicate. Available only if auto triage is enabled.
+  AutoMerge auto_merge = 15;
 
   // Enable automatic create pinpint bisection job based on alert group
   AutoBisection auto_bisection = 13;

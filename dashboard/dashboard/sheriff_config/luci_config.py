@@ -156,6 +156,12 @@ class Matcher(object):
       self._match_auto_triage = matcher_module.CompileRules(
           subscription.auto_triage.rules, ignore_broken=True)
 
+    if subscription.auto_merge.enable:
+      self._match_auto_merge = lambda s: True
+    else:
+      self._match_auto_merge = matcher_module.CompileRules(
+          subscription.auto_merge.rules, ignore_broken=True)
+
     if subscription.auto_bisection.enable:
       self._match_auto_bisection = lambda s: True
     else:
@@ -181,6 +187,9 @@ class Matcher(object):
 
   def MatchAutoTriage(self, test):
     return self._match_auto_triage(test)
+
+  def MatchAutoMerge(self, test):
+    return self._match_auto_merge(test)
 
   def MatchAutoBisection(self, test):
     return self._match_auto_bisection(test)
@@ -244,6 +253,9 @@ def FindMatchingConfigs(client, request):
     matcher = GetMatcher(revision, subscription)
     if matcher.MatchSubscription(request.path):
       subscription.auto_triage.enable = matcher.MatchAutoTriage(request.path)
+      subscription.auto_merge.enable = (
+          subscription.auto_triage.enable
+          and matcher.MatchAutoMerge(request.path))
       subscription.auto_bisection.enable = (
           subscription.auto_triage.enable
           and matcher.MatchAutoBisection(request.path))
@@ -262,6 +274,10 @@ def CopyNormalizedSubscription(src, dst):
   auto_triage_enable = dst.auto_triage.enable
   dst.auto_triage.Clear()
   dst.auto_triage.enable = auto_triage_enable
+
+  auto_merge_enable = dst.auto_merge.enable
+  dst.auto_merge.Clear()
+  dst.auto_merge.enable = auto_merge_enable
 
   auto_bisection_enable = dst.auto_bisection.enable
   dst.auto_bisection.Clear()

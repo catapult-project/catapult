@@ -113,7 +113,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                      anomalies=None,
                      status=None,
                      project_id=None,
-                     bisection_ids=None):
+                     bisection_ids=None,
+                     canonical_group=None):
     anomaly_entity = anomaly_key.get()
     group = alert_group.AlertGroup(
         id=str(uuid.uuid4()),
@@ -139,6 +140,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
       group.anomalies = anomalies
     if status:
       group.status = status
+    if canonical_group:
+      group.canonical_group = canonical_group
     return group.put()
 
   @staticmethod
@@ -1663,3 +1666,613 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             issue=self._issue_tracker.issue,
         ))
     self.assertIsNone(self._pinpoint.new_job_request)
+
+  def testAutoMerge_SucessfulMerge(self):
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='sheriff', auto_triage_enable=True, auto_merge_enable=True)
+        ],
+    }
+
+    self._issue_tracker._bug_id_counter = 42
+    duplicate_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug(status='Duplicate',
+                                   state='closed')['bug_id'])
+    canonical_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug()['bug_id'])
+
+    grouped_anomalies = [self._AddAnomaly(), self._AddAnomaly()]
+    all_anomalies = grouped_anomalies + [self._AddAnomaly()]
+    group = self._AddAlertGroup(
+        grouped_anomalies[0],
+        issue=duplicate_issue,
+        anomalies=grouped_anomalies,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    canonical_group = self._AddAlertGroup(
+        grouped_anomalies[0],
+        issue=canonical_issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        config=alert_group_workflow.AlertGroupWorkflow.Config(
+            active_window=datetime.timedelta(days=7),
+            triage_delay=datetime.timedelta(hours=0),
+        ),
+    )
+    u = alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+        now=datetime.datetime.utcnow(),
+        anomalies=ndb.get_multi(all_anomalies),
+        issue=duplicate_issue,
+        canonical_group=canonical_group.get(),
+    )
+
+    w.Process(update=u)
+
+    # First two are NewBug calls in the test itself.
+    self.assertEqual(len(self._issue_tracker.calls), 4)
+
+    self.assertEqual(self._issue_tracker.calls[2]['method'], 'AddBugComment')
+    self.assertEqual(len(self._issue_tracker.calls[2]['args']), 2)
+    self.assertEqual(self._issue_tracker.calls[2]['args'][0], 42)
+    self.assertIn(
+        '(%s) was automatically merged into %s' %
+        (group.string_id(), canonical_group.string_id()),
+        self._issue_tracker.calls[2]['args'][1])
+    self.assertEqual(self._issue_tracker.calls[2]['kwargs'], {
+        'project': 'chromium',
+        'send_email': False
+    })
+
+    self.assertEqual(
+        self._issue_tracker.calls[3], {
+            'method': 'AddBugComment',
+            'args': (42, None),
+            'kwargs': {
+                'summary':
+                    '[%s]: %d regressions in %s' % ('sheriff', 3, 'test_suite'),
+                'labels': [
+                    'Type-Bug-Regression', 'Chromeperf-Auto-Triaged',
+                    'Restrict-View-Google', 'Pri-2'
+                ],
+                'cc_list': [],
+                'components': ['Foo>Bar'],
+                'project':
+                    'chromium',
+                'send_email':
+                    False
+            },
+        })
+
+    self.assertTrue(all(a.get().bug_id == 43 for a in all_anomalies))
+    self.assertEqual(group.get().canonical_group, canonical_group)
+    self.assertEqual(group.get().status, alert_group.AlertGroup.Status.closed)
+
+  def testAutoMerge_AutoMergeNotOptIn(self):
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(name='sheriff', auto_triage_enable=True)
+        ],
+    }
+
+    self._issue_tracker._bug_id_counter = 42
+    duplicate_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug(status='Duplicate',
+                                   state='closed')['bug_id'])
+    canonical_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug()['bug_id'])
+
+    grouped_anomalies = [self._AddAnomaly(), self._AddAnomaly()]
+    all_anomalies = grouped_anomalies + [self._AddAnomaly()]
+    group = self._AddAlertGroup(
+        grouped_anomalies[0],
+        issue=duplicate_issue,
+        anomalies=grouped_anomalies,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    canonical_group = self._AddAlertGroup(
+        grouped_anomalies[0],
+        issue=canonical_issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        config=alert_group_workflow.AlertGroupWorkflow.Config(
+            active_window=datetime.timedelta(days=7),
+            triage_delay=datetime.timedelta(hours=0),
+        ),
+    )
+    u = alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+        now=datetime.datetime.utcnow(),
+        anomalies=ndb.get_multi(all_anomalies),
+        issue=duplicate_issue,
+        canonical_group=canonical_group.get(),
+    )
+
+    self._UpdateTwice(workflow=w, update=u)
+
+    # First two are NewBug calls in the test itself.
+    self.assertEqual(len(self._issue_tracker.calls), 3)
+
+    self.assertEqual(self._issue_tracker.calls[2]['method'], 'AddBugComment')
+    self.assertEqual(len(self._issue_tracker.calls[2]['args']), 2)
+    self.assertEqual(self._issue_tracker.calls[2]['args'][0], 42)
+    self.assertNotIn('was automatically merged into',
+                     self._issue_tracker.calls[2]['args'][1])
+    self.assertIn('Alert group updated:',
+                  self._issue_tracker.calls[2]['args'][1])
+    self.assertEqual(
+        self._issue_tracker.calls[2]['kwargs'], {
+            'summary':
+                '[%s]: %d regressions in %s' % ('sheriff', 3, 'test_suite'),
+            'labels': [
+                'Type-Bug-Regression', 'Chromeperf-Auto-Triaged',
+                'Restrict-View-Google', 'Pri-2'
+            ],
+            'cc_list': [],
+            'components': ['Foo>Bar'],
+            'project':
+                'chromium',
+            'send_email':
+                False
+        })
+
+    self.assertTrue(all(a.get().bug_id == 42 for a in all_anomalies))
+    self.assertIsNone(group.get().canonical_group)
+    self.assertEqual(group.get().status, alert_group.AlertGroup.Status.closed)
+
+  def testAutoMerge_NoCanonicalIssue(self):
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='sheriff', auto_triage_enable=True, auto_merge_enable=True)
+        ],
+    }
+
+    self._issue_tracker._bug_id_counter = 42
+    issue = self._issue_tracker.GetIssue(self._issue_tracker.NewBug()['bug_id'])
+
+    grouped_anomalies = [self._AddAnomaly(), self._AddAnomaly()]
+    all_anomalies = grouped_anomalies + [self._AddAnomaly()]
+    group = self._AddAlertGroup(
+        grouped_anomalies[0],
+        issue=issue,
+        anomalies=grouped_anomalies,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        config=alert_group_workflow.AlertGroupWorkflow.Config(
+            active_window=datetime.timedelta(days=7),
+            triage_delay=datetime.timedelta(hours=0),
+        ),
+    )
+    u = alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+        now=datetime.datetime.utcnow(),
+        anomalies=ndb.get_multi(all_anomalies),
+        issue=issue,
+    )
+
+    self._UpdateTwice(workflow=w, update=u)
+
+    # First one is NewBug call in the test itself.
+    self.assertEqual(len(self._issue_tracker.calls), 2)
+
+    self.assertEqual(self._issue_tracker.calls[1]['method'], 'AddBugComment')
+    self.assertEqual(len(self._issue_tracker.calls[1]['args']), 2)
+    self.assertEqual(self._issue_tracker.calls[1]['args'][0], 42)
+    self.assertNotIn('was automatically merged into',
+                     self._issue_tracker.calls[1]['args'][1])
+    self.assertIn('Alert group updated:',
+                  self._issue_tracker.calls[1]['args'][1])
+    self.assertEqual(
+        self._issue_tracker.calls[1]['kwargs'], {
+            'summary':
+                '[%s]: %d regressions in %s' % ('sheriff', 3, 'test_suite'),
+            'labels': [
+                'Type-Bug-Regression', 'Chromeperf-Auto-Triaged',
+                'Restrict-View-Google', 'Pri-2'
+            ],
+            'cc_list': [],
+            'components': ['Foo>Bar'],
+            'project':
+                'chromium',
+            'send_email':
+                False
+        })
+
+    self.assertTrue(all(a.get().bug_id == 42 for a in all_anomalies))
+    self.assertIsNone(group.get().canonical_group)
+    self.assertEqual(group.get().status, alert_group.AlertGroup.Status.triaged)
+
+  def testAutoMerge_SucessfulMerge_AutoMergeForOneAnomaly(self):
+    self._sheriff_config.patterns = {
+        '*auto_merge*': [
+            subscription.Subscription(
+                name='sheriff', auto_triage_enable=True, auto_merge_enable=True)
+        ],
+        '*regular*': [
+            subscription.Subscription(name='sheriff', auto_triage_enable=True)
+        ],
+    }
+
+    self._issue_tracker._bug_id_counter = 42
+    duplicate_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug(status='Duplicate',
+                                   state='closed')['bug_id'])
+    canonical_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug()['bug_id'])
+
+    grouped_anomalies = [
+        self._AddAnomaly(test='master/bot/regular_suite/measurement'),
+        self._AddAnomaly(test='master/bot/auto_merge_suite/measurement')
+    ]
+    all_anomalies = grouped_anomalies + [
+        self._AddAnomaly(test='master/bot/regular_suite/measurement'),
+    ]
+    group = self._AddAlertGroup(
+        grouped_anomalies[0],
+        issue=duplicate_issue,
+        anomalies=grouped_anomalies,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    canonical_group = self._AddAlertGroup(
+        grouped_anomalies[0],
+        issue=canonical_issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        config=alert_group_workflow.AlertGroupWorkflow.Config(
+            active_window=datetime.timedelta(days=7),
+            triage_delay=datetime.timedelta(hours=0),
+        ),
+    )
+    u = alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+        now=datetime.datetime.utcnow(),
+        anomalies=ndb.get_multi(all_anomalies),
+        issue=duplicate_issue,
+        canonical_group=canonical_group.get(),
+    )
+
+    w.Process(update=u)
+
+    # First two are NewBug calls in the test itself.
+    self.assertEqual(len(self._issue_tracker.calls), 4)
+
+    self.assertEqual(self._issue_tracker.calls[2]['method'], 'AddBugComment')
+    self.assertEqual(len(self._issue_tracker.calls[2]['args']), 2)
+    self.assertEqual(self._issue_tracker.calls[2]['args'][0], 42)
+    self.assertIn(
+        '(%s) was automatically merged into %s' %
+        (group.string_id(), canonical_group.string_id()),
+        self._issue_tracker.calls[2]['args'][1])
+    self.assertEqual(self._issue_tracker.calls[2]['kwargs'], {
+        'project': 'chromium',
+        'send_email': False
+    })
+
+    self.assertEqual(
+        self._issue_tracker.calls[3], {
+            'method': 'AddBugComment',
+            'args': (42, None),
+            'kwargs': {
+                'summary':
+                    '[%s]: %d regressions in %s' %
+                    ('sheriff', 3, 'regular_suite'),
+                'labels': [
+                    'Type-Bug-Regression', 'Chromeperf-Auto-Triaged',
+                    'Restrict-View-Google', 'Pri-2'
+                ],
+                'cc_list': [],
+                'components': ['Foo>Bar'],
+                'project':
+                    'chromium',
+                'send_email':
+                    False
+            },
+        })
+
+    self.assertEqual(all_anomalies[0].get().bug_id, 42)
+    self.assertEqual(all_anomalies[1].get().bug_id, 43)
+    self.assertEqual(all_anomalies[2].get().bug_id, 42)
+
+    self.assertEqual(group.get().canonical_group, canonical_group)
+    self.assertEqual(group.get().status, alert_group.AlertGroup.Status.closed)
+
+  def testAutoMerge_SucessfulMerge_NoNewAnomalies(self):
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='sheriff', auto_triage_enable=True, auto_merge_enable=True)
+        ],
+    }
+
+    self._issue_tracker._bug_id_counter = 42
+    duplicate_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug(status='Duplicate',
+                                   state='closed')['bug_id'])
+    canonical_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug()['bug_id'])
+
+    grouped_anomalies = [self._AddAnomaly(), self._AddAnomaly()]
+    group = self._AddAlertGroup(
+        grouped_anomalies[0],
+        issue=duplicate_issue,
+        anomalies=grouped_anomalies,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    canonical_group = self._AddAlertGroup(
+        grouped_anomalies[0],
+        issue=canonical_issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        config=alert_group_workflow.AlertGroupWorkflow.Config(
+            active_window=datetime.timedelta(days=7),
+            triage_delay=datetime.timedelta(hours=0),
+        ),
+    )
+    u = alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+        now=datetime.datetime.utcnow(),
+        anomalies=ndb.get_multi(grouped_anomalies),
+        issue=duplicate_issue,
+        canonical_group=canonical_group.get(),
+    )
+
+    w.Process(update=u)
+
+    # First two are NewBug calls in the test itself.
+    self.assertEqual(len(self._issue_tracker.calls), 3)
+
+    self.assertEqual(self._issue_tracker.calls[2]['method'], 'AddBugComment')
+    self.assertEqual(len(self._issue_tracker.calls[2]['args']), 2)
+    self.assertEqual(self._issue_tracker.calls[2]['args'][0], 42)
+    self.assertIn(
+        '(%s) was automatically merged into %s' %
+        (group.string_id(), canonical_group.string_id()),
+        self._issue_tracker.calls[2]['args'][1])
+    self.assertEqual(self._issue_tracker.calls[2]['kwargs'], {
+        'project': 'chromium',
+        'send_email': False
+    })
+
+    self.assertTrue(all(a.get().bug_id == 43 for a in grouped_anomalies))
+    self.assertEqual(group.get().canonical_group, canonical_group)
+    self.assertEqual(group.get().status, alert_group.AlertGroup.Status.closed)
+
+  def testAutoMerge_SeparatingGroups(self):
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='sheriff', auto_triage_enable=True, auto_merge_enable=True)
+        ],
+    }
+
+    self._issue_tracker._bug_id_counter = 42
+    duplicate_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug()['bug_id'])
+
+    grouped_anomalies = [self._AddAnomaly(), self._AddAnomaly()]
+    all_anomalies = grouped_anomalies + [self._AddAnomaly()]
+    canonical_group = self._AddAlertGroup(
+        grouped_anomalies[0],
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    group = self._AddAlertGroup(
+        grouped_anomalies[0],
+        issue=duplicate_issue,
+        anomalies=grouped_anomalies,
+        status=alert_group.AlertGroup.Status.closed,
+        canonical_group=canonical_group)
+
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        issue_tracker=self._issue_tracker,
+        config=alert_group_workflow.AlertGroupWorkflow.Config(
+            active_window=datetime.timedelta(days=7),
+            triage_delay=datetime.timedelta(hours=0),
+        ),
+    )
+    u = alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+        now=datetime.datetime.utcnow(),
+        anomalies=ndb.get_multi(all_anomalies),
+        issue=duplicate_issue,
+        canonical_group=None,
+    )
+
+    w.Process(update=u)
+
+    # First one is NewBug calls in the test itself.
+    self.assertEqual(len(self._issue_tracker.calls), 2)
+
+    self.assertEqual(self._issue_tracker.calls[1]['method'], 'AddBugComment')
+    self.assertEqual(len(self._issue_tracker.calls[1]['args']), 2)
+    self.assertEqual(self._issue_tracker.calls[1]['args'][0], 42)
+    self.assertIn('Alert group updated:',
+                  self._issue_tracker.calls[1]['args'][1])
+
+    self.assertIsNone(group.get().canonical_group)
+    self.assertEqual(group.get().status, alert_group.AlertGroup.Status.triaged)
+
+  def testPrepareGroupUpdate_DuplicateGroupFound(self):
+    base_anomaly = self._AddAnomaly()
+
+    self._issue_tracker._bug_id_counter = 42
+    canonical_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug()['bug_id'])
+    canonical_group = self._AddAlertGroup(
+        base_anomaly,
+        issue=canonical_issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    canonical_anomalies = [
+        self._AddAnomaly(groups=[canonical_group]),
+        self._AddAnomaly(groups=[canonical_group])
+    ]
+
+    duplicate_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug(status='Duplicate',
+                                   state='closed')['bug_id'])
+    duplicate_group = self._AddAlertGroup(
+        base_anomaly,
+        issue=duplicate_issue,
+        status=alert_group.AlertGroup.Status.triaged,
+        canonical_group=canonical_group,
+    )
+    duplicate_anomalies = [
+        self._AddAnomaly(groups=[duplicate_group]),
+        self._AddAnomaly(groups=[duplicate_group])
+    ]
+
+    w = alert_group_workflow.AlertGroupWorkflow(
+        canonical_group.get(),
+        issue_tracker=self._issue_tracker,
+        config=alert_group_workflow.AlertGroupWorkflow.Config(
+            active_window=datetime.timedelta(days=7),
+            triage_delay=datetime.timedelta(hours=0),
+        ),
+    )
+
+    update = w._PrepareGroupUpdate()
+
+    self.assertEqual(
+        update.anomalies,
+        [a.get() for a in canonical_anomalies + duplicate_anomalies])
+    self.assertIsNotNone(update.issue)
+    self.assertIsNone(update.canonical_group)
+
+  def testPrepareGroupUpdate_CanonicalGroupFound(self):
+    base_anomaly = self._AddAnomaly()
+
+    self._issue_tracker._bug_id_counter = 42
+    duplicate_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug(status='Duplicate',
+                                   state='closed')['bug_id'])
+    duplicate_group = self._AddAlertGroup(
+        base_anomaly,
+        issue=duplicate_issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    anomalies = [
+        self._AddAnomaly(groups=[duplicate_group]),
+        self._AddAnomaly(groups=[duplicate_group])
+    ]
+
+    canonical_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug()['bug_id'])
+    canonical_group = self._AddAlertGroup(
+        base_anomaly,
+        issue=canonical_issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+
+    self._issue_tracker.issue_comments.update({
+        ('chromium', duplicate_issue['id']): [
+            {
+                'id': 2,
+                'updates': {
+                    'status': 'Duplicate',
+                    # According to Monorail API documentation, mergedInto
+                    # has string type.
+                    'mergedInto': str(canonical_issue['id'])
+                },
+            },
+            {
+                'id': 1,
+                'updates': {
+                    'status': 'WontFix'
+                },
+            }
+        ]
+    })
+
+    w = alert_group_workflow.AlertGroupWorkflow(
+        duplicate_group.get(),
+        issue_tracker=self._issue_tracker,
+        config=alert_group_workflow.AlertGroupWorkflow.Config(
+            active_window=datetime.timedelta(days=7),
+            triage_delay=datetime.timedelta(hours=0),
+        ),
+    )
+
+    update = w._PrepareGroupUpdate()
+
+    self.assertEqual(update.anomalies, [a.get() for a in anomalies])
+    self.assertIsNotNone(update.issue)
+    self.assertEqual(update.canonical_group, canonical_group.get())
+
+  def testPrepareGroupUpdate_CanonicalGroupLoop(self):
+    base_anomaly = self._AddAnomaly()
+
+    self._issue_tracker._bug_id_counter = 42
+    duplicate_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug(status='Duplicate',
+                                   state='closed')['bug_id'])
+    duplicate_group = self._AddAlertGroup(
+        base_anomaly,
+        issue=duplicate_issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+
+    looped_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug()['bug_id'])
+    looped_group = self._AddAlertGroup(
+        base_anomaly,
+        issue=looped_issue,
+        status=alert_group.AlertGroup.Status.triaged,
+        canonical_group=duplicate_group,
+    )
+
+    canonical_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug()['bug_id'])
+    self._AddAlertGroup(
+        base_anomaly,
+        issue=canonical_issue,
+        status=alert_group.AlertGroup.Status.triaged,
+        canonical_group=looped_group,
+    )
+
+    self._issue_tracker.issue_comments.update({
+        ('chromium', duplicate_issue['id']): [{
+            'id': 2,
+            'updates': {
+                'status': 'Duplicate',
+                # According to Monorail API documentation, mergedInto
+                # has string type.
+                'mergedInto': str(canonical_issue['id'])
+            },
+        }]
+    })
+
+    w = alert_group_workflow.AlertGroupWorkflow(
+        duplicate_group.get(),
+        issue_tracker=self._issue_tracker,
+        config=alert_group_workflow.AlertGroupWorkflow.Config(
+            active_window=datetime.timedelta(days=7),
+            triage_delay=datetime.timedelta(hours=0),
+        ),
+    )
+
+    update = w._PrepareGroupUpdate()
+
+    self.assertIsNone(update.canonical_group)
