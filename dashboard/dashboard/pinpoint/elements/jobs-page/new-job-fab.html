@@ -616,6 +616,8 @@ found in the LICENSE file.
           throw Error(
               'Given Android configuration ' + configuration + ' does not ' +
               'have an isolate mapped to it');
+        } else if (configuration === 'fuchsia-perf-fyi') {
+          return 'performance_web_engine_test_suite';
         }
 
         return 'performance_test_suite';
