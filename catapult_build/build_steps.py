@@ -30,7 +30,7 @@ _DASHBOARD_TESTS = [
             '--timeout-sec=120', '--timeout-retries=2'
         ],
         'outputs_presentation_json': True,
-        'disabled': ['android'],
+        'disabled': ['android', 'win', 'mac'],
     },
     {
         'name': 'Dashboard Dev Server Tests Canary',
@@ -40,13 +40,13 @@ _DASHBOARD_TESTS = [
             '--timeout-sec=120', '--timeout-retries=2'
         ],
         'outputs_presentation_json': True,
-        'disabled': ['android'],
+        'disabled': ['android', 'win', 'mac'],
     },
     {
         'name': 'Dashboard Python Tests',
         'path': 'dashboard/bin/run_py_tests',
         'additional_args': ['--no-install-hooks'],
-        'disabled': ['android'],
+        'disabled': ['android', 'win', 'mac'],
     },
 ]
 
