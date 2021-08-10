@@ -311,9 +311,9 @@ class AlertGroupWorkflow(object):
         return self._CommitGroup()
 
     group = self._group
-    if group.updated + self._config.active_window < update.now:
+    if group.updated + self._config.active_window <= update.now:
       self._Archive()
-    elif group.created + self._config.triage_delay < update.now and (
+    elif group.created + self._config.triage_delay <= update.now and (
         group.status in {group.Status.untriaged}):
       logging.info('created: %s, triage_delay: %s", now: %s, status: %s',
                    group.created, self._config.triage_delay, update.now,
