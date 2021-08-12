@@ -221,6 +221,9 @@ tr.exportTo('tr.v.ui', function() {
         const scalarA = cellA.getStatisticScalar(statisticA, referenceCellA);
         if (scalarA) {
           valueA = scalarA.value;
+          if (scalarA.unit.unitName == "normalizedPercentageDelta_smallerIsBetter") {
+            valueA = -valueA;
+          }
         }
       }
 
@@ -232,6 +235,9 @@ tr.exportTo('tr.v.ui', function() {
         const scalarB = cellB.getStatisticScalar(statisticB, referenceCellB);
         if (scalarB) {
           valueB = scalarB.value;
+          if (scalarB.unit.unitName == "normalizedPercentageDelta_smallerIsBetter") {
+            valueB = -valueB;
+          }
         }
       }
 
