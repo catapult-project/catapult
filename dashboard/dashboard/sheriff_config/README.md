@@ -12,7 +12,7 @@ in isolation from the rest of the dashboard to let us determine a small scope.
 ## Testing
 
 We recommend using Docker to build an isolated environment for testing the
-sheriff-config service in isolation. Follow [steps](/tests/README.md) in tests/
+sheriff-config service in isolation. Follow [steps](tests/README.md) in tests/
 to run the integration test for the sheriff-config service. The associated
 `Dockerfile` and `docker-compose.yml` in tests/ contains the steps required to
 develop an isolated version of the service, which can be tested locally.

@@ -33,7 +33,7 @@ To load sample graph or alert data from production, navigate to
 
 ## Deploying to production
 
-See [Docker deploy](/dashbaord/docs/dev_dockerfiles/README.md).
+See [Docker deploy](/dashboard/dev_dockerfiles/README.md).
 
 ## Where to find documentation
 

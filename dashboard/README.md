@@ -4,11 +4,7 @@ The Chrome Performance Dashboard is an App Engine web application for displaying
 and monitoring performance test results.
 
 -   [Getting set up to contribute](/dashboard/docs/getting-set-up.md)
--   [Dashboard admin tasks](/dashboard/docs/admin-tasks.md)
--   [Debugging in production](/dashboard/docs/cloud-debugger.md)
--   [Example code snippets](/dashboard/docs/code-snippets.md)
 -   [Data format for new graph data](/dashboard/docs/data-format.md)
--   [Checklist for deployment](/dashboard/docs/deploy-checklist.md)
 -   [Rolling back from a broken deployment](/dashboard/docs/rollback.md)
 -   [Project glossary](/dashboard/docs/glossary.md)
 -   [Pages and endpoints](/dashboard/docs/pages-and-endpoints.md)

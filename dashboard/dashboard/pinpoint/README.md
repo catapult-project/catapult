@@ -15,7 +15,5 @@ Users can adjust the parameters and test potential fixes.
 
 # Resources
 
-* [API reference](handlers/README.md)
 * [Contributing](../../docs/getting-set-up.md)
 * [Architecture overview](models/README.md)
-* [Design overview](elements/README.md)
