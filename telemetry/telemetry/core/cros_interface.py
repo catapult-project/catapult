@@ -769,7 +769,9 @@ class CrOSInterface(object):
       stop_cmd.insert(0, 'systemctl')
     if clear_enterprise_policy:
       self.RunCmdOnDevice(stop_cmd)
+      # TODO(b/187793661) Delete /var/lib/whitelist once migration is finished.
       self.RmRF('/var/lib/whitelist/*')
+      self.RmRF('/var/lib/devicesettings/*')
       self.RmRF(r'/home/chronos/Local\ State')
 
     if self.IsServiceRunning('ui'):
