@@ -139,7 +139,7 @@ class LuciPollingTest(unittest.TestCase):
           })
 
     Test('Triage_Merge_Bisect', True, True, True)
-    Test('NoTriage_NoMerge_NoBisect', False, False, False)
+    Test('NoTriage_Merge_Bisect', False, False, False)
     Test('Triage_NoMerge_NoBisect', True, False, False)
     Test('Triage_Merge_NoBisect', True, True, False)
 
