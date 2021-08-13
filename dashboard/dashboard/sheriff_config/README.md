@@ -44,9 +44,16 @@ or through the dashboard test runner:
 
 ## Deployment
 
-We'll use the `sheriff-config.yaml` file in this directory along with the
-`requirements.txt` file for deployment.
+After new commits are submitted in the `dashboard` directory, all dashboard
+services are automatically deployed, including the sheriff-config service.
+You can check the status of the deployment on the Cloud Build
+[Build history](https://pantheon.corp.google.com/cloud-build/builds?project=chromeperf)
+page. Look for builds with Trigger Name `catapult-sheriff-config-push-on-green`.
+
+If you need to do a manual deployment, run the following commands from
+this directory.
 
 ```
-gcloud app deploy sheriff-config.yaml
+gcloud config set project chromeperf
+gcloud app deploy app.yaml
 ```
