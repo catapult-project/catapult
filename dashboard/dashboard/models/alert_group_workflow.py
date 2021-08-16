@@ -207,12 +207,12 @@ class AlertGroupWorkflow(object):
     query = alert_group.AlertGroup.query(
         alert_group.AlertGroup.active == True,
         alert_group.AlertGroup.canonical_group == self._group.key)
-    return query.fetch() or []
+    return query.fetch()
 
   def _FindRelatedAnomalies(self, groups):
     query = anomaly.Anomaly.query(
         anomaly.Anomaly.groups.IN([g.key for g in groups]))
-    return query.fetch() or []
+    return query.fetch()
 
   def _PrepareGroupUpdate(self):
     """Prepares default input for the workflow Process
