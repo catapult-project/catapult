@@ -53,6 +53,7 @@ tr.exportTo('tr.metrics', function() {
     const METRIC_VALUE = 'metric_value';
     const marks = new Map();
     for (const helper of Object.values(chromeHelper.rendererHelpers)) {
+      if (!helper.mainThread) continue;
       for (const event of helper.mainThread.sliceGroup.childEvents()) {
         if (!event.category.includes('blink.user_timing')) continue;
         const {title} = event;
@@ -113,6 +114,7 @@ tr.exportTo('tr.metrics', function() {
   function getMetrics(chromeHelper) {
     const CUSTOM_METRIC_MANIFEST_PREFIX = 'custom_metric:manifest:'
     for (const helper of Object.values(chromeHelper.rendererHelpers)) {
+      if (!helper.mainThread) continue;
       for (const event of helper.mainThread.sliceGroup.childEvents()) {
         if (!event.category.includes('blink.user_timing')) continue;
         const {title} = event;
