@@ -130,7 +130,8 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
   @contextlib.contextmanager
   def SkippingWith(self, expectations):
     with tempfile_ext.NamedTemporaryFile(prefix='expectations_',
-                                         suffix='.config') as expectations_out:
+                                         suffix='.config',
+                                         mode='w+') as expectations_out:
       expectations_out.write('# results: [ Skip ]\n')
       for issue, abenchmark, astory in expectations:
         expectations_out.write('{} {}/{} [ Skip ]\n'.format(
