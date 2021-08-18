@@ -177,8 +177,7 @@ def try_builder(
         **verifier_kwargs
     )
 
-try_builder("Catapult Linux Tryserver", "Ubuntu")
-try_builder("Catapult Linux Tryserver Py3", "Ubuntu", experiment = 100, properties = {"use_python3": True})
+try_builder("Catapult Linux Tryserver", "Ubuntu", properties = {"use_python3": True})
 
 try_builder("Catapult Windows Tryserver", "Windows-10")
 try_builder("Catapult Windows Tryserver Py3", "Windows-10", experiment = 100, properties = {"use_python3": True})
