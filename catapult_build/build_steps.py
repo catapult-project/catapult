@@ -325,7 +325,7 @@ def main(args=None):
   if args.dashboard_only:
     tests = _DASHBOARD_TESTS
   else:
-    tests = _DASHBOARD_TESTS + _CATAPULT_TESTS
+    tests = _CATAPULT_TESTS
   for test in tests:
     if args.platform == 'android' and not args.run_android_tests:
       # Remove all the steps for the Android configuration if we're asked to not
