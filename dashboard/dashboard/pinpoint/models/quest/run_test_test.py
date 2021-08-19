@@ -104,6 +104,8 @@ class _RunTestExecutionTest(unittest.TestCase):
 
   def assertNewTaskHasDimensions(self, swarming_tasks_new, patch=None):
     body = {
+        'realm':
+            'chrome:pinpoint',
         'name':
             'Pinpoint job',
         'user':

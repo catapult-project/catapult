@@ -382,6 +382,8 @@ class _RunTestExecution(execution_module.Execution):
       del properties['extra_args']
 
     body = {
+        'realm':
+            'chrome:pinpoint',
         'name':
             'Pinpoint job',
         'user':
