@@ -11,6 +11,7 @@ import os
 import posixpath
 import sys
 import unittest
+import six
 
 if __name__ == '__main__':
   sys.path.append(
@@ -66,10 +67,11 @@ class FlagChangerTest(device_test_case.DeviceTestCase):
 
     # Write some new files, and check they are set.
     new_flags = ['--my', '--new', '--flags=with special value']
-    self.assertItemsEqual(changer.ReplaceFlags(new_flags), new_flags)
+    six.assertCountEqual(self, changer.ReplaceFlags(new_flags), new_flags)
 
     # Restore and go back to the old flags.
-    self.assertItemsEqual(changer.Restore(), ['--some', '--old', '--flags'])
+    six.assertCountEqual(self, changer.Restore(),
+                         ['--some', '--old', '--flags'])
 
   def testFlagChanger_removeFlags(self):
     self.device.RemovePath(self.cmdline_path, force=True)

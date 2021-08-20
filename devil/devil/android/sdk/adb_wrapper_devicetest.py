@@ -33,7 +33,7 @@ class TestAdbWrapper(device_test_case.DeviceTestCase):
       The absolute path to the file.
     """
     fi, path = tempfile.mkstemp()
-    with os.fdopen(fi, 'wb') as f:
+    with os.fdopen(fi, 'w') as f:
       f.write(contents)
     return path
 

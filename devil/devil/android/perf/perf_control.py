@@ -307,7 +307,7 @@ class PerfControl(object):
         output.rstrip() if status == 0 else None
         for (_, output,
              status) in self._ForEachCpu('cat "$CPU/cpufreq/scaling_governor"'))
-    return zip(self._cpu_files, online, governor)
+    return list(zip(self._cpu_files, online, governor))
 
   def _ForEachCpu(self, cmd, cpu_list=None):
     """Runs a command on the device for each of the CPUs.
