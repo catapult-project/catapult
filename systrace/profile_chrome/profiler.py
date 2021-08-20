@@ -48,11 +48,11 @@ def _GetResults(trace_results, controller, output, compress,
     util.ArchiveData(trace_results, result)
   elif output:
     result = output
-    with open(result, 'wb') as f:
+    with open(result, 'w') as f:
       f.write(trace_results[0].raw_data)
   else:
     result = trace_results[0].source_name
-    with open(result, 'wb') as f:
+    with open(result, 'w') as f:
       f.write(trace_results[0].raw_data)
 
   return result

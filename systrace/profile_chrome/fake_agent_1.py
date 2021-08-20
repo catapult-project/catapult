@@ -34,7 +34,7 @@ class FakeAgent(object):
     return trace_result.TraceResult('fakeData', trace_data)
 
   def _PullTrace(self):
-    with tempfile.NamedTemporaryFile(delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='w+', delete=False) as f:
       self.filename = f.name
       f.write(self.contents)
       return f.name

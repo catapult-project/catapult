@@ -6,7 +6,7 @@ import gzip
 import os
 import time
 import zipfile
-
+import six
 
 def ArchiveFiles(host_files, output):
   with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as z:
@@ -29,7 +29,7 @@ def ArchiveData(trace_results, output):
 
 def WriteDataToCompressedFile(data, output):
   with gzip.open(output, 'wb') as out:
-    out.write(data)
+    out.write(six.ensure_binary(data))
 
 def GetTraceTimestamp():
   return time.strftime('%Y-%m-%d-%H%M%S', time.localtime())
