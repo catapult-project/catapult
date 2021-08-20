@@ -33,3 +33,10 @@ def WriteDataToCompressedFile(data, output):
 
 def GetTraceTimestamp():
   return time.strftime('%Y-%m-%d-%H%M%S', time.localtime())
+
+def CreateDirectory(file_name):
+  # get absolute path of file
+  dir_name = os.path.dirname(os.path.abspath(file_name))
+  # create path if necessary
+  if not os.path.exists(dir_name):
+    os.makedirs(dir_name)
