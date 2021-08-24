@@ -60,6 +60,11 @@ logger = logging.getLogger(__name__)
 
 _DEFAULT_TIMEOUT = 30
 _DEFAULT_RETRIES = 3
+# TODO(agrieve): Would be better to make this timeout based off of data size.
+# Needs to be large for remote devices & speed depends on internet connection.
+# Debug Chrome builds can be 200mb+.
+_FILE_TRANSFER_TIMEOUT = 10 * 60
+
 
 # A sentinel object for default values
 # TODO(jbudorick): revisit how default values are handled by
@@ -1149,7 +1154,7 @@ class DeviceUtils(object):
       if should_restore_root:
         self.EnableRoot()
 
-  INSTALL_DEFAULT_TIMEOUT = 8 * _DEFAULT_TIMEOUT
+  INSTALL_DEFAULT_TIMEOUT = _FILE_TRANSFER_TIMEOUT
   MODULES_SRC_DIRECTORY_PATH = '/data/local/tmp/modules'
   MODULES_LOCAL_TESTING_PATH_TEMPLATE = (
       '/sdcard/Android/data/{}/files/local_testing')
@@ -1909,10 +1914,8 @@ class DeviceUtils(object):
     self.RunShellCommand(
         ['input', 'keyevent', format(keycode, 'd')], check_return=True)
 
-  PUSH_CHANGED_FILES_DEFAULT_TIMEOUT = 10 * _DEFAULT_TIMEOUT
-
   @decorators.WithTimeoutAndRetriesFromInstance(
-      min_default_timeout=PUSH_CHANGED_FILES_DEFAULT_TIMEOUT)
+      min_default_timeout=_FILE_TRANSFER_TIMEOUT)
   def PushChangedFiles(self,
                        host_device_tuples,
                        delete_device_stale=False,
