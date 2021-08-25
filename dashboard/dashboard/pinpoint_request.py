@@ -188,8 +188,12 @@ def GetIsolateTarget(bot_name, suite):
     return 'performance_test_suite_android_chrome'
   elif bot_name == 'android-pixel2-perf':
     return 'performance_test_suite_android_clank_monochrome_64_32_bundle'
+  elif bot_name == 'android-pixel2_weblayer-perf':
+    return 'performance_weblayer_test_suite'
   elif bot_name == 'android-pixel4-perf':
     return 'performance_test_suite_android_clank_trichrome_bundle'
+  elif bot_name == 'android-pixel4_weblayer-perf':
+    return 'performance_weblayer_test_suite'
   elif bot_name == 'android-pixel4a_power-perf':
     return 'performance_test_suite_android_clank_chrome'
   elif 'android' in bot_name.lower():
