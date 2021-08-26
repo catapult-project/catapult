@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import print_function
 import re
 import subprocess
+import six
 from six.moves import range  # pylint: disable=redefined-builtin
 
 
@@ -16,7 +17,7 @@ def ReadMachOTextLoadAddress(file_name):
   """
   regex = re.compile(r".* vmaddr 0x([\dabcdef]*)")
   cmd = ["otool", "-l", file_name]
-  output = subprocess.check_output(cmd).split('\n')
+  output = six.ensure_str(subprocess.check_output(cmd)).split('\n')
   for i in range(len(output) - 3):
     # It's possible to use a regex here instead, but these conditionals are much
     # clearer.

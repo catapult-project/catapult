@@ -1356,7 +1356,7 @@ class Symbolizer(object):
       cmd = [self.symbolizer_path, '-arch', 'x86_64', '-l',
              '0x%x' % load_address, '-o', symfile.symbolizable_path,
              '-f', address_file_path]
-      output_array = subprocess.check_output(cmd).split('\n')
+      output_array = six.ensure_str(subprocess.check_output(cmd)).split('\n')
 
       for i, frames in enumerate(symfile.frames_by_address.values()):
         symbolized_name = self._matcher.Match(output_array[i])
@@ -1386,8 +1386,9 @@ class Symbolizer(object):
                             stderr=None)
     addrs = ["%x" % relative_pc for relative_pc in
              symfile.frames_by_address.keys()]
-    (stdout_data, _) = proc.communicate('\n'.join(addrs))
+    (stdout_data, _) = proc.communicate(six.ensure_binary('\n'.join(addrs)))
     # On windows, lines may contain '\r' character: e.g. "RtlUserThreadStart\r".
+    stdout_data = six.ensure_str(stdout_data)
     stdout_data.replace('\r', '')
     stdout_data = stdout_data.split('\n')
 
@@ -1461,7 +1462,8 @@ class Symbolizer(object):
       extension = os.path.splitext(file_path)[1].lower()
       return extension in ['.dll', '.exe']
     else:
-      result = subprocess.check_output(['file', '-0', file_path])
+      result = six.ensure_str(
+          subprocess.check_output(['file', '-0', file_path]))
       type_string = result[result.find('\0') + 1:]
       return bool(re.match(r'.*(ELF|Mach-O) (32|64)-bit\b.*',
                            type_string, re.DOTALL))
