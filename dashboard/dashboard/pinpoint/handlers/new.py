@@ -29,6 +29,7 @@ _ERROR_UNSUPPORTED = 'This benchmark (%s) is unsupported.'
 _ERROR_PRIORITY = 'Priority must be an integer.'
 
 REGULAR_TELEMETRY_TESTS = {
+    'performance_weblayer_test_suite',
     'performance_webview_test_suite',
 }
 SUFFIXED_REGULAR_TELEMETRY_TESTS = {
