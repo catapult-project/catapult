@@ -4,8 +4,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import io
 import os
 import unittest
+import six
 
 from py_utils import tempfile_ext
 from systrace import decorators
@@ -36,9 +38,9 @@ class AtraceFromFileAgentTest(unittest.TestCase):
                                 '-o',
                                 output_file_name])
         # and verify file contents
-        with open(output_file_name, 'r') as f1, \
+        with io.open(output_file_name, 'r', encoding='utf-8') as f1, \
             open(DECOMPRESSED_ATRACE_DATA, 'r') as f2:
-          full_trace = f1.read()
+          full_trace = six.ensure_str(f1.read())
           expected_contents = f2.read()
           self.assertTrue(expected_contents in full_trace)
     finally:
@@ -57,9 +59,9 @@ class AtraceFromFileAgentTest(unittest.TestCase):
                               '--from-file',
                               COMPRESSED_ATRACE_DATA])
       # and verify file contents
-      with open(output_file_name, 'r') as f1, \
+      with io.open(output_file_name, 'r', encoding='utf-8') as f1, \
           open(DECOMPRESSED_ATRACE_DATA, 'r') as f2:
-        full_trace = f1.read()
+        full_trace = six.ensure_str(f1.read())
         expected_contents = f2.read()
         self.assertTrue(expected_contents in full_trace)
     except:

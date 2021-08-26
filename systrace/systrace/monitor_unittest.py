@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import io
 import os
 import unittest
 
@@ -25,7 +26,7 @@ class MonitorTest(unittest.TestCase):
 
     update_systrace_trace_viewer.update(force_update=True)
 
-    with open(STABLE_VIEWER_PATH) as f:
+    with io.open(STABLE_VIEWER_PATH, encoding='utf-8') as f:
       content = f.read().strip()
 
       # expect big html file
