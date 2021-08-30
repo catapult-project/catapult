@@ -48,7 +48,13 @@ last_client_disconnected = None
 REMOVE_TCP_OVERHEAD = 1460.0 / 1500.0
 lock = threading.Lock()
 background_activity_count = 0
-current_time = time.clock if sys.platform == "win32" else time.time
+if sys.platform == "win32":
+  try:
+    current_time = time.perf_counter
+  except AttributeError:
+    current_time = time.clock
+else:
+  current_time = time.time
 try:
   import monotonic
   current_time = monotonic.monotonic
