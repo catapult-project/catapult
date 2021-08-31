@@ -226,11 +226,7 @@ class AlertGroupWorkflow(object):
     now = datetime.datetime.utcnow()
     issue = None
     canonical_group = None
-    # After crrev.com/c/3069153 there are some alert groups that have bug
-    # propery of type ndb.LocalStructuredProperty. Skip trying to get
-    # Monorail issue for them so they can be archived.
-    # TODO(crbug.com/1245054): remove after all old alert groups are processed.
-    if self._group.bug and self._group.status in {
+    if self._group.status in {
         self._group.Status.triaged, self._group.Status.bisected,
         self._group.Status.closed
     }:
