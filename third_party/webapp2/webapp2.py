@@ -46,6 +46,9 @@ if os.environ.get('APPENGINE_RUNTIME') != 'python27': # pragma: no cover
     except ImportError: # pragma: no cover
         # Running webapp2 outside of GAE.
         pass
+    # webapp is not python 3 compatible. Importing it will raise syntax error.
+    except SyntaxError: # pragma: no cover
+        pass
 
 try: # pragma: no cover
     # Thread-local variables container.
@@ -1988,4 +1991,7 @@ _set_thread_safe_app()
 try:
     from google.appengine.ext.webapp import util as _webapp_util
 except ImportError: # pragma: no cover
+    pass
+# webapp is not python 3 compatible. Importing it will raise syntax error.
+except SyntaxError: # pragma: no cover
     pass

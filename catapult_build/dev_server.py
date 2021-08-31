@@ -9,6 +9,7 @@ import argparse
 import json
 import os
 import sys
+import six
 import six.moves.urllib.parse # pylint: disable=import-error
 
 from hooks import install
@@ -70,7 +71,7 @@ def _RelPathToUnixPath(p):
 
 class TestResultHandler(webapp2.RequestHandler):
   def post(self, *args, **kwargs):  # pylint: disable=unused-argument
-    msg = self.request.body
+    msg = six.ensure_str(self.request.body)
     ostream = sys.stdout if 'PASSED' in msg else sys.stderr
     ostream.write(msg + '\n')
     return self.response.write('')
@@ -78,7 +79,7 @@ class TestResultHandler(webapp2.RequestHandler):
 
 class TestsCompletedHandler(webapp2.RequestHandler):
   def post(self, *args, **kwargs):  # pylint: disable=unused-argument
-    msg = self.request.body
+    msg = six.ensure_str(self.request.body)
     sys.stdout.write(msg + '\n')
     exit_code = 0 if 'ALL_PASSED' in msg else 1
     if hasattr(self.app.server, 'please_exit'):
@@ -88,7 +89,7 @@ class TestsCompletedHandler(webapp2.RequestHandler):
 class TestsErrorHandler(webapp2.RequestHandler):
   def post(self, *args, **kwargs):
     del args, kwargs
-    msg = self.request.body
+    msg = six.ensure_str(self.request.body)
     sys.stderr.write(msg + '\n')
     exit_code = 1
     if hasattr(self.app.server, 'please_exit'):
