@@ -2307,3 +2307,23 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     update = w._PrepareGroupUpdate()
 
     self.assertIsNone(update.canonical_group)
+
+  # TODO(crbug.com/1245054): remove after all old alert groups are processed.
+  def testArchiveOutdatedGroups(self):
+    base_anomaly = self._AddAnomaly()
+    group = self._AddAlertGroup(
+        base_anomaly,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        issue_tracker=self._issue_tracker,
+        config=alert_group_workflow.AlertGroupWorkflow.Config(
+            active_window=datetime.timedelta(hours=0),
+            triage_delay=datetime.timedelta(hours=1),
+        ),
+    )
+    w.Process()
+
+    self.assertFalse(group.get().active)
