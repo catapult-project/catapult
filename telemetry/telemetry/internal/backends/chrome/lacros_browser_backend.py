@@ -132,7 +132,8 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
            '--enable-oop-rasterization',
            '--lang=en-US',
            '--breakpad-dump-location=/usr/local/lacros-chrome/',
-           '--no-sandbox'] + startup_args)
+           '--no-sandbox',
+           '--trace-smb-size=32768'] + startup_args)
       # This will only exist if launch was successful.
       return self._IsDevtoolsUp()
 
