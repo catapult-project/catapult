@@ -42,7 +42,7 @@ steps:
 - name: 'gcr.io/cloud-builders/gcloud'
   dir: 'deploy-dashboard'
   args: [
-    app, deploy, '--promote', '--version', 'cloud-build-${SHORT_SHA}',
+    app, deploy, '--no-promote', '--version', 'cloud-build-${SHORT_SHA}',
     # We enumerate the files we need to deploy just for the dashboard.
     # TODO(dberris): Figure out how we can include cron.yaml and dispatch.yaml
     # from this automation. This fails in production with the service account

@@ -8,6 +8,6 @@ for SERVICE in "$@"; do
     --format="table[no-heading](VERSION.ID)" \
     --filter="SERVICE=${SERVICE} AND
               TRAFFIC_SPLIT=0 AND
-              LAST_DEPLOYED.date()<$(date -I --date='-3 day')" \
+              LAST_DEPLOYED.date()<$(date -I --date='-10 day')" \
   | xargs --no-run-if-empty gcloud app versions delete -s ${SERVICE}
 done
