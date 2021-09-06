@@ -169,6 +169,7 @@ found in the LICENSE file.
         content: " ▲";
       }
 
+      .change_direction,
       .percent_changed {
         color: #a00;
         width: 70px;
@@ -176,6 +177,7 @@ found in the LICENSE file.
         word-wrap: break-word;
       }
 
+      tr[improvement] .change_direction,
       tr[improvement] .percent_changed,
       tr[improvement] .absolute_delta {
         color: #0a0;
@@ -333,6 +335,7 @@ found in the LICENSE file.
         <th id="bot" on-click="columnHeaderClicked">Bot</th>
         <th id="testsuite" on-click="columnHeaderClicked">Test Suite</th>
         <th id="test" on-click="columnHeaderClicked">Test</th>
+        <th id="change_direction" on-click="columnHeaderClicked">Change Direction</th>
         <th id="percent_changed" on-click="columnHeaderClicked">Delta %</th>
         <th id="absolute_delta" on-click="columnHeaderClicked">Abs Delta</th>
       </tr>
@@ -392,6 +395,7 @@ found in the LICENSE file.
           <td class="bot">{{item.bot}}</td>
           <td class="testsuite">{{item.testsuite}}</td>
           <td class="test">{{item.test}}</td>
+          <td class="change_direction">{{getDirectionSign(item)}}</td>
           <td class="percent_changed">{{item.percent_changed}}</td>
           <td class="absolute_delta">{{computeAbsDeltaWithUnits(item)}}</td>
         </tr>
@@ -520,6 +524,13 @@ found in the LICENSE file.
         return item.display_end;
       }
       return item.end_revision;
+    },
+
+    getDirectionSign(item) {
+      if (item.direction == 0) {
+        return '▲';
+      }
+      return '▼';
     },
 
     /**
