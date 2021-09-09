@@ -604,6 +604,32 @@ class DeviceUtils_GetApplicationTargetSdkTest(DeviceUtilsTest):
           'R', self.device.GetApplicationTargetSdk('com.android.chrome'))
 
 
+class DeviceUtils_GetUidForPackageTest(DeviceUtilsTest):
+  def test_GetUidForPackage_Exists(self):
+    with self.assertCall(
+        self.call.device._GetDumpsysOutput(
+            ['package', 'com.android.chrome'], 'userId='),
+        ['  userId=1001']):
+      self.assertEquals('1001',
+                        self.device.GetUidForPackage('com.android.chrome'))
+
+  def test_GetUidForPackage_notInstalled(self):
+    with self.assertCall(
+        self.call.device._GetDumpsysOutput(
+            ['package', 'com.android.chrome'], 'userId='),
+        ['']):
+      self.assertEquals(None,
+                        self.device.GetUidForPackage('com.android.chrome'))
+
+  def test_GetUidForPackage_fails(self):
+    with self.assertCall(
+        self.call.device._GetDumpsysOutput(
+            ['package', 'com.android.chrome'], 'userId='),
+        []):
+      with self.assertRaises(device_errors.CommandFailedError):
+        self.device.GetUidForPackage('com.android.chrome')
+
+
 class DeviceUtils_GetPackageArchitectureTest(DeviceUtilsTest):
   def test_GetPackageArchitecture_exists(self):
     with self.assertCall(

@@ -190,6 +190,7 @@ _CURRENT_FOCUS_CRASH_RE = re.compile(
 _GETPROP_RE = re.compile(r'\[(.*?)\]: \[(.*?)\]')
 _VERSION_CODE_SDK_RE = re.compile(
     r'\s*versionCode=(\d+).*minSdk=(\d+).*targetSdk=(.*)\s*')
+_USER_ID_RE = re.compile(r'.*userId=')
 
 # Regex to parse the long (-l) output of 'ls' command, c.f.
 # https://github.com/landley/toybox/blob/master/toys/posix/ls.c#L446
@@ -3195,6 +3196,31 @@ class DeviceUtils(object):
         return []
       else:
         raise
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def GetUidForPackage(self, package_name, timeout=None, retries=None):
+    """Get user id for package name on device
+
+    Args:
+      package_name: Package name installed on device
+
+    Returns:
+      A string containing the package UID, and if the package
+      is not installed then None
+
+    Raises:
+      CommandFailedError if dumpsys does not return any output
+    """
+    dumpsys_output = self._GetDumpsysOutput(
+        ['package', package_name], 'userId=')
+
+    if not dumpsys_output:
+      raise device_errors.CommandFailedError(
+          'No output was received from dumpsys')
+
+    user_id = _USER_ID_RE.sub('', dumpsys_output[0])
+    if user_id:
+      return user_id
 
   # TODO(#4103): Remove after migrating clients to ListProcesses.
   @decorators.WithTimeoutAndRetriesFromInstance()
