@@ -359,9 +359,9 @@ class TCPConnection(asyncore.dispatcher):
     if 'port' in message:
       self.port = message['port']
     logging.info('[{0:d}] Resolving {1}:{2:d}'.format(self.client_id, self.hostname, self.port))
-    if self.hostname == 'localhost':
-      self.hostname = '127.0.0.1'
-    if self.hostname == '127.0.0.1':
+    if self.hostname == b'localhost':
+      self.hostname = b'127.0.0.1'
+    if self.hostname == b'127.0.0.1':
       logging.info('[{0:d}] Connection to localhost detected'.format(self.client_id))
       is_localhost = True
     if (dest_addresses is not None) and (not is_localhost or map_localhost):
