@@ -183,8 +183,8 @@ try_builder("Catapult Linux Tryserver Py2", "Ubuntu")
 try_builder("Catapult Windows Tryserver", "Windows-10")
 try_builder("Catapult Windows Tryserver Py3", "Windows-10", experiment = 100, properties = {"use_python3": True})
 
-try_builder("Catapult Mac Tryserver", "Mac")
-try_builder("Catapult Mac Tryserver Py3", "Mac", experiment = 100, properties = {"use_python3": True})
+try_builder("Catapult Mac Tryserver Py2", "Mac")
+try_builder("Catapult Mac Tryserver", "Mac", properties = {"use_python3": True})
 
 try_builder("Catapult Android Tryserver", "Android", dimensions = {"device_type": "bullhead"}, properties = {"platform": "android", "use_python3": True})
 try_builder("Catapult Android Tryserver Py2", "Android", dimensions = {"device_type": "bullhead"}, properties = {"platform": "android"})
