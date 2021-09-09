@@ -377,7 +377,7 @@ class NewTest(_NewTest):
     response = self.Post('/api/new', request, status=400)
     self.assertIn('error', json.loads(response.body))
 
-  def testFallbackTarget(self):
+  def testAutomaticFallbackTargets(self):
     request = dict(_BASE_REQUEST)
     request['target'] = 'performance_test_suite_android_chrome'
     response = self.Post('/api/new', request, status=200)
@@ -385,9 +385,31 @@ class NewTest(_NewTest):
     quests = job.state._quests
     # Make sure we only have one quest with a fallback target and its fallback
     # target is performance_test_suite.
-    self.assertEqual(
-        ['performance_test_suite'],
-        [q._fallback_target for q in quests if hasattr(q, '_fallback_target')])
+    self.assertEqual(['performance_test_suite'], [
+        q._fallback_targets for q in quests if hasattr(q, '_fallback_targets')
+    ])
+
+  def testExplicitFallbackTarget(self):
+    request = dict(_BASE_REQUEST)
+    request['target'] = 'performance_test_suite_android_chrome'
+    request['fallback_target'] = 'fallback_target'
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    quests = job.state._quests
+    self.assertEqual(['fallback_target'], [
+        q._fallback_targets for q in quests if hasattr(q, '_fallback_targets')
+    ])
+
+  def testExplicitFallbackTargets(self):
+    request = dict(_BASE_REQUEST)
+    request['target'] = 'performance_test_suite_android_chrome'
+    request['fallback_targets'] = ['fallback_target_1', 'fallback_target_2']
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    quests = job.state._quests
+    self.assertEqual([['fallback_target_1', 'fallback_target_2']], [
+        q._fallback_targets for q in quests if hasattr(q, '_fallback_targets')
+    ])
 
   def testInvalidTestConfig(self):
     request = dict(_BASE_REQUEST)
