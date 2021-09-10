@@ -10,6 +10,7 @@ import argparse
 import codecs
 import collections
 import gzip
+import io
 import itertools
 import json
 import logging
@@ -322,7 +323,7 @@ def LoadHTMLTrace(filename):
   """Load a trace from a vulcanized HTML trace file."""
   trace_components = collections.defaultdict(list)
 
-  with open(filename) as file_handle:
+  with io.open(filename, 'r', encoding='utf-8') as file_handle:
     for sub_trace in html2trace.ReadTracesFromHTMLFile(file_handle):
       for name, component in TraceAsDict(sub_trace).items():
         trace_components[name].append(component)

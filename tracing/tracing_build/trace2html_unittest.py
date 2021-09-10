@@ -4,6 +4,7 @@
 
 import codecs
 import gzip
+import io
 import os
 import shutil
 import tempfile
@@ -45,7 +46,8 @@ class Trace2HTMLTests(unittest.TestCase):
 
     # Hash the contents of the output file that was generated from an unzipped
     # json input file.
-    unzipped_hash = hash(open(output_filename).read())
+    unzipped_hash = hash(
+        io.open(output_filename, 'r', encoding='utf-8').read())
 
     os.unlink(output_filename)
 
@@ -62,7 +64,7 @@ class Trace2HTMLTests(unittest.TestCase):
 
     # Hash the contents of the output file that was generated from the zipped
     # json input file.
-    zipped_hash = hash(open(output_filename).read())
+    zipped_hash = hash(io.open(output_filename, 'r', encoding='utf-8').read())
 
     # Compare the hashes, not the file contents directly so that, if they are
     # different, python shouldn't try to print megabytes of html.

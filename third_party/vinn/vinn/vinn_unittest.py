@@ -10,6 +10,7 @@ import sys
 import shutil
 import tempfile
 import unittest
+import six
 from six.moves import range
 
 sys.path.append(
@@ -58,7 +59,10 @@ class VinnUnittest(unittest.TestCase):
 
   def _GetUnescapedExceptionMessage(self, exception):
     if os.name == 'nt':
-      return str(exception)
+      if sys.version_info.major == 2:
+        return str(exception)
+      else:
+        return str(exception).encode().decode("unicode-escape")
     else:
       return str(exception).encode().decode("unicode-escape")
 
