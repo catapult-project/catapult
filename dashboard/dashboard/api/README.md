@@ -97,7 +97,7 @@ The bugs API returns the following JSON about the bug:
 
  * `author`: Email of the issue author
  * `legacy_bisects`: List of bisects (to be replaced by pinpoint). Each has:
-   * `status`: Job status, such as "started" or "failed
+   * `status`: Job status, such as "started" or "failed"
    * `bot`: Name of the bisector the job ran on,
    * `buildbucket_link`: Link to buildbucket page with more info
    * `command`: The command the bisect was run with
