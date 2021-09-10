@@ -333,7 +333,7 @@ def _RunFileWithD8(js_file_path, js_args, v8_args, timeout, stdout, stdin):
   # newline, which make the output different from d8 on posix. We remove the
   # extra \r's  to make the output consistent with posix platforms.
   if platform.system() == 'Windows' and out:
-    out = re.sub('\r+\n', '\n', out)
+    out = re.sub(b'\r+\n', b'\n', six.ensure_binary(out))
 
   # d8 uses returncode 1 to indicate an uncaught exception, but
   # _RunFileWithD8 needs to distingiush between that and quit(1).
