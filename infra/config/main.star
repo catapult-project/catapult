@@ -180,8 +180,8 @@ def try_builder(
 try_builder("Catapult Linux Tryserver", "Ubuntu", properties = {"use_python3": True})
 try_builder("Catapult Linux Tryserver Py2", "Ubuntu")
 
-try_builder("Catapult Windows Tryserver", "Windows-10")
-try_builder("Catapult Windows Tryserver Py3", "Windows-10", experiment = 100, properties = {"use_python3": True})
+try_builder("Catapult Windows Tryserver Py2", "Windows-10")
+try_builder("Catapult Windows Tryserver", "Windows-10", properties = {"use_python3": True})
 
 try_builder("Catapult Mac Tryserver Py2", "Mac")
 try_builder("Catapult Mac Tryserver", "Mac", properties = {"use_python3": True})
