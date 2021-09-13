@@ -2,6 +2,7 @@ import logging
 import os
 import select
 import SimpleHTTPServer
+import socket
 import SocketServer
 import threading
 
@@ -11,8 +12,8 @@ logger = logging.getLogger(__name__)
 
 class ThisDirHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def translate_path(self, path):
-        path = path.split('?', 1)[0].split('#', 1)[0]
-        return os.path.join(HERE, *filter(None, path.split('/')))
+        path = path.split("?", 1)[0].split("#", 1)[0]
+        return os.path.join(HERE, *filter(None, path.split("/")))
 
     def log_message(self, s, *args):
         # output via logging so nose can catch it
@@ -27,10 +28,23 @@ class ShutdownServer(SocketServer.TCPServer):
     BaseServer supports the shutdown method directly.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, use_tls, *args, **kwargs):
+        self.__use_tls = use_tls
         SocketServer.TCPServer.__init__(self, *args, **kwargs)
         self.__is_shut_down = threading.Event()
         self.__serving = False
+
+    def server_bind(self):
+        SocketServer.TCPServer.server_bind(self)
+        if self.__use_tls:
+            import ssl
+
+            self.socket = ssl.wrap_socket(
+                self.socket,
+                os.path.join(os.path.dirname(__file__), "server.key"),
+                os.path.join(os.path.dirname(__file__), "server.pem"),
+                True,
+            )
 
     def serve_forever(self, poll_interval=0.1):
         """Handle one request at a time until shutdown.
@@ -93,8 +107,8 @@ class ShutdownServer(SocketServer.TCPServer):
                 self.close_request(request)
 
 
-def start_server(handler):
-    httpd = ShutdownServer(("", 0), handler)
+def start_server(handler, use_tls=False):
+    httpd = ShutdownServer(use_tls, ("", 0), handler)
     threading.Thread(target=httpd.serve_forever).start()
     _, port = httpd.socket.getsockname()
     return httpd, port
