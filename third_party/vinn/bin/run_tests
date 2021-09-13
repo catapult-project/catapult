@@ -37,7 +37,7 @@ def main(args):
     if _IsTestMatched(t):
       suite.addTest(t)
   results = unittest.TextTestRunner(verbosity=2).run(suite)
-  return len(results.failures)
+  return len(results.failures) + len(results.errors)
 
 
 if __name__ == '__main__':
