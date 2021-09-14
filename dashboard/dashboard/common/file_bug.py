@@ -262,7 +262,7 @@ def GetCommitInfoForAlert(alert, crrev=None, gitiles=None):
     # This is a commit position, need the git hash.
     result = crrev.GetNumbering(
         number=rev,
-        numbering_identifier='refs/heads/master',
+        numbering_identifier='refs/heads/main',
         numbering_type='COMMIT_POSITION',
         project='chromium',
         repo='chromium/src')

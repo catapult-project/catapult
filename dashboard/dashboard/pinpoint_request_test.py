@@ -287,7 +287,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('', results['target'])
     mock_crrev.assert_any_call(
         number='1234',
-        numbering_identifier='refs/heads/master',
+        numbering_identifier='refs/heads/main',
         numbering_type='COMMIT_POSITION',
         project='chromium',
         repo='v8/v8')
@@ -752,7 +752,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     self.assertEqual('', results['target'])
     mock_crrev.assert_any_call(
         number='1234',
-        numbering_identifier='refs/heads/master',
+        numbering_identifier='refs/heads/main',
         numbering_type='COMMIT_POSITION',
         project='chromium',
         repo='v8/v8')
