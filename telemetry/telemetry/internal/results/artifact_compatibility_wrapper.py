@@ -22,6 +22,8 @@ def ArtifactCompatibilityWrapperFactory(artifact_impl):
     return TelemetryArtifactCompatibilityWrapper(artifact_impl)
   elif isinstance(artifact_impl, artifacts.Artifacts):
     return TypArtifactCompatibilityWrapper(artifact_impl)
+  elif isinstance(artifact_impl, FullLoggingArtifactImpl):
+    return FullLoggingArtifactCompatibilityWrapper()
   elif artifact_impl is None:
     return LoggingArtifactCompatibilityWrapper()
   raise RuntimeError('Given unsupported artifact implementation %s' %
@@ -90,6 +92,14 @@ class LoggingArtifactCompatibilityWrapper(ArtifactCompatibilityWrapper):
     logging.info('Artifact with name %s: %s', name, data[:min(100, len(data))])
 
 
+class FullLoggingArtifactImpl(object):
+  """A dummy 'artifact implementation'.
+
+  Used to specify that FullLoggingArtifactCompatibilityWrapper should be used
+  since there is no actual backing artifact implementation.
+  """
+
+
 class FullLoggingArtifactCompatibilityWrapper(ArtifactCompatibilityWrapper):
   """Wrapper that logs instead of actually creating artifacts.
 
@@ -105,4 +115,4 @@ class FullLoggingArtifactCompatibilityWrapper(ArtifactCompatibilityWrapper):
     # text files.
     if os.path.splitext(name)[1].lower() in ['.png', '.dmp']:
       return
-    logging.artifact('Artifact with name %s: %s', name, data)
+    logging.info('Artifact with name %s: %s', name, data)
