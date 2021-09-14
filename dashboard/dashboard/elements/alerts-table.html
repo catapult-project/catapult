@@ -527,7 +527,7 @@ found in the LICENSE file.
     },
 
     getDirectionSign(item) {
-      if (item.direction == 0) {
+      if (item.median_before_anomaly < item.median_after_anomaly) {
         return '▲';
       }
       return '▼';
