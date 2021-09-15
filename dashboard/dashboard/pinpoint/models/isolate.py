@@ -67,7 +67,12 @@ def Put(isolate_infos):
 
 # TODO(dberris): Turn this into a Dataflow job instead.
 def DeleteExpiredIsolates(start_cursor=None):
-  expire_time = datetime.datetime.utcnow() - ISOLATE_EXPIRY_DURATION
+  # Delete expired builds, and builds that contain isolates instead of RBE-CAS.
+  # The CL to use RBE-CAS (https://crrev.com/c/3134726) was submitted on
+  # 9/6/2021 at 10:46 am UTC. Factor in time to deploy recipe and run builds,
+  # we assume any builds older than 9/7/2021 can potentially contain isolates.
+  expire_time = max(datetime.datetime.utcnow() - ISOLATE_EXPIRY_DURATION,
+                    datetime.datetime(2021, 9, 7))
   q = Isolate.query()
   q = q.filter(Isolate.created < expire_time)
 
