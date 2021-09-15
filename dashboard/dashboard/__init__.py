@@ -39,6 +39,7 @@ THIRD_PARTY_LIBRARIES = [
     'polymer2/bower_components/chopsui',
     'pyasn1',
     'pyasn1_modules',
+    'pyparsing',
     'redux/redux.min.js',
     'requests',
     'requests_toolbelt',
