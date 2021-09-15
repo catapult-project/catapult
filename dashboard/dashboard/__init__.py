@@ -7,7 +7,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 import os
-import six
 import sys
 
 _CATAPULT_PATH = os.path.abspath(
@@ -161,7 +160,9 @@ def _CatapultThirdPartyLibraryPaths():
       os.path.join(_CATAPULT_PATH, 'common', 'node_runner', 'node_runner',
                    'node_modules', '@chopsui', 'tsmon-client',
                    'tsmon-client.js'))
-  third_party_libraries = THIRD_PARTY_LIBRARIES_PY3 if six.PY3 else THIRD_PARTY_LIBRARIES_PY2
+  third_party_libraries = (
+      THIRD_PARTY_LIBRARIES_PY3 if sys.version_info.major == 3
+      else THIRD_PARTY_LIBRARIES_PY2)
   for library in third_party_libraries:
     paths.append(os.path.join(_CATAPULT_PATH, 'third_party', library))
   return paths
