@@ -24,6 +24,7 @@ from dashboard.pinpoint.models import exploration
 # attempts max (that's 4 iterations).
 MIN_ATTEMPTS = 10
 MAX_ATTEMPTS = 160
+MAX_BUILDS = 30
 _DEFAULT_SPECULATION_LEVELS = 2
 
 FUNCTIONAL = 'functional'
@@ -114,6 +115,9 @@ class JobState(object):
       self._changes.insert(index, change)
     else:
       self._changes.append(change)
+
+    if len(self._changes) > MAX_BUILDS:
+      raise errors.BuildCancelled('The number of builds exceeded %d. Aborting Job' % MAX_BUILDS)
 
     self._attempts[change] = []
     self.AddAttempts(change)
