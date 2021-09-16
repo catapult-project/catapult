@@ -1156,7 +1156,7 @@ class DeviceUtils(object):
         self.EnableRoot()
 
   INSTALL_DEFAULT_TIMEOUT = _FILE_TRANSFER_TIMEOUT
-  MODULES_TMP_DIRECTORY_PATH = '/data/local/tmp/modules'
+  MODULES_SRC_DIRECTORY_PATH = '/data/local/tmp/modules'
   MODULES_LOCAL_TESTING_PATH_TEMPLATE = (
       '/sdcard/Android/data/{}/files/local_testing')
 
@@ -1191,7 +1191,7 @@ class DeviceUtils(object):
       modules: An iterable containing specific bundle modules to install.
           Error if set and |apk| points to an APK instead of a bundle.
       fake_modules: An iterable containing specific bundle modules that should
-          have their apks copied to |MODULES_LOCAL_TESTING_PATH_TEMPLATE|
+          have their apks copied to |MODULES_SRC_DIRECTORY_PATH| subdirectory
           rather than installed. Thus the app can emulate SplitCompat while
           running. This should not have any overlap with |modules|.
       additional_locales: An iterable with additional locales to install for a
@@ -1238,11 +1238,17 @@ class DeviceUtils(object):
 
   def _FakeInstall(self, fake_apk_paths, fake_modules, package_name):
     with tempfile_ext.NamedTemporaryDirectory() as modules_dir:
+      device_dir = posixpath.join(self.MODULES_SRC_DIRECTORY_PATH, package_name)
       dest_dir = self.MODULES_LOCAL_TESTING_PATH_TEMPLATE.format(package_name)
-      self.RunShellCommand(['rm', '-rf', dest_dir],
-                           as_root=True,
-                           check_return=True)
       if not fake_modules:
+        # Temporarily support both options until upstream switches to using
+        # local testing path only. Then support for src directory path can be
+        # removed.
+        # TODO(crbug.com/1220662): Remove push empty dir and just use rm -rf.
+        # Push empty module dir to clear device dir and update the cache.
+        self.PushChangedFiles([(modules_dir, device_dir)],
+                              delete_device_stale=True)
+        self.RunShellCommand(['rm', '-rf', dest_dir], as_root=True)
         return
 
       still_need_master = set(fake_modules)
@@ -1263,25 +1269,16 @@ class DeviceUtils(object):
 
       assert not still_need_master, (
           'Missing master apk file for %s' % still_need_master)
-      tmp_dir = posixpath.join(self.MODULES_TMP_DIRECTORY_PATH, package_name)
-      self.PushChangedFiles([(modules_dir, tmp_dir)], delete_device_stale=True)
+      self.PushChangedFiles([(modules_dir, device_dir)],
+                            delete_device_stale=True)
       # Create new directories until the parent of our destination since we
       # want to copy that directory over from the temporary location. This
       # indirection is necessary on Android 11 emulator as there is a permission
       # issue for the files under /sdcard/Android/data.
       self.RunShellCommand(
-          ['mkdir', '-p', posixpath.dirname(dest_dir)],
-          as_root=True,
-          check_return=True)
-      # Here we need 'cp' rather than 'mv' because the temp and destination
-      # files might be on different file systems (e.g. on internal storage and
-      # an external sd card).
-      self.RunShellCommand(['cp', tmp_dir, dest_dir],
-                           as_root=True,
-                           check_return=True)
-      self.RunShellCommand(['rm', '-rf', tmp_dir],
-                           as_root=True,
-                           check_return=True)
+          ['mkdir', '-p', posixpath.dirname(dest_dir)], as_root=True)
+      # TODO(crbug.com/1220662): Use mv when compatibility is no longer needed.
+      self.RunShellCommand(['cp', '-a', device_dir, dest_dir], as_root=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=INSTALL_DEFAULT_TIMEOUT)
