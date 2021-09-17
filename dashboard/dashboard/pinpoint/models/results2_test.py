@@ -130,6 +130,9 @@ _JOB_MISSING_EXECUTIONS = {
     "quests": ["Test"],
 }
 
+FakeBenchmarkArguments = collections.namedtuple(
+    'FakeBenchmarkArguments', ['benchmark', 'story'])
+
 
 @mock.patch.object(results2.cloudstorage, 'listbucket')
 class GetCachedResults2Test(unittest.TestCase):
@@ -392,7 +395,7 @@ class GenerateResults2Test(testing_common.TestCase):
     patch_b = FakePatch("fakePatchServer", "fakePatchNo", "fakePatchRev")
     change_b = change.Change([commit_b], patch_b)
 
-    benchmark_arguments = {"benchmark": "fake_benchmark", "story": "fake_story"}
+    benchmark_arguments = FakeBenchmarkArguments("fake_benchmark", "fake_story")
     job = _JobStub(
         None,
         'fake_job_id',

@@ -258,8 +258,8 @@ def _PopulateMetadata(job, h):
       md["dims"]["device"]["os"] = h.metadata.swarming_result["bot_dimensions"][
           "device_os"]
   md["dims"]["test_info"] = {}
-  md["dims"]["test_info"]["benchmark"] = job.benchmark_arguments["benchmark"]
-  md["dims"]["test_info"]["story"] = job.benchmark_arguments["story"]
+  md["dims"]["test_info"]["benchmark"] = job.benchmark_arguments.benchmark
+  md["dims"]["test_info"]["story"] = job.benchmark_arguments.story
   # TODO: flags
   md["dims"]["checkout"] = {}
   # TODO: gitiles_host
