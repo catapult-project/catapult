@@ -98,6 +98,11 @@ found in the LICENSE file.
         width: var(--percent-changed-width, 50px);
       }
 
+      #change_direction {
+        text-align: center;
+        width: var(--percent-changed-width, 50px);
+      }
+
       #alerts tbody tr {
         background-color: white;
         height: 26px;
@@ -173,8 +178,15 @@ found in the LICENSE file.
       .percent_changed {
         color: #a00;
         width: 70px;
-        text-align: right;
         word-wrap: break-word;
+      }
+
+      .percent_changed {
+        text-align: right;
+      }
+
+      .change_direction {
+        text-align: center;
       }
 
       tr[improvement] .change_direction,
@@ -335,7 +347,7 @@ found in the LICENSE file.
         <th id="bot" on-click="columnHeaderClicked">Bot</th>
         <th id="testsuite" on-click="columnHeaderClicked">Test Suite</th>
         <th id="test" on-click="columnHeaderClicked">Test</th>
-        <th id="change_direction" on-click="columnHeaderClicked">Change Direction</th>
+        <th id="change_direction">Change Direction</th>
         <th id="percent_changed" on-click="columnHeaderClicked">Delta %</th>
         <th id="absolute_delta" on-click="columnHeaderClicked">Abs Delta</th>
       </tr>
