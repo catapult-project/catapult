@@ -468,7 +468,7 @@ class GenerateResults2Test(testing_common.TestCase):
             'checkout': {
                 'repo': 'fakeRepo',
                 'git_hash': 'fakehashB',
-                'patch_gerrit_revision': 'fake_patch_rev',
+                'patch_gerrit_revision': 'fake_patch_set',
                 'patch_gerrit_change': 'fake_patch_issue'
             }
         },
@@ -529,7 +529,7 @@ class FakePatch(
         "patch_gerrit_url": "fake_gerrit_url",
         "project": "fake_project",
         "patch_issue": "fake_patch_issue",
-        "patch_rev": "fake_patch_rev"
+        "patch_set": "fake_patch_set"
     }
 
 
