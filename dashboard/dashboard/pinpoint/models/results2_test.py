@@ -478,7 +478,7 @@ class GenerateResults2Test(testing_common.TestCase):
                 'largest_contentful_paint': 42.0
             }
         },
-        'job_id': 'fake_job_id'
+        'run_id': 'fake_job_id'
     }, {
         'batch_id': 'fake_batch_id',
         'dims': {
@@ -500,11 +500,11 @@ class GenerateResults2Test(testing_common.TestCase):
         },
         'measures': {
             'core_web_vitals': {
-                'first_contentful_paint': 11.0,
-                'largest_contentful_paint': 42.0
+                'timeToFirstContentfulPaint': 11.0,
+                'largestContentfulPaint': 42.0
             }
         },
-        'job_id': 'fake_job_id'
+        'run_id': 'fake_job_id'
     }]
 
     def ValidateBQRows(project_id, dataset_id, table_id, rows):

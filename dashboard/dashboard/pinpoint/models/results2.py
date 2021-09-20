@@ -249,7 +249,7 @@ def _SaveJobToBigQuery(job):
 def _PopulateMetadata(job, h):
   md = {}
   md["batch_id"] = job.batch_id
-  md["job_id"] = job.job_id
+  md["run_id"] = job.job_id
   md["dims"] = {}
   md["dims"]["device"] = {}
   md["dims"]["device"]["cfg"] = job.configuration
@@ -281,10 +281,10 @@ def _PopulateMetadata(job, h):
 def _PopulateMetric(data, name, value):
   # core_web_vitals
   if name == "largestContentfulPaint":
-    data["measures"]["core_web_vitals"]["largest_contentful_paint"] = float(
+    data["measures"]["core_web_vitals"]["largestContentfulPaint"] = float(
         value)
   elif name == "firstContentfulPaint":
-    data["measures"]["core_web_vitals"]["first_contentful_paint"] = float(value)
+    data["measures"]["core_web_vitals"]["timeToFirstContentfulPaint"] = float(value)
   return data
 
 
