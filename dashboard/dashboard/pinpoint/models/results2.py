@@ -242,7 +242,6 @@ def _SaveJobToBigQuery(job):
       rows[rk] = _PopulateMetadata(job, h)
     rows[rk] = _PopulateMetric(rows[rk], h.histogram["name"],
                                h.histogram["sampleValues"][0])
-  logging.info("Saving to BQ: " + str(rows))
   _InsertBQRows(_PROJECT_ID, _DATASET, _TABLE, rows.values())
 
 
@@ -292,6 +291,7 @@ def _InsertBQRows(project_id, dataset_id, table_id, rows, num_retries=5):
   service = _BQService()
   rows = [{'insertId': str(uuid.uuid4()), 'json': row} for row in rows]
   insert_data = {'rows': rows}
+  logging.info("Saving to BQ: " + str(insert_data))
   response = service.tabledata().insertAll(
       projectId=project_id,
       datasetId=dataset_id,
