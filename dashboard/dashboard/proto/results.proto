@@ -75,7 +75,7 @@ message Dims {
   google.protobuf.Timestamp start_time = 1;
   string swarming_task_id = 3;
   Device device = 4;
-  TestInfo testInfo = 5;
+  TestInfo test_info = 5;
   Checkout checkout = 6;
   Pairing pairing = 7;
   bool pass = 8;
