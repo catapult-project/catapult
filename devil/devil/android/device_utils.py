@@ -440,7 +440,8 @@ class DeviceUtils(object):
 
   _MAX_ADB_COMMAND_LENGTH = 512
   _MAX_ADB_OUTPUT_LENGTH = 32768
-  _LAUNCHER_FOCUSED_RE = re.compile(r'\s*mCurrentFocus.*(Launcher|launcher).*')
+  _RESUMED_LAUNCHER_ACTIVITY_RE = re.compile(
+      r'\s*mResumedActivity.*(Launcher|launcher).*')
   _VALID_SHELL_VARIABLE = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
 
   LOCAL_PROPERTIES_PATH = posixpath.join('/', 'data', 'local.prop')
@@ -1830,10 +1831,10 @@ class DeviceUtils(object):
     """
 
     def is_launcher_focused():
-      output = self.RunShellCommand(['dumpsys', 'window', 'windows'],
+      output = self.RunShellCommand(['dumpsys', 'activity', 'activities'],
                                     check_return=True,
                                     large_output=True)
-      return any(self._LAUNCHER_FOCUSED_RE.match(l) for l in output)
+      return any(self._RESUMED_LAUNCHER_ACTIVITY_RE.match(l) for l in output)
 
     def dismiss_popups():
       # There is a dialog present; attempt to get rid of it.
