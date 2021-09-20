@@ -299,7 +299,7 @@ def _InsertBQRows(project_id, dataset_id, table_id, rows, num_retries=5):
       body=insert_data).execute(num_retries=num_retries)
 
   if 'insertErrors' in response:
-    logging.error("Insert failed: " + response)
+    logging.error("Insert failed: " + str(response))
 
 
 def _BQService():
