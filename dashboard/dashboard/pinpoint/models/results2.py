@@ -282,8 +282,13 @@ def _PopulateMetric(data, name, value):
   if name == "largestContentfulPaint":
     data["measures"]["core_web_vitals"]["largestContentfulPaint"] = float(
         value)
-  elif name == "firstContentfulPaint":
+  elif name == "timeToFirstContentfulPaint":
     data["measures"]["core_web_vitals"]["timeToFirstContentfulPaint"] = float(value)
+  elif name == "overallCumulativeLayoutShift":
+    data["measures"]["core_web_vitals"]["overallCumulativeLayoutShift"] = float(
+        value)
+  elif name == "totalBlockingTime":
+    data["measures"]["core_web_vitals"]["totalBlockingTime"] = float(value)
   return data
 
 

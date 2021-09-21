@@ -445,10 +445,16 @@ class GenerateResults2Test(testing_common.TestCase):
     lcp_histogram = histogram_module.Histogram('largestContentfulPaint',
                                                'count')
     lcp_histogram.AddSample(42)
-    fcp_histogram = histogram_module.Histogram('firstContentfulPaint', 'count')
+    fcp_histogram = histogram_module.Histogram('timeToFirstContentfulPaint',
+                                               'count')
     fcp_histogram.AddSample(11)
+    cls_histogram = histogram_module.Histogram('overallCumulativeLayoutShift',
+                                               'count')
+    cls_histogram.AddSample(22)
+    tbt_histogram = histogram_module.Histogram('totalBlockingTime', 'count')
+    tbt_histogram.AddSample(33)
     expected_histogram_set = histogram_set.HistogramSet(
-        [lcp_histogram, fcp_histogram])
+        [lcp_histogram, fcp_histogram, cls_histogram, tbt_histogram])
     mock_json.return_value = expected_histogram_set.AsDicts()
 
     expected_rows = [{
@@ -474,8 +480,10 @@ class GenerateResults2Test(testing_common.TestCase):
         },
         'measures': {
             'core_web_vitals': {
-                'first_contentful_paint': 11.0,
-                'largest_contentful_paint': 42.0
+                'timeToFirstContentfulPaint': 11.0,
+                'largestContentfulPaint': 42.0,
+                'overallCumulativeLayoutShift': 22.0,
+                'totalBlockingTime': 33
             }
         },
         'run_id': 'fake_job_id'
@@ -501,24 +509,17 @@ class GenerateResults2Test(testing_common.TestCase):
         'measures': {
             'core_web_vitals': {
                 'timeToFirstContentfulPaint': 11.0,
-                'largestContentfulPaint': 42.0
+                'largestContentfulPaint': 42.0,
+                'overallCumulativeLayoutShift': 22.0,
+                'totalBlockingTime': 33
             }
         },
         'run_id': 'fake_job_id'
     }]
 
-    def ValidateBQRows(project_id, dataset_id, table_id, rows):
-      del project_id
-      del dataset_id
-      del table_id
-      rows = list(rows)
-
-      self.maxDiff = None
-      self.assertItemsEqual(rows, expected_rows)
-
-    mock_bqinsert.side_effect = ValidateBQRows
-
     results2.GenerateResults2(job)
+    mock_bqinsert.assert_called_once_with('chromeperf', 'pinpoint_export_test',
+                                          'pinpoint_results', expected_rows)
 
 
 class FakePatch(

@@ -84,6 +84,8 @@ message Dims {
 message CoreWebVitals {
   float largestContentfulPaint = 1;
   float timeToFirstContentfulPaint = 2;
+  float overallCumulativeLayoutShift = 3;
+  float totalBlockingTime = 4;
 }
 
 message Measures {
