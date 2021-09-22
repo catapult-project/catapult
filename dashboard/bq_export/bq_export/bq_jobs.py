@@ -51,6 +51,8 @@ def JobEntityToRowDict(entity):
     d = {
         'id':
             entity.key.id,
+        'batch_id':
+            entity.get('batch_id'),
         'arguments':
             entity['arguments'],  # required
         'bug_id':
@@ -180,7 +182,8 @@ def main():
    completed BOOLEAN NOT NULL,
    failed BOOLEAN NOT NULL,
    running BOOLEAN NOT NULL,
-   configuration STRING)
+   configuration STRING,
+   batch_id STRING)
   PARTITION BY DATE(`create_time`);
   """  # pylint: disable=pointless-string-statement
   bq_job_schema = {
@@ -357,6 +360,11 @@ def main():
           },
           {
               'name': 'configuration',
+              'type': 'STRING',
+              'mode': 'NULLABLE'
+          },
+          {
+              'name': 'batch_id',
               'type': 'STRING',
               'mode': 'NULLABLE'
           },
