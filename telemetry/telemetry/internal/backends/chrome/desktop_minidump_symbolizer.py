@@ -60,6 +60,10 @@ class DesktopMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
       output = subprocess.check_output([cdb, '-y', self._build_dir,
                                         '-c', '.ecxr;.lastevent;kb30;~*kb30;q',
                                         '-z', minidump])
+      if six.PY3:
+        # pylint: disable=redefined-variable-type
+        output = output.decode('utf-8')
+
       # The output we care about starts with "Last event:" or possibly
       # other things we haven't seen yet. If we can't find the start of the
       # last event entry, include output from the beginning.

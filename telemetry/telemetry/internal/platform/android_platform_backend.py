@@ -664,7 +664,7 @@ class AndroidPlatformBackend(
       cmd.append('--arch=%s' % arch)
       cmd.append('--output-directory=%s' % self._build_dir)
       p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-      return p.communicate(input=logcat)[0]
+      return p.communicate(input=six.ensure_binary(logcat))[0]
 
     return None
 
