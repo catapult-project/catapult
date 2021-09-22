@@ -132,7 +132,9 @@ def ProvisionDevices(devices,
         ProvisionStep(lambda d: RemoveSystemApps(d, system_app_remove_list,
                                                  system_package_remove_list)))
 
+  steps.append(ProvisionStep(RebootDevice))
   steps.append(ProvisionStep(SetDate))
+  steps.append(ProvisionStep(LogDeviceProperties))
   steps.append(ProvisionStep(CheckExternalStorage))
   steps.append(ProvisionStep(StandaloneVrDeviceSetup))
 
@@ -472,6 +474,9 @@ def SetDate(device):
       set_date_command = ['date', '-s']
       get_date_command = ['date']
 
+    # Android version O does not allow to set date without root enabled.
+    device.EnableRoot()
+
     # TODO(jbudorick): This is wrong on pre-M devices -- get/set are
     # dealing in local time, but we're setting based on GMT.
     strgmtime = time.strftime(date_format, time.gmtime())
@@ -513,6 +518,11 @@ def LogDeviceProperties(device):
   props = device.RunShellCommand(['getprop'], check_return=True)
   for prop in props:
     logger.info('  %s', prop)
+
+
+def RebootDevice(device):
+  device.Reboot(False, retries=0)
+  device.adb.WaitForDevice()
 
 
 # TODO(jbudorick): Relocate this either to device_utils or a separate
