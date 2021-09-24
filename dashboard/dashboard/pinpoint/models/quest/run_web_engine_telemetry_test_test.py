@@ -27,6 +27,7 @@ _COMBINED_DEFAULT_EXTRA_ARGS = (
     run_performance_test._DEFAULT_EXTRA_ARGS +
     run_web_engine_telemetry_test._DEFAULT_EXTRA_ARGS)
 _BASE_EXTRA_ARGS = [
+    '-d',
     '--benchmarks',
     'some_benchmark',
     '--pageset-repeat',

@@ -97,6 +97,9 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
   def _ExtraTestArgs(cls, arguments):
     extra_test_args = []
 
+    # Run tests even if they're configured to be ignored in expectations.config
+    extra_test_args.append('-d')
+
     benchmark = arguments.get('benchmark')
     if not benchmark:
       raise TypeError('Missing "benchmark" argument.')

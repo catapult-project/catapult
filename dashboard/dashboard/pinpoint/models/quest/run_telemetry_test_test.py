@@ -25,6 +25,7 @@ _COMBINED_DEFAULT_EXTRA_ARGS = (
     run_telemetry_test._DEFAULT_EXTRA_ARGS +
     run_performance_test._DEFAULT_EXTRA_ARGS)
 _BASE_EXTRA_ARGS = [
+    '-d',
     '--benchmarks',
     'speedometer',
     '--pageset-repeat',
@@ -171,6 +172,7 @@ class FromDictTest(unittest.TestCase):
     quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
 
     extra_args = [
+        '-d',
         '--benchmarks',
         'speedometer',
         '--story-filter',
@@ -205,6 +207,7 @@ class FromDictTest(unittest.TestCase):
     quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
 
     extra_args = [
+        '-d',
         '--benchmarks',
         'start_with_url.warm.startup_pages',
         '--pageset-repeat',
@@ -223,6 +226,7 @@ class FromDictTest(unittest.TestCase):
     quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
 
     extra_args = [
+        '-d',
         '--benchmarks',
         'speedometer',
         '--pageset-repeat',
