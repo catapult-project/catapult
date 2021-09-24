@@ -242,7 +242,18 @@ def _SaveJobToBigQuery(job):
       rows[rk] = _PopulateMetadata(job, h)
     rows[rk] = _PopulateMetric(rows[rk], h.histogram["name"],
                                h.histogram["sampleValues"][0])
-  _InsertBQRows(_PROJECT_ID, _DATASET, _TABLE, rows.values())
+  empty_measures = _GetEmptyMeasures()
+  rows_with_measures = [
+      r for r in rows.values() if r["measures"] != empty_measures
+  ]
+  if len(rows_with_measures):
+    _InsertBQRows(_PROJECT_ID, _DATASET, _TABLE, rows_with_measures)
+
+
+def _GetEmptyMeasures():
+  measures = {}
+  measures["core_web_vitals"] = {}
+  return measures
 
 
 def _PopulateMetadata(job, h):
@@ -272,8 +283,7 @@ def _PopulateMetadata(job, h):
   md["dims"]["pairing"]["replica"] = h.metadata.attempt_number
   # TODO: order (not implemented yet)
 
-  md["measures"] = {}
-  md["measures"]["core_web_vitals"] = {}
+  md["measures"] = _GetEmptyMeasures()
   return md
 
 

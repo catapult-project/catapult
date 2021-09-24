@@ -453,8 +453,12 @@ class GenerateResults2Test(testing_common.TestCase):
     cls_histogram.AddSample(22)
     tbt_histogram = histogram_module.Histogram('totalBlockingTime', 'count')
     tbt_histogram.AddSample(33)
-    expected_histogram_set = histogram_set.HistogramSet(
-        [lcp_histogram, fcp_histogram, cls_histogram, tbt_histogram])
+    useless_histogram = histogram_module.Histogram('someUselessMetric', 'count')
+    useless_histogram.AddSample(42)
+    expected_histogram_set = histogram_set.HistogramSet([
+        lcp_histogram, fcp_histogram, cls_histogram, tbt_histogram,
+        useless_histogram
+    ])
     mock_json.return_value = expected_histogram_set.AsDicts()
 
     expected_rows = [{
@@ -520,6 +524,82 @@ class GenerateResults2Test(testing_common.TestCase):
     results2.GenerateResults2(job)
     mock_bqinsert.assert_called_once_with('chromeperf', 'pinpoint_export_test',
                                           'pinpoint_results', expected_rows)
+
+  @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
+  @mock.patch.object(results2, '_InsertBQRows')
+  @mock.patch.object(results2.render_histograms_viewer,
+                     'RenderHistogramsViewer')
+  @mock.patch.object(results2, '_JsonFromExecution')
+  @mock.patch.object(swarming, 'Swarming')
+  def testTypeDispatch_PushBQNoRows(self, mock_swarming, mock_json, mock_render,
+                                    mock_bqinsert):
+
+    test_execution = run_test._RunTestExecution("fake_server", None, None, None,
+                                                None, None)
+    test_execution._task_id = "fake_task"
+
+    commit_a = commit.Commit("fakerepo", "fakehashA")
+    change_a = change.Change([commit_a])
+    commit_b = commit.Commit("fakeRepo", "fakehashB")
+    patch_b = FakePatch("fakePatchServer", "fakePatchNo", "fakePatchRev")
+    change_b = change.Change([commit_b], patch_b)
+
+    benchmark_arguments = FakeBenchmarkArguments("fake_benchmark", "fake_story")
+    job = _JobStub(
+        None,
+        'fake_job_id',
+        None,
+        _JobStateFake({
+            change_a: [{
+                'executions': [
+                    test_execution,
+                    read_value.ReadValueExecution(
+                        'fake_filename', ['fake_filename'], 'fake_metric',
+                        'fake_grouping_label', 'fake_trace_or_story', 'avg',
+                        'fake_chart', 'https://isolate_server',
+                        'deadc0decafef00d')
+                ]
+            }],
+            change_b: [{
+                'executions': [
+                    test_execution,
+                    read_value.ReadValueExecution(
+                        'fake_filename', ['fake_filename'], 'fake_metric',
+                        'fake_grouping_label', 'fake_trace_or_story', 'avg',
+                        'fake_chart', 'https://isolate_server',
+                        'deadc0decafef00d')
+                ]
+            }],
+        }),
+        benchmark_arguments=benchmark_arguments,
+        batch_id="fake_batch_id",
+        configuration="fake_configuration")
+    histograms = []
+
+    def TraverseHistograms(hists, *args, **kw_args):
+      del args
+      del kw_args
+      for histogram in hists:
+        histograms.append(histogram)
+
+    task_mock = mock.Mock()
+    task_mock.Result.return_value = {
+        "bot_dimensions": {
+            "device_type": "type",
+            "device_os": "os"
+        }
+    }
+    mock_swarming.return_value.Task.return_value = task_mock
+    mock_render.side_effect = TraverseHistograms
+    useless_histogram = histogram_module.Histogram('someUselessMetric', 'count')
+    useless_histogram.AddSample(42)
+    expected_histogram_set = histogram_set.HistogramSet([
+        useless_histogram
+    ])
+    mock_json.return_value = expected_histogram_set.AsDicts()
+
+    results2.GenerateResults2(job)
+    self.assertFalse(mock_bqinsert.called)
 
 
 class FakePatch(
