@@ -377,7 +377,7 @@ def _ParseCommitPosition(commit_message):
 
   Returns:
     An int if there is a commit position, or None otherwise."""
-  match = re.search('^Cr-Commit-Position: ([a-z/]+)@{#([0-9]+)}$', commit_message,
+  match = re.search('^Cr-Commit-Position: (.+)@{#([0-9]+)}$', commit_message,
                     re.MULTILINE)
   if match:
     return CommitPositionInfo(match.group(1), int(match.group(2)))

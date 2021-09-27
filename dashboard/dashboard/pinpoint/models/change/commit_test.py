@@ -109,7 +109,7 @@ deps = {
         'message': 'Subject.\n\n'
                    'Commit message.\n'
                    'Reviewed-on: https://foo/c/chromium/src/+/123\n'
-                   'Cr-Commit-Position: refs/heads/main@{#437745}',
+                   'Cr-Commit-Position: refs/branch-heads/4242@{#437745}',
     }
 
     expected = {
@@ -122,10 +122,10 @@ deps = {
         'message': 'Subject.\n\n'
                    'Commit message.\n'
                    'Reviewed-on: https://foo/c/chromium/src/+/123\n'
-                   'Cr-Commit-Position: refs/heads/main@{#437745}',
+                   'Cr-Commit-Position: refs/branch-heads/4242@{#437745}',
         'review_url': 'https://foo/c/chromium/src/+/123',
         'commit_position': 437745,
-        'commit_branch': 'refs/heads/main'
+        'commit_branch': 'refs/branch-heads/4242'
     }
     self.assertEqual(Commit(0).AsDict(), expected)
 
