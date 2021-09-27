@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import collections
+import datetime
 import itertools
 import logging
 import mock
@@ -375,15 +376,29 @@ class GenerateResults2Test(testing_common.TestCase):
         expected_histogram_set_a.AsDicts() + expected_histogram_set_b.AsDicts(),
         histograms)
 
-
   @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
   @mock.patch.object(results2, '_InsertBQRows')
   @mock.patch.object(results2.render_histograms_viewer,
                      'RenderHistogramsViewer')
   @mock.patch.object(results2, '_JsonFromExecution')
   @mock.patch.object(swarming, 'Swarming')
-  def testTypeDispatch_PushBQ(self, mock_swarming, mock_json, mock_render,
+  @mock.patch.object(commit.Commit, 'GetOrCacheCommitInfo')
+  def testTypeDispatch_PushBQ(self, mock_commit_info, mock_swarming, mock_json, mock_render,
                               mock_bqinsert):
+    mock_commit_info.return_value = {
+        'author': {
+            'email': 'author@chromium.org'
+        },
+        'created': datetime.date.today(),
+        'commit': 'aaa7336',
+        'committer': {
+            'time': 'Fri Jan 01 00:01:00 2016'
+        },
+        'message': 'Subject.\n\n'
+                   'Commit message.\n'
+                   'Reviewed-on: https://foo/c/chromium/src/+/123\n'
+                   'Cr-Commit-Position: refs/heads/main@{#437745}',
+    }
 
     test_execution = run_test._RunTestExecution("fake_server", None, None, None,
                                                 None, None)
@@ -479,7 +494,9 @@ class GenerateResults2Test(testing_common.TestCase):
                 'repo': 'fakeRepo',
                 'git_hash': 'fakehashB',
                 'patch_gerrit_revision': 'fake_patch_set',
-                'patch_gerrit_change': 'fake_patch_issue'
+                'patch_gerrit_change': 'fake_patch_issue',
+                'branch': 'refs/heads/main',
+                'commit_position': 437745
             }
         },
         'measures': {
@@ -507,7 +524,9 @@ class GenerateResults2Test(testing_common.TestCase):
             },
             'checkout': {
                 'repo': 'fakerepo',
-                'git_hash': 'fakehashA'
+                'git_hash': 'fakehashA',
+                'branch': 'refs/heads/main',
+                'commit_position': 437745
             }
         },
         'measures': {
@@ -531,8 +550,23 @@ class GenerateResults2Test(testing_common.TestCase):
                      'RenderHistogramsViewer')
   @mock.patch.object(results2, '_JsonFromExecution')
   @mock.patch.object(swarming, 'Swarming')
-  def testTypeDispatch_PushBQNoRows(self, mock_swarming, mock_json, mock_render,
+  @mock.patch.object(commit.Commit, 'GetOrCacheCommitInfo')
+  def testTypeDispatch_PushBQNoRows(self, mock_commit_info, mock_swarming, mock_json, mock_render,
                                     mock_bqinsert):
+    mock_commit_info.return_value = {
+        'author': {
+            'email': 'author@chromium.org'
+        },
+        'created': datetime.date.today(),
+        'commit': 'aaa7336',
+        'committer': {
+            'time': 'Fri Jan 01 00:01:00 2016'
+        },
+        'message': 'Subject.\n\n'
+                   'Commit message.\n'
+                   'Reviewed-on: https://foo/c/chromium/src/+/123\n'
+                   'Cr-Commit-Position: refs/heads/main@{#437745}',
+    }
 
     test_execution = run_test._RunTestExecution("fake_server", None, None, None,
                                                 None, None)

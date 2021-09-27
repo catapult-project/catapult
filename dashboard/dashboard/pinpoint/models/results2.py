@@ -275,6 +275,10 @@ def _PopulateMetadata(job, h):
   # TODO: gitiles_host
   md["dims"]["checkout"]["repo"] = h.metadata.change.commits[0].repository
   md["dims"]["checkout"]["git_hash"] = h.metadata.change.commits[0].git_hash
+  commit_dict = h.metadata.change.commits[0].AsDict()
+  if "commit_position" in commit_dict:
+    md["dims"]["checkout"]["branch"] = commit_dict["commit_branch"]
+    md["dims"]["checkout"]["commit_position"] = commit_dict["commit_position"]
   if h.metadata.change.patch is not None:
     patch_params = h.metadata.change.patch.BuildParameters()
     md["dims"]["checkout"]["patch_gerrit_change"] = patch_params["patch_issue"]

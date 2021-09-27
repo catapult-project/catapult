@@ -75,6 +75,8 @@ class ChangeTest(test.TestCase):
             {
                 'author':
                     'author@chromium.org',
+                'commit_branch':
+                    'refs/heads/master',
                 'commit_position':
                     123456,
                 'git_hash':
@@ -100,6 +102,8 @@ class ChangeTest(test.TestCase):
             {
                 'author':
                     'author@chromium.org',
+                'commit_branch':
+                    'refs/heads/master',
                 'commit_position':
                     123456,
                 'git_hash':
@@ -135,6 +139,7 @@ class ChangeTest(test.TestCase):
                        'Change-Id: I0123456789abcdef',
         },
     }
+    self.maxDiff = None
     self.assertEqual(c.AsDict(), expected)
 
   def testFromDataUrl(self):

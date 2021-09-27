@@ -27,7 +27,7 @@ class NonLinearError(Exception):
 
 
 Dep = collections.namedtuple('Dep', ('repository_url', 'git_hash'))
-
+CommitPositionInfo = collections.namedtuple('CommitPositionInfo', ('branch', 'position'))
 
 def ParseDateWithUTCOffset(date_string):
   # Parsing the utc offset within strptime isn't supported until python 3, so
@@ -147,7 +147,8 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
 
     commit_position = _ParseCommitPosition(d['message'])
     if commit_position:
-      d['commit_position'] = commit_position
+      d['commit_branch'] = commit_position.branch
+      d['commit_position'] = commit_position.position
 
     review_url = _ParseCommitField('Reviewed-on: ', d['message'])
     if review_url:
@@ -376,10 +377,10 @@ def _ParseCommitPosition(commit_message):
 
   Returns:
     An int if there is a commit position, or None otherwise."""
-  match = re.search('^Cr-Commit-Position: [a-z/]+@{#([0-9]+)}$', commit_message,
+  match = re.search('^Cr-Commit-Position: ([a-z/]+)@{#([0-9]+)}$', commit_message,
                     re.MULTILINE)
   if match:
-    return int(match.group(1))
+    return CommitPositionInfo(match.group(1), int(match.group(2)))
   return None
 
 
