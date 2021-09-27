@@ -177,7 +177,7 @@ def _SetUpSystemAppModification(device, timeout=None, retries=None):
     device.RunShellCommand(['stop'], check_return=True)
     device.SetProp(_ENABLE_MODIFICATION_PROP, '1')
   except device_errors.CommandFailedError:
-    if device.adb.is_emulator:
+    if device.is_emulator:
       # Point the user to documentation, since there's a good chance they can
       # workaround this on an emulator.
       docs_url = ('https://chromium.googlesource.com/chromium/src/+/'

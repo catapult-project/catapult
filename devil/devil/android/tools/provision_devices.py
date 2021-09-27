@@ -98,7 +98,7 @@ def ProvisionDevices(devices,
     if denylist:
       logging.error('Local device denylist: %s', denylist.Read())
     raise
-  devices = [d for d in devices if not emulators or d.adb.is_emulator]
+  devices = [d for d in devices if not emulators or d.is_emulator]
   parallel_devices = device_utils.DeviceUtils.parallel(devices)
 
   steps = []
