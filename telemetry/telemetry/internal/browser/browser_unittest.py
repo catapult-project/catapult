@@ -78,11 +78,11 @@ class BrowserTest(browser_test_case.BrowserTestCase):
 
   @decorators.Enabled('has tabs')
   def testForegroundTab(self):
-    # Should be only one tab at this stage, so that must be the foreground tab
     num_tabs = len(self._browser.tabs)
     self.assertLess(0, num_tabs)
     self.assertGreater(3, num_tabs)
-    original_tab = self._browser.tabs[num_tabs - 1]
+    # The first tab is the foreground tab by default.
+    original_tab = self._browser.tabs[0]
     self.assertEqual(self._browser.foreground_tab, original_tab)
     new_tab = self._browser.tabs.New()
     # New tab shouls be foreground tab
