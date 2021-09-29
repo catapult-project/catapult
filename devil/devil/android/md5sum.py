@@ -111,6 +111,8 @@ def CalculateDeviceMd5Sums(paths, device):
     compressed.write(data)
     compressed.close()
     compressed_paths = base64.b64encode(mem_file.getvalue())
+    if six.PY3:
+      compressed_paths = compressed_paths.decode('utf-8')
     md5sum_script += '$a -gz %s;' % compressed_paths
   try:
     out = device.RunShellCommand(
