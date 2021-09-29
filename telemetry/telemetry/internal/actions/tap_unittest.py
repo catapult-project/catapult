@@ -32,7 +32,8 @@ class TapActionTest(tab_test_case.TabTestCase):
     self._PerformTapAction(element_function='document.body.firstElementChild')
     self.assertEqual(3, self._tab.EvaluateJavaScript('valueToTest'))
 
-  @decorators.Disabled('win')  # http://crbug.com/634343
+  # http://crbug.com/634343, http://crbug.com/1254282
+  @decorators.Disabled('win', 'chromeos')
   def testTapNavigate(self):
     self.Navigate('page_with_link.html')
     self._PerformTapAction(selector='#clickme')
