@@ -821,7 +821,7 @@ def _CheckSupplementalColumn(name, value):
     ]
     if (not value or len(str(value)) > _STRING_COLUMN_MAX_LENGTH
         or not any(re.match(p, str(value)) for p in revision_patterns)):
-      logging.warn('Bad value for revision column "%s".', name)
+      logging.warn('Bad value for revision column "%s". Value: %s', name, value)
       return None
     value = str(value)
 
