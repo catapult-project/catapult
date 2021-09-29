@@ -77,6 +77,7 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     self.assertEquals(num_initial_tabs, len(self._browser.tabs))
 
   @decorators.Enabled('has tabs')
+  @decorators.Disabled('chromeos')  # crbug.com/1254233
   def testForegroundTab(self):
     num_tabs = len(self._browser.tabs)
     self.assertLess(0, num_tabs)
