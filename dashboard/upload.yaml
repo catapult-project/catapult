@@ -1,10 +1,10 @@
 service: upload
 runtime: python27
 api_version: 1
-instance_class: F4
+instance_class: F2
 
 # A single upload can consume a lot of memory, so threadsafe:false prevents
-# handling multiple uploads simultaneously in order to stay under F4's 1024MB
+# handling multiple uploads simultaneously in order to stay under F2's 256MB
 # memory limit.
 threadsafe: false
 
