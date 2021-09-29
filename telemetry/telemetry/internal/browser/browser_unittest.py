@@ -77,7 +77,6 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     self.assertEquals(num_initial_tabs, len(self._browser.tabs))
 
   @decorators.Enabled('has tabs')
-  @decorators.Disabled('chromeos')  # crbug.com/1254233
   def testForegroundTab(self):
     num_tabs = len(self._browser.tabs)
     self.assertLess(0, num_tabs)
@@ -85,6 +84,11 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     # The first tab is the foreground tab by default.
     original_tab = self._browser.tabs[0]
     self.assertEqual(self._browser.foreground_tab, original_tab)
+    # If there are 2 tabs open, close the inactive one before creating a new
+    # tab. This ensures the new tab will regain the foreground when we close
+    # the original tab after re-activating it.
+    if num_tabs == 2:
+      self._browser.tabs[1].Close()
     new_tab = self._browser.tabs.New()
     # New tab shouls be foreground tab
     self.assertEqual(self._browser.foreground_tab, new_tab)
