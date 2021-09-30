@@ -329,6 +329,33 @@ class ResultSinkReporterTest(unittest.TestCase):
                 artifacts=expected_artifacts)
         self.assertEqual(test_result, expected_result)
 
+    def testReportIndividualTestResultHttpsArtifact(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
+        rsr._post = StubWithRetval(2)
+        results = CreateResult({
+            'name': 'test_name',
+            'actual': json_results.ResultType.Pass,
+            'artifacts': {
+                'artifact_name': ['https://somelink.com'],
+            }
+        })
+        retval = rsr.report_individual_test_result(
+                'test_name_prefix.', results, ARTIFACT_DIR,
+                CreateTestExpectations(), FAKE_TEST_PATH, FAKE_TEST_LINE)
+        self.assertEqual(retval, 2)
+
+        test_result = GetTestResultFromPostedJson(rsr._post.args[0])
+        expected_artifacts = {}
+        expected_artifacts.update(STDOUT_STDERR_ARTIFACTS)
+        expected_html_summary = (
+            '<a href=https://somelink.com>artifact_name</a>'
+            + HTML_SUMMARY)
+        expected_result = CreateExpectedTestResult(
+                artifacts=expected_artifacts,
+                summary_html=expected_html_summary)
+        self.assertEqual(test_result, expected_result)
+
     def testReportResultEarlyReturnIfNotSupported(self):
         self.setLuciContextWithContent({})
         rsr = result_sink.ResultSinkReporter(self._host)

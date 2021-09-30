@@ -134,6 +134,7 @@ class ResultSinkReporter(object):
 
         artifacts = {}
         original_artifacts = result.artifacts or {}
+        https_artifacts = ''
         assert STDOUT_KEY not in original_artifacts
         assert STDERR_KEY not in original_artifacts
         if original_artifacts:
@@ -143,9 +144,17 @@ class ResultSinkReporter(object):
                         self.host.getcwd(), artifact_output_dir)
 
         for artifact_name, artifact_filepaths in original_artifacts.items():
+            # Links can be reported as artifacts and are meant to be clickable.
+            # So, pull those out now so they can be added to the HTML summary
+            # later. typ's artifact implementation enforces that all links are
+            # HTTPS, so we can use that to identify links.
+            if (len(artifact_filepaths) == 1
+                and artifact_filepaths[0].startswith('https://')):
+              https_artifacts += '<a href=%s>%s</a>' % (artifact_filepaths[0],
+                                                        artifact_name)
             # The typ artifact implementation supports multiple artifacts for
             # a single artifact name due to retries, but ResultDB does not.
-            if len(artifact_filepaths) > 1:
+            elif len(artifact_filepaths) > 1:
                 for index, filepath in enumerate(artifact_filepaths):
                     artifacts[artifact_name + '-file%d' % index] = {
                         'filePath': self.host.join(
@@ -165,9 +174,10 @@ class ResultSinkReporter(object):
             'contents': (base64.b64encode(
                              result.err.encode('utf-8')).decode('utf-8'))
         }
-        html_summary = ('<p><text-artifact artifact-id="%s"/></p>'
-                        '<p><text-artifact artifact-id="%s"/></p>' % (
-                            STDOUT_KEY, STDERR_KEY))
+        html_summary = https_artifacts
+        html_summary += ('<p><text-artifact artifact-id="%s"/></p>'
+                         '<p><text-artifact artifact-id="%s"/></p>' % (
+                             STDOUT_KEY, STDERR_KEY))
 
         test_location_in_repo = self._convert_path_to_repo_path(
             os.path.normpath(test_file_location))
