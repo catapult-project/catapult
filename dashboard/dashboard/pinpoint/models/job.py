@@ -688,6 +688,11 @@ class Job(ndb.Model):
     self.retry_count += 1
 
     # Back off exponentially
+    try:
+      logging.debug('crbug/1254010 - reschedule - retry count - %s',
+                    self.retry_count)
+    except BaseException:
+      logging.debug('crbug/1254010 - log message failed')
     self._Schedule(countdown=_TASK_INTERVAL * (2**self.retry_count))
 
     return True
@@ -724,13 +729,26 @@ class Job(ndb.Model):
         return
 
       if not self._IsTryJob():
+        try:
+          logging.debug(
+              'crbug/1254010 - job.run() - Explore - num changes - %s',
+              len(self.state._changes))
+        except BaseException:
+          logging.debug('crbug/1254010 - log messaged failed')
         self.state.Explore()
       work_left = self.state.ScheduleWork()
 
       # Schedule moar task.
       if work_left:
+        try:
+          logging.debug(
+              'crbug/1254010 - job.run() - schedule - num changes - %s',
+              len(self.state._changes))
+        except BaseException:
+          logging.debug('crbug/1254010 - log messaged failed')
         self._Schedule()
       else:
+        logging.debug('crbug/1254010 - job.run() - job marked complete')
         self._Complete()
 
       self.retry_count = 0
