@@ -69,6 +69,8 @@ message Pairing {
   int32 replica = 1;
   // 1 if this checkout ran first in the set, 2 if it ran 2nd, …
   int32 order = 2;
+  // 0=base, 1..N=armN
+  optional int32 variant = 3;
 }
 
 message Dims {

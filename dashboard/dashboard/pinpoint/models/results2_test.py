@@ -405,10 +405,10 @@ class GenerateResults2Test(testing_common.TestCase):
     test_execution._task_id = "fake_task"
 
     commit_a = commit.Commit("fakerepo", "fakehashA")
-    change_a = change.Change([commit_a])
+    change_a = change.Change([commit_a], variant=0)
     commit_b = commit.Commit("fakeRepo", "fakehashB")
     patch_b = FakePatch("fakePatchServer", "fakePatchNo", "fakePatchRev")
-    change_b = change.Change([commit_b], patch_b)
+    change_b = change.Change([commit_b], patch_b, variant=1)
 
     benchmark_arguments = FakeBenchmarkArguments("fake_benchmark", "fake_story")
     job = _JobStub(
@@ -488,23 +488,22 @@ class GenerateResults2Test(testing_common.TestCase):
                 'benchmark': 'fake_benchmark'
             },
             'pairing': {
-                'replica': 0
+                'replica': 0,
+                'variant': 0
             },
             'checkout': {
-                'repo': 'fakeRepo',
-                'git_hash': 'fakehashB',
-                'patch_gerrit_revision': 'fake_patch_set',
-                'patch_gerrit_change': 'fake_patch_issue',
-                'branch': 'refs/heads/main',
-                'commit_position': 437745
+                'repo': 'fakerepo',
+                'git_hash': 'fakehashA',
+                'commit_position': 437745,
+                'branch': 'refs/heads/main'
             }
         },
         'measures': {
             'core_web_vitals': {
                 'timeToFirstContentfulPaint': 11.0,
+                'totalBlockingTime': 33.0,
                 'largestContentfulPaint': 42.0,
-                'overallCumulativeLayoutShift': 22.0,
-                'totalBlockingTime': 33
+                'overallCumulativeLayoutShift': 22.0
             }
         },
         'run_id': 'fake_job_id'
@@ -520,21 +519,24 @@ class GenerateResults2Test(testing_common.TestCase):
                 'benchmark': 'fake_benchmark'
             },
             'pairing': {
-                'replica': 0
+                'replica': 0,
+                'variant': 1
             },
             'checkout': {
-                'repo': 'fakerepo',
-                'git_hash': 'fakehashA',
+                'patch_gerrit_revision': 'fake_patch_set',
+                'commit_position': 437745,
+                'patch_gerrit_change': 'fake_patch_issue',
+                'repo': 'fakeRepo',
                 'branch': 'refs/heads/main',
-                'commit_position': 437745
+                'git_hash': 'fakehashB'
             }
         },
         'measures': {
             'core_web_vitals': {
                 'timeToFirstContentfulPaint': 11.0,
+                'totalBlockingTime': 33.0,
                 'largestContentfulPaint': 42.0,
-                'overallCumulativeLayoutShift': 22.0,
-                'totalBlockingTime': 33
+                'overallCumulativeLayoutShift': 22.0
             }
         },
         'run_id': 'fake_job_id'

@@ -284,6 +284,7 @@ def _PopulateMetadata(job, h):
     md["dims"]["checkout"]["patch_gerrit_change"] = patch_params["patch_issue"]
     md["dims"]["checkout"]["patch_gerrit_revision"] = patch_params["patch_set"]
   md["dims"]["pairing"] = {}
+  md["dims"]["pairing"]["variant"] = h.metadata.change.variant
   md["dims"]["pairing"]["replica"] = h.metadata.attempt_number
   # TODO: order (not implemented yet)
 
