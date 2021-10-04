@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import logging
+from datetime import datetime
 
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
@@ -23,6 +24,8 @@ from dashboard.services import issue_tracker_service
 _TASK_QUEUE_NAME = 'auto-triage-queue'
 
 _MAX_UNTRIAGED_ANOMALIES = 5000
+
+_MAX_DATES_TO_IGNORE_ALERT = 180
 
 # Maximum relative difference between two steps for them to be considered
 # similar enough for the second to be a "recovery" of the first.
@@ -126,7 +129,7 @@ class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
     """
     alert_entity = ndb.Key(urlsafe=alert_key_urlsafe).get()
     logging.info('Checking alert %s', alert_entity)
-    if not self._IsAlertRecovered(alert_entity):
+    if not self._IsAlertRecovered(alert_entity, bug_id, project_id):
       return
 
     logging.info('Recovered')
@@ -148,12 +151,29 @@ class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
             project=project_id,
             labels='Performance-Regression-Recovered')
 
-  def _IsAlertRecovered(self, alert_entity):
+  def _IsAlertRecovered(self, alert_entity, bug_id, project_id):
     test = alert_entity.GetTestMetadataKey().get()
     if not test:
-      logging.error('TestMetadata %s not found for Anomaly %s, deleting test.',
+      logging.error('TestMetadata %s not found for Anomaly %s.',
                     utils.TestPath(alert_entity.GetTestMetadataKey()),
                     alert_entity)
+      datetime_since_fired = (datetime.now() - alert_entity.timestamp).days
+      if datetime_since_fired > _MAX_DATES_TO_IGNORE_ALERT:
+        comment = """
+          The test related to the alert below cannot be found in data store.
+          As it has been %s days since reported, we consider this alert no
+          longer valid and mark it as recovered.
+          Alert: %s
+          TestMetadataKey: %s
+          """ % (datetime_since_fired, alert_entity,
+                 alert_entity.GetTestMetadataKey())
+        logging.info(comment)
+        alert_entity.recovered = True
+        alert_entity.put()
+        if bug_id:
+          issue_tracker = issue_tracker_service.IssueTrackerService(
+              utils.ServiceAccountHttp())
+          issue_tracker.AddBugComment(bug_id, comment, project=project_id)
       return False
     config = anomaly_config.GetAnomalyConfigDict(test)
     max_num_rows = config.get('max_window_size',
