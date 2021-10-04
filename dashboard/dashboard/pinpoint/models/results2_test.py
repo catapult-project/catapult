@@ -543,8 +543,7 @@ class GenerateResults2Test(testing_common.TestCase):
     }]
 
     results2.GenerateResults2(job)
-    mock_bqinsert.assert_called_once_with('chromeperf', 'pinpoint_export_test',
-                                          'pinpoint_results', expected_rows)
+    self.assertItemsEqual(mock_bqinsert.call_args[0][3], expected_rows)
 
   @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
   @mock.patch.object(results2, '_InsertBQRows')
