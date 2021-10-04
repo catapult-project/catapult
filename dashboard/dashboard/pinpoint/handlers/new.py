@@ -325,7 +325,7 @@ def _ValidateChangesForTry(arguments):
       patch=base_patch,
       label='base',
       args=base_extra_args or None,
-  )
+      variant=0)
   exp_extra_args = _ParseExtraArgs(arguments.get('experiment_extra_args', ''))
   logging.debug('Experiment extra args: %s', exp_extra_args)
   change_2 = change.Change(
@@ -333,7 +333,7 @@ def _ValidateChangesForTry(arguments):
       patch=exp_patch,
       label='exp',
       args=exp_extra_args or None,
-  )
+      variant=1)
   return change_1, change_2
 
 

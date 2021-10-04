@@ -231,11 +231,11 @@ class NewTest(_NewTest):
     self.assertEqual(job.comparison_mode, 'try')
     self.assertEqual(
         str(job.state._changes[0]),
-        'base: chromium@3 (%s)' % (', '.join(base_args)),
+        'base: chromium@3 (%s) (Variant: 0)' % (', '.join(base_args)),
     )
     self.assertEqual(
         str(job.state._changes[1]),
-        'exp: chromium@3 (%s)' % (', '.join(exp_args)),
+        'exp: chromium@3 (%s) (Variant: 1)' % (', '.join(exp_args)),
     )
 
   def testComparisonModeTry_BaseNoPatchAndExperimentCommitPatch(self):

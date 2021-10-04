@@ -19,7 +19,8 @@ from dashboard.pinpoint.models.change import patch as patch_module
 
 
 class Change(
-    collections.namedtuple('Change', ('commits', 'patch', 'label', 'args'))):
+    collections.namedtuple('Change',
+                           ('commits', 'patch', 'label', 'args', 'variant'))):
   """A particular set of Commits with or without an additional patch applied.
 
   For example, a Change might sync to src@9064a40 and catapult@8f26966,
@@ -28,7 +29,7 @@ class Change(
 
   __slots__ = ()
 
-  def __new__(cls, commits, patch=None, label=None, args=None):
+  def __new__(cls, commits, patch=None, label=None, args=None, variant=None):
     """Creates a Change.
 
     Args:
@@ -36,16 +37,13 @@ class Change(
       patch: An optional Patch to apply to the Change.
       label: An optional string to label a Change.
       args: A list of strings associated with a Change.
+      variant: 0=base, 1..N=expN. Only valid for A/B jobs.
     """
     if not (commits or patch):
       raise TypeError('At least one commit or patch required.')
-    return super(Change, cls).__new__(
-        cls,
-        tuple(commits),
-        patch,
-        label,
-        json.dumps(args) if args else None,
-    )
+    return super(Change, cls).__new__(cls, tuple(commits), patch, label,
+                                      json.dumps(args) if args else None,
+                                      variant)
 
   def __str__(self):
     """Returns an informal short string representation of this Change."""
@@ -56,6 +54,8 @@ class Change(
     args = self.change_args
     if args:
       string += ' (%s)' % (', '.join(args),)
+    if self.variant is not None:
+      string += ' (Variant: %s)' % self.variant
     return string
 
   def __getnewargs__(self):
@@ -69,7 +69,8 @@ class Change(
     https://docs.python.org/2.7/library/pickle.html#pickling-and-unpickling-normal-class-instances
     (for Python 2.7) details.
     """
-    return (self.commits, self.patch, self.change_label, self.change_args)
+    return (self.commits, self.patch, self.change_label, self.change_args,
+            self.variant)
 
   @property
   def change_label(self):
@@ -140,7 +141,7 @@ class Change(
     patch = self.patch or other.patch
     label = self.change_label or other.change_label
     args = self.change_args or other.change_args
-    return Change(commits, patch, label, args)
+    return Change(commits, patch, label, args, self.variant)
 
   def AsDict(self):
     result = {
@@ -155,6 +156,9 @@ class Change(
 
     if self.change_label:
       result['label'] = self.change_label
+
+    if self.variant is not None:
+      result['variant'] = self.variant
 
     return result
 
@@ -183,7 +187,12 @@ class Change(
     label = data.get('label')
     args = data.get('args')
 
-    return cls(commits, patch=patch, label=label, args=args)
+    return cls(
+        commits,
+        patch=patch,
+        label=label,
+        args=args,
+        variant=data.get('variant'))
 
   @classmethod
   def Midpoint(cls, change_a, change_b):
