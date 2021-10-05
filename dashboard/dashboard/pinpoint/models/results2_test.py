@@ -479,7 +479,7 @@ class GenerateResults2Test(testing_common.TestCase):
     mock_json.return_value = expected_histogram_set.AsDicts()
 
     expected_rows = [{
-        'start_time': _TEST_START_TIME,
+        'job_start_time': _TEST_START_TIME,
         'batch_id': 'fake_batch_id',
         'dims': {
             'device': {
@@ -511,7 +511,7 @@ class GenerateResults2Test(testing_common.TestCase):
         },
         'run_id': 'fake_job_id'
     }, {
-        'start_time': _TEST_START_TIME,
+        'job_start_time': _TEST_START_TIME,
         'batch_id': 'fake_batch_id',
         'dims': {
             'device': {
