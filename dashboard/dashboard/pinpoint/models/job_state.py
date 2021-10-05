@@ -175,18 +175,12 @@ class JobState(object):
           on_unknown=CollectChangesToRefine,
           midpoint=FindMidpoint,
           levels=_DEFAULT_SPECULATION_LEVELS)
-      add_changes_log = []
       logging.debug('Refinement list: %s', changes_to_refine)
       for change in changes_to_refine:
         self.AddAttempts(change)
       logging.debug('Edit list: %s', additional_changes)
       for index, change in additional_changes:
         self.AddChange(change, index)
-        add_changes_log.append((index, change, change.commits))
-      try:
-        logging.debug('crbug/1254010 - edit list: %s', add_changes_log)
-      except BaseException:
-        logging.debug('crbug/1254010 - log message failed')
     except (http_client.HTTPException,
             urlfetch_errors.DeadlineExceededError) as e:
       logging.debug('Encountered error: %s', e)
