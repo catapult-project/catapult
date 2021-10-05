@@ -98,6 +98,8 @@ message Measures {
 // Represents a row in a BigQuery table.
 // Each row maps Dimensions (device, story, etc.) + pairing + metric -> value
 message Result {
+  // Overall job start time
+  google.protobuf.Timestamp start_time = 1;
   // Top-level to enable clustering
   string run_id = 1;
   string batch_id = 2;

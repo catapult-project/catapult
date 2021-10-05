@@ -258,6 +258,7 @@ def _GetEmptyMeasures():
 
 def _PopulateMetadata(job, h):
   md = {}
+  md["start_time"] = job.started_time
   md["batch_id"] = job.batch_id
   md["run_id"] = job.job_id
   md["dims"] = {}
