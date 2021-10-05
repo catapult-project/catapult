@@ -499,7 +499,7 @@ class AlertGroupWorkflow(object):
       # details of one anomaly's subscription get replaced with another
       # anomaly's subscription.
       for s in a.subscriptions:
-        if (subscriptions_dict.has_key(s.name) and s.auto_triage_enable !=
+        if (s.name in subscriptions_dict and s.auto_triage_enable !=
             subscriptions_dict[s.name].auto_triage_enable):
           logging.warn('altered merged auto_triage_enable: %s', s.name)
 
