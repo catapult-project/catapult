@@ -388,8 +388,9 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
     self.ExecuteTaskQueueTasks('/mark_recovered_alerts',
                                mark_recovered_alerts._TASK_QUEUE_NAME)
     self.assertTrue(anomaly_key.get().recovered)
-    add_bug_comment_mock.assert_called_once_with(
-        mock.ANY, mock.ANY, project=mock.ANY)
+    # One call for explaining why alert are mared as recovered, and another for
+    # all alerts recovered for the bug
+    self.assertEqual(add_bug_comment_mock.call_count, 2)
 
   @mock.patch.object(issue_tracker_service.IssueTrackerService, 'AddBugComment')
   @mock.patch.object(

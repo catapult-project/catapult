@@ -152,6 +152,8 @@ class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
             labels='Performance-Regression-Recovered')
 
   def _IsAlertRecovered(self, alert_entity, bug_id, project_id):
+    if alert_entity.recovered:
+      return True
     test = alert_entity.GetTestMetadataKey().get()
     if not test:
       logging.error('TestMetadata %s not found for Anomaly %s.',
@@ -174,7 +176,7 @@ class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
           issue_tracker = issue_tracker_service.IssueTrackerService(
               utils.ServiceAccountHttp())
           issue_tracker.AddBugComment(bug_id, comment, project=project_id)
-      return False
+      return alert_entity.recovered
     config = anomaly_config.GetAnomalyConfigDict(test)
     max_num_rows = config.get('max_window_size',
                               find_anomalies.DEFAULT_NUM_POINTS)
