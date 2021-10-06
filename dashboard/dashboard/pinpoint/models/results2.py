@@ -258,7 +258,7 @@ def _GetEmptyMeasures():
 
 def _PopulateMetadata(job, h):
   md = {}
-  md["job_start_time"] = _ConvertDatetimeToBQ(job.started_time)
+  md["job_start_time"] = job.started_time
   md["batch_id"] = job.batch_id
   md["run_id"] = job.job_id
   md["dims"] = {}
@@ -306,10 +306,6 @@ def _PopulateMetric(data, name, value):
   elif name == "totalBlockingTime":
     data["measures"]["core_web_vitals"]["totalBlockingTime"] = float(value)
   return data
-
-
-def _ConvertDatetimeToBQ(dt):
-  return dt.strftime('%Y-%m-%d %H:%M:%S.%f')
 
 
 def _InsertBQRows(project_id, dataset_id, table_id, rows, num_retries=5):
