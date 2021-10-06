@@ -27,6 +27,7 @@ from tracing.value import histogram_set
 from tracing.value import histogram as histogram_module
 
 _TEST_START_TIME = datetime.date.fromtimestamp(1326244364)
+_TEST_START_TIME_STR = "2012-01-10 00:00:00.000000"
 
 _ATTEMPT_DATA = {
     "executions": [{
@@ -479,7 +480,7 @@ class GenerateResults2Test(testing_common.TestCase):
     mock_json.return_value = expected_histogram_set.AsDicts()
 
     expected_rows = [{
-        'job_start_time': _TEST_START_TIME,
+        'job_start_time': _TEST_START_TIME_STR,
         'batch_id': 'fake_batch_id',
         'dims': {
             'device': {
@@ -511,7 +512,7 @@ class GenerateResults2Test(testing_common.TestCase):
         },
         'run_id': 'fake_job_id'
     }, {
-        'job_start_time': _TEST_START_TIME,
+        'job_start_time': _TEST_START_TIME_STR,
         'batch_id': 'fake_batch_id',
         'dims': {
             'device': {
@@ -547,6 +548,7 @@ class GenerateResults2Test(testing_common.TestCase):
     }]
 
     results2.GenerateResults2(job)
+    self.maxDiff = None
     self.assertItemsEqual(mock_bqinsert.call_args[0][3], expected_rows)
 
   @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
