@@ -60,7 +60,7 @@ def GetDeviceSerials(denylist):
   preferred_device = os.environ.get('ANDROID_SERIAL')
   if preferred_device in device_serials:
     logging.warning(
-        'ANDROID_SERIAL is defined. Put %s in the first of the'
+        'ANDROID_SERIAL is defined. Put %s in the first of the '
         'discovered devices list.' % preferred_device)
     device_serials.remove(preferred_device)
     device_serials.insert(0, preferred_device)
