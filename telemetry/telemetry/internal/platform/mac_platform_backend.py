@@ -77,6 +77,8 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
       return os_version_module.CATALINA
     if os_version.startswith('20.'):
       return os_version_module.BIGSUR
+    if os_version.startswith('21.'):
+      return os_version_module.MONTEREY
 
     raise NotImplementedError('Unknown mac version %s.' % os_version)
 
