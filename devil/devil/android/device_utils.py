@@ -63,7 +63,7 @@ _DEFAULT_RETRIES = 3
 # TODO(agrieve): Would be better to make this timeout based off of data size.
 # Needs to be large for remote devices & speed depends on internet connection.
 # Debug Chrome builds can be 200mb+.
-_FILE_TRANSFER_TIMEOUT = 10 * 60
+_FILE_TRANSFER_TIMEOUT = 7 * 60
 
 
 # A sentinel object for default values
