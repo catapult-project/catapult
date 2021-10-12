@@ -330,7 +330,7 @@ class CrOSInterface(object):
 
   def PushContents(self, text, remote_filename):
     logging.debug("PushContents(<text>, %s)" % remote_filename)
-    with tempfile.NamedTemporaryFile() as f:
+    with tempfile.NamedTemporaryFile(mode='w+') as f:
       f.write(text)
       f.flush()
       self.PushFile(f.name, remote_filename)
