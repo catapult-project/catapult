@@ -53,6 +53,7 @@ class SharedPageState(story_module.SharedState):
       self._page_test.CustomizeBrowserOptions(browser_options)
 
     self._browser = None
+    self._extra_browser_args = None
     self._finder_options = finder_options
 
     self._first_browser = True
@@ -166,6 +167,7 @@ class SharedPageState(story_module.SharedState):
     # Create a deep copy of browser_options so that we can add page-level
     # arguments and url to it without polluting the run for the next page.
     browser_options = self._finder_options.browser_options.Copy()
+    self._extra_browser_args = page.extra_browser_args
     browser_options.AppendExtraBrowserArgs(page.extra_browser_args)
     self._possible_browser.SetUpEnvironment(browser_options)
 
@@ -189,6 +191,12 @@ class SharedPageState(story_module.SharedState):
     self._AllowInteractionForStage('after-start-browser')
 
   def WillRunStory(self, page):
+    reusing_browser = self.browser is not None
+    # Make sure we don't have accidentally diverging browser args.
+    if reusing_browser and self._extra_browser_args != page._extra_browser_args:
+      self._StopBrowser()
+      reusing_browser = False
+
     if not self.platform.tracing_controller.is_tracing_running:
       # For TimelineBasedMeasurement benchmarks, tracing has already started.
       # For PageTest benchmarks, tracing has not yet started. We need to make
@@ -208,10 +216,11 @@ class SharedPageState(story_module.SharedState):
     self.platform.network_controller.StartReplay(
         archive_path, page.make_javascript_deterministic, self._extra_wpr_args)
 
-    reusing_browser = self.browser is not None
     if self._video_recording_enabled:
       self.platform.StartVideoRecording()
-    if not reusing_browser:
+    if reusing_browser:
+      assert self._extra_browser_args == page._extra_browser_args
+    else:
       self._StartBrowser(page)
 
     if self.browser.supports_tab_control:
