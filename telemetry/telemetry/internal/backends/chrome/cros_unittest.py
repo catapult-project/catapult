@@ -77,7 +77,7 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
   def testGetCredentials(self):
     fd, cred_file = tempfile.mkstemp()
     try:
-      os.write(fd, 'user1:pass1\nuser2:pass2\nuser3:pass3')
+      os.write(fd, 'user1:pass1\nuser2:pass2\nuser3:pass3'.encode())
       os.close(fd)
       cred_iter = self._GetCredentialsIter(cred_file)
       for i in range(1, 4):
