@@ -193,6 +193,7 @@ class WprRecorder(object):
     story_runner.AddCommandLineArgs(self._parser)
     if self._benchmark is not None:
       self._benchmark.AddCommandLineArgs(self._parser)
+      self._benchmark.SetExtraBrowserOptions(self._options)
       self._benchmark.SetArgumentDefaults(self._parser)
     self._parser.add_option('--upload', action='store_true')
     self._parser.add_option('--use-local-wpr', action='store_true',
