@@ -17,6 +17,7 @@ class AppBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
     self._platform_backend = platform_backend
 
   def SetApp(self, app):
+    assert app is not None
     self._app = app
 
   @property

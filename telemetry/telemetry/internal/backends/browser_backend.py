@@ -181,7 +181,7 @@ class BrowserBackend(app_backend.AppBackend):
       log_level: The logging level to use from the logging module, e.g.
           logging.ERROR.
       suffix: The suffix to prepend to the names of any created artifacts.
-      start_time: If set, prepend elaped time to screenshot path.
+      start_time: If set, prepend elapsed time to screenshot path.
           Should be time at which the test started, as a datetime.
           This is done here because it may take a nonzero amount of time
           to take a screenshot.
