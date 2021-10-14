@@ -106,6 +106,22 @@ func list(cfg *Config, a *webpagereplay.Archive, printFull bool) error {
 	})
 }
 
+func trim(cfg *Config, a *webpagereplay.Archive, outfile string) error {
+	newA, err := a.Trim(func(req *http.Request) (bool, error) {
+		if !cfg.requestEnabled(req) {
+			fmt.Printf("Keeping request: host=%s uri=%s\n", req.Host, req.URL.String())
+			return false, nil
+		} else {
+			fmt.Printf("Trimming request: host=%s uri=%s\n", req.Host, req.URL.String())
+			return true, nil
+	  }
+	})
+	if err != nil {
+		return fmt.Errorf("error editing archive:\n%v", err)
+	}
+	return writeArchive(newA, outfile)
+}
+
 func edit(cfg *Config, a *webpagereplay.Archive, outfile string) error {
 	editor := os.Getenv("EDITOR")
 	if editor == "" {
@@ -385,6 +401,16 @@ func main() {
 			Before:    checkArgs("add", 3),
 			Action:    func(c *cli.Context) error {
 				return addAll(cfg, loadArchiveOrDie(c, 0), c.Args().Get(1), c.Args().Get(2))
+			},
+		},
+		cli.Command{
+			Name:      "trim",
+			Usage:     "Trim the requests/responses in an archive",
+			ArgsUsage: "input_archive output_archive",
+			Flags:     cfg.DefaultFlags(),
+			Before:    checkArgs("trim", 2),
+			Action:    func(c *cli.Context) error {
+				return trim(cfg, loadArchiveOrDie(c, 0), c.Args().Get(1))
 			},
 		},
 	}

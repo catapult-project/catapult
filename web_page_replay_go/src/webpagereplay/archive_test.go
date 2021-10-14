@@ -23,6 +23,17 @@ func createArchivedRequest(t *testing.T, ustr string, header http.Header) *Archi
 	return archivedRequest
 }
 
+func validateTrim(t *testing.T, f func(req *http.Request) (bool, error), a Archive, expected int) {
+	b, err := a.Trim(f)
+	if err != nil {
+		t.Fatalf("Trim returned an error: %v", err)
+	}
+	actual := len(b.Requests)
+	if actual != expected {
+		t.Fatalf("Expected %d request in archive b, found %d.", expected, actual)
+	}
+}
+
 func TestFindRequestFuzzyMatching(t *testing.T) {
 	a := newArchive()
 	const u = "https://example.com/a/b/c/+/query?usegapi=1&foo=bar&c=d"
@@ -403,4 +414,28 @@ func TestAdd(t *testing.T) {
 		t.Fatalf("Expected 1 requests in archive a")
 	}
 
+}
+
+func TestTrim(t *testing.T) {
+	a := newArchive()
+
+	const host1 = "example.com"
+	const host2 = "example.gov"
+	const host3 = "example.org"
+	const u1 = "https://example.com/index.html?a=A"
+	const u2 = "https://example.gov/index.html?a=A"
+	a.Requests[host1] = make(map[string][]*ArchivedRequest)
+	a.Requests[host1][u1] = []*ArchivedRequest{createArchivedRequest(t, u1, nil)}
+	a.Requests[host2] = make(map[string][]*ArchivedRequest)
+	a.Requests[host2][u2] = []*ArchivedRequest{createArchivedRequest(t, u2, nil)}
+
+	validateTrim(t, func(req *http.Request) (bool, error) { return true, nil }, a, 0)
+
+	validateTrim(t, func(req *http.Request) (bool, error) { return false, nil }, a, 2)
+
+	validateTrim(t, func(req *http.Request) (bool, error) { return req.Host == host1, nil }, a, 1)
+
+	validateTrim(t, func(req *http.Request) (bool, error) { return req.Host == host2, nil }, a, 1)
+
+	validateTrim(t, func(req *http.Request) (bool, error) { return req.Host == host3, nil }, a, 2)
 }
