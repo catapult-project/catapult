@@ -397,6 +397,8 @@ tr.b.unittest.testSuite(function() {
         size: 8,
         allocated_objects_size: 4,
         shim_allocated_objects_size: 3,
+        max_allocated_size: 5,
+        max_committed_size: 8
       }})
     ];
     pmdBrowser1.totals = {
@@ -565,7 +567,9 @@ tr.b.unittest.testSuite(function() {
       newAllocatorDump(pmdBrowser3, 'malloc', {numerics: {
         size: 8000,
         allocated_objects_size: 4000,
-        shim_allocated_objects_size: 3000
+        shim_allocated_objects_size: 3000,
+        max_allocated_size: 4000,
+        max_committed_size: 8000
       }})
     ];
     const pmdRendererB3 = addProcessMemoryDump(gmd3, pRendererB, {ts: 61});
@@ -654,6 +658,18 @@ tr.b.unittest.testSuite(function() {
       value: [25 + 4 + 32, (36 + 6 + 1) + 750 + 860 + 320 + 40, 4000, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total size of all allocated objects reported by Chrome ' +
+          'for all processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_chrome:max_allocated_size': {
+      value: [5, 0, 4000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total max size of all allocations reported by Chrome ' +
+          'for all processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_chrome:max_committed_size': {
+      value: [8, 0, 8000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total max size of all committed memory reported by Chrome ' +
           'for all processes in Chrome'
     },
     'memory:chrome:all_processes:reported_by_chrome:blinkgc:BlinkObject:heap_category_size':
@@ -764,6 +780,18 @@ tr.b.unittest.testSuite(function() {
       unit: sizeInBytes_smallerIsBetter,
       description: 'size of all objects allocated through shim by malloc in ' +
               'all processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_chrome:malloc:max_allocated_size': {
+      value: [5, 0, 4000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'max size of all allocations of malloc ' +
+          'in all processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_chrome:malloc:max_committed_size': {
+      value: [8, 0, 8000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'max size of all committed memory of malloc ' +
+          'in all processes in Chrome'
     },
     'memory:chrome:all_processes:reported_by_chrome:malloc:allocated_objects_size':
     {
@@ -994,6 +1022,18 @@ tr.b.unittest.testSuite(function() {
       description: 'total size of all allocated objects through shim ' +
           'reported by Chrome for the browser process in Chrome'
     },
+    'memory:chrome:browser_process:reported_by_chrome:max_allocated_size': {
+      value: [5, 0, 4000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total max size of all allocations reported by Chrome ' +
+          'for the browser process in Chrome'
+    },
+    'memory:chrome:browser_process:reported_by_chrome:max_committed_size': {
+      value: [8, 0, 8000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total max size of all committed memory reported by Chrome ' +
+          'for the browser process in Chrome'
+    },
     'memory:chrome:browser_process:reported_by_chrome:malloc:effective_size': {
       value: [8, 120 - 40, 8000, 80000],
       unit: sizeInBytes_smallerIsBetter,
@@ -1019,6 +1059,18 @@ tr.b.unittest.testSuite(function() {
       unit: sizeInBytes_smallerIsBetter,
       description: 'size of all objects allocated through shim by malloc in ' +
               'the browser process in Chrome'
+    },
+    'memory:chrome:browser_process:reported_by_chrome:malloc:max_allocated_size': {
+      value: [5, 0, 4000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'max size of all allocations of malloc ' +
+          'in the browser process in Chrome'
+    },
+    'memory:chrome:browser_process:reported_by_chrome:malloc:max_committed_size': {
+      value: [8, 0, 8000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'max size of all committed memory of malloc ' +
+          'in the browser process in Chrome'
     },
     'memory:chrome:browser_process:reported_by_chrome:tracing:effective_size': {
       value: [0, 40, 0, 0],

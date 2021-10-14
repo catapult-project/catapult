@@ -390,6 +390,28 @@ tr.exportTo('tr.metrics.sh', function() {
     }
   };
 
+  const MAX_ALLOCATED_SIZE = {
+    name: 'max_allocated_size',
+    unit: sizeInBytes_smallerIsBetter,
+    buildDescriptionPrefix(componentPath, processName) {
+      return buildChromeValueDescriptionPrefix(componentPath, processName, {
+        userFriendlyPropertyName: 'max size of all allocations',
+        componentPreposition: 'of'
+      });
+    }
+  };
+
+  const MAX_COMMITTED_SIZE = {
+    name: 'max_committed_size',
+    unit: sizeInBytes_smallerIsBetter,
+    buildDescriptionPrefix(componentPath, processName) {
+      return buildChromeValueDescriptionPrefix(componentPath, processName, {
+        userFriendlyPropertyName: 'max size of all committed memory',
+        componentPreposition: 'of'
+      });
+    }
+  };
+
   const SHIM_ALLOCATED_OBJECTS_SIZE = {
     name: 'shim_allocated_objects_size',
     unit: sizeInBytes_smallerIsBetter,
@@ -451,6 +473,8 @@ tr.exportTo('tr.metrics.sh', function() {
     EFFECTIVE_SIZE,
     ALLOCATED_OBJECTS_SIZE,
     SHIM_ALLOCATED_OBJECTS_SIZE,
+    MAX_ALLOCATED_SIZE,
+    MAX_COMMITTED_SIZE,
     LOCKED_SIZE,
     PEAK_SIZE
   ];
