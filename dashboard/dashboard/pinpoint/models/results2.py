@@ -26,6 +26,37 @@ from tracing.value import gtest_json_converter
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
+# Maps metric name -> position in the measures tree of the BQ export
+_METRIC_MAP = {
+    # CWV
+    "largestContentfulPaint": ("core_web_vitals", "largestContentfulPaint"),
+    "timeToFirstContentfulPaint":
+        ("core_web_vitals", "timeToFirstContentfulPaint"),
+    "overallCumulativeLayoutShift":
+        ("core_web_vitals", "overallCumulativeLayoutShift"),
+    "totalBlockingTime": ("core_web_vitals", "totalBlockingTime"),
+
+    # Speedometer2
+    "Angular2-TypeScript-TodoMVC":
+        ("speedometer2", "Angular2_TypeScript_TodoMVC"),
+    "AngularJS-TodoMVC": ("speedometer2", "AngularJS_TodoMVC"),
+    "BackboneJS-TodoMVC": ("speedometer2", "BackboneJS_TodoMVC"),
+    "Elm-TodoMVC": ("speedometer2", "Elm_TodoMVC"),
+    "EmberJS-Debug-TodoMVC": ("speedometer2", "EmberJS_Debug_TodoMVC"),
+    "EmberJS-TodoMVC": ("speedometer2", "EmberJS_TodoMVC"),
+    "Flight-TodoMVC": ("speedometer2", "Flight_TodoMVC"),
+    "Inferno-TodoMVC": ("speedometer2", "Inferno_TodoMVC"),
+    "jQuery-TodoMVC": ("speedometer2", "jQuery_TodoMVC"),
+    "Preact-TodoMVC": ("speedometer2", "Preact_TodoMVC"),
+    "React-Redux-TodoMVC": ("speedometer2", "React_Redux_TodoMVC"),
+    "React-TodoMVC": ("speedometer2", "React_TodoMVC"),
+    "Vanilla-ES2015-Babel-Webpack-TodoMVC":
+        ("speedometer2", "Vanilla_ES2015_Babel_Webpack_TodoMVC"),
+    "Vanilla-ES2015-TodoMVC": ("speedometer2", "Vanilla_ES2015_TodoMVC"),
+    "VanillaJS-TodoMVC": ("speedometer2", "VanillaJS_TodoMVC"),
+    "VueJS-TodoMVC": ("speedometer2", "VueJS_TodoMVC")
+}
+
 
 class Results2Error(Exception):
 
@@ -253,6 +284,7 @@ def _SaveJobToBigQuery(job):
 def _GetEmptyMeasures():
   measures = {}
   measures["core_web_vitals"] = {}
+  measures["speedometer2"] = {}
   return measures
 
 
@@ -294,17 +326,10 @@ def _PopulateMetadata(job, h):
 
 
 def _PopulateMetric(data, name, value):
-  # core_web_vitals
-  if name == "largestContentfulPaint":
-    data["measures"]["core_web_vitals"]["largestContentfulPaint"] = float(
-        value)
-  elif name == "timeToFirstContentfulPaint":
-    data["measures"]["core_web_vitals"]["timeToFirstContentfulPaint"] = float(value)
-  elif name == "overallCumulativeLayoutShift":
-    data["measures"]["core_web_vitals"]["overallCumulativeLayoutShift"] = float(
-        value)
-  elif name == "totalBlockingTime":
-    data["measures"]["core_web_vitals"]["totalBlockingTime"] = float(value)
+  if name in _METRIC_MAP:
+    loc = _METRIC_MAP[name]
+    data["measures"][loc[0]][loc[1]] = float(value)
+
   return data
 
 
