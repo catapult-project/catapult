@@ -389,7 +389,7 @@ class CrOSInterface(object):
     Returns:
       A string containing the contents of the file.
     """
-    with tempfile.NamedTemporaryFile() as t:
+    with tempfile.NamedTemporaryFile(mode='w') as t:
       self.GetFile(filename, t.name)
       with open(t.name, 'r') as f2:
         res = f2.read()
