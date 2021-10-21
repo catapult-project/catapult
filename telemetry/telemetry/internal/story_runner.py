@@ -415,6 +415,7 @@ def RunBenchmark(benchmark, finder_options):
   Returns:
     An exit code from exit_codes module describing what happened.
   """
+  logging.info('Running in Python version: %s' % str(sys.version_info))
   benchmark_name = benchmark.Name()
   if not re.match(_RE_VALID_TEST_SUITE_NAME, benchmark_name):
     logging.fatal('Invalid benchmark name: %s', benchmark_name)
