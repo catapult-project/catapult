@@ -301,6 +301,10 @@ def _PopulateMetadata(job, h):
     for kv in h.metadata.swarming_result["bot_dimensions"]:
       if kv["key"] == "device_os":
         md["dims"]["device"]["os"] = kv["value"]
+      # device_os should take precedence over os
+      # if both are present, os is more generic.
+      if kv["key"] == "os" and "os" not in md["dims"]["device"]:
+        md["dims"]["device"]["os"] = kv["value"]
       if kv["key"] == "id" and len(kv["value"]) > 0:
         md["dims"]["device"]["swarming_bot_id"] = kv["value"][0]
   md["dims"]["test_info"] = {}

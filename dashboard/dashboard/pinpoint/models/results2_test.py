@@ -503,7 +503,7 @@ class GenerateResults2Test(testing_common.TestCase):
         _CreateHistogram('VueJS-TodoMVC', 16)
     ])
     job = _SetupBQTest(mock_commit_info, mock_swarming, mock_render, mock_json,
-                       expected_histogram_set)
+                       expected_histogram_set, set_device_os=False)
 
     expected_rows = [{
         'job_start_time': _TEST_START_TIME_STR,
@@ -512,7 +512,7 @@ class GenerateResults2Test(testing_common.TestCase):
             'device': {
                 'cfg': 'fake_configuration',
                 'swarming_bot_id': 'fake_id',
-                'os': ['os1', 'os2']
+                'os': ['base_os']
             },
             'test_info': {
                 'story': 'fake_story',
@@ -558,7 +558,7 @@ class GenerateResults2Test(testing_common.TestCase):
             'device': {
                 'cfg': 'fake_configuration',
                 'swarming_bot_id': 'fake_id',
-                'os': ['os1', 'os2']
+                'os': ['base_os']
             },
             'test_info': {
                 'story': 'fake_story',
@@ -632,7 +632,7 @@ def _CreateHistogram(name, val):
 
 
 def _SetupBQTest(mock_commit_info, mock_swarming, mock_render, mock_json,
-                 expected_histogram_set):
+                 expected_histogram_set, set_device_os=True):
   mock_commit_info.return_value = {
       'author': {
           'email': 'author@chromium.org'
@@ -697,21 +697,27 @@ def _SetupBQTest(mock_commit_info, mock_swarming, mock_render, mock_json,
       histograms.append(histogram)
 
   task_mock = mock.Mock()
+  bot_dimensions = [
+      {
+          "key": "device_type",
+          "value": "type"
+      },
+      {
+          "key": "os",
+          "value": ["base_os"]
+      },
+      {
+          "key": "id",
+          "value": ["fake_id"]
+      }
+  ]
+  if set_device_os:
+    bot_dimensions.append({
+        "key": "device_os",
+        "value": ["os1", "os2"]
+        })
   task_mock.Result.return_value = {
-      "bot_dimensions": [
-          {
-              "key": "device_type",
-              "value": "type"
-          },
-          {
-              "key": "device_os",
-              "value": ["os1", "os2"]
-          },
-          {
-              "key": "id",
-              "value": ["fake_id"]
-          }
-      ]
+      "bot_dimensions": bot_dimensions
   }
   mock_swarming.return_value.Task.return_value = task_mock
   mock_render.side_effect = TraverseHistograms
