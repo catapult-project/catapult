@@ -301,8 +301,8 @@ def _PopulateMetadata(job, h):
     for kv in h.metadata.swarming_result["bot_dimensions"]:
       if kv["key"] == "device_os":
         md["dims"]["device"]["os"] = kv["value"]
-      if kv["key"] == "id":
-        md["dims"]["device"]["swarming_bot_id"] = kv["value"]
+      if kv["key"] == "id" and len(kv["value"]) > 0:
+        md["dims"]["device"]["swarming_bot_id"] = kv["value"][0]
   md["dims"]["test_info"] = {}
   md["dims"]["test_info"]["benchmark"] = job.benchmark_arguments.benchmark
   md["dims"]["test_info"]["story"] = job.benchmark_arguments.story

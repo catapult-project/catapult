@@ -405,7 +405,7 @@ class GenerateResults2Test(testing_common.TestCase):
             'device': {
                 'cfg': 'fake_configuration',
                 'swarming_bot_id': 'fake_id',
-                'os': 'os'
+                'os': ['os1', 'os2']
             },
             'test_info': {
                 'story': 'fake_story',
@@ -439,7 +439,7 @@ class GenerateResults2Test(testing_common.TestCase):
             'device': {
                 'cfg': 'fake_configuration',
                 'swarming_bot_id': 'fake_id',
-                'os': 'os'
+                'os': ['os1', 'os2']
             },
             'test_info': {
                 'story': 'fake_story',
@@ -512,7 +512,7 @@ class GenerateResults2Test(testing_common.TestCase):
             'device': {
                 'cfg': 'fake_configuration',
                 'swarming_bot_id': 'fake_id',
-                'os': 'os'
+                'os': ['os1', 'os2']
             },
             'test_info': {
                 'story': 'fake_story',
@@ -558,7 +558,7 @@ class GenerateResults2Test(testing_common.TestCase):
             'device': {
                 'cfg': 'fake_configuration',
                 'swarming_bot_id': 'fake_id',
-                'os': 'os'
+                'os': ['os1', 'os2']
             },
             'test_info': {
                 'story': 'fake_story',
@@ -705,11 +705,11 @@ def _SetupBQTest(mock_commit_info, mock_swarming, mock_render, mock_json,
           },
           {
               "key": "device_os",
-              "value": "os"
+              "value": ["os1", "os2"]
           },
           {
               "key": "id",
-              "value": "fake_id"
+              "value": ["fake_id"]
           }
       ]
   }
