@@ -12,7 +12,7 @@ class RunLacrosTelemetryTest(run_telemetry_test.RunTelemetryTest):
   @classmethod
   def _ComputeCommand(cls, arguments):
     command = [
-        'luci-auth', 'context', '--', 'vpython',
+        'luci-auth', 'context', '--', 'vpython3',
         'bin/run_' + arguments.get('target'),
         '--remote=variable_chromeos_device_hostname'
     ]

@@ -35,10 +35,10 @@ _BASE_EXTRA_ARGS = [
     'lacros-chrome',
 ] + _COMBINED_DEFAULT_EXTRA_ARGS
 _TELEMETRY_COMMAND = [
-    'luci-auth', 'context', '--', 'vpython',
+    'luci-auth', 'context', '--', 'vpython3',
     'bin/run_performance_test_suite_eve',
     '--remote=variable_chromeos_device_hostname'
-    ]
+]
 _BASE_SWARMING_TAGS = {}
 
 
