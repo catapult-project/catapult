@@ -9,6 +9,7 @@ import os
 import platform
 import re
 import subprocess
+import six
 
 from telemetry.internal.backends.chrome import minidump_symbolizer
 from telemetry.internal.results import artifact_logger
@@ -223,7 +224,7 @@ class AndroidMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
     p = subprocess.Popen(
         [dumper_path, minidump], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
-    stdout = stdout + '\n' + stderr
+    stdout = six.ensure_str(stdout) + '\n' + six.ensure_str(stderr)
 
     if p.returncode != 0:
       # Dumper errors often do not affect stack walkability, just a warning.
