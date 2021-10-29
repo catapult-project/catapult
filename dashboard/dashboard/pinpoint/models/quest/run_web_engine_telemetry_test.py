@@ -11,8 +11,10 @@ import copy
 from dashboard.pinpoint.models.quest import run_telemetry_test
 
 _DEFAULT_EXTRA_ARGS = [
-    '--device=custom',
-    '--custom-device-target=internal.astro_target',
+    '-d',
+    ('--system-image-dir=../../third_party/fuchsia-sdk/'
+     'images-internal/astro-release/smart_display_eng_arrested'),
+    '--os-check=update',
 ]
 
 
