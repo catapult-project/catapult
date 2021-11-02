@@ -230,6 +230,10 @@ class TestWinMultiprocessing(TestCase):
             if tmpdir:
                 h.rmtree(tmpdir)
 
+        # Ignore the new logging added for timing.
+        if out.startswith('Start running tests'):
+            out = '\n'.join(out.split('\n')[1:])
+
         return ret, out, err
 
     def test_bad_value(self):

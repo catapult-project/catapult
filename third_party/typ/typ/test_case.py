@@ -121,6 +121,10 @@ class MainTestCase(TestCase):
             actual_out = convert_newlines(actual_out)
             actual_err = convert_newlines(actual_err)
 
+        # Ignore the new logging added for timing.
+        if actual_out.startswith('Start running tests'):
+            actual_out = '\n'.join(actual_out.split('\n')[1:])
+
         if ret is not None:
             self.assertEqual(ret, actual_ret)
         if out is not None:
