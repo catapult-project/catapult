@@ -2434,8 +2434,8 @@ class DeviceUtils(object):
       d = tempfile.mkdtemp()
       host_temp_path = os.path.join(d, 'tmp_ReadFileWithPull')
       self.adb.Pull(device_path, host_temp_path)
-      with open(host_temp_path, 'r') as host_temp:
-        return host_temp.read()
+      with open(host_temp_path, 'rb') as host_temp:
+        return six.ensure_str(host_temp.read(), errors='replace')
     finally:
       if os.path.exists(d):
         shutil.rmtree(d)

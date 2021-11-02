@@ -2476,8 +2476,8 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
     with self.assertCalls(
         (mock.call.tempfile.mkdtemp(), tmp_host_dir),
         (self.call.adb.Pull('/path/to/device/file', mock.ANY)),
-        (mock.call.__builtin__.open(mock.ANY, 'r'), tmp_host) if six.PY2 else \
-            (mock.call.builtins.open(mock.ANY, 'r'), tmp_host),
+        (mock.call.__builtin__.open(mock.ANY, 'rb'), tmp_host) if six.PY2 else \
+            (mock.call.builtins.open(mock.ANY, 'rb'), tmp_host),
         (mock.call.os.path.exists(tmp_host_dir), True),
         (mock.call.shutil.rmtree(tmp_host_dir), None)):
       self.assertEqual('some interesting contents',
