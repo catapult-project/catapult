@@ -15,7 +15,7 @@ from dashboard.common import utils
 from google.appengine.datastore import datastore_query
 
 _BATCH_FETCH_TIMEOUT = 200
-_MAX_JOBS_TO_FETCH = 100
+_MAX_JOBS_TO_FETCH = 1000
 _MAX_JOBS_TO_COUNT = 1000
 _DEFAULT_FILTERED_JOBS = 40
 
