@@ -49,7 +49,7 @@ found in the LICENSE file.
         <template is="dom-repeat"
           items="{{stats.job_id_with_status}}" as="job">
           <li>
-            <a href="/job/{{job.job_id}}">{{job.name}} for {{job.user}}</a> ({{job.status}})
+            <a href="/job/{{job.job_id}}">{{job.job_id}}</a> ({{job.status}})
           </li>
         </template>
       </ul>
