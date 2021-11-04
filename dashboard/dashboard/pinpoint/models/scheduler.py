@@ -259,11 +259,9 @@ def QueueStats(configuration):
   result = functools.reduce(StatCombiner, queue.jobs, {})
   result.update({
       'queue_time_samples': [_FormatSample(s) for s in queue.samples],
-      'job_id_with_metadata': [{
+      'job_id_with_status': [{
           'job_id': j.job_id,
-          'status': j.status,
-          'name': getattr(j, 'name', ''),
-          'user': getattr(j, 'user', '')
+          'status': j.status
       } for j in queue.jobs],
   })
   return result
