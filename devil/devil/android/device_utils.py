@@ -1067,18 +1067,27 @@ class DeviceUtils(object):
         self.RunShellCommand(
             ['test', '-d', self.GetExternalStoragePath()], check_return=True)
         return True
+      except device_errors.DeviceUnreachableError:
+        logging.warn('Failed to check sd_card_ready: device unreachable')
+        return False
       except device_errors.AdbCommandFailedError:
         return False
 
     def pm_ready():
       try:
         return self._GetApplicationPathsInternal('android', skip_cache=True)
+      except device_errors.DeviceUnreachableError:
+        logging.warn('Failed to check pm_ready: device unreachable')
+        return False
       except device_errors.CommandFailedError:
         return False
 
     def boot_completed():
       try:
         return self.GetProp('sys.boot_completed', cache=False) == '1'
+      except device_errors.DeviceUnreachableError:
+        logging.warn('Failed to check boot_completed: device unreachable')
+        return False
       except device_errors.CommandFailedError:
         return False
 
