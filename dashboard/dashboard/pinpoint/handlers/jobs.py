@@ -36,14 +36,18 @@ class Jobs(webapp2.RequestHandler):
       self.response.out.write(
           json.dumps(
               _GetJobs(
-                  self.request.get_all('o'), self.request.get_all('filter'))))
+                  self.request.get_all('o'),
+                  self.request.get_all('filter'),
+                  self.request.get('prev_cursor', ''),
+                  self.request.get('next_cursor', ''),
+              )))
     except InvalidInput as e:
       self.response.set_status(400)
       logging.exception(e)
       self.response.out.write(json.dumps({'error': e.message}))
 
 
-def _GetJobs(options, query_filter):
+def _GetJobs(options, query_filter, prev_cursor='', next_cursor=''):
   query = job_module.Job.query()
 
   # Query filters should a string as described in https://google.aip.dev/160
@@ -81,27 +85,56 @@ def _GetJobs(options, query_filter):
         raise InvalidInput('batch_id when specified must not be empty')
       query = query.filter(job_module.Job.batch_id == batch_id)
 
+  if (has_filter or has_batch_filter) and (prev_cursor or next_cursor):
+    raise InvalidInput('pagination not supported for filtered queries')
+
   if has_filter and has_batch_filter:
     raise InvalidInput('batch ids are mutually exclusive with job filters')
 
-  query = query.order(-job_module.Job.created)
-  limit = None
+  page_size = _MAX_JOBS_TO_FETCH
   timeout_qo = datastore_query.QueryOptions()
   if has_batch_filter:
     timeout_qo = datastore_query.QueryOptions(deadline=_BATCH_FETCH_TIMEOUT)
-  else:
-    limit = _MAX_JOBS_TO_FETCH if not has_filter else _DEFAULT_FILTERED_JOBS
+  elif has_filter:
+    page_size = _DEFAULT_FILTERED_JOBS
 
-  job_future = query.fetch_async(limit=limit, options=timeout_qo)
   count_future = query.count_async(limit=_MAX_JOBS_TO_COUNT, options=timeout_qo)
+
+  if not prev_cursor and not next_cursor:
+    jobs, cursor, more = query.order(-job_module.Job.created).fetch_page(
+        page_size=page_size, options=timeout_qo)
+    prev_cursor = ''
+    next_cursor = cursor.urlsafe() if cursor else ''
+    prev_ = False
+    next_ = True if more else False
+  elif next_cursor:
+    cursor = datastore_query.Cursor(urlsafe=next_cursor)
+    jobs, cursor, more = query.order(-job_module.Job.created).fetch_page(
+        page_size=page_size, start_cursor=cursor, options=timeout_qo)
+    prev_cursor = next_cursor
+    next_cursor = cursor.urlsafe()
+    prev_ = True
+    next_ = True if more else False
+  elif prev_cursor:
+    cursor = datastore_query.Cursor(urlsafe=prev_cursor)
+    jobs, cursor, more = query.order(job_module.Job.created).fetch_page(
+        page_size=page_size, start_cursor=cursor, options=timeout_qo)
+    jobs.reverse()
+    prev_cursor = cursor.urlsafe()
+    next_cursor = prev_cursor
+    prev_ = True if more else False
+    next_ = True
 
   result = {
       'jobs': [],
       'count': count_future.get_result(),
-      'max_count': _MAX_JOBS_TO_COUNT
+      'max_count': _MAX_JOBS_TO_COUNT,
+      'prev_cursor': prev_cursor,
+      'next_cursor': next_cursor,
+      'prev': prev_,
+      'next': next_,
   }
 
-  jobs = job_future.get_result()
   service_account_email = utils.ServiceAccountEmail()
   logging.debug('service account email = %s', service_account_email)
 

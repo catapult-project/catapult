@@ -31,6 +31,10 @@ class JobsTest(test.TestCase):
     self.assertEqual(1, data['count'])
     self.assertEqual(1, len(data['jobs']))
     self.assertEqual(job.AsDict([job_module.OPTION_STATE]), data['jobs'][0])
+    self.assertFalse(data['prev'])
+    self.assertFalse(data['next'])
+    self.assertTrue(data['next_cursor'])
+    self.assertFalse(data['prev_cursor'])
 
   @mock.patch.object(utils,
                      'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)
@@ -48,6 +52,11 @@ class JobsTest(test.TestCase):
     # for a user's own jobs.
     self.assertEqual(2, data['count'])
     self.assertEqual(2, len(data['jobs']))
+
+    self.assertFalse(data['prev'])
+    self.assertFalse(data['next'])
+    self.assertTrue(data['next_cursor'])
+    self.assertFalse(data['prev_cursor'])
 
     sorted_data = sorted(data['jobs'], key=lambda d: d['job_id'])
     self.assertEqual(job.AsDict([job_module.OPTION_STATE]), sorted_data[-1])
@@ -70,6 +79,11 @@ class JobsTest(test.TestCase):
     self.assertEqual(2, len(data['jobs']))
     self.assertEqual(data['jobs'][0]['user'], 'chromeperf (automation)')
     self.assertEqual(data['jobs'][1]['user'], 'chromeperf (automation)')
+
+    self.assertFalse(data['prev'])
+    self.assertFalse(data['next'])
+    self.assertTrue(data['next_cursor'])
+    self.assertFalse(data['prev_cursor'])
 
     sorted_data = sorted(data['jobs'], key=lambda d: d['job_id'])
     expected_job_dict = job.AsDict([job_module.OPTION_STATE])
@@ -105,6 +119,12 @@ class JobsTest(test.TestCase):
                 _SERVICE_ACCOUNT_EMAIL, expected_bot)).body)
     self.assertEqual(1, data['count'])
     self.assertEqual(1, len(data['jobs']))
+
+    self.assertFalse(data['prev'])
+    self.assertFalse(data['next'])
+    self.assertTrue(data['next_cursor'])
+    self.assertFalse(data['prev_cursor'])
+
     got_job = data['jobs'][0]
     self.assertEqual(got_job['user'], expected_automation_email)
     self.assertEqual(got_job['configuration'], expected_bot)
@@ -120,6 +140,12 @@ class JobsTest(test.TestCase):
             expected_bot)).body)
     self.assertEqual(2, data['count'])
     self.assertEqual(2, len(data['jobs']))
+
+    self.assertFalse(data['prev'])
+    self.assertFalse(data['next'])
+    self.assertTrue(data['next_cursor'])
+    self.assertFalse(data['prev_cursor'])
+
     sorted_data = list(sorted(data['jobs'], key=lambda d: d['job_id']))
     self.assertEqual([{k: d[k] for k in {
         'user',
@@ -164,6 +190,12 @@ class JobsTest(test.TestCase):
         self.testapp.get('/api/jobs?o=STATE&filter=comparison_mode=try').body)
     self.assertEqual(1, data['count'])
     self.assertEqual(1, len(data['jobs']))
+
+    self.assertFalse(data['prev'])
+    self.assertFalse(data['next'])
+    self.assertTrue(data['next_cursor'])
+    self.assertFalse(data['prev_cursor'])
+
     got_job = data['jobs'][0]
     self.assertEqual(got_job['user'], expected_automation_email)
     self.assertEqual(got_job['configuration'], expected_bot)
@@ -206,6 +238,12 @@ class JobsTest(test.TestCase):
         self.testapp.get('/api/jobs?o=STATE&filter=batch_id=some-id').body)
     self.assertEqual(1, data['count'])
     self.assertEqual(1, len(data['jobs']))
+
+    self.assertFalse(data['prev'])
+    self.assertFalse(data['next'])
+    self.assertTrue(data['next_cursor'])
+    self.assertFalse(data['prev_cursor'])
+
     got_job = data['jobs'][0]
     self.assertEqual(got_job['user'], some_user)
     self.assertEqual(got_job['configuration'], expected_bot)
@@ -217,3 +255,79 @@ class JobsTest(test.TestCase):
     expected_job_dict = job.AsDict([job_module.OPTION_STATE])
     expected_job_dict['user'] = some_user
     self.assertEqual(expected_job_dict, sorted_data[-1])
+
+  @mock.patch.object(utils,
+                     'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)
+  @mock.patch.object(jobs.utils, 'GetEmail',
+                     mock.MagicMock(return_value=_SERVICE_ACCOUNT_EMAIL))
+  @mock.patch.object(results2_module, 'GetCachedResults2', return_value="")
+  @mock.patch.object(jobs, '_MAX_JOBS_TO_FETCH', 2)
+  def testGet_MultiplePages(self, _):
+
+    for i in range(5):
+      job_module.Job.New((), (), user=str(i))
+
+    data = json.loads(self.testapp.get('/api/jobs?o=STATE').body)
+    self.assertEqual(5, data['count'])
+    self.assertEqual(2, len(data['jobs']))
+    self.assertTrue(data['next'])
+    self.assertFalse(data['prev'])
+
+    next_cursor = data['next_cursor']
+    prev_cursor = data['prev_cursor']
+    self.assertTrue(next_cursor)
+    self.assertFalse(prev_cursor)
+
+    jobs_ = data['jobs']
+    self.assertEqual(jobs_[0]['user'], '4')
+    self.assertEqual(jobs_[1]['user'], '3')
+
+    data = json.loads(
+        self.testapp.get('/api/jobs?o=STATE&next_cursor=%s' % next_cursor).body)
+
+    self.assertEqual(5, data['count'])
+    self.assertEqual(2, len(data['jobs']))
+
+    self.assertTrue(data['next'])
+    self.assertTrue(data['prev'])
+    next_cursor = data['next_cursor']
+    prev_cursor = data['prev_cursor']
+    self.assertTrue(next_cursor)
+    self.assertTrue(prev_cursor)
+
+    jobs_ = data['jobs']
+    self.assertEqual(jobs_[0]['user'], '2')
+    self.assertEqual(jobs_[1]['user'], '1')
+
+    data = json.loads(
+        self.testapp.get('/api/jobs?o=STATE&next_cursor=%s' % next_cursor).body)
+
+    self.assertEqual(5, data['count'])
+    self.assertEqual(1, len(data['jobs']))
+
+    self.assertFalse(data['next'])
+    self.assertTrue(data['prev'])
+    next_cursor = data['next_cursor']
+    prev_cursor = data['prev_cursor']
+    self.assertTrue(next_cursor)
+    self.assertTrue(prev_cursor)
+
+    jobs_ = data['jobs']
+    self.assertEqual(jobs_[0]['user'], '0')
+
+    data = json.loads(
+        self.testapp.get('/api/jobs?o=STATE&prev_cursor=%s' % prev_cursor).body)
+
+    self.assertEqual(5, data['count'])
+    self.assertEqual(2, len(data['jobs']))
+
+    self.assertTrue(data['next'])
+    self.assertTrue(data['prev'])
+    next_cursor = data['next_cursor']
+    prev_cursor = data['prev_cursor']
+    self.assertTrue(next_cursor)
+    self.assertTrue(prev_cursor)
+
+    jobs_ = data['jobs']
+    self.assertEqual(jobs_[0]['user'], '2')
+    self.assertEqual(jobs_[1]['user'], '1')
