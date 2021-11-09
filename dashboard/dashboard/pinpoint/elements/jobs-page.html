@@ -27,6 +27,11 @@ found in the LICENSE file.
         right: 2em;
       }
 
+      .pagination {
+        position: absolute;
+        right: 100px;
+      }
+
       .pagination a {
         color: black;
         float: right;
@@ -65,8 +70,8 @@ found in the LICENSE file.
           auth-headers="[[authHeaders]]">
       </jobs-table>
       <div class="pagination">
-        <a hidden$=[[jobs.next]] on-click="changePage">Next</span>
-        <a hidden$=[[jobs.prev]] on-click="changePage">Prev</span>
+        <a hidden$=[[!jobs.next]] on-click="nextPage">Next</span>
+        <a hidden$=[[!jobs.prev]] on-click="prevPage">Prev</span>
       </div>
     </loading-wrapper>
     <new-job-fab auth-headers="[[authHeaders]]"></new-job-fab>
@@ -91,7 +96,7 @@ found in the LICENSE file.
         },
         params: {
           computed: 'computeParams(prev_cursor, next_cursor)'
-        }
+        },
       },
 
       jobCount(jobs) {
@@ -101,8 +106,13 @@ found in the LICENSE file.
         return String(jobs.count);
       },
 
-      changePage(event) {
+      prevPage(event) {
         this.set('prev_cursor', this.jobs.prev_cursor);
+        this.set('next_cursor', '');
+      },
+
+      nextPage(event) {
+        this.set('prev_cursor', '');
         this.set('next_cursor', this.jobs.next_cursor);
       },
 
