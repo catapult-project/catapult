@@ -104,6 +104,8 @@ type Archive struct {
 	// Maps host string to the negotiated protocol. eg. "http/1.1" or "h2"
 	// If absent, will default to "http/1.1".
 	NegotiatedProtocol map[string]string
+	// Maps the remote IPs for the hosts, will be used with transforming the certificate SANS
+	RemoteAddresses map[string]string
 	// The time seed that was used to initialize deterministic.js.
 	DeterministicTimeSeedMs int64
 	// When an incoming request matches multiple recorded responses, whether to
@@ -537,6 +539,7 @@ func (a *WritableArchive) RecordTlsConfig(host string, der_bytes []byte, negotia
 		a.NegotiatedProtocol = make(map[string]string)
 	}
 	a.NegotiatedProtocol[host] = negotiatedProtocol
+
 }
 
 // Close flushes the the archive and closes the output file.
