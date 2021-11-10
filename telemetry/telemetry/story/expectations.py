@@ -141,7 +141,22 @@ class _TestConditionFuchsiaWebEngineShell(_TestCondition):
     return 'Fuchsia with web-engine-shell'
 
   def GetSupportedPlatformNames(self):
-    return {'fuchsia'}
+    return {'fuchsia', 'fuchsia-board-astro', 'fuchsia-board-sherlock'}
+
+
+class _TestConditionFuchsiaByBoard(_TestCondition):
+  def __init__(self, board):
+    self._board = 'fuchsia-board-' + board
+
+  def ShouldDisable(self, platform, finder_options):
+    return (platform.GetOSName() == 'fuchsia' and
+            platform.GetDeviceTypeName() == self._board)
+
+  def __str__(self):
+    return 'Fuchsia on ' + self._board
+
+  def GetSupportedPlatformNames(self):
+    return {'fuchsia', 'fuchsia-board-' + self._board}
 
 
 class _TestConditionLogicalAndConditions(_TestCondition):
@@ -192,7 +207,8 @@ ALL_CHROMEOS = _TestConditionByPlatformList(['chromeos'], 'ChromeOS')
 ALL_ANDROID = _TestConditionByPlatformList(['android'], 'Android')
 # Fuchsia setup, while similar to mobile, renders, Desktop pages.
 ALL_DESKTOP = _TestConditionByPlatformList(
-    ['mac', 'linux', 'win', 'chromeos', 'fuchsia'], 'Desktop')
+    ['mac', 'linux', 'win', 'chromeos', 'fuchsia-board-astro',
+     'fuchsia-board-sherlock'], 'Desktop')
 ALL_MOBILE = _TestConditionByPlatformList(['android'], 'Mobile')
 ANDROID_NEXUS5 = _TestConditionByAndroidModel('Nexus 5')
 _ANDROID_NEXUS5X = _TestConditionByAndroidModel('Nexus 5X')
@@ -228,6 +244,8 @@ ANDROID_GO_WEBVIEW = _TestConditionLogicalAndConditions(
 ANDROID_PIXEL2_WEBVIEW = _TestConditionLogicalAndConditions(
     [ANDROID_PIXEL2, ANDROID_WEBVIEW], 'Pixel2 Webview')
 FUCHSIA_WEB_ENGINE_SHELL = _TestConditionFuchsiaWebEngineShell()
+FUCHSIA_ASTRO = _TestConditionFuchsiaByBoard('astro')
+FUCHSIA_SHERLOCK = _TestConditionFuchsiaByBoard('sherlock')
 
 EXPECTATION_NAME_MAP = {
     'All': ALL,
@@ -259,4 +277,6 @@ EXPECTATION_NAME_MAP = {
     'Android_Go_Webview': ANDROID_GO_WEBVIEW,
     'Pixel2_Webview': ANDROID_PIXEL2_WEBVIEW,
     'Fuchsia_WebEngineShell': FUCHSIA_WEB_ENGINE_SHELL,
+    'Fuchsia_Astro': FUCHSIA_ASTRO,
+    'Fuchsia_Sherlock': FUCHSIA_SHERLOCK,
 }
