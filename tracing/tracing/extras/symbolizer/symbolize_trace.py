@@ -391,7 +391,8 @@ class MemoryMap(NodeWrapper):
           file_offset)
       # Keep track of code-identifier when present.
       if 'ts' in region_node and 'sz' in region_node:
-        region._code_id = '%08X%X' % (int(region_node['ts'], 16), region.size)
+        region._code_id = '%08X%X' % (int(str(region_node['ts']), 16),
+                                      region.size)
       regions.append(region)
 
     regions.sort()
