@@ -120,8 +120,8 @@ def _GetJobs(options, query_filter, prev_cursor='', next_cursor=''):
     jobs, cursor, more = query.order(job_module.Job.created).fetch_page(
         page_size=page_size, start_cursor=cursor, options=timeout_qo)
     jobs.reverse()
-    prev_cursor = cursor.urlsafe()
     next_cursor = prev_cursor
+    prev_cursor = cursor.urlsafe()
     prev_ = True if more else False
     next_ = True
 
