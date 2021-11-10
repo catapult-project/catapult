@@ -114,9 +114,8 @@ this.tr = (function() {
 
     showPanicElementIfNeeded();
     const panicMessageEl = document.createElement('div');
-    panicMessageEl.innerHTML =
-        '<h2 id="message"></h2>' +
-        '<pre id="details"></pre>';
+    $<'#panicMessageEl'>.html('<h2 id="message"></h2>' +
+        '<pre id="details"></pre>');
     panicMessageEl.querySelector('#message').textContent = panicTitle;
     panicMessageEl.querySelector('#details').textContent = panicDetails;
     panicElement.appendChild(panicMessageEl);
