@@ -132,6 +132,14 @@ class TracingControllerBackend(object):
     self._IssueClockSyncMarker()
     builder = self._current_state.builder
 
+    # It is possible for garbage collection to run while we are stopping each
+    # agent's tracing, which is exacerbated by _IssueClockSyncMarker temporarily
+    # pausing automatic garbage collection. Some destructors in Telemetry may
+    # attempt to acquire the tracing lock that the agents hold, which results
+    # in deadlock. So, run a manual garbage collection now to clean any of
+    # those up before stopping tracing as a workaround.
+    gc.collect()
+
     for agent in reversed(self._active_agents_instances):
       try:
         agent.StopAgentTracing()
