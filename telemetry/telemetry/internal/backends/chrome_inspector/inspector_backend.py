@@ -90,11 +90,19 @@ class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
     This method intentionally leaves the self._websocket object around, so that
     future calls it to it will fail with a relevant error.
     """
+    self._DisconnectWithoutTracing()
+
+  def _DisconnectWithoutTracing(self):
+    # All methods in this class are automatically traced unless they start with
+    # _ due to using TracedMetaClass as a meta class. This causes issues with
+    # the destructor, as we can deadlock when trying to acquire the tracing lock
+    # if another test has already started and is starting tracing up when the
+    # destructor is called. So, make all code called from __del__ untraced.
     if self._websocket:
       self._websocket.Disconnect()
 
   def __del__(self):
-    self.Disconnect()
+    self._DisconnectWithoutTracing()
 
   @property
   def app(self):
