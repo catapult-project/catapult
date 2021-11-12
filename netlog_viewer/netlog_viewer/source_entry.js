@@ -165,6 +165,11 @@ class SourceEntry {
             break;
         }
         break;
+      case EventSourceType.WEB_TRANSPORT_CLIENT:
+        if (e.params.url) {
+          this.description_ = e.params.url;
+        }
+        break;
     }
 
     if (this.description_ === undefined) {
