@@ -60,6 +60,12 @@ luci.project(
             groups = "luci-logdog-chromium-writers",
         ),
     ],
+    bindings = [
+        luci.binding(
+            roles = "role/configs.validator",
+            users = "catapult-try-builder@chops-service-accounts.iam.gserviceaccount.com",
+        ),
+    ],
 )
 
 # Per-service tweaks.
