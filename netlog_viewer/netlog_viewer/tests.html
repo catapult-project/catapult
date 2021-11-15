@@ -17,10 +17,9 @@ found in the LICENSE file.
   <script src="/netlog_viewer/net_internals_test.js"></script>  
 
   <link rel="import" href="/components/polymer/polymer.html">
+  <link rel="import" href="/netlog_viewer/netlog_viewer.html">
   <link rel="import" href="/tracing/base/unittest/interactive_test_runner.html">
   <link rel="import" href="/tracing/core/test_utils.html">
-
-  <link rel="import" href="/netlog_viewer/netlog_viewer.html">
 
   <style>
     html, body {
@@ -38,7 +37,7 @@ found in the LICENSE file.
 
     var globalNetLogViewerElementForTests = null;
 
-    window.addEventListener('load', function() {
+    HTMLImports.whenReady(function() {
       // TODO(rayraymond): The following creates the custom element that
       // represents the entire web app. In the future each test file should
       // import and create its corresponding component to test. For now
@@ -53,7 +52,7 @@ found in the LICENSE file.
           return tr.b.getAsync('/netlog_viewer/tests').then(function(json) {
             return JSON.parse(json).test_relpaths;
           }).catch(function(e) {
-           throw e;
+            throw e;
           });
         },
         testLinks: []
