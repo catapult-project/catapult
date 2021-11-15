@@ -12,7 +12,10 @@ import os
 import re
 import sys
 import time
-import psutil # pylint: disable=import-error
+try:
+  import psutil
+except ImportError:
+  psutil = None
 
 import py_utils
 from py_utils import cloud_storage  # pylint: disable=import-error
@@ -300,9 +303,10 @@ def RunStorySet(test, story_set, finder_options, results,
   if not stories:
     return
 
-  # Log available disk space before running the benchmark.
-  logging.info(
-      'Disk usage before running tests: %s.' % str(psutil.disk_usage('.')))
+  if psutil:
+    # Log available disk space before running the benchmark.
+    logging.info(
+        'Disk usage before running tests: %s.' % str(psutil.disk_usage('.')))
 
   # Effective max failures gives priority to command-line flag value.
   effective_max_failures = finder_options.max_failures
