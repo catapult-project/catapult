@@ -84,6 +84,14 @@ def FromPng(png_data):
         'Using pure python png decoder, which could be very slow. To speed up, '
         'consider installing numpy & cv2 (OpenCV).')
     width, height, pixels, meta = png.Reader(bytes=png_data).read_flat()
+    # Same as the cv2 path - override transparent pixels to be white.
+    if meta['alpha']:
+      for i in range(3, len(pixels), 4):
+        if pixels[i] == 0:
+          pixels[i] = 255
+          pixels[i - 1] = 255
+          pixels[i - 2] = 255
+          pixels[i - 3] = 255
     return FromRGBPixels(width, height, pixels, 4 if meta['alpha'] else 3)
 
 def _SimpleDiff(image1, image2):

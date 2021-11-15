@@ -158,6 +158,15 @@ class Bitmap(object):
         'Using pure python png decoder, which could be very slow. To speed up, '
         'consider installing numpy & cv2 (OpenCV).')
     width, height, pixels, meta = png.Reader(bytes=png_data).read_flat()
+    # Some platforms set a transparent background. For consistency, we override
+    # transparency to white.
+    if meta['alpha']:
+      for i in range(3, len(pixels), 4):
+        if pixels[i] == 0:
+          pixels[i] = 255
+          pixels[i - 1] = 255
+          pixels[i - 2] = 255
+          pixels[i - 3] = 255
     return Bitmap(4 if meta['alpha'] else 3, width, height, pixels, meta)
 
   @staticmethod
