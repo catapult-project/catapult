@@ -40,6 +40,8 @@ steps:
     args: [
       'beta', 'app', 'deploy', 'dashboard/dashboard/sheriff_config/app.yaml',
       # Provide the short git commit to the version of the deployment.
-      '--version', 'cloud-build-${SHORT_SHA}', '--promote'
+      '--version', 'cloud-build-${SHORT_SHA}', '--promote',
+      # Debug flags.
+      '--log-http', '--verbosity=debug'
     ]
     timeout: 900s  # Wait for 15 minutes for the deploy to finish.
