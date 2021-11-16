@@ -45,7 +45,10 @@ found in the LICENSE file.
         color: white;
       }
 
-      .pagination a:hover:not(.active) {background-color: #ddd;}
+      .pagination a:hover:not(.active) {
+        background-color: #ddd;
+        cursor: pointer;
+      }
     </style>
 
     <app-route route="{{route}}" pattern="/:sortBy:sortDescending" query-params="{{queryParams}}"></app-route>
@@ -63,6 +66,10 @@ found in the LICENSE file.
       url="/api/jobs"
       headers="[[authHeaders]]"
       response="{{jobs}}">
+      <div class="pagination">
+        <a hidden$=[[!jobs.next]] on-click="nextPage">Next</a>
+        <a hidden$=[[!jobs.prev]] on-click="prevPage">Prev</a>
+      </div>
       <jobs-table id="jobs-table"
           jobs="[[jobs.jobs]]"
           sort-by="[[queryParams.sortBy]]"
