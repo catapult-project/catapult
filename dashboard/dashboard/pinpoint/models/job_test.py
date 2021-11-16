@@ -19,7 +19,6 @@ from dashboard.models import histogram
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import job
-from dashboard.pinpoint.models import scheduler
 from dashboard.pinpoint import test
 
 _CHROMIUM_URL = 'https://chromium.googlesource.com/chromium/src'
@@ -126,7 +125,6 @@ class RetryTest(test.TestCase):
   def testStarted_RecoverableError_BacksOff(self):
     j = job.Job.New((), (), comparison_mode='performance')
     j.Start()
-    scheduler.Schedule(j)
     j.state.Explore = mock.MagicMock(side_effect=errors.RecoverableError(None))
     j._Schedule = mock.MagicMock()
     j.put = mock.MagicMock()
@@ -147,7 +145,6 @@ class RetryTest(test.TestCase):
   def testStarted_RecoverableError_Resets(self):
     j = job.Job.New((), (), comparison_mode='performance')
     j.Start()
-    scheduler.Schedule(j)
     j.state.Explore = mock.MagicMock(side_effect=errors.RecoverableError(None))
     j._Schedule = mock.MagicMock()
     j.put = mock.MagicMock()
@@ -186,7 +183,6 @@ class BugCommentTest(test.TestCase):
   def testNoBug(self):
     j = job.Job.New((), ())
     j.Start()
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(self.add_bug_comment.called)
@@ -208,7 +204,6 @@ class BugCommentTest(test.TestCase):
 
   def testCompletedNoComparison(self):
     j = job.Job.New((), (), bug_id=123456)
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -221,7 +216,6 @@ class BugCommentTest(test.TestCase):
 
   def testCompletedNoDifference(self):
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -245,7 +239,6 @@ class BugCommentTest(test.TestCase):
     differences.return_value = []
     first_or_last_change_failed.return_value = True
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -276,7 +269,6 @@ class BugCommentTest(test.TestCase):
     }
     self.get_issue.return_value = {'status': 'Untriaged'}
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -322,7 +314,6 @@ class BugCommentTest(test.TestCase):
     }
     layered_cache.SetExternal('commit_hash_git_hash', 'chromium:111222')
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -373,7 +364,6 @@ class BugCommentTest(test.TestCase):
                     bug_id=123456,
                     comparison_mode='performance',
                     project='chromium')
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -413,7 +403,6 @@ class BugCommentTest(test.TestCase):
     }
     self.get_issue.return_value = None
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -449,7 +438,6 @@ class BugCommentTest(test.TestCase):
         name=reserved_infos.DOCUMENTATION_URLS.name,
         test=utils.TestKey('master/bot/benchmark'))
     diag.put()
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -489,7 +477,6 @@ class BugCommentTest(test.TestCase):
     }
     self.get_issue.return_value = {'status': 'Untriaged'}
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -533,7 +520,6 @@ class BugCommentTest(test.TestCase):
         }
     }
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -573,7 +559,6 @@ class BugCommentTest(test.TestCase):
     }
     self.get_issue.return_value = {'status': 'Fixed'}
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -635,7 +620,6 @@ class BugCommentTest(test.TestCase):
     )
     self.get_issue.return_value = {'status': 'Untriaged'}
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -677,7 +661,6 @@ class BugCommentTest(test.TestCase):
     commit_as_dict.side_effect = FakeCommitAsDict
     self.get_issue.return_value = {'status': 'Untriaged'}
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -752,7 +735,6 @@ class BugCommentTest(test.TestCase):
 
     self.get_issue.return_value = {'status': 'Untriaged'}
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -815,7 +797,6 @@ class BugCommentTest(test.TestCase):
 
     self.get_issue.return_value = {'status': 'Untriaged'}
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -862,7 +843,6 @@ class BugCommentTest(test.TestCase):
     self.get_issue.return_value = {'status': 'Untriaged'}
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.put()
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -924,7 +904,6 @@ class BugCommentTest(test.TestCase):
     self.get_issue.return_value = {'status': 'Untriaged'}
     j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
     j.put()
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
@@ -942,7 +921,6 @@ class BugCommentTest(test.TestCase):
                      mock.MagicMock(side_effect=AssertionError('Error string')))
   def testFailed(self):
     j = job.Job.New((), (), bug_id=123456)
-    scheduler.Schedule(j)
     with self.assertRaises(AssertionError):
       j.Run()
 
@@ -961,7 +939,6 @@ class BugCommentTest(test.TestCase):
                      mock.MagicMock(side_effect=AssertionError('Error string')))
   def testFailed_ExceptionDetailsFieldAdded(self):
     j = job.Job.New((), (), bug_id=123456)
-    scheduler.Schedule(j)
     with self.assertRaises(AssertionError):
       j.Run()
 
@@ -984,7 +961,6 @@ class BugCommentTest(test.TestCase):
     j = job.Job.New((), (),
                     gerrit_server='https://review.com',
                     gerrit_change_id='123456')
-    scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
     post_change_comment.assert_called_once_with('https://review.com', '123456',

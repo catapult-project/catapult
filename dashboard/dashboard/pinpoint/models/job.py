@@ -705,14 +705,6 @@ class Job(ndb.Model):
     self.task = None  # In case an exception is thrown.
 
     try:
-      if scheduler.IsStopped(self):
-        # When a user manually cancels a Pinpoint job, job.Cancel() is
-        # executed, but it is possible for job.Run() to execute simultaneously,
-        # causing a race condition. This if statement takes an extra step to
-        # ensure the job stops running after a user cancels the job.
-        self.cancelled = True
-        logging.debug('Pinpoint job forced to stop because job meets cancellation conditions')
-        raise errors.BuildCancelled('Pinpoint Job cancelled')
       if self.use_execution_engine:
         # Treat this as if it's a poll, and run the handler here.
         context = task_module.Evaluate(
