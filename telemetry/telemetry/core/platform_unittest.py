@@ -37,15 +37,22 @@ class PlatformScreenshotTest(tab_test_case.TabTestCase):
       self.skipTest('OS X version %s too old' % self._platform.GetOSName())
     tf = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
     tf.close()
-    try:
-      self.Navigate('screenshot_test.html')
+
+    def is_pixel_on_screenshot():
       self._platform.TakeScreenshot(tf.name)
       # Assert that screenshot image contains the color of the triangle defined
       # in screenshot_test.html.
       img = image_util.FromPngFile(tf.name)
       screenshot_pixels = image_util.Pixels(img)
       special_colored_pixel = bytearray([217, 115, 43])
-      self.assertTrue(special_colored_pixel in screenshot_pixels)
+      return special_colored_pixel in screenshot_pixels
+
+    try:
+      # Try to check if pixel exists in screenshot for several times,
+      # because sometimes on android devices screenshot is taken
+      # before web page is fully rendered, which causes test failure.
+      self.Navigate('screenshot_test.html')
+      self.assertTrue(py_utils.WaitFor(is_pixel_on_screenshot, 10))
     finally:
       os.remove(tf.name)
 
