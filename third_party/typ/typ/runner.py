@@ -1109,6 +1109,10 @@ def _run_one_test(child, test_input):
           test_case.set_artifacts(None)
 
     took = h.time() - started
+    # If the test signaled that it should be retried on failure, do so.
+    if isinstance(test_case, TypTestCase):
+        should_retry_on_failure = (should_retry_on_failure
+                                   or test_case.retryOnFailure)
     result = _result_from_test_result(test_result, test_name, started, took, out,
                                     err, child.worker_num, pid,
                                     expected_results, child.has_expectations,

@@ -29,6 +29,9 @@ class TestCase(unittest.TestCase):
     context = None
     maxDiff = 80 * 66
     artifacts = None
+    # Should be set if the test determines that it should be retried on
+    # failure in some way outside of the normal test expectation approach.
+    retryOnFailure = False
 
     def set_artifacts(self, artifacts):
         # We need this setter instead of setting artifacts directly so that
