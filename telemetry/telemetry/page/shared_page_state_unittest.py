@@ -119,6 +119,11 @@ class SharedPageStateTests(unittest.TestCase):
         shared_page_state.Shared10InchTabletPageState, 'tablet_10_inch')
     self.assertUserAgentSetCorrectly(
         shared_page_state.SharedPageState, None)
+    self.possible_browser.browser_type = 'web-engine-shell'
+    self.assertUserAgentSetCorrectly(
+        shared_page_state.SharedDesktopPageState, None)
+    self.assertUserAgentSetCorrectly(
+        shared_page_state.SharedMobilePageState, None)
 
 
 class FakeBrowserStorySetRunTests(unittest.TestCase):
