@@ -180,8 +180,9 @@ class AndroidMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
         if f not in libraries:
           continue
         binary_path = os.path.join(possible_symbol_dir, f)
-        stdout = subprocess.check_output(
-            ['file', binary_path], stderr=subprocess.STDOUT)
+        stdout = six.ensure_str(
+            subprocess.check_output(
+                ['file', binary_path], stderr=subprocess.STDOUT))
         if matcher.match(stdout):
           symbol_dir = possible_symbol_dir
           break
