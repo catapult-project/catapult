@@ -1,0 +1,55 @@
+// Copyright 2021 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file.
+syntax = "proto3";
+
+package dashboard;
+
+import "dims.proto";
+import "google/protobuf/timestamp.proto";
+
+
+message CoreWebVitals {
+  float largestContentfulPaint = 1;
+  float timeToFirstContentfulPaint = 2;
+  float overallCumulativeLayoutShift = 3;
+  float totalBlockingTime = 4;
+}
+
+message Speedometer2 {
+  float Angular2_TypeScript_TodoMVC = 1;
+  float AngularJS_TodoMVC = 2;
+  float BackboneJS_TodoMVC = 3;
+  float Elm_TodoMVC = 4;
+  float EmberJS_Debug_TodoMVC = 5;
+  float EmberJS_TodoMVC = 6;
+  float Flight_TodoMVC = 7;
+  float Inferno_TodoMVC = 8;
+  float jQuery_TodoMVC = 9;
+  float Preact_TodoMVC = 10;
+  float React_Redux_TodoMVC = 11;
+  float React_TodoMVC = 12;
+  float Vanilla_ES2015_Babel_Webpack_TodoMVC = 13;
+  float Vanilla_ES2015_TodoMVC = 14;
+  float VanillaJS_TodoMVC = 15;
+  float VueJS_TodoMVC = 16;
+}
+
+message Measures {
+  CoreWebVitals core_web_vitals = 1;
+  Speedometer2 speedometer2 = 2;
+}
+
+// Represents a row in a BigQuery table.
+// Each row maps Dimensions (device, story, etc.) + pairing + metric -> value
+message ChromeHealthResult {
+  // Top-level to enable clustering
+  string run_id = 1;
+  string batch_id = 2;
+
+  Dims dims = 3;
+  Measures measures = 4;
+
+  // Overall job start time
+  google.protobuf.Timestamp job_start_time = 5;
+}
