@@ -190,7 +190,7 @@ class ResultSinkReporterTest(unittest.TestCase):
                 CreateTestExpectations(), FAKE_TEST_PATH, FAKE_TEST_LINE)
         self.assertEqual(retval, 2)
         expected_result = CreateExpectedTestResult()
-        self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[0]),
+        self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[1]),
                          expected_result)
 
     def testReportIndividualTestResultNoTestExpectations(self):
@@ -210,7 +210,7 @@ class ResultSinkReporterTest(unittest.TestCase):
             {'key': 'typ_expectation', 'value': json_results.ResultType.Pass},
             {'key': 'raw_typ_expectation', 'value': 'Pass'},
         ])
-        self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[0]),
+        self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[1]),
                          expected_result)
 
     def testReportIndividualTestResultHtmlSummaryUnicode(self):
@@ -227,7 +227,7 @@ class ResultSinkReporterTest(unittest.TestCase):
                 'test_name_prefix.', result, ARTIFACT_DIR,
                 CreateTestExpectations(), FAKE_TEST_PATH, FAKE_TEST_LINE)
 
-        test_result = GetTestResultFromPostedJson(rsr._post.args[0])
+        test_result = GetTestResultFromPostedJson(rsr._post.args[1])
         expected_result = CreateExpectedTestResult(
             artifacts={
                 'typ_stdout': {
@@ -282,7 +282,7 @@ class ResultSinkReporterTest(unittest.TestCase):
                 CreateTestExpectations(), FAKE_TEST_PATH, FAKE_TEST_LINE)
         self.assertEqual(retval, 2)
 
-        test_result = GetTestResultFromPostedJson(rsr._post.args[0])
+        test_result = GetTestResultFromPostedJson(rsr._post.args[1])
         expected_artifacts = {
             'artifact_name': {
                 'filePath': self._host.join(self._host.getcwd(),
@@ -311,7 +311,7 @@ class ResultSinkReporterTest(unittest.TestCase):
                 CreateTestExpectations(), FAKE_TEST_PATH, FAKE_TEST_LINE)
         self.assertEqual(retval, 2)
 
-        test_result = GetTestResultFromPostedJson(rsr._post.args[0])
+        test_result = GetTestResultFromPostedJson(rsr._post.args[1])
         expected_artifacts = {
             'artifact_name-file0': {
                 'filePath': self._host.join(self._host.getcwd(),
@@ -345,7 +345,7 @@ class ResultSinkReporterTest(unittest.TestCase):
                 CreateTestExpectations(), FAKE_TEST_PATH, FAKE_TEST_LINE)
         self.assertEqual(retval, 2)
 
-        test_result = GetTestResultFromPostedJson(rsr._post.args[0])
+        test_result = GetTestResultFromPostedJson(rsr._post.args[1])
         expected_artifacts = {}
         expected_artifacts.update(STDOUT_STDERR_ARTIFACTS)
         expected_html_summary = (

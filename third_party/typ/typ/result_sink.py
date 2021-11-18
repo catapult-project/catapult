@@ -66,6 +66,9 @@ class ResultSinkReporter(object):
         if not self._sink:
             return
 
+        self._invocation_level_url = ('http://%s/prpc/luci.resultsink.v1.Sink/ReportInvocationLevelArtifacts'
+                     % self._sink['address'])
+
         self._url = ('http://%s/prpc/luci.resultsink.v1.Sink/ReportTestResults'
                      % self._sink['address'])
         self._headers = {
@@ -78,6 +81,19 @@ class ResultSinkReporter(object):
     @property
     def resultdb_supported(self):
         return self._sink is not None
+
+    def report_invocation_level_artifacts(self, artifacts):
+        """Uploads invocation-level artifacts to the ResultSink server.
+
+        This is for artifacts that don't apply to a single test but to the test
+        invocation as a whole (eg: system logs).
+
+        Args:
+          artifacts: A dict of artifacts to attach to the invocation.
+        """
+        req = {'artifacts': artifacts}
+        res = self._post(self._invocation_level_url, json.dumps(req))
+        return 0 if res.ok else 1
 
     def report_individual_test_result(
             self, test_name_prefix, result, artifact_output_dir, expectations,
@@ -228,12 +244,13 @@ class ResultSinkReporter(object):
                 test_id, status, expected, artifacts, tag_list, html_summary,
                 duration, test_metadata)
 
-        return self._post(json.dumps({'testResults': [test_result]}))
+        return self._post(self._url, json.dumps({'testResults': [test_result]}))
 
-    def _post(self, content):
+    def _post(self, url, content):
         """POST to ResultSink.
 
         Args:
+            url: A string containing the url for the POST request
             content: A string containing the content to send in the body of the
                     POST request.
 
@@ -241,7 +258,7 @@ class ResultSinkReporter(object):
             0 if the POST succeeded, otherwise 1.
         """
         res = self._session.post(
-            url=self._url,
+            url=url,
             headers=self._headers,
             data=content)
         return 0 if res.ok else 1
