@@ -9,6 +9,7 @@ import re
 import sys
 import threading
 import zlib
+import six
 
 import py_utils
 
@@ -268,7 +269,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
           large_output=True, check_return=True,
           timeout=ADB_LARGE_OUTPUT_TIMEOUT)
 
-    return result
+    return six.ensure_binary(result)
 
   def _collect_trace_data(self):
     """Reads the output from atrace and stops the trace."""
