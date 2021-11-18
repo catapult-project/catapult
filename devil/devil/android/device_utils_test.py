@@ -2484,6 +2484,43 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
                        self.device._ReadFileWithPull('/path/to/device/file'))
     tmp_host.file.read.assert_called_once_with()
 
+  def _check_ReadFileWithEncodingErrors(self, encoding, errors):
+    tmp_host_dir = '/tmp/dir/on.host/'
+    tmp_host = MockTempFile('/tmp/dir/on.host/tmp_ReadFileWithEncodingErrors')
+    file_content = b'file with all ' + bytes(bytearray(range(256))) + b' bytes'
+    if six.PY2 or encoding is None:
+      expected_content = file_content
+    else:
+      expected_content = file_content.decode(encoding, errors)
+      self.assertNotEqual(file_content, expected_content)
+    tmp_host.file.read.return_value = file_content
+    with self.assertCalls(
+        (mock.call.tempfile.mkdtemp(), tmp_host_dir),
+        (self.call.adb.Pull('/path/to/device/file', mock.ANY)),
+        (mock.call.__builtin__.open(mock.ANY, 'rb'), tmp_host) if six.PY2 else \
+            (mock.call.builtins.open(mock.ANY, 'rb'), tmp_host),
+        (mock.call.os.path.exists(tmp_host_dir), True),
+        (mock.call.shutil.rmtree(tmp_host_dir), None)):
+      self.assertEqual(expected_content,
+                       self.device._ReadFileWithPull('/path/to/device/file',
+                                                     encoding, errors))
+    tmp_host.file.read.assert_called_once_with()
+
+  def testReadFile_AsBytes(self):
+    self._check_ReadFileWithEncodingErrors(None, 'replace')
+
+  def testReadFile_NotUtf8_Replace(self):
+    self._check_ReadFileWithEncodingErrors('utf8', 'replace')
+
+  def testReadFile_NotUtf8_Ignore(self):
+    self._check_ReadFileWithEncodingErrors('utf8', 'ignore')
+
+  def testReadFile_NotCp1251_Replace(self):
+    self._check_ReadFileWithEncodingErrors('cp1251', 'replace')
+
+  def testReadFile_NotCp1251_Ignore(self):
+    self._check_ReadFileWithEncodingErrors('cp1251', 'ignore')
+
   def testReadFileWithPull_rejected(self):
     tmp_host_dir = '/tmp/dir/on.host/'
     with self.assertCalls((mock.call.tempfile.mkdtemp(), tmp_host_dir),
@@ -2507,7 +2544,8 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
             shell=True,
             as_root=True,
             check_return=True),
-        (self.call.device._ReadFileWithPull('/sdcard/tmp/on.device'),
+        (self.call.device._ReadFileWithPull('/sdcard/tmp/on.device',
+                                            'utf8', 'replace'),
          'but it has contents\n')):
       self.assertEqual('but it has contents\n',
                        self.device.ReadFile('/this/file/has/zero/size',
@@ -2537,7 +2575,8 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
   def testReadFile_withPull(self):
     contents = 'a' * 123456
     with self.assertCalls(
-        (self.call.device._ReadFileWithPull('/read/this/big/test/file'),
+        (self.call.device._ReadFileWithPull('/read/this/big/test/file',
+                                            'utf8', 'replace'),
          contents)):
       self.assertEqual(contents,
                        self.device.ReadFile('/read/this/big/test/file'))
@@ -2556,7 +2595,8 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
             shell=True,
             as_root=True,
             check_return=True),
-        (self.call.device._ReadFileWithPull('/sdcard/tmp/on.device'),
+        (self.call.device._ReadFileWithPull('/sdcard/tmp/on.device',
+                                            'utf8', 'replace'),
          contents)):
       self.assertEqual(
           contents,
@@ -2566,7 +2606,8 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
   def testReadFile_forcePull(self):
     contents = 'a' * 123456
     with self.assertCall(
-        self.call.device._ReadFileWithPull('/read/this/big/test/file'),
+        self.call.device._ReadFileWithPull('/read/this/big/test/file',
+                                           'utf8', 'replace'),
         contents):
       self.assertEqual(
           contents,
