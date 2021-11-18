@@ -1,6 +1,6 @@
 PROTOC=protoc
 
-PY_PROTOS=results_pb2.py sheriff_pb2.py sheriff_config_pb2.py
+PY_PROTOS=dims_pb2.py pinpoint_chrome_health_results_pb2.py pinpoint_results_pb2.py sheriff_pb2.py sheriff_config_pb2.py
 
 
 all: $(PY_PROTOS) ../../tracing/tracing/proto/histogram_pb2.py
