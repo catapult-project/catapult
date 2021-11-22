@@ -266,6 +266,21 @@ def QueueStats(configuration):
   })
   return result
 
+@ndb.transactional
+def IsStopped(job):
+  """Checks if a job has stopped or not. Jobs should be stopped if
+  their status in the job queue is not Running or Queued."""
+
+  # Take a job and determine the FIFO Queue it's associated to.
+  configuration = job.arguments.get('configuration', '(none)')
+
+  # Iterate through the queue and see if job is either running or queued
+  queue = ConfigurationQueue.GetOrCreateQueue(configuration)
+  for queued_job in queue.jobs:
+    if queued_job.job_id == job.job_id:
+      if queued_job.status in {'Running', 'Queued'}:
+        return False
+  return True
 
 @ndb.transactional
 def Cancel(job):

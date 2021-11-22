@@ -633,44 +633,46 @@ class Job(ndb.Model):
 
     self.done = True
 
-    # What follows are the details we are providing when posting updates to the
-    # associated bug.
-    tb = traceback.format_exc() or ''
-    title = _CRYING_CAT_FACE + ' Pinpoint job stopped with an error.'
-    exc_info = sys.exc_info()
-    if exception is None:
-      if exc_info[1] is None:
-        # We've been called without a exception in sys.exc_info or in our args.
-        # This should not happen.
-        exception = errors.JobError('Unknown job error')
-        exception.category = 'pinpoint'
-      else:
-        exception = exc_info[1]
-    exc_message = exception.message
-    category = None
-    if isinstance(exception, errors.JobError):
-      category = exception.category
+    if not self.cancelled:
+      # What follows are the details we are providing when posting updates to the
+      # associated bug.
+      tb = traceback.format_exc() or ''
+      title = _CRYING_CAT_FACE + ' Pinpoint job stopped with an error.'
+      exc_info = sys.exc_info()
+      if exception is None:
+        if exc_info[1] is None:
+          # We've been called without a exception in sys.exc_info or in our args.
+          # This should not happen.
+          exception = errors.JobError('Unknown job error')
+          exception.category = 'pinpoint'
+        else:
+          exception = exc_info[1]
+      exc_message = exception.message
+      category = None
+      if isinstance(exception, errors.JobError):
+        category = exception.category
 
-    self.exception_details = {
-        'message': exc_message,
-        'traceback': tb,
-        'category': category,
-    }
+      self.exception_details = {
+          'message': exc_message,
+          'traceback': tb,
+          'category': category,
+      }
     self.task = None
     self.put()
 
-    comment = '\n'.join((title, self.url, '', exc_message))
+    if not self.cancelled:
+      comment = '\n'.join((title, self.url, '', exc_message))
 
-    deferred.defer(
-        _PostBugCommentDeferred,
-        self.bug_id,
-        comment,
-        project=self.project,
-        labels=job_bug_update.ComputeLabelUpdates(['Pinpoint-Job-Failed']),
-        send_email=True,
-        _retry_options=RETRY_OPTIONS,
-    )
-    self._UpdateGerritIfNeeded(success=False)
+      deferred.defer(
+          _PostBugCommentDeferred,
+          self.bug_id,
+          comment,
+          project=self.project,
+          labels=job_bug_update.ComputeLabelUpdates(['Pinpoint-Job-Failed']),
+          send_email=True,
+          _retry_options=RETRY_OPTIONS,
+      )
+      self._UpdateGerritIfNeeded(success=False)
     scheduler.Complete(self)
 
   def _Schedule(self, countdown=_TASK_INTERVAL):
@@ -718,6 +720,14 @@ class Job(ndb.Model):
     self.task = None  # In case an exception is thrown.
 
     try:
+      if scheduler.IsStopped(self):
+        # When a user manually cancels a Pinpoint job, job.Cancel() is
+        # executed, but it is possible for job.Run() to execute simultaneously,
+        # causing a race condition. This if statement takes an extra step to
+        # ensure the job stops running after a user cancels the job.
+        self.cancelled = True
+        logging.debug('Pinpoint job forced to stop because job meets cancellation conditions')
+        raise errors.BuildCancelled('Pinpoint Job cancelled')
       if self.use_execution_engine:
         # Treat this as if it's a poll, and run the handler here.
         context = task_module.Evaluate(
