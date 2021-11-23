@@ -116,7 +116,7 @@ class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
 
   @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)
   def GetResults(self, timeout=None):
-    with open(self._PullTrace(), 'r') as f:
+    with open(self._PullTrace(), 'rb') as f:
       trace_data = f.read()
     return trace_result.TraceResult('traceEvents', trace_data)
 

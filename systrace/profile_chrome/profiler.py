@@ -46,13 +46,13 @@ def _GetResults(trace_results, controller, output, compress,
     result = (output or 'chrome-combined-trace-%s.zip' %
               util.GetTraceTimestamp())
     util.ArchiveData(trace_results, result)
-  elif output:
-    result = output
-    with open(result, 'w') as f:
-      f.write(trace_results[0].raw_data)
   else:
-    result = trace_results[0].source_name
-    with open(result, 'w') as f:
+    if output:
+      result = output
+    else:
+      result = trace_results[0].source_name
+    mode = 'wb' if isinstance(trace_results[0].raw_data, bytes) else 'w'
+    with open(result, mode) as f:
       f.write(trace_results[0].raw_data)
 
   return result
