@@ -76,7 +76,7 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
     # deprecated and will be removed soon (EOY 2020).
     # TODO(dberris): Move this out to a configuration elsewhere.
     command = [
-        'luci-auth', 'context', '--', 'vpython', '../../testing/test_env.py',
+        'luci-auth', 'context', '--', 'vpython3', '../../testing/test_env.py',
         '../../testing/scripts/run_performance_tests.py',
         '../../tools/perf/run_benchmark'
     ]

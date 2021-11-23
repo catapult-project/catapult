@@ -34,7 +34,7 @@ _BASE_EXTRA_ARGS = [
     'release',
 ] + _COMBINED_DEFAULT_EXTRA_ARGS
 _TELEMETRY_COMMAND = [
-    'luci-auth', 'context', '--', 'vpython', '../../testing/test_env.py',
+    'luci-auth', 'context', '--', 'vpython3', '../../testing/test_env.py',
     '../../testing/scripts/run_performance_tests.py',
     '../../tools/perf/run_benchmark'
 ]
