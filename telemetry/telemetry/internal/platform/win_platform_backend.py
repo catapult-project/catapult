@@ -183,8 +183,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     return True
 
   def TakeScreenshot(self, file_path):
-    width = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
-    height = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
+    width, height = self.GetScreenResolution()
     screen_win = win32gui.GetDesktopWindow()
     win_dc = None
     screen_dc = None
@@ -214,6 +213,21 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       if win_dc:
         win32gui.ReleaseDC(screen_win, win_dc)
     return True
+
+  def GetScreenResolution(self):
+    # SM_CXSCREEN - width of the screen of the primary display monitor
+    # SM_CYSCREEN - height of the screen of the primary display monitor
+    # resolution returned by GetSystemMetrics is scaled
+    width = ctypes.windll.user32.GetSystemMetrics(win32con.SM_CXSCREEN)
+    height = ctypes.windll.user32.GetSystemMetrics(win32con.SM_CYSCREEN)
+
+    if self.GetOSVersionName() < os_version_module.WIN81:
+      # shcore.dll first introduced in Windows 8.1
+      return width, height
+
+    # 0 - DEVICE_PRIMARY (primary display monitor)
+    scale = ctypes.windll.shcore.GetScaleFactorForDevice(0)
+    return width * scale // 100, height * scale // 100
 
   def CanFlushIndividualFilesFromSystemCache(self):
     return True
