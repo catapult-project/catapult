@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
-import logging
 try:
   # Note: from tracing.proto import histogram_pb2 would make more sense here,
   # but unfortunately protoc does not generate __init__.py files if you specify
@@ -17,11 +16,8 @@ except ImportError as e:
     # while the others (e.g., webrtc) put it in output path. By default we
     # try to import from the sys.path. Here allows to try import from the
     # source folder as well.
-    logging.warning(
-        'Failed to import histogram_pb2: %s', repr(e))
+    # TODO(wenbinzhang): Clean up import paths to work consistently.
     from . import histogram_pb2 # pylint:disable=relative-import
-    logging.warning(
-        'Retried and successfully imported histogram_pb2: %s', histogram_pb2)
     HAS_PROTO = True
   except ImportError:
     HAS_PROTO = False
