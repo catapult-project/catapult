@@ -195,6 +195,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
     self._device_serial_number = config.device_serial_number
     self._tracer_args = _construct_atrace_args(config,
                                                self._categories)
+    print('Tracer arguments: %s' % self._tracer_args)
     self._device_utils.RunShellCommand(
         self._tracer_args + ['--async_start'], check_return=True)
     return True
@@ -254,10 +255,20 @@ class AtraceAgent(tracing_agents.TracingAgent):
       # Stop tracing first so new data won't arrive while dump is performed (it
       # may take a non-trivial time and tracing buffer may overflow).
       self._device_utils.WriteFile(is_trace_enabled_file, '0')
-      result = self._device_utils.RunShellCommand(
-          self._tracer_args + ['--async_dump'], raw_output=True,
-          large_output=True, check_return=True,
-          timeout=ADB_LARGE_OUTPUT_TIMEOUT)
+      compress_trace_data = '-z' in self._tracer_args
+      # For compressed trace data, we don't want encoding when adb shell reads
+      # the temp output file. (crbug/1271668)
+      if compress_trace_data:
+        result = self._device_utils.RunShellCommand(
+            self._tracer_args + ['--async_dump'], raw_output=True,
+            large_output=True, check_return=True,
+            timeout=ADB_LARGE_OUTPUT_TIMEOUT,
+            encoding=None)
+      else:
+        result = self._device_utils.RunShellCommand(
+            self._tracer_args + ['--async_dump'], raw_output=True,
+            large_output=True, check_return=True,
+            timeout=ADB_LARGE_OUTPUT_TIMEOUT)
       # Run synchronous tracing for 0 seconds to stop tracing, clear buffers
       # and other state.
       self._device_utils.RunShellCommand(

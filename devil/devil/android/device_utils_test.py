@@ -1631,10 +1631,10 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
     temp_file = MockTempFile('/sdcard/temp-123')
     cmd_redirect = '( %s )>%s 2>&1' % (cmd, temp_file.name)
     with self.assertCalls(
-        (mock.call.devil.android.device_temp_file.DeviceTempFile(self.adb),
-         temp_file),
-        (self.call.adb.Shell(cmd_redirect)), (self.call.device.ReadFile(
-            temp_file.name, force_pull=True), 'something')):
+        (mock.call.devil.android.device_temp_file.DeviceTempFile(
+            self.adb), temp_file), (self.call.adb.Shell(cmd_redirect)),
+        (self.call.device.ReadFile(
+            temp_file.name, force_pull=True, encoding='utf8'), 'something')):
       self.assertEqual(['something'],
                        self.device.RunShellCommand(cmd,
                                                    shell=True,
@@ -1653,9 +1653,10 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
     cmd_redirect = '( %s )>%s 2>&1' % (cmd, temp_file.name)
     with self.assertCalls(
         (self.call.adb.Shell(cmd), self.ShellError('', None)),
-        (mock.call.devil.android.device_temp_file.DeviceTempFile(self.adb),
-         temp_file), (self.call.adb.Shell(cmd_redirect)),
-        (self.call.device.ReadFile(mock.ANY, force_pull=True), 'something')):
+        (mock.call.devil.android.device_temp_file.DeviceTempFile(
+            self.adb), temp_file), (self.call.adb.Shell(cmd_redirect)),
+        (self.call.device.ReadFile(mock.ANY, force_pull=True,
+                                   encoding='utf8'), 'something')):
       self.assertEqual(['something'],
                        self.device.RunShellCommand(cmd,
                                                    shell=True,
