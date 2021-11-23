@@ -10,31 +10,31 @@ from telemetry.util import js_template
 
 class JavaScriptTemplateTest(unittest.TestCase):
   def testRenderSimple(self):
-    self.assertEquals(
-        js_template.Render(
-            'foo({{ a }}, {{ b }}, {{ c }})',
-            a=42, b='hello', c=['x', 'y']),
-        'foo(42, "hello", ["x", "y"])')
+    self.assertEqual(
+        js_template.Render('foo({{ a }}, {{ b }}, {{ c }})',
+                           a=42,
+                           b='hello',
+                           c=['x', 'y']), 'foo(42, "hello", ["x", "y"])')
 
   def testRenderWithSpecialCharts(self):
-    self.assertEquals(
+    self.assertEqual(
         js_template.Render(
             'function(elem) { return elem.find({{ selector }}); }',
             selector='.r > a[href*="wikipedia"]'),
         r'function(elem) { return elem.find(".r > a[href*=\"wikipedia\"]"); }')
 
   def testRenderWithLiteralValues(self):
-    self.assertEquals(
-        js_template.Render(
-            'var {{ @var_name }} = {{ x }} + {{ y }};',
-            var_name='foo', x='bar', y=None),
-        'var foo = "bar" + null;')
+    self.assertEqual(
+        js_template.Render('var {{ @var_name }} = {{ x }} + {{ y }};',
+                           var_name='foo',
+                           x='bar',
+                           y=None), 'var foo = "bar" + null;')
 
   def testRenderWithArgumentExpansion(self):
-    self.assertEquals(
-        js_template.Render(
-            '{{ @f }}({{ *args }})', f='foo', args=(1, 'hi!', None)),
-        'foo(1, "hi!", null)')
+    self.assertEqual(
+        js_template.Render('{{ @f }}({{ *args }})',
+                           f='foo',
+                           args=(1, 'hi!', None)), 'foo(1, "hi!", null)')
 
   def testRenderRaisesWithUnknownIdentifier(self):
     with self.assertRaises(KeyError):

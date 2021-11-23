@@ -12,14 +12,14 @@ class TestGPUDevice(unittest.TestCase):
   def testConstruction(self):
     device = gpu_device.GPUDevice(1000, 2000, 3000, 4000, 'test_vendor',
                                   'test_device', 'Intel', '100.99')
-    self.assertEquals(device.vendor_id, 1000)
-    self.assertEquals(device.device_id, 2000)
-    self.assertEquals(device.sub_sys_id, 3000)
-    self.assertEquals(device.revision, 4000)
-    self.assertEquals(device.vendor_string, 'test_vendor')
-    self.assertEquals(device.device_string, 'test_device')
-    self.assertEquals(device.driver_vendor, 'Intel')
-    self.assertEquals(device.driver_version, '100.99')
+    self.assertEqual(device.vendor_id, 1000)
+    self.assertEqual(device.device_id, 2000)
+    self.assertEqual(device.sub_sys_id, 3000)
+    self.assertEqual(device.revision, 4000)
+    self.assertEqual(device.vendor_string, 'test_vendor')
+    self.assertEqual(device.device_string, 'test_device')
+    self.assertEqual(device.driver_vendor, 'Intel')
+    self.assertEqual(device.driver_version, '100.99')
 
   def testFromDict(self):
     dictionary = {
@@ -33,14 +33,14 @@ class TestGPUDevice(unittest.TestCase):
         'driver_version': '123.45'
     }
     device = gpu_device.GPUDevice.FromDict(dictionary)
-    self.assertEquals(device.vendor_id, 100)
-    self.assertEquals(device.device_id, 200)
-    self.assertEquals(device.sub_sys_id, 300)
-    self.assertEquals(device.revision, 400)
-    self.assertEquals(device.vendor_string, 'test_vendor_2')
-    self.assertEquals(device.device_string, 'test_device_2')
-    self.assertEquals(device.driver_vendor, 'NVIDIA')
-    self.assertEquals(device.driver_version, '123.45')
+    self.assertEqual(device.vendor_id, 100)
+    self.assertEqual(device.device_id, 200)
+    self.assertEqual(device.sub_sys_id, 300)
+    self.assertEqual(device.revision, 400)
+    self.assertEqual(device.vendor_string, 'test_vendor_2')
+    self.assertEqual(device.device_string, 'test_device_2')
+    self.assertEqual(device.driver_vendor, 'NVIDIA')
+    self.assertEqual(device.driver_version, '123.45')
 
   def testMissingAttrsFromDict(self):
     data = {

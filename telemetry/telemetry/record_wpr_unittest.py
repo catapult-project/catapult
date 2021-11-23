@@ -225,9 +225,9 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     with record_wpr.WprRecorder(ProjectConfig(self._test_data_dir),
                                 MockBenchmark(), flags) as wpr_recorder:
       # page_runner command-line args
-      self.assertEquals(2, wpr_recorder.options.pageset_repeat)
+      self.assertEqual(2, wpr_recorder.options.pageset_repeat)
       # benchmark command-line args
-      self.assertEquals(self._url, wpr_recorder.options.mock_benchmark_url)
+      self.assertEqual(self._url, wpr_recorder.options.mock_benchmark_url)
       # record_wpr command-line arg to upload to cloud-storage.
       self.assertTrue(wpr_recorder.options.upload)
       # --extra-option added from Benchmark.SetExtraBrowserOptions()

@@ -91,7 +91,7 @@ class PinchActionTest(tab_test_case.TabTestCase):
   @decorators.Disabled('chromeos', 'linux', 'mac', 'win')
   def testPinchAnchor(self):
     starting_scale = self._tab.EvaluateJavaScript('window.visualViewport.scale')
-    self.assertEquals(1, starting_scale)
+    self.assertEqual(1, starting_scale)
 
     width = self._tab.EvaluateJavaScript('window.innerWidth')
     height = self._tab.EvaluateJavaScript('window.innerHeight')

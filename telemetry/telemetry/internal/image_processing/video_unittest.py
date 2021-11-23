@@ -45,7 +45,7 @@ class VideoTest(unittest.TestCase):
     # pylint: disable=protected-access
     for i, timestamp_bitmap in enumerate(video_obj._FramesFromMp4(vid)):
       timestamp, bmp = timestamp_bitmap
-      self.assertEquals(timestamp, expected_timestamps[i])
+      self.assertEqual(timestamp, expected_timestamps[i])
       expected_bitmap = image_util.FromPngFile(os.path.join(
           util.GetUnittestDataDir(), 'frame%d.png' % i))
       self.assertTrue(image_util.AreEqual(expected_bitmap, bmp))

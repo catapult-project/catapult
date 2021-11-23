@@ -28,17 +28,17 @@ class StoryTest(unittest.TestCase):
 
   def testStoryName(self):
     s = StoryFoo('Bar')
-    self.assertEquals('Bar', s.name)
+    self.assertEqual('Bar', s.name)
 
   def testStoryFileSafeName(self):
     s = StoryFoo('Foo Bar:Baz~0')
-    self.assertEquals('Foo_Bar_Baz_0', s.file_safe_name)
+    self.assertEqual('Foo_Bar_Baz_0', s.file_safe_name)
 
   def testStoryAsDict(self):
     s = story.Story(SharedStateBar, 'Foo')
     s_dict = s.AsDict()
-    self.assertEquals(s_dict['id'], s.id)
-    self.assertEquals('Foo', s_dict['name'])
+    self.assertEqual(s_dict['id'], s.id)
+    self.assertEqual('Foo', s_dict['name'])
 
   def testMakeJavaScriptDeterministic(self):
     s = story.Story(SharedStateBar, name='story')

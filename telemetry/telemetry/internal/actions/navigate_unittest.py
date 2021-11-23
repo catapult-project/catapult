@@ -11,6 +11,6 @@ class NavigateActionTest(tab_test_case.TabTestCase):
   def testNavigateAction(self):
     i = navigate.NavigateAction(url=self.UrlOfUnittestFile('blank.html'))
     i.RunAction(self._tab)
-    self.assertEquals(
+    self.assertEqual(
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/blank.html')

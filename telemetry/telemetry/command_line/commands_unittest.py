@@ -62,7 +62,7 @@ class PrintBenchmarkListTests(unittest.TestCase):
     commands.PrintBenchmarkList([BenchmarkFoo],
                                 self._mock_possible_browser,
                                 self._stream)
-    self.assertEquals(expected_printed_stream, self._stream.getvalue())
+    self.assertEqual(expected_printed_stream, self._stream.getvalue())
 
 
   def testPrintBenchmarkListWithOneDisabledBenchmark(self):
@@ -80,7 +80,7 @@ class PrintBenchmarkListTests(unittest.TestCase):
       commands.PrintBenchmarkList([BenchmarkFoo, BenchmarkDisabled],
                                   self._mock_possible_browser,
                                   self._stream)
-      self.assertEquals(expected_printed_stream, self._stream.getvalue())
+      self.assertEqual(expected_printed_stream, self._stream.getvalue())
 
   def testPrintBenchmarkListInJSON(self):
     expected_json_stream = json.dumps(
@@ -103,4 +103,4 @@ class PrintBenchmarkListTests(unittest.TestCase):
     commands.PrintBenchmarkList([BenchmarkFoo],
                                 self._mock_possible_browser,
                                 json_pipe=self._json_stream)
-    self.assertEquals(expected_json_stream, self._json_stream.getvalue())
+    self.assertEqual(expected_json_stream, self._json_stream.getvalue())

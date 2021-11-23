@@ -31,7 +31,7 @@ class TimelineModelUnittest(unittest.TestCase):
             "ph": "M"
         }])
     model = timeline_model.TimelineModel(trace)
-    self.assertEquals(5, model.browser_process.pid)
+    self.assertEqual(5, model.browser_process.pid)
 
 
 class TimelineModelIntegrationTests(tab_test_case.TabTestCase):

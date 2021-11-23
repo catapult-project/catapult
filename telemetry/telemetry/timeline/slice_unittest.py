@@ -25,12 +25,12 @@ class SliceTest(unittest.TestCase):
     a.sub_slices.append(x)
 
     all_children = list(top.IterEventsInThisContainerRecrusively())
-    self.assertEquals([a, x, b], all_children)
+    self.assertEqual([a, x, b], all_children)
 
-    self.assertEquals(x.self_time, 0.25)
-    self.assertEquals(a.self_time, 1.75) # 2 - 0.25
-    self.assertEquals(top.self_time, 6) # 10 - 2 - 2
+    self.assertEqual(x.self_time, 0.25)
+    self.assertEqual(a.self_time, 1.75)  # 2 - 0.25
+    self.assertEqual(top.self_time, 6)  # 10 - 2 - 2
 
-    self.assertEquals(x.self_thread_time, 0.125)
-    self.assertEquals(a.self_thread_time, 0.875) # 1 - 0.125
-    self.assertEquals(top.self_thread_time, None) # b has no thread time
+    self.assertEqual(x.self_thread_time, 0.125)
+    self.assertEqual(a.self_thread_time, 0.875)  # 1 - 0.125
+    self.assertEqual(top.self_thread_time, None)  # b has no thread time

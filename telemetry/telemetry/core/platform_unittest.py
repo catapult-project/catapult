@@ -63,7 +63,7 @@ class PlatformScreenshotTest(tab_test_case.TabTestCase):
 
 class TestHostPlatformInfo(unittest.TestCase):
   def testConsistentHostPlatformInfo(self):
-    self.assertEquals(platform.GetHostPlatform().GetOSName(),
-                      py_utils.GetHostOsName())
-    self.assertEquals(platform.GetHostPlatform().GetArchName(),
-                      py_utils.GetHostArchName())
+    self.assertEqual(platform.GetHostPlatform().GetOSName(),
+                     py_utils.GetHostOsName())
+    self.assertEqual(platform.GetHostPlatform().GetArchName(),
+                     py_utils.GetHostArchName())

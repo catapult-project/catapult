@@ -129,9 +129,9 @@ class RunTestsUnitTest(unittest.TestCase):
 
       # leave asserts below because we may miss tests
       # that are running when they are not supposed to
-      self.assertEquals(set(actual_failures), set(expected_failures))
-      self.assertEquals(set(actual_successes), set(expected_successes))
-      self.assertEquals(set(actual_skips), set(expected_skips))
+      self.assertEqual(set(actual_failures), set(expected_failures))
+      self.assertEqual(set(actual_successes), set(expected_successes))
+      self.assertEqual(set(actual_skips), set(expected_skips))
     finally:
       os.remove(temp_file_name)
     return actual_failures, actual_successes, actual_skips
@@ -332,83 +332,61 @@ class RunTestsUnitTest(unittest.TestCase):
     return set(test.name.split('.')[-1] for test in test_set.parallel_tests)
 
   def testSystemMacMavericks(self):
-    self.assertEquals(
-        {'testAllEnabled',
-         'testAllEnabledVersion2',
-         'testMacOnly',
-         'testMavericksOnly',
-         'testNoChromeOS',
-         'testNoWinLinux',
-         'testSystemOnly',
-         'testHasTabs'},
-        self._GetEnabledTests('system', 'mac', 'mavericks', True))
+    self.assertEqual(
+        {
+            'testAllEnabled', 'testAllEnabledVersion2', 'testMacOnly',
+            'testMavericksOnly', 'testNoChromeOS', 'testNoWinLinux',
+            'testSystemOnly', 'testHasTabs'
+        }, self._GetEnabledTests('system', 'mac', 'mavericks', True))
 
   def testSystemMacLion(self):
-    self.assertEquals(
-        {'testAllEnabled',
-         'testAllEnabledVersion2',
-         'testMacOnly',
-         'testNoChromeOS',
-         'testNoMavericks',
-         'testNoWinLinux',
-         'testSystemOnly',
-         'testHasTabs'},
-        self._GetEnabledTests('system', 'mac', 'lion', True))
+    self.assertEqual(
+        {
+            'testAllEnabled', 'testAllEnabledVersion2', 'testMacOnly',
+            'testNoChromeOS', 'testNoMavericks', 'testNoWinLinux',
+            'testSystemOnly', 'testHasTabs'
+        }, self._GetEnabledTests('system', 'mac', 'lion', True))
 
   def testCrosGuestChromeOS(self):
-    self.assertEquals(
-        {'testAllEnabled',
-         'testAllEnabledVersion2',
-         'testChromeOSOnly',
-         'testNoMac',
-         'testNoMavericks',
-         'testNoSystem',
-         'testNoWinLinux',
-         'testHasTabs'},
-        self._GetEnabledTests('cros-guest', 'chromeos', '', True))
+    self.assertEqual(
+        {
+            'testAllEnabled', 'testAllEnabledVersion2', 'testChromeOSOnly',
+            'testNoMac', 'testNoMavericks', 'testNoSystem', 'testNoWinLinux',
+            'testHasTabs'
+        }, self._GetEnabledTests('cros-guest', 'chromeos', '', True))
 
   def testCanaryWindowsWin7(self):
-    self.assertEquals(
-        {'testAllEnabled',
-         'testAllEnabledVersion2',
-         'testNoChromeOS',
-         'testNoMac',
-         'testNoMavericks',
-         'testNoSystem',
-         'testWinOrLinuxOnly',
-         'testHasTabs'},
-        self._GetEnabledTests('canary', 'win', 'win7', True))
+    self.assertEqual(
+        {
+            'testAllEnabled', 'testAllEnabledVersion2', 'testNoChromeOS',
+            'testNoMac', 'testNoMavericks', 'testNoSystem',
+            'testWinOrLinuxOnly', 'testHasTabs'
+        }, self._GetEnabledTests('canary', 'win', 'win7', True))
 
   def testDoesntHaveTabs(self):
-    self.assertEquals(
-        {'testAllEnabled',
-         'testAllEnabledVersion2',
-         'testNoChromeOS',
-         'testNoMac',
-         'testNoMavericks',
-         'testNoSystem',
-         'testWinOrLinuxOnly'},
-        self._GetEnabledTests('canary', 'win', 'win7', False))
+    self.assertEqual(
+        {
+            'testAllEnabled', 'testAllEnabledVersion2', 'testNoChromeOS',
+            'testNoMac', 'testNoMavericks', 'testNoSystem', 'testWinOrLinuxOnly'
+        }, self._GetEnabledTests('canary', 'win', 'win7', False))
 
   def testSkip(self):
     runner = run_tests.typ.Runner()
     runner.args.skip = [
         'telemetry.*testNoMac', '*NoMavericks',
         'telemetry.testing.disabled_cases.DisabledCases.testNoSystem']
-    self.assertEquals(
-        {'testAllEnabled',
-         'testAllEnabledVersion2',
-         'testNoChromeOS',
-         'testWinOrLinuxOnly',
-         'testHasTabs'},
-        self._GetEnabledTests('canary', 'win', 'win7', True, runner))
+    self.assertEqual(
+        {
+            'testAllEnabled', 'testAllEnabledVersion2', 'testNoChromeOS',
+            'testWinOrLinuxOnly', 'testHasTabs'
+        }, self._GetEnabledTests('canary', 'win', 'win7', True, runner))
 
   def testtPostionalArgsTestFiltering(self):
     runner = run_tests.typ.Runner()
     runner.args.partial_match_filter = ['testAllEnabled']
-    self.assertEquals(
-        {'testAllEnabled', 'testAllEnabledVersion2'},
-        self._GetEnabledTests('system', 'win', 'win7', True, runner))
+    self.assertEqual({'testAllEnabled', 'testAllEnabledVersion2'},
+                     self._GetEnabledTests('system', 'win', 'win7', True,
+                                           runner))
 
   def testPostionalArgsTestFiltering(self):
     runner = run_tests.typ.Runner()
@@ -416,6 +394,6 @@ class RunTestsUnitTest(unittest.TestCase):
         'telemetry.testing.disabled_cases.DisabledCases.testAllEnabled::'
         'telemetry.testing.disabled_cases.DisabledCases.testNoMavericks::'
         'testAllEnabledVersion2')  # Partial test name won't match
-    self.assertEquals(
-        {'testAllEnabled', 'testNoMavericks'},
-        self._GetEnabledTests('system', 'win', 'win7', True, runner))
+    self.assertEqual({'testAllEnabled', 'testNoMavericks'},
+                     self._GetEnabledTests('system', 'win', 'win7', True,
+                                           runner))

@@ -1051,7 +1051,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual(start.category, step.category)
     self.assertEqual(start.event_id, step.event_id)
     self.assertAlmostEqual(12 / 1000.0, step.start)
-    self.assertEquals(0, step.duration)
+    self.assertEqual(0, step.duration)
 
     self.assertEqual(start.name, finish.name)
     self.assertEqual(start.category, finish.category)
@@ -1126,7 +1126,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       assert len(list(memory_dump.IterProcessMemoryDumps())) == len(
           expected_processes)
       dump_id, start, duration = test_values
-      self.assertEquals(dump_id, memory_dump.dump_id)
+      self.assertEqual(dump_id, memory_dump.dump_id)
       self.assertAlmostEqual(start / 1000.0, memory_dump.start)
       self.assertAlmostEqual(duration / 1000.0, memory_dump.duration)
 
@@ -1149,7 +1149,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual(len(expected), len(memory_dumps))
     for memory_dump, test_values in zip(memory_dumps, expected):
       dump_id, start, duration = test_values
-      self.assertEquals(dump_id, memory_dump.dump_id)
+      self.assertEqual(dump_id, memory_dump.dump_id)
       self.assertAlmostEqual(start / 1000.0, memory_dump.start)
       self.assertAlmostEqual(duration / 1000.0, memory_dump.duration)
 
@@ -1173,5 +1173,5 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     self.assertEqual(len(processes), len(expected))
     for process, test_values in zip(processes, expected):
       process_labels, process_name = test_values
-      self.assertEquals(process_labels, process.labels)
-      self.assertEquals(process_name, process.name)
+      self.assertEqual(process_labels, process.labels)
+      self.assertEqual(process_name, process.name)

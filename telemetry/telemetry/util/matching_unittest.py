@@ -32,17 +32,20 @@ class CommandLineUnittest(unittest.TestCase):
   def testGetMostLikelyMatchedObject(self):
     # Test moved from telemetry/benchmark_runner_unittest.py
     all_benchmarks = [BenchmarkFoo, BenchmarkBar, UnusualBenchmark]
-    self.assertEquals(
-        [BenchmarkFoo, BenchmarkBar],
-        matching.GetMostLikelyMatchedObject(
-            all_benchmarks, 'BenchmarkFooz', name_func=lambda x: x.Name()))
+    self.assertEqual([BenchmarkFoo, BenchmarkBar],
+                     matching.GetMostLikelyMatchedObject(
+                         all_benchmarks,
+                         'BenchmarkFooz',
+                         name_func=lambda x: x.Name()))
 
-    self.assertEquals(
-        [BenchmarkBar, BenchmarkFoo],
-        matching.GetMostLikelyMatchedObject(
-            all_benchmarks, 'BarBenchmark', name_func=lambda x: x.Name()))
+    self.assertEqual([BenchmarkBar, BenchmarkFoo],
+                     matching.GetMostLikelyMatchedObject(
+                         all_benchmarks,
+                         'BarBenchmark',
+                         name_func=lambda x: x.Name()))
 
-    self.assertEquals(
-        [UnusualBenchmark],
-        matching.GetMostLikelyMatchedObject(
-            all_benchmarks, 'unusual', name_func=lambda x: x.Name()))
+    self.assertEqual([UnusualBenchmark],
+                     matching.GetMostLikelyMatchedObject(
+                         all_benchmarks,
+                         'unusual',
+                         name_func=lambda x: x.Name()))

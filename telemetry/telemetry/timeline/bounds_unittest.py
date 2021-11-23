@@ -11,11 +11,11 @@ class BoundsTests(unittest.TestCase):
 
   def testGetOverlap(self):
     # Non overlap cases.
-    self.assertEquals(0, bounds.Bounds.GetOverlap(10, 20, 30, 40))
-    self.assertEquals(0, bounds.Bounds.GetOverlap(30, 40, 10, 20))
+    self.assertEqual(0, bounds.Bounds.GetOverlap(10, 20, 30, 40))
+    self.assertEqual(0, bounds.Bounds.GetOverlap(30, 40, 10, 20))
     # Overlap cases.
-    self.assertEquals(10, bounds.Bounds.GetOverlap(10, 30, 20, 40))
-    self.assertEquals(10, bounds.Bounds.GetOverlap(20, 40, 10, 30))
+    self.assertEqual(10, bounds.Bounds.GetOverlap(10, 30, 20, 40))
+    self.assertEqual(10, bounds.Bounds.GetOverlap(20, 40, 10, 30))
     # Inclusive cases.
-    self.assertEquals(10, bounds.Bounds.GetOverlap(10, 40, 20, 30))
-    self.assertEquals(10, bounds.Bounds.GetOverlap(20, 30, 10, 40))
+    self.assertEqual(10, bounds.Bounds.GetOverlap(10, 40, 20, 30))
+    self.assertEqual(10, bounds.Bounds.GetOverlap(20, 30, 10, 40))

@@ -43,7 +43,7 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
 
     # Check that the browser is currently showing the top of the page and that
     # the page has non-trivial height.
-    self.assertEquals(0, self._scroll_position)
+    self.assertEqual(0, self._scroll_position)
     self.assertLess(50, self._window_height)
 
     self._PressKey('End')
@@ -60,7 +60,7 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
     # Scroll happens *after* key press returns, so we need to wait a little.
     time.sleep(1)
 
-    self.assertEquals(self._scroll_position, 0)
+    self.assertEqual(self._scroll_position, 0)
 
   def testTextEntry(self):
     # Add an input box to the page.

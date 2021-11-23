@@ -37,13 +37,13 @@ class WebPageReplayGoServerTest(unittest.TestCase):
       req = six.moves.urllib.request.Request(
           'http://www.example.com/', origin_req_host='127.0.0.1')
       r = six.moves.urllib.request.urlopen(req)
-      self.assertEquals(r.getcode(), 200)
+      self.assertEqual(r.getcode(), 200)
 
       # Make sure that we can establish connection to HTTPS port.
       req = six.moves.urllib.request.Request(
           'https://www.example.com/', origin_req_host='127.0.0.1')
       r = six.moves.urllib.request.urlopen(req)
-      self.assertEquals(r.getcode(), 200)
+      self.assertEqual(r.getcode(), 200)
 
   @decorators.Disabled('chromeos')  # crbug.com/801641
   @mock.patch('py_utils.atexit_with_log.Register')
@@ -58,4 +58,3 @@ class WebPageReplayGoServerTest(unittest.TestCase):
 
     # Ensure replay process is probably cleaned up after StartServer crashed.
     self.assertIsNone(server._wpr_server.replay_process)
-

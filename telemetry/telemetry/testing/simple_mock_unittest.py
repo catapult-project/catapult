@@ -21,7 +21,7 @@ class SimpleMockUnitTest(unittest.TestCase):
     mock.ExpectCall('foo').WillReturn(7)
 
     ret = mock.foo()
-    self.assertEquals(ret, 7)
+    self.assertEqual(ret, 7)
 
   def testArgs(self):
     mock = simple_mock.MockObject()

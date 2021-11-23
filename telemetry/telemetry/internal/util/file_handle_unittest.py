@@ -23,8 +23,8 @@ class FileHandleUnittest(unittest.TestCase):
 
   def testCreatingFileHandle(self):
     fh1 = file_handle.FromTempFile(self.temp_file_txt)
-    self.assertEquals(fh1.extension, '.txt')
+    self.assertEqual(fh1.extension, '.txt')
 
     fh2 = file_handle.FromFilePath(self.abs_path_html)
-    self.assertEquals(fh2.extension, '.html')
-    self.assertNotEquals(fh1.id, fh2.id)
+    self.assertEqual(fh2.extension, '.html')
+    self.assertNotEqual(fh1.id, fh2.id)

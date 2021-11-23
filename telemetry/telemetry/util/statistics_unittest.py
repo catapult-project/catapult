@@ -46,24 +46,24 @@ class StatisticsUnitTest(unittest.TestCase):
   def testNormalizeSamples(self):
     samples = []
     normalized_samples, scale = statistics.NormalizeSamples(samples)
-    self.assertEquals(normalized_samples, [])
-    self.assertEquals(scale, 1.0)
+    self.assertEqual(normalized_samples, [])
+    self.assertEqual(scale, 1.0)
 
     samples = [0.0, 0.0]
     normalized_samples, scale = statistics.NormalizeSamples(samples)
-    self.assertEquals(normalized_samples, [0.5, 0.5])
-    self.assertEquals(scale, 1.0)
+    self.assertEqual(normalized_samples, [0.5, 0.5])
+    self.assertEqual(scale, 1.0)
 
     samples = [0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0]
     normalized_samples, scale = statistics.NormalizeSamples(samples)
-    self.assertEquals(normalized_samples,
-                      [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0])
-    self.assertEquals(scale, 0.75)
+    self.assertEqual(normalized_samples,
+                     [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0])
+    self.assertEqual(scale, 0.75)
 
     samples = [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0]
     normalized_samples, scale = statistics.NormalizeSamples(samples)
-    self.assertEquals(normalized_samples, samples)
-    self.assertEquals(scale, 1.0)
+    self.assertEqual(normalized_samples, samples)
+    self.assertEqual(scale, 1.0)
 
   def testDiscrepancyRandom(self):
     """Tests NormalizeSamples and Discrepancy with random samples.
@@ -86,48 +86,48 @@ class StatisticsUnitTest(unittest.TestCase):
     """Computes discrepancy for sample sets with known statistics."""
     samples = []
     d = statistics.Discrepancy(samples)
-    self.assertEquals(d, 0.0)
+    self.assertEqual(d, 0.0)
 
     samples = [0.5]
     d = statistics.Discrepancy(samples)
-    self.assertEquals(d, 0.5)
+    self.assertEqual(d, 0.5)
 
     samples = [0.0, 1.0]
     d = statistics.Discrepancy(samples)
-    self.assertEquals(d, 1.0)
+    self.assertEqual(d, 1.0)
 
     samples = [0.5, 0.5, 0.5]
     d = statistics.Discrepancy(samples)
-    self.assertEquals(d, 1.0)
+    self.assertEqual(d, 1.0)
 
     samples = [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0]
     d = statistics.Discrepancy(samples)
-    self.assertEquals(d, 0.25)
+    self.assertEqual(d, 0.25)
 
     samples = [1.0 / 8.0, 5.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0]
     d = statistics.Discrepancy(samples)
-    self.assertEquals(d, 0.5)
+    self.assertEqual(d, 0.5)
 
     samples = [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0]
     d = statistics.Discrepancy(samples)
-    self.assertEquals(d, 0.4)
+    self.assertEqual(d, 0.4)
 
     samples = [0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0]
     d = statistics.Discrepancy(samples)
-    self.assertEquals(d, 0.5)
+    self.assertEqual(d, 0.5)
 
     samples = statistics.NormalizeSamples(samples)[0]
     d = statistics.Discrepancy(samples)
-    self.assertEquals(d, 0.25)
+    self.assertEqual(d, 0.25)
 
   def testTimestampsDiscrepancy(self):
     time_stamps = []
     d_abs = statistics.TimestampsDiscrepancy(time_stamps, True)
-    self.assertEquals(d_abs, 0.0)
+    self.assertEqual(d_abs, 0.0)
 
     time_stamps = [4]
     d_abs = statistics.TimestampsDiscrepancy(time_stamps, True)
-    self.assertEquals(d_abs, 0.5)
+    self.assertEqual(d_abs, 0.5)
 
     time_stamps_a = [0, 1, 2, 3, 5, 6]
     time_stamps_b = [0, 1, 2, 3, 5, 7]
@@ -154,7 +154,7 @@ class StatisticsUnitTest(unittest.TestCase):
     d_1 = statistics.TimestampsDiscrepancy(samples[1])
     d_2 = statistics.TimestampsDiscrepancy(samples[2])
     d = statistics.TimestampsDiscrepancy(samples)
-    self.assertEquals(d, max(d_0, d_1, d_2))
+    self.assertEqual(d, max(d_0, d_1, d_2))
 
   def testApproximateDiscrepancy(self):
     """Tests approimate discrepancy implementation by comparing to exact
@@ -166,40 +166,40 @@ class StatisticsUnitTest(unittest.TestCase):
       samples = statistics.NormalizeSamples(samples)[0]
       d = statistics.Discrepancy(samples)
       d_approx = statistics.Discrepancy(samples, 500)
-      self.assertEquals(round(d, 2), round(d_approx, 2))
+      self.assertEqual(round(d, 2), round(d_approx, 2))
 
   def testPercentile(self):
     # The 50th percentile is the median value.
-    self.assertEquals(3, statistics.Percentile([4, 5, 1, 3, 2], 50))
-    self.assertEquals(2.5, statistics.Percentile([5, 1, 3, 2], 50))
+    self.assertEqual(3, statistics.Percentile([4, 5, 1, 3, 2], 50))
+    self.assertEqual(2.5, statistics.Percentile([5, 1, 3, 2], 50))
     # When the list of values is empty, 0 is returned.
-    self.assertEquals(0, statistics.Percentile([], 50))
+    self.assertEqual(0, statistics.Percentile([], 50))
     # When the given percentage is very low, the lowest value is given.
-    self.assertEquals(1, statistics.Percentile([2, 1, 5, 4, 3], 5))
+    self.assertEqual(1, statistics.Percentile([2, 1, 5, 4, 3], 5))
     # When the given percentage is very high, the highest value is given.
-    self.assertEquals(5, statistics.Percentile([5, 2, 4, 1, 3], 95))
+    self.assertEqual(5, statistics.Percentile([5, 2, 4, 1, 3], 95))
     # Linear interpolation between closest ranks is used. Using the example
     # from <http://en.wikipedia.org/wiki/Percentile>:
-    self.assertEquals(27.5, statistics.Percentile([15, 20, 35, 40, 50], 40))
+    self.assertEqual(27.5, statistics.Percentile([15, 20, 35, 40, 50], 40))
 
   def testArithmeticMean(self):
     # The ArithmeticMean function computes the simple average.
     self.assertAlmostEquals(40 / 3.0, statistics.ArithmeticMean([10, 10, 20]))
     self.assertAlmostEquals(15.0, statistics.ArithmeticMean([10, 20]))
     # If the 'count' is zero, then zero is returned.
-    self.assertEquals(0, statistics.ArithmeticMean([]))
+    self.assertEqual(0, statistics.ArithmeticMean([]))
 
   def testStandardDeviation(self):
     self.assertAlmostEquals(math.sqrt(2 / 3.0),
                             statistics.StandardDeviation([1, 2, 3]))
-    self.assertEquals(0, statistics.StandardDeviation([1]))
-    self.assertEquals(0, statistics.StandardDeviation([]))
+    self.assertEqual(0, statistics.StandardDeviation([1]))
+    self.assertEqual(0, statistics.StandardDeviation([]))
 
   def testTrapezoidalRule(self):
-    self.assertEquals(4, statistics.TrapezoidalRule([1, 2, 3], 1))
-    self.assertEquals(2, statistics.TrapezoidalRule([1, 2, 3], .5))
-    self.assertEquals(0, statistics.TrapezoidalRule([1, 2, 3], 0))
-    self.assertEquals(-4, statistics.TrapezoidalRule([1, 2, 3], -1))
-    self.assertEquals(3, statistics.TrapezoidalRule([-1, 2, 3], 1))
-    self.assertEquals(0, statistics.TrapezoidalRule([1], 1))
-    self.assertEquals(0, statistics.TrapezoidalRule([0], 1))
+    self.assertEqual(4, statistics.TrapezoidalRule([1, 2, 3], 1))
+    self.assertEqual(2, statistics.TrapezoidalRule([1, 2, 3], .5))
+    self.assertEqual(0, statistics.TrapezoidalRule([1, 2, 3], 0))
+    self.assertEqual(-4, statistics.TrapezoidalRule([1, 2, 3], -1))
+    self.assertEqual(3, statistics.TrapezoidalRule([-1, 2, 3], 1))
+    self.assertEqual(0, statistics.TrapezoidalRule([1], 1))
+    self.assertEqual(0, statistics.TrapezoidalRule([0], 1))

@@ -38,7 +38,7 @@ class CrOSInterfaceTest(unittest.TestCase):
       cri.RmRF(tmp_file)
       cri.PushContents(test_contents, tmp_file)
       contents = cri.GetFileContents(tmp_file)
-      self.assertEquals(contents, test_contents)
+      self.assertEqual(contents, test_contents)
 
   @decorators.Enabled('chromeos')
   def testExists(self):

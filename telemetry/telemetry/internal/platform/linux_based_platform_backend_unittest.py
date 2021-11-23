@@ -36,4 +36,4 @@ class LinuxBasedPlatformBackendTest(unittest.TestCase):
     self.SetMockFileInBackend(backend, 'proc_meminfo', '/proc/meminfo')
     result = backend.GetSystemTotalPhysicalMemory()
     # 67479191552 == MemTotal * 1024
-    self.assertEquals(result, 67479191552)
+    self.assertEqual(result, 67479191552)

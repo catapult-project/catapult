@@ -30,14 +30,14 @@ class StoryRunTest(unittest.TestCase):
     self.assertFalse(run.ok)
     self.assertTrue(run.failed)
     self.assertFalse(run.skipped)
-    self.assertEquals(run.failure_str, 'abc')
+    self.assertEqual(run.failure_str, 'abc')
 
     run = story_run.StoryRun(self.story)
     run.SetFailed('something is wrong')
     self.assertFalse(run.ok)
     self.assertTrue(run.failed)
     self.assertFalse(run.skipped)
-    self.assertEquals(run.failure_str, 'something is wrong')
+    self.assertEqual(run.failure_str, 'something is wrong')
 
   def testStoryRunSkipped(self):
     run = story_run.StoryRun(self.story)
@@ -47,7 +47,7 @@ class StoryRunTest(unittest.TestCase):
     self.assertFalse(run.failed)
     self.assertTrue(run.skipped)
     self.assertTrue(run.expected)
-    self.assertEquals(run.failure_str, 'oops')
+    self.assertEqual(run.failure_str, 'oops')
 
     run = story_run.StoryRun(self.story)
     run.Skip('test', expected=False)
@@ -55,20 +55,20 @@ class StoryRunTest(unittest.TestCase):
     self.assertFalse(run.failed)
     self.assertTrue(run.skipped)
     self.assertFalse(run.expected)
-    self.assertEquals(run.failure_str, None)
+    self.assertEqual(run.failure_str, None)
 
   def testStoryRunSucceeded(self):
     run = story_run.StoryRun(self.story)
     self.assertTrue(run.ok)
     self.assertFalse(run.failed)
     self.assertFalse(run.skipped)
-    self.assertEquals(run.failure_str, None)
+    self.assertEqual(run.failure_str, None)
 
     run = story_run.StoryRun(self.story)
     self.assertTrue(run.ok)
     self.assertFalse(run.failed)
     self.assertFalse(run.skipped)
-    self.assertEquals(run.failure_str, None)
+    self.assertEqual(run.failure_str, None)
 
   @mock.patch.dict('os.environ', {'GTEST_SHARD_INDEX': '7'})
   @mock.patch('telemetry.internal.results.story_run.time')

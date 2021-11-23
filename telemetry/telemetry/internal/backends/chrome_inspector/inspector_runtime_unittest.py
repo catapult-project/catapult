@@ -68,7 +68,7 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     py_utils.WaitFor(
         lambda: len(self._tab.EnableAllContexts()) >= 4, timeout=10)
 
-    self.assertEquals(self._tab.EvaluateJavaScript('testVar'), 'host')
+    self.assertEqual(self._tab.EvaluateJavaScript('testVar'), 'host')
 
     def TestVarReady(context_id):
       """Returns True if the context and testVar are both ready."""
@@ -88,7 +88,7 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     all_contexts_list = sorted(self._tab.EnableAllContexts())
     # Access parent page using EvaluateJavaScriptInContext.
     host_context = all_contexts_list[0]
-    self.assertEquals(TestVar(host_context), 'host')
+    self.assertEqual(TestVar(host_context), 'host')
 
     # Access the iframes without guarantees on which order they loaded.
     iframe1 = TestVar(context_id=all_contexts_list[1])

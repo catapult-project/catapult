@@ -41,13 +41,13 @@ class CrOSCryptohomeTest(cros_test_case.CrOSTestCase):
       elif chronos_fs:
         crypto_fs = self._cri.FilesystemMountedAt(
             self._cri.CryptohomePath(self._username))
-        self.assertEquals(crypto_fs, chronos_fs)
+        self.assertEqual(crypto_fs, chronos_fs)
 
     self.assertFalse(self._IsCryptohomeMounted())
     self.assertFalse(
         self._cri.IsCryptohomeMounted(self._username, self._is_guest))
-    self.assertEquals(self._cri.FilesystemMountedAt('/home/chronos/user'),
-                      '/dev/mapper/encstateful')
+    self.assertEqual(self._cri.FilesystemMountedAt('/home/chronos/user'),
+                     '/dev/mapper/encstateful')
 
 
 class CrOSLoginTest(cros_test_case.CrOSTestCase):
@@ -67,11 +67,11 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
   @decorators.Enabled('chromeos')
   def testCanonicalize(self):
     """Test Oobe.Canonicalize function."""
-    self.assertEquals(oobe.Oobe.Canonicalize('User.1'), 'user1@gmail.com')
-    self.assertEquals(oobe.Oobe.Canonicalize('User.2', remove_dots=False),
-                      'user.2@gmail.com')
-    self.assertEquals(oobe.Oobe.Canonicalize('User.3@chromium.org'),
-                      'user.3@chromium.org')
+    self.assertEqual(oobe.Oobe.Canonicalize('User.1'), 'user1@gmail.com')
+    self.assertEqual(oobe.Oobe.Canonicalize('User.2', remove_dots=False),
+                     'user.2@gmail.com')
+    self.assertEqual(oobe.Oobe.Canonicalize('User.3@chromium.org'),
+                     'user.3@chromium.org')
 
   @decorators.Enabled('chromeos')
   def testGetCredentials(self):
@@ -82,8 +82,8 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
       cred_iter = self._GetCredentialsIter(cred_file)
       for i in range(1, 4):
         username, password = next(cred_iter)
-        self.assertEquals(username, 'user%d' % i)
-        self.assertEquals(password, 'pass%d' % i)
+        self.assertEqual(username, 'user%d' % i)
+        self.assertEqual(password, 'pass%d' % i)
     finally:
       os.unlink(cred_file)
 
@@ -94,11 +94,11 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
       return
     with self._CreateBrowser(autotest_ext=True) as b:
       login_status = self._GetLoginStatus(b)
-      self.assertEquals(type(login_status), dict)
+      self.assertEqual(type(login_status), dict)
 
-      self.assertEquals(not self._is_guest, login_status['isRegularUser'])
-      self.assertEquals(self._is_guest, login_status['isGuest'])
-      self.assertEquals(login_status['email'], self._username)
+      self.assertEqual(not self._is_guest, login_status['isRegularUser'])
+      self.assertEqual(self._is_guest, login_status['isGuest'])
+      self.assertEqual(login_status['email'], self._username)
       self.assertFalse(login_status['isScreenLocked'])
 
   @decorators.Enabled('chromeos')

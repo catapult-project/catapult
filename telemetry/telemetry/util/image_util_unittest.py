@@ -25,8 +25,8 @@ class ImageUtilTest(unittest.TestCase):
   def testReadFromBase64Png(self):
     bmp = image_util.FromBase64Png(test_png)
 
-    self.assertEquals(2, image_util.Width(bmp))
-    self.assertEquals(2, image_util.Height(bmp))
+    self.assertEqual(2, image_util.Width(bmp))
+    self.assertEqual(2, image_util.Height(bmp))
 
     image_util.GetPixelColor(bmp, 0, 0).AssertIsRGB(255, 0, 0)
     image_util.GetPixelColor(bmp, 1, 1).AssertIsRGB(0, 255, 0)
@@ -36,8 +36,8 @@ class ImageUtilTest(unittest.TestCase):
   def testReadFromPngFile(self):
     file_bmp = image_util.FromPngFile(test_png_path)
 
-    self.assertEquals(2, image_util.Width(file_bmp))
-    self.assertEquals(2, image_util.Height(file_bmp))
+    self.assertEqual(2, image_util.Width(file_bmp))
+    self.assertEqual(2, image_util.Height(file_bmp))
 
     image_util.GetPixelColor(file_bmp, 0, 0).AssertIsRGB(255, 0, 0)
     image_util.GetPixelColor(file_bmp, 1, 1).AssertIsRGB(0, 255, 0)
@@ -78,8 +78,8 @@ class ImageUtilTest(unittest.TestCase):
 
     diff_bmp = image_util.Diff(file_bmp, file_bmp)
 
-    self.assertEquals(2, image_util.Width(diff_bmp))
-    self.assertEquals(2, image_util.Height(diff_bmp))
+    self.assertEqual(2, image_util.Width(diff_bmp))
+    self.assertEqual(2, image_util.Height(diff_bmp))
 
     image_util.GetPixelColor(diff_bmp, 0, 0).AssertIsRGB(0, 0, 0)
     image_util.GetPixelColor(diff_bmp, 1, 1).AssertIsRGB(0, 0, 0)
@@ -88,8 +88,8 @@ class ImageUtilTest(unittest.TestCase):
 
     diff_bmp = image_util.Diff(file_bmp, file_bmp_2)
 
-    self.assertEquals(3, image_util.Width(diff_bmp))
-    self.assertEquals(3, image_util.Height(diff_bmp))
+    self.assertEqual(3, image_util.Width(diff_bmp))
+    self.assertEqual(3, image_util.Height(diff_bmp))
 
     image_util.GetPixelColor(diff_bmp, 0, 0).AssertIsRGB(0, 255, 255)
     image_util.GetPixelColor(diff_bmp, 1, 1).AssertIsRGB(255, 0, 255)
@@ -108,12 +108,12 @@ class ImageUtilTest(unittest.TestCase):
               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     bmp = image_util.FromRGBPixels(4, 3, pixels)
     box, count = image_util.GetBoundingBox(bmp, rgba_color.RgbaColor(1, 0, 0))
-    self.assertEquals(box, (1, 1, 2, 1))
-    self.assertEquals(count, 2)
+    self.assertEqual(box, (1, 1, 2, 1))
+    self.assertEqual(count, 2)
 
     box, count = image_util.GetBoundingBox(bmp, rgba_color.RgbaColor(0, 1, 0))
-    self.assertEquals(box, None)
-    self.assertEquals(count, 0)
+    self.assertEqual(box, None)
+    self.assertEqual(count, 0)
 
   def testCrop(self):
     pixels = [0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0,
@@ -122,8 +122,8 @@ class ImageUtilTest(unittest.TestCase):
     bmp = image_util.FromRGBPixels(4, 3, pixels)
     bmp = image_util.Crop(bmp, 1, 2, 2, 1)
 
-    self.assertEquals(2, image_util.Width(bmp))
-    self.assertEquals(1, image_util.Height(bmp))
+    self.assertEqual(2, image_util.Width(bmp))
+    self.assertEqual(1, image_util.Height(bmp))
     image_util.GetPixelColor(bmp, 0, 0).AssertIsRGB(1, 2, 0)
     image_util.GetPixelColor(bmp, 1, 0).AssertIsRGB(2, 2, 0)
-    self.assertEquals(image_util.Pixels(bmp), bytearray([1, 2, 0, 2, 2, 0]))
+    self.assertEqual(image_util.Pixels(bmp), bytearray([1, 2, 0, 2, 2, 0]))

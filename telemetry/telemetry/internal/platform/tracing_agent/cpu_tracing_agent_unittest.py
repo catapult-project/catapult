@@ -122,12 +122,11 @@ class CpuTracingAgentTest(unittest.TestCase):
       data = builder.AsData().GetTraceFor(
           trace_data.CPU_TRACE_DATA)['traceEvents']
 
-    self.assertEquals(set(data[0].keys()), set(TRACE_EVENT_KEYS))
-    self.assertEquals(set(data[0]['args']['snapshot'].keys()),
-                      {'processes'})
+    self.assertEqual(set(data[0].keys()), set(TRACE_EVENT_KEYS))
+    self.assertEqual(set(data[0]['args']['snapshot'].keys()), {'processes'})
     self.assertTrue(data[0]['args']['snapshot']['processes'])
-    self.assertEquals(set(data[0]['args']['snapshot']['processes'][0].keys()),
-                      set(SNAPSHOT_KEYS))
+    self.assertEqual(set(data[0]['args']['snapshot']['processes'][0].keys()),
+                     set(SNAPSHOT_KEYS))
 
   # Flaky on Win (crbug.com/803210).
   @decorators.Enabled('linux', 'mac')
@@ -167,7 +166,7 @@ class CpuTracingAgentTest(unittest.TestCase):
     proc_collector.Init()
     proc = proc_collector._ParseProcessString(
         '0 1 Multi Word Process 50 75')
-    self.assertEquals(proc['ppid'], 0)
-    self.assertEquals(proc['pid'], 1)
-    self.assertEquals(proc['name'], 'Multi Word Process')
-    self.assertEquals(proc['pCpu'], 50)
+    self.assertEqual(proc['ppid'], 0)
+    self.assertEqual(proc['pid'], 1)
+    self.assertEqual(proc['name'], 'Multi Word Process')
+    self.assertEqual(proc['pCpu'], 50)

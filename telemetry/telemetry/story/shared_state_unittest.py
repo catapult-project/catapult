@@ -31,5 +31,4 @@ class SharedStateTests(unittest.TestCase):
     self.options.browser_options.wpr_mode = wpr_modes.WPR_RECORD
     run_state = shared_state.SharedState(
         None, self.options, None, self.possible_browser)
-    self.assertEquals(run_state.wpr_mode, wpr_modes.WPR_RECORD)
-
+    self.assertEqual(run_state.wpr_mode, wpr_modes.WPR_RECORD)

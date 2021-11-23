@@ -31,24 +31,24 @@ class DecoratorsUnitTest(unittest.TestCase):
   # pylint: disable=blacklisted-name
 
   def testCacheDecorator(self):
-    self.assertNotEquals(CreateFooUncached(1), CreateFooUncached(2))
-    self.assertNotEquals(CreateFooCached(1), CreateFooCached(2))
+    self.assertNotEqual(CreateFooUncached(1), CreateFooUncached(2))
+    self.assertNotEqual(CreateFooCached(1), CreateFooCached(2))
 
-    self.assertNotEquals(CreateFooUncached(1), CreateFooUncached(1))
-    self.assertEquals(CreateFooCached(1), CreateFooCached(1))
+    self.assertNotEqual(CreateFooUncached(1), CreateFooUncached(1))
+    self.assertEqual(CreateFooCached(1), CreateFooCached(1))
 
   def testCacheableMemberCachesOnlyForSameArgs(self):
     foo = Foo()
     value_of_one = foo.GetCountCached(1)
 
-    self.assertEquals(value_of_one, foo.GetCountCached(1))
-    self.assertNotEquals(value_of_one, foo.GetCountCached(2))
+    self.assertEqual(value_of_one, foo.GetCountCached(1))
+    self.assertNotEqual(value_of_one, foo.GetCountCached(2))
 
   def testCacheableMemberHasSeparateCachesForSiblingInstances(self):
     foo = Foo()
     sibling_foo = Foo()
 
-    self.assertNotEquals(foo.GetCountCached(1), sibling_foo.GetCountCached(1))
+    self.assertNotEqual(foo.GetCountCached(1), sibling_foo.GetCountCached(1))
 
   def testCacheableMemberHasSeparateCachesForNextGenerationInstances(self):
     foo = Foo()
@@ -56,4 +56,4 @@ class DecoratorsUnitTest(unittest.TestCase):
     foo = None
     foo = Foo()
 
-    self.assertNotEquals(last_generation_count, foo.GetCountCached(1))
+    self.assertNotEqual(last_generation_count, foo.GetCountCached(1))

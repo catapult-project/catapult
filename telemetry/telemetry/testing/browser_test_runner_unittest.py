@@ -110,9 +110,9 @@ class BrowserTestRunnerTest(unittest.TestCase):
       (actual_successes,
        actual_failures,
        actual_skips) = self._ExtractTestResults(self._test_result)
-      self.assertEquals(set(actual_failures), set(expected_failures))
-      self.assertEquals(set(actual_successes), set(expected_successes))
-      self.assertEquals(set(actual_skips), set(expected_skips))
+      self.assertEqual(set(actual_failures), set(expected_failures))
+      self.assertEqual(set(actual_successes), set(expected_successes))
+      self.assertEqual(set(actual_skips), set(expected_skips))
     finally:
       os.remove(temp_file_name)
 
@@ -413,15 +413,15 @@ class BrowserTestRunnerTest(unittest.TestCase):
         num_tests_run += num_tests_in_shard
       else:
         # Not enough tests to go around all of the shards.
-        self.assertEquals(num_tests_in_shard, 0)
+        self.assertEqual(num_tests_in_shard, 0)
 
     # Assert that we run all of the tests exactly once.
     all_indices = set()
     for i in range(0, len(shard_indices)):
       cur_indices = shard_indices[i]
       all_indices.update(cur_indices)
-    self.assertEquals(num_tests_run, num_tests)
-    self.assertEquals(num_tests_run, len(all_indices))
+    self.assertEqual(num_tests_run, num_tests)
+    self.assertEqual(num_tests_run, len(all_indices))
 
   def testShardsWithPrimeNumTests(self):
     for total_shards in range(1, 20):
@@ -474,8 +474,8 @@ class BrowserTestRunnerTest(unittest.TestCase):
         test_result = json.load(f)
       (actual_successes,
        actual_failures, _) = self._ExtractTestResults(test_result)
-      self.assertEquals(set(actual_failures), set(failures))
-      self.assertEquals(set(actual_successes), set(successes))
+      self.assertEqual(set(actual_failures), set(failures))
+      self.assertEqual(set(actual_successes), set(successes))
     finally:
       os.remove(temp_file_name)
 
@@ -627,11 +627,15 @@ class BrowserTestRunnerTest(unittest.TestCase):
       os.remove(temp_file_name)
 
   def testMedianComputation(self):
-    self.assertEquals(2.0, run_browser_tests._MedianTestTime(
-        {'test1': 2.0, 'test2': 7.0, 'test3': 1.0}))
-    self.assertEquals(2.0, run_browser_tests._MedianTestTime(
-        {'test1': 2.0}))
-    self.assertEquals(0.0, run_browser_tests._MedianTestTime({}))
+    self.assertEqual(
+        2.0,
+        run_browser_tests._MedianTestTime({
+            'test1': 2.0,
+            'test2': 7.0,
+            'test3': 1.0
+        }))
+    self.assertEqual(2.0, run_browser_tests._MedianTestTime({'test1': 2.0}))
+    self.assertEqual(0.0, run_browser_tests._MedianTestTime({}))
     self.assertEqual(4.0, run_browser_tests._MedianTestTime(
         {'test1': 2.0, 'test2': 6.0, 'test3': 1.0, 'test4': 8.0}))
 
@@ -646,10 +650,10 @@ class Algebra(
     yield 'testTwo', (3, 3)
 
   def Simple(self, x, y):
-    self.assertEquals(x, y)
+    self.assertEqual(x, y)
 
   def TestNumber(self):
-    self.assertEquals(0, 1)
+    self.assertEqual(0, 1)
 
 
 class ErrorneousGeometric(
@@ -662,10 +666,10 @@ class ErrorneousGeometric(
     yield 'testBasic', ('square', 'circle')
 
   def Compare(self, x, y):
-    self.assertEquals(x, y)
+    self.assertEqual(x, y)
 
   def TestAngle(self):
-    self.assertEquals(90, 450)
+    self.assertEqual(90, 450)
 
 
 class TestLoadAllTestModules(unittest.TestCase):
@@ -684,9 +688,9 @@ class TestLoadAllTestModules(unittest.TestCase):
       # otherwise that would throw Exception.
       tests = serially_executed_browser_test_case.LoadAllTestsInModule(
           sys.modules[__name__])
-      self.assertEquals(
-          sorted([t.id() for t in tests]),
-          ['telemetry.testing.browser_test_runner_unittest.Algebra.TestNumber',
-           'telemetry.testing.browser_test_runner_unittest.Algebra.testOne'])
+      self.assertEqual(sorted([t.id() for t in tests]), [
+          'telemetry.testing.browser_test_runner_unittest.Algebra.TestNumber',
+          'telemetry.testing.browser_test_runner_unittest.Algebra.testOne'
+      ])
     finally:
       browser_test_context._global_test_context = None

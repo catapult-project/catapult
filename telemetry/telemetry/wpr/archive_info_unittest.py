@@ -273,7 +273,7 @@ class WprArchiveInfoTest(unittest.TestCase):
       for line in f:
         self.assertFalse(line.rstrip('\n').endswith(' '))
     self.assertWprFileDoesExist('story_name_abcdef0006.wprgo')
-    self.assertEquals(hash_mock.call_count, 1)
+    self.assertEqual(hash_mock.call_count, 1)
     hash_mock.assert_called_with(new_temp_recording)
 
   @mock.patch(

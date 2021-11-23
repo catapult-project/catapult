@@ -30,7 +30,7 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('__GestureCommon_GetScrollableHeight()'))
     self._available_scroll = self._new_height - self._original_height
 
-    self.assertEquals(
+    self.assertEqual(
         self._tab.EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
 
     self._browser_info = browser_info_module.BrowserInfo(self._tab.browser)

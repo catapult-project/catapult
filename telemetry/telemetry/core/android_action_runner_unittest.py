@@ -15,8 +15,8 @@ class AndroidActionRunnerInteractionTest(tab_test_case.TabTestCase):
     self.Navigate('page_with_swipeables.html')
     action_runner = action_runner_module.ActionRunner(
         self._tab, skip_waits=True)
-    self.assertEquals(action_runner.EvaluateJavaScript('window.scrollY'), 0)
-    self.assertEquals(action_runner.EvaluateJavaScript('window.scrollX'), 0)
+    self.assertEqual(action_runner.EvaluateJavaScript('window.scrollY'), 0)
+    self.assertEqual(action_runner.EvaluateJavaScript('window.scrollX'), 0)
 
     platform = action_runner.tab.browser.platform
     app_ui = action_runner.tab.browser.GetAppUi()
@@ -36,8 +36,8 @@ class AndroidActionRunnerInteractionTest(tab_test_case.TabTestCase):
     self.Navigate('page_with_swipeables.html')
     action_runner = action_runner_module.ActionRunner(
         self._tab, skip_waits=True)
-    self.assertEquals(action_runner.EvaluateJavaScript('window.scrollY'), 0)
-    self.assertEquals(action_runner.EvaluateJavaScript('window.scrollX'), 0)
+    self.assertEqual(action_runner.EvaluateJavaScript('window.scrollY'), 0)
+    self.assertEqual(action_runner.EvaluateJavaScript('window.scrollX'), 0)
 
     platform = action_runner.tab.browser.platform
     app_ui = action_runner.tab.browser.GetAppUi()

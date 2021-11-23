@@ -342,7 +342,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
         root_mock.story, root_mock.results, root_mock.state, root_mock.test,
         self.finder_options)
 
-    self.assertEquals(root_mock.method_calls, [
+    self.assertEqual(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform, root_mock.story),
         mock.call.state.WillRunStory(root_mock.story),
@@ -360,7 +360,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
         root_mock.story, root_mock.results, root_mock.state, root_mock.test,
         self.finder_options)
 
-    self.assertEquals(root_mock.method_calls, [
+    self.assertEqual(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
         mock.call.state.WillRunStory(root_mock.story),
         mock.call.state.CanRunStory(root_mock.story),
@@ -378,7 +378,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
         root_mock.story, root_mock.results, root_mock.state, root_mock.test,
         self.finder_options)
 
-    self.assertEquals(root_mock.method_calls, [
+    self.assertEqual(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform, root_mock.story),
         mock.call.state.WillRunStory(root_mock.story),
@@ -431,7 +431,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
           root_mock.story, root_mock.results, root_mock.state, root_mock.test,
           self.finder_options)
 
-    self.assertEquals(root_mock.method_calls, [
+    self.assertEqual(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform, root_mock.story),
         mock.call.state.WillRunStory(root_mock.story),
@@ -451,7 +451,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
     story_runner._RunStoryAndProcessErrorIfNeeded(
         root_mock.story, root_mock.results, root_mock.state, root_mock.test,
         self.finder_options)
-    self.assertEquals(root_mock.method_calls, [
+    self.assertEqual(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform, root_mock.story),
         mock.call.state.WillRunStory(root_mock.story),
@@ -472,7 +472,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
           root_mock.story, root_mock.results, root_mock.state, root_mock.test,
           self.finder_options)
 
-    self.assertEquals(root_mock.method_calls, [
+    self.assertEqual(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform, root_mock.story),
         mock.call.state.DumpStateUponStoryRunFailure(root_mock.results),
@@ -493,7 +493,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
           root_mock.story, root_mock.results, root_mock.state, root_mock.test,
           self.finder_options)
 
-    self.assertEquals(root_mock.method_calls, [
+    self.assertEqual(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform, root_mock.story),
         mock.call.state.WillRunStory(root_mock.story),
@@ -515,7 +515,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
         root_mock.story, root_mock.results, root_mock.state, root_mock.test,
         self.finder_options)
 
-    self.assertEquals(root_mock.method_calls, [
+    self.assertEqual(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform, root_mock.story),
         mock.call.state.WillRunStory(root_mock.story),
@@ -539,7 +539,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
           root_mock.story, root_mock.results, root_mock.state, root_mock.test,
           self.finder_options)
 
-    self.assertEquals(root_mock.method_calls, [
+    self.assertEqual(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform, root_mock.story),
         mock.call.state.WillRunStory(root_mock.story),
@@ -560,12 +560,11 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
         root_mock.story, root_mock.results, root_mock.state, root_mock.test,
         self.finder_options)
 
-    self.assertEquals(root_mock.method_calls, [
+    self.assertEqual(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform, root_mock.story),
         mock.call.results.Skip('Unsupported page action: foo'),
-        mock.call.test.DidRunStory(
-            root_mock.state.platform, root_mock.results),
+        mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
         mock.call.state.DidRunStory(root_mock.results),
     ])
 
@@ -580,7 +579,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
           root_mock.story, root_mock.results, root_mock.state, root_mock.test,
           self.finder_options)
 
-    self.assertEquals(root_mock.method_calls, [
+    self.assertEqual(root_mock.method_calls, [
         mock.call.results.CreateArtifact('logs.txt'),
         mock.call.test.WillRunStory(root_mock.state.platform, root_mock.story),
         mock.call.state.WillRunStory(root_mock.story),
@@ -939,7 +938,7 @@ class RunBenchmarkTest(unittest.TestCase):
         'story_shard_begin_index': 10,
         'story_shard_end_index': 41})
     return_code = story_runner.RunBenchmark(fake_benchmark, options)
-    self.assertEquals(exit_codes.FATAL_ERROR, return_code)
+    self.assertEqual(exit_codes.FATAL_ERROR, return_code)
 
     # The results should contain entries of story 10 --> story 40. Of those
     # entries, story 31's actual result is 'FAIL' and

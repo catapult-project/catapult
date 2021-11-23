@@ -42,8 +42,8 @@ class TestDisableDecorators(unittest.TestCase):
       def Drive(self):
         pass
 
-    self.assertEquals({'windshield'},
-                      decorators.GetDisabledAttributes(Ford().Drive))
+    self.assertEqual({'windshield'},
+                     decorators.GetDisabledAttributes(Ford().Drive))
 
     class Honda(object):
 
@@ -53,10 +53,10 @@ class TestDisableDecorators(unittest.TestCase):
       def Drive(self):
         pass
 
-    self.assertEquals({'wheel', 'Drive', 'windows'},
-                      decorators.GetDisabledAttributes(Honda().Drive))
-    self.assertEquals({'windshield'},
-                      decorators.GetDisabledAttributes(Ford().Drive))
+    self.assertEqual({'wheel', 'Drive', 'windows'},
+                     decorators.GetDisabledAttributes(Honda().Drive))
+    self.assertEqual({'windshield'},
+                     decorators.GetDisabledAttributes(Ford().Drive))
 
     class Accord(Honda):
 
@@ -66,12 +66,12 @@ class TestDisableDecorators(unittest.TestCase):
     class Explorer(Ford):
       pass
 
-    self.assertEquals({'wheel', 'Drive', 'windows'},
-                      decorators.GetDisabledAttributes(Honda().Drive))
-    self.assertEquals({'windshield'},
-                      decorators.GetDisabledAttributes(Ford().Drive))
-    self.assertEquals({'windshield'},
-                      decorators.GetDisabledAttributes(Explorer().Drive))
+    self.assertEqual({'wheel', 'Drive', 'windows'},
+                     decorators.GetDisabledAttributes(Honda().Drive))
+    self.assertEqual({'windshield'},
+                     decorators.GetDisabledAttributes(Ford().Drive))
+    self.assertEqual({'windshield'},
+                     decorators.GetDisabledAttributes(Explorer().Drive))
     self.assertFalse(decorators.GetDisabledAttributes(Accord().Drive))
 
 
@@ -93,8 +93,8 @@ class TestEnableDecorators(unittest.TestCase):
       def Drive(self):
         pass
 
-    self.assertEquals({'windshield'},
-                      decorators.GetEnabledAttributes(Ford().Drive))
+    self.assertEqual({'windshield'},
+                     decorators.GetEnabledAttributes(Ford().Drive))
 
     class Honda(object):
 
@@ -104,8 +104,8 @@ class TestEnableDecorators(unittest.TestCase):
       def Drive(self):
         pass
 
-    self.assertEquals({'wheel', 'Drive', 'windows'},
-                      decorators.GetEnabledAttributes(Honda().Drive))
+    self.assertEqual({'wheel', 'Drive', 'windows'},
+                     decorators.GetEnabledAttributes(Honda().Drive))
 
     class Accord(Honda):
 
@@ -115,12 +115,12 @@ class TestEnableDecorators(unittest.TestCase):
     class Explorer(Ford):
       pass
 
-    self.assertEquals({'wheel', 'Drive', 'windows'},
-                      decorators.GetEnabledAttributes(Honda().Drive))
-    self.assertEquals({'windshield'},
-                      decorators.GetEnabledAttributes(Ford().Drive))
-    self.assertEquals({'windshield'},
-                      decorators.GetEnabledAttributes(Explorer().Drive))
+    self.assertEqual({'wheel', 'Drive', 'windows'},
+                     decorators.GetEnabledAttributes(Honda().Drive))
+    self.assertEqual({'windshield'},
+                     decorators.GetEnabledAttributes(Ford().Drive))
+    self.assertEqual({'windshield'},
+                     decorators.GetEnabledAttributes(Explorer().Drive))
     self.assertFalse(decorators.GetEnabledAttributes(Accord().Drive))
 
 
@@ -133,7 +133,7 @@ class TestInfoDecorators(unittest.TestCase):
     class Ford(object):
       pass
 
-    self.assertEquals(['owner@chromium.org'], decorators.GetEmails(Ford))
+    self.assertEqual(['owner@chromium.org'], decorators.GetEmails(Ford))
 
     @decorators.Info(emails=['owner2@chromium.org'])
     @decorators.Info(component='component',
@@ -143,12 +143,12 @@ class TestInfoDecorators(unittest.TestCase):
       pass
 
 
-    self.assertEquals(['owner2@chromium.org'], decorators.GetEmails(Honda))
-    self.assertEquals('http://bar.com', decorators.GetDocumentationLink(Honda))
-    self.assertEquals('component', decorators.GetComponent(Honda))
-    self.assertEquals(['owner@chromium.org'], decorators.GetEmails(Ford))
-    self.assertEquals('http://foo.com', decorators.GetDocumentationLink(Ford))
-    self.assertEquals('Has CVT Transmission', decorators.GetInfoBlurb(Honda))
+    self.assertEqual(['owner2@chromium.org'], decorators.GetEmails(Honda))
+    self.assertEqual('http://bar.com', decorators.GetDocumentationLink(Honda))
+    self.assertEqual('component', decorators.GetComponent(Honda))
+    self.assertEqual(['owner@chromium.org'], decorators.GetEmails(Ford))
+    self.assertEqual('http://foo.com', decorators.GetDocumentationLink(Ford))
+    self.assertEqual('Has CVT Transmission', decorators.GetInfoBlurb(Honda))
 
 
   def testInfoStringOnSubClass(self):
@@ -161,9 +161,9 @@ class TestInfoDecorators(unittest.TestCase):
     class Ford(Car):
       pass
 
-    self.assertEquals(['owner@chromium.org'], decorators.GetEmails(Car))
-    self.assertEquals('comp', decorators.GetComponent(Car))
-    self.assertEquals('https://car.com', decorators.GetDocumentationLink(Car))
+    self.assertEqual(['owner@chromium.org'], decorators.GetEmails(Car))
+    self.assertEqual('comp', decorators.GetComponent(Car))
+    self.assertEqual('https://car.com', decorators.GetDocumentationLink(Car))
     self.assertFalse(decorators.GetEmails(Ford))
     self.assertFalse(decorators.GetComponent(Ford))
     self.assertFalse(decorators.GetDocumentationLink(Ford))
@@ -443,4 +443,4 @@ class TestDeprecation(unittest.TestCase):
       def Foo(self, x):
         return x
 
-    self.assertEquals(5, Bar().Foo(5))
+    self.assertEqual(5, Bar().Foo(5))

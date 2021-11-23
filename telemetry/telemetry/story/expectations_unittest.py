@@ -448,7 +448,7 @@ class TestConditionTest(unittest.TestCase):
     self.assertTrue(
         expectations.WIN_7.ShouldDisable(
             self._platform, self._finder_options))
-    self.assertEquals('Win 7', str(expectations.WIN_7))
+    self.assertEqual('Win 7', str(expectations.WIN_7))
 
   def testWin10(self):
     self._platform.SetOSName('win')
@@ -456,7 +456,7 @@ class TestConditionTest(unittest.TestCase):
     self.assertTrue(
         expectations.WIN_10.ShouldDisable(
             self._platform, self._finder_options))
-    self.assertEquals('Win 10', str(expectations.WIN_10))
+    self.assertEqual('Win 10', str(expectations.WIN_10))
 
   def testAndroidGoWebviewFalseOnNotWebview(self):
     self._platform.SetOSName('android')

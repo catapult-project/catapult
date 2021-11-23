@@ -87,7 +87,7 @@ class ProcessMemoryDumpEventUnitTest(unittest.TestCase):
         'skia_different': {'size': 30}
     }
 
-    self.assertEquals(memory_dump._allocators, EXPECTED_ALLOCATORS)
+    self.assertEqual(memory_dump._allocators, EXPECTED_ALLOCATORS)
 
   def testProcessMemoryDump_mmaps(self):
     ALL = [2 ** x for x in range(8)]
@@ -117,7 +117,7 @@ class ProcessMemoryDumpEventUnitTest(unittest.TestCase):
 
     self.assertTrue(memory_dump.has_mmaps)
     for path, value in six.iteritems(EXPECTED):
-      self.assertEquals(
+      self.assertEqual(
           value,
           memory_dump.GetMemoryBucket(path).GetValue('proportional_resident'))
 
@@ -132,7 +132,7 @@ class ProcessMemoryDumpEventUnitTest(unittest.TestCase):
               MakeRawMemoryDumpEvent(pid=process.pid, mmaps=mmaps)]
     memory_dump = memory_dump_event.ProcessMemoryDumpEvent(process, events)
 
-    self.assertEquals(memory_dump._allocators, allocators)
+    self.assertEqual(memory_dump._allocators, allocators)
 
     EXPECTED_MMAPS = {
         '/': java_spaces,
@@ -142,7 +142,7 @@ class ProcessMemoryDumpEventUnitTest(unittest.TestCase):
 
     self.assertTrue(memory_dump.has_mmaps)
     for path, value in six.iteritems(EXPECTED_MMAPS):
-      self.assertEquals(
+      self.assertEqual(
           value,
           memory_dump.GetMemoryBucket(path).GetValue('proportional_resident'))
 
@@ -159,18 +159,18 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
     global_dump = memory_dump_event.GlobalMemoryDump(
         [process_dump1, process_dump2])
 
-    self.assertEquals(
+    self.assertEqual(
         repr(process_dump1),
         'ProcessMemoryDumpEvent[pid=1234, allocated_objects_v8=5,'
         ' allocator_v8=10, mmaps_ashmem=5, mmaps_java_heap=0,'
         ' mmaps_native_heap=0, mmaps_overall_pss=5, mmaps_private_dirty=0]')
-    self.assertEquals(
+    self.assertEqual(
         repr(process_dump2),
         'ProcessMemoryDumpEvent[pid=1234, allocated_objects_v8=10,'
         ' allocator_oilpan=40, allocator_v8=20, mmaps_ashmem=0,'
         ' mmaps_java_heap=0, mmaps_native_heap=42, mmaps_overall_pss=42,'
         ' mmaps_private_dirty=27]')
-    self.assertEquals(
+    self.assertEqual(
         repr(global_dump),
         'GlobalMemoryDump[id=123456ABCDEF, allocated_objects_v8=15,'
         ' allocator_oilpan=40, allocator_v8=30, mmaps_ashmem=5,'
@@ -197,7 +197,7 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
         TestProcessDumpEvent(pid=4, start=7)])
 
     self.assertFalse(memory_dump.has_mmaps)
-    self.assertEquals(4, len(list(memory_dump.IterProcessMemoryDumps())))
+    self.assertEqual(4, len(list(memory_dump.IterProcessMemoryDumps())))
     self.assertEqual([1, 2, 3, 4], sorted(memory_dump.pids))
     self.assertAlmostEquals(7.0, memory_dump.start)
     self.assertAlmostEquals(16.0, memory_dump.end)
@@ -221,12 +221,14 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
 
     self.assertTrue(memory_dump.has_mmaps)
     self.assertEqual([1, 2, 3, 4], sorted(memory_dump.pids))
-    self.assertEquals({'mmaps_overall_pss': sum(ALL[:5]),
-                       'mmaps_private_dirty': DIRTY_1 + DIRTY_2,
-                       'mmaps_java_heap': JAVA_HEAP_1 + JAVA_HEAP_2,
-                       'mmaps_ashmem': ASHMEM_1 + ASHMEM_2,
-                       'mmaps_native_heap': NATIVE},
-                      memory_dump.GetMemoryUsage())
+    self.assertEqual(
+        {
+            'mmaps_overall_pss': sum(ALL[:5]),
+            'mmaps_private_dirty': DIRTY_1 + DIRTY_2,
+            'mmaps_java_heap': JAVA_HEAP_1 + JAVA_HEAP_2,
+            'mmaps_ashmem': ASHMEM_1 + ASHMEM_2,
+            'mmaps_native_heap': NATIVE
+        }, memory_dump.GetMemoryUsage())
 
   def testGetMemoryUsageWithAllocators(self):
     process_dump1 = TestProcessDumpEvent(
@@ -237,14 +239,16 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
         allocators={'v8': {'size': 20, 'allocated_objects_size' : 10}})
     memory_dump = memory_dump_event.GlobalMemoryDump(
         [process_dump1, process_dump2])
-    self.assertEquals({'mmaps_overall_pss': 10,
-                       'mmaps_private_dirty': 0,
-                       'mmaps_java_heap': 0,
-                       'mmaps_ashmem': 10,
-                       'mmaps_native_heap': 0,
-                       'allocator_v8': 30,
-                       'allocated_objects_v8': 15},
-                      memory_dump.GetMemoryUsage())
+    self.assertEqual(
+        {
+            'mmaps_overall_pss': 10,
+            'mmaps_private_dirty': 0,
+            'mmaps_java_heap': 0,
+            'mmaps_ashmem': 10,
+            'mmaps_native_heap': 0,
+            'allocator_v8': 30,
+            'allocated_objects_v8': 15
+        }, memory_dump.GetMemoryUsage())
 
   def testGetMemoryUsageWithAndroidMemtrack(self):
     GL1, EGL1, GL2, EGL2 = [2 ** x for x in range(4)]
@@ -256,9 +260,11 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
                     'gpu/android_memtrack/graphics': {'memtrack_pss': EGL2}})
     memory_dump = memory_dump_event.GlobalMemoryDump(
         [process_dump1, process_dump2])
-    self.assertEquals({'android_memtrack_gl': GL1 + GL2,
-                       'android_memtrack_graphics': EGL1 + EGL2},
-                      memory_dump.GetMemoryUsage())
+    self.assertEqual(
+        {
+            'android_memtrack_gl': GL1 + GL2,
+            'android_memtrack_graphics': EGL1 + EGL2
+        }, memory_dump.GetMemoryUsage())
 
   def testGetMemoryUsageDiscountsTracing(self):
     ALL = [2 ** x for x in range(5)]
@@ -272,11 +278,13 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
                 'tracing': {'size': TRACING_1, 'resident_size': TRACING_2},
                 'malloc': {'size': MALLOC + TRACING_1}})])
 
-    self.assertEquals({'mmaps_overall_pss': HEAP,
-                       'mmaps_private_dirty': DIRTY,
-                       'mmaps_java_heap': 0,
-                       'mmaps_ashmem': 0,
-                       'mmaps_native_heap': HEAP,
-                       'allocator_tracing': TRACING_1,
-                       'allocator_malloc': MALLOC},
-                      memory_dump.GetMemoryUsage())
+    self.assertEqual(
+        {
+            'mmaps_overall_pss': HEAP,
+            'mmaps_private_dirty': DIRTY,
+            'mmaps_java_heap': 0,
+            'mmaps_ashmem': 0,
+            'mmaps_native_heap': HEAP,
+            'allocator_tracing': TRACING_1,
+            'allocator_malloc': MALLOC
+        }, memory_dump.GetMemoryUsage())

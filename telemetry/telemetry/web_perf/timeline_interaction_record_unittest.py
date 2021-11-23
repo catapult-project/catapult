@@ -12,4 +12,4 @@ class TimelineInteractionRecordTests(unittest.TestCase):
   def testGetJavaScriptMarker(self):
     repeatable_marker = tir_module.GetJavaScriptMarker(
         'MyLabel', [tir_module.REPEATABLE])
-    self.assertEquals('Interaction.MyLabel/repeatable', repeatable_marker)
+    self.assertEqual('Interaction.MyLabel/repeatable', repeatable_marker)

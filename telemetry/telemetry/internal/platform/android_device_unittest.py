@@ -45,7 +45,7 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
     self._healthy_device_mock.return_value = [
         self._GetMockDeviceUtils('01'),
         self._GetMockDeviceUtils('02')]
-    self.assertEquals(
+    self.assertEqual(
         {'01', '02'},
         set(device.device_id for device in
             android_device.AndroidDevice.GetAllConnectedDevices(None)))
@@ -57,7 +57,7 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
     with (
         mock.patch('os.path.isabs', return_value=True)), (
             mock.patch('os.path.exists', return_value=False)):
-      self.assertEquals(warning_mock.call_count, 0)
+      self.assertEqual(warning_mock.call_count, 0)
       self.assertIsNone(android_device.GetDevice(finder_options))
 
   # https://github.com/catapult-project/catapult/issues/3099 (Android)
@@ -67,7 +67,7 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
     finder_options = browser_options.BrowserFinderOptions()
     with mock.patch('os.path.isabs', return_value=False):
       self._healthy_device_mock.return_value = []
-      self.assertEquals(warning_mock.call_count, 0)
+      self.assertEqual(warning_mock.call_count, 0)
       self.assertIsNone(android_device.GetDevice(finder_options))
 
   # https://github.com/catapult-project/catapult/issues/3099 (Android)
@@ -98,8 +98,8 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
           self._GetMockDeviceUtils('015d14fec128220c'),
           self._GetMockDeviceUtils('555d14fecddddddd')]
       device = android_device.GetDevice(finder_options)
-      self.assertEquals(warning_mock.call_count, 0)
-      self.assertEquals('555d14fecddddddd', device.device_id)
+      self.assertEqual(warning_mock.call_count, 0)
+      self.assertEqual('555d14fecddddddd', device.device_id)
 
   # https://github.com/catapult-project/catapult/issues/3099 (Android)
   @decorators.Disabled('all')
@@ -110,8 +110,8 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
       self._healthy_device_mock.return_value = [
           self._GetMockDeviceUtils('015d14fec128220c')]
       device = android_device.GetDevice(finder_options)
-      self.assertEquals(warning_mock.call_count, 0)
-      self.assertEquals('015d14fec128220c', device.device_id)
+      self.assertEqual(warning_mock.call_count, 0)
+      self.assertEqual('015d14fec128220c', device.device_id)
 
 
 class FindAllAvailableDevicesTest(_BaseAndroidDeviceTest):
@@ -124,9 +124,9 @@ class FindAllAvailableDevicesTest(_BaseAndroidDeviceTest):
     with mock.patch('os.path.isabs', return_value=False):
       self._healthy_device_mock.return_value = []
       devices = android_device.FindAllAvailableDevices(finder_options)
-      self.assertEquals(warning_mock.call_count, 0)
+      self.assertEqual(warning_mock.call_count, 0)
       self.assertIsNotNone(devices)
-      self.assertEquals(len(devices), 0)
+      self.assertEqual(len(devices), 0)
 
 
   @decorators.Disabled('all')
@@ -138,10 +138,10 @@ class FindAllAvailableDevicesTest(_BaseAndroidDeviceTest):
       self._healthy_device_mock.return_value = [
           self._GetMockDeviceUtils('015d14fec128220c')]
       devices = android_device.FindAllAvailableDevices(finder_options)
-      self.assertEquals(warning_mock.call_count, 0)
+      self.assertEqual(warning_mock.call_count, 0)
       self.assertIsNotNone(devices)
-      self.assertEquals(len(devices), 1)
-      self.assertEquals('015d14fec128220c', devices[0].device_id)
+      self.assertEqual(len(devices), 1)
+      self.assertEqual('015d14fec128220c', devices[0].device_id)
 
 
   @decorators.Disabled('all')
@@ -155,9 +155,9 @@ class FindAllAvailableDevicesTest(_BaseAndroidDeviceTest):
           self._GetMockDeviceUtils('015d14fec128220d'),
           self._GetMockDeviceUtils('015d14fec128220e')]
       devices = android_device.FindAllAvailableDevices(finder_options)
-      self.assertEquals(warning_mock.call_count, 0)
+      self.assertEqual(warning_mock.call_count, 0)
       self.assertIsNotNone(devices)
-      self.assertEquals(len(devices), 3)
-      self.assertEquals(devices[0].guid, '015d14fec128220c')
-      self.assertEquals(devices[1].guid, '015d14fec128220d')
-      self.assertEquals(devices[2].guid, '015d14fec128220e')
+      self.assertEqual(len(devices), 3)
+      self.assertEqual(devices[0].guid, '015d14fec128220c')
+      self.assertEqual(devices[1].guid, '015d14fec128220d')
+      self.assertEqual(devices[2].guid, '015d14fec128220e')

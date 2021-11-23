@@ -79,7 +79,7 @@ class LocalServerUnittest(tab_test_case.TabTestCase):
     self._tab.WaitForDocumentReadyStateToBeComplete()
     body_text = self._tab.EvaluateJavaScript('document.body.textContent')
     body_text = body_text.strip()
-    self.assertEquals('hello world', body_text)
+    self.assertEqual('hello world', body_text)
 
   @decorators.Disabled('all')  # TODO(crbug.com/799487): Fix and re-enable test.
   def testStartingAndRestarting(self):

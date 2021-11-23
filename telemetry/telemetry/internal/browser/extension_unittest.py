@@ -56,8 +56,7 @@ class ExtensionTest(unittest.TestCase):
       self.assertTrue(
           extension.EvaluateJavaScript('chrome.runtime != null'))
       extension.ExecuteJavaScript('setTestVar("abcdef")')
-      self.assertEquals('abcdef',
-                        extension.EvaluateJavaScript('_testVar'))
+      self.assertEqual('abcdef', extension.EvaluateJavaScript('_testVar'))
 
   def testExtensionGetByExtensionId(self):
     """Test GetByExtensionId for a simple extension with a background page."""
@@ -135,7 +134,7 @@ class MultipleExtensionTest(ExtensionTest):
           self.assertTrue(
               extension.EvaluateJavaScript('chrome.runtime != null'))
           extension.ExecuteJavaScript('setTestVar("abcdef")')
-          self.assertEquals('abcdef', extension.EvaluateJavaScript('_testVar'))
+          self.assertEqual('abcdef', extension.EvaluateJavaScript('_testVar'))
 
 
 class WebviewInExtensionTest(ExtensionTest):
@@ -148,7 +147,7 @@ class WebviewInExtensionTest(ExtensionTest):
     """Tests GetWebviewContext() for a web app containing <webview> element."""
     with self.CreateBrowserWithExtension('webview_app') as (_, extension):
       webview_contexts = extension.GetWebviewContexts()
-      self.assertEquals(1, len(webview_contexts))
+      self.assertEqual(1, len(webview_contexts))
       webview_context = webview_contexts[0]
       webview_context.WaitForDocumentReadyStateToBeComplete()
       # Check that the context has the right url from the <webview> element.

@@ -24,8 +24,8 @@ class TestGetSequentialFileName(unittest.TestCase):
   def testGetSequentialFileNameNoOtherSequentialFile(self):
     next_json_test_file_path = util.GetSequentialFileName(os.path.join(
         self.test_directory, 'test'))
-    self.assertEquals(
-        os.path.join(self.test_directory, 'test_000'), next_json_test_file_path)
+    self.assertEqual(os.path.join(self.test_directory, 'test_000'),
+                     next_json_test_file_path)
 
   def testGetSequentialFileNameWithOtherSequentialFiles(self):
     # Create test_000.json, test_001.json, test_002.json in test directory.
@@ -35,8 +35,8 @@ class TestGetSequentialFileName(unittest.TestCase):
         pass
     next_json_test_file_path = util.GetSequentialFileName(os.path.join(
         self.test_directory, 'test'))
-    self.assertEquals(
-        os.path.join(self.test_directory, 'test_003'), next_json_test_file_path)
+    self.assertEqual(os.path.join(self.test_directory, 'test_003'),
+                     next_json_test_file_path)
 
   def tearDown(self):
     shutil.rmtree(self.test_directory)
@@ -47,7 +47,7 @@ class TestGetUsedBuildDirectory(unittest.TestCase):
   def testGetUsedBuildDirectoryBrowserDirectoryExists(self):
     with mock.patch('os.path.exists') as m:
       m.return_value = True
-      self.assertEquals(util.GetUsedBuildDirectory('/foo/test'), '/foo/test')
+      self.assertEqual(util.GetUsedBuildDirectory('/foo/test'), '/foo/test')
 
   def testGetUsedBuildDirectoryBrowserDirectoryDoesNotExist(self):
     with mock.patch('os.path.exists') as m:
@@ -62,8 +62,8 @@ class TestGetUsedBuildDirectory(unittest.TestCase):
 
     with mock.patch('os.path.exists') as m:
       m.side_effect = side_effect
-      self.assertEquals(util.GetUsedBuildDirectory(chrome_root='.'),
-                        os.path.join('.', 'out', 'Release_x64'))
+      self.assertEqual(util.GetUsedBuildDirectory(chrome_root='.'),
+                       os.path.join('.', 'out', 'Release_x64'))
 
 
 class TestGetBuildDirFromHostApkPath(unittest.TestCase):

@@ -59,16 +59,16 @@ class HistogramTest(unittest.TestCase):
 
     hist = image_util.GetColorHistogram(bmp)
     for i in range(3):
-      self.assertEquals(sum(hist[i]),
-                        image_util.Width(bmp) * image_util.Height(bmp))
-    self.assertEquals(hist.r[1], 0)
-    self.assertEquals(hist.r[5], 2)
-    self.assertEquals(hist.r[8], 2)
-    self.assertEquals(hist.g[2], 0)
-    self.assertEquals(hist.g[4], 2)
-    self.assertEquals(hist.g[7], 2)
-    self.assertEquals(hist.b[3], 0)
-    self.assertEquals(hist.b[6], 4)
+      self.assertEqual(sum(hist[i]),
+                       image_util.Width(bmp) * image_util.Height(bmp))
+    self.assertEqual(hist.r[1], 0)
+    self.assertEqual(hist.r[5], 2)
+    self.assertEqual(hist.r[8], 2)
+    self.assertEqual(hist.g[2], 0)
+    self.assertEqual(hist.g[4], 2)
+    self.assertEqual(hist.g[7], 2)
+    self.assertEqual(hist.b[3], 0)
+    self.assertEqual(hist.b[6], 4)
 
   def testHistogramIgnoreColor(self):
     pixels = [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3,
@@ -78,14 +78,14 @@ class HistogramTest(unittest.TestCase):
 
     hist = image_util.GetColorHistogram(
         bmp, ignore_color=rgba_color.RgbaColor(1, 2, 3))
-    self.assertEquals(hist.r[1], 0)
-    self.assertEquals(hist.r[5], 2)
-    self.assertEquals(hist.r[8], 2)
-    self.assertEquals(hist.g[2], 0)
-    self.assertEquals(hist.g[4], 2)
-    self.assertEquals(hist.g[7], 2)
-    self.assertEquals(hist.b[3], 0)
-    self.assertEquals(hist.b[6], 4)
+    self.assertEqual(hist.r[1], 0)
+    self.assertEqual(hist.r[5], 2)
+    self.assertEqual(hist.r[8], 2)
+    self.assertEqual(hist.g[2], 0)
+    self.assertEqual(hist.g[4], 2)
+    self.assertEqual(hist.g[7], 2)
+    self.assertEqual(hist.b[3], 0)
+    self.assertEqual(hist.b[6], 4)
 
   def testHistogramIgnoreColorTolerance(self):
     pixels = [1, 2, 3, 4, 5, 6,
@@ -94,17 +94,17 @@ class HistogramTest(unittest.TestCase):
 
     hist = image_util.GetColorHistogram(
         bmp, ignore_color=rgba_color.RgbaColor(0, 1, 2), tolerance=1)
-    self.assertEquals(hist.r[1], 0)
-    self.assertEquals(hist.r[4], 1)
-    self.assertEquals(hist.r[7], 1)
-    self.assertEquals(hist.r[8], 1)
-    self.assertEquals(hist.g[2], 0)
-    self.assertEquals(hist.g[5], 1)
-    self.assertEquals(hist.g[7], 1)
-    self.assertEquals(hist.g[8], 1)
-    self.assertEquals(hist.b[3], 0)
-    self.assertEquals(hist.b[6], 2)
-    self.assertEquals(hist.b[9], 1)
+    self.assertEqual(hist.r[1], 0)
+    self.assertEqual(hist.r[4], 1)
+    self.assertEqual(hist.r[7], 1)
+    self.assertEqual(hist.r[8], 1)
+    self.assertEqual(hist.g[2], 0)
+    self.assertEqual(hist.g[5], 1)
+    self.assertEqual(hist.g[7], 1)
+    self.assertEqual(hist.g[8], 1)
+    self.assertEqual(hist.b[3], 0)
+    self.assertEqual(hist.b[6], 2)
+    self.assertEqual(hist.b[9], 1)
 
   def testHistogramDistanceIgnoreColor(self):
     pixels = [1, 2, 3, 1, 2, 3,
@@ -115,4 +115,4 @@ class HistogramTest(unittest.TestCase):
         bmp, ignore_color=rgba_color.RgbaColor(1, 2, 3))
     hist2 = image_util.GetColorHistogram(bmp)
 
-    self.assertEquals(hist1.Distance(hist2), 0)
+    self.assertEqual(hist1.Distance(hist2), 0)

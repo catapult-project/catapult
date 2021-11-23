@@ -53,11 +53,11 @@ class ScrollToElementActionTest(tab_test_case.TabTestCase):
   def testScrollToElement(self):
     self._MakePageVerticallyScrollable()
     self._InsertElement()
-    self.assertEquals(
+    self.assertEqual(
         self._tab.EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
 
     # Before we scroll down the element should not be visible at all.
-    self.assertEquals(self._VisibleAreaOfElement(), 0)
+    self.assertEqual(self._VisibleAreaOfElement(), 0)
 
     i = scroll_to_element.ScrollToElementAction(selector='#element')
     i.WillRunAction(self._tab)
@@ -70,11 +70,11 @@ class ScrollToElementActionTest(tab_test_case.TabTestCase):
     self._MakePageVerticallyScrollable()
     self._InsertContainer()
     self._InsertElement(container_selector='#container')
-    self.assertEquals(
+    self.assertEqual(
         self._tab.EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
 
     # Before we scroll down the element should not be visible at all.
-    self.assertEquals(self._VisibleAreaOfElement(), 0)
+    self.assertEqual(self._VisibleAreaOfElement(), 0)
 
     i = scroll_to_element.ScrollToElementAction(
         selector='#element', container_selector='#container')

@@ -49,7 +49,7 @@ class TestWebSocket(unittest.TestCase):
     threading.Thread(target=httpd.handle_request).start()
     ws = websocket.CreateConnection(ws_url)
     try:
-      self.assertNotEquals(
+      self.assertNotEqual(
           ws.sock.getsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR), 0)
     finally:
       ws.close()
@@ -59,9 +59,9 @@ class TestWebSocket(unittest.TestCase):
         ws_url,
         sockopt=[(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)])
     try:
-      self.assertNotEquals(
+      self.assertNotEqual(
           ws.sock.getsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR), 0)
-      self.assertNotEquals(
+      self.assertNotEqual(
           ws.sock.getsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY), 0)
     finally:
       ws.close()

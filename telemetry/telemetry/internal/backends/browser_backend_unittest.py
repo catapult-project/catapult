@@ -40,7 +40,7 @@ class BrowserBackendLogsUploadingUnittest(unittest.TestCase):
       b = FakeBrowserBackend(
           platform_backend=None, browser_options=options.browser_options,
           supports_extensions=False, tab_list_backend=None)
-      self.assertEquals(b.GetLogFileContents(), 'This is a\ntest log file.\n')
+      self.assertEqual(b.GetLogFileContents(), 'This is a\ntest log file.\n')
       with mock.patch('py_utils.cloud_storage.Insert') as mock_insert:
         b.UploadLogsToCloudStorage()
         mock_insert.assert_called_with(

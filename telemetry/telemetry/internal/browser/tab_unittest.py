@@ -29,7 +29,7 @@ class TabTest(tab_test_case.TabTestCase):
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
   def testTabBrowserIsRightBrowser(self):
-    self.assertEquals(self._tab.browser, self._browser)
+    self.assertEqual(self._tab.browser, self._browser)
 
   def testRendererCrash(self):
     self.assertRaises(exceptions.DevtoolsTargetCrashException,
@@ -77,14 +77,14 @@ class TabTest(tab_test_case.TabTestCase):
     self.assertFalse(_IsDocumentVisible(new_tab))
 
   def testTabUrl(self):
-    self.assertEquals(self._tab.url, 'about:blank')
+    self.assertEqual(self._tab.url, 'about:blank')
     url = self.UrlOfUnittestFile('blank.html')
     self._tab.Navigate(url)
-    self.assertEquals(self._tab.url, url)
+    self.assertEqual(self._tab.url, url)
 
   @decorators.Disabled('android') # https://crbug.com/463933
   def testTabIsAlive(self):
-    self.assertEquals(self._tab.url, 'about:blank')
+    self.assertEqual(self._tab.url, 'about:blank')
     self.assertTrue(self._tab.IsAlive())
 
     self._tab.Navigate(self.UrlOfUnittestFile('blank.html'))
@@ -130,23 +130,23 @@ class ServiceWorkerTabTest(tab_test_case.TabTestCase):
     self._tab.Navigate(self.UrlOfUnittestFile('blank.html'))
     py_utils.WaitFor(self._tab.IsServiceWorkerActivatedOrNotRegistered,
                      timeout=10)
-    self.assertEquals(self._tab._GetServiceWorkerState(),
-                      ServiceWorkerState.NOT_REGISTERED)
+    self.assertEqual(self._tab._GetServiceWorkerState(),
+                     ServiceWorkerState.NOT_REGISTERED)
     self._tab.ExecuteJavaScript(
         'navigator.serviceWorker.register("{{ @scriptURL }}");',
         scriptURL=self.UrlOfUnittestFile('blank.js'))
     py_utils.WaitFor(self._tab.IsServiceWorkerActivatedOrNotRegistered,
                      timeout=10)
-    self.assertEquals(self._tab._GetServiceWorkerState(),
-                      ServiceWorkerState.ACTIVATED)
+    self.assertEqual(self._tab._GetServiceWorkerState(),
+                     ServiceWorkerState.ACTIVATED)
 
   def testClearDataForOrigin(self):
     self._tab.Navigate(self.UrlOfUnittestFile('blank.html'))
     self._tab.ExecuteJavaScript(
-        'var asyncOperationDone = false; \
-         var isServiceWorkerRegisteredForThisOrigin = false; \
-         navigator.serviceWorker.register("{{ @scriptURL }}").then(_ => { \
-             asyncOperationDone = true; });',
+        ('var asyncOperationDone = false;'
+         'var isServiceWorkerRegisteredForThisOrigin = false;'
+         'navigator.serviceWorker.register("{{ @scriptURL }}").then(_ => {'
+         'asyncOperationDone = true; });'),
         scriptURL=self.UrlOfUnittestFile('blank.js'))
     self._tab.WaitForJavaScriptCondition('asyncOperationDone')
     check_registration = 'asyncOperationDone = false; \
