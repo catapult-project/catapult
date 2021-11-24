@@ -1192,18 +1192,25 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
       with self.assertCalls(
           (mock.call.py_utils.tempfile_ext.NamedTemporaryDirectory(),
            mock_zip_temp_dir),
+          self.call.device.RunShellCommand([
+              'rm', '-rf',
+              '/sdcard/Android/data/test.package/files/local_testing'
+          ],
+                                           as_root=True),
           (mock.call.os.rename('fake1-master.apk', '/test/tmp/dir/fake1.apk')),
           (self.call.device.PushChangedFiles(
               [('/test/tmp/dir', '/data/local/tmp/modules/test.package')],
               delete_device_stale=True)),
-          self.call.device.RunShellCommand(
-              ['mkdir', '-p', '/sdcard/Android/data/test.package/files'],
-              as_root=True),
           self.call.device.RunShellCommand([
-              'cp', '-a', '/data/local/tmp/modules/test.package',
+              'mkdir', '-p',
               '/sdcard/Android/data/test.package/files/local_testing'
           ],
                                            as_root=True),
+          self.call.device.RunShellCommand(
+              'cp -a /data/local/tmp/modules/test.package/* ' +
+              '/sdcard/Android/data/test.package/files/local_testing/',
+              as_root=True,
+              shell=True),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
           (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE), []),
           self.call.adb.Install(TEST_APK_PATH,
