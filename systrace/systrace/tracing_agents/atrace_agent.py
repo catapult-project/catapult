@@ -250,12 +250,12 @@ class AtraceAgent(tracing_agents.TracingAgent):
     Note that prior to Api 23, --async-stop isn't working correctly. It
     doesn't stop tracing and clears trace buffer before dumping it rendering
     results unusable."""
+    compress_trace_data = '-z' in self._tracer_args
     if self._device_sdk_version < version_codes.MARSHMALLOW:
       is_trace_enabled_file = '%s/tracing_on' % self._tracing_path
       # Stop tracing first so new data won't arrive while dump is performed (it
       # may take a non-trivial time and tracing buffer may overflow).
       self._device_utils.WriteFile(is_trace_enabled_file, '0')
-      compress_trace_data = '-z' in self._tracer_args
       # For compressed trace data, we don't want encoding when adb shell reads
       # the temp output file. (crbug/1271668)
       if compress_trace_data:
@@ -275,10 +275,17 @@ class AtraceAgent(tracing_agents.TracingAgent):
           self._tracer_args + ['-t 0'], check_return=True)
     else:
       # On M+ --async_stop does everything necessary
-      result = self._device_utils.RunShellCommand(
-          self._tracer_args + ['--async_stop'], raw_output=True,
-          large_output=True, check_return=True,
-          timeout=ADB_LARGE_OUTPUT_TIMEOUT)
+      if compress_trace_data:
+        result = self._device_utils.RunShellCommand(
+            self._tracer_args + ['--async_stop'], raw_output=True,
+            large_output=True, check_return=True,
+            timeout=ADB_LARGE_OUTPUT_TIMEOUT,
+            encoding=None)
+      else:
+        result = self._device_utils.RunShellCommand(
+            self._tracer_args + ['--async_stop'], raw_output=True,
+            large_output=True, check_return=True,
+            timeout=ADB_LARGE_OUTPUT_TIMEOUT)
       print('DEBUG: Length of result from large output run: %d' % len(result))
       print('DEBUG: Type of result: %s' % type(result))
       print('DEBUG: First 30 chars: %s' % result[:30])
