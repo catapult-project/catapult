@@ -9,6 +9,7 @@ https://code.google.com/p/trace-viewer/
 
 from __future__ import absolute_import
 import logging
+import itertools
 
 from operator import attrgetter
 
@@ -223,10 +224,9 @@ class TimelineModel(event_container.TimelineEventContainer):
     for (i, event) in enumerate(events):
       if event.name != names[i]:
         raise MarkerMismatchError()
-    for i in range(0, len(events)):
-      for j in range(i+1, len(events)):
-        if events[j].start < events[i].start + events[i].duration:
-          raise MarkerOverlapError()
+    for event_i, event_j in itertools.combinations(events, 2):
+      if event_j.start < event_i.start + event_i.duration:
+        raise MarkerOverlapError()
 
     return events
 

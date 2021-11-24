@@ -460,7 +460,7 @@ def FindAllAvailableBrowsers(finder_options, device):
     if "--ozone-platform" in arg:
       has_ozone_platform = True
 
-  if len(browsers) and not has_x11_display and not has_ozone_platform:
+  if browsers and not has_x11_display and not has_ozone_platform:
     logging.warning(
         'Found (%s), but you do not have a DISPLAY environment set.', ','.join(
             [b.browser_type for b in browsers]))

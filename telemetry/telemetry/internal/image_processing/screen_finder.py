@@ -8,10 +8,11 @@
 #
 # Usage: ./screen_finder.py path_to_video 0 0 --verbose
 
+from __future__ import absolute_import
 from __future__ import division
 
-from __future__ import absolute_import
 import copy
+import itertools
 import logging
 import os
 import sys
@@ -238,25 +239,24 @@ class ScreenFinder(object):
       points and the lines that intersect there of all lines in the array that
       are more than 45 degrees apart."""
     intersections = np.empty((0, 3), np.float32)
-    for i in range(0, len(lines)):
-      for j in range(i + 1, len(lines)):
-        # Filter lines that are less than 45 (or greater than 135) degrees
-        # apart.
-        if not cv_util.AreLinesOrthogonal(lines[i], lines[j], (np.pi / 4.0)):
-          continue
-        ret, point = cv_util.FindLineIntersection(lines[i], lines[j])
-        point = np.float32(point)
-        if not ret:
-          continue
-        # If we know where the previous corners are, we can also filter
-        # intersections that are too far away from the previous corners to be
-        # where the screen has moved.
-        if self._prev_corners is not None and \
-           self._lost_corner_frames <= self.RESET_AFTER_N_BAD_FRAMES and \
-           not self._PointIsCloseToPreviousCorners(point):
-          continue
-        intersections = np.vstack((intersections,
-                                   np.array((point, lines[i], lines[j]))))
+    for line_i, line_j in itertools.combinations(lines, 2):
+      # Filter lines that are less than 45 (or greater than 135) degrees
+      # apart.
+      if not cv_util.AreLinesOrthogonal(line_i, line_j, (np.pi / 4.0)):
+        continue
+      ret, point = cv_util.FindLineIntersection(line_i, line_j)
+      point = np.float32(point)
+      if not ret:
+        continue
+      # If we know where the previous corners are, we can also filter
+      # intersections that are too far away from the previous corners to be
+      # where the screen has moved.
+      if (self._prev_corners is not None
+          and self._lost_corner_frames <= self.RESET_AFTER_N_BAD_FRAMES
+          and not self._PointIsCloseToPreviousCorners(point)):
+        continue
+      intersections = np.vstack((intersections, np.array(
+          (point, line_i, line_j))))
     return intersections
 
   def _PointIsCloseToPreviousCorners(self, point):
@@ -628,7 +628,7 @@ class ScreenFinder(object):
       # hard-coded anywhere.
       corner_image = self._frame_edges[corner[1] - 1:corner[1] + 2,
                                        corner[0] - 1:corner[0] + 2]
-      ret, p = self._FindExactCorner(i <= 1, i == 1 or i == 2, corner_image)
+      ret, p = self._FindExactCorner(i <= 1, i in (1, 2), corner_image)
       if ret:
         if self.DEBUG:
           self._frame_edges[corner[1] - 1 + p[1]][corner[0] - 1 + p[0]] = 128

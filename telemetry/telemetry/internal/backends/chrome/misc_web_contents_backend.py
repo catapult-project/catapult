@@ -26,7 +26,7 @@ class MiscWebContentsBackend(inspector_backend_list.InspectorBackendList):
       return False
 
   def GetOobe(self):
-    if not len(self):
+    if not self:
       return None
     return self[0]
 

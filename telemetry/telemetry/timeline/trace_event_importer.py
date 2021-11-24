@@ -231,21 +231,21 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     memory_dump_events = []
     for event in self._events:
       phase = event.get('ph', None)
-      if phase == 'B' or phase == 'E':
+      if phase in ('B', 'E'):
         self._ProcessDurationEvent(event)
       elif phase == 'X':
         self._ProcessCompleteEvent(event)
       # Note, S, F, T are deprecated and replaced by 'b' and 'e'. For
       # backwards compatibility continue to support them here.
-      elif phase == 'S' or phase == 'F' or phase == 'T':
+      elif phase in ('S', 'F', 'T'):
         self._ProcessAsyncEvent(event)
-      elif phase == 'b' or phase == 'e':
+      elif phase in ('b', 'e'):
         self._ProcessAsyncEvent(event)
       elif phase == 'n':
         self._ProcessAsyncEvent(event)
       # Note, I is historic. The instant event marker got changed, but we
       # want to support loading old trace files so we have both I and i.
-      elif phase == 'I' or phase == 'i':
+      elif phase in ('I', 'i'):
         self._ProcessInstantEvent(event)
       elif phase == 'P':
         self._ProcessSampleEvent(event)
@@ -253,9 +253,9 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
         self._ProcessCounterEvent(event)
       elif phase == 'M':
         self._ProcessMetadataEvent(event)
-      elif phase == 'N' or phase == 'D' or phase == 'O':
+      elif phase in ('N', 'D', 'O'):
         self._ProcessObjectEvent(event)
-      elif phase == 's' or phase == 't' or phase == 'f':
+      elif phase in ('s', 't', 'f'):
         self._ProcessFlowEvent(event)
       elif phase == 'v':
         memory_dump_events.append(event)

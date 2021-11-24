@@ -405,8 +405,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
           total_shards, shard_index, num_tests))
     # Make assertions about ranges
     num_tests_run = 0
-    for i in range(0, len(shard_indices)):
-      cur_indices = shard_indices[i]
+    for i, cur_indices in enumerate(shard_indices):
       num_tests_in_shard = len(cur_indices)
       if i < num_tests:
         self.assertGreater(num_tests_in_shard, 0)
@@ -417,8 +416,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
 
     # Assert that we run all of the tests exactly once.
     all_indices = set()
-    for i in range(0, len(shard_indices)):
-      cur_indices = shard_indices[i]
+    for cur_indices in shard_indices:
       all_indices.update(cur_indices)
     self.assertEqual(num_tests_run, num_tests)
     self.assertEqual(num_tests_run, len(all_indices))

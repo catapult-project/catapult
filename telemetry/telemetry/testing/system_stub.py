@@ -63,7 +63,7 @@ class Override(object):
       self.os.path.sys = self.sys
 
   def __del__(self):
-    assert not len(self._overrides)
+    assert not self._overrides
 
   def Restore(self):
     for module_name, original_module in six.iteritems(self._overrides):

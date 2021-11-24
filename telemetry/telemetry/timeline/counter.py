@@ -99,7 +99,7 @@ class Counter(event_container.TimelineEventContainer):
 
     self.totals = []
     self.max_total = 0
-    if not len(self.samples):
+    if not self.samples:
       return
 
     max_total = None

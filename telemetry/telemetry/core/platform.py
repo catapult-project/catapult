@@ -503,8 +503,7 @@ class Platform(object):
           float(tokens[col_time]) > skip_duration + sample_duration):
         break
       samples += 1
-      for ii in range(0, len(indices)):
-        index = indices[ii]
+      for ii, index in enumerate(indices):
         sums[ii] += float(tokens[index])
     results = {'samples': samples}
     if samples > 0:

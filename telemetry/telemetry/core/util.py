@@ -177,7 +177,7 @@ def GetBuildDirFromHostApkPath(apk_path):
   parent_dir = os.path.basename(os.path.dirname(apk_path))
   # Locally built regular APKs should be in out/Foo/apks/, while locally built
   # bundle APKs should be in out/Foo/bin/. We want out/Foo in this case.
-  if parent_dir == 'apks' or parent_dir == 'bin':
+  if parent_dir in ('apks', 'bin'):
     return os.path.dirname(os.path.dirname(apk_path))
   # Otherwise, we're probably a prebuilt binary.
   return None

@@ -65,7 +65,7 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
 
     response = self._browser_backend.devtools_client.CloseTab(tab_id, timeout)
 
-    if response != 'Target is closing' and response != b'Target is closing':
+    if response not in ('Target is closing', b'Target is closing'):
       raise TabUnexpectedResponseException(
           app=self._browser_backend.browser,
           msg='Received response: %s' % response)
@@ -85,7 +85,7 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
     response = self._browser_backend.devtools_client.ActivateTab(tab_id,
                                                                  timeout)
 
-    if response != 'Target activated' and response != b'Target activated':
+    if response not in ('Target activated', b'Target activated'):
       raise TabUnexpectedResponseException(
           app=self._browser_backend.browser,
           msg='Received response: %s' % response)

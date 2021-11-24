@@ -48,11 +48,8 @@ class PsUtilTest(unittest.TestCase):
       ps_util.RunSubProcWithTimeout(args, 1, 'test')
     time.sleep(.5)
     subprocess_ids = ps_util.GetAllSubprocessIDs()
-    if len(subprocess_ids):
-      for subprocess_id in subprocess_ids:
-        self.assertFalse(
-            str(subprocess_id) in repr(e.exception),
-            'The pid %d causing timeout should not exist. Exception: %s' % (
-                subprocess_id, repr(e.exception)
-            ))
-
+    for subprocess_id in subprocess_ids:
+      self.assertFalse(
+          str(subprocess_id) in repr(e.exception),
+          'The pid %d causing timeout should not exist. Exception: %s' %
+          (subprocess_id, repr(e.exception)))
