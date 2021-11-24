@@ -305,7 +305,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   def UpdateExecutableIfNeeded(self):
     # TODO(crbug.com/815133): This logic should belong to backend_settings.
     for apk in self._support_apk_list:
-      logging.warn('Installing %s on device if needed.', apk)
+      logging.warning('Installing %s on device if needed.', apk)
       self.platform.InstallApplication(apk)
 
     apk_name = self._backend_settings.GetApkName(
@@ -322,12 +322,12 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       self._platform_backend.device.SetWebViewFallbackLogic(False)
 
     if self._local_apk:
-      logging.warn('Installing %s on device if needed.', self._local_apk)
+      logging.warning('Installing %s on device if needed.', self._local_apk)
       self.platform.InstallApplication(
           self._local_apk, modules=self._modules_to_install)
       if self._compile_apk:
         package_name = apk_helper.GetPackageName(self._local_apk)
-        logging.warn('Compiling %s.', package_name)
+        logging.warning('Compiling %s.', package_name)
         self._platform_backend.device.RunShellCommand(
             ['cmd', 'package', 'compile', '-m', self._compile_apk, '-f',
              package_name],
@@ -342,7 +342,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
          (is_monochrome and sdk_version < version_codes.Q)) and
         sdk_version >= version_codes.NOUGAT):
       package_name = apk_helper.GetPackageName(self._local_apk)
-      logging.warn('Setting %s as WebView implementation.', package_name)
+      logging.warning('Setting %s as WebView implementation.', package_name)
       self._platform_backend.device.SetWebViewImplementation(package_name)
 
   def GetTypExpectationsTags(self):

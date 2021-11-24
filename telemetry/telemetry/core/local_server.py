@@ -144,8 +144,8 @@ class LocalServer(object):
           continue
         break
       else:
-        logging.warn('Local server subprocess is still running after we '
-                     'attempted to kill it.')
+        logging.warning('Local server subprocess is still running after we '
+                        'attempted to kill it.')
       self._subprocess = None
     if self._devnull:
       self._devnull.close()

@@ -191,8 +191,8 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
       except Exception: # pylint: disable=broad-except
         retry = x < _BROWSER_STARTUP_TRIES - 1
         retry_message = 'retrying' if retry else 'giving up'
-        logging.warn('Browser creation failed (attempt %d of %d), %s.',
-                     (x + 1), _BROWSER_STARTUP_TRIES, retry_message)
+        logging.warning('Browser creation failed (attempt %d of %d), %s.',
+                        (x + 1), _BROWSER_STARTUP_TRIES, retry_message)
         if retry:
           # Reset the environment to prevent leftovers in the profile
           # directory from influencing the next try.

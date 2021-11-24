@@ -121,7 +121,7 @@ class ScreenFinder(object):
     self._anglesm5 = None
 
     if not self._InitNextFrame():
-      logging.warn('Not enough frames in video feed!')
+      logging.warning('Not enough frames in video feed!')
       return
 
     self._height, self._width = self._frame.shape[:2]

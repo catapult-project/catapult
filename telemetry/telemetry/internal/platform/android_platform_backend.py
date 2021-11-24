@@ -787,10 +787,10 @@ class AndroidPlatformBackend(
     if controller.IsSupported():
       controller.LetCpuCoolToTemperature(temp)
     else:
-      logging.warn('CPU temperature cooling delay - '
-                   'CPU temperature cannot be read: Either the current '
-                   'device is not supported or the specified temperature '
-                   'zones do not exist.')
+      logging.warning('CPU temperature cooling delay - '
+                      'CPU temperature cannot be read: Either the current '
+                      'device is not supported or the specified temperature '
+                      'zones do not exist.')
 
 
 def _FixPossibleAdbInstability():
@@ -809,7 +809,7 @@ def _FixPossibleAdbInstability():
         if 'adb' in process.name:
           process.set_cpu_affinity([0])
     except (psutil.NoSuchProcess, psutil.AccessDenied):
-      logging.warn('Failed to set adb process CPU affinity')
+      logging.warning('Failed to set adb process CPU affinity')
 
 
 def _BuildEvent(cat, name, ph, pid, ts, args):

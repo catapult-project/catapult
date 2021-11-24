@@ -146,7 +146,7 @@ class StatisticsUnitTest(unittest.TestCase):
     self.assertTrue(d_abs_a < d_abs_b)
     self.assertTrue(d_rel_a < d_rel_b)
     self.assertTrue(d_rel_d < d_rel_c)
-    self.assertAlmostEquals(d_abs_d, d_abs_c)
+    self.assertAlmostEqual(d_abs_d, d_abs_c)
 
   def testDiscrepancyMultipleRanges(self):
     samples = [[0.0, 1.2, 2.3, 3.3], [6.3, 7.5, 8.4], [4.2, 5.4, 5.9]]
@@ -184,14 +184,14 @@ class StatisticsUnitTest(unittest.TestCase):
 
   def testArithmeticMean(self):
     # The ArithmeticMean function computes the simple average.
-    self.assertAlmostEquals(40 / 3.0, statistics.ArithmeticMean([10, 10, 20]))
-    self.assertAlmostEquals(15.0, statistics.ArithmeticMean([10, 20]))
+    self.assertAlmostEqual(40 / 3.0, statistics.ArithmeticMean([10, 10, 20]))
+    self.assertAlmostEqual(15.0, statistics.ArithmeticMean([10, 20]))
     # If the 'count' is zero, then zero is returned.
     self.assertEqual(0, statistics.ArithmeticMean([]))
 
   def testStandardDeviation(self):
-    self.assertAlmostEquals(math.sqrt(2 / 3.0),
-                            statistics.StandardDeviation([1, 2, 3]))
+    self.assertAlmostEqual(math.sqrt(2 / 3.0),
+                           statistics.StandardDeviation([1, 2, 3]))
     self.assertEqual(0, statistics.StandardDeviation([1]))
     self.assertEqual(0, statistics.StandardDeviation([]))
 

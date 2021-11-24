@@ -187,8 +187,8 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
             MakeRawMemoryDumpEvent(pid=process.pid, start=16),
             MakeRawMemoryDumpEvent(pid=process.pid, start=10)
         ])
-    self.assertAlmostEquals(8.0, composable_dump.start)
-    self.assertAlmostEquals(16.0, composable_dump.end)
+    self.assertAlmostEqual(8.0, composable_dump.start)
+    self.assertAlmostEqual(16.0, composable_dump.end)
 
     memory_dump = memory_dump_event.GlobalMemoryDump([
         composable_dump,
@@ -199,9 +199,9 @@ class MemoryDumpEventUnitTest(unittest.TestCase):
     self.assertFalse(memory_dump.has_mmaps)
     self.assertEqual(4, len(list(memory_dump.IterProcessMemoryDumps())))
     self.assertEqual([1, 2, 3, 4], sorted(memory_dump.pids))
-    self.assertAlmostEquals(7.0, memory_dump.start)
-    self.assertAlmostEquals(16.0, memory_dump.end)
-    self.assertAlmostEquals(9.0, memory_dump.duration)
+    self.assertAlmostEqual(7.0, memory_dump.start)
+    self.assertAlmostEqual(16.0, memory_dump.end)
+    self.assertAlmostEqual(9.0, memory_dump.duration)
 
   def testGetMemoryUsage(self):
     ALL = [2 ** x for x in range(7)]
