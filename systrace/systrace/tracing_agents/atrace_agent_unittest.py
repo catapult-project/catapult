@@ -7,6 +7,7 @@
 import logging
 import os
 import unittest
+import six
 
 from systrace import decorators
 from systrace import run_systrace
@@ -36,6 +37,12 @@ ATRACE_EXTRACTED_TGIDS = os.path.join(TEST_DIR, 'atrace_extracted_tgids')
 ATRACE_MISSING_TGIDS = os.path.join(TEST_DIR, 'atrace_missing_tgids')
 ATRACE_FIXED_TGIDS = os.path.join(TEST_DIR, 'atrace_fixed_tgids')
 
+def eval_dict_string_and_ensure_binary(dict_str):
+  str_dict = eval(dict_str)
+  binary_dict = {}
+  for k, v in str_dict.items():
+    binary_dict[six.ensure_binary(k)] = six.ensure_binary(v)
+  return binary_dict
 
 class AtraceAgentTest(unittest.TestCase):
 
@@ -101,7 +108,7 @@ class AtraceAgentTest(unittest.TestCase):
       atrace_procfs_dump = f1.read()
       atrace_procfs_extracted = f2.read()
 
-      tgids = eval(atrace_procfs_extracted)
+      tgids = eval_dict_string_and_ensure_binary(atrace_procfs_extracted)
       result = atrace_agent.extract_tgids(atrace_procfs_dump.splitlines())
 
       self.assertEqual(result, tgids)
@@ -109,11 +116,11 @@ class AtraceAgentTest(unittest.TestCase):
   @decorators.HostOnlyTest
   def test_fix_missing_tgids(self):
     with open(ATRACE_EXTRACTED_TGIDS, 'r') as f1, \
-        open(ATRACE_MISSING_TGIDS, 'r') as f2, \
-        open(ATRACE_FIXED_TGIDS, 'r') as f3:
+        open(ATRACE_MISSING_TGIDS, 'rb') as f2, \
+        open(ATRACE_FIXED_TGIDS, 'rb') as f3:
 
       atrace_data = f2.read()
-      tgid_map = eval(f1.read())
+      tgid_map = eval_dict_string_and_ensure_binary(f1.read())
       fixed = f3.read()
 
       res = atrace_agent.fix_missing_tgids(atrace_data, tgid_map)
