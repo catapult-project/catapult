@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
+import six
+
 from systrace.tracing_agents import atrace_agent
 from telemetry.core import exceptions
 from telemetry.internal.platform import tracing_agent
@@ -59,5 +61,6 @@ class AtraceTracingAgent(tracing_agent.TracingAgent):
       raise exceptions.AtraceTracingError(
           'Timed out retrieving the atrace tracing data from device %s.'
           % self._device)
-    trace_data_builder.AddTraceFor(trace_data.ATRACE_PART, results.raw_data,
-                                   allow_unstructured=True)
+    trace_data_builder.AddTraceFor(
+        trace_data.ATRACE_PART, six.ensure_str(results.raw_data),
+        allow_unstructured=True)
