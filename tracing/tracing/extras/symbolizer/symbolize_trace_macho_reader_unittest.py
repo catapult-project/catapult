@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
 import sys
 import unittest
 
@@ -14,12 +15,16 @@ class AtosRegexTest(unittest.TestCase):
     if sys.platform != "darwin":
       return
     file_name = "/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit"
-    result = symbolize_trace_macho_reader.ReadMachOTextLoadAddress(file_name)
-    self.assertNotEqual(None, result)
+    # TODO(crbug.com/1275181)
+    if os.path.exists(file_name):
+      result = symbolize_trace_macho_reader.ReadMachOTextLoadAddress(file_name)
+      self.assertNotEqual(None, result)
 
     file_name = "/System/Library/Frameworks/Cocoa.framework/Versions/A/Cocoa"
-    result = symbolize_trace_macho_reader.ReadMachOTextLoadAddress(file_name)
-    self.assertNotEqual(None, result)
+    # TODO(crbug.com/1275181)
+    if os.path.exists(file_name):
+      result = symbolize_trace_macho_reader.ReadMachOTextLoadAddress(file_name)
+      self.assertNotEqual(None, result)
 
 
 if __name__ == '__main__':
