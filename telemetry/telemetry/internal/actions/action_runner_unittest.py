@@ -381,7 +381,6 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/blank.html')
 
-  @decorators.Disabled('chromeos')  # crbug.com/1263212
   def testEnterText(self):
     self.Navigate('blank.html')
     self._tab.ExecuteJavaScript(
