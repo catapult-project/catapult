@@ -60,8 +60,6 @@ DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES = {
         'r_webrtc_arcturus_cl',
     reserved_infos.WEBRTC_INTERNAL_RIGEL_REVISIONS.name:
         'r_webrtc_rigel_cl',
-    reserved_infos.WEBRTC_INTERNAL_CAPELLA_REVISIONS.name:
-        'r_webrtc_capella_cl',
     reserved_infos.FUCHSIA_GARNET_REVISIONS.name:
         'r_fuchsia_garnet_git',
     reserved_infos.FUCHSIA_PERIDOT_REVISIONS.name:
