@@ -520,7 +520,7 @@ class _DevToolsClientBackend(object):
     This should only be called by an Android backend.
     """
     self._CreateNativeProfilingBackendIfNeeded()
-    return self._native_profiling_backend.dumpProfilingDataOfAllProcesses(
+    return self._native_profiling_backend.DumpProfilingDataOfAllProcesses(
         timeout)
 
   @property
