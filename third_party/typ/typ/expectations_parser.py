@@ -19,11 +19,11 @@ from typ import python_2_3_compat
 from typ.json_results import ResultType
 
 _EXPECTATION_MAP = {
-    'Crash': ResultType.Crash,
-    'Failure': ResultType.Failure,
-    'Pass': ResultType.Pass,
-    'Timeout': ResultType.Timeout,
-    'Skip': ResultType.Skip
+    'crash': ResultType.Crash,
+    'failure': ResultType.Failure,
+    'pass': ResultType.Pass,
+    'timeout': ResultType.Timeout,
+    'skip': ResultType.Skip
 }
 
 RESULT_TAGS = {
@@ -36,10 +36,6 @@ RESULT_TAGS = {
 
 _SLOW_TAG = 'Slow'
 _RETRY_ON_FAILURE_TAG = 'RetryOnFailure'
-
-VALID_RESULT_TAGS = set(
-    list(_EXPECTATION_MAP.keys()) +
-    [_SLOW_TAG, _RETRY_ON_FAILURE_TAG])
 
 
 class ConflictResolutionTypes(object):
@@ -275,7 +271,8 @@ class TaggedTestListParser(object):
                 right_bracket = line.find(']')
                 if right_bracket == -1:
                     # multi-line tag set
-                    tag_set = set([t for t in line[len(token):].split()])
+                    tag_set = set(
+                        [t.lower() for t in line[len(token):].split()])
                     lineno += 1
                     while lineno <= num_lines and right_bracket == -1:
                         line = lines[lineno - 1].strip()
@@ -285,11 +282,13 @@ class TaggedTestListParser(object):
                                 'Multi-line tag set missing leading "#"')
                         right_bracket = line.find(']')
                         if right_bracket == -1:
-                            tag_set.update([t for t in line[1:].split()])
+                            tag_set.update(
+                                [t.lower() for t in line[1:].split()])
                             lineno += 1
                         else:
                             tag_set.update(
-                                [t for t in line[1:right_bracket].split()])
+                                [t.lower()
+                                 for t in line[1:right_bracket].split()])
                             if line[right_bracket+1:]:
                                 raise ParseError(
                                     lineno,
@@ -302,23 +301,15 @@ class TaggedTestListParser(object):
                             'Nothing is allowed after a closing tag '
                             'bracket')
                     tag_set = set(
-                        [t for t in line[len(token):right_bracket].split()])
+                        [t.lower()
+                         for t in line[len(token):right_bracket].split()])
                 if token == self.TAG_TOKEN:
-                    tag_set = set([t.lower() for t in tag_set])
                     tag_sets_intersection.update(
                         (t for t in tag_set if t in self._tag_to_tag_set))
                     self.tag_sets.append(tag_set)
                     self._tag_to_tag_set.update(
                         {tg: id(tag_set) for tg in tag_set})
                 else:
-                    for t in tag_set:
-                        if t not in VALID_RESULT_TAGS:
-                            raise ParseError(
-                                lineno,
-                                'Result tag set [%s] contains values not in '
-                                'the list of known values [%s]' %
-                                (', '.join(tag_set),
-                                 ', '.join(VALID_RESULT_TAGS)))
                     self._allowed_results.update(tag_set)
             elif line.startswith(self.CONFLICT_RESOLUTION):
                 value = line[len(self.CONFLICT_RESOLUTION):].lower()
@@ -404,6 +395,7 @@ class TaggedTestListParser(object):
         retry_on_failure = False
         is_slow_test = False
         for r in raw_results.split():
+            r = r.lower()
             if r not in self._allowed_results:
                 raise ParseError(lineno, 'Unknown result type "%s"' % r)
             try:
@@ -411,9 +403,9 @@ class TaggedTestListParser(object):
                 # the RetryOnFailure tag
                 if r in  _EXPECTATION_MAP:
                     results.append(_EXPECTATION_MAP[r])
-                elif r == _RETRY_ON_FAILURE_TAG:
+                elif r == 'retryonfailure':
                     retry_on_failure = True
-                elif r == _SLOW_TAG:
+                elif r == 'slow':
                     is_slow_test = True
                 else:
                     raise KeyError

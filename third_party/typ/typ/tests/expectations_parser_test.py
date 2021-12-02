@@ -46,33 +46,9 @@ crbug.com/23456 [ Mac Debug ] b1/s2 [ Skip ]
 #
 # tags: [ tag1 tag2 tag3 ]
 # tags: [ tag4 ]
-# results: [ Skip ]
+# results: [ skip ]
 
 crbug.com/12345 [ Mac b1/s1 [ Skip ]
-"""
-        with self.assertRaises(expectations_parser.ParseError):
-            expectations_parser.TaggedTestListParser(bad_data)
-
-    def testInitWithNonCanonicalResultTagDefinition(self):
-        bad_data = """
-# This is a test expectation file.
-#
-# tags: [ tag1 tag2 tag3 ]
-# tags: [ tag4 ]
-# results: [ skip ]
-"""
-        with self.assertRaises(expectations_parser.ParseError):
-            expectations_parser.TaggedTestListParser(bad_data)
-
-    def testInitWithNonCanonicalResultTagUsage(self):
-        bad_data = """
-# This is a test expectation file.
-#
-# tags: [ tag1 tag2 tag3 ]
-# tags: [ tag4 ]
-# results: [ Skip ]
-
-crbug.com/12345 [ tag1 ] some/test/name [ SKIP ]
 """
         with self.assertRaises(expectations_parser.ParseError):
             expectations_parser.TaggedTestListParser(bad_data)
@@ -101,7 +77,7 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
             self.assertEqual(parser.expectations[i], expected_outcome[i])
 
     def testParseExpectationLineAngleProjectNoTags(self):
-        raw_data = '# tags: [ ]\n# results: [ Skip ]\ncrbug.com/angleproject/23456 b1/s2 [ Skip ]'
+        raw_data = '# tags: [ ]\n# results: [ Skip ]\ncrbug.com/angleproject/23456 b1/s2 [ skip ]'
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
             expectations_parser.Expectation('crbug.com/angleproject/23456',
@@ -153,7 +129,7 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
                     '# results: [ Skip Pass Failure ]\n'
                     'crbug.com/123 [ all ] b1/s1 [ Skip ]\n'
                     'crbug.com/124 [ None ] b1/s2 [ Pass ]\n'
-                    'crbug.com/125 [ Batman ] b1/s3 [ Failure ]')
+                    'crbug.com/125 [ Batman ] b1/s3 [ failure ]')
         parser = expectations_parser.TaggedTestListParser(raw_data)
         expected_outcome = [
             expectations_parser.Expectation(
@@ -473,7 +449,7 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
             '# results: [ Failure RetryOnFailure ]\n'
             '# conflicts_allowed: true\n'
             'crbug.com/23456 [ Linux ] b1/s1 [ Failure ]\n'
-            'crbug.com/23456 [ Linux ] b1/s1 [ RetryOnFailure ]\n'
+            'crbug.com/23456 [ Linux ] b1/s1 [ retryOnFailure ]\n'
             '[ linux ] b1/s2 [ RetryOnFailure ]\n'
             'crbug.com/24341 [ Linux ] b1/s3 [ Failure ]\n')
         test_expectations = expectations_parser.TestExpectations(['Linux'])
@@ -937,29 +913,29 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         raw_expectations = (
             '# tags: [ NVIDIA intel ]\n'
             '# results: [ Failure Pass Slow ]\n'
-            'crbug.com/123 [ iNteL ] test.html?\* [ Failure Pass ]\n'
-            '[ NVIDIA ] test.\*.* [ Slow ]  # hello world\n')
+            'crbug.com/123 [ iNteL ] test.html?\* [ FailuRe PasS ]\n'
+            '[ NVIDIA ] test.\*.* [ SloW ]  # hello world\n')
         test_exps = TestExpectations()
         ret, errors = test_exps.parse_tagged_list(raw_expectations)
         assert not ret, errors
         self.assertEqual(test_exps.individual_exps['test.html?*'][0].to_string(),
-                         'crbug.com/123 [ iNteL ] test.html?\* [ Failure Pass ]')
+                         'crbug.com/123 [ iNteL ] test.html?\* [ FailuRe PasS ]')
         self.assertEqual(test_exps.glob_exps['test.*.*'][0].to_string(),
-                         '[ NVIDIA ] test.\*.* [ Slow ]  # hello world')
+                         '[ NVIDIA ] test.\*.* [ SloW ]  # hello world')
 
     def testExpectationToStringAfterRenamingTest(self):
         exp = Expectation(reason='crbug.com/123', test='test.html?*', tags=['intel'],
                           results={ResultType.Pass, ResultType.Failure}, raw_tags=['iNteL'],
-                          raw_results=['Failure', 'Pass'])
+                          raw_results=['FailuRe', 'PasS'])
         exp.test = 'a/*/test.html?*'
-        self.assertEqual(exp.to_string(), 'crbug.com/123 [ iNteL ] a/\*/test.html?\* [ Failure Pass ]')
+        self.assertEqual(exp.to_string(), 'crbug.com/123 [ iNteL ] a/\*/test.html?\* [ FailuRe PasS ]')
 
     def testAddExpectationsToExpectation(self):
         raw_expectations = (
             '# tags: [ NVIDIA intel ]\n'
             '# results: [ Failure Pass Slow ]\n'
-            'crbug.com/123 [ iNteL ] test.html?\* [ Pass Failure ]\n'
-            '[ NVIDIA ] test.\*.* [ Slow ]  # hello world\n')
+            'crbug.com/123 [ iNteL ] test.html?\* [ PasS FailuRe ]\n'
+            '[ NVIDIA ] test.\*.* [ SloW ]  # hello world\n')
         test_exps = TestExpectations()
         ret, errors = test_exps.parse_tagged_list(raw_expectations)
         test_exps.individual_exps['test.html?*'][0].add_expectations(
@@ -975,26 +951,26 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         raw_expectations = (
             '# tags: [ NVIDIA intel ]\n'
             '# results: [ Failure Pass Slow ]\n'
-            'crbug.com/123 [ iNteL ] test.html?\* [ Failure Pass ]\n'
-            '[ NVIDIA ] test.\*.* [ Slow ]  # hello world\n')
+            'crbug.com/123 [ iNteL ] test.html?\* [ FailuRe PasS ]\n'
+            '[ NVIDIA ] test.\*.* [ SloW ]  # hello world\n')
         test_exps = TestExpectations()
         ret, errors = test_exps.parse_tagged_list(raw_expectations)
         test_exps.individual_exps['test.html?*'][0].add_expectations(
             {ResultType.Failure}, reason='crbug.com/124')
         assert not ret, errors
-        self.assertIn('[ Failure Pass ]',
+        self.assertIn('[ FailuRe PasS ]',
             test_exps.individual_exps['test.html?*'][0].to_string())
 
     def testTopDownOrderMaintainedForNonGlobExps(self):
         raw_expectations = (
             '# tags: [ NVIDIA intel ]\n'
             '# results: [ Failure Pass Slow ]\n'
-            'crbug.com/123 [ iNteL ] test1 [ Pass Failure ]\n'
-            'crbug.com/123 [ iNteL ] test2 [ Pass Failure ]\n'
-            'crbug.com/123 [ iNteL ] test8 [ Pass Failure ]\n'
-            'crbug.com/123 [ iNteL ] test9 [ Pass Failure ]\n'
-            'crbug.com/123 [ iNteL ] test5 [ Pass Failure ]\n'
-            '[ NVIDIA ] test.\* [ Slow ]  # hello world\n')
+            'crbug.com/123 [ iNteL ] test1 [ PasS FailuRe ]\n'
+            'crbug.com/123 [ iNteL ] test2 [ PasS FailuRe ]\n'
+            'crbug.com/123 [ iNteL ] test8 [ PasS FailuRe ]\n'
+            'crbug.com/123 [ iNteL ] test9 [ PasS FailuRe ]\n'
+            'crbug.com/123 [ iNteL ] test5 [ PasS FailuRe ]\n'
+            '[ NVIDIA ] test.\* [ SloW ]  # hello world\n')
         test_exps = TestExpectations()
         ret, errors = test_exps.parse_tagged_list(raw_expectations)
         assert not ret, errors

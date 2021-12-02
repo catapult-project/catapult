@@ -954,7 +954,7 @@ class TestCli(test_case.MainTestCase):
                   # tags: [ Foo ]
                   # tags: [ Bar ]
                   # results: [ RetryOnFailure ]
-                  crbug.com/12345 [ foo bar ] test_fail [ RetryOnFailure ]
+                  crbug.com/12345 [ foo bar ] test_fail [ retryonfailure ]
                 """)}
         _, out, _, files = self.check(['--write-full-results-to',
                                        'full_results.json',
@@ -1036,7 +1036,7 @@ class TestCli(test_case.MainTestCase):
                   # tags: [ foo bar
                   #         bat
                   # ]
-                  # results: [ Skip ]
+                  # results: [ skip ]
                   crbug.com/12345 [ foo ] fail_test.FailingTest.test_fail [ Skip ]
                 """)}
         _, out, _, files = self.check(['--write-full-results-to',
