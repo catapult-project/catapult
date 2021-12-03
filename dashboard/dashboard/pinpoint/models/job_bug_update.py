@@ -238,8 +238,6 @@ class DifferencesFoundBugUpdateBuilder(object):
           diff for _, diff in sorted(
               diffs_with_deltas, key=lambda i: abs(i[0]), reverse=True)
       ]
-    logging.debug('crbug/1215127 - mean delta: %s',
-                  [diff.MeanDelta() for diff in ordered_diffs])
     self._cached_ordered_diffs_by_delta = ordered_diffs
     return ordered_diffs
 
