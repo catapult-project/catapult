@@ -246,11 +246,15 @@ class CloudStorageFakeFsUnitTest(BaseFakeFsUnitTest):
 class GetIfChangedTests(BaseFakeFsUnitTest):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262295): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(GetIfChangedTests, self).setUp()
     self._orig_read_hash = cloud_storage.ReadHash
     self._orig_calculate_hash = cloud_storage.CalculateHash
 
   def tearDown(self):
+    # TODO(https://crbug.com/1262295): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(GetIfChangedTests, self).tearDown()
     cloud_storage.CalculateHash = self._orig_calculate_hash
     cloud_storage.ReadHash = self._orig_read_hash

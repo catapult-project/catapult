@@ -13,6 +13,7 @@ import signal
 import subprocess
 import sys
 import time
+import six
 
 try:
   import fcntl
@@ -28,7 +29,6 @@ _TSPROXY_PATH = os.path.join(
 
 class TsProxyServerError(Exception):
   """Catch-all exception for tsProxy Server."""
-  pass
 
 def ParseTsProxyPortFromOutput(output_line):
   port_re = re.compile(
@@ -38,9 +38,10 @@ def ParseTsProxyPortFromOutput(output_line):
   m = port_re.match(output_line)
   if m:
     return int(m.group('port'))
+  return None
 
 
-class TsProxyServer(object):
+class TsProxyServer():
   """Start and stop tsproxy.
 
   TsProxy provides basic latency, download and upload traffic shaping. This
@@ -90,10 +91,13 @@ class TsProxyServer(object):
       cmd_line.append(
           '--mapports=443:%s,*:%s' % (self._https_port, self._http_port))
       logging.info('Tsproxy commandline: %s', cmd_line)
-    # In python3 subprocess handles encoding/decoding; this warns if it won't be UTF-8.
+    # In python3 subprocess handles encoding/decoding; this warns if it won't
+    # be UTF-8.
     if locale.getpreferredencoding() != 'UTF-8':
-      logging.warn('Decoding will use %s instead of UTF-8', locale.getpreferredencoding())
-    # In python3 universal_newlines forces subprocess to encode/decode, allowing per-line buffering.
+      logging.warning('Decoding will use %s instead of UTF-8',
+                      locale.getpreferredencoding())
+    # In python3 universal_newlines forces subprocess to encode/decode,
+    # allowing per-line buffering.
     self._proc = subprocess.Popen(
         cmd_line, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
         stderr=subprocess.PIPE, bufsize=1, universal_newlines=True)
@@ -115,8 +119,8 @@ class TsProxyServer(object):
       err = self.StopServer()
       if err:
         logging.error('Error stopping WPR server:\n%s', err)
-      raise TsProxyServerError(
-          'Error starting tsproxy: timed out after %s seconds' % timeout)
+      six.raise_from(TsProxyServerError(
+          'Error starting tsproxy: timed out after %s seconds' % timeout), None)
 
   def _IsStarted(self):
     assert not self._is_running
@@ -127,7 +131,7 @@ class TsProxyServer(object):
     output_line = self._ReadLineTsProxyStdout(timeout=5)
     logging.debug('TsProxy output: %s', output_line)
     self._port = ParseTsProxyPortFromOutput(output_line)
-    return self._port != None
+    return self._port is not None
 
   def _ReadLineTsProxyStdout(self, timeout):
     def ReadSingleLine():
@@ -158,7 +162,8 @@ class TsProxyServer(object):
     logging.log(logging.DEBUG if success else logging.ERROR,
                 'TsProxy output:\n%s', '\n'.join(command_output))
     if not success:
-      raise TsProxyServerError('Failed to execute command: %s', command_string)
+      six.raise_from(TsProxyServerError('Failed to execute command: %s',
+                                        command_string), None)
 
   def UpdateOutboundPorts(self, http_port, https_port, timeout=5):
     assert http_port and https_port
@@ -196,9 +201,9 @@ class TsProxyServer(object):
     """Stop TsProxy Server."""
     if not self._is_running:
       logging.debug('Attempting to stop TsProxy server that is not running.')
-      return
+      return None
     if not self._proc:
-      return
+      return None
     try:
       self._IssueCommand('exit', timeout=10)
       py_utils.WaitFor(lambda: self._proc.poll() is not None, 10)

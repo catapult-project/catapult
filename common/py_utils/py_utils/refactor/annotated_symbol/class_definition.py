@@ -24,13 +24,11 @@ class Class(base_symbol.AnnotatedSymbol):
       return None
 
     statement = compound_statement.children[0]
-    if statement.type == symbol.classdef:
-      return cls(statement.type, statement.children)
-    elif (statement.type == symbol.decorated and
+    if statement.type == symbol.classdef or \
+        (statement.type == symbol.decorated and
           statement.children[-1].type == symbol.classdef):
       return cls(statement.type, statement.children)
-    else:
-      return None
+    return None
 
   @property
   def suite(self):

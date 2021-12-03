@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 
-class _OptionalContextManager(object):
+class _OptionalContextManager():
 
   def __init__(self, manager, condition):
     self._manager = manager
@@ -30,4 +30,3 @@ def Optional(manager, condition):
     A context manager that conditionally executes the given manager.
   """
   return _OptionalContextManager(manager, condition)
-

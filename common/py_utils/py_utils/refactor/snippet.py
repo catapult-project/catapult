@@ -14,7 +14,7 @@ import tokenize
 from py_utils.refactor import offset_token
 
 
-class Snippet(object):
+class Snippet():
   """A node in the Python parse tree.
 
   The Python grammar is defined at:
@@ -71,7 +71,7 @@ class Snippet(object):
         if not isinstance(child, snippet_type):
           continue
 
-      for attribute, value in kwargs:
+      for attribute, value in kwargs.items():
         if getattr(child, attribute) != value:
           break
       else:
@@ -224,24 +224,23 @@ def _SnippetizeNode(node, tokens):
     # Symbol.
     children = tuple(_SnippetizeNode(child, tokens) for child in node[1:])
     return Symbol(node_type, children)
-  else:
-    # Token.
-    grabbed_tokens = []
-    while tokens and (
-        tokens[0].type == tokenize.COMMENT or tokens[0].type == tokenize.NL):
-      grabbed_tokens.append(tokens.popleft())
-
-    # parser has 2 NEWLINEs right before the end.
-    # tokenize has 0 or 1 depending on if the file has one.
-    # Create extra nodes without consuming tokens to account for this.
-    if node_type == token.NEWLINE:
-      for tok in tokens:
-        if tok.type == token.ENDMARKER:
-          return TokenSnippet(node_type, grabbed_tokens)
-        if tok.type != token.DEDENT:
-          break
-
-    assert tokens[0].type == token.OP or node_type == tokens[0].type
-
+  # Token.
+  grabbed_tokens = []
+  while tokens and (
+      tokens[0].type == tokenize.COMMENT or tokens[0].type == tokenize.NL):
     grabbed_tokens.append(tokens.popleft())
-    return TokenSnippet(node_type, grabbed_tokens)
+
+  # parser has 2 NEWLINEs right before the end.
+  # tokenize has 0 or 1 depending on if the file has one.
+  # Create extra nodes without consuming tokens to account for this.
+  if node_type == token.NEWLINE:
+    for tok in tokens:
+      if tok.type == token.ENDMARKER:
+        return TokenSnippet(node_type, grabbed_tokens)
+      if tok.type != token.DEDENT:
+        break
+
+  assert tokens[0].type == token.OP or node_type == tokens[0].type
+
+  grabbed_tokens.append(tokens.popleft())
+  return TokenSnippet(node_type, grabbed_tokens)

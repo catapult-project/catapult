@@ -7,7 +7,7 @@ import unittest
 from py_utils import modules_util
 
 
-class FakeModule(object):
+class FakeModule():
   def __init__(self, name, version):
     self.__name__ = name
     self.__version__ = version

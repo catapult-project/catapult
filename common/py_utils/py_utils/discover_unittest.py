@@ -113,26 +113,25 @@ class DiscoverTest(unittest.TestCase):
     }
     self.assertEqual(actual_classes, expected_classes)
 
-
-class ClassWithoutInitDefOne:  # pylint: disable=old-style-class, no-init
+class ClassWithoutInitDefOne():
   pass
 
 
-class ClassWithoutInitDefTwo(object):
+class ClassWithoutInitDefTwo():
   pass
 
 
-class ClassWhoseInitOnlyHasSelf(object):
+class ClassWhoseInitOnlyHasSelf():
   def __init__(self):
     pass
 
 
-class ClassWhoseInitWithDefaultArguments(object):
+class ClassWhoseInitWithDefaultArguments():
   def __init__(self, dog=1, cat=None, cow=None, fud='a'):
     pass
 
 
-class ClassWhoseInitWithDefaultArgumentsAndNonDefaultArguments(object):
+class ClassWhoseInitWithDefaultArgumentsAndNonDefaultArguments():
   def __init__(self, x, dog=1, cat=None, fish=None, fud='a'):
     pass
 

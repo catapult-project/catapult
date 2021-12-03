@@ -27,7 +27,7 @@ class FakeCleanupError(Exception):
   pass
 
 
-class FaultyClient(object):
+class FaultyClient():
   def __init__(self, *args):
     self.failures = set(args)
     self.called = set()
@@ -58,15 +58,21 @@ class FaultyClient(object):
 class ReraiseTests(unittest.TestCase):
   def assertCountEqualPy23(self, expected, actual):
     if six.PY2:
+      # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+      # pylint: disable=deprecated-method, no-member
       self.assertItemsEqual(expected, actual)
     else:
       self.assertCountEqual(expected, actual) # pylint: disable=no-member
 
   def assertLogMatches(self, pattern):
+    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+    # pylint: disable=deprecated-method
     self.assertRegexpMatches(
         sys.stderr.getvalue(), pattern)  # pylint: disable=no-member
 
   def assertLogNotMatches(self, pattern):
+    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+    # pylint: disable=deprecated-method
     self.assertNotRegexpMatches(
         sys.stderr.getvalue(), pattern)  # pylint: disable=no-member
 
@@ -125,6 +131,8 @@ class ReraiseTests(unittest.TestCase):
     with self.assertRaises(FakeProcessingError):
       try:
         worker.Process()
+      # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+      # pylint: disable=try-except-raise
       except:
         raise  # Needed for Cleanup to know if an exception is handled.
       finally:
@@ -143,6 +151,8 @@ class ReraiseTests(unittest.TestCase):
     with self.assertRaises(FakeProcessingError):
       try:
         worker.Process()
+      # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+      # pylint: disable= try-except-raise
       except:
         raise  # Needed for Cleanup to know if an exception is handled.
       finally:
@@ -160,8 +170,6 @@ class ReraiseTests(unittest.TestCase):
     with self.assertRaises(FakeCleanupError):
       try:
         worker.Process()
-      except:
-        raise  # Needed for Cleanup to know if an exception is handled.
       finally:
         worker.Cleanup()
 

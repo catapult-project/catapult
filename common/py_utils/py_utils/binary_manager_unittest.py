@@ -23,7 +23,6 @@ class BinaryManagerTest(fake_filesystem_unittest.TestCase):
 
   def setUp(self):
     self.setUpPyfakefs()
-    # pylint: disable=bad-continuation
     self.expected_dependencies = {
         'dep_1': {
           'cloud_storage_base_folder': 'dependencies/fake_config',
@@ -146,7 +145,6 @@ class BinaryManagerTest(fake_filesystem_unittest.TestCase):
           }
         }
     }
-    # pylint: enable=bad-continuation
     fake_config = {
         'config_type': 'BaseConfig',
         'dependencies': self.expected_dependencies
@@ -219,4 +217,3 @@ class BinaryManagerTest(fake_filesystem_unittest.TestCase):
     manager = binary_manager.BinaryManager([self.base_config])
     found_path = manager.LocalPath('dep_2', 'android', 'x86', 'l')
     self.assertEqual(self.expected_dep2_android_file, found_path)
-

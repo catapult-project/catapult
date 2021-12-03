@@ -9,15 +9,15 @@ from py_utils import ts_proxy_server
 
 class TsProxyServerTest(unittest.TestCase):
   def testParseTsProxyPort(self):
-    self.assertEquals(
+    self.assertEqual(
         ts_proxy_server.ParseTsProxyPortFromOutput(
             'Started Socks5 proxy server on 127.0.0.1:54430 \n'),
         54430)
-    self.assertEquals(
+    self.assertEqual(
         ts_proxy_server.ParseTsProxyPortFromOutput(
             'Started Socks5 proxy server on foo.bar.com:430 \n'),
         430)
-    self.assertEquals(
+    self.assertEqual(
         ts_proxy_server.ParseTsProxyPortFromOutput(
             'Failed to start sock5 proxy.'),
         None)
@@ -45,13 +45,13 @@ class TsProxyServerTest(unittest.TestCase):
       server.UpdateTrafficSettings(download_bandwidth_kbps=5000)
       server.UpdateTrafficSettings(upload_bandwidth_kbps=2000)
 
-      self.assertEquals(server._rtt, 100)
-      self.assertEquals(server._inbkps, 5000)
-      self.assertEquals(server._outkbps, 2000)
+      self.assertEqual(server._rtt, 100)
+      self.assertEqual(server._inbkps, 5000)
+      self.assertEqual(server._outkbps, 2000)
 
       server.UpdateTrafficSettings(
           round_trip_latency_ms=200, download_bandwidth_kbps=500,
           upload_bandwidth_kbps=2000)
-      self.assertEquals(server._rtt, 200)
-      self.assertEquals(server._inbkps, 500)
-      self.assertEquals(server._outkbps, 2000)
+      self.assertEqual(server._rtt, 200)
+      self.assertEqual(server._inbkps, 500)
+      self.assertEqual(server._outkbps, 2000)

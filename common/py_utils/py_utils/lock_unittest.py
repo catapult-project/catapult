@@ -73,8 +73,8 @@ class FileLockTest(unittest.TestCase):
     # file content as below.
     expected_file_content = ''.join((['Start'] + ['*']*10000 + ['End']) * 10)
     with open(self.temp_file_path, 'r') as f:
-      # Use assertTrue instead of assertEquals since the strings are big, hence
-      # assertEquals's assertion failure will contain huge strings.
+      # Use assertTrue instead of assertEqual since the strings are big, hence
+      # assertEqual's assertion failure will contain huge strings.
       self.assertTrue(expected_file_content == f.read())
 
   def testSharedLock(self):
@@ -102,7 +102,7 @@ class FileLockTest(unittest.TestCase):
 
       # temp_write_file should contains 10 copy of temp_file_path's content.
       with open(temp_write_file, 'r') as f:
-        self.assertEquals('0123456789'*10, f.read())
+        self.assertEqual('0123456789'*10, f.read())
     finally:
       os.remove(temp_write_file)
 
@@ -119,7 +119,7 @@ class FileLockTest(unittest.TestCase):
         p.start()
         p.join()
       with open(temp_status_file, 'r') as f:
-        self.assertEquals('LockException raised', f.read())
+        self.assertEqual('LockException raised', f.read())
     finally:
       os.remove(temp_status_file)
 
@@ -137,7 +137,7 @@ class FileLockTest(unittest.TestCase):
         p.start()
         p.join()
       with open(temp_status_file, 'r') as f:
-        self.assertEquals('LockException was not raised', f.read())
+        self.assertEqual('LockException was not raised', f.read())
     finally:
       os.remove(temp_status_file)
 
@@ -156,7 +156,7 @@ class FileLockTest(unittest.TestCase):
           p.start()
           p.join()
           with open(temp_status_file, 'r') as f:
-            self.assertEquals('LockException raised', f.read())
+            self.assertEqual('LockException raised', f.read())
 
         # Accessing self.temp_file_path here should not raise exception.
         p = multiprocessing.Process(
@@ -165,6 +165,6 @@ class FileLockTest(unittest.TestCase):
         p.start()
         p.join()
       with open(temp_status_file, 'r') as f:
-        self.assertEquals('LockException was not raised', f.read())
+        self.assertEqual('LockException was not raised', f.read())
     finally:
       os.remove(temp_status_file)

@@ -13,7 +13,7 @@ class ParseError(Exception):
   pass
 
 
-class Expectation(object):
+class Expectation():
   def __init__(self, reason, test, conditions, results):
     """Constructor for expectations.
 
@@ -56,7 +56,7 @@ class Expectation(object):
     return self._results
 
 
-class TestExpectationParser(object):
+class TestExpectationParser():
   """Parse expectations data in TA/DA format.
 
   This parser covers the 'tagged' test lists format in:
@@ -110,14 +110,14 @@ class TestExpectationParser(object):
           % (line_number, line))
     # Unused group is optional trailing comment.
     reason, raw_conditions, test, results, _ = match.groups()
-    conditions = [c for c in raw_conditions.split()] if raw_conditions else []
+    conditions = list(raw_conditions.split()) if raw_conditions else []
 
     for c in conditions:
       if c not in tags:
         raise ParseError(
             'Condition %s not found in expectations tag data. Line %d'
             % (c, line_number))
-    return Expectation(reason, test, conditions, [r for r in results.split()])
+    return Expectation(reason, test, conditions, list(results.split()))
 
   @property
   def expectations(self):

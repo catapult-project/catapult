@@ -40,7 +40,7 @@ def GetChromeApkOsVersion(version_name):
       'First character of versions name %s was not an uppercase letter.')
   if version < 'L':
     return 'k'
-  elif version > 'M':
+  if version > 'M':
     return 'n'
   return 'l'
 

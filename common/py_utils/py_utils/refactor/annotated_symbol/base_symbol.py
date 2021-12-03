@@ -13,6 +13,8 @@ from py_utils.refactor import snippet
 
 class AnnotatedSymbol(snippet.Symbol):
   def __init__(self, symbol_type, children):
+    # TODO(https://crbug.com/1262295): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(AnnotatedSymbol, self).__init__(symbol_type, children)
     self._modified = False
 
@@ -20,12 +22,16 @@ class AnnotatedSymbol(snippet.Symbol):
   def modified(self):
     if self._modified:
       return True
+    # TODO(https://crbug.com/1262295): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     return super(AnnotatedSymbol, self).modified
 
   def __setattr__(self, name, value):
     if (hasattr(self.__class__, name) and
         isinstance(getattr(self.__class__, name), property)):
       self._modified = True
+    # TODO(https://crbug.com/1262295): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     return super(AnnotatedSymbol, self).__setattr__(name, value)
 
   def Cut(self, child):

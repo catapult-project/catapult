@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from py_utils.refactor import annotated_symbol
 
 
-class Module(object):
+class Module():
 
   def __init__(self, file_path):
     self._file_path = file_path

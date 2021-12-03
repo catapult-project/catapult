@@ -6,4 +6,4 @@
 
 class DummyException(Exception):
   def __init__(self):
-    super(DummyException, self).__init__()
+    Exception.__init__(self)

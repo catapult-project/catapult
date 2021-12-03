@@ -62,8 +62,8 @@ class DottedName(base_symbol.AnnotatedSymbol):
 class AsName(base_symbol.AnnotatedSymbol):
   @classmethod
   def Annotate(cls, symbol_type, children):
-    if (symbol_type != symbol.dotted_as_name and
-        symbol_type != symbol.import_as_name):
+    if symbol_type not in \
+       (symbol.dotted_as_name, symbol.import_as_name):
       return None
     return cls(symbol_type, children)
 
@@ -218,8 +218,7 @@ class ImportName(Import):
   def name(self):
     if self.alias:
       return self.alias
-    else:
-      return self.path
+    return self.path
 
 
 class ImportFrom(Import):
@@ -281,8 +280,7 @@ class ImportFrom(Import):
     import_as_name = self._import_as_name
     if import_as_name:
       return import_as_name.name
-    else:
-      return '*'
+    return '*'
 
   @module.setter
   def module(self, value):
@@ -293,12 +291,11 @@ class ImportFrom(Import):
     if value == '*':
       # TODO: Implement this.
       raise NotImplementedError()
+    if import_as_name:
+      import_as_name.name = value
     else:
-      if import_as_name:
-        import_as_name.name = value
-      else:
-        # TODO: Implement this.
-        raise NotImplementedError()
+      # TODO: Implement this.
+      raise NotImplementedError()
 
   @property
   def path(self):
@@ -313,8 +310,7 @@ class ImportFrom(Import):
     import_as_name = self._import_as_name
     if import_as_name:
       return import_as_name.alias
-    else:
-      return None
+    return None
 
   @alias.setter
   def alias(self, value):  # pylint: disable=arguments-differ
@@ -327,5 +323,4 @@ class ImportFrom(Import):
   def name(self):
     if self.alias:
       return self.alias
-    else:
-      return self.module
+    return self.module

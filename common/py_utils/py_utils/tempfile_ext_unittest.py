@@ -38,7 +38,7 @@ class NamedTemporaryDirectoryTest(fake_filesystem_unittest.TestCase):
     test_dir = '/baz'
     self.fs.CreateDirectory(test_dir)
     with tempfile_ext.NamedTemporaryDirectory(dir=test_dir) as d:
-      self.assertEquals(test_dir, os.path.dirname(d))
+      self.assertEqual(test_dir, os.path.dirname(d))
 
 
 class TemporaryFilesTest(fake_filesystem_unittest.TestCase):

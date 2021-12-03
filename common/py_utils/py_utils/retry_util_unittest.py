@@ -77,8 +77,7 @@ class RetryOnExceptionTest(unittest.TestCase):
       self.num_calls += 1
       if self.num_calls < 3:
         raise KeyError('oops!')
-      else:
-        return 'OK!'
+      return 'OK!'
 
     # The value is returned after the expected number of calls.
     self.assertEqual(Test(), 'OK!')
@@ -91,8 +90,7 @@ class RetryOnExceptionTest(unittest.TestCase):
       self.num_calls += 1
       if self.num_calls < 3:
         raise KeyError('oops!')
-      else:
-        return 'OK!'
+      return 'OK!'
 
     # We fail immediately on the first try.
     with self.assertRaises(KeyError):
@@ -106,10 +104,9 @@ class RetryOnExceptionTest(unittest.TestCase):
       self.num_calls += 1
       if self.num_calls == 1:
         raise KeyError('oops!')
-      elif self.num_calls == 2:
+      if self.num_calls == 2:
         raise ValueError('uh oh!')
-      else:
-        return 'OK!'
+      return 'OK!'
 
     # Call eventually succeeds after enough tries.
     self.assertEqual(Test(retries=5), 'OK!')

@@ -18,17 +18,16 @@ def ToUnderscore(obj):
   if isinstance(obj, six.string_types):
     return re.sub('(?!^)([A-Z]+)', r'_\1', obj).lower()
 
-  elif isinstance(obj, list):
+  if isinstance(obj, list):
     return [ToUnderscore(item) for item in obj]
 
-  elif isinstance(obj, dict):
+  if isinstance(obj, dict):
     output = {}
     for k, v in six.iteritems(obj):
-      if isinstance(v, list) or isinstance(v, dict):
+      if isinstance(v, (list, dict)):
         output[ToUnderscore(k)] = ToUnderscore(v)
       else:
         output[ToUnderscore(k)] = v
     return output
 
-  else:
-    return obj
+  return obj

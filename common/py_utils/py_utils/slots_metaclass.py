@@ -20,8 +20,8 @@ class SlotsMetaclass(type):
   add '__dict__' to its __slots__.
   """
 
-  def __new__(mcs, name, bases, attrs):
+  def __new__(cls, name, bases, attrs):
     assert '__slots__' in attrs, 'Class "%s" must define __slots__' % name
     assert isinstance(attrs['__slots__'], tuple), '__slots__ must be a tuple'
 
-    return super(SlotsMetaclass, mcs).__new__(mcs, name, bases, attrs)
+    return super(SlotsMetaclass, cls).__new__(cls, name, bases, attrs)

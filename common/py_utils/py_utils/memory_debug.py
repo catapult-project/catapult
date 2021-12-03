@@ -27,8 +27,7 @@ def FormatBytes(value):
 
   if value is not None:
     return '%.1f %s' % GetValueAndUnit(value)
-  else:
-    return 'N/A'
+  return 'N/A'
 
 
 def _GetProcessInfo(p):

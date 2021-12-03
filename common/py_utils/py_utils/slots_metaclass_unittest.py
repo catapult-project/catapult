@@ -18,27 +18,20 @@ class SlotsMetaclassUnittest(unittest.TestCase):
   def testSlotsMetaclass(self):
 
     class NiceClass(six.with_metaclass(slots_metaclass.SlotsMetaclass, object)):
-      __slots__ = '_nice',
+      __slots__ = ('_nice',)
 
       def __init__(self, nice):
         self._nice = nice
 
     NiceClass(42)
 
-    with self.assertRaises(AssertionError):
-      class NaughtyClass(NiceClass):
-        def __init__(self, naughty):
-          super(NaughtyClass, self).__init__(42)
-          self._naughty = naughty
-
-      # Metaclasses are called when the class is defined, so no need to
-      # instantiate it.
-
     with self.assertRaises(AttributeError):
       class NaughtyClass2(NiceClass):
         __slots__ = ()
 
         def __init__(self, naughty):
+          # TODO(https://crbug.com/1262295): Change to super() after Python2 trybots retire.
+          # pylint: disable=super-with-arguments
           super(NaughtyClass2, self).__init__(42)
           self._naughty = naughty  # pylint: disable=assigning-non-slot
 

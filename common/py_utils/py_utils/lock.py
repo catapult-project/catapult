@@ -5,6 +5,7 @@
 from __future__ import absolute_import # pylint: disable=wrong-import-position
 import contextlib
 import os
+import six
 
 LOCK_EX = None  # Exclusive lock
 LOCK_SH = None  # Shared lock
@@ -87,10 +88,10 @@ def _LockImplWin(target_file, flags):
     win32file.LockFileEx(hfile, flags, 0, -0x10000, _OVERLAPPED)
   except pywintypes.error as exc_value:
     if exc_value.args[0] == 33:
-      raise LockException('Error trying acquiring lock of %s: %s' %
-                          (target_file.name, exc_value.args[2]))
-    else:
-      raise
+      six.raise_from(LockException('Error trying acquiring lock of %s: %s' %
+                                   (target_file.name, exc_value.args[2])),
+                                    exc_value)
+    raise
 
 
 def _UnlockImplWin(target_file):
@@ -112,10 +113,10 @@ def _LockImplPosix(target_file, flags):
     fcntl.flock(target_file.fileno(), flags)
   except IOError as exc_value:
     if exc_value.args[0] == 11 or exc_value.args[0] == 35:
-      raise LockException('Error trying acquiring lock of %s: %s' %
-                          (target_file.name, exc_value.args[1]))
-    else:
-      raise
+      six.raise_from(LockException('Error trying acquiring lock of %s: %s' %
+                                   (target_file.name, exc_value.args[1])),
+                                    exc_value)
+    raise
 
 
 def _UnlockImplPosix(target_file):

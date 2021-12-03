@@ -20,7 +20,7 @@ def _Pairwise(iterable):
   return zip(a, b)
 
 
-class OffsetToken(object):
+class OffsetToken():
   """A Python token with a relative position.
 
   A token is represented by a type defined in Python's token module, a string

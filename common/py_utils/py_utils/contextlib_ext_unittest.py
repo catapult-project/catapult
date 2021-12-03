@@ -10,7 +10,7 @@ from py_utils import contextlib_ext
 
 class OptionalUnittest(unittest.TestCase):
 
-  class SampleContextMgr(object):
+  class SampleContextMgr():
 
     def __init__(self):
       self.entered = False
