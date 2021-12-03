@@ -31,7 +31,7 @@ class NativeProfilingBackend(object):
   def DumpProfilingDataOfAllProcesses(self, timeout=120):
     """Causes all profiling data of all Chrome processes to be dumped to disk.
     """
-    method = 'NativeProfiling.dumpNativeProfilingDataOfAllProcesses'
+    method = 'NativeProfiling.dumpProfilingDataOfAllProcesses'
     request = {'method': method}
     try:
       response = self._inspector_websocket.SyncRequest(request, timeout)
