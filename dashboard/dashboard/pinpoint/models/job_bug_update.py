@@ -407,7 +407,6 @@ def _FormatDocumentationUrls(tags):
 
 
 def UpdatePostAndMergeDeferred(bug_update_builder, bug_id, tags, url, project):
-  logging.debug('crbug/1215127 - email: %s', utils.GetEmail())
   logging.debug('crbug/1215127 - Update Post running')
   if not bug_id:
     return
