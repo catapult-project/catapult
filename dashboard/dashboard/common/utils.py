@@ -486,8 +486,11 @@ def IsInternalUser():
   cached = GetCachedIsInternalUser(email)
   if cached is not None:
     return cached
-  is_internal_user = IsGroupMember(identity=email, group='chromeperf-access')
-  SetCachedIsInternalUser(email, is_internal_user)
+  try:
+    is_internal_user = IsGroupMember(identity=email, group='chromeperf-access')
+    SetCachedIsInternalUser(email, is_internal_user)
+  except GroupMemberAuthFailed:
+    return False
   return is_internal_user
 
 
@@ -502,9 +505,12 @@ def IsAdministrator(email=None):
   cached = GetCachedIsAdministrator(email)
   if cached is not None:
     return cached
-  is_administrator = IsGroupMember(
-      identity=email, group='project-chromeperf-admins')
-  SetCachedIsAdministrator(email, is_administrator)
+  try:
+    is_administrator = IsGroupMember(
+        identity=email, group='project-chromeperf-admins')
+    SetCachedIsAdministrator(email, is_administrator)
+  except GroupMemberAuthFailed:
+    return False
   return is_administrator
 
 
@@ -546,8 +552,15 @@ def ShouldTurnOnUploadCompletionTokenExperiment():
   email = GetEmail()
   if not email:
     return False
-  return IsGroupMember(
-      identity=email, group='project-chromeperf-upload-token-experiment')
+  try:
+    return IsGroupMember(
+        identity=email, group='project-chromeperf-upload-token-experiment')
+  except GroupMemberAuthFailed:
+    return False
+
+
+class GroupMemberAuthFailed(Exception):
+  pass
 
 
 def IsGroupMember(identity, group):
@@ -558,7 +571,10 @@ def IsGroupMember(identity, group):
     group: Group name.
 
   Returns:
-    True if confirmed to be a member, False otherwise.
+    True if user is a member, False otherwise.
+
+  Raises:
+    GroupMemberAuthFailed: Failed to check if user is a member.
   """
   cached = GetCachedIsGroupMember(identity, group)
   if cached is not None:
@@ -578,7 +594,7 @@ def IsGroupMember(identity, group):
     return is_member
   except (errors.HttpError, KeyError, AttributeError) as e:
     logging.error('Failed to check membership of %s: %s', identity, e)
-    return False
+    raise GroupMemberAuthFailed('Failed to authenticate user.')
 
 
 def GetCachedIsGroupMember(identity, group):
@@ -640,14 +656,20 @@ def IsValidSheriffUser():
 
 def IsTryjobUser():
   email = GetEmail()
-  return bool(email) and IsGroupMember(
-      identity=email, group='project-pinpoint-tryjob-access')
+  try:
+    return bool(email) and IsGroupMember(
+        identity=email, group='project-pinpoint-tryjob-access')
+  except GroupMemberAuthFailed:
+    return False
 
 
 def IsAllowedToDelegate(email):
-  return bool(email) and IsGroupMember(
-      identity=email,
-      group='project-pinpoint-service-account-delegation-access')
+  try:
+    return bool(email) and IsGroupMember(
+        identity=email,
+        group='project-pinpoint-service-account-delegation-access')
+  except GroupMemberAuthFailed:
+    return False
 
 
 @ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, xg=True)

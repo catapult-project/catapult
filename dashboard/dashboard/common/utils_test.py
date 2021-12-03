@@ -400,7 +400,8 @@ class UtilsTest(testing_common.TestCase):
     mock_service.membership = mock.MagicMock(
         return_value={'error': 'Some error'})
     mock_discovery_build.return_value = mock_service
-    self.assertFalse(utils.IsGroupMember('foo@bar.com', 'group'))
+    with self.assertRaises(utils.GroupMemberAuthFailed):
+      utils.IsGroupMember('foo@bar.com', 'group')
     self.assertEqual(1, mock_logging_error.call_count)
 
   def testGetSheriffForAutorollCommit_NotAutoroll_ReturnsNone(self):
