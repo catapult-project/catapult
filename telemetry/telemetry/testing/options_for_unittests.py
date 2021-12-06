@@ -91,4 +91,6 @@ def GetRunOptions(output_dir=None, fake_browser=False, benchmark_cls=None,
   options.output_formats = ['none']
   options.upload_results = False
   options.upload_bucket = None
+  if options.browser_options:
+    options.browser_options.environment = environment
   return options
