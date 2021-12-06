@@ -18,7 +18,7 @@ class TabTestCase(browser_test_case.BrowserTestCase):
     if self._browser.supports_tab_control:
       try:
         while len(self._browser.tabs) < 1:
-          self._browser.tabs.New()
+          self._browser.tabs.New(url='about:blank')
         while len(self._browser.tabs) > 1:
           self._browser.tabs[0].Close()
         self._tab = self._browser.tabs[0]
@@ -26,7 +26,6 @@ class TabTestCase(browser_test_case.BrowserTestCase):
         self._RestartBrowser()
     else:
       self._RestartBrowser()
-    self._tab.Navigate('about:blank')
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
   def Navigate(self,
