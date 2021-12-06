@@ -10,7 +10,6 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.dirname(__file__))
-# pylint: disable=relative-import
 import elf_symbolizer
 import mock_addr2line
 
@@ -58,7 +57,7 @@ class ELFSymbolizerTest(unittest.TestCase):
         inlines=True,
         max_concurrent_jobs=4)
 
-    for addr in xrange(1000):
+    for addr in range(1000):
       exp_inline = False
       exp_unknown = False
 
@@ -128,7 +127,7 @@ class ELFSymbolizerTest(unittest.TestCase):
         max_concurrent_jobs=max_concurrent_jobs,
         addr2line_timeout=0.5)
 
-    for addr in xrange(num_symbols):
+    for addr in range(num_symbols):
       exp_name = 'mock_sym_for_addr_%d' % addr
       exp_source_path = 'mock_src/mock_lib1.so.c'
       exp_source_line = addr
@@ -138,7 +137,7 @@ class ELFSymbolizerTest(unittest.TestCase):
     symbolizer.Join()
 
     # Check that all the expected callbacks have been received.
-    for addr in xrange(num_symbols):
+    for addr in range(num_symbols):
       self.assertIn(addr, self._resolved_addresses)
       self._resolved_addresses.remove(addr)
 

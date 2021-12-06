@@ -26,7 +26,7 @@ except ImportError:
 ADDR2LINE_RECYCLE_LIMIT = 4000
 
 
-class ELFSymbolizer(object):
+class ELFSymbolizer:
   """An uber-fast (multiprocessing, pipelined and asynchronous) ELF symbolizer.
 
   This class is a frontend for addr2line (part of GNU binutils), designed to
@@ -201,7 +201,7 @@ class ELFSymbolizer(object):
                  (time.time() - start_time))
 
 
-  class Addr2Line(object):
+  class Addr2Line:
     """A python wrapper around an addr2line instance.
 
     The communication with the addr2line process looks as follows:
@@ -397,7 +397,7 @@ class ELFSymbolizer(object):
       if self._symbolizer.inlines:
         cmd += ['--inlines']
       self._proc = subprocess.Popen(cmd, bufsize=1, stdout=subprocess.PIPE,
-          stdin=subprocess.PIPE, stderr=sys.stderr, close_fds=True)
+          stdin=subprocess.PIPE, stderr=sys.stderr, close_fds=True, text=True)
 
       # Start the poller thread, which simply moves atomically the lines read
       # from the addr2line's stdout to the |_out_queue|.
@@ -441,7 +441,7 @@ class ELFSymbolizer(object):
         process_pipe.close()
 
       # Every addr2line processes will die at some point, please die silently.
-      except (IOError, OSError):
+      except (IOError, OSError, ValueError):
         pass
 
     @property
@@ -450,7 +450,7 @@ class ELFSymbolizer(object):
       return self._request_queue[0][2] if self._request_queue else 0
 
 
-class ELFSymbolInfo(object):
+class ELFSymbolInfo:
   """The result of the symbolization passed as first arg. of each callback."""
 
   def __init__(self, name, source_path, source_line, was_ambiguous=False,
