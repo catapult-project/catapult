@@ -33,7 +33,7 @@ class RunWebEngineTelemetryTest(run_telemetry_test.RunTelemetryTest):
         'luci-auth',
         'context',
         '--',
-        'vpython',
+        'vpython3',
         '../../testing/scripts/run_performance_tests.py',
         '../../content/test/gpu/run_telemetry_benchmark_fuchsia.py',
     ]

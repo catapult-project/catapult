@@ -39,7 +39,7 @@ _TELEMETRY_COMMAND = [
     'luci-auth',
     'context',
     '--',
-    'vpython',
+    'vpython3',
     '../../testing/scripts/run_performance_tests.py',
     '../../content/test/gpu/run_telemetry_benchmark_fuchsia.py',
 ]
