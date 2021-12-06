@@ -1373,9 +1373,14 @@ class DeviceUtils(object):
       if apks_to_install and not reinstall:
         apks_to_install = apk_paths
 
-    if device_apk_paths and apks_to_install and not reinstall:
-      logger.info('Uninstalling package %s', package_name)
-      self.Uninstall(package_name)
+    if device_apk_paths and not reinstall:
+      if apks_to_install:
+        logger.info('Uninstalling package %s', package_name)
+        self.Uninstall(package_name)
+      else:
+        # Running adb uninstall clears the data, so to be consistent, we
+        # explicitly clear it when skipping the uninstall.
+        self.ClearApplicationState(package_name)
 
     if apks_to_install:
       # Assume that we won't know the resulting device state.

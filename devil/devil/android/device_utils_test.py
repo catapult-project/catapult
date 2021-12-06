@@ -1056,8 +1056,9 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE),
          ['/fake/data/app/test.package.apk']),
         (self.call.device._ComputeStaleApks(TEST_PACKAGE, [TEST_APK_PATH]),
-         ([], None)), (self.call.device.ForceStop(TEST_PACKAGE)),
-          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
+         ([], None)), (self.call.device.ClearApplicationState(TEST_PACKAGE)),
+        (self.call.device.ForceStop(TEST_PACKAGE)),
+        (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
       self.device.Install(
           DeviceUtilsInstallTest.mock_apk, retries=0, permissions=[])
 
