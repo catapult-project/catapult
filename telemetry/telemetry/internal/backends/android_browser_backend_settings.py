@@ -328,6 +328,10 @@ ANDROID_WEBVIEW_TRICHROME = WebViewBackendSettings(
     additional_apk_name='TrichromeLibrary.apk',
     browser_type='android-webview-trichrome')
 
+ANDROID_WEBVIEW_MONOCHROME = WebViewBackendSettings(
+    apk_name='MonochromePublic.apk',
+    browser_type='android-webview-monochrome')
+
 ANDROID_WEBVIEW_TRICHROME_BUNDLE = WebViewBackendSettings(
     apk_name='trichrome_webview_bundle',
     additional_apk_name='TrichromeLibrary.apk',
@@ -433,6 +437,7 @@ ANDROID_BACKEND_SETTINGS = (
     ANDROID_WEBVIEW_GOOGLE,
     ANDROID_WEBVIEW_GOOGLE_BUNDLE,
     ANDROID_WEBVIEW_INSTRUMENTATION,
+    ANDROID_WEBVIEW_MONOCHROME,
     ANDROID_WEBVIEW_STANDALONE,
     ANDROID_WEBVIEW_STANDALONE_BUNDLE,
     ANDROID_WEBVIEW_STANDALONE_GOOGLE,
