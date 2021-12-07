@@ -22,6 +22,8 @@ class CloudStorageError(Exception):
             '  3. For the project-id, just enter 0.' % command)
 
 
+# TODO(https://1277796): Rename this once we're Python 3-only.
+# pylint: disable=redefined-builtin
 class PermissionError(CloudStorageError):
 
   def __init__(self):

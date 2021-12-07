@@ -20,18 +20,18 @@ class ModuleToLoadTests(unittest.TestCase):
     mtl0 = function_handle.ModuleToLoad(href='/foo')
     mtl1 = function_handle.ModuleToLoad(filename='foo.html')
 
-    self.assertEquals(str(mtl0), 'ModuleToLoad(href="/foo")')
-    self.assertEquals(str(mtl1), 'ModuleToLoad(filename="foo.html")')
+    self.assertEqual(str(mtl0), 'ModuleToLoad(href="/foo")')
+    self.assertEqual(str(mtl1), 'ModuleToLoad(filename="foo.html")')
 
   def testAsDict(self):
     mtl0 = function_handle.ModuleToLoad(href='/foo')
     mtl1 = function_handle.ModuleToLoad(filename='foo.html')
 
-    self.assertEquals(mtl0.AsDict(), {
+    self.assertEqual(mtl0.AsDict(), {
         'href': '/foo'
     })
 
-    self.assertEquals(mtl1.AsDict(), {
+    self.assertEqual(mtl1.AsDict(), {
         'filename': 'foo.html'
     })
 
@@ -47,9 +47,9 @@ class ModuleToLoadTests(unittest.TestCase):
     mtl0 = function_handle.ModuleToLoad.FromDict(module_dict0)
     mtl1 = function_handle.ModuleToLoad.FromDict(module_dict1)
 
-    self.assertEquals(mtl0.href, '/foo')
+    self.assertEqual(mtl0.href, '/foo')
     self.assertIsNone(mtl0.filename)
-    self.assertEquals(mtl1.filename, 'foo.html')
+    self.assertEqual(mtl1.filename, 'foo.html')
     self.assertIsNone(mtl1.href)
 
 
@@ -59,7 +59,7 @@ class FunctionHandleTests(unittest.TestCase):
     module = function_handle.ModuleToLoad(href='/foo')
     handle = function_handle.FunctionHandle([module], 'Bar')
 
-    self.assertEquals(
+    self.assertEqual(
         str(handle),
         'FunctionHandle(modules_to_load=[ModuleToLoad(href="/foo")], '
         'function_name="Bar")')
@@ -68,7 +68,7 @@ class FunctionHandleTests(unittest.TestCase):
     module = function_handle.ModuleToLoad(href='/foo')
     handle = function_handle.FunctionHandle([module], 'Bar')
 
-    self.assertEquals(
+    self.assertEqual(
         handle.AsDict(), {
             'modules_to_load': [{'href': '/foo'}],
             'function_name': 'Bar'
@@ -81,6 +81,6 @@ class FunctionHandleTests(unittest.TestCase):
     }
 
     handle = function_handle.FunctionHandle.FromDict(handle_dict)
-    self.assertEquals(len(handle.modules_to_load), 1)
-    self.assertEquals(handle.modules_to_load[0].href, '/foo')
-    self.assertEquals(handle.function_name, 'Bar')
+    self.assertEqual(len(handle.modules_to_load), 1)
+    self.assertEqual(handle.modules_to_load[0].href, '/foo')
+    self.assertEqual(handle.function_name, 'Bar')

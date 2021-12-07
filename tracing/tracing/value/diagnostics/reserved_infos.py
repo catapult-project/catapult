@@ -96,6 +96,7 @@ def GetTypeForName(name):
   info = _CACHED_INFO_TYPES.get(name)
   if info:
     return info.type
+  return None
 
 def AllInfos():
   for info in _CACHED_INFO_TYPES.values():

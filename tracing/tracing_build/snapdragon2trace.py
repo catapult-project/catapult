@@ -47,7 +47,7 @@ def LoadTraces(chrome_trace_filename):
     with open(chrome_trace_filename, 'r') as f:
       traces.append(json.load(f))
   else:
-    raise Exception('Unknown trace file suffix: %s', chrome_trace_filename)
+    raise Exception('Unknown trace file suffix: %s' % chrome_trace_filename)
   return list(map(_ConvertToDictIfNecessary, traces))
 
 
@@ -63,7 +63,7 @@ def WriteTraces(output_filename, traces):
     with open(output_filename, 'w') as f:
       json.dump(_ConcatTraces(traces), f)
   else:
-    raise Exception('Unknown trace file suffix: %s', output_filename)
+    raise Exception('Unknown trace file suffix: %s' % output_filename)
 
 
 def LoadCSV(csv_filename):
@@ -147,7 +147,7 @@ def _ConvertToDictIfNecessary(trace):
 
 def _MetadataEvent(pid, name, value):
   if name not in TRACE_METADATA_ARG_NAME_MAP:
-    raise Exception('Unknown metadata name: %s', name)
+    raise Exception('Unknown metadata name: %s' % name)
   arg_name = TRACE_METADATA_ARG_NAME_MAP[name]
   return {
       'pid': pid,

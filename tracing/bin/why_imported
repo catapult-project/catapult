@@ -15,6 +15,7 @@ This can then be converted to a graphical representation with the dot tool:
 $ dot -Grankdir=LR -Tpng ~/analysis_view.dot -o ~/analysis_view.png
 """
 
+from __future__ import print_function
 import os
 import sys
 import argparse
@@ -35,8 +36,8 @@ def Main():
     load_sequence = vulcanizer.CalcLoadSequenceForModuleNames(names)
   else:
     parser.error('No config specified.')
-  print vulcanizer.GetDominatorGraphForModulesNamed(
-      args.module_names, load_sequence)
+  print(vulcanizer.GetDominatorGraphForModulesNamed(
+      args.module_names, load_sequence))
 
 
 if __name__ == '__main__':

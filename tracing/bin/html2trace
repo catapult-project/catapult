@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 import argparse
 import codecs
 import sys
@@ -46,7 +47,7 @@ def main():
         html_file, args.trace_path, gzipped_output)
 
   if not args.quiet:
-    print '\n'.join(saved_paths)
+    print('\n'.join(saved_paths))
 
 
 if __name__ == '__main__':

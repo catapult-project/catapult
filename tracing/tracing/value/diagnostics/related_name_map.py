@@ -10,7 +10,7 @@ from tracing.value.diagnostics import diagnostic
 
 
 class RelatedNameMap(diagnostic.Diagnostic):
-  __slots__ = '_map',
+  __slots__ = ('_map',)
 
   def __init__(self, entries=None):
     super(RelatedNameMap, self).__init__()

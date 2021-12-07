@@ -15,7 +15,7 @@ from tracing.value.diagnostics import all_diagnostics
 
 
 class Diagnostic(object):
-  __slots__ = '_guid',
+  __slots__ = ('_guid',)
 
   # Ensure that new subclasses remember to specify __slots__ in order to prevent
   # regressing memory consumption:

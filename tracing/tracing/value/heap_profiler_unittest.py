@@ -26,17 +26,17 @@ class HeapProfilerUnitTest(unittest.TestCase):
     histograms = heap_profiler.Profile(test_data)
 
     set_size_hist = histograms.GetHistogramNamed('heap:HistogramSet')
-    self.assertEquals(set_size_hist.num_values, 1)
+    self.assertEqual(set_size_hist.num_values, 1)
     # The exact sizes of python objects can vary between platforms and versions.
     self.assertGreater(set_size_hist.sum, 10000)
 
     hist_size_hist = histograms.GetHistogramNamed('heap:Histogram')
-    self.assertEquals(hist_size_hist.num_values, 10)
+    self.assertEqual(hist_size_hist.num_values, 10)
     self.assertGreater(hist_size_hist.sum, 10000)
 
     related_names = hist_size_hist.diagnostics['types']
-    self.assertEquals(related_names.Get('HistogramBin'), 'heap:HistogramBin')
-    self.assertEquals(related_names.Get('DiagnosticMap'), 'heap:DiagnosticMap')
+    self.assertEqual(related_names.Get('HistogramBin'), 'heap:HistogramBin')
+    self.assertEqual(related_names.Get('DiagnosticMap'), 'heap:DiagnosticMap')
 
     diagnostic_bin = [
         hist_bin for hist_bin in hist_size_hist.bins
@@ -45,22 +45,22 @@ class HeapProfilerUnitTest(unittest.TestCase):
     types = diagnostic_bin.diagnostic_maps[0]['types']
     self.assertGreater(len(properties), 3)
     self.assertGreater(properties.Get('_bins'), 1000)
-    self.assertEquals(len(types), 4)
+    self.assertEqual(len(types), 4)
     self.assertGreater(types.Get('HistogramBin'), 1000)
     self.assertGreater(types.Get('(builtin types)'), 1000)
 
     bin_size_hist = histograms.GetHistogramNamed('heap:HistogramBin')
-    self.assertEquals(bin_size_hist.num_values, 32)
+    self.assertEqual(bin_size_hist.num_values, 32)
     self.assertGreater(bin_size_hist.sum, 1000)
 
     diag_map_size_hist = histograms.GetHistogramNamed('heap:DiagnosticMap')
-    self.assertEquals(diag_map_size_hist.num_values, 10)
+    self.assertEqual(diag_map_size_hist.num_values, 10)
     self.assertGreater(diag_map_size_hist.sum, 1000)
 
     range_size_hist = histograms.GetHistogramNamed('heap:Range')
-    self.assertEquals(range_size_hist.num_values, 22)
+    self.assertEqual(range_size_hist.num_values, 22)
     self.assertGreater(range_size_hist.sum, 1000)
 
     stats_size_hist = histograms.GetHistogramNamed('heap:RunningStatistics')
-    self.assertEquals(stats_size_hist.num_values, 10)
+    self.assertEqual(stats_size_hist.num_values, 10)
     self.assertGreater(stats_size_hist.sum, 1000)

@@ -11,7 +11,7 @@ from tracing.value.diagnostics import diagnostic
 
 
 class RelatedEventSet(diagnostic.Diagnostic):
-  __slots__ = '_events_by_stable_id',
+  __slots__ = ('_events_by_stable_id',)
 
   def __init__(self, events=()):
     super(RelatedEventSet, self).__init__()
@@ -47,9 +47,9 @@ class RelatedEventSet(diagnostic.Diagnostic):
     return events
 
   @staticmethod
-  def FromDict(d):
+  def FromDict(dct):
     result = RelatedEventSet()
-    for event in d['events']:
+    for event in dct['events']:
       result.Add(event)
     return result
 
@@ -68,7 +68,7 @@ class RelatedEventSet(diagnostic.Diagnostic):
         for e in self]
 
   def _AsDictInto(self, d):
-    d['events'] = [event for event in self]
+    d['events'] = list(self)
 
   def _AsProto(self):
     raise NotImplementedError()

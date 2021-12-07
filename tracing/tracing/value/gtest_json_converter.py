@@ -107,7 +107,7 @@ def _ConvertUnit(unit):
   # back to checking the histogram units directly, and defaulting to unitless if
   # the unit is unrecognized.
   legacy_unit = legacy_unit_info.LEGACY_UNIT_INFO.get(unit)
-  if legacy_unit != None:
+  if legacy_unit is not None:
     return legacy_unit.AsTuple()
   if unit in histogram.UNIT_NAMES:
     return unit, 1

@@ -16,7 +16,7 @@ except NameError:
 
 
 class UnmergeableDiagnosticSet(diagnostic.Diagnostic):
-  __slots__ = '_diagnostics',
+  __slots__ = ('_diagnostics',)
 
   def __init__(self, diagnostics):
     super(UnmergeableDiagnosticSet, self).__init__()

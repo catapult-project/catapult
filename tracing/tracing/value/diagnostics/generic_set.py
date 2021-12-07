@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import json
+import six
 
 from tracing.proto import histogram_proto
 from tracing.value.diagnostics import diagnostic
@@ -106,12 +107,13 @@ class GenericSet(diagnostic.Diagnostic):
     for value_json in d.values:
       try:
         values.append(json.loads(value_json))
-      except (TypeError, ValueError):
-        raise TypeError('The value %s is not valid JSON. You cannot pass naked '
-                        'strings as a GenericSet value, for instance; they '
-                        'have to be quoted. Therefore, 1234 is a valid value '
-                        '(int), "abcd" is a valid value (string), but abcd is '
-                        'not valid.' % value_json)
+      except (TypeError, ValueError) as e:
+        six.raise_from(
+            TypeError('The value %s is not valid JSON. You cannot pass naked '
+                      'strings as a GenericSet value, for instance; they '
+                      'have to be quoted. Therefore, 1234 is a valid value '
+                      '(int), "abcd" is a valid value (string), but abcd is '
+                      'not valid.' % value_json), e)
 
     return GenericSet(values)
 

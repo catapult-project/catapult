@@ -24,7 +24,7 @@ class BuildFile(object):
 
   def __init__(self, text, file_groups):
     self._file_groups = file_groups
-    self._tokens = [token for token in self._Tokenize(text)]
+    self._tokens = list(self._Tokenize(text))
 
   def _Tokenize(self, text):
     rest = text

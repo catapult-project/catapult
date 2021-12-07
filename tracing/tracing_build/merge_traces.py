@@ -99,6 +99,7 @@ class IdMap(object):
         value_set.update(value)
       else:
         value_set.add(value)
+    return None
 
   def MapEntry(self, source, path):
     """Map an source-specific entry ID path to a canonical entry ID path.
@@ -289,9 +290,8 @@ class IdMap(object):
     cls_name = type(self).__name__
     if self._depth == 0:
       return '%s root' % cls_name
-    else:
-      return '%s %s entry(%s)' % (cls_name, self.LEVELS[self._depth - 1].name,
-                                  self._items)
+    return '%s %s entry(%s)' % (cls_name, self.LEVELS[self._depth - 1].name,
+                                self._items)
 
 
 class ProcessIdMap(IdMap):
@@ -311,12 +311,11 @@ def LoadTrace(filename):
   logging.info('Loading trace %r...', filename)
   if filename.endswith(HTML_FILENAME_SUFFIX):
     return LoadHTMLTrace(filename)
-  elif filename.endswith(GZIP_FILENAME_SUFFIX):
+  if filename.endswith(GZIP_FILENAME_SUFFIX):
     with gzip.open(filename, 'rb') as f:
       return json.load(f)
-  else:
-    with open(filename, 'r') as f:
-      return json.load(f)
+  with open(filename, 'r') as f:
+    return json.load(f)
 
 
 def LoadHTMLTrace(filename):
@@ -407,8 +406,7 @@ def MergeComponents(component_name, components_by_filename):
   """Merge a component of multiple JSON traces into a single component."""
   if component_name == 'traceEvents':
     return MergeTraceEvents(components_by_filename)
-  else:
-    return MergeGenericTraceComponents(component_name, components_by_filename)
+  return MergeGenericTraceComponents(component_name, components_by_filename)
 
 
 def MergeTraceEvents(events_by_filename):

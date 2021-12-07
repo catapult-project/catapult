@@ -91,7 +91,7 @@ class CompareSamplesUnittest(unittest.TestCase):
       prev_bucket += width
     for value in values:
       for bucket in buckets:
-        if value >= bucket['low'] and value < bucket['high']:
+        if bucket['low'] <= value < bucket['high']:
           bucket['count'] += 1
           break
     charts = {

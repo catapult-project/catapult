@@ -37,8 +37,8 @@ class MreResultTests(unittest.TestCase):
 
       result_dict = result.AsDict()
 
-      self.assertEquals(result_dict['failures'], [failure.AsDict()])
-      self.assertEquals(result_dict['pairs'], {'foo': 'bar'})
+      self.assertEqual(result_dict['failures'], [failure.AsDict()])
+      self.assertEqual(result_dict['pairs'], {'foo': 'bar'})
 
   def testAddingNonFailure(self):
     result = mre_result.MreResult()

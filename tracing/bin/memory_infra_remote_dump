@@ -31,6 +31,7 @@ $ ./third_party/catapult/tracing/bin/memory_infra_remote_dump --port=1234
 /var/folders/18/gl6q632j20nc_tw5g9l03dhc007g45/T/trace_20s191.json: 835 KB
 """
 
+from __future__ import print_function
 import argparse
 import json
 import os
@@ -38,11 +39,12 @@ import requests
 import sys
 import tempfile
 import time
+from six.moves import input
 
 try:
   import websocket
 except ImportError:
-  print 'Please run: pip install --user websocket-client'
+  print('Please run: pip install --user websocket-client')
   sys.exit(1)
 
 
@@ -50,7 +52,7 @@ class TracingDevtoolsClient(object):
   def __init__(self, host, port):
     r = requests.get('http://%s:%s/json/version' % (host, port))
     url = r.json()['webSocketDebuggerUrl']
-    print 'Connecting to ' + url
+    print('Connecting to ' + url)
     self.ws = websocket.create_connection(url)
     self.cmd = 0
 
@@ -66,10 +68,10 @@ class TracingDevtoolsClient(object):
     return json.loads(self.ws.recv())
 
   def req_memory_dump(self):
-    print 'Requesting memory dump...',
+    print('Requesting memory dump...', end=' ')
     resp = self.send('Tracing.requestMemoryDump')
     assert resp['success'] == True
-    print ' ...done'
+    print(' ...done')
 
   def dump(self, trace_fd):
     trace_config = {
@@ -77,7 +79,7 @@ class TracingDevtoolsClient(object):
         'includedCategories': ['disabled-by-default-memory-infra'],
         'memoryDumpConfig': {'triggers': []}
     }
-    print 'Starting trace with trace_config', trace_config
+    print('Starting trace with trace_config', trace_config)
     params = {'traceConfig': trace_config, 'transferMode': 'ReturnAsStream'}
     self.send('Tracing.start', params)
     self.req_memory_dump()
@@ -85,8 +87,8 @@ class TracingDevtoolsClient(object):
     if sys.stdin.isatty():
       while True:
         try:
-          print '[Press enter to trigger a new dump, q to finish the trace]'
-          cmd = raw_input()
+          print('[Press enter to trigger a new dump, q to finish the trace]')
+          cmd = input()
         except KeyboardInterrupt:
           break
         if cmd == 'q':
@@ -96,7 +98,7 @@ class TracingDevtoolsClient(object):
     self.send('Tracing.end')
 
     # Wait for trace completion
-    print 'Flushing trace'
+    print('Flushing trace')
     resp = self.recv()
     assert resp['method'] == 'Tracing.tracingComplete'
     stream_handle = resp['params']['stream']
@@ -128,4 +130,4 @@ if __name__ == '__main__':
 
   cli = TracingDevtoolsClient(args.host, args.port)
   cli.dump(trace_fd)
-  print '\n%s: %d KB' % (trace_fd.name, os.stat(trace_fd.name).st_size / 1000)
+  print('\n%s: %d KB' % (trace_fd.name, os.stat(trace_fd.name).st_size / 1000))

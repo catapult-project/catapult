@@ -99,7 +99,7 @@ class FunctionHandle(object):
         abspath = module.filename
 
       if not abspath:
-        raise AbspathInvalidError('Filename %s invalid', abspath)
+        raise AbspathInvalidError('Filename %s invalid' % abspath)
 
       new_modules_to_load.append(ModuleToLoad(filename=abspath))
 
@@ -136,4 +136,3 @@ class FunctionHandle(object):
 
     return FunctionHandle(modules_to_load=modules_to_load,
                           function_name=parts[-1])
-

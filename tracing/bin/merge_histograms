@@ -25,7 +25,7 @@ def Main(argv):
   args = parser.parse_args(argv[1:])
 
   merged = merge_histograms.MergeHistograms(args.input, args.groupby)
-  json.dump(merged, file(args.output, 'w'))
+  json.dump(merged, open(args.output, 'w'))
   return 0
 
 if __name__ == '__main__':

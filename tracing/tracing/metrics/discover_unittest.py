@@ -11,7 +11,7 @@ class MetricsDiscoverUnittest(unittest.TestCase):
     self.assertFalse(discover.DiscoverMetrics([]))
 
   def testMetricsDiscoverNonEmpty(self):
-    self.assertEquals(['sampleMetric'], discover.DiscoverMetrics(
+    self.assertEqual(['sampleMetric'], discover.DiscoverMetrics(
         ['/tracing/metrics/sample_metric.html']))
 
   def testMetricsDiscoverMultipleMetrics(self):

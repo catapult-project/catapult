@@ -23,7 +23,7 @@ class ThreadedWorkQueueTests(unittest.TestCase):
     wq = threaded_work_queue.ThreadedWorkQueue(num_threads=1)
     wq.PostAnyThreadTask(Ex)
     res = wq.Run()
-    self.assertEquals(res, None)
+    self.assertEqual(res, None)
 
   def _RunSimpleDecrementingTest(self, wq):
 
@@ -39,4 +39,4 @@ class ThreadedWorkQueueTests(unittest.TestCase):
 
     wq.PostAnyThreadTask(Decrement)
     res = wq.Run()
-    self.assertEquals(res, 314)
+    self.assertEqual(res, 314)

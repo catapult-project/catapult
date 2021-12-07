@@ -136,7 +136,7 @@ class TracingProject(object):
     self.source_paths.append(self.oboe_path)
 
   def CreateVulcanizer(self):
-    from py_vulcanize import project as project_module
+    from py_vulcanize import project as project_module # pylint: disable=import-outside-toplevel
     return project_module.Project(self.source_paths)
 
   def IsD8CompatibleFile(self, filename):
@@ -214,4 +214,3 @@ class TracingProject(object):
 
   def GetModuleNameForConfigName(self, config_name):
     return 'tracing.ui.extras.%s_config' % config_name
-

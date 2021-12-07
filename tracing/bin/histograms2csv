@@ -4,8 +4,6 @@
 # found in the LICENSE file.
 
 import argparse
-import codecs
-import json
 import sys
 import os
 
@@ -33,7 +31,7 @@ def main():
   if result.returncode != 0:
     sys.stderr.write(result.stdout)
   else:
-    file(args.csv_path, 'w').write(result.stdout)
+    open(args.csv_path, 'w').write(result.stdout)
   return result.returncode
 
 if __name__ == '__main__':

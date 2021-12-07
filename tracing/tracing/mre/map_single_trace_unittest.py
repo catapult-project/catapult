@@ -51,7 +51,7 @@ class MapSingleTraceTests(unittest.TestCase):
 
     self.assertFalse(result.failures)
     r = result.pairs['result']
-    self.assertEquals(r['numProcesses'], 1)
+    self.assertEqual(r['numProcesses'], 1)
 
 
   def testProcessingGiantTrace(self):
@@ -87,7 +87,7 @@ class MapSingleTraceTests(unittest.TestCase):
     self.assertFalse(result.failures,
                      msg='\n'.join(str(f) for f in result.failures))
     r = result.pairs['result']
-    self.assertEquals(r['numEvents'], 2000000)
+    self.assertEqual(r['numEvents'], 2000000)
 
 
 
@@ -104,8 +104,8 @@ class MapSingleTraceTests(unittest.TestCase):
       result = map_single_trace.MapSingleTrace(trace_handle,
                                                _Handle(map_script.filename))
 
-    self.assertEquals(len(result.failures), 1)
-    self.assertEquals(len(result.pairs), 0)
+    self.assertEqual(len(result.failures), 1)
+    self.assertEqual(len(result.pairs), 0)
     f = result.failures[0]
     self.assertIsInstance(f, map_single_trace.TraceImportFailure)
 
@@ -128,8 +128,8 @@ class MapSingleTraceTests(unittest.TestCase):
       result = map_single_trace.MapSingleTrace(trace_handle,
                                                _Handle(map_script.filename))
 
-    self.assertEquals(len(result.failures), 1)
-    self.assertEquals(len(result.pairs), 0)
+    self.assertEqual(len(result.failures), 1)
+    self.assertEqual(len(result.pairs), 0)
     f = result.failures[0]
     self.assertIsInstance(f, map_single_trace.MapFunctionFailure)
 
@@ -149,8 +149,8 @@ class MapSingleTraceTests(unittest.TestCase):
       result = map_single_trace.MapSingleTrace(trace_handle,
                                                _Handle(map_script.filename))
 
-    self.assertEquals(len(result.failures), 1)
-    self.assertEquals(len(result.pairs), 0)
+    self.assertEqual(len(result.failures), 1)
+    self.assertEqual(len(result.pairs), 0)
     f = result.failures[0]
     self.assertIsInstance(f, map_single_trace.FunctionLoadingFailure)
 
@@ -168,8 +168,8 @@ class MapSingleTraceTests(unittest.TestCase):
       result = map_single_trace.MapSingleTrace(trace_handle,
                                                _Handle(map_script.filename))
 
-    self.assertEquals(len(result.failures), 1)
-    self.assertEquals(len(result.pairs), 0)
+    self.assertEqual(len(result.failures), 1)
+    self.assertEqual(len(result.pairs), 0)
     f = result.failures[0]
     self.assertIsInstance(f, failure.Failure)
 
@@ -188,8 +188,8 @@ class MapSingleTraceTests(unittest.TestCase):
       result = map_single_trace.MapSingleTrace(trace_handle,
                                                _Handle(map_script.filename))
 
-    self.assertEquals(len(result.failures), 1)
-    self.assertEquals(len(result.pairs), 0)
+    self.assertEqual(len(result.failures), 1)
+    self.assertEqual(len(result.pairs), 0)
     f = result.failures[0]
     self.assertIsInstance(f, map_single_trace.FunctionNotDefinedFailure)
 
@@ -211,8 +211,8 @@ class MapSingleTraceTests(unittest.TestCase):
       result = map_single_trace.MapSingleTrace(trace_handle,
                                                _Handle(map_script.filename))
 
-    self.assertEquals(len(result.failures), 1)
-    self.assertEquals(len(result.pairs), 0)
+    self.assertEqual(len(result.failures), 1)
+    self.assertEqual(len(result.pairs), 0)
     f = result.failures[0]
     self.assertIsInstance(f, map_single_trace.NoResultsAddedFailure)
 
@@ -226,7 +226,7 @@ class MapSingleTraceTests(unittest.TestCase):
           results.addPair('numProcesses', model.getAllProcesses().length);
         };
         """)
-    self.assertEquals(results['numProcesses'], 2)
+    self.assertEqual(results['numProcesses'], 2)
 
   def testExecuteTraceMappingCodeWithError(self):
     test_trace_path = os.path.join(os.path.dirname(__file__), 'test_trace.json')

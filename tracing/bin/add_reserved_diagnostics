@@ -3,10 +3,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 import argparse
 import json
 import sys
 import os
+import six
 
 tracing_path = os.path.abspath(os.path.join(
   os.path.dirname(os.path.realpath(__file__)), '..'))
@@ -69,7 +71,7 @@ def main():
   args = parser.parse_args()
 
   names_to_values = {}
-  for name, value in vars(args).iteritems():
+  for name, value in six.iteritems(vars(args)):
     if name == LOG_URLS_K and value is not None:
       v_value = vars(args)[LOG_URLS_V]
       names_to_values[reserved_infos.LOG_URLS.name] = [value, v_value]
@@ -94,7 +96,7 @@ def main():
 
   if args.stdout:
     assert len(json_batches) == 1, len(json_batches)
-    print json_batches[0]
+    print(json_batches[0])
   else:
     path = args.output_path or args.input_path
     if len(json_batches) == 1:

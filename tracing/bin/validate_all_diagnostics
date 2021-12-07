@@ -3,10 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import argparse
 import json
 import os
-import string
 import sys
 
 sys.path.insert(
@@ -58,16 +56,16 @@ def CheckPythonDiagnostics():
 
   return_code = 0
   if unregistered_diagnostics:
-    print ('These diagnostics are unregistered: %s. Please add them to '
-           'tracing/tracing/value/diagnostics/all_diagnostics.py.' %
-           ', '.join(unregistered_diagnostics))
+    print('These diagnostics are unregistered: %s. Please add them to '
+          'tracing/tracing/value/diagnostics/all_diagnostics.py.' %
+          ', '.join(unregistered_diagnostics))
     return_code = 1
 
   for name in all_diagnostics.GetDiagnosticTypenames():
     diagnostic = all_diagnostics.GetDiagnosticClassForName(name)
     if name != diagnostic.__name__:
-      print 'This diagnostic refers to the wrong class: %s: %s' % (
-          name, diagnostic.__name__)
+      print('This diagnostic refers to the wrong class: %s: %s' % (
+          name, diagnostic.__name__))
       return_code = 1
 
   return return_code
@@ -86,10 +84,10 @@ def CheckJSDiagnostics():
   unregistered_diagnostics = (all_possible_diagnostics -
       all_registered_diagnostics)
   if unregistered_diagnostics:
-    print ('These diagnostics are unregistered: %s. Please import their modules in '
-           'tracing/tracing/value/diagnostics/all_diagnostics.html and '
-           'ensure that they call Diagnostic.register().' %
-           ', '.join(unregistered_diagnostics))
+    print('These diagnostics are unregistered: %s. Please import their modules in '
+          'tracing/tracing/value/diagnostics/all_diagnostics.html and '
+          'ensure that they call Diagnostic.register().' %
+          ', '.join(unregistered_diagnostics))
     return 1
 
   lowercased_diagnostics = []
@@ -97,8 +95,8 @@ def CheckJSDiagnostics():
     if str.islower(m[0]):
       lowercased_diagnostics.append(m)
   if lowercased_diagnostics:
-    print ('These diagnostics must be renamed to start with a upper-case: %s' %
-           lowercased_diagnostics)
+    print('These diagnostics must be renamed to start with a upper-case: %s' %
+          lowercased_diagnostics)
     return 1
 
   return 0

@@ -66,4 +66,3 @@ class LocalDirectoryCorpusDriver(corpus_driver.CorpusDriver):
       trace_handles.append(th)
 
     return trace_handles
-

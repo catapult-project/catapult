@@ -42,8 +42,8 @@ Current listing:
 
 Correct listing:
 {4}\n\n'''.format(group_name, src_file, mismatch, what_is, what_should_be)
-  else:
-    return ''
+
+  return ''
 
 
 def GetKnownFiles():
@@ -55,8 +55,8 @@ def GetKnownFiles():
   absolute_filenames = m.GetAllDependentFilenamesRecursive(
       include_raw_scripts=False)
 
-  return list(set([os.path.relpath(f, project.tracing_root_path)
-                   for f in absolute_filenames]))
+  return list({os.path.relpath(f, project.tracing_root_path)
+                   for f in absolute_filenames})
 
 
 def CheckCommon(file_name, listed_files):

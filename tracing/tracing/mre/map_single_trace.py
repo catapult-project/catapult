@@ -120,7 +120,7 @@ def MapSingleTrace(trace_handle,
           job,
           trace_handle.canonical_url,
           'Error', 'vinn runtime error while mapping trace.',
-          e.message, 'Unknown stack'))
+          str(e), 'Unknown stack'))
       return result
 
   stdout = res.stdout

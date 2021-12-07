@@ -1,16 +1,17 @@
 # Copyright 2018 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+from __future__ import absolute_import
 import datetime
 
+from tracing.value import histogram
 from tracing.value.diagnostics import diagnostic
 
 
 class DateRange(diagnostic.Diagnostic):
-  __slots__ = '_range',
+  __slots__ = ('_range',)
 
   def __init__(self, ms):
-    from tracing.value import histogram
     super(DateRange, self).__init__()
     self._range = histogram.Range()
     self._range.AddValue(ms)
@@ -88,4 +89,3 @@ class DateRange(diagnostic.Diagnostic):
 
   def AddDiagnostic(self, other_diagnostic):
     self._range.AddRange(other_diagnostic._range)
-

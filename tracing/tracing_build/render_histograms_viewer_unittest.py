@@ -9,6 +9,7 @@ import os
 import tempfile
 
 from tracing_build import render_histograms_viewer
+from six.moves import range
 
 
 class ResultsRendererTest(unittest.TestCase):

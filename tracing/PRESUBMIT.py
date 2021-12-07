@@ -2,6 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+
+USE_PYTHON3 = True
+
+
 import sys
 
 def _RunArgs(args, input_api):
@@ -16,7 +20,7 @@ def _CheckRegisteredMetrics(input_api, output_api):
   results = []
   tracing_dir = input_api.PresubmitLocalPath()
   out, return_code = _RunArgs(
-      [input_api.python_executable,
+      [sys.executable,
        input_api.os_path.join(tracing_dir, 'bin', 'validate_all_metrics')],
       input_api)
   if return_code:
@@ -30,7 +34,7 @@ def _CheckRegisteredDiagnostics(input_api, output_api):
   results = []
   tracing_dir = input_api.PresubmitLocalPath()
   out, return_code = _RunArgs(
-      [input_api.python_executable,
+      [sys.executable,
        input_api.os_path.join(tracing_dir, 'bin', 'validate_all_diagnostics')],
       input_api)
   if return_code:
@@ -61,7 +65,8 @@ def _CheckHistogramProtoIsGated(input_api, output_api):
   for f in input_api.AffectedSourceFiles(source_file_filter):
     contents = input_api.ReadFile(f)
     if ('histogram_pb2' in contents and
-        not f.LocalPath().endswith('histogram_proto.py')):
+        not f.LocalPath().endswith('histogram_proto.py') and
+        not f.LocalPath().endswith('PRESUBMIT.py')):
       files.append(f)
 
   results = []
@@ -109,7 +114,7 @@ def _CheckChange(input_api, output_api):
   original_sys_path = sys.path
   try:
     sys.path += [input_api.PresubmitLocalPath()]
-    from tracing_build import check_gni
+    from tracing_build import check_gni # pylint: disable=import-outside-toplevel
     error = check_gni.GniCheck()
     if error:
       results.append(output_api.PresubmitError(error))
@@ -120,7 +125,7 @@ def _CheckChange(input_api, output_api):
   files_to_skip = input_api.DEFAULT_FILES_TO_SKIP + (".*_pb2.py$",)
   results += input_api.RunTests(input_api.canned_checks.GetPylint(
       input_api, output_api, extra_paths_list=_GetPathsToPrepend(input_api),
-      pylintrc='../pylintrc', files_to_skip=files_to_skip))
+      pylintrc='../pylintrc', files_to_skip=files_to_skip, version='2.7'))
 
   results += _CheckRegisteredMetrics(input_api, output_api)
   results += _CheckRegisteredDiagnostics(input_api, output_api)
@@ -132,7 +137,7 @@ def _CheckChange(input_api, output_api):
 
 
 def _GetPathsToPrepend(input_api):
-  import tracing_project
+  import tracing_project # pylint: disable=import-outside-toplevel
   project_dir = input_api.PresubmitLocalPath()
   catapult_dir = input_api.os_path.join(project_dir, '..')
   return [

@@ -17,7 +17,7 @@ def ExtractJSON(results_html):
   flags = re.MULTILINE | re.DOTALL
   start = re.search("^%s" % re.escape(_DATA_START), results_html, flags)
   if start is None:
-    logging.warn('Could not find histogram data start: %s', _DATA_START)
+    logging.warning('Could not find histogram data start: %s', _DATA_START)
     return []
   pattern = '^((%s|%s)|(.*?))$' % (re.escape(_DATA_END_OLD),
                                    re.escape(_DATA_END))
@@ -32,7 +32,7 @@ def ExtractJSON(results_html):
         continue
       results.append(json.loads(payload))
     except ValueError:
-      logging.warn(
+      logging.warning(
           'Found existing results json, but failed to parse it: %s',
           match.group(1))
       return []
@@ -46,7 +46,7 @@ def ReadExistingResults(results_html):
   histogram_dicts = ExtractJSON(results_html)
 
   if not histogram_dicts:
-    logging.warn('Failed to extract previous results from HTML output')
+    logging.warning('Failed to extract previous results from HTML output')
   return histogram_dicts
 
 

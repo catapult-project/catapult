@@ -704,8 +704,8 @@ class HistogramUnittest(unittest.TestCase):
     self.assertEqual(hist.description, clone.description)
     self.assertEqual(len(hist.diagnostics), len(clone.diagnostics))
     self.assertEqual(hist.diagnostics['foo'], clone.diagnostics['foo'])
-    self.assertEqual(hist.statistics_scalars.keys(),
-                     clone.statistics_scalars.keys())
+    self.assertEqual(list(hist.statistics_scalars.keys()),
+                     list(clone.statistics_scalars.keys()))
     self.assertEqual(hist.max_num_sample_values, clone.max_num_sample_values)
 
 class DiagnosticMapUnittest(unittest.TestCase):
@@ -808,4 +808,3 @@ class DiagnosticMapUnittest(unittest.TestCase):
     self.assertIs(related_map, diagnostics[1])
     self.assertIs(events, diagnostics[2])
     self.assertIs(generic2, diagnostics[3])
-

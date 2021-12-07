@@ -24,7 +24,7 @@ class FailureTests(unittest.TestCase):
                                      'file://foo.html',
                                      'err', 'desc', 'stack')
 
-    self.assertEquals(failure.AsDict(), {
+    self.assertEqual(failure.AsDict(), {
         'job_guid': '1',
         'function_handle_string': 'foo.html:Foo',
         'trace_canonical_url': 'file://foo.html',
@@ -48,9 +48,9 @@ class FailureTests(unittest.TestCase):
 
     failure = failure_module.Failure.FromDict(failure_dict, job)
 
-    self.assertEquals(failure.job.guid, '1')
-    self.assertEquals(failure.function_handle_string, 'foo.html:Foo')
-    self.assertEquals(failure.trace_canonical_url, 'file://foo.html')
-    self.assertEquals(failure.failure_type_name, 'err')
-    self.assertEquals(failure.description, 'desc')
-    self.assertEquals(failure.stack, 'stack')
+    self.assertEqual(failure.job.guid, '1')
+    self.assertEqual(failure.function_handle_string, 'foo.html:Foo')
+    self.assertEqual(failure.trace_canonical_url, 'file://foo.html')
+    self.assertEqual(failure.failure_type_name, 'err')
+    self.assertEqual(failure.description, 'desc')
+    self.assertEqual(failure.stack, 'stack')

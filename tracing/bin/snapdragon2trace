@@ -26,7 +26,6 @@ file.
 """
 
 import argparse
-import codecs
 import sys
 import os
 

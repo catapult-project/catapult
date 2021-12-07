@@ -284,7 +284,6 @@ class NodeWrapper(object):
     'modified' flag.
 
   """
-  pass
 
 
 class MemoryMap(NodeWrapper):
@@ -350,10 +349,9 @@ class MemoryMap(NodeWrapper):
         raise Exception('Cannot compare with %s' % type(other))
       if self._start_address < other_start_address:
         return -1
-      elif self._start_address > other_start_address:
+      if self._start_address > other_start_address:
         return 1
-      else:
-        return 0
+      return 0
 
     if six.PY2:
       def __cmp__(self, other):
@@ -456,7 +454,7 @@ class MemoryMap(NodeWrapper):
     region_index = bisect.bisect_right(self._regions, address) - 1
     if region_index >= 0:
       region = self._regions[region_index]
-      if address >= region.start_address and address < region.end_address:
+      if region.start_address <= address < region.end_address:
         return region
     return None
 
@@ -1174,12 +1172,11 @@ class Trace(NodeWrapper):
     if self._heap_dump_version is None:
       self._heap_dump_version = version
       return version
-    elif self._heap_dump_version != version:
+    if self._heap_dump_version != version:
       raise Exception(
           ("Inconsistent trace file: first saw '{}' heap dump version, "
            "then '{}'.").format(self._heap_dump_version, version))
-    else:
-      return version
+    return version
 
 
 class SymbolizableFile(object):
@@ -1241,12 +1238,13 @@ def ResolveSymbolizableFiles(processes, trace_from_win, frame_as_object_type):
       continue
     ResolveSymbolizableFilesByNodes(
         symfile_by_path, process.memory_map,
-        process.stack_frame_map.frame_by_id.values(), trace_from_win)
+        list(process.stack_frame_map.frame_by_id.values()), trace_from_win)
 
     if frame_as_object_type:
-      ResolveSymbolizableFilesByNodes(symfile_by_path, process.memory_map,
-                                      process.type_name_map.type_by_id.values(),
-                                      trace_from_win)
+      ResolveSymbolizableFilesByNodes(
+        symfile_by_path, process.memory_map,
+        list(process.type_name_map.type_by_id.values()),
+        trace_from_win)
 
   return list(symfile_by_path.values())
 
@@ -1462,12 +1460,11 @@ class Symbolizer(object):
     if self.is_win:
       extension = os.path.splitext(file_path)[1].lower()
       return extension in ['.dll', '.exe']
-    else:
-      result = six.ensure_str(
-          subprocess.check_output(['file', '-0', file_path]))
-      type_string = result[result.find('\0') + 1:]
-      return bool(re.match(r'.*(ELF|Mach-O) (32|64)-bit\b.*',
-                           type_string, re.DOTALL))
+    result = six.ensure_str(
+        subprocess.check_output(['file', '-0', file_path]))
+    type_string = result[result.find('\0') + 1:]
+    return bool(re.match(r'.*(ELF|Mach-O) (32|64)-bit\b.*',
+                          type_string, re.DOTALL))
 
 
 def SymbolizeFiles(symfiles, symbolizer):
@@ -1681,11 +1678,9 @@ def OpenTraceFile(file_path, mode):
   if file_path.endswith('.gz'):
     if six.PY2:
       return gzip.open(file_path, mode + 'b')
-    else:
-      return gzip.open( # pylint: disable=unexpected-keyword-arg
-          file_path, mode + 't', encoding='utf-8', newline='')
-  else:
-    return open(file_path, mode + 't')
+    return gzip.open( # pylint: disable=unexpected-keyword-arg
+        file_path, mode + 't', encoding='utf-8', newline='')
+  return open(file_path, mode + 't')
 
 
 def FetchAndExtractSymbolsMac(symbol_base_directory, version,
@@ -1739,6 +1734,7 @@ def FetchAndExtractSymbolsWin(symbol_base_directory, version, is64bit,
         target = open(os.path.join(destination, filename), 'wb')
         with source, target:
           shutil.copyfileobj(source, target)
+    return True
 
   folder = "win64" if is64bit else "win"
   # Clang build (M61+)
@@ -1755,16 +1751,19 @@ def FetchAndExtractSymbolsWin(symbol_base_directory, version, is64bit,
     return True
 
   os.makedirs(symbol_sub_dir)
-  DownloadAndExtractZipFile(
+  if not DownloadAndExtractZipFile(
       os.path.join(symbol_base_directory,
                    "chrome-" + folder + "-" + version + "-syms.zip"),
       gcs_folder + "chrome-win32-syms.zip",
-      symbol_sub_dir)
-  DownloadAndExtractZipFile(
+      symbol_sub_dir):
+    return False
+
+  if not DownloadAndExtractZipFile(
       os.path.join(symbol_base_directory,
                    "chrome-" + folder + "-" + version + ".zip"),
       gcs_folder + "chrome-" + folder + folder_suffix + ".zip",
-      symbol_sub_dir)
+      symbol_sub_dir):
+    return False
 
   return True
 

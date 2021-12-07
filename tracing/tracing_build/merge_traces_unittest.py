@@ -42,4 +42,4 @@ class MergeTracesTest(unittest.TestCase):
       events = json.load(f)['traceEvents']
     # Check that both dumps are found in the merged trace.
     dump_pids = [e['pid'] for e in events if e['ph'] == 'v']
-    self.assertEquals([1, 2], dump_pids)
+    self.assertEqual([1, 2], dump_pids)

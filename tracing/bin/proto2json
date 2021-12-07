@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import print_function
 import argparse
 import os
 import json
@@ -24,7 +25,7 @@ def main():
   with open(args.proto_path, "rb") as f:
     hs.ImportProto(f.read())
 
-  print(json.dumps(hs.AsDicts(), indent=4))
+  print((json.dumps(hs.AsDicts(), indent=4)))
 
 if __name__ == '__main__':
   sys.exit(main())

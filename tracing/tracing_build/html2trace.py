@@ -83,26 +83,23 @@ def _ExtractTraceDataFromHTMLFile(html_file_handle, unzip_data=True):
 
   if unzip_data:
     return list(map(_UnzipFileIfNecessary, decoded_data_list))
-  else:
-    return list(map(_ZipFileIfNecessary, decoded_data_list))
+  return list(map(_ZipFileIfNecessary, decoded_data_list))
 
 
 def _UnzipFileIfNecessary(original_file):
   if _IsFileZipped(original_file):
     return gzip.GzipFile(fileobj=original_file)
-  else:
-    return original_file
+  return original_file
 
 
 def _ZipFileIfNecessary(original_file):
   if _IsFileZipped(original_file):
     return original_file
-  else:
-    zipped_file = io.BytesIO()
-    with gzip.GzipFile(fileobj=zipped_file, mode='wb') as gzip_wrapper:
-      gzip_wrapper.write(original_file.read())
-    zipped_file.seek(0)
-    return zipped_file
+  zipped_file = io.BytesIO()
+  with gzip.GzipFile(fileobj=zipped_file, mode='wb') as gzip_wrapper:
+    gzip_wrapper.write(original_file.read())
+  zipped_file.seek(0)
+  return zipped_file
 
 
 def _IsFileZipped(f):

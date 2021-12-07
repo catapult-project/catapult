@@ -53,10 +53,10 @@ class Breakdown(diagnostic.Diagnostic):
     return breakdown
 
   @staticmethod
-  def FromDict(d):
+  def FromDict(dct):
     result = Breakdown()
-    result._color_scheme = d.get('colorScheme')
-    for name, value in d['values'].items():
+    result._color_scheme = dct.get('colorScheme')
+    for name, value in dct['values'].items():
       if value in ['NaN', 'Infinity', '-Infinity']:
         value = float(value)
       result.Set(name, value)

@@ -30,5 +30,4 @@ def DiscoverMetrics(modules_to_load):
 
   if res.returncode != 0:
     raise RuntimeError('Error running metrics_discover_cmdline: ' + res.stdout)
-  else:
-    return [str(m) for m in json.loads(res.stdout)]
+  return [str(m) for m in json.loads(res.stdout)]

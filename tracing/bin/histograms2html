@@ -8,6 +8,7 @@ import codecs
 import json
 import sys
 import os
+import six
 
 tracing_path = os.path.abspath(os.path.join(
   os.path.dirname(os.path.realpath(__file__)), '..'))
@@ -42,7 +43,7 @@ def main():
     histograms.extend(json.load(open(json_path, 'r')))
 
   for json_path in args.mapresults:
-    for filename, results in json.load(open(json_path, 'r')).iteritems():
+    for filename, results in six.iteritems(json.load(open(json_path, 'r'))):
       for histogram in results['pairs']['histograms']:
         histograms.append(histogram)
 

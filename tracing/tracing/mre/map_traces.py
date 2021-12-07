@@ -60,8 +60,7 @@ def Main(argv):
     results = runner.Run()
     if not any(result.failures for result in results):
       return 0
-    else:
-      return 255
+    return 255
   finally:
     if ofile != sys.stdout:
       ofile.close()

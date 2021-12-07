@@ -7,17 +7,26 @@ extension-pkg-whitelist=numpy
 
 # Disable the message, report, category or checker with the given id(s).
 # TODO: Shrink this list to as small as possible.
+# TODO(https://1277796): These should be removed once we're Python 3-only:
+#   super-with-arguments
+#   useless-object-inheritance
 disable=
   design,
   similarities,
 
   fixme,
+  invalid-name,
   locally-disabled,
   locally-enabled,
   missing-docstring,
+  not-an-iterable,
   no-self-use,
   protected-access,
   star-args,
+  super-with-arguments,
+  useless-object-inheritance,
+  wrong-import-order,
+  wrong-import-position,
 
 
 [REPORTS]

@@ -7,7 +7,7 @@ try:
   # Note: from tracing.proto import histogram_pb2 would make more sense here,
   # but unfortunately protoc does not generate __init__.py files if you specify
   # an out package (at least for the gn proto_library rule).
-  import histogram_pb2  # pylint:disable=relative-import
+  import histogram_pb2
   HAS_PROTO = True
 except ImportError as e:
   try:
@@ -17,7 +17,7 @@ except ImportError as e:
     # try to import from the sys.path. Here allows to try import from the
     # source folder as well.
     # TODO(wenbinzhang): Clean up import paths to work consistently.
-    from . import histogram_pb2 # pylint:disable=relative-import
+    from . import histogram_pb2
     HAS_PROTO = True
   except ImportError:
     HAS_PROTO = False
@@ -98,4 +98,3 @@ def ProtoFromUnit(unit):
     proto_unit.improvement_direction = IMPROVEMENT_DIRECTION_PROTO_MAP[parts[1]]
 
   return proto_unit
-
