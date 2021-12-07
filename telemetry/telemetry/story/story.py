@@ -178,4 +178,3 @@ class Story(object):
     levels. e.g. if you want to add more trace categories for some stories
     you can add them here.
     """
-    pass

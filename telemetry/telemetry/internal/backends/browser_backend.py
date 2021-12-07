@@ -123,7 +123,6 @@ class BrowserBackend(app_backend.AppBackend):
 
   def PullMinidumps(self):
     """Pulls any minidumps off a test device if necessary."""
-    pass
 
   def CollectDebugData(self, log_level):
     """Collects various information that may be useful for debugging.

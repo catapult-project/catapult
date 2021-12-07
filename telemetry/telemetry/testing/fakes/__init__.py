@@ -267,10 +267,6 @@ class FakePossibleBrowser(object):
 
 
 class FakeSharedPageState(shared_page_state.SharedPageState):
-  def __init__(self, test, finder_options, story_set, possible_browser):
-    super(FakeSharedPageState, self).__init__(
-        test, finder_options, story_set, possible_browser)
-
   def _GetPossibleBrowser(self):
     p = FakePossibleBrowser()
     self.ConfigurePossibleBrowser(p)
@@ -282,7 +278,6 @@ class FakeSharedPageState(shared_page_state.SharedPageState):
     Can make changes to the browser's configuration here via e.g.:
        possible_browser.returned_browser.returned_system_info = ...
     """
-    pass
 
 
   def DidRunStory(self, results):

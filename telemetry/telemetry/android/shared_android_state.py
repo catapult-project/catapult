@@ -77,7 +77,6 @@ class SharedAndroidState(story_module.SharedState):
 
     Currently, there is no clean-up needed from SharedAndroidState.__init__.
     """
-    pass
 
   def DumpStateUponStoryRunFailure(self, results):
     # TODO: Dump the state of the Android app.

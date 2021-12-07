@@ -42,12 +42,12 @@ class RecorderPageTest(legacy_page_test.LegacyPageTest):
     if self._page_test:
       self._page_test.CustomizeBrowserOptions(options)
 
-  def WillStartBrowser(self, browser):
+  def WillStartBrowser(self, platform):
     if self.platform is not None:
-      assert browser.GetOSName() == self.platform
-    self._platform = browser.GetOSName()  # Record platform name from browser.
+      assert platform.GetOSName() == self.platform
+    self._platform = platform.GetOSName()  # Record platform name from browser.
     if self._page_test:
-      self._page_test.WillStartBrowser(browser)
+      self._page_test.WillStartBrowser(platform)
 
   def DidStartBrowser(self, browser):
     if self._page_test:

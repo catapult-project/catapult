@@ -24,7 +24,6 @@ Owner = decorators.Info # pylint: disable=invalid-name
 
 class InvalidOptionsError(Exception):
   """Raised for invalid benchmark options."""
-  pass
 
 
 class Benchmark(command_line.Command):
@@ -81,11 +80,17 @@ class Benchmark(command_line.Command):
         return True
     return False
 
-  def Run(self, finder_options):
-    """Do not override this method."""
-    finder_options.target_platforms = self.GetSupportedPlatformNames(
+  def Run(self, args):
+    """Do not override this method.
+
+    Args:
+      args: a browser_options.BrowserFinderOptions instance.
+    Returns:
+      An exit code from exit_codes module describing what happened.
+    """
+    args.target_platforms = self.GetSupportedPlatformNames(
         self.SUPPORTED_PLATFORMS)
-    return story_runner.RunBenchmark(self, finder_options)
+    return story_runner.RunBenchmark(self, args)
 
   @property
   def max_failures(self):
@@ -134,11 +139,9 @@ class Benchmark(command_line.Command):
 
   def CustomizeOptions(self, finder_options, possible_browser=None):
     """Add options that are required by this benchmark."""
-    pass
 
   def SetExtraBrowserOptions(self, browser_options):
     """Set extra browser command line options"""
-    pass
 
   def GetBugComponents(self):
     """Return the benchmark's Monorail component as a string."""

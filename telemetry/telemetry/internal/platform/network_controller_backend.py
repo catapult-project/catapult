@@ -12,12 +12,10 @@ from telemetry.util import wpr_modes
 
 class ArchiveDoesNotExistError(Exception):
   """Raised when the archive path does not exist for replay mode."""
-  pass
 
 
 class ReplayAndBrowserPortsError(Exception):
   """Raised an existing browser would get different remote replay ports."""
-  pass
 
 
 class NetworkControllerBackend(object):

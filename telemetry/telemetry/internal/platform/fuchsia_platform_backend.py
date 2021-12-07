@@ -108,7 +108,7 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
                         elevate_privilege=False):
     raise NotImplementedError()
 
-  def PathExists(self, device_path, timeout=None, retries=None):
+  def PathExists(self, path, timeout=None, retries=None):
     raise NotImplementedError()
 
   def CanFlushIndividualFilesFromSystemCache(self):

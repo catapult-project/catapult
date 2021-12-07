@@ -104,7 +104,6 @@ class Page(story.Story):
         action_runner.ScrollPage()
         action_runner.TapElement(text='Next')
     """
-    pass
 
   def AsDict(self):
     """Converts a page object to a dict suitable for JSON output."""

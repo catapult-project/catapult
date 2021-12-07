@@ -101,7 +101,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     return True
 
   def RecordClockSyncMarker(self, sync_id,
-                            record_controller_clock_sync_marker_callback):
+                            record_controller_clocksync_marker_callback):
     devtools_clients = (chrome_tracing_devtools_manager
                         .GetActiveDevToolsClients(self._platform_backend))
     if not devtools_clients:
@@ -124,7 +124,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     if not has_clock_synced:
       raise ChromeClockSyncError(
           'Failed to issue clock sync to devtools client')
-    record_controller_clock_sync_marker_callback(sync_id, timestamp)
+    record_controller_clocksync_marker_callback(sync_id, timestamp)
     return True
 
   def StopAgentTracing(self):

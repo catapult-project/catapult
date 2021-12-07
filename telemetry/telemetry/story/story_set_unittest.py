@@ -27,7 +27,6 @@ class StoryFoo(story.Story):
 
 class StorySetFoo(story.StorySet):
   """ StorySetFoo is a story set created for testing purpose. """
-  pass
 
 
 class StorySetTest(unittest.TestCase):

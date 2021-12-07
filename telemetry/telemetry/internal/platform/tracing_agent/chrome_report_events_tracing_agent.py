@@ -8,10 +8,6 @@ from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 
 # A class that uses ReportEvents mode for chrome tracing.
 class ChromeReportEventsTracingAgent(chrome_tracing_agent.ChromeTracingAgent):
-  def __init__(self, platform_backend, config):
-    super(ChromeReportEventsTracingAgent, self).__init__(
-        platform_backend, config)
-
   @classmethod
   def IsSupported(cls, platform_backend):
     return platform_backend.GetOSName() == 'fuchsia'

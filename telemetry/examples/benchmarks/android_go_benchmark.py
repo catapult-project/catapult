@@ -111,10 +111,10 @@ class AndroidGoFooStory(story_module.Story):
     super(AndroidGoFooStory, self).__init__(
         SharedAndroidStoryState, name='go:story:foo')
 
-  def Run(self, state):
+  def Run(self, shared_state):
     for _ in range(3):
-      state.LaunchBrowser(self.URL)
-      with state.FindBrowser() as browser:
+      shared_state.LaunchBrowser(self.URL)
+      with shared_state.FindBrowser() as browser:
         action_runner = browser.foreground_tab.action_runner
         action_runner.tab.WaitForDocumentReadyStateToBeComplete()
         action_runner.RepeatableBrowserDrivenScroll(repeat_count=2)
@@ -125,9 +125,9 @@ class AndroidGoBarStory(story_module.Story):
     super(AndroidGoBarStory, self).__init__(
         SharedAndroidStoryState, name='go:story:bar')
 
-  def Run(self, state):
-    state.LaunchBrowser('http://www.bbc.co.uk/news')
-    with state.FindBrowser() as browser:
+  def Run(self, shared_state):
+    shared_state.LaunchBrowser('http://www.bbc.co.uk/news')
+    with shared_state.FindBrowser() as browser:
       action_runner = browser.foreground_tab.action_runner
       action_runner.tab.WaitForDocumentReadyStateToBeComplete()
       action_runner.RepeatableBrowserDrivenScroll(repeat_count=2)

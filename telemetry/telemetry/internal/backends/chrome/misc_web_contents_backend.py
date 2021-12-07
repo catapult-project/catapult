@@ -14,9 +14,6 @@ class MiscWebContentsBackend(inspector_backend_list.InspectorBackendList):
   Provides acccess to chrome://oobe/login page.
   """
 
-  def __init__(self, browser_backend):
-    super(MiscWebContentsBackend, self).__init__(browser_backend)
-
   @property
   def oobe_exists(self):
     """Lightweight property to determine if the oobe webui is visible."""
@@ -33,5 +30,5 @@ class MiscWebContentsBackend(inspector_backend_list.InspectorBackendList):
   def ShouldIncludeContext(self, context):
     return context.get('url').startswith('chrome://oobe')
 
-  def CreateWrapper(self, inspector_backend):
-    return oobe.Oobe(inspector_backend)
+  def CreateWrapper(self, inspector_backend_instance):
+    return oobe.Oobe(inspector_backend_instance)

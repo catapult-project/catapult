@@ -17,9 +17,6 @@ class TabUnexpectedResponseException(exceptions.DevtoolsTargetCrashException):
 class TabListBackend(inspector_backend_list.InspectorBackendList):
   """A dynamic sequence of tab.Tabs in UI order."""
 
-  def __init__(self, browser_backend):
-    super(TabListBackend, self).__init__(browser_backend)
-
   def New(self, in_new_window, timeout, url):
     """Makes a new tab of specified type.
 
@@ -112,8 +109,9 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
     # This check is not completely correct, see crbug.com/190592.
     return not context['url'].startswith('chrome-extension://')
 
-  def CreateWrapper(self, inspector_backend):
-    return tab.Tab(inspector_backend, self, self._browser_backend.browser)
+  def CreateWrapper(self, inspector_backend_instance):
+    return tab.Tab(inspector_backend_instance, self,
+                   self._browser_backend.browser)
 
   def _HandleDevToolsConnectionError(self, error):
     if not self._browser_backend.IsAppRunning():

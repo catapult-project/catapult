@@ -87,8 +87,8 @@ class MockBenchmark(benchmark.Benchmark):
     self.mock_story_set = MockStorySet(**kwargs)
     return self.mock_story_set
 
-  def SetExtraBrowserOptions(self, options):
-    options.AppendExtraBrowserArgs('--extra-option')
+  def SetExtraBrowserOptions(self, browser_options):
+    browser_options.AppendExtraBrowserArgs('--extra-option')
 
 
 class MockTimelineBasedMeasurementBenchmark(benchmark.Benchmark):

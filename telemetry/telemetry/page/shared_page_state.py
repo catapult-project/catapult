@@ -192,8 +192,9 @@ class SharedPageState(story_module.SharedState):
       self._finder_options.browser_options.trim_logs = True
     self._AllowInteractionForStage('after-start-browser')
 
-  def WillRunStory(self, page):
+  def WillRunStory(self, story):
     reusing_browser = self.browser is not None
+    page = story
     # Make sure we don't have accidentally diverging browser args.
     if reusing_browser and self._extra_browser_args != page._extra_browser_args:
       self._StopBrowser()
@@ -259,9 +260,9 @@ class SharedPageState(story_module.SharedState):
 
     self._AllowInteractionForStage('before-run-story')
 
-  def CanRunStory(self, page):
+  def CanRunStory(self, story):
     return self.CanRunOnBrowser(browser_info_module.BrowserInfo(self.browser),
-                                page)
+                                story)
 
   def CanRunOnBrowser(self, browser_info, page):
     """Override this to return whether the browser brought up by this state

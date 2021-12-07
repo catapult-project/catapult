@@ -440,7 +440,6 @@ class BrowserFinderOptions(optparse.Values):
 
   def _NoOpFunctionForTesting(self):
     """No-op function that can be overridden for unittests."""
-    pass
 
   def ParseAndroidEmulatorOptions(self):
     """Parses Android emulator args, and if necessary, starts an emulator.

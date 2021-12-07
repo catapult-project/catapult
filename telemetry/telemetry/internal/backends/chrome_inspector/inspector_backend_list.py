@@ -49,7 +49,7 @@ class InspectorBackendList(collections.Sequence):
     The wrapper API is the public interface for InspectorBackend. It
     may expose whatever methods are desired on top of that backend.
     """
-    raise NotImplementedError
+    raise NotImplementedError()
 
   # TODO(crbug.com/398467): Remove this method and turn inspector_backend_list
   # API to dictionary-like API.
@@ -121,4 +121,3 @@ class InspectorBackendList(collections.Sequence):
     This can be overwritten by sub-classes to add more debugging information to
     errors.
     """
-    pass

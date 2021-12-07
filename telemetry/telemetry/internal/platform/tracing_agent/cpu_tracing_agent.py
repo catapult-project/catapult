@@ -55,7 +55,6 @@ class ProcessCollector(object):
 
   def Init(self):
     """Performs any required initialization before starting tracing."""
-    pass
 
   def GetProcesses(self):
     """Fetches the top processes returned by top command.

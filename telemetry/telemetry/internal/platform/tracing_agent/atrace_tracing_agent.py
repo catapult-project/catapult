@@ -50,10 +50,10 @@ class AtraceTracingAgent(tracing_agent.TracingAgent):
     return self._atrace_agent.SupportsExplicitClockSync()
 
   def RecordClockSyncMarker(self, sync_id,
-                            record_controller_clock_sync_marker_callback):
+                            record_controller_clocksync_marker_callback):
     return self._atrace_agent.RecordClockSyncMarker(
-        sync_id,
-        lambda t, sid: record_controller_clock_sync_marker_callback(sid, t))
+        sync_id, lambda t, sid: record_controller_clocksync_marker_callback(
+            sid, t))
 
   def CollectAgentTraceData(self, trace_data_builder, timeout=None):
     results = self._atrace_agent.GetResults(timeout)

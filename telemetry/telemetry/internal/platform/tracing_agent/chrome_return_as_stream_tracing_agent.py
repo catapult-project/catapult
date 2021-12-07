@@ -34,10 +34,6 @@ def ClearStarupTracingStateIfNeeded(platform_backend):
 
 # A class that uses ReturnAsStream mode for chrome tracing.
 class ChromeReturnAsStreamTracingAgent(chrome_tracing_agent.ChromeTracingAgent):
-  def __init__(self, platform_backend, config):
-    super(ChromeReturnAsStreamTracingAgent, self).__init__(
-        platform_backend, config)
-
   @classmethod
   def IsSupported(cls, platform_backend):
     return platform_backend.GetOSName() != 'fuchsia'

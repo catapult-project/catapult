@@ -40,7 +40,6 @@ class PageAction(six.with_metaclass(trace_event.TracedMetaClass, object)):
   def WillRunAction(self, tab):
     """Override to do action-specific setup before
     Test.WillRunAction is called."""
-    pass
 
   def RunAction(self, tab):
     raise NotImplementedError()

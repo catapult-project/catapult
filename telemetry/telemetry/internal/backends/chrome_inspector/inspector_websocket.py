@@ -14,7 +14,6 @@ from telemetry.internal.backends.chrome_inspector import websocket
 
 class WebSocketDisconnected(exceptions.Error):
   """An attempt was made to use a web socket after it had been disconnected."""
-  pass
 
 
 class WebSocketException(exceptions.Error):

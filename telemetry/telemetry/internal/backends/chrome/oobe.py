@@ -14,9 +14,6 @@ import py_utils
 
 
 class Oobe(web_contents.WebContents):
-  def __init__(self, inspector_backend):
-    super(Oobe, self).__init__(inspector_backend)
-
   @staticmethod
   def Canonicalize(user, remove_dots=True):
     """Get rid of dots in |user| and add @gmail.com."""

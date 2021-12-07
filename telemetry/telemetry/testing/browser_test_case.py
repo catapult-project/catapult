@@ -96,7 +96,6 @@ class BrowserTestCase(
   @classmethod
   def CustomizeBrowserOptions(cls, options):
     """Override to add test-specific options to the BrowserOptions object"""
-    pass
 
   @classmethod
   def UrlOfUnittestFile(cls, filename, handler_class=None):

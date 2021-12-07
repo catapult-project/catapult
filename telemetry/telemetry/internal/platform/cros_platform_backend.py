@@ -63,13 +63,12 @@ class CrosPlatformBackend(
   def HasBeenThermallyThrottled(self):
     raise NotImplementedError()
 
-  def RunCommand(self, args):
-    if not isinstance(args, list):
-      args = [args]
-    stdout, stderr = self._cri.RunCmdOnDevice(args)
+  def RunCommand(self, cmd):
+    if not isinstance(cmd, list):
+      cmd = [cmd]
+    stdout, stderr = self._cri.RunCmdOnDevice(cmd)
     if stderr:
-      raise IOError('Failed to run: cmd = %s, stderr = %s' %
-                    (str(args), stderr))
+      raise IOError('Failed to run: cmd = %s, stderr = %s' % (str(cmd), stderr))
     return stdout
 
   def StartCommand(self, args, cwd=None, quiet=False, connect_timeout=None):
