@@ -32,8 +32,8 @@
 """
 
 import os
-import warnings
 import sys
+import warnings
 
 try:
   # pylint: disable=g-import-not-at-top
@@ -60,11 +60,17 @@ if _api_version < 0:  # Still unspecified?
       raise ImportError('_use_fast_cpp_protos import succeeded but was None')
     del _use_fast_cpp_protos
     _api_version = 2
+    from google.protobuf import use_pure_python
+    raise RuntimeError(
+        'Conflicting deps on both :use_fast_cpp_protos and :use_pure_python.\n'
+        ' go/build_deps_on_BOTH_use_fast_cpp_protos_AND_use_pure_python\n'
+        'This should be impossible via a link error at build time...')
   except ImportError:
     try:
       # pylint: disable=g-import-not-at-top
-      from google.protobuf.internal import use_pure_python
+      from google.protobuf import use_pure_python
       del use_pure_python  # Avoids a pylint error and namespace pollution.
+      _api_version = 0
     except ImportError:
       # TODO(b/74017912): It's unsafe to enable :use_fast_cpp_protos by default;
       # it can cause data loss if you have any Python-only extensions to any
@@ -137,6 +143,12 @@ def Type():
   return _implementation_type
 
 
+def _SetType(implementation_type):
+  """Never use! Only for protobuf benchmark."""
+  global _implementation_type
+  _implementation_type = implementation_type
+
+
 # See comment on 'Type' above.
 def Version():
   return _implementation_version
@@ -145,29 +157,3 @@ def Version():
 # For internal use only
 def IsPythonDefaultSerializationDeterministic():
   return _python_deterministic_proto_serialization
-
-# DO NOT USE: For migration and testing only. Will be removed when Proto3
-# defaults to preserve unknowns.
-if _implementation_type == 'cpp':
-  try:
-    # pylint: disable=g-import-not-at-top
-    from google.protobuf.pyext import _message
-
-    def GetPythonProto3PreserveUnknownsDefault():
-      return _message.GetPythonProto3PreserveUnknownsDefault()
-
-    def SetPythonProto3PreserveUnknownsDefault(preserve):
-      _message.SetPythonProto3PreserveUnknownsDefault(preserve)
-  except ImportError:
-    # Unrecognized cpp implementation. Skipping the unknown fields APIs.
-    pass
-else:
-  _python_proto3_preserve_unknowns_default = True
-
-  def GetPythonProto3PreserveUnknownsDefault():
-    return _python_proto3_preserve_unknowns_default
-
-  def SetPythonProto3PreserveUnknownsDefault(preserve):
-    global _python_proto3_preserve_unknowns_default
-    _python_proto3_preserve_unknowns_default = preserve
-

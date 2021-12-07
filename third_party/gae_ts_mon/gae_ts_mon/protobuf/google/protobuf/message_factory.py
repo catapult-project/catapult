@@ -39,9 +39,18 @@ my_proto_instance = message_classes['some.proto.package.MessageName']()
 
 __author__ = 'matthewtoia@google.com (Matt Toia)'
 
+from google.protobuf.internal import api_implementation
 from google.protobuf import descriptor_pool
 from google.protobuf import message
-from google.protobuf import reflection
+
+if api_implementation.Type() == 'cpp':
+  from google.protobuf.pyext import cpp_message as message_impl
+else:
+  from google.protobuf.internal import python_message as message_impl
+
+
+# The type of all Message classes.
+_GENERATED_PROTOCOL_MESSAGE_TYPE = message_impl.GeneratedProtocolMessageType
 
 
 class MessageFactory(object):
@@ -55,7 +64,7 @@ class MessageFactory(object):
     self._classes = {}
 
   def GetPrototype(self, descriptor):
-    """Builds a proto2 message class based on the passed in descriptor.
+    """Obtains a proto2 message class based on the passed in descriptor.
 
     Passing a descriptor with a fully qualified name matching a previous
     invocation will cause the same class to be returned.
@@ -67,24 +76,51 @@ class MessageFactory(object):
       A class describing the passed in descriptor.
     """
     if descriptor not in self._classes:
-      descriptor_name = descriptor.name
-      if str is bytes:  # PY2
-        descriptor_name = descriptor.name.encode('ascii', 'ignore')
-      result_class = reflection.GeneratedProtocolMessageType(
-          descriptor_name,
-          (message.Message,),
-          {'DESCRIPTOR': descriptor, '__module__': None})
-          # If module not set, it wrongly points to the reflection.py module.
+      result_class = self.CreatePrototype(descriptor)
+      # The assignment to _classes is redundant for the base implementation, but
+      # might avoid confusion in cases where CreatePrototype gets overridden and
+      # does not call the base implementation.
       self._classes[descriptor] = result_class
-      for field in descriptor.fields:
-        if field.message_type:
-          self.GetPrototype(field.message_type)
-      for extension in result_class.DESCRIPTOR.extensions:
-        if extension.containing_type not in self._classes:
-          self.GetPrototype(extension.containing_type)
-        extended_class = self._classes[extension.containing_type]
-        extended_class.RegisterExtension(extension)
+      return result_class
     return self._classes[descriptor]
+
+  def CreatePrototype(self, descriptor):
+    """Builds a proto2 message class based on the passed in descriptor.
+
+    Don't call this function directly, it always creates a new class. Call
+    GetPrototype() instead. This method is meant to be overridden in subblasses
+    to perform additional operations on the newly constructed class.
+
+    Args:
+      descriptor: The descriptor to build from.
+
+    Returns:
+      A class describing the passed in descriptor.
+    """
+    descriptor_name = descriptor.name
+    if str is bytes:  # PY2
+      descriptor_name = descriptor.name.encode('ascii', 'ignore')
+    result_class = _GENERATED_PROTOCOL_MESSAGE_TYPE(
+        descriptor_name,
+        (message.Message,),
+        {
+            'DESCRIPTOR': descriptor,
+            # If module not set, it wrongly points to message_factory module.
+            '__module__': None,
+        })
+    result_class._FACTORY = self  # pylint: disable=protected-access
+    # Assign in _classes before doing recursive calls to avoid infinite
+    # recursion.
+    self._classes[descriptor] = result_class
+    for field in descriptor.fields:
+      if field.message_type:
+        self.GetPrototype(field.message_type)
+    for extension in result_class.DESCRIPTOR.extensions:
+      if extension.containing_type not in self._classes:
+        self.GetPrototype(extension.containing_type)
+      extended_class = self._classes[extension.containing_type]
+      extended_class.RegisterExtension(extension)
+    return result_class
 
   def GetMessages(self, files):
     """Gets all the messages from a specified file.

@@ -13,8 +13,8 @@ for protobufs shown below (e.g. adding this file).
 
 Name: Protocol Buffers
 Short Name: protobuf
-Version: 3.6.1
-Revision: 48cb18e5c419ddd23d9badcfe4e9df7bde1979b2
+Version: 3.17.3
+Revision: 5500c72c5b616da9f0125bcfab513987a1226e2b
 Home-page: https://github.com/protocolbuffers/protobuf
 License: New BSD License
 
