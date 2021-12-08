@@ -26,8 +26,9 @@ class TabTestCase(browser_test_case.BrowserTestCase):
         self._RestartBrowser()
     else:
       self._RestartBrowser()
-    self._tab.Navigate('about:blank')
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
+    self._tab.Navigate('about:blank')
+
 
   def Navigate(self,
                filename,
