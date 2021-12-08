@@ -168,6 +168,14 @@ class ResultSinkReporterTest(unittest.TestCase):
         rsr = result_sink.ResultSinkReporter(self._host)
         self.assertTrue(rsr.resultdb_supported)
 
+    def testReportInvocationLevelArtifacts(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
+        rsr._post = StubWithRetval(0)
+        artifacts = {"report": {"filePath": "/path/to/report"}}
+        retval = rsr.report_invocation_level_artifacts(artifacts)
+        self.assertEqual(retval, 0)
+
     def testReportIndividualTestResultEarlyReturnIfNotSupported(self):
         self.setLuciContextWithContent({})
         rsr = result_sink.ResultSinkReporter(self._host)

@@ -93,7 +93,7 @@ class ResultSinkReporter(object):
         """
         req = {'artifacts': artifacts}
         res = self._post(self._invocation_level_url, json.dumps(req))
-        return 0 if res.ok else 1
+        return res
 
     def report_individual_test_result(
             self, test_name_prefix, result, artifact_output_dir, expectations,
