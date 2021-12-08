@@ -20,6 +20,7 @@ from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models.quest import read_value
 from dashboard.pinpoint.models.quest import run_test
 from dashboard.services import swarming
+from dateutil.parser import isoparse
 from oauth2client import client
 from tracing_build import render_histograms_viewer
 from tracing.value import gtest_json_converter
@@ -348,6 +349,8 @@ def _PopulateMetadata(job, h):
   md["dims"]["checkout"]["git_hash"] = h.metadata.change.commits[0].git_hash
   commit_dict = h.metadata.change.commits[0].AsDict()
   if "commit_position" in commit_dict:
+    md["dims"]["checkout"]["commit_created"] = _ConvertDatetimeToBQ(
+        isoparse(commit_dict["created"]))
     md["dims"]["checkout"]["branch"] = commit_dict["commit_branch"]
     md["dims"]["checkout"]["commit_position"] = commit_dict["commit_position"]
   if h.metadata.change.patch is not None:

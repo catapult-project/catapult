@@ -23,6 +23,7 @@ from dashboard.pinpoint.models.change import commit
 from dashboard.pinpoint.models.quest import read_value
 from dashboard.pinpoint.models.quest import run_test
 from dashboard.services import swarming
+from dateutil.parser import isoparse
 from tracing.value import histogram_set
 from tracing.value import histogram as histogram_module
 
@@ -419,6 +420,7 @@ class GenerateResults2Test(testing_common.TestCase):
                 'repo': 'fakerepo',
                 'git_hash': 'fakehashA',
                 'commit_position': 437745,
+                'commit_created': '2021-12-08 00:00:00.000000',
                 'branch': 'refs/heads/main'
             }
         },
@@ -452,6 +454,7 @@ class GenerateResults2Test(testing_common.TestCase):
             'checkout': {
                 'patch_gerrit_revision': 'fake_patch_set',
                 'commit_position': 437745,
+                'commit_created': '2021-12-08 00:00:00.000000',
                 'patch_gerrit_change': 'fake_patch_issue',
                 'repo': 'fakeRepo',
                 'branch': 'refs/heads/main',
@@ -526,6 +529,7 @@ class GenerateResults2Test(testing_common.TestCase):
                 'repo': 'fakerepo',
                 'git_hash': 'fakehashA',
                 'commit_position': 437745,
+                'commit_created': '2021-12-08 00:00:00.000000',
                 'branch': 'refs/heads/main'
             }
         },
@@ -571,6 +575,7 @@ class GenerateResults2Test(testing_common.TestCase):
             'checkout': {
                 'patch_gerrit_revision': 'fake_patch_set',
                 'commit_position': 437745,
+                'commit_created': '2021-12-08 00:00:00.000000',
                 'patch_gerrit_change': 'fake_patch_issue',
                 'repo': 'fakeRepo',
                 'branch': 'refs/heads/main',
@@ -644,7 +649,8 @@ class GenerateResults2Test(testing_common.TestCase):
         'repo': 'fakerepo',
         'git_hash': 'fakehashA',
         'commit_position': 437745,
-        'branch': 'refs/heads/main'
+        'branch': 'refs/heads/main',
+        'commit_created': '2021-12-08 00:00:00.000000'
     }
     ck_b = {
         'patch_gerrit_revision': 'fake_patch_set',
@@ -652,7 +658,8 @@ class GenerateResults2Test(testing_common.TestCase):
         'patch_gerrit_change': 'fake_patch_issue',
         'repo': 'fakeRepo',
         'branch': 'refs/heads/main',
-        'git_hash': 'fakehashB'
+        'git_hash': 'fakehashB',
+        'commit_created': '2021-12-08 00:00:00.000000'
     }
 
     expected_rows = [
@@ -705,7 +712,7 @@ def _SetupBQTest(mock_commit_info, mock_swarming, mock_render, mock_json,
       'author': {
           'email': 'author@chromium.org'
       },
-      'created': datetime.date.today(),
+      'created': isoparse('2021-12-08'),
       'commit': 'aaa7336',
       'committer': {
           'time': 'Fri Jan 01 00:01:00 2016'

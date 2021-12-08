@@ -61,6 +61,8 @@ message Checkout {
   int64 patch_gerrit_change = 5;    // If available
   int32 patch_gerrit_revision = 6;  // If available
   string branch = 7;
+
+  google.protobuf.Timestamp commit_created = 8;
 }
 
 // Describes which invocations ran together, and in what order
