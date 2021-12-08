@@ -3,6 +3,10 @@
 # found in the LICENSE file.
 # pylint: disable=invalid-name
 
+
+USE_PYTHON3 = True
+
+
 def CheckChangeOnUpload(input_api, output_api):
   return _CommonChecks(input_api, output_api)
 
