@@ -13,5 +13,4 @@ def RunChecks(input_api, output_api):
     return [output_api.PresubmitError(
         'Files with ".orig" suffix must not be checked into the '
         'repository:\n  ' + '\n  '.join(orig_files))]
-  else:
-    return []
+  return []

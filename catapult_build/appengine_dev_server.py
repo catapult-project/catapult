@@ -3,6 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import argparse
 import os
 import os.path
@@ -24,11 +26,11 @@ def DevAppserver(paths, args, reuse_path=None):
   """
   with temp_deployment_dir.TempDeploymentDir(
       paths, reuse_path=reuse_path) as temp_dir:
-    print 'Running dev server on "%s".' % temp_dir
+    print('Running dev server on "%s".' % temp_dir)
 
     script_path = _FindScriptInPath('dev_appserver.py')
     if not script_path:
-      print 'This script requires the App Engine SDK to be in PATH.'
+      print('This script requires the App Engine SDK to be in PATH.')
       sys.exit(1)
 
     subprocess.call([sys.executable, script_path] +

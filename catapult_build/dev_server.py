@@ -137,6 +137,7 @@ class SourcePathsHandler(webapp2.RequestHandler):
         app.cache_control(no_cache=True)
         return app
     self.abort(404)
+    return None
 
   @staticmethod
   def GetServingPathForAbsFilename(source_paths, filename):
@@ -162,7 +163,7 @@ class SimpleDirectoryHandler(webapp2.RequestHandler):
         os.path.join(top_path, kwargs.pop('rest_of_path')))
     if not joined_path.startswith(top_path):
       self.response.set_status(403)
-      return
+      return None
     app = FileAppWithGZipHandling(joined_path)
     app.cache_control(no_cache=True)
     return app

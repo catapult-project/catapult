@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -23,6 +23,7 @@ import sys
 import six.moves.urllib.request # pylint: disable=import-error
 import six.moves.urllib.parse # pylint: disable=import-error
 import six.moves.urllib.error # pylint: disable=import-error
+from six.moves import range
 
 BUILDER_LIST_URL = ('https://chrome-infra-stats.appspot.com/'
                     '_ah/api/stats/v1/masters/chromium.perf')
@@ -134,7 +135,8 @@ def UploadToPerfDashboard(success_rates):
         }
     }
     url = 'https://chromeperf.appspot.com/add_point'
-    data = six.moves.urllib.parse.urlencode({'data': json.dumps(dashboard_data)})
+    data = six.moves.urllib.parse.urlencode(
+        {'data': json.dumps(dashboard_data)})
     six.moves.urllib.request.urlopen(url, data).read()
 
 
@@ -146,7 +148,8 @@ def CalculateSuccessRates(year, month, days, builders):
       date_dict_str = '%d%02d%02d' % (year, month, day)
       for builder in builders:
         url = BUILDER_STATS_URL % (
-            six.moves.urllib.parse.quote(builder), six.moves.urllib.parse.quote(date_str))
+            six.moves.urllib.parse.quote(builder),
+            six.moves.urllib.parse.quote(date_str))
         response = six.moves.urllib.request.urlopen(url)
         results = json.load(response)
         _UpdateSuccessRatesWithResult(

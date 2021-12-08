@@ -133,24 +133,23 @@ def GetChromeInfo(args):
       raise ChromeNotFound('Could not find chrome locally. You can supply it '
                            'manually using --chrome_path')
     return ChromeInfo(path=chrome_path, version=None)
+  channel = args.channel
+  if sys.version_info.major == 3:
+    target = 'linux'
   else:
-    channel = args.channel
-    if sys.version_info.major == 3:
-      target = 'linux'
-    else:
-      target = 'linux2'
-    if sys.platform == target and channel == 'canary':
-      channel = 'dev'
-    assert channel in ['stable', 'beta', 'dev', 'canary']
+    target = 'linux2'
+  if sys.platform == target and channel == 'canary':
+    channel = 'dev'
+  assert channel in ['stable', 'beta', 'dev', 'canary']
 
-    binary = 'chrome'
-    print('Fetching the', channel, binary, 'binary via the binary_manager.')
-    chrome_manager = binary_manager.BinaryManager([CHROME_BINARIES_CONFIG])
-    os_name, arch = dependency_util.GetOSAndArchForCurrentDesktopPlatform()
-    chrome_path, version = chrome_manager.FetchPathWithVersion(
-        '%s_%s' % (binary, channel), os_name, arch)
-    print('Finished fetching the', binary, 'binary to', chrome_path)
-    return ChromeInfo(path=chrome_path, version=version)
+  binary = 'chrome'
+  print('Fetching the', channel, binary, 'binary via the binary_manager.')
+  chrome_manager = binary_manager.BinaryManager([CHROME_BINARIES_CONFIG])
+  os_name, arch = dependency_util.GetOSAndArchForCurrentDesktopPlatform()
+  chrome_path, version = chrome_manager.FetchPathWithVersion(
+      '%s_%s' % (binary, channel), os_name, arch)
+  print('Finished fetching the', binary, 'binary to', chrome_path)
+  return ChromeInfo(path=chrome_path, version=version)
 
 
 def KillProcess(process):
@@ -246,12 +245,11 @@ def RunTests(args, chrome_path):
     if timed_out:
       print('Tests did not finish before', args.timeout_sec, 'seconds')
       return _TIMEOUT_RETURNCODE
+    if server_process.returncode == 0:
+      print("Tests passed in %.2f seconds." % (time.time() - test_start_time))
     else:
-      if server_process.returncode == 0:
-        print("Tests passed in %.2f seconds." % (time.time() - test_start_time))
-      else:
-        logging.error('Tests failed!')
-      return server_process.returncode
+      logging.error('Tests failed!')
+    return server_process.returncode
 
   finally:
     if timer:
@@ -331,8 +329,7 @@ def Main(argv):
     if return_code == _TIMEOUT_RETURNCODE:
       attempts_left -= 1
       continue
-    else:
-      break
+    break
   else:
     logging.error('Tests timed out every time. Retried %d times.',
                   args.timeout_retries)

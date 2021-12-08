@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -13,12 +13,14 @@ https://apis-explorer.appspot.com/apis-explorer/?
    base=https://chrome-infra-stats.appspot.com/_ah/api#p/
 """
 
+from __future__ import print_function
 import csv
 import datetime
 import json
 import sys
-import urllib
-import urllib2
+import six.moves.urllib.request
+import six.moves.urllib.parse
+import six.moves.urllib.error
 
 
 BUILDER_STEPS_URL = ('https://chrome-infra-stats.appspot.com/_ah/api/stats/v1/'
@@ -115,7 +117,7 @@ USAGE = 'Usage: chrome-perf-step-timings.py <outfilename>'
 
 def main():
   if len(sys.argv) != 2:
-    print USAGE
+    print(USAGE)
     sys.exit(0)
   outfilename = sys.argv[1]
 
@@ -129,18 +131,20 @@ def main():
 
   for builder in KNOWN_TESTERS_LIST:
     step_timings = []
-    url = BUILDER_STEPS_URL % urllib.quote(builder)
-    response = urllib2.urlopen(url)
+    url = BUILDER_STEPS_URL % six.moves.urllib.parse.quote(builder)
+    response = six.moves.urllib.request.urlopen(url)
     results = json.load(response)
     steps = results['steps']
     steps.sort()  # to group tests and their references together.
     for step in steps:
       if step in IGNORED_STEPS:
         continue
-      url = STEP_ACTIVE_URL % (urllib.quote(builder), urllib.quote(step))
-      response = urllib2.urlopen(url)
+      url = STEP_ACTIVE_URL % (
+          six.moves.urllib.parse.quote(builder),
+          six.moves.urllib.parse.quote(step))
+      response = six.moves.urllib.request.urlopen(url)
       results = json.load(response)
-      if ('step_records' not in results.keys() or
+      if ('step_records' not in list(results.keys()) or
           len(results['step_records']) == 0):
         continue
       first_record = results['step_records'][0]
@@ -149,8 +153,10 @@ def main():
       # ignore steps that did not run for more than 2 days
       if last_step_time < threshold_time:
         continue
-      url = STEP_STATS_URL % (urllib.quote(builder), urllib.quote(step))
-      response = urllib2.urlopen(url)
+      url = STEP_STATS_URL % (
+          six.moves.urllib.parse.quote(builder),
+          six.moves.urllib.parse.quote(step))
+      response = six.moves.urllib.request.urlopen(url)
       results = json.load(response)
       step_timings.append(
           [builder, step, results['count'], results['stddev'],
