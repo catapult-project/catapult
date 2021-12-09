@@ -5,12 +5,8 @@
 group("devil") {
   testonly = true
   deps = []
-  data_deps = [
-    "../third_party/gsutil",
-  ]
-  data = [
-    "devil/",
-  ]
+  data_deps = [ "../third_party/gsutil" ]
+  data = [ "devil/" ]
 
   if (is_android) {
     deps += [
@@ -26,7 +22,7 @@ if (is_android) {
   import("//testing/android/empty_apk/empty_apk.gni")
 
   empty_apk("empty_system_webview_apk") {
-    package_name = "com.android.webview"
+    package_name = "com.google.android.webview"
     apk_name = "EmptySystemWebView"
   }
 }
