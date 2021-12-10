@@ -151,10 +151,8 @@ def _ProcessTestStat(test, stat, rows, ref_rows):
     a.subscriptions = [a.matching_subscription]
     a.subscription_names = [a.matching_subscription.name]
     a.internal_only = (
-        any([
-            s.visibility != subscription.VISIBILITY.PUBLIC
-            for s in subscriptions
-        ]) or test.internal_only)
+        any(s.visibility != subscription.VISIBILITY.PUBLIC
+            for s in subscriptions) or test.internal_only)
     a.groups = alert_group.AlertGroup.GetGroupsForAnomaly(a, subscriptions)
 
   yield ndb.put_multi_async(anomalies)
@@ -219,7 +217,7 @@ def GetRowsToAnalyzeAsync(test, max_num_rows):
     results[s] = _FetchRowsByStat(test.key, s, latest_alert_by_stat[s],
                                   max_num_rows)
 
-  for s in results.keys():
+  for s in results:
     results[s] = yield results[s]
 
   raise ndb.Return(results)
@@ -243,7 +241,7 @@ def _FetchRowsByStat(test_key, stat, last_alert_future, max_num_rows):
     last_alert = yield last_alert_future
     if last_alert:
       query = query.filter(graph_data.Row.revision > last_alert.end_revision)
-  query = query.order(-graph_data.Row.revision)
+  query = query.order(-graph_data.Row.revision)  # pylint: disable=invalid-unary-operand-type
 
   # However, we want to analyze them in ascending order.
   rows = yield query.fetch_async(limit=max_num_rows)
@@ -317,7 +315,7 @@ def _GetImmediatelyPreviousRevisionNumber(later_revision, rows):
   for (revision, _, _) in reversed(rows):
     if revision < later_revision:
       return revision
-  assert False, 'No matching revision found in |rows|.'
+  raise AssertionError('No matching revision found in |rows|.')
 
 
 def _GetRefBuildKeyForTest(test):

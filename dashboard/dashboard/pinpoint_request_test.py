@@ -798,12 +798,14 @@ class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
 
     rows = dict(
         itertools.chain(
-            zip(
-                itertools.islice(itertools.count(1000, 2), 50),
-                itertools.repeat({'value': 0.1})),
-            zip(
-                itertools.islice(itertools.count(1101, 2), 50),
-                itertools.repeat({'value': 0.5}))))
+            list(
+                zip(
+                    itertools.islice(itertools.count(1000, 2), 50),
+                    itertools.repeat({'value': 0.1}))),
+            list(
+                zip(
+                    itertools.islice(itertools.count(1101, 2), 50),
+                    itertools.repeat({'value': 0.5})))))
 
     testing_common.AddRows(params['test_path'], rows)
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -820,8 +822,7 @@ class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
     def _MockCommit(git_sha):
       if git_sha == 'abc':
         return {'number': 1050}
-      else:
-        return {'number': 1150}
+      return {'number': 1150}
 
     mock_commit.side_effect = _MockCommit
     testing_common.AddTests(['ChromiumPerf'], ['Android Nexus5X WebView Perf'],
@@ -843,12 +844,14 @@ class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
 
     rows = dict(
         itertools.chain(
-            zip(
-                itertools.islice(itertools.count(1000, 2), 50),
-                itertools.repeat({'value': 0.1})),
-            zip(
-                itertools.islice(itertools.count(1101, 2), 50),
-                itertools.repeat({'value': 0.5}))))
+            list(
+                zip(
+                    itertools.islice(itertools.count(1000, 2), 50),
+                    itertools.repeat({'value': 0.1}))),
+            list(
+                zip(
+                    itertools.islice(itertools.count(1101, 2), 50),
+                    itertools.repeat({'value': 0.5})))))
 
     testing_common.AddRows(params['test_path'], rows)
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
@@ -911,14 +914,16 @@ class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
 
     rows = dict(
         itertools.chain(
-            zip(
-                itertools.islice(itertools.count(1000, 2), 75),
-                itertools.repeat({'value': -100.0})), [(1050, {
-                    'value': 0.1
-                })],
-            zip(
-                itertools.islice(itertools.count(1101, 2), 50),
-                itertools.repeat({'value': 0.5}))))
+            list(
+                zip(
+                    itertools.islice(itertools.count(1000, 2), 75),
+                    itertools.repeat({'value': -100.0}))), [(1050, {
+                        'value': 0.1
+                    })],
+            list(
+                zip(
+                    itertools.islice(itertools.count(1101, 2), 50),
+                    itertools.repeat({'value': 0.5})))))
 
     testing_common.AddRows(params['test_path'], rows)
     results = pinpoint_request.PinpointParamsFromBisectParams(params)

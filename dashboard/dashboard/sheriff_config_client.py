@@ -10,7 +10,6 @@ from __future__ import print_function
 
 class InternalServerError(Exception):
   """An error indicating that something unexpected happens."""
-  pass
 
 
 def GetSheriffConfigClient():

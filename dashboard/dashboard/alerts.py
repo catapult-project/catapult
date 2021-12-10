@@ -153,7 +153,7 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False):
     if anomaly_entity.internal_only:
       bug_labels.add('Restrict-View-Google')
     tags = set(bug_label_patterns.GetBugLabelsForTest(test_key))
-    subscriptions = [s for s in anomaly_entity.subscriptions]
+    subscriptions = list(anomaly_entity.subscriptions)
     tags.update([l for s in subscriptions for l in s.bug_labels])
     bug_components = set(c for s in subscriptions for c in s.bug_components)
     for tag in tags:

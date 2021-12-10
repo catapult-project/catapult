@@ -104,11 +104,11 @@ class CreateHealthReportHandler(request_handler.RequestHandler):
           layout=table_layout,
           username=user.email(),
           override=override)
-    except table_config.BadRequestError as error:
+    except table_config.BadRequestError as e:
       self.response.out.write(json.dumps({
-          'error': error.message,
+          'error': str(e),
       }))
-      logging.error('BadRequestError: %r', error.message)
+      logging.error('BadRequestError: %r', str(e))
       return
 
     if created_table:

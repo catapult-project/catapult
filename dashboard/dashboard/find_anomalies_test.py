@@ -24,8 +24,8 @@ from dashboard.models import histogram
 from dashboard.models.subscription import Subscription
 from dashboard.models.subscription import VISIBILITY
 from dashboard.models.subscription import AnomalyConfig
-from tracing.value.diagnostics import reserved_infos
 from dashboard.sheriff_config_client import SheriffConfigClient
+from tracing.value.diagnostics import reserved_infos
 
 # pylint: disable=too-many-lines
 
@@ -131,6 +131,9 @@ class EndRevisionMatcher(object):
     """Shows a readable revision which can be printed when assert fails."""
     return '<IsEndRevision %d>' % self._end_revision
 
+  def __hash__(self):
+    return hash(self._end_revision)
+
 
 class ModelMatcher(object):
   """Custom matcher to check if two ndb entity names match."""
@@ -146,6 +149,9 @@ class ModelMatcher(object):
   def __repr__(self):
     """Shows a readable revision which can be printed when assert fails."""
     return '<IsModel %s>' % self._name
+
+  def __hash__(self):
+    return hash(self._name)
 
 
 @ndb.tasklet

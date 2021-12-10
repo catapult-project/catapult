@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import logging
 import re
-import urllib
+import six.moves.urllib.parse
 
 from google.appengine.api import urlfetch
 
@@ -200,7 +200,7 @@ def GetReportPageLink(test_path, rev=None, add_protocol_and_host=True):
     link_template = 'https://chromeperf.appspot.com/report?%s'
   else:
     link_template = '/report?%s'
-  uri = link_template % urllib.urlencode([
+  uri = link_template % six.moves.urllib.parse.urlencode([
       ('masters', master),
       ('bots', bot),
       ('tests', test_name),

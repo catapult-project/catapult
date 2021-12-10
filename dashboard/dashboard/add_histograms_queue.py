@@ -6,11 +6,12 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import itertools
 import json
 import logging
+import six
 import sys
 import uuid
+from six.moves import zip_longest
 
 from google.appengine.ext import ndb
 
@@ -125,14 +126,13 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
       for p in params:
         histogram_futures.append((p, _ProcessRowAndHistogram(p)))
     except Exception as e:  # pylint: disable=broad-except
-      for param, futures_info in itertools.izip_longest(params,
-                                                        histogram_futures):
+      for param, futures_info in zip_longest(params, histogram_futures):
         if futures_info is not None:
           continue
         token_state_futures.append(
             upload_completion_token.Measurement.UpdateStateByPathAsync(
                 param.get('test_path'), param.get('token'),
-                upload_completion_token.State.FAILED, e.message))
+                upload_completion_token.State.FAILED, str(e)))
       ndb.Future.wait_all(token_state_futures)
       raise
 
@@ -177,8 +177,8 @@ def _PrewarmGets(params):
 
     test_parts = path_parts[2:]
     test_key = '%s/%s' % (path_parts[0], path_parts[1])
-    for p in test_parts:
-      test_key += '/%s' % p
+    for test_part in test_parts:
+      test_key += '/%s' % test_part
       keys.add(ndb.Key('TestMetadata', test_key))
 
   ndb.get_multi_async(list(keys))
@@ -463,7 +463,7 @@ def _AddStdioUri(name, link_list, row_dict):
   if isinstance(link_list, list):
     row_dict['supplemental_columns'][name] = '[%s](%s)' % tuple(link_list)
   # Support busted format until infra changes roll
-  elif isinstance(link_list, basestring):
+  elif isinstance(link_list, six.string_types):
     row_dict['supplemental_columns'][name] = link_list
 
 

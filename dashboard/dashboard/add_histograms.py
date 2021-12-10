@@ -129,7 +129,7 @@ def _LoadHistogramList(input_file):
 
   except ijson.JSONError as e:
     # Wrap exception in a ValueError
-    raise ValueError('Failed to parse JSON: %s' % (e))
+    six.raise_from(ValueError('Failed to parse JSON: %s' % (e)), e)
 
   return objects
 
@@ -167,13 +167,14 @@ class AddHistogramsProcessHandler(request_handler.RequestHandler):
           token, upload_completion_token.State.COMPLETED)
 
     except Exception as e:  # pylint: disable=broad-except
-      logging.error('Error processing histograms: %r', e.message)
-      self.response.out.write(json.dumps({'error': e.message}))
+      logging.error('Error processing histograms: %s', str(e))
+      self.response.out.write(json.dumps({'error': str(e)}))
 
       upload_completion_token.Token.UpdateObjectState(
-          token, upload_completion_token.State.FAILED, e.message)
+          token, upload_completion_token.State.FAILED, str(e))
 
 
+# pylint: disable=abstract-method
 class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
 
   def _CheckUser(self):
@@ -215,11 +216,12 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
         # if we've been given compressed payload.
         zlib.decompressobj().decompress(data_str, 100)
         logging.info('Received compressed data.')
-      except zlib.error:
+      except zlib.error as e:
         data_str = self.request.get('data')
         if not data_str:
-          raise api_request_handler.BadRequestError(
-              'Missing or uncompressed data.')
+          six.raise_from(
+              api_request_handler.BadRequestError(
+                  'Missing or uncompressed data.'), e)
         data_str = zlib.compress(data_str)
         logging.info('Received uncompressed data.')
 

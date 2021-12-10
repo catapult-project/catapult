@@ -808,7 +808,7 @@ class GraphJsonHelperFunctionTest(testing_common.TestCase):
     test.buildername = 'MyBuilder'
     test_container_key = utils.GetTestContainerKey(test)
     row = graph_data.Row(id=345, buildnumber=456, parent=test_container_key)
-    row.a_build_uri = ('[Build](' 'http://foo/bar)')
+    row.a_build_uri = ('[Build](http://foo/bar)')
     point_info = graph_json._PointInfoDict(row, {})
     self.assertIsNone(point_info.get('a_buildbot_status_page'))
     self.assertEqual(row.a_build_uri, point_info['a_build_uri'])

@@ -172,7 +172,7 @@ class FindStepTest(unittest.TestCase):
   def testNormalize_ResultMeanIsZeroAndStdDevIsOne(self):
     # When a data series is normalized, it is guaranteed that the result
     # should have a mean of 0.0 and a standard deviation and variance of 1.0.
-    _, y_values = zip(*_QUITE_STEPPISH)
+    _, y_values = list(zip(*_QUITE_STEPPISH))
     normalized = find_step._Normalize(y_values)
     self.assertAlmostEqual(0.0, math_utils.Mean(normalized))
     self.assertAlmostEqual(1.0, math_utils.StandardDeviation(normalized))

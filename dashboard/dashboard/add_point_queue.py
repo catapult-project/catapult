@@ -59,10 +59,10 @@ class AddPointQueueHandler(request_handler.RequestHandler):
         all_put_futures.extend(put_futures)
 
       except add_point.BadRequestError as e:
-        logging.error('Could not add %s, it was invalid.', e.message)
+        logging.error('Could not add %s, it was invalid.', str(e))
       except datastore_errors.BadRequestError as e:
         logging.info('While trying to store %s', row_dict)
-        logging.error('Datastore request failed: %s.', e.message)
+        logging.error('Datastore request failed: %s.', str(e))
         return
 
     ndb.Future.wait_all(all_put_futures)

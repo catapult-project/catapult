@@ -92,7 +92,7 @@ class GraphJsonHandler(request_handler.RequestHandler):
       logging.error(
           'Only one of test_path_dict and test_path_list may be specified')
       return None
-    elif test_path_dict:
+    if test_path_dict:
       test_paths = _ResolveTestPathDict(test_path_dict, is_selected)
     elif test_path_list:
       test_paths = test_path_list

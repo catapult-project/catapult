@@ -126,7 +126,7 @@ class MigrateTestNamesHandler(request_handler.RequestHandler):
         self.RenderHtml('result.html',
                         {'headline': 'Test name migration task started.'})
       except BadInputPatternError as error:
-        self.ReportError('Error: %s' % error.message, status=400)
+        self.ReportError('Error: %s' % str(error), status=400)
     elif status:
       if status == _MIGRATE_TEST_LOOKUP_PATTERNS:
         old_pattern = self.request.get('old_pattern')
@@ -226,7 +226,7 @@ def _ValidateAndGetNewTestPath(old_path, new_pattern):
   for old_part, new_part in map(None, old_path_parts, new_pattern_parts):
     if not new_part:
       break  # In this case, the new path is shorter than the old.
-    elif new_part == '*':
+    if new_part == '*':
       # The old part field must exist.
       if not old_part:
         raise BadInputPatternError('* in new pattern has no corresponding '

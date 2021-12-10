@@ -300,9 +300,12 @@ def _AllTestPathsMatchingPatterns(patterns_list):
   return sorted(
       functools.reduce(
           operator.ior,
-          map(GetResult,
-              map(list_tests.GetTestsMatchingPatternAsync, patterns_list)),
-          set()))
+          list(
+              map(
+                  GetResult,
+                  list(
+                      map(list_tests.GetTestsMatchingPatternAsync,
+                          patterns_list)))), set()))
 
 
 def _AddTestsToPutToTaskQueue(test_paths):

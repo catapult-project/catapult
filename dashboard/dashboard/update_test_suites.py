@@ -176,7 +176,6 @@ def _FetchSuites():
         yield s
   except datastore_errors.Timeout:
     logging.error('Timeout fetching test suites.')
-  return
 
 
 def _GetTestSubPath(key):

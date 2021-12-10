@@ -23,7 +23,7 @@ def EmailSheriff(subscriptions, test, anomaly):
   """
   receivers = email_template.GetSubscriptionEmails(subscriptions)
   if not receivers:
-    logging.warn('No email address for %s', subscriptions)
+    logging.warning('No email address for %s', subscriptions)
     return
   anomaly_info = email_template.GetAlertInfo(anomaly, test)
   mail.send_mail(

@@ -27,6 +27,7 @@ def _IsValidUuid(val):
     return False
 
 
+# pylint: disable=abstract-method
 class UploadInfoHandler(api_request_handler.ApiRequestHandler):
   """Request handler to get information about upload completion tokens."""
 

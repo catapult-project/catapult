@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import json
 import logging
+import six
 
 from dashboard import can_bisect
 from dashboard import pinpoint_request
@@ -20,7 +21,6 @@ from dashboard.services import pinpoint_service
 
 class NotBisectableError(Exception):
   """An error indicating that a bisect couldn't be automatically started."""
-  pass
 
 
 def StartNewBisectForBug(bug_id, project_id):
@@ -38,8 +38,8 @@ def StartNewBisectForBug(bug_id, project_id):
   try:
     return _StartBisectForBug(bug_id, project_id)
   except NotBisectableError as e:
-    logging.info('New bisect errored out with message: ' + e.message)
-    return {'error': e.message}
+    logging.info('New bisect errored out with message: %s', str(e))
+    return {'error': str(e)}
 
 
 def _StartBisectForBug(bug_id, project_id):
@@ -80,7 +80,7 @@ def _StartPinpointBisect(bug_id, project_id, test_anomaly, test):
     results = pinpoint_service.NewJob(
         pinpoint_request.PinpointParamsFromBisectParams(params))
   except pinpoint_request.InvalidParamsError as e:
-    raise NotBisectableError(e.message)
+    six.raise_from(NotBisectableError(str(e)), e)
 
   # For compatibility with existing bisect, switch these to issueId/url
   if 'jobId' in results:
@@ -162,7 +162,7 @@ def _CompareAnomalyBisectability(a1, a2):
   """
   if a1.percent_changed > a2.percent_changed:
     return -1
-  elif a1.percent_changed < a2.percent_changed:
+  if a1.percent_changed < a2.percent_changed:
     return 1
   return 0
 

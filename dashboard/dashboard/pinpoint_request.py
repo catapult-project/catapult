@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import json
 import logging
+import six
 
 from google.appengine.ext import ndb
 
@@ -55,7 +56,7 @@ def NewPinpointBisect(job_params):
     pinpoint_params = PinpointParamsFromBisectParams(job_params)
     logging.info('Pinpoint Params: %s', pinpoint_params)
   except InvalidParamsError as e:
-    return {'error': e.message}
+    return {'error': str(e)}
 
   results = pinpoint_service.NewJob(pinpoint_params)
   logging.info('Pinpoint Service Response: %s', results)
@@ -80,7 +81,7 @@ class PinpointNewPerfTryRequestHandler(request_handler.RequestHandler):
     try:
       pinpoint_params = PinpointParamsFromPerfTryParams(job_params)
     except InvalidParamsError as e:
-      self.response.write(json.dumps({'error': e.message}))
+      self.response.write(json.dumps({'error': str(e)}))
       return
 
     self.response.write(json.dumps(pinpoint_service.NewJob(pinpoint_params)))
@@ -89,11 +90,12 @@ class PinpointNewPerfTryRequestHandler(request_handler.RequestHandler):
 def _GitHashToCommitPosition(commit_position):
   try:
     commit_position = int(commit_position)
-  except ValueError:
+  except ValueError as e:
     result = crrev_service.GetCommit(commit_position)
     if 'error' in result:
-      raise InvalidParamsError('Error retrieving commit info: %s' %
-                               result['error'].get('message'))
+      six.raise_from(
+          InvalidParamsError('Error retrieving commit info: %s' %
+                             result['error'].get('message')), e)
     commit_position = int(result['number'])
   return commit_position
 
@@ -176,27 +178,27 @@ def GetIsolateTarget(bot_name, suite):
   # //tools/perf/core/perf_data_generator.py
   if bot_name == 'android-pixel2-perf-calibration':
     return 'performance_test_suite_android_clank_monochrome_64_32_bundle'
-  elif bot_name == 'android-nexus5x-perf-fyi':
+  if bot_name == 'android-nexus5x-perf-fyi':
     return 'performance_test_suite_android_clank_chrome'
-  elif bot_name == 'android-pixel2-perf-fyi':
+  if bot_name == 'android-pixel2-perf-fyi':
     return 'performance_test_suite_android_clank_chrome'
-  elif bot_name == 'android-pixel2-perf-aab-fyi':
+  if bot_name == 'android-pixel2-perf-aab-fyi':
     return 'performance_test_suite_android_clank_monochrome_bundle'
-  elif bot_name == 'android-go-perf':
+  if bot_name == 'android-go-perf':
     return 'performance_test_suite_android_clank_chrome'
-  elif bot_name == 'Android Nexus5 Perf':
+  if bot_name == 'Android Nexus5 Perf':
     return 'performance_test_suite_android_chrome'
-  elif bot_name == 'android-pixel2-perf':
+  if bot_name == 'android-pixel2-perf':
     return 'performance_test_suite_android_clank_monochrome_64_32_bundle'
-  elif bot_name == 'android-pixel2_weblayer-perf':
+  if bot_name == 'android-pixel2_weblayer-perf':
     return 'performance_weblayer_test_suite'
-  elif bot_name == 'android-pixel4-perf':
+  if bot_name == 'android-pixel4-perf':
     return 'performance_test_suite_android_clank_trichrome_bundle'
-  elif bot_name == 'android-pixel4_weblayer-perf':
+  if bot_name == 'android-pixel4_weblayer-perf':
     return 'performance_weblayer_test_suite'
-  elif bot_name == 'android-pixel4a_power-perf':
+  if bot_name == 'android-pixel4a_power-perf':
     return 'performance_test_suite_android_clank_chrome'
-  elif 'android' in bot_name.lower():
+  if 'android' in bot_name.lower():
     raise InvalidParamsError(
         'Given Android bot %s does not have an isolate mapped to it' % bot_name)
 
@@ -337,7 +339,7 @@ def PinpointParamsFromBisectParams(params):
   # If functional bisects are speciied, Pinpoint expects these parameters to be
   # empty.
   bisect_mode = params.get('bisect_mode')
-  if bisect_mode != 'performance' and bisect_mode != 'functional':
+  if bisect_mode not in ('performance', 'functional'):
     raise InvalidParamsError('Invalid bisect mode %s specified.' % bisect_mode)
 
   start_commit = params.get('start_commit')

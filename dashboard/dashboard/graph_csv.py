@@ -51,7 +51,7 @@ class GraphCsvHandler(request_handler.RequestHandler):
     q = q.filter(graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
     if rev:
       q = q.filter(graph_data.Row.revision <= int(rev))
-    q = q.order(-graph_data.Row.revision)
+    q = q.order(-graph_data.Row.revision)  # pylint: disable=invalid-unary-operand-type
     points = reversed(q.fetch(limit=num_points))
 
     rows = self._GenerateRows(points, attributes)

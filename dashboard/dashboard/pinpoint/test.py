@@ -197,7 +197,7 @@ def _CommitRangeStub(repository_url, first_git_hash, last_git_hash):
     commit_tree = [{
         'git_hash': 'mc_100',
         'parents': ['mc_99', 'oc_99']
-    }] + [c for c in _Interleave(branch_other, branch_master)]
+    }] + list(_Interleave(branch_other, branch_master))
     return [_InfoStubWithParents(commit) for commit in commit_tree]
 
   # From here we use the default algorithm for generating a linear range of

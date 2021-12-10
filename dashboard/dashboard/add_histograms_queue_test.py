@@ -397,15 +397,15 @@ class AddHistogramsQueueTest(testing_common.TestCase):
 
   def testGetUnitArgs_Up(self):
     unit_args = add_histograms_queue.GetUnitArgs('count_biggerIsBetter')
-    self.assertEquals(anomaly.UP, unit_args['improvement_direction'])
+    self.assertEqual(anomaly.UP, unit_args['improvement_direction'])
 
   def testGetUnitArgs_Down(self):
     unit_args = add_histograms_queue.GetUnitArgs('count_smallerIsBetter')
-    self.assertEquals(anomaly.DOWN, unit_args['improvement_direction'])
+    self.assertEqual(anomaly.DOWN, unit_args['improvement_direction'])
 
   def testGetUnitArgs_Unknown(self):
     unit_args = add_histograms_queue.GetUnitArgs('count')
-    self.assertEquals(anomaly.UNKNOWN, unit_args['improvement_direction'])
+    self.assertEqual(anomaly.UNKNOWN, unit_args['improvement_direction'])
 
   def testCreateRowEntities(self):
     test_path = 'Chromium/win7/suite/metric'

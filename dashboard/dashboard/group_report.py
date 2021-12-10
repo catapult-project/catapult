@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import six
 
 from google.appengine.ext import ndb
 
@@ -70,9 +71,10 @@ class GroupReportHandler(chart_handler.ChartHandler):
           alert_list, _, _ = anomaly.Anomaly.QueryAsync(
               bug_id=bug_id, project_id=project_id,
               limit=_QUERY_LIMIT).get_result()
-        except ValueError:
-          raise request_handler.InvalidInputError('Invalid bug ID "%s:%s".' %
-                                                  (project_id, bug_id))
+        except ValueError as e:
+          six.raise_from(
+              request_handler.InvalidInputError('Invalid bug ID "%s:%s".' %
+                                                (project_id, bug_id)), e)
       elif keys:
         alert_list = GetAlertsForKeys(keys)
       elif rev:
@@ -143,8 +145,9 @@ def GetAlertsForKeys(keys):
   # Errors that can be thrown here include ProtocolBufferDecodeError
   # in google.net.proto.ProtocolBuffer. We want to catch any errors here
   # because they're almost certainly urlsafe key decoding errors.
-  except Exception:
-    raise request_handler.InvalidInputError('Invalid Anomaly key given.')
+  except Exception as e:  # pylint: disable=broad-except
+    six.raise_from(
+        request_handler.InvalidInputError('Invalid Anomaly key given.'), e)
 
   requested_anomalies = utils.GetMulti(keys)
 

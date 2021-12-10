@@ -29,7 +29,7 @@ def FindStep(data_series, score_threshold=4.0):
   """
   if len(data_series) < 2:
     return None
-  x_values, y_values = zip(*data_series)
+  x_values, y_values = list(zip(*data_series))
   step_index = _MinimizeDistanceFromStep(y_values)
   score = _RegressionSizeScore(y_values, step_index)
   if score > score_threshold:
@@ -62,7 +62,7 @@ def _Normalize(values):
 
 def _MinimizeDistanceFromStep(values):
   """Returns the step index which minimizes difference from a step function."""
-  indices = range(1, len(values))
+  indices = list(range(1, len(values)))
   return min(indices, key=lambda i: _DistanceFromStep(values, i))
 
 

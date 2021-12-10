@@ -48,10 +48,10 @@ class EditAnomalyConfigsHandler(edit_config_handler.EditConfigHandler):
             'anomaly_config_names': sorted(anomaly_configs.keys()),
         })
 
-  def _UpdateFromRequestParameters(self, anomaly_config_entity):
+  def _UpdateFromRequestParameters(self, entity):
     """Updates the given AnomalyConfig based on query parameters."""
     # This overrides the method in the superclass.
-    anomaly_config_entity.config = self._GetAndValidateConfigContents()
+    entity.config = self._GetAndValidateConfigContents()
 
   def _GetAndValidateConfigContents(self):
     """Returns a config dict if one could be gotten, or None otherwise."""

@@ -11,6 +11,7 @@ import json
 import logging
 import math
 import re
+import six
 
 from google.appengine.api import datastore_errors
 from google.appengine.api import taskqueue
@@ -46,7 +47,6 @@ _MAX_TEST_PATH_LENGTH = 500
 
 class BadRequestError(Exception):
   """An error indicating that a 400 response status should be returned."""
-  pass
 
 
 class AddPointHandler(request_handler.RequestHandler):
@@ -168,15 +168,15 @@ class AddPointHandler(request_handler.RequestHandler):
       for row_dict in data:
         ValidateRowDict(row_dict)
       _AddTasks(data)
-    except BadRequestError as error:
+    except BadRequestError as e:
       # If any of the data was invalid, abort immediately and return an error.
-      self.ReportError(error.message, status=400)
+      self.ReportError(str(e), status=400)
 
 
 def _ValidateNameString(value, name):
   if not value:
     raise BadRequestError('No %s name given.' % name)
-  if not isinstance(value, basestring):
+  if not isinstance(value, six.string_types):
     raise BadRequestError('Error: %s must be a string' % name)
   if '/' in value:
     raise BadRequestError('Illegal slash in %s' % name)
@@ -275,7 +275,8 @@ def _TestSuiteName(dash_json_dict):
     try:
       name = dash_json_dict['chart_data']['benchmark_name']
     except KeyError as e:
-      raise BadRequestError('Could not find test suite name. ' + e.message)
+      six.raise_from(
+          BadRequestError('Could not find test suite name. ' + str(e)), e)
 
   _ValidateNameString(name, 'test_suite_name')
 
@@ -457,8 +458,9 @@ def _ExtractValueAndError(trace):
       return float('nan'), 0
     try:
       return float(value), 0
-    except:
-      raise BadRequestError('Expected scalar value, got: %r' % value)
+    except Exception as e:  # pylint: disable=broad-except
+      six.raise_from(
+          BadRequestError('Expected scalar value, got: %r' % value), e)
 
   if trace_type == 'list_of_scalar_values':
     values = trace.get('values')
@@ -488,7 +490,7 @@ def _ExtractValueAndError(trace):
 
 
 def _IsNumber(v):
-  return isinstance(v, float) or isinstance(v, int) or isinstance(v, int)
+  return isinstance(v, (float, int))
 
 
 def _GeomMeanAndStdDevFromHistogram(histogram):
@@ -551,11 +553,10 @@ def _ImprovementDirectionToHigherIsBetter(improvement_direction_str):
   # TODO(eakuefner): Fail instead of falling back after fixing crbug.com/459450.
   if improvement_direction_str == 'up':
     return True
-  elif improvement_direction_str == 'down':
+  if improvement_direction_str == 'down':
     return False
-  else:
-    raise BadRequestError('Invalid improvement direction string: ' +
-                          improvement_direction_str)
+  raise BadRequestError('Invalid improvement direction string: ' +
+                        improvement_direction_str)
 
 
 def _GetLastAddedEntityForRow(row):
@@ -568,7 +569,7 @@ def _GetLastAddedEntityForRow(row):
   try:
     last_added_revision_entity = ndb.Key('LastAddedRevision', path).get()
   except datastore_errors.BadRequestError:
-    logging.warn('Datastore BadRequestError when getting %s', path)
+    logging.warning('Datastore BadRequestError when getting %s', path)
     return None
 
   return last_added_revision_entity
@@ -714,8 +715,9 @@ def GetAndValidateRowId(row_dict):
     raise BadRequestError('Required field "revision" missing.')
   try:
     return int(row_dict['revision'])
-  except (ValueError, TypeError):
-    raise BadRequestError('Bad value for "revision", should be numerical.')
+  except (ValueError, TypeError) as e:
+    six.raise_from(
+        BadRequestError('Bad value for "revision", should be numerical.'), e)
 
 
 def GetAndValidateRowProperties(row):
@@ -747,14 +749,15 @@ def GetAndValidateRowProperties(row):
     raise BadRequestError('No "value" given.')
   try:
     columns['value'] = float(row['value'])
-  except (ValueError, TypeError):
-    raise BadRequestError('Bad value for "value", should be numerical.')
+  except (ValueError, TypeError) as e:
+    six.raise_from(
+        BadRequestError('Bad value for "value", should be numerical.'), e)
   if 'error' in row:
     try:
       error = float(row['error'])
       columns['error'] = error
     except (ValueError, TypeError):
-      logging.warn('Bad value for "error".')
+      logging.warning('Bad value for "error".')
 
   columns.update(_GetSupplementalColumns(row))
   return columns
@@ -782,7 +785,7 @@ def _GetSupplementalColumns(row):
   for (name, value) in row.get('supplemental_columns', {}).items():
     # Don't allow too many columns
     if len(columns) == _MAX_NUM_COLUMNS:
-      logging.warn('Too many columns, some being dropped.')
+      logging.warning('Too many columns, some being dropped.')
       break
     value = _CheckSupplementalColumn(name, value)
     if value:
@@ -795,12 +798,12 @@ def _CheckSupplementalColumn(name, value):
   # Check length of column name.
   name = str(name)
   if len(name) > _MAX_COLUMN_NAME_LENGTH:
-    logging.warn('Supplemental column name too long.')
+    logging.warning('Supplemental column name too long.')
     return None
 
   # The column name has a prefix which indicates type of value.
   if name[:2] not in ('d_', 'r_', 'a_'):
-    logging.warn('Bad column name "%s", invalid prefix.', name)
+    logging.warning('Bad column name "%s", invalid prefix.', name)
     return None
 
   # The d_ prefix means "data column", intended to hold numbers.
@@ -808,7 +811,7 @@ def _CheckSupplementalColumn(name, value):
     try:
       value = float(value)
     except (ValueError, TypeError):
-      logging.warn('Bad value for column "%s", should be numerical.', name)
+      logging.warning('Bad value for column "%s", should be numerical.', name)
       return None
 
   # The r_ prefix means "revision", and the value should look like a number,
@@ -821,15 +824,16 @@ def _CheckSupplementalColumn(name, value):
     ]
     if (not value or len(str(value)) > _STRING_COLUMN_MAX_LENGTH
         or not any(re.match(p, str(value)) for p in revision_patterns)):
-      logging.warn('Bad value for revision column "%s". Value: %s', name, value)
+      logging.warning('Bad value for revision column "%s". Value: %s', name,
+                      value)
       return None
     value = str(value)
 
   if name.startswith('a_'):
     # Annotation column, should be a short string.
     if len(str(value)) > _STRING_COLUMN_MAX_LENGTH:
-      logging.warn('Value for "%s" too long, max length is %d.', name,
-                   _STRING_COLUMN_MAX_LENGTH)
+      logging.warning('Value for "%s" too long, max length is %d.', name,
+                      _STRING_COLUMN_MAX_LENGTH)
       return None
 
   return value

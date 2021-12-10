@@ -71,8 +71,8 @@ class DumpGraphJsonTest(testing_common.TestCase):
     out_rows = _EntitiesOfKind(entities, 'Row')
     expected_num_rows = dump_graph_json._DEFAULT_MAX_POINTS
     self.assertEqual(expected_num_rows, len(out_rows))
-    expected_rev_range = range(highest_rev, highest_rev + 1 - expected_num_rows,
-                               -1)
+    expected_rev_range = list(
+        range(highest_rev, highest_rev + 1 - expected_num_rows, -1))
     for expected_rev, row in zip(expected_rev_range, out_rows):
       self.assertEqual(expected_rev, row.revision)
       self.assertEqual(expected_rev * 2, row.value)
@@ -100,7 +100,7 @@ class DumpGraphJsonTest(testing_common.TestCase):
         map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings))
     out_rows = _EntitiesOfKind(entities, 'Row')
     rev_nums = [row.revision for row in out_rows]
-    expected_rev_range = range(highest_rev, highest_rev - 4, -1)
+    expected_rev_range = list(range(highest_rev, highest_rev - 4, -1))
     self.assertEqual(expected_rev_range, rev_nums)
 
   def testDumpJsonWithAlertData(self):

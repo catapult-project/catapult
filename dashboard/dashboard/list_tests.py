@@ -75,7 +75,7 @@ class ListTestsHandler(request_handler.RequestHandler):
             json.loads(test_path_dict), return_selected)
         self.response.out.write(json.dumps(test_list))
       except BadRequestError as e:
-        self.ReportError(e.message, status=400)
+        self.ReportError(str(e), status=400)
 
 
 def GetSubTests(suite_name, bot_names):

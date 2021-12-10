@@ -71,7 +71,7 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
     q = q.filter(graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
     if end_rev:
       q = q.filter(graph_data.Row.revision <= int(end_rev))
-    q = q.order(-graph_data.Row.revision)
+    q = q.order(-graph_data.Row.revision)  # pylint: disable=invalid-unary-operand-type
     entities += q.fetch(limit=num_points)
 
     # Get the Anomaly and Sheriff entities.
@@ -151,7 +151,7 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
       q = graph_data.Row.query()
       q = q.filter(
           graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
-      q = q.order(-graph_data.Row.revision)
+      q = q.order(-graph_data.Row.revision)  # pylint: disable=invalid-unary-operand-type
       futures.append(q.fetch_async(limit=num_points))
     ndb.Future.wait_all(futures)
     for future in futures:

@@ -100,7 +100,7 @@ def FindChangePoints(series,
   if len(series) < 2:
     return []  # Not enough points to possibly contain a valid split point.
   series = series[-max_window_size:]
-  _, y_values = zip(*series)
+  _, y_values = list(zip(*series))
 
   candidate_points = []
   try:
@@ -147,7 +147,7 @@ def MakeChangePoint(series, point):
   """
   split_index, (lower, upper) = point
   assert 0 <= split_index < len(series)
-  x_values, y_values = zip(*series)
+  x_values, y_values = list(zip(*series))
   left, right = y_values[:split_index], y_values[split_index:]
   left_median, right_median = math_utils.Median(left), math_utils.Median(right)
   ttest_results = ttest.WelchsTTest(left, right)

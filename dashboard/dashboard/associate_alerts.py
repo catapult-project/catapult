@@ -155,18 +155,17 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
     """
     if not utils.MinimumAlertRange(alerts):
       return 'Selected alerts do not have overlapping revision range.'
-    else:
-      alerts_with_bug, _, _ = anomaly.Anomaly.QueryAsync(
-          bug_id=bug_id, project_id=project_id, limit=500).get_result()
+    alerts_with_bug, _, _ = anomaly.Anomaly.QueryAsync(
+        bug_id=bug_id, project_id=project_id, limit=500).get_result()
 
-      if not alerts_with_bug:
-        return None
-      if not utils.MinimumAlertRange(alerts_with_bug):
-        return ('Alerts in bug %s:%s do not have overlapping revision '
-                'range.' % (project_id, bug_id))
-      elif not utils.MinimumAlertRange(alerts + alerts_with_bug):
-        return ('Selected alerts do not have overlapping revision '
-                'range with alerts in bug %s:%s.' % (project_id, bug_id))
+    if not alerts_with_bug:
+      return None
+    if not utils.MinimumAlertRange(alerts_with_bug):
+      return ('Alerts in bug %s:%s do not have overlapping revision '
+              'range.' % (project_id, bug_id))
+    if not utils.MinimumAlertRange(alerts + alerts_with_bug):
+      return ('Selected alerts do not have overlapping revision '
+              'range with alerts in bug %s:%s.' % (project_id, bug_id))
     return None
 
   def _ShowConfirmDialog(self, handler, message, parameters):

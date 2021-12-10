@@ -219,9 +219,6 @@ class AddHistogramsBaseTest(testing_common.TestCase):
                    mock.MagicMock(return_value=([], None)))
 class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
 
-  def setUp(self):
-    super(AddHistogramsEndToEndTest, self).setUp()
-
   @mock.patch.object(add_histograms_queue.graph_revisions,
                      'AddRowsToCacheAsync')
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync')
@@ -826,9 +823,6 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
 @mock.patch.object(SheriffConfigClient, 'Match',
                    mock.MagicMock(return_value=([], None)))
 class AddHistogramsTest(AddHistogramsBaseTest):
-
-  def setUp(self):
-    super(AddHistogramsTest, self).setUp()
 
   def TaskParams(self):
     tasks = self.GetTaskQueueTasks(add_histograms.TASK_QUEUE_NAME)
@@ -1895,7 +1889,7 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
 
 def RandomChars(length):
   for _ in itertools.islice(itertools.count(0), length):
-    yield '%s' % (random.choice(string.letters))
+    yield '%s' % (random.choice(string.ascii_letters))
 
 
 class DecompressFileWrapperTest(testing_common.TestCase):
@@ -1903,7 +1897,7 @@ class DecompressFileWrapperTest(testing_common.TestCase):
   def testBasic(self):
     filesize = 1024 * 256
     random.seed(1)
-    payload = ''.join([x for x in RandomChars(filesize)])
+    payload = ''.join(list(RandomChars(filesize)))
     random.seed(None)
     self.assertEqual(len(payload), filesize)
     input_file = BufferedFakeFile(zlib.compress(payload))
@@ -1919,7 +1913,7 @@ class DecompressFileWrapperTest(testing_common.TestCase):
   def testDecompressionFail(self):
     filesize = 1024 * 256
     random.seed(1)
-    payload = ''.join([x for x in RandomChars(filesize)])
+    payload = ''.join(list(RandomChars(filesize)))
     random.seed(None)
     self.assertEqual(len(payload), filesize)
 
@@ -1977,7 +1971,7 @@ class DecompressFileWrapperTest(testing_common.TestCase):
         add_histograms._LoadHistogramList(input_file_raw))
     loaded_raw_histograms.DeduplicateDiagnostics()
 
-    self.assertEquals(
+    self.assertEqual(
         sorted(loaded_raw_histograms.AsDicts()),
         sorted(loaded_compressed_histograms.AsDicts()))
 

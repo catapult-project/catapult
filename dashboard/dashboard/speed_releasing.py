@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import collections
 import json
-import urllib
+import six.moves.urllib.parse
 
 from google.appengine.ext import ndb
 
@@ -322,7 +322,8 @@ def _GetDashboardURLMap(bots, tests, rev_a, rev_b):
           'start_rev': rev_a,
           'end_rev': rev_b,
       }
-      url_mappings[bot + '/' + test] = '?%s' % urllib.urlencode(url_args)
+      url_mappings[bot + '/' + test] = \
+          '?%s' % six.moves.urllib.parse.urlencode(url_args)
   return url_mappings
 
 
@@ -359,7 +360,7 @@ def _UpdateNewestRevInMilestoneDict(bots, tests, milestone_dict):
     query = graph_data.Row.query()
     query = query.filter(
         graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
-    query = query.order(-graph_data.Row.revision)
+    query = query.order(-graph_data.Row.revision)  # pylint: disable=invalid-unary-operand-type
     row = query.get()
     if row:
       milestone_dict[CURRENT_MILESTONE] = (milestone_dict[CURRENT_MILESTONE][0],
