@@ -41,9 +41,11 @@ _TELEMETRY_COMMAND = [
 _BASE_SWARMING_TAGS = {}
 
 
+@mock.patch('dashboard.services.crrev_service.GetCommit')
 class StartTest(unittest.TestCase):
 
-  def testStart(self):
+  def testStart(self, get_commit):
+    get_commit.return_value = {'number': 999999}
     quest = run_telemetry_test.RunTelemetryTest('server',
                                                 run_test_test.DIMENSIONS,
                                                 ['arg'], _BASE_SWARMING_TAGS,
@@ -52,12 +54,30 @@ class StartTest(unittest.TestCase):
     change = mock.MagicMock(spec=change_module.Change)
     change.base_commit = mock.MagicMock(spec=commit.Commit)
     change.base_commit.AsDict = mock.MagicMock(
-        return_value={'commit_position': 675460})
+        return_value={'commit_position': 999999})
     execution = quest.Start(change, 'https://isolate.server', 'isolate hash')
     self.assertEqual(execution._extra_args,
                      ['arg', '--results-label', mock.ANY])
+    self.assertIn('vpython3', execution.command)
 
-  def testSwarmingTags(self):
+  def testStartPy2(self, get_commit):
+    get_commit.return_value = {'number': 888888}
+    quest = run_telemetry_test.RunTelemetryTest('server',
+                                                run_test_test.DIMENSIONS,
+                                                ['arg'], _BASE_SWARMING_TAGS,
+                                                _TELEMETRY_COMMAND,
+                                                'out/Release')
+    change = mock.MagicMock(spec=change_module.Change)
+    change.base_commit = mock.MagicMock(spec=commit.Commit)
+    change.base_commit.AsDict = mock.MagicMock(
+        return_value={'commit_position': 888888})
+    execution = quest.Start(change, 'https://isolate.server', 'isolate hash')
+    self.assertEqual(execution._extra_args,
+                     ['arg', '--results-label', mock.ANY])
+    self.assertIn('vpython', execution.command)
+
+  def testSwarmingTags(self, get_commit):
+    get_commit.return_value = {'number': 675460}
     arguments = dict(_BASE_ARGUMENTS)
     arguments['browser'] = 'android-webview'
     quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
@@ -72,7 +92,8 @@ class StartTest(unittest.TestCase):
         'hasfilter': '0'
     })
 
-  def testSwarmingTagsWithStoryFilter(self):
+  def testSwarmingTagsWithStoryFilter(self, get_commit):
+    get_commit.return_value = {'number': 675460}
     arguments = dict(_BASE_ARGUMENTS)
     arguments['browser'] = 'android-webview'
     arguments['story'] = 'sfilter'
@@ -94,7 +115,8 @@ class StartTest(unittest.TestCase):
             'storyfilter': 'sfilter'
         })
 
-  def testExtraArgsInChange(self):
+  def testExtraArgsInChange(self, get_commit):
+    get_commit.return_value = {'number': 675460}
     arguments = dict(_BASE_ARGUMENTS)
     arguments['browser'] = 'android-webview'
     arguments['story'] = 'sfilter'
@@ -121,8 +143,10 @@ class StartTest(unittest.TestCase):
             'storyfilter': 'sfilter'
         })
 
-  def testSwarmingTagsWithStoryFilter_RevMissingCommitPosition(self):
+  def testSwarmingTagsWithStoryFilter_RevMissingCommitPosition(
+      self, get_commit):
     """Reproduce crbug/1051943."""
+    get_commit.return_value = {'number': 675460}
     arguments = dict(_BASE_ARGUMENTS)
     arguments['browser'] = 'android-webview'
     arguments['story'] = 'sfilter'
@@ -137,7 +161,8 @@ class StartTest(unittest.TestCase):
       quest.Start(change, 'https://isolate.server', 'isolate hash')
       self.assertIn('--run-full-story-set', internal_start.call_args[0][3])
 
-  def testSwarmingTagsWithStoryTagFilter(self):
+  def testSwarmingTagsWithStoryTagFilter(self, get_commit):
+    get_commit.return_value = {'number': 675460}
     arguments = dict(_BASE_ARGUMENTS)
     arguments['browser'] = 'android-webview'
     arguments['story_tags'] = 'tfilter'

@@ -36,9 +36,11 @@ FakeJob = collections.namedtuple('Job',
                                  ['job_id', 'url', 'comparison_mode', 'user'])
 
 
+@mock.patch('dashboard.services.crrev_service.GetCommit')
 class StartTest(unittest.TestCase):
 
-  def testStart(self):
+  def testStart(self, get_commit):
+    get_commit.return_value = {'number': 999999}
     quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS,
                              None, None)
     execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
@@ -143,9 +145,11 @@ class _RunTestExecutionTest(unittest.TestCase):
 
 @mock.patch('dashboard.services.swarming.Tasks.New')
 @mock.patch('dashboard.services.swarming.Task.Result')
+@mock.patch('dashboard.services.crrev_service.GetCommit')
 class RunTestFullTest(_RunTestExecutionTest):
 
-  def testSuccess(self, swarming_task_result, swarming_tasks_new):
+  def testSuccess(self, get_commit, swarming_task_result, swarming_tasks_new):
+    get_commit.return_value = {'number': 675460}
     # Goes through a full run of two Executions.
 
     # Call RunTest.Start() to create an Execution.
@@ -238,7 +242,9 @@ class RunTestFullTest(_RunTestExecutionTest):
 
     self.assertNewTaskHasDimensions(swarming_tasks_new)
 
-  def testSuccess_Cas(self, swarming_task_result, swarming_tasks_new):
+  def testSuccess_Cas(self, get_commit, swarming_task_result,
+                      swarming_tasks_new):
+    get_commit.return_value = {'number': 675460}
     # Goes through a full run of two Executions.
 
     # Call RunTest.Start() to create an Execution.
@@ -359,7 +365,9 @@ class RunTestFullTest(_RunTestExecutionTest):
     self.assertNewTaskHasDimensions(swarming_tasks_new)
 
 
-  def testStart_NoSwarmingTags(self, swarming_task_result, swarming_tasks_new):
+  def testStart_NoSwarmingTags(self, get_commit, swarming_task_result,
+                               swarming_tasks_new):
+    get_commit.return_value = {'number': 675460}
     del swarming_task_result
     del swarming_tasks_new
 
@@ -369,9 +377,12 @@ class RunTestFullTest(_RunTestExecutionTest):
 
 @mock.patch('dashboard.services.swarming.Tasks.New')
 @mock.patch('dashboard.services.swarming.Task.Result')
+@mock.patch('dashboard.services.crrev_service.GetCommit')
 class SwarmingTaskStatusTest(_RunTestExecutionTest):
 
-  def testSwarmingError(self, swarming_task_result, swarming_tasks_new):
+  def testSwarmingError(self, get_commit, swarming_task_result,
+                        swarming_tasks_new):
+    get_commit.return_value = {'number': 675460}
     swarming_task_result.return_value = {'state': 'BOT_DIED'}
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
@@ -387,8 +398,9 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
     self.assertTrue(last_exception_line.startswith('SwarmingTaskError'))
 
   @mock.patch('dashboard.services.swarming.Task.Stdout')
-  def testTestError(self, swarming_task_stdout, swarming_task_result,
-                    swarming_tasks_new):
+  def testTestError(self, swarming_task_stdout, get_commit,
+                    swarming_task_result, swarming_tasks_new):
+    get_commit.return_value = {'number': 675460}
     swarming_task_stdout.return_value = {'output': ''}
     swarming_task_result.return_value = {
         'bot_id': 'bot id',
@@ -417,11 +429,14 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
 
 @mock.patch('dashboard.services.swarming.Tasks.New')
 @mock.patch('dashboard.services.swarming.Task.Result')
+@mock.patch('dashboard.services.crrev_service.GetCommit')
 class BotIdHandlingTest(_RunTestExecutionTest):
 
-  def testExecutionExpired(self, swarming_task_result, swarming_tasks_new):
+  def testExecutionExpired(self, get_commit, swarming_task_result,
+                           swarming_tasks_new):
     # If the Swarming task expires, the bots are overloaded or the dimensions
     # don't correspond to any bot. Raise an error that's fatal to the Job.
+    get_commit.return_value = {'number': 675460}
     swarming_tasks_new.return_value = {'task_id': 'task id'}
     swarming_task_result.return_value = {'state': 'EXPIRED'}
 
@@ -432,12 +447,14 @@ class BotIdHandlingTest(_RunTestExecutionTest):
     with self.assertRaises(errors.SwarmingExpired):
       execution.Poll()
 
-  def testFirstExecutionFailedWithNoBotId(self, swarming_task_result,
+  def testFirstExecutionFailedWithNoBotId(self, get_commit,
+                                          swarming_task_result,
                                           swarming_tasks_new):
     # If the first Execution fails before it gets a bot ID, it's likely it
     # couldn't find any device to run on. Subsequent Executions probably
     # wouldn't have any better luck, and failing fast is less complex than
     # handling retries.
+    get_commit.return_value = {'number': 675460}
     swarming_tasks_new.return_value = {'task_id': 'task id'}
     swarming_task_result.return_value = {'state': 'CANCELED'}
 
@@ -465,8 +482,9 @@ class BotIdHandlingTest(_RunTestExecutionTest):
     last_exception_line = execution.exception['traceback'].splitlines()[-1]
     self.assertTrue(last_exception_line.startswith('SwarmingNoBots'))
 
-  def testSimultaneousExecutions(self, swarming_task_result,
+  def testSimultaneousExecutions(self, get_commit, swarming_task_result,
                                  swarming_tasks_new):
+    get_commit.return_value = {'number': 675460}
     quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS,
                              None, None)
     execution_1 = quest.Start('change_1', 'input isolate server',
