@@ -32,6 +32,7 @@ def StateToString(state):
     return 'FAILED'
   if state == State.COMPLETED:
     return 'COMPLETED'
+  return None
 
 
 class Token(internal_only_model.InternalOnlyModel):
@@ -79,7 +80,7 @@ class Token(internal_only_model.InternalOnlyModel):
   @classmethod
   def UpdateObjectState(cls, obj, state, error_message=None):
     if obj is None:
-      return
+      return None
     return obj.UpdateState(state, error_message)
 
   def UpdateState(self, state, error_message=None):
@@ -87,7 +88,7 @@ class Token(internal_only_model.InternalOnlyModel):
 
     self.state_ = state
     if error_message is not None:
-      # In some cases the error_message (e.message field) can actually be not
+      # In some cases the error_message (str(e) field) can actually be not
       # a string.
       self.error_message = str(error_message)
     self.put()
@@ -171,7 +172,7 @@ class Measurement(internal_only_model.InternalOnlyModel):
       return
     obj.state = state
     if error_message is not None:
-      # In some cases the error_message (e.message field) can actually be not
+      # In some cases the error_message (str(e) field) can actually be not
       # a string.
       obj.error_message = str(error_message)
     yield obj.put_async()

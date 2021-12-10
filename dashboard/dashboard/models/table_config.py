@@ -30,6 +30,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 import json
+import six
 
 from google.appengine.ext import ndb
 
@@ -39,7 +40,6 @@ from dashboard.models import internal_only_model
 
 class BadRequestError(Exception):
   """An error indicating that a 400 response status should be returned."""
-  pass
 
 
 class TableConfig(internal_only_model.InternalOnlyModel):
@@ -101,14 +101,14 @@ def CreateTableConfig(name, bots, tests, layout, username, override):
         if not test_key.get():
           raise BadRequestError('%s is not a valid test.' % test)
 
-  except BadRequestError as error:
-    raise BadRequestError(error.message)
+  except BadRequestError as e:
+    six.raise_from(BadRequestError(str(e)), e)
 
   try:
     json.loads(layout)
     # TODO(jessimb): Verify that the layout matches what is expected
-  except ValueError:
-    raise BadRequestError('Invalid JSON for table layout')
+  except ValueError as e:
+    six.raise_from(BadRequestError('Invalid JSON for table layout'), e)
 
   # Input validates, create table now.
   table_config = TableConfig(

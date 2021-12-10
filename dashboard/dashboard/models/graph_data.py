@@ -59,6 +59,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import logging
+import six
 
 from google.appengine.ext import ndb
 
@@ -105,8 +106,8 @@ class Bot(internal_only_model.InternalOnlyModel):
     try:
       internal_only = yield cls.GetInternalOnlyAsync(master, bot)
       raise ndb.Return(internal_only)
-    except AssertionError:
-      raise ndb.Return(True)
+    except AssertionError as e:
+      six.raise_from(ndb.Return(True), e)
 
   @staticmethod
   @ndb.tasklet
@@ -432,7 +433,7 @@ def GetRowsForTestBeforeAfterRev(test_key, rev, num_rows_before,
   test_key = utils.OldStyleTestKey(test_key)
 
   query_up_to_rev = Row.query(Row.parent_test == test_key, Row.revision <= rev)
-  query_up_to_rev = query_up_to_rev.order(-Row.revision)
+  query_up_to_rev = query_up_to_rev.order(-Row.revision)  # pylint: disable=invalid-unary-operand-type
   rows_up_to_rev = list(
       reversed(query_up_to_rev.fetch(limit=num_rows_before, batch_size=100)))
 
@@ -447,6 +448,6 @@ def GetLatestRowsForTest(test_key, num_points, keys_only=False):
   """Gets the latest num_points Row entities for a test."""
   test_key = utils.OldStyleTestKey(test_key)
   query = Row.query(Row.parent_test == test_key)
-  query = query.order(-Row.revision)
+  query = query.order(-Row.revision)  # pylint: disable=invalid-unary-operand-type
 
   return query.fetch(limit=num_points, batch_size=100, keys_only=keys_only)

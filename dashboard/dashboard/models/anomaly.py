@@ -180,15 +180,13 @@ class Anomaly(internal_only_model.InternalOnlyModel):
     """Gets a string showing the percent change."""
     if abs(self.percent_changed) == sys.float_info.max:
       return FREAKIN_HUGE
-    else:
-      return '%.1f%%' % abs(self.percent_changed)
+    return '%.1f%%' % abs(self.percent_changed)
 
   def GetDisplayAbsoluteChanged(self):
     """Gets a string showing the absolute change."""
     if abs(self.absolute_delta) == sys.float_info.max:
       return FREAKIN_HUGE
-    else:
-      return '%f' % abs(self.absolute_delta)
+    return '%f' % abs(self.absolute_delta)
 
   def GetRefTestPath(self):
     if not self.ref_test:

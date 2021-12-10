@@ -404,7 +404,7 @@ def _FindOrInsertNamedDiagnosticsOutOfOrder(new_diagnostic, old_diagnostics,
       raise ndb.Return(guid_mapping)
 
     # Case 2, split the range.
-    elif rev > cur.start_revision and rev <= cur.end_revision:
+    if cur.start_revision < rev <= cur.end_revision:
       if not cur.IsDifferent(new_diagnostic):
         raise ndb.Return(guid_mapping)
 

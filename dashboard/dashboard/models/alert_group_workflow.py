@@ -27,6 +27,7 @@ import itertools
 import jinja2
 import logging
 import os
+import six
 
 from google.appengine.ext import ndb
 
@@ -419,7 +420,7 @@ class AlertGroupWorkflow(object):
 
     # Only update issue if there is at least one regression
     if not new_regressions:
-      return False
+      return
 
     self._FileNormalUpdate(
         all_regressions,
@@ -501,12 +502,12 @@ class AlertGroupWorkflow(object):
       for s in a.subscriptions:
         if (s.name in subscriptions_dict and s.auto_triage_enable !=
             subscriptions_dict[s.name].auto_triage_enable):
-          logging.warn('altered merged auto_triage_enable: %s', s.name)
+          logging.warning('altered merged auto_triage_enable: %s', s.name)
 
       subscriptions_dict.update({s.name: s for s in a.subscriptions})
       if not a.is_improvement and not a.recovered:
         regressions.append(a)
-    return (regressions, subscriptions_dict.values())
+    return (regressions, list(subscriptions_dict.values()))
 
   @classmethod
   def _GetBenchmarksFromRegressions(cls, regressions):
@@ -523,7 +524,7 @@ class AlertGroupWorkflow(object):
                                      info_blurb))
       benchmark.regressions.append(regression)
       benchmarks_dict[name] = benchmark
-    return benchmarks_dict.values()
+    return list(benchmarks_dict.values())
 
   def _ComputeBugUpdate(self, subscriptions, regressions):
     components = list(
@@ -709,8 +710,9 @@ class AlertGroupWorkflow(object):
   def _StartPinpointBisectJob(self, regression):
     try:
       results = self._pinpoint.NewJob(self._NewPinpointRequest(regression))
-    except pinpoint_request.InvalidParamsError as error:
-      raise InvalidPinpointRequest('Invalid pinpoint request: %s' % (error,))
+    except pinpoint_request.InvalidParamsError as e:
+      six.raise_from(
+          InvalidPinpointRequest('Invalid pinpoint request: %s' % (e,)), e)
 
     if 'jobId' not in results:
       raise InvalidPinpointRequest('Start pinpoint bisection failed: %s' %
@@ -756,8 +758,7 @@ class AlertGroupWorkflow(object):
       if x.relative_delta == float('Inf'):
         if y.relative_delta == float('Inf'):
           return max(x, y, key=lambda a: (get_score(a), a.absolute_delta))
-        else:
-          return y
+        return y
       if y.relative_delta == float('Inf'):
         return x
       return max(x, y, key=lambda a: (get_score(a), a.relative_delta))

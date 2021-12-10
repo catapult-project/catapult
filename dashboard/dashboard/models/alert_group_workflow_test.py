@@ -9,6 +9,7 @@ from __future__ import absolute_import
 
 import datetime
 import json
+import six
 import uuid
 
 from google.appengine.ext import ndb
@@ -933,8 +934,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
 
     # Tags must be a dict of key/value string pairs.
     for k, v in tags.items():
-      self.assertIsInstance(k, basestring)
-      self.assertIsInstance(v, basestring)
+      self.assertIsInstance(k, six.string_types)
+      self.assertIsInstance(v, six.string_types)
 
     self.assertEqual(['123456'], group.get().bisection_ids)
     self.assertEqual(['Chromeperf-Auto-Bisected'],
@@ -987,8 +988,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
 
     # Tags must be a dict of key/value string pairs.
     for k, v in tags.items():
-      self.assertIsInstance(k, basestring)
-      self.assertIsInstance(v, basestring)
+      self.assertIsInstance(k, six.string_types)
+      self.assertIsInstance(v, six.string_types)
 
     self.assertEqual(['123456'], group.get().bisection_ids)
     self.assertEqual(['Chromeperf-Auto-Bisected'],
@@ -1093,8 +1094,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
 
     # Tags must be a dict of key/value string pairs.
     for k, v in tags.items():
-      self.assertIsInstance(k, basestring)
-      self.assertIsInstance(v, basestring)
+      self.assertIsInstance(k, six.string_types)
+      self.assertIsInstance(v, six.string_types)
 
     self.assertEqual(['123456'], group.get().bisection_ids)
     self.assertEqual(['Chromeperf-Auto-Bisected'],

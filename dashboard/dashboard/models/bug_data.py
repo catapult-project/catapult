@@ -71,16 +71,18 @@ def SetBisectStatus(bug_id, status, project):
 def Key(project, bug_id):
   if not project:
     raise ValueError('project must not be empty or None')
-  if not id or id <= 0:
-    raise ValueError('id must not be empty, zero, None and must be positive')
+  if not bug_id or bug_id <= 0:
+    raise ValueError(
+        'bug_id must not be empty, zero, None and must be positive')
   return ndb.Key('Bug', '%s:%d' % (project, bug_id))
 
 
 def Get(project, bug_id):
   if not project:
     raise ValueError('project must not be empty or None')
-  if not id or id <= 0:
-    raise ValueError('id must not be empty, zero, None and must be positive')
+  if not bug_id or bug_id <= 0:
+    raise ValueError(
+        'bug_id must not be empty, zero, None and must be positive')
   # Due to legacy reasons, the key might just be an issue id
   # or a combination of the issue id and project.
   bug = ndb.Key('Bug', '%d' % (bug_id,)).get()

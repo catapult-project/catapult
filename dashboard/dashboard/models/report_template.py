@@ -14,6 +14,7 @@ from dashboard.common import report_query
 from dashboard.common import timing
 from dashboard.common import utils
 from dashboard.models import internal_only_model
+import six
 
 
 class ReportTemplate(internal_only_model.InternalOnlyModel):
@@ -95,7 +96,7 @@ def Static(internal_only, template_id, name, modified):
         report = report.FetchSync()
       assert isinstance(
           report.get('url'),
-          basestring), ('Reports are required to link to documentation')
+          six.string_types), ('Reports are required to link to documentation')
       return report
 
     Replacement.template = ReportTemplate(
@@ -135,10 +136,10 @@ def PutTemplate(template_id, name, owners, template):
         raise ValueError
     try:
       entity = ndb.Key('ReportTemplate', template_id).get()
-    except AssertionError:
+    except AssertionError as e:
       # InternalOnlyModel._post_get_hook asserts that the user can access the
       # entity.
-      raise ValueError
+      six.raise_from(ValueError, e)
     if not entity or email not in entity.owners:
       raise ValueError
     if any(name == existing['name']
