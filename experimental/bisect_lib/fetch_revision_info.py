@@ -10,9 +10,13 @@ Example usage:
   ./fetch_revision_info.py 17b4e7450d v8
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import argparse
 import json
-import urllib2
+import six.moves.urllib.request
+import six.moves.urllib.error
+import six.moves.urllib.parse
 
 from bisect_lib import depot_map
 
@@ -23,7 +27,7 @@ def FetchRevisionInfo(commit_hash, depot_name):
   """Gets information about a chromium revision."""
   path = depot_map.DEPOT_PATH_MAP[depot_name]
   url = _URL_TEMPLATE % (path, commit_hash)
-  response = urllib2.urlopen(url).read()
+  response = six.moves.urllib.request.urlopen(url).read()
   response_json = response[len(_GITILES_PADDING):]
   response_dict = json.loads(response_json)
   message = response_dict['message'].splitlines()
@@ -45,7 +49,7 @@ def Main():
   parser.add_argument('depot', choices=list(depot_map.DEPOT_PATH_MAP))
   args = parser.parse_args()
   revision_info = FetchRevisionInfo(args.commit_hash, args.depot)
-  print json.dumps(revision_info)
+  print(json.dumps(revision_info))
 
 
 if __name__ == '__main__':

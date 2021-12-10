@@ -13,6 +13,8 @@ Getting set up:
    Ask sullivan@ to share credentials.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import argparse
 import datetime
 # Need to have dateutil module installed locally.
@@ -66,11 +68,11 @@ def main():
   if include_timeseries:
     paths = load_benchmark_data.GetTimeseriesList(benchmark)
     for path in paths:
-      print drive_api.CreateSpreadsheet(path, [{
+      print(drive_api.CreateSpreadsheet(path, [{
           'name': path,
           'values': load_benchmark_data.GetTimeseries(
               path, start_date, end_date),
-      }], folder_id)
+      }], folder_id))
 
 
 if __name__ == '__main__':

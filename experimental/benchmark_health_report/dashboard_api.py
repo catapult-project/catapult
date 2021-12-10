@@ -2,14 +2,19 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import datetime
 import json
 import re
-import urllib
+import six.moves.urllib.request
+import six.moves.urllib.parse
+import six.moves.urllib.error
 
 # pylint: disable=import-error
 import httplib2
 from oauth2client import service_account  # pylint: disable=no-name-in-module
+from six.moves import range
 # pylint: enable=import-error
 
 
@@ -21,12 +26,12 @@ def GetAlerts(num_days, benchmark=None):
   options = {'min_timestamp': min_timestamp.isoformat()}
   if benchmark:
     options['test_suite'] = benchmark
-  url = '/api/alerts?' + urllib.urlencode(options)
+  url = '/api/alerts?' + six.moves.urllib.parse.urlencode(options)
   return _MakeDashboardApiRequest(url)['anomalies']
 
 def GetBug(bug_id):
   url = '/api/bugs/%d' % bug_id
-  print 'Fetching bug %s' % bug_id
+  print('Fetching bug %s' % bug_id)
   bug = _MakeDashboardApiRequest(url)['bug']
   _ParseBisectsFromBugComments(bug)
   return bug
@@ -143,7 +148,7 @@ def _GetIndexOfBisectUrl(bug, url):
   return -1
 
 def _MakeDashboardApiRequest(path, postdata=None):
-  print 'Requesting: %s' % path
+  print('Requesting: %s' % path)
   url = 'https://chromeperf.appspot.com' + path
   scopes = ['https://www.googleapis.com/auth/userinfo.email']
 
@@ -158,5 +163,5 @@ def _MakeDashboardApiRequest(path, postdata=None):
       postdata,
       headers={'Content-length': len(postdata or '')})
   if str(response['status']) != '200':
-    print 'Received %s response from %s' % (response['status'], url)
+    print('Received %s response from %s' % (response['status'], url))
   return json.loads(content)

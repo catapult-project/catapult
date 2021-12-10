@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
 import os
 import sys
 import unittest
@@ -24,7 +25,7 @@ class FetchInterveningRevisionsTest(unittest.TestCase):
 
   def testFetchInterveningRevisions(self):
     response = open(os.path.join(_TEST_DATA, 'MOCK_RANGE_RESPONSE_1'))
-    with mock.patch('urllib2.urlopen', mock.MagicMock(return_value=response)):
+    with mock.patch('six.moves.urllib.request.urlopen', mock.MagicMock(return_value=response)):
       revs = fetch_intervening_revisions.FetchInterveningRevisions(
           '53fc07eb478520a80af6bf8b62be259bb55db0f1',
           'c89130e28fd01062104e1be7f3a6fc3abbb80ca9',
@@ -58,7 +59,7 @@ class FetchInterveningRevisionsTest(unittest.TestCase):
         return open(os.path.join(_TEST_DATA, 'MOCK_RANGE_RESPONSE_2_PAGE_1'))
       return open(os.path.join(_TEST_DATA, 'MOCK_RANGE_RESPONSE_2_PAGE_2'))
 
-    with mock.patch('urllib2.urlopen', MockUrlopen):
+    with mock.patch('six.moves.urllib.request.urlopen', MockUrlopen):
       revs = fetch_intervening_revisions.FetchInterveningRevisions(
           '7bd1741893bd4e233b5562a6926d7e395d558343',
           '3861789af25e2d3502f0fb7080da5785d31308aa',

@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
 import argparse
 import fnmatch
 import logging
@@ -10,6 +11,7 @@ import os
 import sys
 
 import telemetry_mini
+import six
 
 
 BROWSER_FLAGS = [
@@ -222,7 +224,7 @@ class ProcessWatcher(object):
     """Check that all watched processes remain alive and were not restarted."""
     status = self.device.ProcessStatus()
     all_alive = True
-    for process_name, old_pid in sorted(self._process_pid.iteritems()):
+    for process_name, old_pid in sorted(six.iteritems(self._process_pid)):
       new_pids = status[process_name]
       if not new_pids:
         all_alive = False
@@ -255,7 +257,7 @@ def EnsureSingleBrowser(device, browser_name, force_install=False):
     browser.Install()
 
   # Uninstall disable other browser apps.
-  for other_browser in BROWSERS.itervalues():
+  for other_browser in six.itervalues(BROWSERS):
     if (other_browser.PACKAGE_NAME != browser.PACKAGE_NAME and
         other_browser.PACKAGE_NAME in available_browsers):
       other_browser(device).Uninstall()
@@ -309,14 +311,16 @@ def main():
 
   stories = [s for s in STORIES if fnmatch.fnmatch(s.NAME, args.story_filter)]
   if not stories:
-    return 'No matching stories'
+    logging.error('No matching stories')
+    return 1
 
   if args.output_dir is None:
     args.output_dir = os.getcwd()
   else:
     args.output_dir = os.path.realpath(args.output_dir)
   if not os.path.isdir(args.output_dir):
-    return 'Output directory does not exit'
+    logging.error('Output directory does not exit')
+    return 2
 
   if args.apks_dir is None:
     args.apks_dir = os.path.realpath(os.path.join(
@@ -341,6 +345,7 @@ def main():
   browser.SetTraceConfig(TRACE_CONFIG)
   browser.SetDevToolsLocalPort(args.port)
   telemetry_mini.RunStories(browser, stories, args.repeat, args.output_dir)
+  return 0
 
 
 if __name__ == '__main__':

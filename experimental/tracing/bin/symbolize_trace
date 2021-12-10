@@ -3,6 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import argparse
 import bisect
 import collections
@@ -14,6 +16,8 @@ import re
 import subprocess
 import sys
 import tempfile
+import six
+from six.moves import zip
 
 sys.path.append(os.path.abspath(os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
@@ -56,7 +60,7 @@ class MemoryMap(object):
     def __cmp__(self, other):
       if isinstance(other, type(self)):
         other_start_address = other._start_address
-      elif isinstance(other, (long, int)):
+      elif isinstance(other, six.integer_types):
         other_start_address = other
       else:
         raise Exception('Cannot compare with %s' % type(other))
@@ -75,8 +79,8 @@ class MemoryMap(object):
     regions = []
     for region_json in process_mmaps_json['vm_regions']:
       regions.append(self.Region(
-          long(region_json['sa'], 16),
-          long(region_json['sz'], 16),
+          int(region_json['sa'], 16),
+          int(region_json['sz'], 16),
           region_json['mf']))
     regions.sort()
 
@@ -164,7 +168,7 @@ class StringMap(object):
     for string_json in self._string_jsons:
       string_json[:] = []
     string_json = self._string_jsons[0]
-    for string_id, string in self._string_by_id.iteritems():
+    for string_id, string in six.iteritems(self._string_by_id):
       string_json.append({'id': string_id, 'string': string})
 
     self._modified = False
@@ -221,7 +225,7 @@ class TypeNameMap(object):
     for types_json in self._type_name_jsons:
       types_json[:] = []
     types_json = self._type_name_jsons[0]
-    for type_id, type_name in self._name_by_id.iteritems():
+    for type_id, type_name in six.iteritems(self._name_by_id):
       types_json.append({
           'id': type_id,
           'name_sid': string_map.AddString(type_name)})
@@ -289,7 +293,7 @@ class StackFrameMap(object):
     def _ParsePC(self, name):
       if not name.startswith(self._PC_TAG):
         return None
-      return long(name[len(self._PC_TAG):], 16)
+      return int(name[len(self._PC_TAG):], 16)
 
     def _ClearModified(self):
       self._modified = False
@@ -313,7 +317,7 @@ class StackFrameMap(object):
   @property
   def modified(self):
     return (self._modified or
-            any(f.modified for f in self._frame_by_id.itervalues()))
+            any(f.modified for f in six.itervalues(self._frame_by_id)))
 
   @property
   def frame_by_id(self):
@@ -324,7 +328,7 @@ class StackFrameMap(object):
     if heap_dump_version == Trace.HEAP_DUMP_VERSION_LEGACY:
       if self._stack_frames_jsons:
         raise Exception('Legacy stack frames are expected only once.')
-      for frame_id, frame_json in stack_frames_json.iteritems():
+      for frame_id, frame_json in six.iteritems(stack_frames_json):
         frame = self.Frame(frame_id,
                            frame_json['name'],
                            frame_json.get('parent'))
@@ -341,7 +345,7 @@ class StackFrameMap(object):
     self._heap_dump_version = heap_dump_version
     self._stack_frames_jsons.append(stack_frames_json)
 
-    for frame in frame_by_id.itervalues():
+    for frame in six.itervalues(frame_by_id):
       if frame.parent_id:
         parent = frame_by_id.get(frame.parent_id)
         if not parent:
@@ -398,7 +402,7 @@ class StackFrameMap(object):
       return node
 
     root_node = _Node(None)
-    for frame in self._frame_by_id.itervalues():
+    for frame in six.itervalues(self._frame_by_id):
       if frame.parent is None:
         root_node.children.append(_NodeForFrame(frame))
       else:
@@ -418,7 +422,7 @@ class StackFrameMap(object):
         else:
           children_by_key[key].append(child)
       node.children = []
-      for children in children_by_key.itervalues():
+      for children in six.itervalues(children_by_key):
         child = children[0]
         node.children.append(child)
         if len(children) > 1:
@@ -435,7 +439,7 @@ class StackFrameMap(object):
     _MergeChildren(root_node)
 
     if merged_frames_by_frame:
-      self._frame_by_id = {i:n.frame for i, n in node_by_id.iteritems()
+      self._frame_by_id = {i:n.frame for i, n in six.iteritems(node_by_id)
                            if not n.marked}
       self._modified = True
 
@@ -459,7 +463,7 @@ class StackFrameMap(object):
         frames_json[:] = []
 
     frames_json = self._stack_frames_jsons[0]
-    for frame in self._frame_by_id.itervalues():
+    for frame in six.itervalues(self._frame_by_id):
       if self._heap_dump_version == Trace.HEAP_DUMP_VERSION_LEGACY:
         frame_json = {'name': frame.name}
         frames_json[frame.id] = frame_json
@@ -494,7 +498,7 @@ class StackFrameMap(object):
       return node
 
     root_node = node_type(None)
-    for frame in self._frame_by_id.itervalues():
+    for frame in six.itervalues(self._frame_by_id):
       if frame.parent is None:
         root_node.children.append(_NodeForFrame(frame))
       else:
@@ -534,7 +538,7 @@ class HeapProfile(object):
 
     def _AddValuesFrom(self, entry):
       self._mapped_value_by_name.clear()
-      for name, value in entry._numeric_value_by_name.iteritems():
+      for name, value in six.iteritems(entry._numeric_value_by_name):
         value += self._numeric_value_by_name.get(name, 0)
         self._numeric_value_by_name[name] = value
 
@@ -543,12 +547,12 @@ class HeapProfile(object):
     self._allocator_name = allocator_name
     self._entries_json = entries_json
     self._entries = []
-    for values in zip(*entries_json.itervalues()):
+    for values in zip(*six.itervalues(entries_json)):
       stack_frame_id = None
       type_name_id = None
       mapped_value_by_name = {}
       numeric_value_by_name = {}
-      for index, name in enumerate(entries_json.iterkeys()):
+      for index, name in enumerate(six.iterkeys(entries_json)):
         value = values[index]
         if name == self._STACK_FRAME_ID_JSON_VALUE_NAME:
           stack_frame_id = value
@@ -594,7 +598,7 @@ class HeapProfile(object):
       # This means that we hit _AddValuesFrom() above at least once,
       # i.e. merged at least one entry.
       self._entries = []
-      for key, entry in entry_by_key.iteritems():
+      for key, entry in six.iteritems(entry_by_key):
         entry._key = key
         self._entries.append(entry)
       self._modified = True
@@ -606,8 +610,8 @@ class HeapProfile(object):
     mapped_value_names = set()
     numeric_value_names = set()
     for entry in self._entries:
-      mapped_value_names.update(entry._mapped_value_by_name.iterkeys())
-      numeric_value_names.update(entry._numeric_value_by_name.iterkeys())
+      mapped_value_names.update(six.iterkeys(entry._mapped_value_by_name))
+      numeric_value_names.update(six.iterkeys(entry._numeric_value_by_name))
 
     def _AddJSONValue(name, value):
       values = self._entries_json.get(name)
@@ -637,7 +641,7 @@ class HeapProfile(object):
 class MemoryDump(object):
   def __init__(self, allocators_json, mapped_entry_names):
     self._profiles = []
-    for allocator_name, entries_json in allocators_json.iteritems():
+    for allocator_name, entries_json in six.iteritems(allocators_json):
       profile = HeapProfile(allocator_name, entries_json, mapped_entry_names)
       self._profiles.append(profile)
 
@@ -769,7 +773,7 @@ class Trace(object):
           version = self._UseHeapDumpVersion(heaps['version'])
           maps = heaps.get('maps')
           if maps:
-            process_ext.mapped_entry_names.update(maps.iterkeys())
+            process_ext.mapped_entry_names.update(six.iterkeys(maps))
             types = maps.get('types')
             stack_frames = maps.get('nodes')
             strings = maps.get('strings')
@@ -796,7 +800,7 @@ class Trace(object):
             process._memory_dumps.append(dump)
 
     self._processes = []
-    for pe in process_ext_by_pid.itervalues():
+    for pe in six.itervalues(process_ext_by_pid):
       pe.process._heap_dump_version = self._heap_dump_version
       if pe.process_mmaps_json:
         # Now parse the most recent memory map.
@@ -864,7 +868,7 @@ def ResolveSymbolizableFiles(processes):
   for process in processes:
     if not process.memory_map:
       continue
-    for frame in process.stack_frame_map.frame_by_id.itervalues():
+    for frame in six.itervalues(process.stack_frame_map.frame_by_id):
       if frame.pc is None:
         continue
       region = process.memory_map.FindRegion(frame.pc)
@@ -879,7 +883,7 @@ def ResolveSymbolizableFiles(processes):
 
       relative_pc = frame.pc - region.start_address
       symfile.frames_by_address[relative_pc].append(frame)
-  return symfile_by_path.values()
+  return list(symfile_by_path.values())
 
 
 def FindInSystemPath(binary_name):
@@ -921,7 +925,7 @@ class Symbolizer(object):
                                               _SymbolizerCallback,
                                               inlines=True)
 
-    for address, frames in symfile.frames_by_address.iteritems():
+    for address, frames in six.iteritems(symfile.frames_by_address):
       # SymbolizeAsync() asserts that the type of address is int. We operate
       # on longs (since they are raw pointers possibly from 64-bit processes).
       # It's OK to cast here because we're passing relative PC, which should
@@ -939,7 +943,7 @@ class Symbolizer(object):
     address_os_file, address_file_path = tempfile.mkstemp()
     try:
       with os.fdopen(address_os_file, 'w') as address_file:
-        for address in symfile.frames_by_address.iterkeys():
+        for address in six.iterkeys(symfile.frames_by_address):
           address_file.write('{:x} '.format(address + load_address))
 
       cmd = [self.symbolizer_path, '-arch', 'x86_64', '-l',
@@ -947,7 +951,7 @@ class Symbolizer(object):
              '-f', address_file_path]
       output_array = subprocess.check_output(cmd).split('\n')
 
-      for i, frames in enumerate(symfile.frames_by_address.itervalues()):
+      for i, frames in enumerate(six.itervalues(symfile.frames_by_address)):
         symbolized_name = self._matcher.Match(output_array[i])
         for frame in frames:
           frame.name = symbolized_name
@@ -1008,10 +1012,10 @@ class Symbolizer(object):
 def SymbolizeFiles(symfiles, symbolizer):
   """Symbolizes each file in the given list of SymbolizableFiles
      and updates stack frames with symbolization results."""
-  print 'Symbolizing...'
+  print('Symbolizing...')
 
   def _SubPrintf(message, *args):
-    print ('  ' + message).format(*args)
+    print(('  ' + message).format(*args))
 
   for symfile in symfiles:
     unsymbolized_name = '<{}>'.format(
@@ -1029,7 +1033,7 @@ def SymbolizeFiles(symfiles, symbolizer):
                  len(symfile.frames_by_address),
                  symfile.symbolizable_path,
                  problem)
-      for frames in symfile.frames_by_address.itervalues():
+      for frames in six.itervalues(symfile.frames_by_address):
         for frame in frames:
           frame.name = unsymbolized_name
       continue
@@ -1042,7 +1046,7 @@ def SymbolizeFiles(symfiles, symbolizer):
 
 
 def CollapseSmallBranches(trace, size_threshold):
-  print 'Collapsing stack branches smaller than {}...'.format(size_threshold)
+  print('Collapsing stack branches smaller than {}...'.format(size_threshold))
 
   class _Node(object):
     def __init__(self, frame):
@@ -1139,10 +1143,10 @@ def CollapseSmallBranches(trace, size_threshold):
       return None if not node.needed else frame
     frame_count_before = len(process.stack_frame_map.frame_by_id)
     process.stack_frame_map.MergeFrames(_RemoveRedunantFrame)
-    print '  {}: collapsed {} stack frames (out of {})'.format(
+    print('  {}: collapsed {} stack frames (out of {})'.format(
         process.unique_name,
         frame_count_before - len(process.stack_frame_map.frame_by_id),
-        frame_count_before)
+        frame_count_before))
 
 
 def DeduplicateStackFrames(trace):
@@ -1151,7 +1155,7 @@ def DeduplicateStackFrames(trace):
     # stack frames would result in a corrupted trace.
     return
 
-  print 'Deduplicating stack frames...'
+  print('Deduplicating stack frames...')
 
   for process in trace.processes:
     merged_frames_by_frame = process.stack_frame_map.MergeFrames(
@@ -1161,7 +1165,7 @@ def DeduplicateStackFrames(trace):
       continue
 
     frame_by_merged_frame_id = {}
-    for frame, merged_frames in merged_frames_by_frame.iteritems():
+    for frame, merged_frames in six.iteritems(merged_frames_by_frame):
       for merged_frame in merged_frames:
         frame_by_merged_frame_id[merged_frame.id] = frame
 
@@ -1250,7 +1254,7 @@ TRIVIAL_PATHS = [
 ]
 
 def Categorize(options, trace):
-  print 'Categorizing...'
+  print('Categorizing...')
 
   # TODO(dskiba): move one level up
   if not options.output_directory:
@@ -1282,13 +1286,13 @@ def Categorize(options, trace):
     else:
       if file_path not in failed_paths:
         failed_paths.add(file_path)
-        print '  Not in source: {}'.format(file_path)
+        print('  Not in source: {}'.format(file_path))
       return None
 
     if trivial_paths_regex.search(file_subpath):
       if file_subpath not in failed_paths:
         failed_paths.add(file_subpath)
-        print '  Skipped: {}'.format(file_subpath)
+        print('  Skipped: {}'.format(file_subpath))
       return None
 
     category = file_subpath.split(os.sep)
@@ -1390,7 +1394,7 @@ WEBTREEMAP_HTML_TEMPLATE = (
 )
 
 def GenerateWebTreeMap(trace, base_path):
-  print 'Generating WebTreeMaps...'
+  print('Generating WebTreeMaps...')
 
   class _TreeNode(object):
     def __init__(self):
@@ -1400,7 +1404,7 @@ def GenerateWebTreeMap(trace, base_path):
 
     def UpdateTotalSize(self):
       total_size = self.size
-      for child in self.child_by_name.itervalues():
+      for child in six.itervalues(self.child_by_name):
         child.UpdateTotalSize()
         total_size += child.total_size
       self.total_size = total_size
@@ -1412,7 +1416,7 @@ def GenerateWebTreeMap(trace, base_path):
 
     def GenerateTreeMap(self, name):
       child_trees = []
-      for child_name, child in self.child_by_name.iteritems():
+      for child_name, child in six.iteritems(self.child_by_name):
         child_trees.append(child.GenerateTreeMap(child_name))
       return {
           'data': {'$area': self.total_size},
@@ -1442,7 +1446,7 @@ def GenerateWebTreeMap(trace, base_path):
         output_path = '{}-#{}-{}-{}.html'.format(
             base_path, dump_index, process.unique_name, profile.allocator_name)
 
-        print '  Writing {}'.format(output_path)
+        print('  Writing {}'.format(output_path))
         with open(output_path, 'w') as output_file:
           title = '{} / {}'.format(process.unique_name, profile.allocator_name)
           treemap = root.GenerateTreeMap('/')
@@ -1528,7 +1532,7 @@ def main():
 
   trace_file_path = options.file
 
-  print 'Reading trace file...'
+  print('Reading trace file...')
   with OpenTraceFile(trace_file_path, 'r') as trace_file:
     trace = Trace(json.load(trace_file))
 
@@ -1557,14 +1561,14 @@ def main():
           if not os.path.exists(unique_file_path):
             backup_file_path = unique_file_path
             break
-      print 'Backing up trace file to {}'.format(backup_file_path)
+      print('Backing up trace file to {}'.format(backup_file_path))
       os.rename(trace_file_path, backup_file_path)
 
-    print 'Updating the trace file...'
+    print('Updating the trace file...')
     with OpenTraceFile(trace_file_path, 'w') as trace_file:
       json.dump(trace.Serialize(), trace_file)
   else:
-    print 'No modifications were made - not updating the trace file.'
+    print('No modifications were made - not updating the trace file.')
 
 
 if __name__ == '__main__':

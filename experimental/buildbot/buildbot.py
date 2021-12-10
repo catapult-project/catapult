@@ -2,20 +2,20 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
 import collections
-try:
-  import cPickle
-except ImportError:
-  # pickle in python 3 uses the c version as cPickle in python 2.
-  import pickle as cPickle
+import six
+from six.moves import range
+from six.moves import cPickle
 import json
 import logging
 import os
 import re
 import socket
 import time
-import urllib
-import urllib2
+import six.moves.urllib.request
+import six.moves.urllib.parse
+import six.moves.urllib.error
 
 
 PENDING = None
@@ -37,17 +37,17 @@ StackTraceLine = collections.namedtuple(
 def _FetchData(master, url):
   url = '%s/%s/json/%s' % (BASE_URL, master, url)
   try:
-    logging.info('Retrieving ' + url)
-    return json.load(urllib2.urlopen(url))
-  except (urllib2.HTTPError, socket.error):
+    logging.info('Retrieving %s', url)
+    return json.load(six.moves.urllib.request.urlopen(url))
+  except (six.moves.urllib.error.HTTPError, socket.error):
     # Could be intermittent; try again.
     try:
-      return json.load(urllib2.urlopen(url))
-    except (urllib2.HTTPError, socket.error):
-      logging.error('Error retrieving URL ' + url)
+      return json.load(six.moves.urllib.request.urlopen(url))
+    except (six.moves.urllib.error.HTTPError, socket.error):
+      logging.error('Error retrieving URL %s', url)
       raise
   except:
-    logging.error('Error retrieving URL ' + url)
+    logging.error('Error retrieving URL %s', url)
     raise
 
 
@@ -75,7 +75,7 @@ def Builders(master):
 def Update(master, builders):
   # Update builders with latest information.
   builder_data = _FetchData(master, 'builders')
-  for builder_name, builder_info in builder_data.iteritems():
+  for builder_name, builder_info in six.iteritems(builder_data):
     if builder_name in builders:
       builders[builder_name].Update(builder_info)
     else:
@@ -130,11 +130,11 @@ class Builder(object):
       if build_number < 0:
         raise ValueError('Invalid build number: %d' % build_number)
 
-    build_query = urllib.urlencode(
+    build_query = six.moves.urllib.parse.urlencode(
         [('select', build) for build in build_numbers])
-    url = 'builders/%s/builds/?%s' % (urllib.quote(self.name), build_query)
+    url = 'builders/%s/builds/?%s' % (six.moves.urllib.parse.quote(self.name), build_query)
     builds = _FetchData(self.master, url)
-    for build_info in builds.itervalues():
+    for build_info in six.itervalues(builds):
       self._builds[build_info['number']] = Build(self.master, build_info)
 
     self._Cache()
@@ -143,11 +143,11 @@ class Builder(object):
 
   def FetchRecentBuilds(self, number_of_builds):
     min_build = max(self.last_build - number_of_builds, -1)
-    return self._FetchBuilds(*xrange(self.last_build, min_build, -1))
+    return self._FetchBuilds(*range(self.last_build, min_build, -1))
 
   def Update(self, data=None):
     if not data:
-      data = _FetchData(self.master, 'builders/%s' % urllib.quote(self.name))
+      data = _FetchData(self.master, 'builders/%s' % six.moves.urllib.parse.quote(self.name))
     self._state = data['state']
     self._pending_build_count = data['pendingBuilds']
     self._current_builds = tuple(data['currentBuilds'])
@@ -166,7 +166,7 @@ class Builder(object):
 
   def LastBuilds(self, count):
     min_build = max(self.last_build - count, -1)
-    for build_number in xrange(self.last_build, min_build, -1):
+    for build_number in range(self.last_build, min_build, -1):
       yield self._builds[build_number]
 
   @property
@@ -273,7 +273,7 @@ def _ParseTraceFromLog(log):
 
   stack_trace = []
   while True:
-    line = log_iterator.next()
+    line = next(log_iterator)
     match1 = re.match(r'\s*File "(?P<file>.+)", line (?P<line>[0-9]+), '
                       'in (?P<function>.+)', line)
     match2 = re.match(r'\s*(?P<function>.+) at '
@@ -376,18 +376,18 @@ class Step(object):
           self._log = cache_file.read()
       else:
         # Otherwise, download it.
-        logging.info('Retrieving ' + self.log_link)
+        logging.info('Retrieving %s', self.log_link)
         try:
-          data = urllib2.urlopen(self.log_link).read()
-        except (urllib2.HTTPError, socket.error):
+          data = six.moves.urllib.request.urlopen(self.log_link).read()
+        except (six.moves.urllib.error.HTTPError, socket.error):
           # Could be intermittent; try again.
           try:
-            data = urllib2.urlopen(self.log_link).read()
-          except (urllib2.HTTPError, socket.error):
-            logging.error('Error retrieving URL ' + self.log_link)
+            data = six.moves.urllib.request.urlopen(self.log_link).read()
+          except (six.moves.urllib.error.HTTPError, socket.error):
+            logging.error('Error retrieving URL %s', self.log_link)
             raise
         except:
-          logging.error('Error retrieving URL ' + self.log_link)
+          logging.error('Error retrieving URL %s', self.log_link)
           raise
         # And cache the newly downloaded data.
         cache_dir_path = os.path.dirname(cache_file_path)
@@ -416,21 +416,21 @@ class Step(object):
           return self.results
       else:
         # Otherwise, download it.
-        logging.info('Retrieving ' + self.results_link)
+        logging.info('Retrieving %s', self.results_link)
         try:
-          data = json.load(urllib2.urlopen(self.results_link))
-        except (urllib2.HTTPError, socket.error):
+          data = json.load(six.moves.urllib.request.urlopen(self.results_link))
+        except (six.moves.urllib.error.HTTPError, socket.error):
           # Could be intermittent; try again.
           try:
-            data = json.load(urllib2.urlopen(self.results_link))
-          except (urllib2.HTTPError, socket.error):
-            logging.error('Error retrieving URL ' + self.results_link)
+            data = json.load(six.moves.urllib.request.urlopen(self.results_link))
+          except (six.moves.urllib.error.HTTPError, socket.error):
+            logging.error('Error retrieving URL %s', self.results_link)
             raise
         except ValueError:
           # If the build had an exception, the results might not be valid.
           data = None
         except:
-          logging.error('Error retrieving URL ' + self.results_link)
+          logging.error('Error retrieving URL %s', self.results_link)
           raise
         # And cache the newly downloaded data.
         cache_dir_path = os.path.dirname(cache_file_path)

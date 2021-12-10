@@ -5,15 +5,20 @@
 
 """Script to plot the results of a bisect run."""
 
+from __future__ import absolute_import
+from __future__ import print_function
 import argparse
 import json
 import math
 import re
-import urllib2
+import six.moves.urllib.request
+import six.moves.urllib.error
+import six.moves.urllib.parse
 
 from matplotlib import cm  # pylint: disable=import-error
 from matplotlib import pyplot  # pylint: disable=import-error
 import numpy  # pylint: disable=import-error
+from six.moves import zip
 
 
 _PLOT_WIDTH_INCHES = 8
@@ -32,7 +37,7 @@ def main():
   url = (args.bisect_url_or_debug_info_file +
          '/steps/Debug%20Info/logs/Debug%20Info/text')
   try:
-    f = urllib2.urlopen(url)
+    f = six.moves.urllib.request.urlopen(url)
   except ValueError:  # Not a valid URL.
     f = open(args.bisect_url_or_debug_info_file, 'r')
 
@@ -50,7 +55,7 @@ def main():
     if not values:
       continue
 
-    print commit, values
+    print(commit, values)
     results.append((commit, values))
 
   _SavePlots(results, args.output)

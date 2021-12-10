@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
 import datetime
 # Need to have dateutil module installed locally.
 # pylint:disable=import-error
@@ -10,6 +11,7 @@ import dateutil.tz
 
 from benchmark_health_report import dashboard_api
 from benchmark_health_report import drive_api
+import six
 
 def LoadBenchmarkData(
     start_date, end_date, single_benchmark):
@@ -33,7 +35,7 @@ def LoadBenchmarkData(
     _AddAlertDataToBenchmark(benchmark, alert, bugs)
   for bug_id in bugs:
     bugs[bug_id] = dashboard_api.GetBug(bug_id)
-  for _, benchmark in benchmarks.iteritems():
+  for _, benchmark in six.iteritems(benchmarks):
     for bug_id in benchmark['bugs']:
       bug = bugs[bug_id]
       _AddBugDataToBenchmark(benchmark, bug)

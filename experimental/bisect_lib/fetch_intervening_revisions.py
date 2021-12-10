@@ -14,9 +14,13 @@ Note: Another implementation of this functionality can be found in
 findit/common/gitRepository.py (https://goo.gl/Rr8j9O).
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import argparse
 import json
-import urllib2
+import six.moves.urllib.request
+import six.moves.urllib.error
+import six.moves.urllib.parse
 
 from bisect_lib import depot_map
 
@@ -43,7 +47,7 @@ def FetchInterveningRevisions(start, end, depot_name):
     of the given commits.
 
   Raises:
-    urllib2.URLError: The request to gitiles failed.
+    six.moves.urllib.error.URLError: The request to gitiles failed.
     ValueError: The response wasn't valid JSON.
     KeyError: The JSON didn't contain the expected data.
   """
@@ -63,7 +67,7 @@ def _FetchRangeFromGitiles(start, end, depot_name):
       depot_map.DEPOT_PATH_MAP[depot_name], start, end, _PAGE_SIZE)
   current_page_url = url
   while True:
-    response = urllib2.urlopen(current_page_url).read()
+    response = six.moves.urllib.request.urlopen(current_page_url).read()
     response_json = response[len(_GITILES_PADDING):]  # Remove padding.
     response_dict = json.loads(response_json)
     revisions.extend(response_dict['log'])
@@ -92,7 +96,7 @@ def main():
   parser.add_argument('depot', choices=list(depot_map.DEPOT_PATH_MAP))
   args = parser.parse_args()
   revision_pairs = FetchInterveningRevisions(args.start, args.end, args.depot)
-  print json.dumps(revision_pairs)
+  print(json.dumps(revision_pairs))
 
 
 if __name__ == '__main__':

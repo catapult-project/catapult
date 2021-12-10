@@ -7,6 +7,8 @@
 # Pylint warnings occur if you install a different version than in third_party
 # pylint: disable=no-member
 
+from __future__ import absolute_import
+from __future__ import print_function
 import time
 
 # pylint: disable=import-error
@@ -30,7 +32,7 @@ def ReadSpreadsheet(spreadsheet_id, range_name):
   Returns: A 2D list of values in the given range.
   """
   sheets_service = _GetSheetsService()
-  result = sheets_service.spreadsheets().values().get(
+  result = list(sheets_service.spreadsheets().values()).get(
       spreadsheetId=spreadsheet_id, range=range_name).execute()
   return result.get('values', [])
 
@@ -51,7 +53,7 @@ def CreateSpreadsheet(title, sheets, folder_id):
       title, 'application/vnd.google-apps.spreadsheet', folder_id)
   spreadsheet_id = file_info['id']
   spreadsheet_url = _AddSheetsToSpreadsheet(sheets, spreadsheet_id)
-  print 'Created Spreadsheet %s' % spreadsheet_url
+  print('Created Spreadsheet %s' % spreadsheet_url)
   # Limit of 100 actions in 100 seconds; sleep 1s between sheets.
   time.sleep(10)
   return spreadsheet_url
@@ -86,7 +88,7 @@ def _AddSheetsToSpreadsheet(sheets, spreadsheet_id):
   for sheet in sheets:
     # Update values
     r = '%s!A1' % sheet['name']
-    sheets_service.spreadsheets().values().update(
+    list(sheets_service.spreadsheets().values()).update(
         spreadsheetId=spreadsheet_id,
         body={'values': sheet['values']},
         range=r,
@@ -134,7 +136,7 @@ def CreateEmptyFile(name, mime_type, folder_id):
       'mimeType': mime_type,
       'parents': [folder_id],
   }
-  print 'Creating file: %s' % file_metadata
+  print('Creating file: %s' % file_metadata)
   return drive_service.files().create(body=file_metadata).execute()
 
 

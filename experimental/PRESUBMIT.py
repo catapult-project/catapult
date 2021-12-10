@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 
+USE_PYTHON3 = True
+
+
 def CheckChangeOnUpload(input_api, output_api):
   return _CommonChecks(input_api, output_api)
 
@@ -15,7 +18,7 @@ def _CommonChecks(input_api, output_api):
   results = []
   results += input_api.RunTests(input_api.canned_checks.GetPylint(
       input_api, output_api, extra_paths_list=_GetPathsToPrepend(input_api),
-      pylintrc='../pylintrc'))
+      pylintrc='../pylintrc', version='2.7'))
   return results
 
 

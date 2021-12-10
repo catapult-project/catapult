@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
 import json
 import logging
 import multiprocessing
@@ -10,6 +11,9 @@ import sys
 import time
 
 import buildbot
+import six
+from six.moves import map
+from six.moves import zip
 
 
 MASTER_NAME = 'chromium.perf'
@@ -30,7 +34,7 @@ def QueryBuild(build):
     return None
 
   revision_data = []
-  trace_results = step.results['chart_data']['charts'][VALUE_NAME].iteritems()
+  trace_results = six.iteritems(step.results['chart_data']['charts'][VALUE_NAME])
   for user_story_name, user_story_data in trace_results:
     revision_data.append({
         'user_story': user_story_name,
@@ -46,7 +50,7 @@ def QueryBuild(build):
 
 
 def QueryBuilds(builder):
-  return map(QueryBuild, builder.LastBuilds(BUILD_COUNT))
+  return list(map(QueryBuild, builder.LastBuilds(BUILD_COUNT)))
 
 
 def main():

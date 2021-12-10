@@ -2,7 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
 from benchmark_health_report import drive_api
+import six
 
 _SUMMARY_HEADER = [
     'Benchmark',
@@ -33,7 +35,7 @@ def WriteSummarySpreadsheets(
   folder_id = drive_api.CreateFolder('Benchmark Health Reports: %s' % date_range)
   summary_sheet = [_SUMMARY_HEADER]
 
-  for name, benchmark in benchmarks.iteritems():
+  for name, benchmark in six.iteritems(benchmarks):
     title = 'Benchmark Health Report %s' % name
     url = drive_api.CreateSpreadsheet(title, [{
         'name': 'Summary',
@@ -175,15 +177,14 @@ def _GetSummaryValues(benchmark, url):
   ]
 
 def _GetHyperlink(title, url):
-  return '=HYPERLINK("%s", "%s")' % (url, unicode(title).replace('"', '\''))
+  return '=HYPERLINK("%s", "%s")' % (url, six.text_type(title).replace('"', '\''))
 
 def _GetCulpritLink(culprit):
   if culprit:
     return _GetHyperlink(
         culprit['cl'],
         'https://chromium.googlesource.com/chromium/src/+/%s' % (culprit['cl']))
-  else:
-    return ''
+  return ''
 
 def _GetBugLink(bug_id):
   if not bug_id:

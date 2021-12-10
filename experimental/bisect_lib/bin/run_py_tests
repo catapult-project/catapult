@@ -5,6 +5,7 @@
 
 """Runs all Python unit tests in catapult_build/."""
 
+from __future__ import absolute_import
 import os
 import sys
 

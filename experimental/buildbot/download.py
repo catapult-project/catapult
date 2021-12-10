@@ -3,6 +3,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import logging
 import multiprocessing
 import sys
@@ -10,6 +12,7 @@ import time
 import traceback
 
 import buildbot
+import six
 
 
 POLL_INTERVAL = 600
@@ -20,13 +23,13 @@ BUILD_RESULTS_COUNT = 50
 def FetchLatestBuildResults(builder):
   try:
     builder.FetchRecentBuilds(BUILD_HISTORY_COUNT)
-    print 'Fetching results for', builder
+    print('Fetching results for', builder)
     for build in builder.LastBuilds(BUILD_RESULTS_COUNT):
-      for step in build.steps.itervalues():
+      for step in six.itervalues(build.steps):
         step.results  # pylint: disable=pointless-statement
   except:  # multiprocessing doesn't give useful stack traces, so print it here.
     traceback.print_exc(file=sys.stderr)
-    print
+    print()
     raise
 
 
@@ -37,10 +40,10 @@ def main():
   process_pool = multiprocessing.Pool(4)
 
   while True:
-    print 'Refreshing...'
+    print('Refreshing...')
     buildbot.Update('chromium.perf', builders)
-    process_pool.map(FetchLatestBuildResults, builders.itervalues())
-    print 'Refreshed!'
+    process_pool.map(FetchLatestBuildResults, six.itervalues(builders))
+    print('Refreshed!')
     time.sleep(POLL_INTERVAL)
 
 

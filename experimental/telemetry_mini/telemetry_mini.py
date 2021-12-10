@@ -12,10 +12,12 @@
 # Known limitations: Does not use WPR, so it does need to hit the live network
 # to load pages.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import collections
 import contextlib
 import functools
-import httplib
+import six.moves.http_client
 import json
 import logging
 import os
@@ -28,6 +30,8 @@ import tempfile
 import time
 import websocket  # pylint: disable=import-error
 from xml.etree import ElementTree as element_tree
+import six
+from six.moves import range
 
 
 KEYCODE_HOME = 3
@@ -65,7 +69,7 @@ def RetryOn(exc_type=(), returns_falsy=False, retries=5):
     def Wrapper(*args, **kwargs):
       wait = 1
       this_retries = kwargs.pop('retries', retries)
-      for _ in xrange(this_retries):
+      for _ in range(this_retries):
         retry_reason = None
         try:
           value = f(*args, **kwargs)
@@ -147,7 +151,7 @@ class AdbMini(object):
       try:
         pid = int(row[1])
         process_name = row[-1]
-      except StandardError:
+      except Exception:  # pylint: disable=broad-except
         continue
       result[process_name].append(pid)
     return result
@@ -207,7 +211,7 @@ def _UserAction(f):
   def Wrapper(self, *args, **kwargs):
     repeat = kwargs.pop('repeat', 1)
     action_delay = kwargs.pop('action_delay', None)
-    for _ in xrange(repeat):
+    for _ in range(repeat):
       f(self, *args, **kwargs)
       self.Idle(action_delay)
   return Wrapper
@@ -297,7 +301,7 @@ class AndroidActions(object):
     else:
       # Sometimes we need to swipe down several times until the "Clear All"
       # button becomes visible.
-      for _ in xrange(5):
+      for _ in range(5):
         try:
           self.TapAppSwitcherClearAll(retries=0)  # If not found raise error.
           return  # Success!
@@ -336,7 +340,7 @@ class DevToolsWebSocket(object):
   def Send(self, method, **kwargs):
     logging.info(
         '%s: %s(%s)', self._url, method,
-        ', '.join('%s=%r' % (k, v) for k, v in sorted(kwargs.iteritems())))
+        ', '.join('%s=%r' % (k, v) for k, v in sorted(six.iteritems(kwargs))))
     self._cmdid += 1
     self._socket.send(json.dumps(
         {'id': self._cmdid, 'method': method, 'params': kwargs}))
@@ -545,7 +549,7 @@ class ChromiumApp(AndroidApp):
     if path:
       url = posixpath.join(url, path)
 
-    conn = httplib.HTTPConnection(self.GetDevToolsLocalAddr())
+    conn = six.moves.http_client.HTTPConnection(self.GetDevToolsLocalAddr())
     try:
       conn.request('GET', url)
       return json.load(conn.getresponse())
@@ -595,7 +599,6 @@ class UserStory(object):
 
   def RunPrepareSteps(self):
     """Subclasses may override to perform actions before running the story."""
-    pass
 
   def RunStorySteps(self):
     """Subclasses should override this method to implement the story.
@@ -612,7 +615,6 @@ class UserStory(object):
     Note: This will be called even if an exception was raised during the
     execution of RunStorySteps (but not for errors in RunPrepareSteps).
     """
-    pass
 
 
 def ReadProcessMetrics(trace_file):
@@ -631,7 +633,7 @@ def ReadProcessMetrics(trace_file):
     elif event['ph'] == 'M' and event['name'] == 'process_name':
       processes[event['pid']]['name'] = event['args']['name']
 
-  return processes.values()
+  return list(processes.values())
 
 
 def RunStories(browser, stories, repeat, output_dir):
@@ -639,7 +641,7 @@ def RunStories(browser, stories, repeat, output_dir):
     for story_cls in stories:
       trace_file = os.path.join(
           output_dir, 'trace_%s_%d.json' % (story_cls.NAME, repeat_idx))
-      print '[ RUN      ]', story_cls.NAME
+      print('[ RUN      ]', story_cls.NAME)
       status = '[       OK ]'
       start = time.time()
       try:
@@ -649,4 +651,4 @@ def RunStories(browser, stories, repeat, output_dir):
         status = '[  FAILED  ]'
       finally:
         elapsed = '(%.1f secs)' % (time.time() - start)
-        print status, story_cls.NAME, elapsed
+        print(status, story_cls.NAME, elapsed)

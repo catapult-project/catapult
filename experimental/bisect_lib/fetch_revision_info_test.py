@@ -3,6 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from __future__ import absolute_import
 import os
 import sys
 import unittest
@@ -25,7 +26,7 @@ class ChromiumRevisionsTest(unittest.TestCase):
 
   def testRevisionInfo(self):
     commit_hash = 'c89130e28fd01062104e1be7f3a6fc3abbb80ca9'
-    with mock.patch('urllib2.urlopen', mock.MagicMock(
+    with mock.patch('six.moves.urllib.request.urlopen', mock.MagicMock(
         return_value=open(_MOCK_RESPONSE_PATH))):
       revision_info = fetch_revision_info.FetchRevisionInfo(
           commit_hash, depot_name='chromium')

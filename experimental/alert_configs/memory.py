@@ -10,6 +10,7 @@ After making changes to this script and running it, make sure to actually
 update the respective anomaly configs and sheriff rotations as needed.
 """
 from __future__ import print_function
+from __future__ import absolute_import
 import collections
 
 
