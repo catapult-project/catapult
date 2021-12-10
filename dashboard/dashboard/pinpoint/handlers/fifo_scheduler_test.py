@@ -117,9 +117,9 @@ class FifoSchedulerTest(test.TestCase):
 
     # Check that we can find the queued job.
     stats = scheduler.QueueStats('mock')
-    self.assertEquals(stats['queued_jobs'], 1)
+    self.assertEqual(stats['queued_jobs'], 1)
     self.assertNotIn('running_jobs', stats)
-    self.assertEquals(len(stats['queue_time_samples']), 0)
+    self.assertEqual(len(stats['queue_time_samples']), 0)
 
     response = self.testapp.get('/cron/fifo-scheduler')
     self.assertEqual(response.status_code, 200)
@@ -134,8 +134,8 @@ class FifoSchedulerTest(test.TestCase):
     stats = scheduler.QueueStats('mock')
     self.assertNotIn('queued_jobs', stats)
     self.assertNotIn('running_jobs', stats)
-    self.assertNotEquals(len(stats['queue_time_samples']), 0)
-    self.assertEquals(len(stats['queue_time_samples'][0]), 2)
+    self.assertNotEqual(len(stats['queue_time_samples']), 0)
+    self.assertEqual(len(stats['queue_time_samples'][0]), 2)
 
   def testJobStuckInRunning(self):
     self.skipTest('Not implemented yet.')

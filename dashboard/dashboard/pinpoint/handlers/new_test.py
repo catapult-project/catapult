@@ -525,8 +525,8 @@ class NewTest(_NewTest):
 
     # And that the RunTest instance has the extra arguments.
     for quest in job.state._quests:
-      if isinstance(quest, quest_module.RunTelemetryTest) or isinstance(
-          quest, quest_module.RunGTest):
+      if isinstance(quest,
+                    (quest_module.RunGTest, quest_module.RunTelemetryTest)):
         self.assertIn('--experimental-flag', quest._extra_args)
 
   def testNewUsingExecutionEngine(self):

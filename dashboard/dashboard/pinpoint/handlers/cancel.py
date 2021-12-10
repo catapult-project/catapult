@@ -12,6 +12,7 @@ from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import errors
 
 
+# pylint: disable=abstract-method
 class Cancel(api_request_handler.ApiRequestHandler):
 
   required_arguments = {'job_id', 'reason'}
@@ -54,4 +55,4 @@ class Cancel(api_request_handler.ApiRequestHandler):
       return {'job_id': job.job_id, 'state': 'Cancelled'}
     except errors.CancelError as e:
       self.response.set_status(400)
-      return {'job_id': job.job_id, 'message': e.message}
+      return {'job_id': job.job_id, 'message': str(e)}

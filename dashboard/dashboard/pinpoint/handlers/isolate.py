@@ -21,6 +21,7 @@ from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import isolate
 
 
+# pylint: disable=abstract-method
 class Isolate(api_request_handler.ApiRequestHandler):
   """Handler for managing isolates.
 
@@ -28,7 +29,7 @@ class Isolate(api_request_handler.ApiRequestHandler):
   A get request looks up an isolate hash from the builder, commit, and target.
   """
 
-  def get(self):
+  def get(self, *_):
     """Look up an isolate hash.
 
     Args:
@@ -93,7 +94,7 @@ class Isolate(api_request_handler.ApiRequestHandler):
           self._ValidateParameters(parameters))
     except (KeyError, TypeError, ValueError) as e:
       self.response.set_status(400)
-      self.response.write(json.dumps({'error': e.message}))
+      self.response.write(json.dumps({'error': str(e)}))
       return
 
     # Put information into the datastore.

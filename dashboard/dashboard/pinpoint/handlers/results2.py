@@ -45,7 +45,7 @@ class Results2(webapp2.RequestHandler):
 
     except results2.Results2Error as e:
       self.response.set_status(400)
-      self.response.out.write(e.message)
+      self.response.out.write(str(e))
 
 
 class Results2Generator(webapp2.RequestHandler):
@@ -59,4 +59,4 @@ class Results2Generator(webapp2.RequestHandler):
         raise results2.Results2Error('Error: Unknown job %s' % job_id)
       results2.GenerateResults2(job)
     except results2.Results2Error as e:
-      self.response.out.write(e.message)
+      self.response.out.write(str(e))

@@ -45,7 +45,7 @@ class Jobs(webapp2.RequestHandler):
     except InvalidInput as e:
       self.response.set_status(400)
       logging.exception(e)
-      self.response.out.write(json.dumps({'error': e.message}))
+      self.response.out.write(json.dumps({'error': str(e)}))
 
 
 def _GetJobs(options, query_filter, prev_cursor='', next_cursor=''):
@@ -107,7 +107,7 @@ def _GetJobs(options, query_filter, prev_cursor='', next_cursor=''):
     prev_cursor = ''
     next_cursor = cursor.urlsafe() if cursor else ''
     prev_ = False
-    next_ = True if more else False
+    next_ = bool(more)
   elif next_cursor:
     cursor = datastore_query.Cursor(urlsafe=next_cursor)
     jobs, cursor, more = query.order(-job_module.Job.created).fetch_page(
@@ -115,7 +115,7 @@ def _GetJobs(options, query_filter, prev_cursor='', next_cursor=''):
     prev_cursor = next_cursor
     next_cursor = cursor.urlsafe()
     prev_ = True
-    next_ = True if more else False
+    next_ = bool(more)
   elif prev_cursor:
     cursor = datastore_query.Cursor(urlsafe=prev_cursor)
     jobs, cursor, more = query.order(job_module.Job.created).fetch_page(
@@ -123,7 +123,7 @@ def _GetJobs(options, query_filter, prev_cursor='', next_cursor=''):
     jobs.reverse()
     next_cursor = prev_cursor
     prev_cursor = cursor.urlsafe()
-    prev_ = True if more else False
+    prev_ = bool(more)
     next_ = True
 
   result = {

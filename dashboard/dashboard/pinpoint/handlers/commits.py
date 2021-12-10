@@ -11,6 +11,7 @@ from dashboard.pinpoint.models import change
 from dashboard.services import request
 
 
+# pylint: disable=abstract-method
 class Commits(api_request_handler.ApiRequestHandler):
 
   def _CheckUser(self):
@@ -34,4 +35,4 @@ class Commits(api_request_handler.ApiRequestHandler):
       ]
       return [c1.AsDict()] + commits
     except request.RequestError as e:
-      raise api_request_handler.BadRequestError(e.message)
+      raise api_request_handler.BadRequestError(str(e))
