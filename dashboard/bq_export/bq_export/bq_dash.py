@@ -100,7 +100,7 @@ def main():
       entities
       | 'ConvertEntityToRow(Anomaly)' >> beam.FlatMap(AnomalyEntityToRowDict))
 
-  """
+  _ = """
   CREATE TABLE `chromeperf.chromeperf_dashboard_data.anomalies`
   (id INT64 NOT NULL,
    `timestamp` TIMESTAMP NOT NULL,
@@ -129,7 +129,7 @@ def main():
    earliest_input_timestamp TIMESTAMP,
    latest_input_timestamp TIMESTAMP)
   PARTITION BY DATE(`timestamp`);
-  """  # pylint: disable=pointless-string-statement
+  """
   bq_anomaly_schema = {
       'fields': [
           {

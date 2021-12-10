@@ -288,7 +288,7 @@ def main():
           'bot_group', 'bot', 'measurement'))
 
   # Emit results to stats_by_* tables in BigQuery.
-  """
+  _ = """
   CREATE TABLE `chromeperf.chromeperf_dashboard_data.stats_by_measurement_7d`
   (`date` DATE NOT NULL,
 
@@ -336,7 +336,7 @@ def main():
    )
   PARTITION BY `date`
   CLUSTER BY bot_group, bot, measurement;
-  """  # pylint: disable=pointless-string-statement
+  """
   bq_stats_by_measurement_schema = {
       'fields': [
           {'name': 'date', 'type': 'DATE', 'mode': 'REQUIRED'},

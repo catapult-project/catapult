@@ -7,7 +7,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-
+import six
 import apache_beam as beam
 from apache_beam.io.gcp.datastore.v1new.datastoreio import ReadFromDatastore
 from apache_beam.io.gcp.datastore.v1new.types import Query
@@ -57,7 +57,7 @@ def TestMetadataEntityToRowDict(entity):
         'unescaped_story_name': props.get('unescaped_story_name'),
     }
   except KeyError as e:
-    raise UnconvertibleEntityError('Missing property: ' + str(e))
+    six.raise_from(UnconvertibleEntityError('Missing property: ' + str(e)), e)
   # Computed properties, directly translated from the ComputedProperty
   # definitions of the ndb.Model.
   parts = d['test'].split('/')
@@ -103,7 +103,7 @@ def main():
                         failed_entity_transforms))
   )
 
-  """
+  _ = """
   CREATE TABLE `chromeperf.chromeperf_dashboard_data.test_metadata`
   (test STRING NOT NULL,
    internal_only BOOLEAN NOT NULL,
@@ -119,7 +119,7 @@ def main():
    measurement STRING NOT NULL,
    )
   CLUSTER BY bot_group, bot, measurement;
-  """  # pylint: disable=pointless-string-statement
+  """
   bq_testmetadata_schema = {
       'fields': [
           # 'test' corresponds to the same column in the Rows export.

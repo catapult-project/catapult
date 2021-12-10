@@ -9,6 +9,7 @@ from __future__ import print_function
 
 import json
 import logging
+import six
 
 import apache_beam as beam
 from apache_beam.options.pipeline_options import DebugOptions
@@ -104,7 +105,7 @@ def JobEntityToRowDict(entity):
             _IfNone(entity.get('use_execution_engine'), False),
     }
   except KeyError as e:
-    raise UnconvertibleJobError('Missing property: ' + str(e))
+    six.raise_from(UnconvertibleJobError('Missing property: ' + str(e)), e)
   # Computed properties, directly translated from the ComputedProperty
   # definitions of the ndb.Model.
   d['completed'] = bool(
@@ -153,7 +154,7 @@ def main():
   job_dicts = (
       job_entities | 'ConvertEntityToRow(Job)' >> beam.FlatMap(ConvertEntity))
 
-  """
+  _ = """
   CREATE TABLE `chromeperf.chromeperf_dashboard_data.jobs`
   (id INT64 NOT NULL,
    arguments STRING NOT NULL,
@@ -185,7 +186,7 @@ def main():
    configuration STRING,
    batch_id STRING)
   PARTITION BY DATE(`create_time`);
-  """  # pylint: disable=pointless-string-statement
+  """
   bq_job_schema = {
       'fields': [
           {
