@@ -10,7 +10,7 @@ from six.moves import http_client
 import httplib2
 import json
 import socket
-import urllib
+import six.moves.urllib.parse
 
 from google.appengine.api import memcache
 from google.appengine.api import urlfetch_errors
@@ -77,7 +77,8 @@ def Request(url,
         del parameters[key]
       if isinstance(value, bool):
         parameters[key] = str(value).lower()
-    url += '?' + urllib.urlencode(sorted(parameters.items()), doseq=True)
+    url += '?' + six.moves.urllib.parse.urlencode(  # pylint: disable=too-many-function-args
+        sorted(parameters.items()), True)
 
   kwargs = {'method': method}
   if body:

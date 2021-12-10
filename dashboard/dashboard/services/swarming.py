@@ -107,8 +107,7 @@ class Task(object):
     BOT_DIED. A summary ID ends with '0', a run ID ends with '1' or '2'."""
     if include_performance_stats:
       return self._Request('result', include_performance_stats=True)
-    else:
-      return self._Request('result')
+    return self._Request('result')
 
   def Stdout(self):
     """Returns the output of the task corresponding to a task ID."""

@@ -166,13 +166,13 @@ class IssueTrackerService(object):
         if 'cc' in body['updates']:
           del body['updates']['cc']
         return self._MakeCommentRequest(bug_id, body, retry=False)
-      elif retry and 'Issue owner must be a project member' in reason:
+      if retry and 'Issue owner must be a project member' in reason:
         # Remove the owner but retain the cc list.
         if 'owner' in body['updates']:
           del body['updates']['owner']
         return self._MakeCommentRequest(bug_id, body, retry=False)
       # This error reason is received when issue is deleted.
-      elif 'User is not allowed to view this issue' in reason:
+      if 'User is not allowed to view this issue' in reason:
         logging.warning('Unable to update bug %s with body %s', bug_id, body)
         return True
     logging.error(
