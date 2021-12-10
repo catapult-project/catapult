@@ -15,7 +15,8 @@ class Commit(api_request_handler.ApiRequestHandler):
   def _CheckUser(self):
     pass
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     repository = self.request.get('repository', 'chromium')
     git_hash = self.request.get('git_hash')
     try:

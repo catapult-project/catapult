@@ -7,17 +7,20 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import six
 
 from dashboard.api import api_request_handler
 from dashboard.models import report_template
 
 
+# pylint: disable=abstract-method
 class ReportTemplateHandler(api_request_handler.ApiRequestHandler):
 
   def _CheckUser(self):
     self._CheckIsInternalUser()
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     template = json.loads(self.request.get('template'))
     name = self.request.get('name', None)
     owners = self.request.get('owners', None)
@@ -29,10 +32,10 @@ class ReportTemplateHandler(api_request_handler.ApiRequestHandler):
     if template_id is not None:
       try:
         template_id = int(template_id)
-      except ValueError:
-        raise api_request_handler.BadRequestError
+      except ValueError as e:
+        six.raise_from(api_request_handler.BadRequestError, e)
     try:
       report_template.PutTemplate(template_id, name, owners, template)
-    except ValueError:
-      raise api_request_handler.BadRequestError
+    except ValueError as e:
+      six.raise_from(api_request_handler.BadRequestError, e)
     return report_template.List()

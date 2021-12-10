@@ -18,21 +18,25 @@ from dashboard.api import api_request_handler
 from dashboard.common import testing_common
 
 
+# pylint: disable=abstract-method
 class TestApiRequestHandler(api_request_handler.ApiRequestHandler):
 
   def _CheckUser(self):
     return self._CheckIsInternalUser()
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     return {'foo': 'response'}
 
 
+# pylint: disable=abstract-method
 class TestApiRequestHandlerForbidden(api_request_handler.ApiRequestHandler):
 
   def _CheckUser(self):
     return self._CheckIsInternalUser()
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     raise api_request_handler.ForbiddenError()
 
 

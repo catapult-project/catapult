@@ -10,13 +10,15 @@ from dashboard import update_test_suite_descriptors
 from dashboard.api import api_request_handler
 
 
+# pylint: disable=abstract-method
 class DescribeHandler(api_request_handler.ApiRequestHandler):
   """API handler for describing test suites."""
 
   def _CheckUser(self):
     pass
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     master = self.request.get('master')
     suite = self.request.get('test_suite')
     return update_test_suite_descriptors.FetchCachedTestSuiteDescriptor(

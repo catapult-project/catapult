@@ -68,7 +68,8 @@ class New(api_request_handler.ApiRequestHandler):
     if not utils.IsTryjobUser():
       raise api_request_handler.ForbiddenError()
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     # TODO(dberris): Validate the inputs based on the type of job requested.
     job = _CreateJob(self.request)
 

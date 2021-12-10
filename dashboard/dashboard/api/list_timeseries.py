@@ -11,13 +11,14 @@ from dashboard.common import utils
 from dashboard.models import graph_data
 
 
+# pylint: disable=abstract-method
 class ListTimeseriesHandler(api_request_handler.ApiRequestHandler):
   """API handler for listing timeseries for a benchmark."""
 
   def _CheckUser(self):
     self._CheckIsLoggedIn()
 
-  def Post(self, *args):
+  def Post(self, *args, **kwargs):
     """Returns list in response to API requests.
 
     Argument:
@@ -26,6 +27,7 @@ class ListTimeseriesHandler(api_request_handler.ApiRequestHandler):
     Outputs:
       JSON list of monitored timeseries for the benchmark, see README.md.
     """
+    del kwargs  # Unused.
     benchmark = args[0]
     sheriff_name = self.request.get('sheriff', 'Chromium Perf Sheriff')
     query = graph_data.TestMetadata.query()

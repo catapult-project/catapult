@@ -193,7 +193,8 @@ class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
                  token_info['token'])
     return token, token_info
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     if utils.IsDevAppserver():
       # Don't require developers to zip the body.
       # In prod, the data will be written to cloud storage and processed on the

@@ -68,7 +68,7 @@ class CASReference(api_request_handler.ApiRequestHandler):
       return
     self._CheckIsInternalUser()
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
     """Add new RBE-CAS information.
 
     Args:
@@ -77,6 +77,7 @@ class CASReference(api_request_handler.ApiRequestHandler):
       cas_instance: The hostname of the server where the CAS are stored.
       cas_map: A JSON dict mapping the target names to the CAS digests.
     """
+    del args, kwargs  # Unused.
     # Get parameters.
     parameters = (
         ('builder_name', str),
@@ -137,4 +138,3 @@ class CASReference(api_request_handler.ApiRequestHandler):
       parameter_values.append(parameter_value)
 
     return parameter_values
-

@@ -6,6 +6,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import six
+
 from google.appengine.datastore import datastore_query
 
 from dashboard import alerts
@@ -16,13 +18,14 @@ from dashboard.models import anomaly
 from dashboard.models import report_template
 
 
+# pylint: disable=abstract-method
 class AlertsHandler(api_request_handler.ApiRequestHandler):
   """API handler for various alert requests."""
 
   def _CheckUser(self):
     pass
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
     """Returns alert data in response to API requests.
 
     Possible list types:
@@ -33,6 +36,7 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
     Outputs:
       Alerts data; see README.md.
     """
+    del args, kwargs  # Unused.
     alert_list = None
     response = {}
     try:
@@ -77,12 +81,12 @@ class AlertsHandler(api_request_handler.ApiRequestHandler):
         alert_list, next_cursor = [], None
       if next_cursor:
         response['next_cursor'] = next_cursor.urlsafe()
-    except AssertionError:
+    except AssertionError as e:
       # The only known assertion is in InternalOnlyModel._post_get_hook when a
       # non-internal user requests an internal-only entity.
-      raise api_request_handler.BadRequestError('Not found')
+      six.raise_from(api_request_handler.BadRequestError('Not found'), e)
     except request_handler.InvalidInputError as e:
-      raise api_request_handler.BadRequestError(e.message)
+      six.raise_from(api_request_handler.BadRequestError(str(e)), e)
 
     response['anomalies'] = alerts.AnomalyDicts(
         alert_list, utils.ParseBool(self.request.get('v2', None)))

@@ -89,13 +89,13 @@ class ApiRequestHandler(webapp2.RequestHandler):
     try:
       self._CheckUser()
     except api_auth.NotLoggedInError as e:
-      self.WriteErrorMessage(e.message, 401)
+      self.WriteErrorMessage(str(e), 401)
       return
     except api_auth.OAuthError as e:
-      self.WriteErrorMessage(e.message, 403)
+      self.WriteErrorMessage(str(e), 403)
       return
     except ForbiddenError as e:
-      self.WriteErrorMessage(e.message, 403)
+      self.WriteErrorMessage(str(e), 403)
       return
     # Allow oauth.Error to manifest as HTTP 500.
 
@@ -103,11 +103,11 @@ class ApiRequestHandler(webapp2.RequestHandler):
       results = cb(*args)
       self.response.out.write(json.dumps(results))
     except NotFoundError as e:
-      self.WriteErrorMessage(e.message, 404)
+      self.WriteErrorMessage(str(e), 404)
     except (BadRequestError, KeyError, TypeError, ValueError) as e:
-      self.WriteErrorMessage(e.message, 400)
+      self.WriteErrorMessage(str(e), 400)
     except ForbiddenError as e:
-      self.WriteErrorMessage(e.message, 403)
+      self.WriteErrorMessage(str(e), 403)
 
   def options(self, *_):  # pylint: disable=invalid-name
     self._SetCorsHeadersIfAppropriate()
@@ -115,7 +115,8 @@ class ApiRequestHandler(webapp2.RequestHandler):
   def Get(self, *_):
     raise NotImplementedError()
 
-  def Post(self, *_):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     raise NotImplementedError()
 
   def _SetCorsHeadersIfAppropriate(self):

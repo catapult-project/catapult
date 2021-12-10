@@ -70,7 +70,7 @@ class Isolate(api_request_handler.ApiRequestHandler):
       return
     self._CheckIsInternalUser()
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
     """Add new isolate information.
 
     Args:
@@ -79,6 +79,7 @@ class Isolate(api_request_handler.ApiRequestHandler):
       isolate_server: The hostname of the server where the isolates are stored.
       isolate_map: A JSON dict mapping the target names to the isolate hashes.
     """
+    del args, kwargs  # Unused.
     # Get parameters.
     parameters = (
         ('builder_name', str),

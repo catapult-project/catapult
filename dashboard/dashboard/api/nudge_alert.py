@@ -12,13 +12,15 @@ from dashboard.api import api_request_handler
 from dashboard.common import utils
 
 
+# pylint: disable=abstract-method
 class NudgeAlertHandler(api_request_handler.ApiRequestHandler):
 
   def _CheckUser(self):
     if not utils.IsValidSheriffUser():
       raise api_request_handler.ForbiddenError()
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     keys = self.request.get_all('key')
     start = self.request.get('new_start_revision')
     end = self.request.get('new_end_revision')

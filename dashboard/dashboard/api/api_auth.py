@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import logging
+import six
 
 from google.appengine.api import oauth
 
@@ -65,8 +66,8 @@ class InternalOnlyError(ApiAuthException):
 def Authorize():
   try:
     email = utils.GetEmail()
-  except oauth.OAuthRequestError:
-    raise OAuthError
+  except oauth.OAuthRequestError as e:
+    six.raise_from(OAuthError, e)
 
   if not email:
     raise NotLoggedInError
@@ -82,11 +83,11 @@ def Authorize():
         logging.error('OAuth client id %s for user %s not in allowlist',
                       client_id, email)
         raise OAuthError
-  except oauth.OAuthRequestError:
+  except oauth.OAuthRequestError as e:
     # Transient errors when checking the token result should result in HTTP 500,
     # so catch oauth.OAuthRequestError here, not oauth.Error (which would catch
     # both fatal and transient errors).
-    raise OAuthError
+    six.raise_from(OAuthError, e)
 
   logging.info('OAuth user logged in as: %s', email)
   if utils.IsInternalUser():

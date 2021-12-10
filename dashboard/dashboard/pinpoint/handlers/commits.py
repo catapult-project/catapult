@@ -16,7 +16,8 @@ class Commits(api_request_handler.ApiRequestHandler):
   def _CheckUser(self):
     pass
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     try:
       repository = self.request.get('repository', 'chromium')
       c1 = change.Commit.FromDict({

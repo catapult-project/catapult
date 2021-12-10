@@ -32,7 +32,8 @@ class Migrate(api_request_handler.ApiRequestHandler):
   def Get(self):
     return stored_object.Get(_STATUS_KEY) or {}
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     status = stored_object.Get(_STATUS_KEY)
 
     if not status:

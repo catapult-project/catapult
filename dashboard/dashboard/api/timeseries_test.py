@@ -38,13 +38,15 @@ class TimeseriesTest(testing_common.TestCase):
 
     now = datetime.datetime.now()
     last_week = now - datetime.timedelta(days=7)
-    rows = dict([(i * 100, {
-        'value': i * 1000,
-        'a_whatever': 'blah',
-        'r_v8': '1234a',
-        'timestamp': now if i > 5 else last_week,
-        'error': 3.3232
-    }) for i in range(1, 10)])
+    rows = {
+        i * 100: {
+            'value': i * 1000,
+            'a_whatever': 'blah',
+            'r_v8': '1234a',
+            'timestamp': now if i > 5 else last_week,
+            'error': 3.3232
+        } for i in range(1, 10)
+    }
     rows[100]['r_not_every_row'] = 12345
     testing_common.AddRows('ChromiumPerf/linux/page_cycler/warm/cnn', rows)
 
@@ -58,15 +60,15 @@ class TimeseriesTest(testing_common.TestCase):
     response = self.Post(
         '/api/timeseries/ChromiumPerf/linux/page_cycler/warm/cnn')
     data = self.GetJsonValue(response, 'timeseries')
-    self.assertEquals(10, len(data))
-    self.assertEquals(
+    self.assertEqual(10, len(data))
+    self.assertEqual(
         ['revision', 'value', 'timestamp', 'r_not_every_row', 'r_v8'], data[0])
-    self.assertEquals(100, data[1][0])
-    self.assertEquals(900, data[9][0])
-    self.assertEquals('1234a', data[1][4])
+    self.assertEqual(100, data[1][0])
+    self.assertEqual(900, data[9][0])
+    self.assertEqual('1234a', data[1][4])
 
     improvement_direction = self.GetJsonValue(response, 'improvement_direction')
-    self.assertEquals(improvement_direction, anomaly.UP)
+    self.assertEqual(improvement_direction, anomaly.UP)
 
   def testPost_NumDays_ChecksTimestamp(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
@@ -76,11 +78,11 @@ class TimeseriesTest(testing_common.TestCase):
         '/api/timeseries/ChromiumPerf/linux/page_cycler/warm/cnn',
         {'num_days': 1})
     data = self.GetJsonValue(response, 'timeseries')
-    self.assertEquals(5, len(data))
-    self.assertEquals(['revision', 'value', 'timestamp', 'r_v8'], data[0])
-    self.assertEquals(600, data[1][0])
-    self.assertEquals(900, data[4][0])
-    self.assertEquals('1234a', data[1][3])
+    self.assertEqual(5, len(data))
+    self.assertEqual(['revision', 'value', 'timestamp', 'r_v8'], data[0])
+    self.assertEqual(600, data[1][0])
+    self.assertEqual(900, data[4][0])
+    self.assertEqual('1234a', data[1][3])
 
   def testPost_NumDaysNotNumber_400Response(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)

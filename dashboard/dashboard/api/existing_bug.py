@@ -13,13 +13,15 @@ from dashboard.api import api_request_handler
 from dashboard.common import utils
 
 
+# pylint: disable=abstract-method
 class ExistingBugHandler(api_request_handler.ApiRequestHandler):
 
   def _CheckUser(self):
     if not utils.IsValidSheriffUser():
       raise api_request_handler.ForbiddenError()
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     keys = self.request.get_all('key')
     bug_id = int(self.request.get('bug'))
     project_id = self.request.get('project_id', 'chromium')

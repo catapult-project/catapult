@@ -12,10 +12,12 @@ import dashboard.common.system_health_report  # pylint: disable=unused-import
 from dashboard.models import report_template
 
 
+# pylint: disable=abstract-method
 class ReportNamesHandler(api_request_handler.ApiRequestHandler):
 
   def _CheckUser(self):
     pass
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     return report_template.List()

@@ -6,6 +6,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import six
+
 from dashboard.api import api_request_handler
 from dashboard.api import utils as api_utils
 from dashboard.common import datastore_hooks
@@ -13,6 +15,7 @@ from dashboard.common import utils
 from dashboard.services import issue_tracker_service
 
 
+# pylint: disable=abstract-method
 class BugsHandler(api_request_handler.ApiRequestHandler):
   """API handler for bug requests.
 
@@ -51,15 +54,18 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
 
     try:
       bug_id = int(bug_id)
-    except ValueError:
-      raise api_request_handler.BadRequestError('Invalid bug ID "%s".' % bug_id)
+    except ValueError as e:
+      six.raise_from(
+          api_request_handler.BadRequestError('Invalid bug ID "%s".' % bug_id),
+          e)
 
     try:
       include_comments = api_utils.ParseBool(
           self.request.get('include_comments', None))
-    except ValueError:
-      raise api_request_handler.BadRequestError(
-          "value of |with_comments| should be 'true' or 'false'")
+    except ValueError as e:
+      six.raise_from(
+          api_request_handler.BadRequestError(
+              "value of |with_comments| should be 'true' or 'false'"), e)
 
     issue = service.GetIssue(bug_id, project=project)
     bisects = []
@@ -109,9 +115,11 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
     return response
 
 
+# pylint: disable=abstract-method
 class BugsWithProjectHandler(BugsHandler):
 
   def Post(self, *args, **kwargs):
+    del kwargs  # Unused.
     # We translate the order of the arguments, because the first arg is the
     # project and the second is the bug id.
     if len(args) != 2:

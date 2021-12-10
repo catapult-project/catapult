@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import datetime
+import six
 
 from dashboard.api import api_request_handler
 from dashboard.common import datastore_hooks
@@ -19,13 +20,14 @@ class BadRequestError(Exception):
   pass
 
 
+# pylint: disable=abstract-method
 class TimeseriesHandler(api_request_handler.ApiRequestHandler):
   """API handler for getting timeseries data."""
 
   def _CheckUser(self):
     self._CheckIsLoggedIn()
 
-  def Post(self, *args):
+  def Post(self, *args, **kwargs):
     """Returns timeseries data in response to API requests.
 
     Argument:
@@ -34,11 +36,13 @@ class TimeseriesHandler(api_request_handler.ApiRequestHandler):
     Outputs:
       JSON timeseries data for the test_path, see README.md.
     """
+    del kwargs  # unused.
     try:
       days = int(self.request.get('num_days', 30))
-    except ValueError:
-      raise api_request_handler.BadRequestError(
-          'Invalid num_days parameter %s' % self.request.get('num_days'))
+    except ValueError as e:
+      six.raise_from(
+          api_request_handler.BadRequestError('Invalid num_days parameter %s' %
+                                              self.request.get('num_days')), e)
     if days <= 0:
       raise api_request_handler.BadRequestError(
           'num_days cannot be negative (%s)' % days)

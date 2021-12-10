@@ -16,13 +16,15 @@ from dashboard.common import utils
 # except 1. this is dispatched for /api/new_pinpoint, so utils.GetEmail() uses
 # OAuth instead of cookies, and 2. this accepts a Descriptor instead of a test
 # path.
+# pylint: disable=abstract-method
 class NewPinpointHandler(api_request_handler.ApiRequestHandler):
 
   def _CheckUser(self):
     if not utils.IsValidSheriffUser():
       raise api_request_handler.ForbiddenError()
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     params = dict((a, self.request.get(a)) for a in self.request.arguments())
     desc = descriptor.Descriptor(params['suite'], params['measurement'],
                                  params['bot'], params.get('case'),

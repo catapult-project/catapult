@@ -6,6 +6,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import six
+
 from google.appengine.ext import ndb
 
 from dashboard import alerts
@@ -28,12 +30,14 @@ COLUMNS_REQUIRING_ROWS = {'timestamp', 'revisions',
                           'annotations'}.union(descriptor.STATISTICS)
 
 
+# pylint: disable=abstract-method
 class Timeseries2Handler(api_request_handler.ApiRequestHandler):
 
   def _CheckUser(self):
     pass
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     desc = descriptor.Descriptor(
         test_suite=self.request.get('test_suite'),
         measurement=self.request.get('measurement'),
@@ -52,9 +56,9 @@ class Timeseries2Handler(api_request_handler.ApiRequestHandler):
         api_utils.ParseISO8601(self.request.get('max_timestamp', None)))
     try:
       result = query.FetchSync()
-    except AssertionError:
+    except AssertionError as e:
       # The caller has requested internal-only data but is not authorized.
-      raise api_request_handler.NotFoundError
+      six.raise_from(api_request_handler.NotFoundError, e)
     return result
 
 
@@ -302,15 +306,15 @@ class TimeseriesQuery(object):
         query = query.filter(graph_data.Row.revision >= self._min_revision)
       if self._max_revision:
         query = query.filter(graph_data.Row.revision <= self._max_revision)
-      query = query.order(-graph_data.Row.revision)
+      query = query.order(-graph_data.Row.revision)  # pylint: disable=invalid-unary-operand-type
     elif self._min_timestamp or self._max_timestamp:
       if self._min_timestamp:
         query = query.filter(graph_data.Row.timestamp >= self._min_timestamp)
       if self._max_timestamp:
         query = query.filter(graph_data.Row.timestamp <= self._max_timestamp)
-      query = query.order(-graph_data.Row.timestamp)
+      query = query.order(-graph_data.Row.timestamp)  # pylint: disable=invalid-unary-operand-type
     else:
-      query = query.order(-graph_data.Row.revision)
+      query = query.order(-graph_data.Row.revision)  # pylint: disable=invalid-unary-operand-type
     return query
 
   @ndb.tasklet

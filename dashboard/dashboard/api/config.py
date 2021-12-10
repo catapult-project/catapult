@@ -15,13 +15,15 @@ ALLOWLIST = [
 ]
 
 
+# pylint: disable=abstract-method
 class ConfigHandler(api_request_handler.ApiRequestHandler):
 
   def _CheckUser(self):
     pass
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     key = self.request.get('key')
     if key not in ALLOWLIST:
-      return
+      return None
     return namespaced_stored_object.Get(key)

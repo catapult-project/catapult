@@ -21,7 +21,8 @@ class Cancel(api_request_handler.ApiRequestHandler):
     if not utils.IsTryjobUser():
       raise api_request_handler.ForbiddenError()
 
-  def Post(self):
+  def Post(self, *args, **kwargs):
+    del args, kwargs  # Unused.
     # Pull out the Job ID and reason in the request.
     args = self.request.params.mixed()
     job_id = args.get('job_id')

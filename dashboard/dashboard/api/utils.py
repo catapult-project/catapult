@@ -16,10 +16,9 @@ def ParseBool(value):
   value_lower = value.lower()
   if value_lower in ('true', '1'):
     return True
-  elif value_lower in ('false', '0'):
+  if value_lower in ('false', '0'):
     return False
-  else:
-    raise ValueError(value)
+  raise ValueError(value)
 
 
 def ParseISO8601(s):
