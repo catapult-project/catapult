@@ -32,11 +32,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-try:
-  import cPickle
-except ImportError:
-  # pickle in python 3 uses the c version as cPickle in python 2.
-  import pickle as cPickle
+import six.moves.cPickle as cPickle
 import datetime
 import logging
 
@@ -80,8 +76,7 @@ def Get(key):
                    namespaced_key).get(read_policy=ndb.EVENTUAL_CONSISTENCY)
   if entity:
     return cPickle.loads(entity.value)
-  else:
-    return stored_object.Get(key)
+  return stored_object.Get(key)
 
 
 def GetExternal(key):
@@ -94,8 +89,7 @@ def GetExternal(key):
                    namespaced_key).get(read_policy=ndb.EVENTUAL_CONSISTENCY)
   if entity:
     return cPickle.loads(entity.value)
-  else:
-    return stored_object.Get(key)
+  return stored_object.Get(key)
 
 
 def Set(key, value, days_to_keep=None, namespace=None):

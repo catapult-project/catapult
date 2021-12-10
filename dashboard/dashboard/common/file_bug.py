@@ -211,9 +211,9 @@ def _GetMilestoneForRevision(revision):
           default_milestone = milestone
       except ValueError:
         # Sometimes 'N/A' is given. We ignore these entries.
-        logging.warn('Could not cast one of: %s, %s, %s as an int', revision,
-                     version['branch_base_position'],
-                     version['current_version'].split('.')[0])
+        logging.warning('Could not cast one of: %s, %s, %s as an int', revision,
+                        version['branch_base_position'],
+                        version['current_version'].split('.')[0])
   if milestones:
     return min(milestones)
   return default_milestone
@@ -350,7 +350,7 @@ def FileBug(http,
                                                 project_id)
   template_params = {'bug_id': bug_id, 'project_id': project_id}
   if all(k.kind() == 'Anomaly' for k in alert_keys):
-    logging.info('Kicking bisect for bug ' + str(bug_id))
+    logging.info('Kicking bisect for bug %s', bug_id)
     culprit_rev = _GetSingleCLForAnomalies(alerts)
     if culprit_rev is not None:
       commit_info = GetCommitInfoForAlert(alerts[0])
@@ -361,10 +361,10 @@ def FileBug(http,
     if needs_bisect:
       bisect_result = auto_bisect.StartNewBisectForBug(bug_id, project_id)
       if 'error' in bisect_result:
-        logging.info('Failed to kick bisect for ' + str(bug_id))
+        logging.info('Failed to kick bisect for %s', bug_id)
         template_params['bisect_error'] = bisect_result['error']
       else:
-        logging.info('Successfully kicked bisect for ' + str(bug_id))
+        logging.info('Successfully kicked bisect for %s', bug_id)
         template_params.update(bisect_result)
   else:
     kinds = set()

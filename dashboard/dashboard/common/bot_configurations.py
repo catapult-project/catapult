@@ -6,8 +6,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import string
-
 from google.appengine.ext import ndb
 
 from dashboard.common import namespaced_stored_object
@@ -46,4 +44,4 @@ def List():
   canonical_names = [
       name for name, value in bot_configurations.items() if 'alias' not in value
   ]
-  return sorted(canonical_names, key=string.lower)
+  return sorted(canonical_names, key=str.lower)

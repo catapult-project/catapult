@@ -16,9 +16,6 @@ from tracing.value.diagnostics import reserved_infos
 
 class HistogramHelpersTest(testing_common.TestCase):
 
-  def setUp(self):
-    super(HistogramHelpersTest, self).setUp()
-
   def testGetGroupingLabelFromHistogram_NoTags_ReturnsEmpty(self):
     hist = histogram_module.Histogram('hist', 'count')
     self.assertEqual('', histogram_helpers.GetGroupingLabelFromHistogram(hist))

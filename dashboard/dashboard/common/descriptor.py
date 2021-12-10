@@ -103,6 +103,10 @@ class Descriptor(object):
         self.test_suite, self.measurement, self.bot, self.test_case,
         self.statistic, self.build_type)
 
+  def __hash__(self):
+    return hash(self.test_suite, self.measurement, self.bot, self.test_case,
+                self.statistic, self.build_type)
+
   def __eq__(self, other):
     return repr(self) == repr(other)
 

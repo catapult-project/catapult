@@ -82,19 +82,19 @@ class MathUtilsTest(unittest.TestCase):
     self.assertEqual(float('inf'), math_utils.RelativeChange(0, 1))
 
   def testIqr(self):
-    self.assertEqual(4, math_utils.Iqr(range(8, 0, -1)))
+    self.assertEqual(4, math_utils.Iqr(list(range(8, 0, -1))))
 
   def testPercentile_RoundIndex(self):
-    self.assertEqual(2, math_utils.Percentile(range(5), 0.5))
+    self.assertEqual(2, math_utils.Percentile(list(range(5)), 0.5))
 
   def testPercentile_Interpolation(self):
-    self.assertEqual(5.1, math_utils.Percentile(range(8), 0.7))
+    self.assertEqual(5.1, math_utils.Percentile(list(range(8)), 0.7))
 
   def testPercentile_Min(self):
-    self.assertEqual(0, math_utils.Percentile(range(8), 0))
+    self.assertEqual(0, math_utils.Percentile(list(range(8)), 0))
 
   def testPercentile_Max(self):
-    self.assertEqual(7, math_utils.Percentile(range(8), 1))
+    self.assertEqual(7, math_utils.Percentile(list(range(8)), 1))
 
 
 if __name__ == '__main__':

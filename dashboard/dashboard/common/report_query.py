@@ -143,7 +143,7 @@ class ReportQuery(object):
         if datum['units'] == table_row['units']:
           new_data.append(datum)
         else:
-          logging.warn('Expected units=%r; %r', table_row['units'], datum)
+          logging.warning('Expected units=%r; %r', table_row['units'], datum)
       table_row['data'][rev] = new_data
 
   def _MergeData(self, table_row):
@@ -276,7 +276,7 @@ class ReportQuery(object):
     if not entities:
       raise ndb.Return(None)
     if len(entities) > 1:
-      logging.warn('Found too many Row entities: %r %r', rev, test_path)
+      logging.warning('Found too many Row entities: %r %r', rev, test_path)
       raise ndb.Return(None)
     raise ndb.Return(entities[0])
 
@@ -285,7 +285,7 @@ class ReportQuery(object):
     query = graph_data.Row.query(graph_data.Row.parent_test == test_key)
     if rev != 'latest':
       query = query.filter(graph_data.Row.revision <= rev)
-    query = query.order(-graph_data.Row.revision)
+    query = query.order(-graph_data.Row.revision)  # pylint: disable=invalid-unary-operand-type
     data_row = yield query.get_async()
     raise ndb.Return(data_row)
 

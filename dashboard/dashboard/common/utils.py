@@ -11,7 +11,6 @@ import logging
 import os
 import re
 import time
-import urllib
 
 from apiclient import discovery
 from apiclient import errors
@@ -26,6 +25,8 @@ import httplib2
 from oauth2client import client
 
 from dashboard.common import stored_object
+import six
+import six.moves.urllib.parse
 
 SHERIFF_DOMAINS_KEY = 'sheriff_domains_key'
 IP_ALLOWLIST_KEY = 'ip_whitelist'
@@ -196,12 +197,13 @@ def TestMetadataKey(key_or_string):
   """
   if key_or_string is None:
     return None
-  if isinstance(key_or_string, basestring):
+  if isinstance(key_or_string, six.string_types):
     return ndb.Key('TestMetadata', key_or_string)
   if key_or_string.kind() == 'TestMetadata':
     return key_or_string
   if key_or_string.kind() == 'Test':
     return ndb.Key('TestMetadata', TestPath(key_or_string))
+  return None
 
 
 def OldStyleTestKey(key_or_string):
@@ -218,12 +220,12 @@ def OldStyleTestKey(key_or_string):
   """
   if key_or_string is None:
     return None
-  elif isinstance(key_or_string, ndb.Key) and key_or_string.kind() == 'Test':
+  if isinstance(key_or_string, ndb.Key) and key_or_string.kind() == 'Test':
     return key_or_string
   if (isinstance(key_or_string, ndb.Key)
       and key_or_string.kind() == 'TestMetadata'):
     key_or_string = key_or_string.id()
-  assert isinstance(key_or_string, basestring)
+  assert isinstance(key_or_string, six.string_types)
   path_parts = key_or_string.split('/')
   key_parts = ['Master', path_parts[0], 'Bot', path_parts[1]]
   for part in path_parts[2:]:
@@ -297,7 +299,7 @@ def MostSpecificMatchingPattern(test, pattern_data_tuples):
     a_parts = a[0].split('/')
     b_parts = b[0].split('/')
     for a_part, b_part, test_part in reversed(
-        zip(a_parts, b_parts, test_path_parts)):
+        list(zip(a_parts, b_parts, test_path_parts))):
       # We favour a specific match over a partial match, and a partial
       # match over a catch-all * match.
       if a_part == b_part:
@@ -392,7 +394,7 @@ def _MatchesPatternPart(pattern_part, test_path_part):
   Returns:
     True if it matches, False otherwise.
   """
-  if pattern_part == '*' or pattern_part == test_path_part:
+  if pattern_part in ('*', test_path_part):
     return True
   if '*' not in pattern_part:
     return False
@@ -469,7 +471,7 @@ def MinimumRange(ranges):
   """Returns the intersection of the given ranges, or None."""
   if not ranges:
     return None
-  starts, ends = zip(*ranges)
+  starts, ends = list(zip(*ranges))
   start, end = (max(starts), min(ends))
   if start > end:
     return None
@@ -593,8 +595,8 @@ def IsGroupMember(identity, group):
     SetCachedIsGroupMember(identity, group, is_member)
     return is_member
   except (errors.HttpError, KeyError, AttributeError) as e:
-    logging.error('Failed to check membership of %s: %s', identity, e)
-    raise GroupMemberAuthFailed('Failed to authenticate user.')
+    logging.error('Failed to check membership of %s: %s', identity, str(e))
+    six.raise_from(GroupMemberAuthFailed('Failed to authenticate user.'), e)
 
 
 def GetCachedIsGroupMember(identity, group):
@@ -618,7 +620,7 @@ def ServiceAccountEmail(scope=EMAIL_SCOPE):
 
   assert scope, "ServiceAccountHttp scope must not be None."
 
-  return account_details['client_email'],
+  return (account_details['client_email'],)
 
 
 @ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, xg=True)
@@ -764,7 +766,7 @@ def FetchURL(request_url, skip_status_code=False):
   Returns:
     Response object return by URL fetch, otherwise None when there's an error.
   """
-  logging.info('URL being fetched: ' + request_url)
+  logging.info('URL being fetched: %s', request_url)
   try:
     response = urlfetch.fetch(request_url)
   except urlfetch_errors.DeadlineExceededError:
@@ -777,7 +779,7 @@ def FetchURL(request_url, skip_status_code=False):
     return None
   if skip_status_code:
     return response
-  elif response.status_code != 200:
+  if response.status_code != 200:
     logging.error('ERROR %s checking %s', response.status_code, request_url)
     return None
   return response
@@ -797,7 +799,7 @@ def GetBuildDetailsFromStdioLink(stdio_link):
     # This wasn't a buildbot formatted link.
     return no_details
   base_url, master, bot, buildnumber, step = m.groups()
-  bot = urllib.unquote(bot)
+  bot = six.moves.urllib.parse.unquote(bot)  # pylint: disable=too-many-function-args
   return base_url, master, bot, buildnumber, step
 
 

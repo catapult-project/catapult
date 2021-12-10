@@ -258,4 +258,4 @@ def ClusterAndFindSplit(values, rand=None):
 
   if not candidate_indices:
     raise InsufficientData('Not enough data to suggest a change point.')
-  return [c for c in sorted(candidate_indices)]
+  return list(sorted(candidate_indices))

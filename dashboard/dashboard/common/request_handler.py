@@ -117,4 +117,3 @@ class RequestHandler(webapp2.RequestHandler):
 
 class InvalidInputError(Exception):
   """An error class for invalid user input query parameter values."""
-  pass

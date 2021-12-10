@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import os
+import six
 
 from google.appengine.ext import ndb
 
@@ -32,7 +33,9 @@ def GenerateToken(email):
 
 def _GenerateNewSecretKey():
   """Returns a random XSRF secret key."""
-  return str(os.urandom(16).encode('hex'))
+  if six.PY2:
+    return os.urandom(16).encode('hex')
+  return os.urandom(16).hex()
 
 
 def _GetSecretKey():

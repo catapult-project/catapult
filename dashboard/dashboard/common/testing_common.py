@@ -17,7 +17,7 @@ import os
 import re
 import sys
 import unittest
-import urllib
+import six.moves.urllib.parse
 import webapp2
 import webtest
 
@@ -121,8 +121,10 @@ class TestCase(unittest.TestCase):
     responses = []
     for task in tasks:
       responses.append(
-          self.Post(handler_name,
-                    urllib.unquote_plus(base64.b64decode(task['body']))))
+          self.Post(
+              handler_name,
+              six.moves.urllib.parse.unquote_plus(  # pylint: disable=too-many-function-args
+                  base64.b64decode(task['body']))))
       if recurse:
         responses.extend(
             self.ExecuteTaskQueueTasks(handler_name, task_queue_name))
@@ -378,10 +380,11 @@ class FakeIssueTrackerService(object):
     }
     # TODO(dberris): Migrate users to not rely on the seeded issue.
     self.issues = {
-        ('chromium', self._bug_id_counter): {
-            k: v for k, v in itertools.chain(self._base_issue.items(), [(
-                'id', self._bug_id_counter), ('projectId', 'chromium')])
-        }
+        ('chromium', self._bug_id_counter):
+            dict(
+                itertools.chain(
+                    list(self._base_issue.items()),
+                    [('id', self._bug_id_counter), ('projectId', 'chromium')]))
     }
     self.issue_comments = {('chromium', self._bug_id_counter): []}
 
@@ -403,12 +406,12 @@ class FakeIssueTrackerService(object):
     })
     # TODO(dberris): In the future, actually generate the issue.
     self.issues.update({
-        (kwargs.get('project', 'chromium'), self._bug_id_counter): {
-            k: v
-            for k, v in itertools.chain(self._base_issue.items(), kwargs.items(
-            ), [('id', self._bug_id_counter
-                ), ('projectId', kwargs.get('project', 'chromium'))])
-        }
+        (kwargs.get('project', 'chromium'), self._bug_id_counter):
+            dict(
+                itertools.chain(
+                    list(self._base_issue.items()), list(kwargs.items()),
+                    [('id', self._bug_id_counter),
+                     ('projectId', kwargs.get('project', 'chromium'))]))
     })
     result = {
         'bug_id': self._bug_id_counter,
@@ -554,11 +557,19 @@ class FakeCASClient(object):
 
   def BatchRead(self, cas_instance, digests):
     digests = [self._NormalizeDigest(d) for d in digests]
+
+    def EncodeData(data):
+      if six.PY2:
+        return base64.b64encode(data)
+      return base64.b64encode(data.encode('utf-8')).decode()
+
     return {
         'responses': [{
-            'data': base64.encodestring(
-                self._files[cas_instance][(d['hash'], d['sizeBytes'])]),
-            'digest': d,
+            'data':
+                EncodeData(self._files[cas_instance][(d['hash'],
+                                                      d['sizeBytes'])]),
+            'digest':
+                d,
             'status': {},
         } for d in digests]
     }

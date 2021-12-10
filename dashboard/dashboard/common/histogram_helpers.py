@@ -174,7 +174,7 @@ def ShouldFilterStatistic(test_name, benchmark_name, stat_name):
   if benchmark_name.startswith('memory.long_running'):
     value_name = '%s_%s' % (test_name, stat_name)
     return not _ShouldAddMemoryLongRunningValue(value_name)
-  if benchmark_name == 'media.desktop' or benchmark_name == 'media.mobile':
+  if benchmark_name in ('media.desktop', 'media.mobile'):
     value_name = '%s_%s' % (test_name, stat_name)
     return not _ShouldAddMediaValue(value_name)
   if benchmark_name.startswith('system_health'):

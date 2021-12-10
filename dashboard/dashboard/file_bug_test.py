@@ -674,7 +674,7 @@ class FileBugTest(testing_common.TestCase):
                               'current_version': 'N/A'
                           }]
                       }]))))
-  @mock.patch('logging.warn')
+  @mock.patch('logging.warning')
   def testGet_WithFinish_SucceedsWithNAAndLogsWarning(self, mock_warn):
     self._PostSampleBug()
     labels = self._issue_tracker_service.new_bug_kwargs['labels']
