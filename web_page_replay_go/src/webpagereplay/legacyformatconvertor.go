@@ -37,33 +37,33 @@ type ConvertorConfig struct {
 
 func (cfg *ConvertorConfig) Flags() []cli.Flag {
 	return []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "https_cert_file",
 			Value:       "wpr_cert.pem",
 			Usage:       "File containing a PEM-encoded X509 certificate to use with SSL.",
 			Destination: &cfg.certFile,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "https_key_file",
 			Value:       "wpr_key.pem",
 			Usage:       "File containing a PEM-encoded private key to use with SSL.",
 			Destination: &cfg.keyFile,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "input_file",
 			Destination: &cfg.inputFile,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "output_file",
 			Destination: &cfg.outputFile,
 		},
-		cli.IntFlag{
+		&cli.IntFlag{
 			Name:        "https_port",
 			Value:       -1,
 			Usage:       "Python WPR's https port.",
 			Destination: &cfg.httpsPort,
 		},
-		cli.IntFlag{
+		&cli.IntFlag{
 			Name:        "http_port",
 			Value:       -1,
 			Usage:       "Python WPR's http port.",

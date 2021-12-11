@@ -18,6 +18,7 @@ from telemetry.internal.util import binary_manager
 
 _SUPPORTED_PLATFORMS = (
   ('win', 'x86'),
+  ('mac', 'arm64'),
   ('mac', 'x86_64'),
   ('linux', 'x86_64'),
   ('win', 'AMD64'),
