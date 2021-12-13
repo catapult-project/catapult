@@ -20,6 +20,7 @@ from dashboard.pinpoint.models.quest import execution as execution_module
 from dashboard.pinpoint.models.quest import quest
 from dashboard.services import swarming
 from dashboard.services import crrev_service
+from dashboard.services.request import NotFoundError
 
 _TESTER_SERVICE_ACCOUNT = (
     'chrome-tester@chops-service-accounts.iam.gserviceaccount.com')
@@ -119,16 +120,21 @@ class RunTest(quest.Quest):
     # A more complete fix will be checking the whole series of commits and run
     # all in python 2 if any of the commit is prior than X.
     # Here we picked X as 926914 where the print issue in the bug was fixed.
-    if isolate_hash and self.command and 'vpython3' in self.command:
-      commit_result = crrev_service.GetCommit(isolate_hash)
-      if 'number' in commit_result:
-        commit_position = int(commit_result['number'])
-        if commit_position < 926914:
-          logging.info(
-              'Running test on python 2. Hash: %s, Commit position: %s ',
-              isolate_hash, commit_position)
-          vpython3_pos = self.command.index('vpython3')
-          self.command[vpython3_pos] = 'vpython'
+    if self.command and 'vpython3' in self.command:
+      try:
+        commit_hash = change.commits[0].git_hash
+        commit_result = crrev_service.GetCommit(commit_hash)
+        if 'number' in commit_result:
+          commit_position = int(commit_result['number'])
+          if commit_position < 926914:
+            logging.info(
+                'Running test on python 2. Hash: %s, Commit position: %s ',
+                commit_hash, commit_position)
+            vpython3_pos = self.command.index('vpython3')
+            self.command[vpython3_pos] = 'vpython'
+      except NotFoundError:
+        logging.info('Failed to request commit position with hash: %s',
+                     commit_hash)
 
     if len(self._canonical_executions) <= index:
       execution = _RunTestExecution(
