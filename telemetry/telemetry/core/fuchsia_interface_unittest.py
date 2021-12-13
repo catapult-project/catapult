@@ -16,8 +16,8 @@ class FuchsiaInterfaceTests(unittest.TestCase):
     def side_effect(path_to_file):
       if path_to_file == test_build_id_file:
         return False
-      else:
-        return True
+      return True
+
     with mock.patch('os.path.isfile') as isfile_mock:
       with mock.patch('subprocess.Popen',
                       return_value='Not None') as popen_mock:

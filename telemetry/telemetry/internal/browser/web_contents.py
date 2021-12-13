@@ -152,8 +152,7 @@ class WebContents(six.with_metaclass(trace_event.TracedMetaClass, object)):
     if state in {ServiceWorkerState.NOT_REGISTERED,
                  ServiceWorkerState.INSTALLING, ServiceWorkerState.ACTIVATED}:
       return state
-    else:
-      raise exceptions.EvaluateException(state)
+    raise exceptions.EvaluateException(state)
 
   def IsServiceWorkerActivatedOrNotRegistered(self):
     """Returns whether service worker is ready or not.

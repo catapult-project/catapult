@@ -18,8 +18,7 @@ class Bounds(object):
   def __repr__(self):
     if self.is_empty_:
       return "Bounds()"
-    else:
-      return "Bounds(min=%s,max=%s)" % (self.min_, self.max_)
+    return "Bounds(min=%s,max=%s)" % (self.min_, self.max_)
 
   @property
   def is_empty(self):

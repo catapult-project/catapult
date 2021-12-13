@@ -167,9 +167,9 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       key.Close()
     if value == 10:
       return os_version_module.WIN10
-    elif os_version.startswith('6.2.'):
+    if os_version.startswith('6.2.'):
       return os_version_module.WIN8
-    elif os_version.startswith('6.3.'):
+    if os_version.startswith('6.3.'):
       return os_version_module.WIN81
     raise NotImplementedError(
         'Unknown win version: %s, CurrentMajorVersionNumber: %s' %
@@ -307,11 +307,13 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       if proc_info['hInstApp'] <= 32:
         raise Exception('Unable to launch %s' % application)
       return proc_info['hProcess']
-    else:
-      handle, _, _, _ = win32process.CreateProcess(
-          None, application + ' ' + parameters, None, None, False,
-          win32process.CREATE_NO_WINDOW, None, None, win32process.STARTUPINFO())
-      return handle
+    handle, _, _, _ = win32process.CreateProcess(None,
+                                                 application + ' ' + parameters,
+                                                 None, None, False,
+                                                 win32process.CREATE_NO_WINDOW,
+                                                 None, None,
+                                                 win32process.STARTUPINFO())
+    return handle
 
   def IsCooperativeShutdownSupported(self):
     return True
@@ -355,8 +357,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       for hwnd in hwnds:
         win32gui.SendMessage(hwnd, win32con.WM_CLOSE, 0, 0)
       return True
-    else:
-      logging.info('Did not find any windows owned by target process')
+    logging.info('Did not find any windows owned by target process')
     return False
 
   def GetIntelPowerGadgetPath(self):

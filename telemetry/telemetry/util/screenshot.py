@@ -38,17 +38,16 @@ def TryCaptureScreenShot(platform, tab=None, timeout=None):
       except py_utils.TimeoutException:
         logging.warning('Did not succeed in screenshot capture')
       return file_handle.FromTempFile(tf)
-    elif tab and tab.IsAlive() and tab.screenshot_supported:
+    if tab and tab.IsAlive() and tab.screenshot_supported:
       tf = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
       tf.close()
       image = tab.Screenshot()
       image_util.WritePngFile(image, tf.name)
       return file_handle.FromTempFile(tf)
-    else:
-      logging.warning(
-          'Either tab has crashed or browser does not support taking tab '
-          'screenshot. Skip taking screenshot on failure.')
-      return None
+    logging.warning(
+        'Either tab has crashed or browser does not support taking tab '
+        'screenshot. Skip taking screenshot on failure.')
+    return None
   except Exception as e: # pylint: disable=broad-except
     logging.warning('Exception when trying to capture screenshot: %s', repr(e))
     return None

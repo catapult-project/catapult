@@ -162,8 +162,8 @@ class CloudStorageModuleStub(object):
   def CheckPermissionLevelForBucket(self, bucket):
     if bucket == CloudStorageModuleStub.PUBLIC_BUCKET:
       return
-    elif (self.permission_level ==
-          CloudStorageModuleStub.CREDENTIALS_ERROR_PERMISSION):
+    if (self.permission_level ==
+        CloudStorageModuleStub.CREDENTIALS_ERROR_PERMISSION):
       raise CloudStorageModuleStub.CredentialsError()
     elif bucket == CloudStorageModuleStub.PARTNER_BUCKET:
       if self.permission_level < CloudStorageModuleStub.PARTNER_PERMISSION:
@@ -327,8 +327,7 @@ class OpenFunctionStub(object):
     def read(self, size=None):
       if size:
         return self._data[:size]
-      else:
-        return self._data
+      return self._data
 
     def write(self, data):
       self._data.write(data)
@@ -367,8 +366,7 @@ class OsModuleStub(object):
       def IsAbsolutePath(path):
         if self.sys.platform.startswith('win'):
           return re.match('[a-zA-Z]:\\\\', path)
-        else:
-          return path.startswith('/')
+        return path.startswith('/')
 
       # Per Python specification, if any component is an absolute path,
       # discard previous components.
@@ -380,15 +378,13 @@ class OsModuleStub(object):
       if self.sys.platform.startswith('win'):
         tmp = os.path.join(*paths)
         return tmp.replace('/', '\\')
-      else:
-        tmp = os.path.join(*paths)
-        return tmp.replace('\\', '/')
+      tmp = os.path.join(*paths)
+      return tmp.replace('\\', '/')
 
     def basename(self, path):
       if self.sys.platform.startswith('win'):
         return ntpath.basename(path)
-      else:
-        return posixpath.basename(path)
+      return posixpath.basename(path)
 
     @staticmethod
     def abspath(path):

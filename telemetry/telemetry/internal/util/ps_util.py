@@ -110,7 +110,6 @@ def _TerminateOrKillProcess(process, process_name):
     logging.warning(
         'Failed to terminate/kill the process %s (pid: %s) after 20 seconds.'
         % (process_name, pid))
-  return
 
 
 def EnableListingStrayProcessesUponExitHook():

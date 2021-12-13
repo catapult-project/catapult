@@ -58,9 +58,9 @@ def FromPngFile(path):
     if img is None:
       raise ValueError('Image at path {0} could not be read'.format(path))
     return img
-  else:
-    with open(path, "rb") as f:
-      return FromPng(f.read())
+  with open(path, "rb") as f:
+    return FromPng(f.read())
+
 
 def FromPng(png_data):
   if cv2 is not None:
@@ -79,28 +79,28 @@ def FromPng(png_data):
       image = image[:, :, :3]
 
     return image
-  else:
-    warnings.warn(
-        'Using pure python png decoder, which could be very slow. To speed up, '
-        'consider installing numpy & cv2 (OpenCV).')
-    width, height, pixels, meta = png.Reader(bytes=png_data).read_flat()
-    # Same as the cv2 path - override transparent pixels to be white.
-    if meta['alpha']:
-      for i in range(3, len(pixels), 4):
-        if pixels[i] == 0:
-          pixels[i] = 255
-          pixels[i - 1] = 255
-          pixels[i - 2] = 255
-          pixels[i - 3] = 255
-    return FromRGBPixels(width, height, pixels, 4 if meta['alpha'] else 3)
+  warnings.warn(
+      'Using pure python png decoder, which could be very slow. To speed up, '
+      'consider installing numpy & cv2 (OpenCV).')
+  width, height, pixels, meta = png.Reader(bytes=png_data).read_flat()
+  # Same as the cv2 path - override transparent pixels to be white.
+  if meta['alpha']:
+    for i in range(3, len(pixels), 4):
+      if pixels[i] == 0:
+        pixels[i] = 255
+        pixels[i - 1] = 255
+        pixels[i - 2] = 255
+        pixels[i - 3] = 255
+  return FromRGBPixels(width, height, pixels, 4 if meta['alpha'] else 3)
+
 
 def _SimpleDiff(image1, image2):
   if cv2 is not None:
     return cv2.absdiff(image1, image2)
-  else:
-    amax = np.maximum(image1, image2)
-    amin = np.minimum(image1, image2)
-    return amax - amin
+  amax = np.maximum(image1, image2)
+  amin = np.minimum(image1, image2)
+  return amax - amin
+
 
 def AreEqual(image1, image2, tolerance, likely_equal):
   if image1.shape != image2.shape:
@@ -110,19 +110,17 @@ def AreEqual(image1, image2, tolerance, likely_equal):
   if tolerance:
     if likely_equal:
       return np.amax(_SimpleDiff(image1, image2)) <= tolerance
-    else:
-      for row in range(Height(image1)):
-        if np.amax(_SimpleDiff(image1[row], image2[row])) > tolerance:
-          return False
-      return True
-  else:
-    if likely_equal:
-      return (self_image == other_image).all()
-    else:
-      for row in range(Height(image1)):
-        if not (self_image[row] == other_image[row]).all():
-          return False
-      return True
+    for row in range(Height(image1)):
+      if np.amax(_SimpleDiff(image1[row], image2[row])) > tolerance:
+        return False
+    return True
+  if likely_equal:
+    return (self_image == other_image).all()
+  for row in range(Height(image1)):
+    if not (self_image[row] == other_image[row]).all():
+      return False
+  return True
+
 
 def Diff(image1, image2):
   self_image = image1
@@ -149,25 +147,23 @@ def GetBoundingBox(image, color, tolerance):
     contours, _ = cv2.findContours(img, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
     contour = np.concatenate(contours)
     return cv2.boundingRect(contour), count
+  if tolerance:
+    color = np.array([color.b, color.g, color.r])
+    colorm = color - tolerance
+    colorp = color + tolerance
+    b = image[:, :, 0]
+    g = image[:, :, 1]
+    r = image[:, :, 2]
+    w = np.where(((b >= colorm[0]) & (b <= colorp[0]) & (g >= colorm[1]) &
+                  (g <= colorp[1]) & (r >= colorm[2]) & (r <= colorp[2])))
   else:
-    if tolerance:
-      color = np.array([color.b, color.g, color.r])
-      colorm = color - tolerance
-      colorp = color + tolerance
-      b = image[:, :, 0]
-      g = image[:, :, 1]
-      r = image[:, :, 2]
-      w = np.where(((b >= colorm[0]) & (b <= colorp[0]) &
-                    (g >= colorm[1]) & (g <= colorp[1]) &
-                    (r >= colorm[2]) & (r <= colorp[2])))
-    else:
-      w = np.where((image[:, :, 0] == color.b) &
-                   (image[:, :, 1] == color.g) &
-                   (image[:, :, 2] == color.r))
-    if len(w[0]) == 0:
-      return None, 0
-    return (w[1][0], w[0][0], w[1][-1] - w[1][0] + 1, w[0][-1] - w[0][0] + 1), \
-        len(w[0])
+    w = np.where((image[:, :, 0] == color.b) & (image[:, :, 1] == color.g)
+                 & (image[:, :, 2] == color.r))
+  if len(w[0]) == 0:
+    return None, 0
+  return (w[1][0], w[0][0], w[1][-1] - w[1][0] + 1, w[0][-1] - w[0][0] + 1), \
+      len(w[0])
+
 
 def Crop(image, left, top, width, height):
   img_height, img_width = image.shape[:2]

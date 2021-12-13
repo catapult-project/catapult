@@ -175,8 +175,7 @@ def EvaluateCallbackWithElement(
   if wait:
     tab.WaitForJavaScriptCondition(code, timeout=timeout_in_seconds)
     return True
-  else:
-    return tab.EvaluateJavaScript(code, user_gesture=user_gesture)
+  return tab.EvaluateJavaScript(code, user_gesture=user_gesture)
 
 
 @decorators.Cache

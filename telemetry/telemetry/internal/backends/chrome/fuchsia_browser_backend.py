@@ -160,4 +160,3 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def SymbolizeMinidump(self, minidump_path):
     logging.warning('Symbolizing Minidump not supported on Fuchsia.')
-    return None

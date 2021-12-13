@@ -351,8 +351,7 @@ class CrOSInterface(object):
       if destfile is not None and destfile != filename:
         shutil.copyfile(filename, destfile)
         return
-      else:
-        raise OSError('No such file or directory %s' % filename)
+      raise OSError('No such file or directory %s' % filename)
 
     if destfile is None:
       destfile = os.path.basename(filename)

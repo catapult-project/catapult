@@ -20,11 +20,11 @@ from typ import artifacts
 def ArtifactCompatibilityWrapperFactory(artifact_impl):
   if isinstance(artifact_impl, story_run.StoryRun):
     return TelemetryArtifactCompatibilityWrapper(artifact_impl)
-  elif isinstance(artifact_impl, artifacts.Artifacts):
+  if isinstance(artifact_impl, artifacts.Artifacts):
     return TypArtifactCompatibilityWrapper(artifact_impl)
-  elif isinstance(artifact_impl, FullLoggingArtifactImpl):
+  if isinstance(artifact_impl, FullLoggingArtifactImpl):
     return FullLoggingArtifactCompatibilityWrapper()
-  elif artifact_impl is None:
+  if artifact_impl is None:
     return LoggingArtifactCompatibilityWrapper()
   raise RuntimeError('Given unsupported artifact implementation %s' %
                      type(artifact_impl).__name__)

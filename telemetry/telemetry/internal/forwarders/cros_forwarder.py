@@ -23,9 +23,10 @@ class CrOsForwarderFactory(forwarders.ForwarderFactory):
   def Create(self, local_port, remote_port, reverse=False):
     if self._cri.local:
       return do_nothing_forwarder.DoNothingForwarder(local_port, remote_port)
-    else:
-      return CrOsSshForwarder(
-          self._cri, local_port, remote_port, port_forward=not reverse)
+    return CrOsSshForwarder(self._cri,
+                            local_port,
+                            remote_port,
+                            port_forward=not reverse)
 
 
 class CrOsSshForwarder(forwarders.Forwarder):

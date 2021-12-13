@@ -50,8 +50,7 @@ class FileHandle(object):
     if self._temp_file:
       self._temp_file.close()
       return self._temp_file.name
-    else:
-      return self._absolute_path
+    return self._absolute_path
 
 
 def FromTempFile(temp_file):

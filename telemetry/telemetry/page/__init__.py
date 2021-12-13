@@ -195,5 +195,4 @@ class Page(story.Story):
     file_path = os.path.realpath(self.file_path)
     if os.path.isdir(file_path):
       return file_path
-    else:
-      return os.path.dirname(file_path)
+    return os.path.dirname(file_path)

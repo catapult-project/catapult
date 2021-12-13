@@ -294,7 +294,7 @@ class AndroidPlatformBackend(
     if performance_mode == android_device.KEEP_PERFORMANCE_MODE:
       logging.info('Keeping device performance settings intact.')
       return
-    elif performance_mode == android_device.HIGH_PERFORMANCE_MODE:
+    if performance_mode == android_device.HIGH_PERFORMANCE_MODE:
       logging.info('Setting high performance mode.')
       self._perf_tests_setup.SetHighPerfMode()
     elif performance_mode == android_device.NORMAL_PERFORMANCE_MODE:
@@ -588,8 +588,7 @@ class AndroidPlatformBackend(
     """
     if self._require_root:
       return '/data/data/%s/' % package
-    else:
-      return '/data/local/tmp/%s/' % package
+    return '/data/local/tmp/%s/' % package
 
   def GetDumpLocation(self, package):
     """Returns the location where crash dumps should be written to.
@@ -631,11 +630,10 @@ class AndroidPlatformBackend(
           uline = six.text_type(line, encoding='utf-8')
           # unicode -> str (ASCII with special characters encoded)
           return uline.encode('ascii', 'backslashreplace')
-        else:
-          # str -> bytes (ASCII with special characters encoded)
-          bline = line.encode('ascii', 'backslashreplace')
-          # bytes -> str
-          return bline.decode('ascii')
+        # str -> bytes (ASCII with special characters encoded)
+        bline = line.encode('ascii', 'backslashreplace')
+        # bytes -> str
+        return bline.decode('ascii')
       except Exception: # pylint: disable=broad-except
         logging.error('Error encoding UTF-8 logcat line as ASCII.')
         return '<MISSING LOGCAT LINE: FAILED TO ENCODE>'
@@ -758,10 +756,9 @@ class AndroidPlatformBackend(
           if key == 'mHasBeenInactive':
             if value == 'true':
               return True
-            elif value == 'false':
+            if value == 'false':
               return False
-            else:
-              raise ValueError('Unknown value for %s: %s' % (key, value))
+            raise ValueError('Unknown value for %s: %s' % (key, value))
     raise exceptions.AndroidDeviceParsingError(str(input_methods))
 
   def IsScreenLocked(self):

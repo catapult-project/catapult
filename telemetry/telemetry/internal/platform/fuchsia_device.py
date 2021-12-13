@@ -142,7 +142,7 @@ def FindAllAvailableDevices(options):
                           managed_repo=options.fuchsia_repo)]
 
   # If the IP address of the device is specified, use that directly.
-  elif options.fuchsia_device_address:
+  if options.fuchsia_device_address:
     return [FuchsiaDevice(target_name='device_target',
                           host=options.fuchsia_device_address,
                           system_log_file=options.fuchsia_system_log_file,

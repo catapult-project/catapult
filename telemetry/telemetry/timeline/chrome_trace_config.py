@@ -48,10 +48,9 @@ def _ConvertDictKeysToCamelCaseRecursively(data):
     return {_ConvertStringToCamelCase(k):
             _ConvertDictKeysToCamelCaseRecursively(v)
             for k, v in six.iteritems(data)}
-  elif isinstance(data, list):
+  if isinstance(data, list):
     return list(map(_ConvertDictKeysToCamelCaseRecursively, data))
-  else:
-    return data
+  return data
 
 
 class ChromeTraceConfig(object):

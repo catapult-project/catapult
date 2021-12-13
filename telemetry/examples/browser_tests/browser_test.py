@@ -138,7 +138,6 @@ class FlakyTest(
     if cls._retry_count < 3:
       cls._retry_count += 1
       self.fail()
-    return
 
   @staticmethod
   def GetJSONResultsDelimiter():

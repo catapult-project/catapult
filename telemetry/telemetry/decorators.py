@@ -79,7 +79,7 @@ class Deprecated(object):
         return target(*args, **kwargs)
 
       return wrapper
-    elif inspect.isclass(target):
+    if inspect.isclass(target):
       original_ctor = target.__init__
 
       # We have to handle case original_ctor is object.__init__ separately
@@ -99,8 +99,7 @@ class Deprecated(object):
 
       target.__init__ = new_ctor
       return target
-    else:
-      raise TypeError('@Deprecated is only applicable to functions or classes')
+    raise TypeError('@Deprecated is only applicable to functions or classes')
 
 
 def Disabled(*args):
@@ -269,7 +268,7 @@ def _TestName(test):
     test = test.__func__
   if hasattr(test, '__name__'):
     return test.__name__
-  elif hasattr(test, '__class__'):
+  if hasattr(test, '__class__'):
     return test.__class__.__name__
   return str(test)
 

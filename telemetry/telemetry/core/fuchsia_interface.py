@@ -76,7 +76,7 @@ def _GetHostArchFromPlatform():
   host_arch = platform.machine()
   if host_arch == 'x86_64':
     return 'x64'
-  elif host_arch == 'aarch64':
+  if host_arch == 'aarch64':
     return 'arm64'
   raise Exception('Unsupported host architecture: %s' % host_arch)
 
@@ -112,6 +112,5 @@ def StartSymbolizerForProcessIfPossible(input_file, output_file, build_id_file):
     if six.PY3:
       kwargs['text'] = True
     return subprocess.Popen(symbolizer_cmd, **kwargs)
-  else:
-    logging.info('Symbolizer cannot be started.')
-    return None
+  logging.info('Symbolizer cannot be started.')
+  return None

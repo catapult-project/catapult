@@ -264,8 +264,7 @@ def GetClassifier(typ_runner, possible_browser):
 
   if possible_browser:
     return ClassifyTestWithBrowser
-  else:
-    return ClassifyTestWithoutBrowser
+  return ClassifyTestWithoutBrowser
 
 
 def _SetUpProcess(child, context): # pylint: disable=unused-argument

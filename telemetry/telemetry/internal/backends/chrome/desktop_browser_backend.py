@@ -243,8 +243,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # We assume that if there are more than 10 symbols the executable is not
       # stripped.
       return num_symbols < 10
-    else:
-      return False
+    return False
 
   def _GetStackFromMinidump(self, minidump):
     # Create an executable-specific directory if necessary to store symbols

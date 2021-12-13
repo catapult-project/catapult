@@ -30,8 +30,7 @@ class AndroidForwarderFactory(forwarders.ForwarderFactory):
     try:
       if not reverse:
         return AndroidForwarder(self._device, local_port, remote_port)
-      else:
-        return AndroidReverseForwarder(self._device, local_port, remote_port)
+      return AndroidReverseForwarder(self._device, local_port, remote_port)
     except Exception:
       logging.exception(
           'Failed to map local_port=%r to remote_port=%r (reverse=%r).',

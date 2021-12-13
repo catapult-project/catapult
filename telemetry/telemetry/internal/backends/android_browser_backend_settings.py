@@ -81,8 +81,7 @@ class AndroidBrowserBackendSettings(_BackendSettingsTuple):
                  apk_name, self.browser_type)
     if apk_name is None:
       return None
-    else:
-      return util.FindLatestApkOnHost(chrome_root, apk_name)
+    return util.FindLatestApkOnHost(chrome_root, apk_name)
 
   # returns True if this is a WebView browser and WebView-specific
   # field trial configurations should apply.
@@ -130,8 +129,7 @@ class ChromeBackendSettings(GenericChromeBackendSettings):
     # The APK to install depends on the OS version of the deivce.
     if device.build_version_sdk >= version_codes.NOUGAT:
       return 'Monochrome.apk'
-    else:
-      return 'Chrome.apk'
+    return 'Chrome.apk'
 
 
 class WebViewBasedBackendSettings(AndroidBrowserBackendSettings):
@@ -176,8 +174,7 @@ class WebViewBackendSettings(WebViewBasedBackendSettings):
     # explicitly overridden.
     if device.build_version_sdk >= version_codes.NOUGAT:
       return 'MonochromePublic.apk'
-    else:
-      return 'SystemWebView.apk'
+    return 'SystemWebView.apk'
 
   def FindSupportApks(self, apk_path, chrome_root):
     del chrome_root
@@ -205,8 +202,7 @@ class WebViewGoogleBackendSettings(WebViewBackendSettings):
     # The APK to install depends on the OS version of the deivce.
     if device.build_version_sdk >= version_codes.NOUGAT:
       return 'Monochrome.apk'
-    else:
-      return 'SystemWebViewGoogle.apk'
+    return 'SystemWebViewGoogle.apk'
 
 
 class WebViewBundleBackendSettings(WebViewBackendSettings):

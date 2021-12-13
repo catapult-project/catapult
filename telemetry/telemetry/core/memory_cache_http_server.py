@@ -328,7 +328,6 @@ class MemoryCacheDynamicHTTPRequestHandler(MemoryCacheHTTPRequestHandler):
   def ResponseFromHandler(self, path):
     """Override this method to return dynamic response."""
     del path  # Unused.
-    return None
 
   def Response(self, path):
     """Returns the dynamic response if exists, otherwise, use the resource

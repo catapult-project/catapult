@@ -103,8 +103,8 @@ def GetPublicKeyUnpacked(f, filepath):
     # Use the path as the public key.
     # See Extension::GenerateIdForPath in extension.cc
     return GetPublicKeyFromPath(filepath)
-  else:
-    return base64.standard_b64decode(manifest['key'])
+  return base64.standard_b64decode(manifest['key'])
+
 
 def HasPublicKey(filename):
   if os.path.isdir(filename):

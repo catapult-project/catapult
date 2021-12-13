@@ -74,8 +74,7 @@ def _MedianTestTime(test_times):
   halfLen = len(times) // 2
   if len(times) % 2:
     return times[halfLen]
-  else:
-    return 0.5 * (times[halfLen - 1] + times[halfLen])
+  return 0.5 * (times[halfLen - 1] + times[halfLen])
 
 
 def _TestTime(test, test_times, default_test_time):
@@ -154,22 +153,20 @@ def LoadTestCasesToBeRun(
                                 debug_shard_distributions)
     return [t for t in shards[shard_index]
             if post_test_filter_matcher(t)]
-  else:
-    test_cases.sort(key=lambda t: t.shortName())
-    test_cases = [t for t in test_cases if post_test_filter_matcher(t)]
-    test_indices = _TestIndicesForShard(
-        total_shards, shard_index, len(test_cases))
-    if debug_shard_distributions:
-      tmp_shards = []
-      for i in range(total_shards):
-        tmp_indices = _TestIndicesForShard(
-            total_shards, i, len(test_cases))
-        tmp_tests = [test_cases[index] for index in tmp_indices]
-        tmp_shards.append(tmp_tests)
-      # Can edit the code to get 'test_times' passed in here for
-      # debugging and comparison purposes.
-      _DebugShardDistributions(tmp_shards, None)
-    return [test_cases[index] for index in test_indices]
+  test_cases.sort(key=lambda t: t.shortName())
+  test_cases = [t for t in test_cases if post_test_filter_matcher(t)]
+  test_indices = _TestIndicesForShard(total_shards, shard_index,
+                                      len(test_cases))
+  if debug_shard_distributions:
+    tmp_shards = []
+    for i in range(total_shards):
+      tmp_indices = _TestIndicesForShard(total_shards, i, len(test_cases))
+      tmp_tests = [test_cases[index] for index in tmp_indices]
+      tmp_shards.append(tmp_tests)
+    # Can edit the code to get 'test_times' passed in here for
+    # debugging and comparison purposes.
+    _DebugShardDistributions(tmp_shards, None)
+  return [test_cases[index] for index in test_indices]
 
 
 def _CreateTestArgParsers():

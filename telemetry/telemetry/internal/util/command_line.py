@@ -40,8 +40,7 @@ class Command(ArgumentHandlerMixIn):
   def Description(cls):
     if cls.__doc__:
       return cls.__doc__.splitlines()[0]
-    else:
-      return ''
+    return ''
 
   def Run(self, args):
     raise NotImplementedError()

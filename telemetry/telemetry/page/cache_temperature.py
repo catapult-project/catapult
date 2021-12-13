@@ -187,7 +187,7 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
     if temperature == c.RENDERER_TEMPERATURE:
       c.PrepareRendererCache(page, browser.tabs[0], previous_page)
       return
-    elif temperature == c.BROWSER_TEMPERATURE:
+    if temperature == c.BROWSER_TEMPERATURE:
       c.PrepareBrowserCache(page, browser, previous_page)
       return
   raise NotImplementedError('Unrecognized cache temperature: %s' % temperature)

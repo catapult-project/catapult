@@ -22,8 +22,7 @@ def GetBaseDir():
   main_module = sys.modules['__main__']
   if hasattr(main_module, '__file__'):
     return os.path.dirname(os.path.abspath(main_module.__file__))
-  else:
-    return os.getcwd()
+  return os.getcwd()
 
 
 def GetCatapultThirdPartyDir():

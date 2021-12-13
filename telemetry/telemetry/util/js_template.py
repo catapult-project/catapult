@@ -58,10 +58,9 @@ def Render(template, **kwargs):
       if not isinstance(value, str):
         raise ValueError('Literal value for %s must be a string' % field_spec)
       return value
-    elif field.group('modifier') == '*':
+    if field.group('modifier') == '*':
       return ', '.join(RenderValue(v) for v in value)
-    else:
-      return RenderValue(value)
+    return RenderValue(value)
 
   result = RE_REPLACEMENT_FIELD.sub(interpolate, template)
   if unused:

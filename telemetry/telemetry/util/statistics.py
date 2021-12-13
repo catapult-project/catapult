@@ -297,14 +297,13 @@ def Percentile(values, percentile):
   percentile /= 100.0
   if percentile <= 0.5 / n:
     return sorted_values[0]
-  elif percentile >= (n - 0.5) / n:
+  if percentile >= (n - 0.5) / n:
     return sorted_values[-1]
-  else:
-    floor_index = int(math.floor(n * percentile - 0.5))
-    floor_value = sorted_values[floor_index]
-    ceil_value = sorted_values[floor_index+1]
-    alpha = n * percentile - 0.5 - floor_index
-    return floor_value + alpha * (ceil_value - floor_value)
+  floor_index = int(math.floor(n * percentile - 0.5))
+  floor_value = sorted_values[floor_index]
+  ceil_value = sorted_values[floor_index + 1]
+  alpha = n * percentile - 0.5 - floor_index
+  return floor_value + alpha * (ceil_value - floor_value)
 
 
 def GeometricMean(values):
