@@ -93,16 +93,6 @@ class SystemAppDeviceTest(device_test_case.DeviceTestCase):
     removed_paths = self._device.GetApplicationPaths(self.PACKAGE)
     self.assertEqual([], removed_paths)
 
-  def testInstallPrivileged(self):
-    self._check_preconditions()
-    privileged_path = devil_env.config.FetchPath('empty_system_webview',
-                                                 device=self._device)
-    system_app.InstallPrivilegedApps(self._device,
-                                     [(privileged_path, '/system')])
-    installed_paths = self._device.GetApplicationPaths(self.PACKAGE)
-    self.assertEqual(len(installed_paths), 1)
-    self.assertIn('/system/priv-app', installed_paths[0])
-
 
 if __name__ == '__main__':
   unittest.main()
