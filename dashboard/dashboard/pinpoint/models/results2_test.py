@@ -503,7 +503,8 @@ class GenerateResults2Test(testing_common.TestCase):
         _CreateHistogram('Vanilla-ES2015-Babel-Webpack-TodoMVC', 13),
         _CreateHistogram('Vanilla-ES2015-TodoMVC', 14),
         _CreateHistogram('VanillaJS-TodoMVC', 15),
-        _CreateHistogram('VueJS-TodoMVC', 16)
+        _CreateHistogram('VueJS-TodoMVC', 16),
+        _CreateHistogram('RunsPerMinute', 17)
     ])
     job = _SetupBQTest(mock_commit_info, mock_swarming, mock_render, mock_json,
                        expected_histogram_set, set_device_os=False)
@@ -548,6 +549,7 @@ class GenerateResults2Test(testing_common.TestCase):
                 'Preact_TodoMVC': 10,
                 'React_Redux_TodoMVC': 11,
                 'React_TodoMVC': 12,
+                'RunsPerMinute': 17,
                 'Vanilla_ES2015_Babel_Webpack_TodoMVC': 13,
                 'Vanilla_ES2015_TodoMVC': 14,
                 'VanillaJS_TodoMVC': 15,
@@ -597,6 +599,7 @@ class GenerateResults2Test(testing_common.TestCase):
                 'Preact_TodoMVC': 10,
                 'React_Redux_TodoMVC': 11,
                 'React_TodoMVC': 12,
+                'RunsPerMinute': 17,
                 'Vanilla_ES2015_Babel_Webpack_TodoMVC': 13,
                 'Vanilla_ES2015_TodoMVC': 14,
                 'VanillaJS_TodoMVC': 15,

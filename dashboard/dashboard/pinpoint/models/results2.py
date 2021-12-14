@@ -50,6 +50,7 @@ _METRIC_MAP = {
     "Preact-TodoMVC": ("speedometer2", "Preact_TodoMVC"),
     "React-Redux-TodoMVC": ("speedometer2", "React_Redux_TodoMVC"),
     "React-TodoMVC": ("speedometer2", "React_TodoMVC"),
+    "RunsPerMinute": ("speedometer2", "RunsPerMinute"),
     "Vanilla-ES2015-Babel-Webpack-TodoMVC":
         ("speedometer2", "Vanilla_ES2015_Babel_Webpack_TodoMVC"),
     "Vanilla-ES2015-TodoMVC": ("speedometer2", "Vanilla_ES2015_TodoMVC"),
