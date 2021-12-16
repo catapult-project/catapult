@@ -59,10 +59,7 @@ class VinnUnittest(unittest.TestCase):
 
   def _GetUnescapedExceptionMessage(self, exception):
     if os.name == 'nt':
-      if sys.version_info.major == 2:
-        return str(exception)
-      else:
-        return str(exception).encode().decode("unicode-escape")
+      return str(exception)
     else:
       return str(exception).encode().decode("unicode-escape")
 
@@ -195,8 +192,9 @@ class VinnUnittest(unittest.TestCase):
     # Assert error stack trace contain src files' info.
     exception_message = self._GetUnescapedExceptionMessage(context.exception)
     self.assertIn(
-        ('error.js:7: Error: Throw ERROR\n'
-         "    throw new Error('Throw ERROR');"), exception_message)
+        ('error.js:7: Error: Throw ERROR'), exception_message)
+    self.assertIn(
+        ("    throw new Error('Throw ERROR');"), exception_message)
     self.AssertHasNamedFrame('maybeRaiseException', 'error.js:7',
                              exception_message)
     self.AssertHasNamedFrame('global.maybeRaiseExceptionInFoo', 'foo.html:34',
@@ -220,8 +218,9 @@ class VinnUnittest(unittest.TestCase):
     # Assert error stack trace contain src files' info.
     exception_message = self._GetUnescapedExceptionMessage(context.exception)
     self.assertIn(
-        ('error.js:7: Error: Throw ERROR\n'
-         "    throw new Error('Throw ERROR');"), exception_message)
+        ('error.js:7: Error: Throw ERROR'), exception_message)
+    self.assertIn(
+        ("    throw new Error('Throw ERROR');"), exception_message)
 
     self.AssertHasNamedFrame('maybeRaiseException', 'error.js:7',
                              exception_message)
