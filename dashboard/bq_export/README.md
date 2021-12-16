@@ -89,6 +89,19 @@ $ PYTHONPATH=$PYTHONPATH:"$(pwd)/bq_export" python \
   --temp_location=gs://chromeperf-dataflow-temp/export-testmetadata-daily
 ```
 
+```
+$ PYTHONPATH=$PYTHONPATH:"$(pwd)/bq_export" python \
+  bq_export/delete_upload_tokens.py \
+  --service_account_email=bigquery-exporter@chromeperf.iam.gserviceaccount.com \
+  --runner=DataflowRunner \
+  --region=us-central1 \
+  --experiments=use_beam_bq_sink  \
+  --setup_file=bq_export/setup.py \
+  --staging_location=gs://chromeperf-dataflow/staging \
+  --template_location=gs://chromeperf-dataflow/templates/delete_upload_tokens \
+  --temp_location=gs://chromeperf-dataflow-temp/delete-upload-tokens-tmp
+```
+
 There are Cloud Scheduler jobs configured to run
 `gs://chromeperf-dataflow/templates/export_anomalies`,
 `gs://chromeperf-dataflow/templates/export_rows`, and

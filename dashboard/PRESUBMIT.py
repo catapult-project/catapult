@@ -16,7 +16,10 @@ def CheckChangeOnCommit(input_api, output_api):
 
 
 def _CommonChecks(input_api, output_api):
-  files_to_skip = input_api.DEFAULT_FILES_TO_SKIP + ('.*_pb2.py$',)
+  files_to_skip = input_api.DEFAULT_FILES_TO_SKIP + (
+      '.*_pb2.py$',
+      '.*bq_export.*',
+  )
   results = []
   results += input_api.RunTests(
       input_api.canned_checks.GetPylint(
