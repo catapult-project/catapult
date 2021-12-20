@@ -22,7 +22,7 @@ import py_utils
 _WPR_GO_DIR = os.path.join(util.GetCatapultDir(), 'web_page_replay_go', 'src')
 
 
-_SUPPORTED_GO_VERSIONS = ('go1.8', 'go1.9', 'go1.10', 'go1.11', 'go1.17')
+_SUPPORTED_GO_VERSIONS = ('go1.12', 'go1.13', 'go1.14', 'go1.15', 'go1.16', 'go1.17')
 
 
 def check_go_version():
@@ -88,6 +88,10 @@ def build_wpr_go(os_name, os_arch):
     build_cmd = ['go', 'build', '-v', 'wpr.go']
     print 'Running build command: %s' % ' '.join(build_cmd)
     subprocess.check_call(build_cmd, env=env, cwd=_WPR_GO_DIR)
+
+    clean_cmd = ['go', 'clean', '-modcache']
+    print 'Running clean command: %s' % ' '.join(clean_cmd)
+    subprocess.check_call(clean_cmd, env=env, cwd=_WPR_GO_DIR)
 
   finally:
     if go_path_dir:
