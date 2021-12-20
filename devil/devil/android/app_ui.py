@@ -89,7 +89,7 @@ class _UiNode(object):
         label = '%s[%r]' % (label, text)
       summary[package].add(label)
     lines = []
-    for package, labels in sorted(summary.iteritems()):
+    for package, labels in sorted(summary.items()):
       lines.append('- %s:' % package)
       for label in sorted(labels):
         lines.append('  - %s' % label)
