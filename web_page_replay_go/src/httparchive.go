@@ -18,7 +18,7 @@ import (
 	"strings"
 
 	"github.com/catapult-project/catapult/web_page_replay_go/src/webpagereplay"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 const usage = "%s [ls|cat|edit|merge|add|addAll] [options] archive_file [output_file] [url]"
@@ -30,25 +30,25 @@ type Config struct {
 
 func (cfg *Config) DefaultFlags() []cli.Flag {
 	return []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "command",
 			Value:       "",
 			Usage:       "Only show URLs matching this HTTP method.",
 			Destination: &cfg.method,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "host",
 			Value:       "",
 			Usage:       "Only show URLs matching this host.",
 			Destination: &cfg.host,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "full_path",
 			Value:       "",
 			Usage:       "Only show URLs matching this full path.",
 			Destination: &cfg.fullPath,
 		},
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:        "decode_response_body",
 			Usage:       "Decode/encode response body according to Content-Encoding header.",
 			Destination: &cfg.decodeResponseBody,
@@ -58,12 +58,12 @@ func (cfg *Config) DefaultFlags() []cli.Flag {
 
 func (cfg *Config) AddFlags() []cli.Flag {
 	return []cli.Flag{
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:        "skip-existing",
 			Usage:       "Skip over existing urls in the archive",
 			Destination: &cfg.skipExisting,
 		},
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:        "overwrite-existing",
 			Usage:       "Overwrite existing urls in the archive",
 			Destination: &cfg.overwriteExisting,
@@ -323,8 +323,8 @@ func main() {
 
 	checkArgs := func(cmdName string, wantArgs int) func(*cli.Context) error {
 		return func(c *cli.Context) error {
-			if len(c.Args()) != wantArgs {
-				return fmt.Errorf("Expected %d arguments but got %d", wantArgs, len(c.Args()))
+			if c.Args().Len() != wantArgs {
+				return fmt.Errorf("Expected %d arguments but got %d", wantArgs, c.Args().Len())
 			}
 			return nil
 		}
@@ -338,8 +338,8 @@ func main() {
 	}
 
 	app := cli.NewApp()
-	app.Commands = []cli.Command{
-		cli.Command{
+	app.Commands = []*cli.Command{
+		&cli.Command{
 			Name:      "ls",
 			Usage:     "List the requests in an archive",
 			ArgsUsage: "archive",
@@ -349,7 +349,7 @@ func main() {
 				return list(cfg, loadArchiveOrDie(c, 0), false)
 			},
 		},
-		cli.Command{
+		&cli.Command{
 			Name:      "cat",
 			Usage:     "Dump the requests/responses in an archive",
 			ArgsUsage: "archive",
@@ -359,7 +359,7 @@ func main() {
 				return list(cfg, loadArchiveOrDie(c, 0), true)
 			},
 		},
-		cli.Command{
+		&cli.Command{
 			Name:      "edit",
 			Usage:     "Edit the requests/responses in an archive",
 			ArgsUsage: "input_archive output_archive",
@@ -369,7 +369,7 @@ func main() {
 				return edit(cfg, loadArchiveOrDie(c, 0), c.Args().Get(1))
 			},
 		},
-		cli.Command{
+		&cli.Command{
 			Name:      "merge",
 			Usage:     "Merge the requests/responses of two archives",
 			ArgsUsage: "base_archive input_archive output_archive",
@@ -378,22 +378,22 @@ func main() {
 				return merge(cfg, loadArchiveOrDie(c, 0), loadArchiveOrDie(c, 1), c.Args().Get(2))
 			},
 		},
-		cli.Command{
+		&cli.Command{
 			Name:      "add",
 			Usage:     "Add a simple GET request from the network to the archive",
 			ArgsUsage: "input_archive output_archive [urls...]",
 			Flags:     cfg.AddFlags(),
 			Before:    func(c *cli.Context) error {
-				if len(c.Args()) < 3 {
-					return fmt.Errorf("Expected at least 3 arguments but got %d", len(c.Args()))
+				if c.Args().Len() < 3 {
+					return fmt.Errorf("Expected at least 3 arguments but got %d", c.Args().Len())
 				}
 				return nil
 			},
 			Action:    func(c *cli.Context) error {
-				return add(cfg, loadArchiveOrDie(c, 0), c.Args().Get(1), c.Args()[2:])
+				return add(cfg, loadArchiveOrDie(c, 0), c.Args().Get(1), c.Args().Tail())
 			},
 		},
-		cli.Command{
+		&cli.Command{
 			Name:      "addAll",
 			Usage:     "Add a simple GET request from the network to the archive",
 			ArgsUsage: "input_archive output_archive urls_file",
@@ -403,7 +403,7 @@ func main() {
 				return addAll(cfg, loadArchiveOrDie(c, 0), c.Args().Get(1), c.Args().Get(2))
 			},
 		},
-		cli.Command{
+		&cli.Command{
 			Name:      "trim",
 			Usage:     "Trim the requests/responses in an archive",
 			ArgsUsage: "input_archive output_archive",

@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/catapult-project/catapult/web_page_replay_go/src/webpagereplay"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 	"golang.org/x/net/http2"
 )
 
