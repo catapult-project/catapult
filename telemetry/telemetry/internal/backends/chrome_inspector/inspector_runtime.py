@@ -81,6 +81,14 @@ class InspectorRuntime(object):
       self._all_context_ids = set()
       self._inspector_websocket.SyncRequest({'method': 'Runtime.enable'},
                                             timeout=30)
+      # Disable capturing of stack traces for the inspector to minimize the
+      # performance impact of the inspector on the page (crbug/1280831).
+      self._inspector_websocket.SyncRequest({
+          'method': 'Runtime.setMaxCallStackSizeToCapture',
+          'params': {
+              'size': 0,
+          }
+      }, timeout=30)
     return self._all_context_ids
 
   def CrashRendererProcess(self, context_id, timeout):
