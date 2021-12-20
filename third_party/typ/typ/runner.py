@@ -860,8 +860,6 @@ class Runner(object):
             args['code'] = result.code
             args['unexpected'] = result.unexpected
             args['flaky'] = result.flaky
-            args['file'] = result.file_path
-            args['line'] = result.line_number
             event['args'] = args
 
             trace['traceEvents'].append(event)
@@ -1116,13 +1114,25 @@ def _run_one_test(child, test_input):
         should_retry_on_failure = (should_retry_on_failure
                                    or test_case.retryOnFailure)
     result = _result_from_test_result(test_result, test_name, started, took, out,
-                                    err, child.worker_num, pid, test_case,
+                                    err, child.worker_num, pid,
                                     expected_results, child.has_expectations,
                                     art.artifacts)
+    test_location = inspect.getsourcefile(test_case.__class__)
+    test_method = getattr(test_case, test_case._testMethodName)
+    # Test methods are often wrapped by decorators such as @mock. Try to get to
+    # the actual test method instead of the wrapper.
+    if hasattr(test_method, '__wrapped__'):
+      test_method = test_method.__wrapped__
+    # Some tests are generated and don't have valid line numbers. Such test
+    # methods also have a source location different from module location.
+    if inspect.getsourcefile(test_method) == test_location:
+      test_line = inspect.getsourcelines(test_method)[1]
+    else:
+      test_line = None
     result.result_sink_retcode =\
             child.result_sink_reporter.report_individual_test_result(
                 child.test_name_prefix, result, child.artifact_output_dir,
-                child.expectations, result.file_path, result.line_number)
+                child.expectations, test_location, test_line)
     return (result, should_retry_on_failure)
 
 
@@ -1138,7 +1148,7 @@ def _run_under_debugger(host, test_case, suite,
 
 
 def _result_from_test_result(test_result, test_name, started, took, out, err,
-                             worker_num, pid, test_case, expected_results,
+                             worker_num, pid, expected_results,
                              has_expectations, artifacts):
     if test_result.failures:
         actual = ResultType.Failure
@@ -1174,22 +1184,9 @@ def _result_from_test_result(test_result, test_name, started, took, out, err,
         unexpected = actual not in expected_results
 
     flaky = False
-    test_func = getattr(test_case, test_case._testMethodName)
-    # Test methods are often wrapped by decorators such as @mock. Try to get to
-    # the actual test method instead of the wrapper.
-    if hasattr(test_func, '__wrapped__'):
-      test_func = test_func.__wrapped__
-    # If test is generated it can be useful to provide attribute 'real_test_func'
-    # with a function that contains the logic being tested.
-    real_test_func = getattr(test_func, 'real_test_func', test_func)
-    file_path = inspect.getsourcefile(real_test_func)
-    # Set line_number without checking if test is generated or not,
-    # because it is essential for trace to contain as much info about
-    # failed tests as possible.
-    line_number = inspect.getsourcelines(real_test_func)[1]
     return Result(test_name, actual, started, took, worker_num,
                   expected_results, unexpected, flaky, code, out, err, pid,
-                  file_path, line_number, artifacts)
+                  artifacts)
 
 
 def _load_via_load_tests(child, test_name):

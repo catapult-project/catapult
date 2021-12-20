@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import inspect
-import json
-import os
 import sys
 import tempfile
 import unittest
@@ -26,7 +23,6 @@ from typ import Host, Runner, Stats, TestCase, TestSet, TestInput
 from typ import WinMultiprocessing
 from typ import runner as runner_module
 from typ.fakes import host_fake
-from typ.tests.stub_test_func import stub_test_func
 
 
 def _setup_process(child, context):  # pylint: disable=W0613
@@ -169,37 +165,6 @@ class RunnerTests(TestCase):
       r.args.typ_max_failures = None
       r.context = True
       r.run()
-
-    def test_use_real_test_func_attribute(self):
-      fd, trace_filepath = tempfile.mkstemp(prefix='trace', suffix='.json')
-      os.close(fd)
-      test_name = ('typ.tests.runner_test.RealTestFuncTests'
-                   '.test_use_real_test_func_attribute')
-      try:
-        r = Runner()
-        r.args.tests = [test_name]
-        r.args.write_trace_to = trace_filepath
-        r.args.jobs = 1
-        r.args.typ_max_failures = None
-        r.context = True
-        r.run()
-
-        with open(trace_filepath, 'r') as f:
-          trace = json.load(f)
-        test_trace_event = [event for event in trace['traceEvents']
-                            if event['name'] == test_name][0]
-
-        actual_test_source_filepath = test_trace_event['args']['file']
-        actual_test_source_line = test_trace_event['args']['line']
-        expected_test_source_filepath = inspect.getsourcefile(stub_test_func)
-        expected_test_source_line = inspect.getsourcelines(stub_test_func)[1]
-
-        self.assertEqual(actual_test_source_filepath,
-                         expected_test_source_filepath)
-        self.assertEqual(actual_test_source_line,
-                         expected_test_source_line)
-      finally:
-        os.remove(trace_filepath)
 
 
 class TestSetTests(TestCase):
@@ -366,17 +331,3 @@ class FailureTests(TestCase):
         if self.context:
             self.fail()
 
-
-def test_func(self):
-    # This test is mostly intended to be called by
-    # RunnerTests.test_use_real_test_func_attribute, above.
-    # It is not interesting on its own.
-    pass
-
-
-class RealTestFuncTests(TestCase):
-    pass
-
-
-setattr(test_func, 'real_test_func', stub_test_func)
-setattr(RealTestFuncTests, 'test_use_real_test_func_attribute', test_func)
