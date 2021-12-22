@@ -180,6 +180,25 @@ class ApkHelperTest(mock_calls.TestCase):
     apk = apk_helper.ToHelper('abc_bundle')
     self.assertTrue(isinstance(apk, apk_helper.BundleScriptHelper))
 
+  def testToHelperIncrementalApkFromApkHelper(self):
+    apk = apk_helper.ToIncrementalHelper(apk_helper.ApkHelper('abc.apk'))
+    self.assertTrue(isinstance(apk, apk_helper.IncrementalApkHelper))
+    self.assertEqual(apk.path, 'abc.apk')
+
+  def testToHelperIncrementalApkFromIncrementalApkHelper(self):
+    prev_apk = apk_helper.IncrementalApkHelper('abc.apk')
+    apk = apk_helper.ToIncrementalHelper(prev_apk)
+    self.assertIs(prev_apk, apk)
+
+  def testToHelperIncrementalApkFromPath(self):
+    apk = apk_helper.ToIncrementalHelper('abc.apk')
+    self.assertTrue(isinstance(apk, apk_helper.IncrementalApkHelper))
+
+  def testToHelperIncrementalException(self):
+    with self.assertRaises(apk_helper.ApkHelperError):
+      apk_helper.ToIncrementalHelper(
+          apk_helper.ToSplitHelper('abc.apk', ['a.apk', 'b.apk']))
+
   def testToHelperSplitApk(self):
     apk = apk_helper.ToSplitHelper('abc.apk', ['a.apk', 'b.apk'])
     self.assertTrue(isinstance(apk, apk_helper.SplitApkHelper))
@@ -311,6 +330,12 @@ class ApkHelperTest(mock_calls.TestCase):
       helper = apk_helper.ApkHelper('')
       self.assertEqual('org.chromium.RandomTestRunner',
                        helper.GetInstrumentationName())
+
+  def testSetExtraApkPaths(self):
+    apk = apk_helper.ToIncrementalHelper('abc.apk')
+    apk.SetExtraApkPaths(['extra.apk'])
+    with apk.GetApkPaths(_MockDeviceUtils()) as apk_paths:
+      self.assertEqual(apk_paths, ['abc.apk', 'extra.apk'])
 
   def testGetArchitectures(self):
     AbiPair = collections.namedtuple('AbiPair', ['abi32bit', 'abi64bit'])

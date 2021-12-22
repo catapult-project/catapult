@@ -83,6 +83,24 @@ def ToHelper(path_or_helper):
   raise ApkHelperError('Unrecognized APK format %s' % path_or_helper)
 
 
+def ToIncrementalHelper(path_or_helper):
+  """Creates an IncrementalApkHelper unless one is already given.
+
+  Currently supports IncrementalApkHelper and ApkHelper instances as well as
+  string paths ending in .apk.
+  """
+  if isinstance(path_or_helper, IncrementalApkHelper):
+    return path_or_helper
+  elif isinstance(path_or_helper, ApkHelper):
+    return IncrementalApkHelper(path_or_helper.path)
+  elif (isinstance(path_or_helper, six.string_types)
+        and path_or_helper.endswith('.apk')):
+    return IncrementalApkHelper(path_or_helper)
+
+  raise ApkHelperError('Unrecognized Incremental APK format %s' %
+                       path_or_helper)
+
+
 def ToSplitHelper(path_or_helper, split_apks):
   if isinstance(path_or_helper, SplitApkHelper):
     if sorted(path_or_helper.split_apk_paths) != sorted(split_apks):
@@ -461,6 +479,26 @@ class ApkHelper(BaseApkHelper):
     if modules:
       raise ApkHelperError('Cannot install modules when installing single APK')
     return _NoopFileHelper([self._apk_path])
+
+
+class IncrementalApkHelper(ApkHelper):
+  """Extends ApkHelper for incremental install."""
+
+  def __init__(self, apk_path):
+    super(IncrementalApkHelper, self).__init__(apk_path)
+    self._extra_apk_paths = []
+
+  def SetExtraApkPaths(self, extra_apk_paths):
+    self._extra_apk_paths = extra_apk_paths
+
+  def GetApkPaths(self,
+                  device,
+                  modules=None,
+                  allow_cached_props=False,
+                  additional_locales=None):
+    if modules:
+      raise ApkHelperError('Cannot install modules when installing single APK')
+    return _NoopFileHelper([self._apk_path] + self._extra_apk_paths)
 
 
 class SplitApkHelper(BaseApkHelper):
