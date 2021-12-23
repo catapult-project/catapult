@@ -127,8 +127,10 @@ def _GetD8BinaryPathForPlatform():
     return _D8Path('linux', 'mips', 'd8')
   elif platform.system() == 'Linux' and platform.machine() == 'mips64':
     return _D8Path('linux', 'mips64', 'd8')
-  elif platform.system() == 'Darwin' and (platform.machine() == 'x86_64' or platform.machine() == 'arm64'):
+  elif platform.system() == 'Darwin' and platform.machine() == 'x86_64':
     return _D8Path('mac', 'x86_64', 'd8')
+  elif platform.system() == 'Darwin' and platform.machine() == 'arm64':
+    return _D8Path('mac', 'arm', 'd8')
   elif platform.system() == 'Windows' and platform.machine() == 'AMD64':
     return _D8Path('win', 'AMD64', 'd8.exe')
   else:
