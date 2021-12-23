@@ -35,6 +35,7 @@ class Result(object):
     def __init__(self, name, actual, started, took, worker,
                  expected=None, unexpected=False,
                  flaky=False, code=0, out='', err='', pid=0,
+                 file_path='', line_number=0,
                  artifacts=None):
         self.name = name
         self.actual = actual
@@ -50,6 +51,8 @@ class Result(object):
         self.pid = pid
         self.is_regression = actual != ResultType.Pass and unexpected
         self.artifacts = artifacts
+        self.file_path = file_path
+        self.line_number = line_number
         self.result_sink_retcode = 0
 
 

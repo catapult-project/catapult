@@ -860,6 +860,8 @@ class Runner(object):
             args['code'] = result.code
             args['unexpected'] = result.unexpected
             args['flaky'] = result.flaky
+            args['file'] = result.file_path
+            args['line'] = result.line_number
             event['args'] = args
 
             trace['traceEvents'].append(event)
@@ -1114,7 +1116,7 @@ def _run_one_test(child, test_input):
         should_retry_on_failure = (should_retry_on_failure
                                    or test_case.retryOnFailure)
     result = _result_from_test_result(test_result, test_name, started, took, out,
-                                    err, child.worker_num, pid,
+                                    err, child.worker_num, pid, test_case,
                                     expected_results, child.has_expectations,
                                     art.artifacts)
     test_location = inspect.getsourcefile(test_case.__class__)
@@ -1148,7 +1150,7 @@ def _run_under_debugger(host, test_case, suite,
 
 
 def _result_from_test_result(test_result, test_name, started, took, out, err,
-                             worker_num, pid, expected_results,
+                             worker_num, pid, test_case, expected_results,
                              has_expectations, artifacts):
     if test_result.failures:
         actual = ResultType.Failure
@@ -1184,9 +1186,13 @@ def _result_from_test_result(test_result, test_name, started, took, out, err,
         unexpected = actual not in expected_results
 
     flaky = False
+    test_func = getattr(test_case, test_case._testMethodName)
+    test_func = getattr(test_func, 'real_test_func', test_func)
+    file_path = inspect.getsourcefile(test_func)
+    line_number = inspect.getsourcelines(test_func)[1]
     return Result(test_name, actual, started, took, worker_num,
                   expected_results, unexpected, flaky, code, out, err, pid,
-                  artifacts)
+                  file_path, line_number, artifacts)
 
 
 def _load_via_load_tests(child, test_name):
