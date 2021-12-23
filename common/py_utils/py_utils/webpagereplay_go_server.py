@@ -150,11 +150,8 @@ class ReplayServer():
       if not downloader:
         raise RuntimeError('downloader should not be None '
                            'while _go_binary_path is None')
-      host_os = py_utils.GetHostOsName()
-      # TODO(crbug/1268582): Remove after we generate a Mac ARM binary.
-      host_arch = py_utils.GetHostArchName() if host_os != "mac" else "x86_64"
       ReplayServer._go_binary_path = downloader(
-          'wpr_go', host_os, host_arch)
+          'wpr_go', py_utils.GetHostOsName(), py_utils.GetHostArchName())
     return ReplayServer._go_binary_path
 
   @classmethod
