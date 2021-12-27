@@ -82,11 +82,15 @@ def main():
   if options.verbose:
     logging.getLogger().setLevel(logging.DEBUG)
 
-  devices = device_utils.DeviceUtils.HealthyDevices()
-  if len(devices) != 1:
-    logging.error('Exactly 1 device must be attached.')
+  device = None
+  for d in device_utils.DeviceUtils.HealthyDevices():
+    if d.serial == options.device_serial_number:
+      device = d
+      break
+
+  if not device:
+    logging.error('No matching healthy devices')
     return 1
-  device = devices[0]
   package_info = util.get_supported_browsers()[options.browser]
 
   options.device = device
