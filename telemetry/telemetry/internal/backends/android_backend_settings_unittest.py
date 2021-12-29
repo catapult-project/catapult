@@ -64,3 +64,17 @@ class AndroidBackendSettingsUnittest(unittest.TestCase):
     self.assertEqual(
         backends.ANDROID_WEBVIEW_GOOGLE.GetApkName(device),
         'Monochrome.apk')
+
+  @mock.patch('telemetry.internal.backends.'
+              'android_browser_backend_settings.util.FindLatestApkOnHost')
+  @mock.patch('telemetry.internal.backends.'
+              'android_browser_backend_settings.apk_helper.GetPackageName')
+  def testGetEmbedderPackageName(self, get_pkg, apk_on_host):
+    finder_options = mock.Mock()
+    apk_on_host.return_value = 'apks/SystemWebViewShell.apk'
+    get_pkg.return_value = 'webview_test_shell'
+    backend_settings = backends.ANDROID_WEBVIEW
+    self.assertEqual(
+        backend_settings.GetEmbedderPackageName(finder_options),
+        'webview_test_shell')
+    get_pkg.assert_called_with('apks/SystemWebViewShell.apk')

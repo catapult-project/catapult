@@ -9,6 +9,7 @@ import os
 
 from telemetry.core import util
 
+from devil.android import apk_helper
 from devil.android.sdk import version_codes
 
 import py_utils
@@ -64,8 +65,8 @@ class AndroidBrowserBackendSettings(_BackendSettingsTuple):
   def has_additional_apk(self):
     return self.additional_apk_name is not None
 
-  def GetDevtoolsRemotePort(self, device):
-    del device
+  def GetDevtoolsRemotePort(self, device, package=None):
+    del device, package
     # By default return the devtools_port defined in the constructor.
     return self.devtools_port
 
@@ -146,13 +147,31 @@ class WebViewBasedBackendSettings(AndroidBrowserBackendSettings):
     kwargs.setdefault('additional_apk_name', None)
     return super(WebViewBasedBackendSettings, cls).__new__(cls, **kwargs)
 
-  def GetDevtoolsRemotePort(self, device):
+  def GetDevtoolsRemotePort(self, device, package=None):
     # The DevTools port for WebView based backends depends on the browser PID.
     def get_activity_pid():
-      return device.GetApplicationPids(self.package, at_most_one=True)
+      return device.GetApplicationPids(package or self.package,
+                                       at_most_one=True)
 
     pid = py_utils.WaitFor(get_activity_pid, timeout=30)
     return self.devtools_port.format(pid=pid)
+
+  def GetEmbedderPackageName(self, finder_options):
+    """Get the embedder's package name from it's apk.
+
+    Args:
+      finder_options: Telemetry options.
+      device: DeviceUtils instance.
+
+    Returns:
+      WebView embedder package name."""
+    apk_path = util.FindLatestApkOnHost(finder_options.chrome_root,
+                                        self.embedder_apk_name)
+    if not apk_path:
+      # If an apk cannot be found then return
+      # the hard coded package name.
+      return self.package
+    return apk_helper.GetPackageName(apk_path)
 
 
 class WebViewBackendSettings(WebViewBasedBackendSettings):

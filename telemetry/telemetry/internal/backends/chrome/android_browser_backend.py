@@ -29,7 +29,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a browser instance running on Android."""
   DEBUG_ARTIFACT_PREFIX = 'android_debug_info'
 
-  def __init__(self, android_platform_backend, browser_options,
+  def __init__(self, android_platform_backend, finder_options,
                browser_directory, profile_directory, backend_settings,
                build_dir=None):
     """
@@ -53,7 +53,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                       android_platform_backend_module.AndroidPlatformBackend)
     super(AndroidBrowserBackend, self).__init__(
         android_platform_backend,
-        browser_options=browser_options,
+        browser_options=finder_options.browser_options,
         browser_directory=browser_directory,
         profile_directory=profile_directory,
         supports_extensions=False,
@@ -64,9 +64,11 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._saved_sslflag = ''
     self._app_ui = None
+    self._browser_package = None
+    self._finder_options = finder_options
 
     # Set the debug app if needed.
-    self.platform_backend.SetDebugApp(self._backend_settings.package)
+    self.platform_backend.SetDebugApp(self.browser_package)
 
   @property
   def log_file_path(self):
@@ -82,13 +84,13 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def GetAppUi(self):
     if self._app_ui is None:
-      self._app_ui = app_ui.AppUi(self.device, package=self.package)
+      self._app_ui = app_ui.AppUi(self.device, package=self.browser_package)
     return self._app_ui
 
   def _StopBrowser(self):
     # Note: it's important to stop and _not_ kill the browser app, since
     # stopping also clears the app state in Android's activity manager.
-    self.platform_backend.StopApplication(self._backend_settings.package)
+    self.platform_backend.StopApplication(self.browser_package)
 
   def Start(self, startup_args):
     assert not startup_args, (
@@ -99,7 +101,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     user_agent_dict = user_agent.GetChromeUserAgentDictFromType(
         self.browser_options.browser_user_agent_type)
     self.device.StartActivity(
-        intent.Intent(package=self._backend_settings.package,
+        intent.Intent(package=self.browser_package,
                       activity=self._backend_settings.activity,
                       action=None, data='about:blank', category=None,
                       extras=user_agent_dict),
@@ -115,20 +117,21 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     package = self.devtools_client.GetVersion().get('Android-Package')
     if package is None:
       logging.warning('Could not determine package name from DevTools client.')
-    elif package == self._backend_settings.package:
+    elif package == self.browser_package:
       logging.info('Successfully connected to %s DevTools client', package)
     else:
       raise exceptions.BrowserGoneException(
           self.browser, 'Expected connection to %s but got %s.' % (
-              self._backend_settings.package, package))
+              self.browser_package, package))
 
   def _FindDevToolsPortAndTarget(self):
-    devtools_port = self._backend_settings.GetDevtoolsRemotePort(self.device)
+    devtools_port = self._backend_settings.GetDevtoolsRemotePort(
+        self.device, self.browser_package)
     browser_target = None  # Use default
     return devtools_port, browser_target
 
   def Foreground(self):
-    package = self._backend_settings.package
+    package = self.browser_package
     activity = self._backend_settings.activity
     self.device.StartActivity(
         intent.Intent(package=package,
@@ -161,7 +164,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Send USR1 signal to force GC on Chrome processes forked from Zygote.
     # (c.f. crbug.com/724032)
     self.device.KillAll(
-        self._backend_settings.package,
+        self.browser_package,
         exact=False,  # Send signal to children too.
         signum=device_signal.SIGUSR1,
         as_root=True)
@@ -172,7 +175,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       zygotes = self.device.ListProcesses('zygote')
       zygote_pids = set(p.pid for p in zygotes)
       assert zygote_pids, 'No Android zygote found'
-      processes = self.device.ListProcesses(self._backend_settings.package)
+      processes = self.device.ListProcesses(self.browser_package)
       return [p for p in processes if p.ppid in zygote_pids]
     except Exception as exc:
       # Re-raise as an AppCrashException to get further diagnostic information.
@@ -190,12 +193,18 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _GetBrowserProcesses(self):
     """Return all possible browser processes."""
-    package = self._backend_settings.package
+    package = self.browser_package
     return [p for p in self.processes if p.name == package]
 
   @property
-  def package(self):
-    return self._backend_settings.package
+  def browser_package(self):
+    if not self._browser_package:
+      self._browser_package = self._backend_settings.package
+      if self._backend_settings.IsWebView():
+        self._browser_package = (
+            self._backend_settings.
+            GetEmbedderPackageName(self._finder_options))
+    return self._browser_package
 
   @property
   def activity(self):
@@ -270,7 +279,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     device = self.platform_backend.device
 
     device_dump_path = posixpath.join(
-        self.platform_backend.GetDumpLocation(self.package),
+        self.platform_backend.GetDumpLocation(self.browser_package),
         'Crashpad', 'pending')
     if not device.PathExists(device_dump_path):
       logging.warning(
