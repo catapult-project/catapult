@@ -42,7 +42,7 @@ V8_GN_GEN_CMD = ('gn gen ' +
     ' v8_use_external_startup_data=false v8_static_library=true"')
 V8_GN_GEN_ARM_CMD = ('gn gen ' +
     os.path.join('out_arm', 'Default') +
-    r' --args="target_cpu=\"arm\" is_debug=false' +
+    r' --args="target_cpu=\"arm64\" is_debug=false' +
     ' v8_use_external_startup_data=false v8_static_library=true' +
     ' icu_use_data_file=false"')
 V8_GN_GEN_MIPS_CMD = ('gn gen ' +
@@ -149,6 +149,8 @@ def UpdateV8Binary(v8_version, target_os, target_arch):
       with ChangeDirectory('v8'):
         _RunCommand('git checkout {0}'.format(v8_version))
         _RunCommand('gclient sync')
+
+        # Build for x86 (any OS)
         _RunCommand(V8_GN_GEN_CMD)
         _RunCommand(
             V8_COMPILE_CMD.format(out=os.path.join('out', 'Default')))
@@ -157,6 +159,15 @@ def UpdateV8Binary(v8_version, target_os, target_arch):
           _RunCommand(
               V8_STRIP_CMD.format(strip='strip',
                                   d8=os.path.join('out', 'Default', 'd8')))
+
+        # Build for ARM Mac if we haven't already
+        if target_os == 'mac' and 'arm' not in target_arch:
+          _RunCommand(V8_GN_GEN_ARM_CMD)
+          _RunCommand(
+              V8_COMPILE_CMD.format(out=os.path.join('out_arm', 'Default')))
+          _RunCommand(
+                V8_STRIP_CMD.format(strip='strip',
+                                    d8=os.path.join('out_arm', 'Default', 'd8')))
 
         # Build the cross compiled version for ARM for direct testing on
         # Chrome OS devices. For now we build 32-bit only for both armv7l
