@@ -308,6 +308,7 @@ func compressResponse(resp *http.Response) error {
 		return fmt.Errorf("can't compress body to '%s' recieved Content-Encoding: '%s'", ce, newCE)
 	}
 	resp.Body = ioutil.NopCloser(bytes.NewReader(body))
+	resp.ContentLength = int64(len(body))
 	return nil
 }
 
