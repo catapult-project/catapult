@@ -112,19 +112,17 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     return process_info
 
   def GetPcSystemType(self):
-    # use: wmic computersystem get pcsystemtype
-    # the return value of the communicate() looks like:
-    #  ('PCSystemType  \r\r\nX             \r\r\n\r\r\n', None)
-    # where X represents the system type.
-    # More on: https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-computersystem
+    # Details at https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-computersystem
     lines = six.ensure_str(
         subprocess.Popen(
-            ['wmic', 'computersystem', 'get', 'pcsystemtype'],
+            ['powershell',
+             'Get-CimInstance -ClassName Win32_ComputerSystem' \
+             ' | Select-Object -Property PCSystemType'],
             stdout=subprocess.PIPE
             ).communicate()[0]
         ).split()
     if len(lines) > 1 and lines[0] == 'PCSystemType':
-      return lines[1]
+      return lines[2]
     return '0'
 
   def IsLaptop(self):
