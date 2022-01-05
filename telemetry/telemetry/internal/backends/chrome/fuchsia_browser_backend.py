@@ -54,7 +54,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return self.devtools_client.DumpMemory(timeout=timeout,
                                            detail_level=detail_level)
 
-  def _ReadDevToolsPort(self, stderr):
+  def _ReadDevToolsPortFromStderr(self):
     def TryReadingPort(f):
       if not f:
         return None
@@ -62,9 +62,24 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       tokens = re.search(r'Remote debugging port: (\d+)', line)
       self._browser_log += line
       return int(tokens.group(1)) if tokens else None
-    return py_utils.WaitFor(lambda: TryReadingPort(stderr), timeout=60)
+    return py_utils.WaitFor(lambda: TryReadingPort(
+        self._browser_process.stderr), timeout=60)
 
-  def _ConstructCmdLine(self, startup_args):
+  def _ReadDevToolsPortFromSystemLog(self):
+    def TryReadingPort():
+      tokens = re.search(
+          r'DevTools listening on ws://127.0.0.1:(\d+)',
+          self._platform_backend.GetSystemLog().decode("utf-8"))
+      return int(tokens.group(1)) if tokens else None
+    return py_utils.WaitFor(TryReadingPort(), timeout=60)
+
+  def _ReadDevToolsPort(self):
+    if self.browser_type == 'web-engine-shell':
+      return self._ReadDevToolsPortFromStderr()
+    else:
+      return self._ReadDevToolsPortFromSystemLog()
+
+  def _StartWebEngineShell(self, startup_args):
     browser_cmd = [
         'run',
         'fuchsia-pkg://%s/web_engine_shell#meta/web_engine_shell.cmx' %
@@ -86,18 +101,39 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         '--webgl-msaa-sample-count=0',
         '--max-decoded-image-size-mb=10'
     ])
-
     if startup_args:
       browser_cmd.extend(startup_args)
-    return browser_cmd
+    self._browser_process = self._command_runner.RunCommandPiped(
+        browser_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+  def _StartChrome(self, startup_args):
+    ffx = os.path.join(fuchsia_interface.SDK_ROOT, 'tools',
+                       fuchsia_interface.GetHostArchFromPlatform(), 'ffx')
+    browser_cmd = [
+        ffx,
+        'session',
+        'add',
+        'fuchsia-pkg://%s/chrome#meta/chrome_v1.cmx' %
+        self._managed_repo,
+        '--',
+        'about:blank',
+        '--remote-debugging-port=0'
+    ]
+    if startup_args:
+      browser_cmd.extend(startup_args)
+    self._browser_process = subprocess.Popen(
+        browser_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
   def Start(self, startup_args):
-    browser_cmd = self._ConstructCmdLine(startup_args)
     try:
-      self._browser_process = self._command_runner.RunCommandPiped(
-          browser_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-      browser_id_file = os.path.join(self._output_dir, 'gen', 'fuchsia',
-                                     'engine', 'web_engine_shell', 'ids.txt')
+      if self.browser_type == 'web-engine-shell':
+        self._StartWebEngineShell(startup_args)
+        browser_id_file = os.path.join(self._output_dir, 'gen', 'fuchsia',
+                                       'engine', 'web_engine_shell', 'ids.txt')
+      else:
+        self._StartChrome(startup_args)
+        browser_id_file = os.path.join(self._output_dir, 'gen', 'chrome', 'app',
+                                       'chrome', 'ids.txt')
 
       # Symbolize stderr of browser process if possible
       self._symbolizer_proc = (
@@ -109,7 +145,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._dump_finder = minidump_finder.MinidumpFinder(
           self.browser.platform.GetOSName(),
           self.browser.platform.GetArchName())
-      self._devtools_port = self._ReadDevToolsPort(self._browser_process.stderr)
+      self._devtools_port = self._ReadDevToolsPort()
       self.BindDevToolsClient()
 
       # Start tracing if startup tracing attempted but did not actually start.

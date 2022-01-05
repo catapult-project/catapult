@@ -14,7 +14,12 @@ import six
 
 from telemetry.core import util
 
-FUCHSIA_BROWSERS = ['web-engine-shell']
+FUCHSIA_BROWSERS = [
+    'fuchsia-chrome',
+    'web-engine-shell'
+]
+
+SDK_ROOT = os.path.join(util.GetCatapultDir(), '..', 'fuchsia-sdk', 'sdk')
 
 
 class CommandRunner(object):
@@ -72,7 +77,7 @@ class CommandRunner(object):
     return cmd_proc.returncode, stdout, stderr
 
 
-def _GetHostArchFromPlatform():
+def GetHostArchFromPlatform():
   host_arch = platform.machine()
   if host_arch == 'x86_64':
     return 'x64'
@@ -94,11 +99,10 @@ def StartSymbolizerForProcessIfPossible(input_file, output_file, build_id_file):
       A subprocess.Popen object for the started process, None if symbolizer
       fails to start."""
   if os.path.isfile(build_id_file):
-    sdk_root = os.path.join(util.GetCatapultDir(), '..', 'fuchsia-sdk', 'sdk')
-    symbolizer = os.path.join(sdk_root, 'tools', _GetHostArchFromPlatform(),
+    symbolizer = os.path.join(SDK_ROOT, 'tools', GetHostArchFromPlatform(),
                               'symbolizer')
     symbolizer_cmd = [
-        symbolizer, '--build-id-dir', os.path.join(sdk_root, '.build-id'),
+        symbolizer, '--build-id-dir', os.path.join(SDK_ROOT, '.build-id'),
         '--ids-txt', build_id_file
     ]
 

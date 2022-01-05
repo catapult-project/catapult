@@ -113,9 +113,8 @@ def FindAllAvailableBrowsers(finder_options, device):
 
   fuchsia_platform = telemetry_platform.GetPlatformForDevice(device,
                                                              finder_options)
-
   browsers.extend([
       PossibleFuchsiaBrowser(
-          'web-engine-shell', finder_options, fuchsia_platform)
+          finder_options.browser_type, finder_options, fuchsia_platform)
   ])
   return browsers
