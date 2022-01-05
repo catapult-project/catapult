@@ -6,6 +6,8 @@
 
 from __future__ import print_function
 import logging
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=deprecated-module
 import optparse
 import os
 import sys
@@ -29,6 +31,8 @@ _PROFILE_CHROME_AGENT_MODULES = [chrome_tracing_agent, ddms_tracing_agent,
 
 
 def _CreateOptionParser():
+  # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+  # pylint: disable=deprecated-module
   parser = optparse.OptionParser(description='Record about://tracing profiles '
                                  'from Android browsers. See http://dev.'
                                  'chromium.org/developers/how-tos/trace-event-'
@@ -36,13 +40,16 @@ def _CreateOptionParser():
                                  'profiling.', conflict_handler='resolve')
 
   parser = util.get_main_options(parser)
-
+  # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+  # pylint: disable=deprecated-module
   timed_options = optparse.OptionGroup(parser, 'Timed tracing')
   timed_options.add_option('-t', '--time', help='Profile for N seconds and '
                           'download the resulting trace.', metavar='N',
                            type='float', dest='trace_time')
   parser.add_option_group(timed_options)
 
+  # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+  # pylint: disable=deprecated-module
   cont_options = optparse.OptionGroup(parser, 'Continuous tracing')
   cont_options.add_option('--continuous', help='Profile continuously until '
                           'stopped.', action='store_true')
@@ -92,7 +99,7 @@ When in doubt, just try out --trace-frame-viewer.
     devices = [a.GetDeviceSerial() for a in adb_wrapper.AdbWrapper.Devices()]
     if len(devices) == 0:
       raise RuntimeError('No ADB devices connected.')
-    elif len(devices) >= 2:
+    if len(devices) >= 2:
       raise RuntimeError('Multiple devices connected, serial number required')
     options.device_serial_number = devices[0]
   device = device_utils.DeviceUtils.HealthyDevices(device_arg=
@@ -164,3 +171,5 @@ When in doubt, just try out --trace-frame-viewer.
       os.system('/usr/bin/open %s' % os.path.abspath(result))
     else:
       webbrowser.open(result)
+
+  return 0

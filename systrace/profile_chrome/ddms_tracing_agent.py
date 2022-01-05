@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=deprecated-module
 import optparse
 import os
 import re
@@ -89,6 +91,8 @@ def try_create_agent(config):
   return None
 
 def add_options(parser):
+  # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+  # pylint: disable=deprecated-module
   options = optparse.OptionGroup(parser, 'Java tracing')
   options.add_option('--ddms', help='Trace Java execution using DDMS '
                      'sampling.', action='store_true')

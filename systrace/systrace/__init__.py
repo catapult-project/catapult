@@ -5,6 +5,8 @@ import os
 import sys
 
 def _JoinPath(*path_parts):
+  # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+  # pylint: disable=no-value-for-parameter
   return os.path.abspath(os.path.join(*path_parts))
 
 

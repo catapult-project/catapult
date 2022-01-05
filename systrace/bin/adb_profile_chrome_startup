@@ -5,6 +5,8 @@
 # found in the LICENSE file.
 
 import logging
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=deprecated-module
 import optparse
 import os
 import sys
@@ -33,6 +35,8 @@ _DEFAULT_CHROME_CATEGORIES = '_DEFAULT_CHROME_CATEGORIES'
 
 
 def _CreateOptionParser():
+  # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+  # pylint: disable=deprecated-module
   parser = optparse.OptionParser(description='Record about://tracing profiles '
                                  'from Android browsers startup, combined with '
                                  'Android systrace. See http://dev.chromium.org'

@@ -43,7 +43,7 @@ class WaltAgentTest(unittest.TestCase):
     agent._trace_contents = '<trace contents here>\n'
     agent._clock_sync_marker = '<clock sync marker here>\n'
     result = agent._get_trace_result()
-    self.assertEquals(result, '# tracer: \n# clock_type=LINUX_CLOCK_MONOTONIC\n'
+    self.assertEqual(result, '# tracer: \n# clock_type=LINUX_CLOCK_MONOTONIC\n'
                       '<trace contents here>\n<clock sync marker here>\n')
 
 if __name__ == "__main__":

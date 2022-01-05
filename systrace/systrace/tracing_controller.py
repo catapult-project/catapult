@@ -38,6 +38,8 @@ def ControllerAgentClockSync(issue_ts, name):
 
 class TracingControllerAgent(tracing_agents.TracingAgent):
   def __init__(self):
+    # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(TracingControllerAgent, self).__init__()
     self._log_path = None
 
@@ -99,10 +101,14 @@ class TracingControllerAgent(tracing_agents.TracingAgent):
     """
     return False
 
+  # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+  # pylint: disable=arguments-differ
   # pylint: disable=unused-argument
   def RecordClockSyncMarker(self, sync_id, callback):
     raise NotImplementedError
 
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class TracingController(object):
   def __init__(self, agents_with_config, controller_config):
     """Create tracing controller.
@@ -249,7 +255,8 @@ def GetUniqueSyncID():
   """
   return str(uuid.uuid4())
 
-
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class AgentWithConfig(object):
   def __init__(self, agent, config):
     self.agent = agent

@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 
 from __future__ import print_function
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=deprecated-module
 import optparse
 import platform
 import re
@@ -162,6 +164,8 @@ def _construct_atrace_args(config, categories):
 class AtraceAgent(tracing_agents.TracingAgent):
 
   def __init__(self, device_sdk_version, tracing_path):
+    # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(AtraceAgent, self).__init__()
     self._device_sdk_version = device_sdk_version
     self._tracing_path = tracing_path

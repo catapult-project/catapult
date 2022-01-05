@@ -15,7 +15,8 @@ tool (e.g. atrace, ftrace.)
 START_STOP_TIMEOUT = 10.0
 GET_RESULTS_TIMEOUT = 30.0
 
-
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class TracingConfig(object):
   '''Store the tracing configuration options for all Systrace agents. If there
   are ever any options that are to be shared between all of the agents, those
@@ -24,7 +25,8 @@ class TracingConfig(object):
   def __init__(self):
     pass
 
-
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class TracingAgent(object):
   def __init__(self):
     pass
@@ -41,7 +43,6 @@ class TracingAgent(object):
     Returns:
         Boolean value indicating whether or not the trace started successfully.
     '''
-    pass
 
   def StopAgentTracing(self, timeout=None):
     '''Stops running the trace for this agent and returns immediately.
@@ -53,7 +54,6 @@ class TracingAgent(object):
     Returns:
         Boolean value indicating whether or not the trace started successfully.
     '''
-    pass
 
   def SupportsExplicitClockSync(self):
     '''Find out if this agent supports recording of clock sync markers.
@@ -88,4 +88,3 @@ class TracingAgent(object):
     Returns:
         Completed trace for this agent.
     '''
-    pass

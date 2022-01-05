@@ -6,6 +6,8 @@
 
 """Runs the unit test suite for systrace."""
 
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=deprecated-module
 import optparse
 import os
 import sys
@@ -18,6 +20,8 @@ from systrace import decorators
 
 
 def main():
+  # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+  # pylint: disable=deprecated-module
   parser = optparse.OptionParser()
   parser.add_option("-d", "--device", dest="device",
                     help="device the test runs on", metavar="DEVICE")

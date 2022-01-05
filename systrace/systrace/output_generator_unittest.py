@@ -41,10 +41,10 @@ class OutputGeneratorTest(unittest.TestCase):
     merged_results = output_generator.MergeTraceResultsIfNeeded(results)
     for r in merged_results:
       if r.source_name == 'a':
-        self.assertEquals(r.raw_data, t1)
+        self.assertEqual(r.raw_data, t1)
       elif r.source_name == 'b':
-        self.assertEquals(r.raw_data, t2)
-    self.assertEquals(len(merged_results), len(results))
+        self.assertEqual(r.raw_data, t2)
+    self.assertEqual(len(merged_results), len(results))
     os.remove(update_systrace_trace_viewer.SYSTRACE_TRACE_VIEWER_HTML_FILE)
 
   @decorators.HostOnlyTest
@@ -66,7 +66,7 @@ class OutputGeneratorTest(unittest.TestCase):
     # Ensure the trace data written in HTML is located within the
     # correct place in the HTML document and that the data is not
     # malformed.
-    self.assertEquals(trace_data, atrace_data)
+    self.assertEqual(trace_data, atrace_data)
     os.remove(update_systrace_trace_viewer.SYSTRACE_TRACE_VIEWER_HTML_FILE)
 
   @decorators.HostOnlyTest

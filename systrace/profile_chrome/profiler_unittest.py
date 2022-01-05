@@ -39,7 +39,7 @@ class ProfilerTest(unittest.TestCase):
     try:
       self.assertFalse(result.endswith('.html'))
       with open(result) as f:
-        self.assertEquals(f.read(), 'fake-contents')
+        self.assertEqual(f.read(), 'fake-contents')
     finally:
       if os.path.exists(result):
         os.remove(result)

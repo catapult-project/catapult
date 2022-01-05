@@ -24,7 +24,7 @@ class ChromeAgentTest(agents_unittest.BaseAgentTest):
         chrome_tracing_agent.ChromeTracingAgent.GetCategories(
             self.device, self.package_info)
 
-    self.assertEquals(len(categories), 2)
+    self.assertEqual(len(categories), 2)
     self.assertTrue(categories[0])
     self.assertTrue(categories[1])
 

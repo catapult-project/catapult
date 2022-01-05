@@ -45,6 +45,8 @@ def get_config(options):
 
 class AndroidProcessDataAgent(tracing_agents.TracingAgent):
   def __init__(self):
+    # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(AndroidProcessDataAgent, self).__init__()
     self._trace_data = ""
     self._device = None

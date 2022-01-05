@@ -2,10 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=deprecated-module
 import optparse
 
 
 def OutputOptions(parser):
+  # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+  # pylint: disable=deprecated-module
   output_options = optparse.OptionGroup(parser, 'Output options')
   output_options.add_option('-o', '--output', dest='output_file',
                             help='Save trace output to file.')

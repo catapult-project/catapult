@@ -64,6 +64,8 @@ class AtraceFromFileAgentTest(unittest.TestCase):
         full_trace = six.ensure_str(f1.read())
         expected_contents = f2.read()
         self.assertTrue(expected_contents in full_trace)
+    # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+    # pylint: disable=try-except-raise
     except:
       raise
     finally:

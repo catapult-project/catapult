@@ -42,6 +42,8 @@ def parse_proc_cgroups(cgroups, subsys):
 
 class AndroidCgroupAgent(tracing_agents.TracingAgent):
   def __init__(self):
+    # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(AndroidCgroupAgent, self).__init__()
     self._config = None
     self._device_utils = None

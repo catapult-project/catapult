@@ -77,6 +77,8 @@ def GenerateHTMLOutput(trace_results, output_file_name):
   systrace_dir = os.path.abspath(os.path.dirname(__file__))
 
   try:
+    # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+    # pylint: disable=import-outside-toplevel
     from systrace import update_systrace_trace_viewer
   except ImportError:
     pass
@@ -134,14 +136,13 @@ def _ConvertToHtmlString(result):
   If the trace result is a dictionary or list, JSON-encode it.
   If the trace result is a string, leave it unchanged.
   """
-  if isinstance(result, dict) or isinstance(result, list):
+  if isinstance(result, (dict, list)):
     return json.dumps(result)
-  elif isinstance(result, six.string_types):
+  if isinstance(result, six.string_types):
     return result
-  elif isinstance(result, bytes):
+  if isinstance(result, bytes):
     return result.decode('utf-8')
-  else:
-    raise ValueError('Invalid trace result format for HTML output')
+  raise ValueError('Invalid trace result format for HTML output')
 
 def GenerateJSONOutput(trace_results, output_file_name):
   """Write the results of systrace to a JSON file.

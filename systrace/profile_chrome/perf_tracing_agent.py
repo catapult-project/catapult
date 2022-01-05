@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 
 import logging
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=deprecated-module
 import optparse
 import os
 import signal
@@ -46,7 +48,8 @@ _PERF_OPTIONS = [
     '--freq', '2000',
 ]
 
-
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class _PerfProfiler(object):
   def __init__(self, device, perf_binary, categories):
     self._device = device
@@ -134,7 +137,7 @@ class PerfProfilerAgent(tracing_agents.TracingAgent):
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StopAgentTracing(self, timeout=None):
     if not self._perf_instance:
-      return
+      return False
     self._perf_instance.SignalAndWait()
     return True
 
@@ -234,6 +237,8 @@ def try_create_agent(config):
   return None
 
 def add_options(parser):
+  # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+  # pylint: disable=deprecated-module
   options = optparse.OptionGroup(parser, 'Perf profiling options')
   options.add_option('-p', '--perf', help='Capture a perf profile with '
                      'the chosen comma-delimited event categories. '

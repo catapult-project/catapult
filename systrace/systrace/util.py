@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 
 from __future__ import print_function
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=deprecated-module
 import optparse
 import os
 import sys
@@ -10,6 +12,8 @@ import sys
 from devil.android.constants import chrome
 from devil.android import device_utils, device_errors
 
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=arguments-differ
 class OptionParserIgnoreErrors(optparse.OptionParser):
   """Wrapper for OptionParser that ignores errors and produces no output."""
 

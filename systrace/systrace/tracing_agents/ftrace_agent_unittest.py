@@ -21,6 +21,8 @@ FT_BUFFER_SIZE = FT_DIR + "buffer_size_kb"
 
 
 def make_test_io_interface(permitted_files):
+  # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+  # pylint: disable=useless-object-inheritance
   class TestIoImpl(object):
 
     @staticmethod
@@ -31,8 +33,7 @@ def make_test_io_interface(permitted_files):
     def readFile(path):
       if path in permitted_files:
         return permitted_files[path]
-      else:
-        return ""
+      return ""
 
     @staticmethod
     def haveWritePermissions(path):

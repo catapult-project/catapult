@@ -10,7 +10,8 @@ This class represents the captured trace results from a particular
 tool (e.g. atrace, ftrace.)
 '''
 
-
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class TraceResult(object):
   def __init__(self, source_name, raw_data):
     self.source_name = source_name

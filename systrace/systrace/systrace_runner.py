@@ -23,6 +23,8 @@ AGENT_MODULES = [android_process_data_agent, android_cgroup_agent,
                  atrace_agent, atrace_from_file_agent, atrace_process_dump,
                  ftrace_agent, walt_agent]
 
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class SystraceRunner(object):
   def __init__(self, script_dir, options):
     """Constructor.

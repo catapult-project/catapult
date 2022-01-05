@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=deprecated-module
 import optparse
 import threading
 
@@ -32,6 +34,8 @@ class WaltConfig(tracing_agents.TracingConfig):
 
 
 def add_options(parser):
+  # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+  # pylint: disable=deprecated-module
   options = optparse.OptionGroup(parser, 'WALT trace options')
   options.add_option('--walt', dest='is_walt_enabled', default=False,
                     action='store_true', help='Use the WALT tracing agent. '
@@ -53,6 +57,8 @@ class WaltAgent(tracing_agents.TracingAgent):
   computers. For more information, visit https://github.com/google/walt
   """
   def __init__(self):
+    # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(WaltAgent, self).__init__()
     self._trace_contents = None
     self._config = None
@@ -93,6 +99,8 @@ class WaltAgent(tracing_agents.TracingAgent):
   def SupportsExplicitClockSync(self):
     return True
 
+  # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+  # pylint: disable=arguments-differ
   def RecordClockSyncMarker(self, sync_id, did_record_clock_sync_callback):
     cmd = 'cat /proc/timer_list | grep now'
     t1 = trace_time_module.Now()

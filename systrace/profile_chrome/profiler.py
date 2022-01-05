@@ -97,6 +97,8 @@ def CaptureProfile(options, interval, modules, output=None,
     else:
       ui.PrintMessage('Capturing %s. Press Enter to stop...' % trace_type,
                       eol='')
+      # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+      # pylint: disable=undefined-variable
       raw_input()
 
     ui.PrintMessage('Stopping...')

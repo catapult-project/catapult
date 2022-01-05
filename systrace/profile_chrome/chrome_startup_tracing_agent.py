@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 
 import logging
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=deprecated-module
 import optparse
 import os
 import re
@@ -167,6 +169,8 @@ def try_create_agent(config):
                                    config.trace_time, config.trace_format)
 
 def add_options(parser):
+  # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+  # pylint: disable=deprecated-module
   options = optparse.OptionGroup(parser, 'Chrome startup tracing')
   options.add_option('--url', help='URL to visit on startup. Default: '
                      'https://www.google.com. An empty URL launches Chrome '

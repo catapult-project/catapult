@@ -7,6 +7,8 @@
 
 import json
 import logging
+# TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+# pylint: disable=deprecated-module
 import optparse
 import py_utils
 
@@ -26,6 +28,8 @@ HELPER_DUMP_JSON = '/data/local/tmp/procdump.json'
 
 class AtraceProcessDumpAgent(tracing_agents.TracingAgent):
   def __init__(self):
+    # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(AtraceProcessDumpAgent, self).__init__()
     self._device = None
     self._dump = None
@@ -56,7 +60,8 @@ class AtraceProcessDumpAgent(tracing_agents.TracingAgent):
       self._device.RunShellCommand(['rm', HELPER_DUMP_JSON],
           check_return=True, as_root=True)
     except AdbShellCommandFailedError:
-      logging.error('AtraceProcessDumpAgent failed to pull data. Check device storage.')
+      logging.error(
+        'AtraceProcessDumpAgent failed to pull data. Check device storage.')
       return False
     return True
 
@@ -92,6 +97,8 @@ class AtraceProcessDumpConfig(tracing_agents.TracingConfig):
 
 
 def add_options(parser):
+  # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
+  # pylint: disable=deprecated-module
   options = optparse.OptionGroup(parser, 'Atrace process dump options')
   options.add_option('--process-dump', dest='process_dump_enable',
                      default=False, action='store_true',
