@@ -32,6 +32,9 @@ class TestCase(unittest.TestCase):
     # Should be set if the test determines that it should be retried on
     # failure in some way outside of the normal test expectation approach.
     retryOnFailure = False
+    # Allows a test to mark a programmatic skip (through calling self.skipTest)
+    # as expected.
+    programmaticSkipIsExpected = False
 
     def set_artifacts(self, artifacts):
         # We need this setter instead of setting artifacts directly so that

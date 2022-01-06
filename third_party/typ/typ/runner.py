@@ -1113,6 +1113,12 @@ def _run_one_test(child, test_input):
     took = h.time() - started
     # If the test signaled that it should be retried on failure, do so.
     if isinstance(test_case, TypTestCase):
+        # Handle the case where the test called self.skipTest, e.g. if it
+        # determined that the test is not valid on the current configuration.
+        if test_result.skipped and test_case.programmaticSkipIsExpected:
+            return (Result(test_name, ResultType.Skip, started, took,
+                           child.worker_num, expected={ResultType.Skip},
+                           unexpected=False, pid=pid), False)
         should_retry_on_failure = (should_retry_on_failure
                                    or test_case.retryOnFailure)
     result = _result_from_test_result(test_result, test_name, started, took, out,
