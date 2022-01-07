@@ -119,6 +119,40 @@
         }
       }
     },
+    "httparchive_go": {
+      "cloud_storage_base_folder": "binary_dependencies",
+      "cloud_storage_bucket": "chromium-telemetry",
+      "file_info": {
+        "linux_aarch64": {
+          "cloud_storage_hash": "175758ecbf5ee1c6dd3a00d97b0a8b8e1c6e5903",
+          "download_path": "bin/linux/aarch64/httparchive"
+        },
+        "linux_armv7l": {
+          "cloud_storage_hash": "f7e3b7685e6d7fac53a8edf0cdb14ecddda2199a",
+          "download_path": "bin/linux/armv7l/httparchive"
+        },
+        "linux_x86_64": {
+          "cloud_storage_hash": "963f893a77f15f819dd60e98fd3745d22c70db0e",
+          "download_path": "bin/linux/x86_64/httparchive"
+        },
+        "mac_arm64": {
+          "cloud_storage_hash": "cbcc2fbf43eac9a909ae528a707902909ca4aebd",
+          "download_path": "bin/mac/arm64/httparchive"
+        },
+        "mac_x86_64": {
+          "cloud_storage_hash": "fcf996031e7e4d8ab22aa2aafec46b99cf85ee85",
+          "download_path": "bin/mac/x86_64/httparchive"
+        },
+        "win_AMD64": {
+          "cloud_storage_hash": "ed15f87778e718e8a2fc9fc44adc8e13fe98b9fd",
+          "download_path": "bin/win/AMD64/httparchive.exe"
+        },
+        "win_x86": {
+          "cloud_storage_hash": "e2ac481c8a0386935e63631a9ce170ccf319dc25",
+          "download_path": "bin/win/x86/httparchive.exe"
+        }
+      }
+    },
     "ipfw": {
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",
