@@ -197,7 +197,6 @@ class FromDictTest(unittest.TestCase):
     quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
 
     extra_args = [
-        '-d',
         '--benchmarks',
         'speedometer',
         '--story-filter',

@@ -97,8 +97,10 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
   def _ExtraTestArgs(cls, arguments):
     extra_test_args = []
 
-    # Run tests even if they're configured to be ignored in expectations.config
-    extra_test_args.append('-d')
+    # If we're running a single test,
+    # do so even if it's configured to be ignored in expectations.config.
+    if not arguments.get('story_tags'):
+      extra_test_args.append('-d')
 
     benchmark = arguments.get('benchmark')
     if not benchmark:
