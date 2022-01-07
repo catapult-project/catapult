@@ -10,6 +10,10 @@ from google.appengine.ext import ndb
 
 from dashboard.common import namespaced_stored_object
 
+import six
+if six.PY2:
+  import string
+
 BOT_CONFIGURATIONS_KEY = 'bot_configurations'
 
 
@@ -44,4 +48,6 @@ def List():
   canonical_names = [
       name for name, value in bot_configurations.items() if 'alias' not in value
   ]
+  if six.PY2:
+    return sorted(canonical_names, key=string.lower)
   return sorted(canonical_names, key=str.lower)
