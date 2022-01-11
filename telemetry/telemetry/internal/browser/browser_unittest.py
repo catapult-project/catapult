@@ -147,7 +147,10 @@ class BrowserTest(browser_test_case.BrowserTestCase):
       return
 
     model_name_re = r"[a-zA-Z]* [0-9.]*"
-    self.assertNotEqual(re.match(model_name_re, info.model_name), None)
+    self.assertNotEqual(
+        re.match(model_name_re, info.model_name),
+        None,
+        'Invalid Mac model name: %s' % info.model_name)
 
   @decorators.Enabled('android')
   def testGetAppUi(self):
