@@ -95,6 +95,34 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(wallValue.running.max, 30);
   });
 
+  test('testDeserializeMetric', function() {
+    const slices = [
+      {
+        title: 'wasm.Deserialize', args: {}, start: 10, end: 20,
+        cpuStart: 100, cpuEnd: 200
+      },
+      {
+        title: 'wasm.Deserialize', args: {}, start: 30, end: 60,
+        cpuStart: 300, cpuEnd: 600
+      }
+    ];
+    const histograms = runMetrics(slices);
+
+    const cpuValue =
+      histograms.getHistogramNamed('v8:wasm:deserialize:cpu_time');
+    assert.strictEqual(cpuValue.running.sum, 400);
+    assert.strictEqual(cpuValue.numValues, 2);
+    assert.strictEqual(cpuValue.average, 200);
+    assert.strictEqual(cpuValue.running.max, 300);
+
+    const wallValue =
+      histograms.getHistogramNamed('v8:wasm:deserialize:wall_time');
+    assert.strictEqual(wallValue.running.sum, 40);
+    assert.strictEqual(wallValue.numValues, 2);
+    assert.strictEqual(wallValue.average, 20);
+    assert.strictEqual(wallValue.running.max, 30);
+  });
+
   test('testStreamingBaselineCompileTime', function() {
     const slices = [
       {

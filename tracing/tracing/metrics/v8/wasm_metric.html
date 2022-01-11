@@ -61,6 +61,29 @@ tr.exportTo('tr.metrics.v8', function() {
     histograms.addHistogram(wasmSyncCompileTimeWall);
   }
 
+  function computeDeserializeTimeMetric(histograms, wasmEvents) {
+    if (!wasmEvents.hasOwnProperty('wasm.Deserialize')) return;
+
+    const wasmDeserializeTimeCPU = new tr.v.Histogram(
+        'v8:wasm:deserialize:cpu_time',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
+    wasmDeserializeTimeCPU.description =
+      'cpu time spent deserializing a WebAssembly module';
+    const wasmDeserializeTimeWall = new tr.v.Histogram(
+        'v8:wasm:deserialize:wall_time',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
+    wasmDeserializeTimeWall.description =
+      'wall time spent deserializing a WebAssembly module';
+
+    for (const e of wasmEvents['wasm.Deserialize']) {
+      wasmDeserializeTimeCPU.addSample(e.cpuDuration);
+      wasmDeserializeTimeWall.addSample(e.duration);
+    }
+
+    histograms.addHistogram(wasmDeserializeTimeCPU);
+    histograms.addHistogram(wasmDeserializeTimeWall);
+  }
+
   function computeStreamingBaselineCompileTimeMetric(histograms, wasmEvents) {
     // With streaming compilation, baseline compilation happens from when the
     // first bytes get received until when baseline compilation finishes. If
@@ -120,6 +143,7 @@ tr.exportTo('tr.metrics.v8', function() {
 
     computeSyncInstantiationTimeMetric(histograms, wasmEvents);
     computeSyncCompileTimeMetric(histograms, wasmEvents);
+    computeDeserializeTimeMetric(histograms, wasmEvents);
     computeStreamingBaselineCompileTimeMetric(histograms, wasmEvents);
     computeCompilationTierupWallTimeMetric(histograms, wasmEvents);
   }
