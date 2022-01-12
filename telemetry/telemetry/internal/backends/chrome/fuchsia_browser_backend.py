@@ -55,15 +55,14 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                                            detail_level=detail_level)
 
   def _ReadDevToolsPortFromStderr(self):
-    def TryReadingPort(f):
-      if not f:
+    def TryReadingPort():
+      if not self._browser_process.stderr:
         return None
-      line = f.readline()
+      line = self._browser_process.stderr.readline()
       tokens = re.search(r'Remote debugging port: (\d+)', line)
       self._browser_log += line
       return int(tokens.group(1)) if tokens else None
-    return py_utils.WaitFor(lambda: TryReadingPort(
-        self._browser_process.stderr), timeout=60)
+    return py_utils.WaitFor(TryReadingPort, timeout=60)
 
   def _ReadDevToolsPortFromSystemLog(self):
     def TryReadingPort():
@@ -71,7 +70,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           r'DevTools listening on ws://127.0.0.1:(\d+)',
           self._platform_backend.GetSystemLog().decode("utf-8"))
       return int(tokens.group(1)) if tokens else None
-    return py_utils.WaitFor(TryReadingPort(), timeout=60)
+    return py_utils.WaitFor(TryReadingPort, timeout=60)
 
   def _ReadDevToolsPort(self):
     if self.browser_type == 'web-engine-shell':
