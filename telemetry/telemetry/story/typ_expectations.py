@@ -30,13 +30,13 @@ SYSTEM_CONDITION_TAGS = frozenset([
     'chromeos-board-betty-pi-arc', 'chromeos-board-eve', 'chromeos-board-kevin',
     'chromeos-local', 'chromeos-remote', 'desktop', 'fuchsia',
     'fuchsia-board-astro', 'fuchsia-board-qemu-x64', 'fuchsia-board-sherlock',
-    'linux', 'mac', 'mac-10.12', 'mac-10.13', 'win', 'win10', 'win7',
-    'android-not-webview', 'android-webview', 'mobile', 'android-marshmallow',
-    'android-lollipop', 'android-nougat', 'android-oreo', 'android-pie',
-    'android-10', 'android-webview-google', 'reference', 'android-chromium',
-    'ubuntu', 'android-kitkat', 'highsierra', 'sierra', 'smart-display',
-    'web-engine-shell', 'mac-10.11', 'release', 'exact', 'debug',
-    'android-weblayer', 'win-laptop', 'android-pixel-4a'
+    'fuchsia-chrome', 'linux', 'mac', 'mac-10.12', 'mac-10.13', 'win', 'win10',
+    'win7', 'android-not-webview', 'android-webview', 'mobile',
+    'android-marshmallow', 'android-lollipop', 'android-nougat', 'android-oreo',
+    'android-pie', 'android-10', 'android-webview-google', 'reference',
+    'android-chromium', 'ubuntu', 'android-kitkat', 'highsierra', 'sierra',
+    'smart-display', 'web-engine-shell', 'mac-10.11', 'release', 'exact',
+    'debug', 'android-weblayer', 'win-laptop', 'android-pixel-4a'
 ])
 
 
