@@ -135,6 +135,7 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     info_b = self._browser.GetSystemInfo()
     self.assertFalse(info_a is info_b)
 
+  @decorators.Disabled('mac') # https://crbug.com/1286458
   def testSystemInfoModelNameOnMac(self):
     if self._browser.platform.GetOSName() != 'mac':
       self.skipTest('This test is only run on macOS')
