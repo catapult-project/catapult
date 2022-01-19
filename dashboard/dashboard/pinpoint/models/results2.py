@@ -55,7 +55,10 @@ _METRIC_MAP = {
         ("speedometer2", "Vanilla_ES2015_Babel_Webpack_TodoMVC"),
     "Vanilla-ES2015-TodoMVC": ("speedometer2", "Vanilla_ES2015_TodoMVC"),
     "VanillaJS-TodoMVC": ("speedometer2", "VanillaJS_TodoMVC"),
-    "VueJS-TodoMVC": ("speedometer2", "VueJS_TodoMVC")
+    "VueJS-TodoMVC": ("speedometer2", "VueJS_TodoMVC"),
+
+    # MotionMark
+    "motionmark": ("motionmark", "motionmark")
 }
 
 _PROJECT_ID = 'chromeperf'
@@ -309,6 +312,7 @@ def _GetEmptyMeasures():
   measures = {}
   measures["core_web_vitals"] = {}
   measures["speedometer2"] = {}
+  measures["motionmark"] = {}
   return measures
 
 

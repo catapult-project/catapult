@@ -431,7 +431,8 @@ class GenerateResults2Test(testing_common.TestCase):
                 'largestContentfulPaint': 42.0,
                 'overallCumulativeLayoutShift': 22.0
             },
-            'speedometer2': {}
+            'speedometer2': {},
+            'motionmark': {}
         },
         'run_id': 'fake_job_id'
     }, {
@@ -468,7 +469,8 @@ class GenerateResults2Test(testing_common.TestCase):
                 'largestContentfulPaint': 42.0,
                 'overallCumulativeLayoutShift': 22.0
             },
-            'speedometer2': {}
+            'speedometer2': {},
+            'motionmark': {}
         },
         'run_id': 'fake_job_id'
     }]
@@ -554,7 +556,8 @@ class GenerateResults2Test(testing_common.TestCase):
                 'Vanilla_ES2015_TodoMVC': 14,
                 'VanillaJS_TodoMVC': 15,
                 'VueJS_TodoMVC': 16
-            }
+            },
+            'motionmark': {}
         },
         'run_id': 'fake_job_id'
     }, {
@@ -604,7 +607,8 @@ class GenerateResults2Test(testing_common.TestCase):
                 'Vanilla_ES2015_TodoMVC': 14,
                 'VanillaJS_TodoMVC': 15,
                 'VueJS_TodoMVC': 16
-            }
+            },
+            'motionmark': {}
         },
         'run_id': 'fake_job_id'
     }]
@@ -613,6 +617,95 @@ class GenerateResults2Test(testing_common.TestCase):
     self.maxDiff = None
     self.assertItemsEqual(mock_bqinsert.call_args_list[0][0][3], expected_rows)
 
+  @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
+  @mock.patch.object(results2, '_InsertBQRows')
+  @mock.patch.object(results2.render_histograms_viewer,
+                     'RenderHistogramsViewer')
+  @mock.patch.object(results2, '_JsonFromExecution')
+  @mock.patch.object(swarming, 'Swarming')
+  @mock.patch.object(commit.Commit, 'GetOrCacheCommitInfo')
+  def testTypeDispatch_PushBQ_CH_MotionMark(self, mock_commit_info,
+                                            mock_swarming, mock_json,
+                                            mock_render, mock_bqinsert):
+    expected_histogram_set = histogram_set.HistogramSet([
+        _CreateHistogram('motionmark', 1),
+    ])
+    job = _SetupBQTest(mock_commit_info, mock_swarming, mock_render, mock_json,
+                       expected_histogram_set, set_device_os=False)
+
+    expected_rows = [{
+        'job_start_time': _TEST_START_TIME_STR,
+        'batch_id': 'fake_batch_id',
+        'dims': {
+            'device': {
+                'cfg': 'fake_configuration',
+                'swarming_bot_id': 'fake_id',
+                'os': ['base_os']
+            },
+            'test_info': {
+                'story': 'fake_story',
+                'benchmark': 'fake_benchmark'
+            },
+            'pairing': {
+                'replica': 0,
+                'variant': 0
+            },
+            'checkout': {
+                'repo': 'fakerepo',
+                'git_hash': 'fakehashA',
+                'commit_position': 437745,
+                'commit_created': '2021-12-08 00:00:00.000000',
+                'branch': 'refs/heads/main'
+            }
+        },
+        'measures': {
+            'core_web_vitals': {},
+            'speedometer2': {},
+            'motionmark': {
+                'motionmark': 1
+            }
+        },
+        'run_id': 'fake_job_id'
+    }, {
+        'job_start_time': _TEST_START_TIME_STR,
+        'batch_id': 'fake_batch_id',
+        'dims': {
+            'device': {
+                'cfg': 'fake_configuration',
+                'swarming_bot_id': 'fake_id',
+                'os': ['base_os']
+            },
+            'test_info': {
+                'story': 'fake_story',
+                'benchmark': 'fake_benchmark'
+            },
+            'pairing': {
+                'replica': 0,
+                'variant': 1
+            },
+            'checkout': {
+                'patch_gerrit_revision': 'fake_patch_set',
+                'commit_position': 437745,
+                'commit_created': '2021-12-08 00:00:00.000000',
+                'patch_gerrit_change': 'fake_patch_issue',
+                'repo': 'fakeRepo',
+                'branch': 'refs/heads/main',
+                'git_hash': 'fakehashB'
+            }
+        },
+        'measures': {
+            'core_web_vitals': {},
+            'speedometer2': {},
+            'motionmark': {
+                'motionmark': 1
+            }
+        },
+        'run_id': 'fake_job_id'
+    }]
+
+    results2.GenerateResults2(job)
+    self.maxDiff = None
+    self.assertItemsEqual(mock_bqinsert.call_args_list[0][0][3], expected_rows)
 
   @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
   @mock.patch.object(results2, '_InsertBQRows')
