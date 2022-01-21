@@ -44,8 +44,11 @@ def _FindBuildTools():
   if not android_sdk_path:
     return None
 
-  build_tools_contents = os.listdir(
-      os.path.join(android_sdk_path, 'build-tools'))
+  build_tools_path = os.path.join(android_sdk_path, 'build-tools')
+  if not os.path.isdir(build_tools_path):
+    return None
+
+  build_tools_contents = os.listdir(build_tools_path)
 
   if not build_tools_contents:
     return None
