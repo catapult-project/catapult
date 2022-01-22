@@ -2184,6 +2184,12 @@ class DeviceUtils(object):
     if not files:
       return
 
+    if self.build_version_sdk >= version_codes.R:
+      # `adb push` supports compression for Android >= 11 since Version 30.0.0
+      # (https://bit.ly/3tJT7Za) so there is no need to use zip.
+      self._PushChangedFilesIndividually(files)
+      return
+
     size = sum(host_utils.GetRecursiveDiskUsage(h) for h, _ in files)
     file_count = len(files)
     dir_size = sum(
