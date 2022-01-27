@@ -27,6 +27,11 @@ class ChromeClockSyncError(exceptions.Error):
   pass
 
 
+# TODO(crbug.com/1279968): Workaround to enable streaming for some fuchsia
+# platforms while progress is made on others.
+NON_STREAM_FUCHSIA_BOARDS = ['astro', 'sherlock']
+
+
 class ChromeTracingAgent(tracing_agent.TracingAgent):
   def __init__(self, platform_backend, config):
     super(ChromeTracingAgent, self).__init__(platform_backend, config)
