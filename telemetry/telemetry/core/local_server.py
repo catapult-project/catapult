@@ -88,7 +88,8 @@ class LocalServer(object):
     self._subprocess = subprocess.Popen(cmd,
                                         cwd=util.GetTelemetryDir(),
                                         env=env,
-                                        stdout=subprocess.PIPE)
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
 
     named_ports = self._GetNamedPortsFromBackend()
     http_port = None
