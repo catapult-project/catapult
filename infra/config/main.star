@@ -153,6 +153,7 @@ def try_builder(
             name = "run_presubmit",
             cipd_package = "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
             use_bbagent = True,
+            use_python3 = True,
         )
         props["repo_name"] = "catapult"
     if is_dashboard:
