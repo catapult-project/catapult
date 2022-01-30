@@ -14,6 +14,8 @@ from google.appengine.ext import ndb
 # have a chance to be live before we import any proto code.
 from dashboard import sheriff_config_client
 
+NONOVERLAP_THRESHOLD = 100
+
 
 class RevisionRange(ndb.Model):
   repository = ndb.StringProperty()
@@ -24,6 +26,10 @@ class RevisionRange(ndb.Model):
     if not b or self.repository != b.repository:
       return False
     return max(self.start, b.start) <= min(self.end, b.end)
+
+  def HasSmallNonoverlap(self, b):
+    return ((abs(self.start - b.start) + abs(self.end - b.end)) <=
+            NONOVERLAP_THRESHOLD)
 
 
 class BugInfo(ndb.Model):
@@ -72,7 +78,8 @@ class AlertGroup(ndb.Model):
             and self.subscription_name == b.subscription_name
             and self.project_id == b.project_id
             and self.group_type == b.group_type
-            and self.revision.IsOverlapping(b.revision))
+            and self.revision.IsOverlapping(b.revision)
+            and self.revision.HasSmallNonoverlap(b.revision))
 
   @classmethod
   def GetType(cls, anomaly_entity):

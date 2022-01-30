@@ -70,6 +70,7 @@ class GroupReportTestBase(testing_common.TestCase):
     self.PatchObject(pinpoint_service, 'NewJob', new_job)
     self.PatchObject(alert_group_workflow, 'revision_info_client',
                      self.fake_revision_info)
+    self.PatchObject(alert_group, 'NONOVERLAP_THRESHOLD', 100)
 
   def _AddAnomaly(self, **kargs):
     default = {
@@ -556,6 +557,38 @@ class GroupReportTest(GroupReportTestBase):
         self.fake_issue_tracker.add_comment_kwargs['components'], ['Foo>Bar'])
     self.assertRegexpMatches(self.fake_issue_tracker.add_comment_args[1],
                              r'Top 2 affected measurements in bot:')
+
+  def testMultipleAltertsNonoverlapThreshold(self, mock_get_sheriff_client):
+    self._SetUpMocks(mock_get_sheriff_client)
+    self._CallHandler()
+
+    # Anomalies without range overlap.
+    a1 = self._AddAnomaly(start_revision=10, end_revision=40)
+    a2 = self._AddAnomaly(start_revision=50, end_revision=150)
+    a4 = self._AddAnomaly(start_revision=200, end_revision=300)
+    self._CallHandler()
+
+    # Anomaly that overlaps with first 2 alert groups.
+    a5 = self._AddAnomaly(start_revision=5, end_revision=100)
+
+    # Anomaly that exceeds nonoverlap threshold of all existing alert groups.
+    a6 = self._AddAnomaly(start_revision=5, end_revision=305)
+    self._CallHandler()
+
+    # Anomaly that binds to a6's group.
+    a7 = self._AddAnomaly(start_revision=10, end_revision=300)
+    self._CallHandler()
+    self._CallHandler()
+
+    groups = alert_group.AlertGroup.Get(
+        'test_suite',
+        alert_group.AlertGroup.Type.test_suite,
+    )
+
+    anomaly_groups = [group.anomalies for group in groups]
+    expected_anomaly_groups = [[a1, a5], [a2, a5], [a4], [a6, a7]]
+
+    self.assertItemsEqual(anomaly_groups, expected_anomaly_groups)
 
 
 @mock.patch.object(utils, 'ServiceAccountEmail',
