@@ -46,10 +46,10 @@ def _WriteToZipFile(zip_file, path, arc_path):
         file_path = os.path.join(dir_path, f)
         file_arc_path = os.path.join(dir_arc_path, f)
         logger.debug('file: %s -> %s', file_path, file_arc_path)
-        zip_file.write(file_path, file_arc_path, zipfile.ZIP_DEFLATED)
+        zip_file.write(file_path, file_arc_path, zipfile.ZIP_STORED)
   else:
     logger.debug('file: %s -> %s', path, arc_path)
-    zip_file.write(path, arc_path, zipfile.ZIP_DEFLATED)
+    zip_file.write(path, arc_path, zipfile.ZIP_STORED)
 
 
 def _WriteZipFile(zip_path, zip_contents):
