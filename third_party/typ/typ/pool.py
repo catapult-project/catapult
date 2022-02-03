@@ -170,9 +170,9 @@ def _loop(requests, responses, host, worker_num,
             keep_looping = should_loop
     except KeyboardInterrupt as e:
         responses.put((_MessageType.Interrupt, (worker_num, str(e))))
-    except Exception as e:
+    except Exception:
         responses.put((_MessageType.Error,
-                       (worker_num, traceback.format_exc(e))))
+                       (worker_num, traceback.format_exc())))
 
 
 class _AsyncPool(object):
