@@ -9,6 +9,7 @@ import logging
 import os
 import posixpath
 import shutil
+import socket
 import time
 import traceback
 import six
@@ -27,7 +28,7 @@ DIAGNOSTICS_NAME = 'diagnostics.json'
 class PageTestResults(object):
   def __init__(self, progress_stream=None, intermediate_dir=None,
                benchmark_name=None, benchmark_description=None,
-               results_label=None):
+               bot_id_name=None, results_label=None):
     """Object to hold story run results while a benchmark is executed.
 
     Args:
@@ -38,6 +39,7 @@ class PageTestResults(object):
       benchmark_name: A string with the name of the currently running benchmark.
       benchmark_description: A string with a description of the currently
           running benchmark.
+      bot_id_name: A string with the name of the bot executing the job
       results_label: A string that serves as an identifier for the current
           benchmark run.
     """
@@ -47,6 +49,8 @@ class PageTestResults(object):
     self._intermediate_dir = intermediate_dir
     self._benchmark_name = benchmark_name or '(unknown benchmark)'
     self._benchmark_description = benchmark_description or ''
+    self._bot_id_name = bot_id_name or os.environ.get('SWARMING_BOT_ID',
+                                                      socket.gethostname())
     self._results_label = results_label
 
     self._current_story_run = None
@@ -65,6 +69,8 @@ class PageTestResults(object):
         reserved_infos.BENCHMARKS.name: [self.benchmark_name],
         reserved_infos.BENCHMARK_DESCRIPTIONS.name:
             [self.benchmark_description],
+        reserved_infos.BOT_ID.name:
+            [self.bot_id_name],
     }
 
     # If the object has been finalized, no more results can be added to it.
@@ -84,6 +90,10 @@ class PageTestResults(object):
   @property
   def benchmark_description(self):
     return self._benchmark_description
+
+  @property
+  def bot_id_name(self):
+    return self._bot_id_name
 
   @property
   def benchmark_start_us(self):
