@@ -446,7 +446,7 @@ class CloudFilepath():
   @property
   def view_url(self):
     """Get a human viewable url for the cloud file."""
-    return 'https://console.developers.google.com/m/cloudstorage/b/%s/o/%s' % (
+    return 'https://storage.cloud.google.com/%s/%s' % (
         self.bucket, self.remote_path)
 
   @property
