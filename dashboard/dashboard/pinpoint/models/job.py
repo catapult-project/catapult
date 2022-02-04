@@ -293,7 +293,7 @@ class Job(ndb.Model):
       bug_id: A monorail issue id number to post Job updates to.
       comparison_mode: Either 'functional' or 'performance', which the Job uses
         to figure out whether to perform a functional or performance bisect. If
-        None, the Job will not automatically add any Attempts or Changes.
+        None, then the Job will not automatically add any Attempts or Changes.
       comparison_magnitude: The estimated size of the regression or improvement
         to look for. Smaller magnitudes require more repeats.
       gerrit_server: Server of the Gerrit code review to update with job
