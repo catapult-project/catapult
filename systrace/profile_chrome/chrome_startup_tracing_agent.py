@@ -44,7 +44,7 @@ class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
   def _SetupTracing(self):
     # TODO(lizeb): Figure out how to clean up the command-line file when
     # _TearDownTracing() is not executed in StopTracing().
-    flags_to_add = ['--enable-perfetto']
+    flags_to_add = ['--enable-perfetto', '--disable-fre']
     if self._chrome_categories is None:
       flags_to_add.append('--trace-startup')
     else:
