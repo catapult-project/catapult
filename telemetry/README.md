@@ -150,8 +150,6 @@ If you have questions, please email telemetry@chromium.org.
 You can keep up with Telemetry related discussions by joining the
 [telemetry group](https://groups.google.com/a/chromium.org/forum/#!forum/telemetry).
 
-[For Googlers](http://go/telemetry)
-
 ## Frequently Asked Questions
 
 ### I get an error when I try to use recorded story sets.
