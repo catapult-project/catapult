@@ -152,7 +152,7 @@ class GerritPatch(
     server = urlparse.urlunsplit(
         (url_parts.scheme, url_parts.netloc, '', '', ''))
 
-    change_rev_match = re.match(r'^.*\/\+\/(\d+)(?:\/(\d+))?\/?$', url)
+    change_rev_match = re.match(r'^https.*\/\+\/(\d+)(?:\/(\d+))?\/?$', url)
     change_match = re.match(r'^\/(\d+)\/?$', url_parts.path)
     redirector_match = re.match(r'^/c/(\d+)(?:\/(\d+))?\/?$', url_parts.path)
     if change_rev_match:
