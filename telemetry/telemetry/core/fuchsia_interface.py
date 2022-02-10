@@ -81,6 +81,8 @@ def GetHostArchFromPlatform():
   host_arch = platform.machine()
   if host_arch == 'x86_64':
     return 'x64'
+  if host_arch == 'arm64':
+    return 'arm64'
   if host_arch == 'aarch64':
     return 'arm64'
   raise Exception('Unsupported host architecture: %s' % host_arch)
