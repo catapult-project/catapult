@@ -71,6 +71,36 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual([6, 8], [segments[2].start, segments[2].end]);
   });
 
+  test('irSegmentWithMultipleGestures', function() {
+    const m = tr.c.TestUtils.newModel((m) => {
+      // There is no IR in this renderer process.
+      const r = m.getOrCreateProcess(1).getOrCreateThread(1);
+      r.name = 'CrRendererMain';
+      r.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceNamed(
+          'SyntheticGestureController::running', 1, 1));
+      r.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceNamed(
+          'SyntheticGestureController::running', 3, 1));
+      r.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceNamed(
+          'SyntheticGestureController::running', 5, 2));
+      r.asyncSliceGroup.push(
+          tr.c.TestUtils.newAsyncSliceNamed('Interaction.Gesture_A', 1, 7));
+    });
+
+    // Async slices are:
+    //
+    //              1       2       3       4       5       6       7       8
+    // Interactions <---------------------- A ------------------------------>
+    // Gestures     <------->       <------->       <--------------->
+    //
+    // Segments should be: [1, 2], [3, 4], and [6, 8].
+    const modelHelper = m.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
+    const segments = modelHelper.telemetryHelper.irSegments;
+    assert.strictEqual(3, segments.length);
+    assert.deepEqual([1, 2], [segments[0].start, segments[0].end]);
+    assert.deepEqual([3, 4], [segments[1].start, segments[1].end]);
+    assert.deepEqual([5, 7], [segments[2].start, segments[2].end]);
+  });
+
   test('uiSegments', function() {
     const m = tr.c.TestUtils.newModel((m) => {
       // There is no IR in this renderer process.
