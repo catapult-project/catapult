@@ -189,32 +189,10 @@ class _FindIsolateExecution(execution.Execution):
     if build['result'] == 'CANCELED':
       raise errors.BuildCancelled(build['cancelation_reason'])
 
-    # The build succeeded. Parse the result and complete this Quest.
-    properties = json.loads(build['result_details_json'])['properties']
-
-    commit_position = properties['got_revision_cp'].replace('@', '(at)')
-
-    key = '_'.join(('swarm_hashes', commit_position, 'with_patch'))
-    if key not in properties:
-      key = '_'.join(('swarm_hashes', commit_position, 'without_patch'))
-
-    target_to_use = self._target
-
-    if self._target not in properties[key]:
-      if self._fallback_target and self._fallback_target in properties[key]:
-        target_to_use = self._fallback_target
-      else:
-        raise errors.BuildIsolateNotFound()
-
-    # Cache the isolate information.
-    isolate.Put([(self._builder_name, self._change, target_to_use,
-                  properties['isolate_server'], properties[key][target_to_use])
-                ])
-    result_arguments = {
-        'isolate_server': properties['isolate_server'],
-        'isolate_hash': properties[key][target_to_use],
-    }
-    self._Complete(result_arguments=result_arguments)
+    # The build succeeded, and should now be in the isolate cache.
+    # If it is, this will call self._Complete()
+    if not self._CheckIsolateCache():
+      raise errors.BuildIsolateNotFound()
 
   @property
   def bucket(self):

@@ -338,6 +338,8 @@ class BuildTest(_FindIsolateExecutionTest):
             }""",
         }
     }
+    isolate.Put((('Mac Builder', change, 'telemetry_perf_tests',
+                  'https://isolate.server', 'isolate git hash'),))
     execution.Poll()
 
     expected_result_arguments = {
@@ -416,6 +418,8 @@ class BuildTest(_FindIsolateExecutionTest):
             }""",
         }
     }
+    isolate.Put((('Mac Builder', change, 'telemetry_perf_tests',
+                  'https://isolate.server', 'isolate git hash'),))
     execution_1.Poll()
     execution_2.Poll()
 
