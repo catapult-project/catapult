@@ -41,7 +41,9 @@ DEFAULT_LONG_TIMEOUT = DEFAULT_TIMEOUT * 10
 DEFAULT_SUPER_LONG_TIMEOUT = DEFAULT_LONG_TIMEOUT * 2
 DEFAULT_RETRIES = 2
 
-_ADB_VERSION_RE = re.compile(r'Android Debug Bridge version (\d+\.\d+\.\d+)')
+_ADB_PROTOCOL_VERSION_RE = re.compile(
+    r'Android Debug Bridge version (\d+\.\d+\.\d+)')
+_ADB_RELEASE_VERSION_RE = re.compile(r'Version (\d+\.\d+\.\d+)')
 _EMULATOR_RE = re.compile(r'^emulator-[0-9]+$')
 _DEVICE_NOT_FOUND_RE = re.compile(r"device '(?P<serial>.+)' not found")
 _READY_STATE = 'device'
@@ -89,11 +91,21 @@ def _FindAdb():
     raise device_errors.NoAdbError()
 
 
-def _GetVersion():
+def _GetProtocolVersion():
   # pylint: disable=protected-access
   raw_version = AdbWrapper._RunAdbCmd(['version'], timeout=2, retries=0)
   for l in raw_version.splitlines():
-    m = _ADB_VERSION_RE.search(l)
+    m = _ADB_PROTOCOL_VERSION_RE.search(l)
+    if m:
+      return m.group(1)
+  return None
+
+
+def _GetReleaseVersion():
+  # pylint: disable=protected-access
+  raw_version = AdbWrapper._RunAdbCmd(['version'], timeout=2, retries=0)
+  for l in raw_version.splitlines():
+    m = _ADB_RELEASE_VERSION_RE.search(l)
     if m:
       return m.group(1)
   return None
@@ -159,7 +171,8 @@ class AdbWrapper(object):
   _ADB_ENV = _CreateAdbEnvironment()
 
   _adb_path = lazy.WeakConstant(_FindAdb)
-  _adb_version = lazy.WeakConstant(_GetVersion)
+  _adb_protocol_version = lazy.WeakConstant(_GetProtocolVersion)
+  _adb_release_version = lazy.WeakConstant(_GetReleaseVersion)
 
   def __init__(self, device_serial):
     """Initializes the AdbWrapper.
@@ -281,7 +294,26 @@ class AdbWrapper(object):
 
   @classmethod
   def Version(cls):
-    return cls._adb_version.read()
+    """Returns the adb "protocol version number" (obsolete).
+
+    This is referred to by the adb team as the "protocol version number" and is
+    no longer being incremented for new features due to it being too disruptive
+    and forcing a server restart.
+
+    Prefer to call ReleaseVersion instead. Context:
+    http://issuetracker.google.com/218716282#comment8
+    """
+    return cls._adb_protocol_version.read()
+
+  @classmethod
+  def ReleaseVersion(cls):
+    """Returns the adb "release version number".
+
+    Prefer to use this to gate features and fixes as this is the platform-tools
+    version and it is incremented with each release. Context:
+    http://issuetracker.google.com/218716282#comment8
+    """
+    return cls._adb_release_version.read()
 
   @classmethod
   def _BuildAdbCmd(cls, args, device_serial, cpu_affinity=None):
@@ -940,6 +972,12 @@ class AdbWrapper(object):
     for path in apk_paths:
       VerifyLocalFileExists(path)
     cmd = ['install-multiple']
+    if (du_version.LooseVersion(self.ReleaseVersion()) <=
+        du_version.LooseVersion('33.0.0')):
+      # Workaround for http://issuetracker.google.com/218716282. In these
+      # versions of adb, the first arg is ignored. Pass an extra arg in this
+      # case to avoid one of the other arguments being ignored.
+      cmd.append('--unused-arg-workaround')
     if forward_lock:
       cmd.append('-l')
     if reinstall:
