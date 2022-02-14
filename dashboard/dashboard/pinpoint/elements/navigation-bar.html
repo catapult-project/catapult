@@ -52,7 +52,7 @@ found in the LICENSE file.
         <paper-tooltip>File a bug</paper-tooltip>
       </a>
       <google-signin
-          client-id="62121018386-aqdfougp0ddn93knqj6g79vvn42ajmrg.apps.googleusercontent.com"
+          id="gsi"
           height="short" theme="dark"
           scopes="email"
           on-google-signin-success="handleSignIn"
@@ -70,6 +70,15 @@ found in the LICENSE file.
           type: Object,
           notify: true,
           readonly: true
+        }
+      },
+
+      ready() {
+        if (window.location.href.includes('-stage')) {
+          this.$.gsi.setAttribute("client-id", "22573382977-u263jlijs2uiio0uq7qm7vso3vuh7ec5.apps.googleusercontent.com");
+        }
+        else {
+          this.$.gsi.setAttribute("client-id", "62121018386-aqdfougp0ddn93knqj6g79vvn42ajmrg.apps.googleusercontent.com");
         }
       },
 
