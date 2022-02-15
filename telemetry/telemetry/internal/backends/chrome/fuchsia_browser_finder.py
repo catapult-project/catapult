@@ -57,11 +57,11 @@ class PossibleFuchsiaBrowser(possible_browser.PossibleBrowser):
       local_first_binary_manager.LocalFirstBinaryManager.Init(
           self._build_dir, None, 'linux', platform.machine())
 
-    startup_args = chrome_startup_args.GetFromBrowserOptions(
-        self._browser_options)
     browser_backend = fuchsia_browser_backend.FuchsiaBrowserBackend(
         self._platform_backend, self._browser_options,
         self.browser_directory, self.profile_directory)
+    startup_args = self.GetBrowserStartupArgs(self._browser_options,
+                                              browser_backend.browser_type)
     try:
       return browser.Browser(
           browser_backend, self._platform_backend, startup_args,
@@ -69,6 +69,17 @@ class PossibleFuchsiaBrowser(possible_browser.PossibleBrowser):
     except Exception:
       browser_backend.Close()
       raise
+
+  def GetBrowserStartupArgs(self, browser_options, browser_type):
+    startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)
+
+    if browser_type == fuchsia_browser_backend.FUCHSIA_CHROME:
+      startup_args.extend(chrome_startup_args.GetReplayArgs(
+          self._platform_backend.network_controller_backend))
+      startup_args = [arg.replace('=<-loopback>', '="<-loopback>"')
+                      for arg in startup_args]
+
+    return startup_args
 
   def CleanUpEnvironment(self):
     if self._browser_options is None:
@@ -96,7 +107,7 @@ class PossibleFuchsiaBrowser(possible_browser.PossibleBrowser):
 
 def SelectDefaultBrowser(possible_browsers):
   for b in possible_browsers:
-    if b.browser_type == 'web-engine-shell':
+    if b.browser_type == fuchsia_browser_backend.WEB_ENGINE_SHELL:
       return b
   return None
 

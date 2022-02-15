@@ -45,7 +45,8 @@ class SharedPageState(story_module.SharedState):
     if (self._device_type == 'desktop' and
         platform_module.GetHostPlatform().GetOSName() == 'chromeos'):
       self._device_type = 'chromeos'
-    if possible_browser.browser_type == 'web-engine-shell':
+    if (possible_browser.browser_type == 'web-engine-shell' or
+        possible_browser.browser_type == 'fuchsia-chrome'):
       self._device_type = None
 
     browser_options = finder_options.browser_options
