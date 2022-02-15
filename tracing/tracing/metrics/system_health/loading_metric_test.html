@@ -1637,6 +1637,32 @@ tr.b.unittest.testSuite(function() {
         partialNetworkEvents);
   });
 
+  test('noLayoutShiftEventMeansZeroCLS', function() {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      const rendererProcess = model.rendererProcess;
+      const mainThread = model.rendererMain;
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 10,
+        duration: 510,
+        args: {frame: '0xdeadbeef'}
+      }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const mainHist =
+        histograms.getHistogramNamed('mainFrameCumulativeLayoutShift');
+    assert.strictEqual(1, mainHist.sampleValues.length);
+    assert.strictEqual(1, mainHist.running.count);
+    assert.strictEqual(0, mainHist.running.mean);
+    const overallHist =
+        histograms.getHistogramNamed('overallCumulativeLayoutShift');
+    assert.strictEqual(1, overallHist.sampleValues.length);
+    assert.strictEqual(1, overallHist.running.count);
+    assert.strictEqual(0, overallHist.running.mean);
+  });
+
   test('mainFrameCumulativeLayoutShift', function() {
     const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       const rendererProcess = model.rendererProcess;

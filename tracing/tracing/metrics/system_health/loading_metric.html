@@ -275,7 +275,8 @@ tr.exportTo('tr.metrics.sh', function() {
         sample = {value: evData.cumulative_score};
       }
     });
-    return sample ? [sample] : [];
+    // When there is no layout shift event on found on the page, CLS is 0.
+    return sample ? [sample] : [{value: 0}];
   }
 
   function findAllLayoutShiftSamples(chromeHelper) {
@@ -299,7 +300,9 @@ tr.exportTo('tr.metrics.sh', function() {
         }
       });
     }
-    return foundMainFrame ? [{value: total}] : [];
+
+    // If no CLS is found, report value as 0 instead of null.
+    return foundMainFrame ? [{value: total}] : [{value: 0}];
   }
 
   function addFirstMeaningfulPaintSample(samples, rendererHelper,
