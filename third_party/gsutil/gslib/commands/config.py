@@ -38,7 +38,7 @@ from boto.provider import Provider
 import gslib
 from gslib.command import Command
 from gslib.command import DEFAULT_TASK_ESTIMATION_THRESHOLD
-from gslib.commands.compose import MAX_COMPONENT_COUNT
+from gslib.commands.compose import MAX_COMPOSE_ARITY
 from gslib.cred_types import CredTypes
 from gslib.exception import AbortException
 from gslib.exception import CommandException
@@ -66,21 +66,24 @@ _DETAILED_HELP_TEXT = ("""
 <B>DESCRIPTION</B>
   The ``gsutil config`` command applies to users who have installed gsutil as a
   standalone tool. If you installed gsutil via the Cloud SDK, ``gsutil config``
-  will fail unless you are specifically using the ``-a`` flag or have configured
+  fails unless you are specifically using the ``-a`` flag or have configured
   gcloud to not pass its managed credentials to gsutil (via the command ``gcloud
   config set pass_credentials_to_gsutil false``). For all other use cases, Cloud
-  SDK users should use the ``gcloud auth`` group of commands instead, which will
-  configure OAuth2 credentials that gcloud implicitly passes to gsutil at
-  runtime.
+  SDK users should use the ``gcloud auth`` group of commands instead, which
+  configures OAuth2 credentials that gcloud implicitly passes to gsutil at
+  runtime. To check if you are using gsutil from the Cloud SDK or as a
+  stand-alone, use ``gsutil version -l`` and in the output look for "using cloud
+  sdk".
 
   The ``gsutil config`` command obtains access credentials for Google Cloud
-  Storage and writes a boto/gsutil configuration file containing the obtained
+  Storage and writes a `boto/gsutil configuration file
+  <https://cloud.google.com/storage/docs/boto-gsutil>`_ containing the obtained
   credentials along with a number of other configuration-controllable values.
 
   Unless specified otherwise (see OPTIONS), the configuration file is written
   to ~/.boto (i.e., the file .boto under the user's home directory). If the
   default file already exists, an attempt is made to rename the existing file
-  to ~/.boto.bak; if that attempt fails the command will exit. A different
+  to ~/.boto.bak; if that attempt fails the command exits. A different
   destination file can be specified with the ``-o`` option (see OPTIONS).
 
   Because the boto configuration file contains your credentials you should
@@ -120,173 +123,34 @@ _DETAILED_HELP_TEXT = ("""
 
   If you wish to use gsutil with other providers (or to copy data back and
   forth between multiple providers) you can edit their credentials into the
-  [Credentials] section after creating the initial configuration file. See the
-  list of settings below for supported settings.
+  [Credentials] section after creating the initial boto configuration file.
 
 
 <B>CONFIGURING SERVICE ACCOUNT CREDENTIALS</B>
   Service accounts are useful for authenticating on behalf of a service or
-  application (as opposed to a user). You can configure credentials for service
-  accounts using the ``-e`` option:
+  application (as opposed to a user). If you use gsutil as a standalone tool,
+  you configure credentials for service accounts using the ``-e`` option:
 
     gsutil config -e
 
-  Note that if you are using gsutil through the Cloud SDK, you should instead
-  activate your service account via the ``gcloud auth activate-service-account``
+  Note that if you use gsutil through the Cloud SDK, you instead activate your
+  service account via the `gcloud auth activate-service-account
+  <https://cloud.google.com/sdk/gcloud/reference/auth/activate-service-account>`_
   command.
 
-  When you run ``gsutil config -e``, you will be prompted for the path to your
+  When you run ``gsutil config -e``, you are prompted for the path to your
   private key file and, if not using a JSON key file, your service account
   email address and key file password. To get this data, follow the instructions
   on `Service Accounts <https://cloud.google.com/storage/docs/authentication#generating-a-private-key>`_.
-  Using this information, gsutil populates the "gs_service_key_file" attribute,
-  along with "gs_service_client_id" and "gs_service_key_file_password" if not
-  using a JSON key file.
+  Using this information, gsutil populates the "gs_service_key_file" attribute
+  in the boto configuration file. If not using a JSON key file, gsutil also
+  populates the "gs_service_client_id" and "gs_service_key_file_password"
+  attributes.
 
-  Note that your service account will NOT be considered an Owner for the
-  purposes of API access (see "gsutil help creds" for more information about
-  this). See https://developers.google.com/identity/protocols/OAuth2ServiceAccount
-  for further information on service account authentication.
-
-
-<B>CONFIGURATION FILE SELECTION PROCEDURE</B>
-  By default, gsutil will look for the configuration file in /etc/boto.cfg and
-  ~/.boto. You can override this choice by setting the BOTO_CONFIG environment
-  variable. This is also useful if you have several different identities or
-  cloud storage environments: By setting up the credentials and any additional
-  configuration in separate files for each, you can switch environments by
-  changing environment variables.
-
-  You can also set up a path of configuration files, by setting the BOTO_PATH
-  environment variable to contain a ":" delimited path (or ";" for Windows).
-  For example setting the BOTO_PATH environment variable to:
-
-    /etc/projects/my_group_project.boto.cfg:/home/mylogin/.boto
-
-  will cause gsutil to load each configuration file found in the path in
-  order. This is useful if you want to set up some shared configuration
-  state among many users: The shared state can go in the central shared file
-  ( /etc/projects/my_group_project.boto.cfg) and each user's individual
-  credentials can be placed in the configuration file in each of their home
-  directories. For security reasons, users should never share credentials
-  via a shared configuration file.
-
-
-<B>CONFIGURATION FILE STRUCTURE</B>
-  The configuration file contains a number of sections: [Credentials],
-  [Boto], [GSUtil], and [OAuth2]. If you edit the file, make sure to edit the
-  appropriate section (discussed below), and to be careful not to mis-edit
-  any of the setting names (like "gs_access_key_id") and not to remove the
-  section delimiters (like [Credentials]).
-
-
-<B>ADDITIONAL CONFIGURATION-CONTROLLABLE FEATURES</B>
-  With the exception of setting up gsutil to work through a proxy, most users
-  won't need to edit values in the boto configuration file; values found in
-  the file tend to be of more specialized use than command line
-  option-controllable features. For information on setting up gsutil to work
-  through a proxy, see the comments preceding the proxy settings in your
-  .boto file.
-
-  The following are the currently defined configuration settings, broken
-  down by section. Their use is documented in comments preceding each, in
-  the configuration file. If you see a setting you want to change that's not
-  listed in your current file, see the section below on Updating to the Latest
-  Configuration File.
-
-  The currently supported settings, are, by section:
-
-    [Credentials]
-      aws_access_key_id
-      aws_secret_access_key
-      gs_access_key_id
-      gs_host
-      gs_host_header
-      gs_json_host
-      gs_json_host_header
-      gs_json_port
-      gs_oauth2_refresh_token
-      gs_port
-      gs_secret_access_key
-      gs_service_client_id
-      gs_service_key_file
-      gs_service_key_file_password
-      s3_host
-      s3_host_header
-      s3_port
-
-    [Boto]
-      proxy
-      proxy_type
-      proxy_port
-      proxy_user
-      proxy_pass
-      proxy_rdns
-      http_socket_timeout
-      ca_certificates_file
-      https_validate_certificates
-      debug
-      max_retry_delay
-      num_retries
-
-    [GoogleCompute]
-      service_account
-
-    [GSUtil]
-      check_hashes
-      content_language
-      decryption_key1 ... 100
-      default_api_version
-      default_project_id
-      disable_analytics_prompt
-      encryption_key
-      json_api_version
-      max_upload_compression_buffer_size
-      parallel_composite_upload_component_size
-      parallel_composite_upload_threshold
-      sliced_object_download_component_size
-      sliced_object_download_max_components
-      sliced_object_download_threshold
-      parallel_process_count
-      parallel_thread_count
-      gzip_compression_level
-      prefer_api
-      resumable_threshold
-      resumable_tracker_dir (deprecated in 4.6, use state_dir)
-      rsync_buffer_lines
-      software_update_check_period
-      state_dir
-      tab_completion_time_logs
-      tab_completion_timeout
-      task_estimation_threshold
-      test_cmd_regional_bucket_location
-      test_notification_url
-      use_magicfile
-      test_hmac_service_account
-      test_hmac_alt_service_account
-      test_hmac_list_service_account
-
-    [OAuth2]
-      client_id
-      client_secret
-      oauth2_refresh_retries
-      provider_authorization_uri
-      provider_label
-      provider_token_uri
-      token_cache
-
-
-<B>UPDATING TO THE LATEST CONFIGURATION FILE</B>
-  We add new configuration controllable features to the boto configuration file
-  over time, but most gsutil users create a configuration file once and then
-  keep it for a long time, so new features aren't apparent when you update to a
-  newer version of gsutil. If you want to get the latest configuration file
-  (which includes all the latest settings and documentation about each) you can
-  rename your current file (e.g., to '.boto_old'), run ``gsutil config``, and
-  then edit any configuration settings you wanted from your old file into the
-  newly created file. Note, however, that if you're using OAuth2 credentials and
-  you go back through the OAuth2 configuration dialog it will invalidate your
-  previous OAuth2 credentials.
+  Note that your service account is NOT considered an Owner for the purposes of
+  API access (see "gsutil help creds" for more information about this). See
+  https://developers.google.com/identity/protocols/OAuth2ServiceAccount for
+  further information on service account authentication.
 
 
 <B>OPTIONS</B>
@@ -309,7 +173,7 @@ _DETAILED_HELP_TEXT = ("""
               'notification' and 'kms' commands).
 
   -n          Write the configuration file without authentication configured.
-              This flag is mutually exlusive with all flags other than ``-o``.
+              This flag is mutually exclusive with all flags other than ``-o``.
 
   -o <file>   Write the configuration to <file> instead of ~/.boto.
               Use ``-`` for stdout.
@@ -320,7 +184,7 @@ _DETAILED_HELP_TEXT = ("""
 
   -s <scope>  Request a specific OAuth2 <scope> instead of the default(s). This
               option may be repeated to request multiple scopes, and may be used
-              in conjuction with other flags that request a specific scope.
+              in conjunction with other flags that request a specific scope.
 
   -w          Request token with read-write access
               (devstorage.read_write scope).
@@ -504,8 +368,8 @@ CONFIG_INPUTLESS_GSUTIL_SECTION_CONTENT = """
 # into a single object.
 # The number of components will be the smaller of
 # ceil(file_size / parallel_composite_upload_component_size) and
-# MAX_COMPONENT_COUNT. The current value of MAX_COMPONENT_COUNT is
-# %(max_component_count)d.
+# MAX_COMPOSE_ARITY. The current value of MAX_COMPOSE_ARITY is
+# %(max_compose_arity)d.
 # If 'parallel_composite_upload_threshold' is set to 0, then automatic parallel
 # uploads will never occur.
 # Setting an extremely low threshold is unadvisable. The vast majority of
@@ -514,7 +378,7 @@ CONFIG_INPUTLESS_GSUTIL_SECTION_CONTENT = """
 # 'parallel_composite_upload_component_size' specifies the ideal size of a
 # component in bytes, which will act as an upper bound to the size of the
 # components if ceil(file_size / parallel_composite_upload_component_size) is
-# less than MAX_COMPONENT_COUNT.
+# less than MAX_COMPOSE_ARITY.
 # Values can be provided either in bytes or as human-readable values
 # (e.g., "150M" to represent 150 mebibytes)
 #
@@ -526,9 +390,9 @@ CONFIG_INPUTLESS_GSUTIL_SECTION_CONTENT = """
 # that is done we will re-enable parallel composite uploads by default in
 # gsutil.
 #
-# Note: Parallel composite uploads should not be used with NEARLINE or COLDLINE
-# storage class buckets, as doing this incurs an early deletion charge for
-# each component object.
+# Note: Parallel composite uploads should not be used with NEARLINE, COLDLINE,
+# or ARCHIVE storage class buckets, as doing this incurs an early deletion
+# charge for each component object.
 #
 # Note: Parallel composite uploads are not enabled with Cloud KMS encrypted
 # objects as a source or destination, as composition with KMS objects is not yet
@@ -537,12 +401,16 @@ CONFIG_INPUTLESS_GSUTIL_SECTION_CONTENT = """
 #parallel_composite_upload_threshold = %(parallel_composite_upload_threshold)s
 #parallel_composite_upload_component_size = %(parallel_composite_upload_component_size)s
 
+#
+# 'parallel_composite_upload_bypass_kms_check' removes the object/bucket KMS checks
+# used to guard composition of KMS objects.
+#disable_parallel_composite_upload_kms_check = False
+
 # 'sliced_object_download_threshold' and
 # 'sliced_object_download_component_size' have analogous functionality to
 # their respective parallel_composite_upload config values.
 # 'sliced_object_download_max_components' specifies the maximum number of
-# slices to be used when performing a sliced object download. It is not
-# restricted by MAX_COMPONENT_COUNT.
+# slices to be used when performing a sliced object download.
 #sliced_object_download_threshold = %(sliced_object_download_threshold)s
 #sliced_object_download_component_size = %(sliced_object_download_component_size)s
 #sliced_object_download_max_components = %(sliced_object_download_max_components)s
@@ -678,7 +546,7 @@ content_language = en
         (DEFAULT_PARALLEL_COMPOSITE_UPLOAD_COMPONENT_SIZE),
     'sliced_object_download_max_components':
         (DEFAULT_SLICED_OBJECT_DOWNLOAD_MAX_COMPONENTS),
-    'max_component_count': MAX_COMPONENT_COUNT,
+    'max_compose_arity': MAX_COMPOSE_ARITY,
     'task_estimation_threshold': DEFAULT_TASK_ESTIMATION_THRESHOLD,
     'max_upload_compression_buffer_size':
         (DEFAULT_MAX_UPLOAD_COMPRESSION_BUFFER_SIZE),
@@ -1127,7 +995,27 @@ class ConfigCommand(Command):
             '# To impersonate a service account for "%s://" URIs over\n'
             '# JSON API, edit and uncomment the following line:\n'
             '#%s_impersonate_service_account = <service account email>\n\n')
-      config_file.write('\n')
+
+    # Add device certificate mTLS fields.
+    config_file.write(
+        textwrap.dedent("""\
+        # This configuration setting enables or disables mutual TLS
+        # authentication. The default value for this setting is "false". When
+        # set to "true", gsutil uses the configured client certificate as
+        # transport credential to access the APIs. The use of mTLS ensures that
+        # the access originates from a trusted enterprise device. When enabled,
+        # the client certificate is auto discovered using the endpoint
+        # verification agent. When set to "true" but no client certificate or
+        # key is found, users receive an error.
+        #use_client_certificate = False
+
+        # The command line to execute, which prints the
+        # certificate, private key, or password to use in
+        # conjunction with "use_client_certificate = True".
+        #cert_provider_command = <Absolute path to command to run for
+        #                         certification. Ex: "/scripts/gen_cert.sh">
+
+        """))
 
     # Write the config file Boto section.
     config_file.write('%s\n' % CONFIG_BOTO_SECTION_CONTENT)
@@ -1145,7 +1033,8 @@ class ConfigCommand(Command):
 # version to use. If not set below gsutil defaults to API version 1.
 """)
     api_version = 2
-    if cred_type == CredTypes.HMAC: api_version = 1
+    if cred_type == CredTypes.HMAC:
+      api_version = 1
 
     config_file.write('default_api_version = %d\n' % api_version)
 

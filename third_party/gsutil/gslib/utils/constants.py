@@ -49,6 +49,7 @@ DEFAULT_GCS_JSON_API_VERSION = 'v1'
 DEFAULT_GSUTIL_STATE_DIR = os.path.expanduser(os.path.join('~', '.gsutil'))
 
 GSUTIL_PUB_TARBALL = 'gs://pub/gsutil.tar.gz'
+GSUTIL_PUB_TARBALL_PY2 = 'gs://pub/gsutil4.tar.gz'
 
 IAM_POLICY_VERSION = 3
 
@@ -105,7 +106,10 @@ START_CALLBACK_PER_BYTES = 256 * ONE_KIB
 
 # Upload/download files in 8 KiB chunks over the HTTP connection.
 # TODO: This should say the unit in the name.
-TRANSFER_BUFFER_SIZE = 8 * ONE_KIB
+if 'win32' in str(sys.platform).lower():
+  TRANSFER_BUFFER_SIZE = 64 * ONE_KIB
+else:
+  TRANSFER_BUFFER_SIZE = 8 * ONE_KIB
 
 UTF8 = 'utf-8'
 

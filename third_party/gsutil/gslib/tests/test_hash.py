@@ -42,11 +42,9 @@ class TestHashUnit(testcase.GsUtilUnitTestCase):
   def testHashContents(self):
     tmp_file = self.CreateTempFile(contents=_TEST_FILE_CONTENTS)
     stdout = self.RunCommand('hash', args=[tmp_file], return_stdout=True)
-    self.assertIn(b'Hashes [base64]', stdout)
-    self.assertIn(
-        ('\tHash (crc32c):\t\t%s' % _TEST_FILE_B64_CRC).encode('ascii'), stdout)
-    self.assertIn(('\tHash (md5):\t\t%s' % _TEST_FILE_B64_MD5).encode('ascii'),
-                  stdout)
+    self.assertIn('Hashes [base64]', stdout)
+    self.assertIn(('\tHash (crc32c):\t\t%s' % _TEST_FILE_B64_CRC), stdout)
+    self.assertIn(('\tHash (md5):\t\t%s' % _TEST_FILE_B64_MD5), stdout)
 
   def testHashNoMatch(self):
     try:
@@ -58,11 +56,9 @@ class TestHashUnit(testcase.GsUtilUnitTestCase):
   def testHashHexFormat(self):
     tmp_file = self.CreateTempFile(contents=_TEST_FILE_CONTENTS)
     stdout = self.RunCommand('hash', args=['-h', tmp_file], return_stdout=True)
-    self.assertIn(b'Hashes [hex]', stdout)
-    self.assertIn(
-        ('\tHash (crc32c):\t\t%s' % _TEST_FILE_HEX_CRC).encode('ascii'), stdout)
-    self.assertIn(('\tHash (md5):\t\t%s' % _TEST_FILE_HEX_MD5).encode('ascii'),
-                  stdout)
+    self.assertIn('Hashes [hex]', stdout)
+    self.assertIn(('\tHash (crc32c):\t\t%s' % _TEST_FILE_HEX_CRC), stdout)
+    self.assertIn(('\tHash (md5):\t\t%s' % _TEST_FILE_HEX_MD5), stdout)
 
   def testHashWildcard(self):
     num_test_files = 2
@@ -86,14 +82,11 @@ class TestHashUnit(testcase.GsUtilUnitTestCase):
                                   args=['-c', '-m', tmp_file],
                                   return_stdout=True)
     for stdout in (stdout_crc, stdout_both):
-      self.assertIn(
-          ('\tHash (crc32c):\t\t%s' % _TEST_FILE_B64_CRC).encode('ascii'),
-          stdout)
+      self.assertIn(('\tHash (crc32c):\t\t%s' % _TEST_FILE_B64_CRC), stdout)
     for stdout in (stdout_md5, stdout_both):
-      self.assertIn(
-          ('\tHash (md5):\t\t%s' % _TEST_FILE_B64_MD5).encode('ascii'), stdout)
-    self.assertNotIn(b'md5', stdout_crc)
-    self.assertNotIn(b'crc32c', stdout_md5)
+      self.assertIn(('\tHash (md5):\t\t%s' % _TEST_FILE_B64_MD5), stdout)
+    self.assertNotIn('md5', stdout_crc)
+    self.assertNotIn('crc32c', stdout_md5)
 
 
 class TestHash(testcase.GsUtilIntegrationTestCase):

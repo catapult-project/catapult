@@ -68,12 +68,11 @@ except AttributeError:
 
             timebase = mach_timebase_info_data_t()
             libc.mach_timebase_info(ctypes.byref(timebase))
-            nanoseconds_in_second = 1.0e9
+            ticks_per_second = timebase.numer / timebase.denom * 1.0e9
 
             def monotonic():
                 """Monotonic clock, cannot go backward."""
-                nanoseconds = mach_absolute_time() * timebase.numer / timebase.denom
-                return nanoseconds / nanoseconds_in_second
+                return mach_absolute_time() / ticks_per_second
 
         elif sys.platform.startswith('win32') or sys.platform.startswith('cygwin'):
             if sys.platform.startswith('cygwin'):

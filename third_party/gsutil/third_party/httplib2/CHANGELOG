@@ -1,3 +1,110 @@
+0.18.1
+
+  explicit build-backend workaround for pip build isolation bug
+  "AttributeError: 'module' object has no attribute '__legacy__'" on pip install
+  https://github.com/httplib2/httplib2/issues/169
+
+0.18.0
+
+  IMPORTANT security vulnerability CWE-93 CRLF injection
+  Force %xx quote of space, CR, LF characters in uri.
+  Special thanks to Recar https://github.com/Ciyfly for discrete notification.
+  https://cwe.mitre.org/data/definitions/93.html
+
+0.17.4
+
+  Ship test suite in source dist
+  https://github.com/httplib2/httplib2/pull/168
+
+0.17.3
+
+  IronPython2.7: relative import iri2uri fixes ImportError
+  https://github.com/httplib2/httplib2/pull/163
+
+0.17.2
+
+  python3 + debug + IPv6 disabled: https raised
+  "IndexError: Replacement index 1 out of range for positional args tuple"
+  https://github.com/httplib2/httplib2/issues/161
+
+0.17.1
+
+  python3: no_proxy was not checked with https
+  https://github.com/httplib2/httplib2/issues/160
+
+0.17.0
+
+  feature: Http().redirect_codes set, works after follow(_all)_redirects check
+  This allows one line workaround for old gcloud library that uses 308
+  response without redirect semantics.
+  https://github.com/httplib2/httplib2/issues/156
+
+0.16.0
+
+  IMPORTANT cache invalidation change, fix 307 keep method, add 308 Redirects
+  https://github.com/httplib2/httplib2/issues/151
+
+  proxy: username/password as str compatible with pysocks
+  https://github.com/httplib2/httplib2/issues/154
+
+0.15.0
+
+  python2: regression in connect() error handling
+  https://github.com/httplib2/httplib2/pull/150
+
+  add support for password protected certificate files
+  https://github.com/httplib2/httplib2/pull/143
+
+  feature: Http.close() to clean persistent connections and sensitive data
+  https://github.com/httplib2/httplib2/pull/149
+
+0.14.0
+
+  Python3: PROXY_TYPE_SOCKS5 with str user/pass raised TypeError
+  https://github.com/httplib2/httplib2/pull/145
+
+0.13.1
+
+  Python3: Use no_proxy
+  https://github.com/httplib2/httplib2/pull/140
+
+0.13.0
+
+  Allow setting TLS max/min versions
+  https://github.com/httplib2/httplib2/pull/138
+
+0.12.3
+
+  No changes to library. Distribute py3 wheels.
+
+0.12.1
+
+  Catch socket timeouts and clear dead connection
+  https://github.com/httplib2/httplib2/issues/18
+  https://github.com/httplib2/httplib2/pull/111
+
+  Officially support Python 3.7 (package metadata)
+  https://github.com/httplib2/httplib2/issues/123
+
+0.12.0
+
+  Drop support for Python 3.3
+
+  ca_certs from environment HTTPLIB2_CA_CERTS or certifi
+  https://github.com/httplib2/httplib2/pull/117
+
+  PROXY_TYPE_HTTP with non-empty user/pass raised TypeError: bytes required
+  https://github.com/httplib2/httplib2/pull/115
+
+  Revert http:443->https workaround
+  https://github.com/httplib2/httplib2/issues/112
+
+  eliminate connection pool read race
+  https://github.com/httplib2/httplib2/pull/110
+
+  cache: stronger safename
+  https://github.com/httplib2/httplib2/pull/101
+
 0.11.3
 
   No changes, just reupload of 0.11.2 after fixing automatic release conditions in Travis.

@@ -19,7 +19,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
 
-from hashlib import md5
+import hashlib
 import os
 import pkgutil
 
@@ -28,9 +28,35 @@ from gslib.storage_url import StorageUrlFromString
 import gslib.tests.testcase as testcase
 from gslib.utils.constants import TRANSFER_BUFFER_SIZE
 from gslib.utils.hashing_helper import CalculateMd5FromContents
+from gslib.utils.hashing_helper import GetMd5
 from gslib.utils.hashing_helper import HashingFileUploadWrapper
 
+import mock
+
 _TEST_FILE = 'test.txt'
+
+
+class TestGetMd5(testcase.GsUtilUnitTestCase):
+  """Unit tests for the GetMd5 function."""
+
+  @mock.patch.object(hashlib, 'md5')
+  def testGetsMd5HashOnNonRedHatSystem(self, mock_md5):
+    # Can't actually compare output to calling hashlib.md5 because that could
+    # trigger an error on a Red Hat system.
+    mock_md5.return_value = 'hash'
+    self.assertEqual(GetMd5(b''), 'hash')
+    mock_md5.assert_called_once_with(b'')
+
+  @mock.patch.object(hashlib, 'md5')
+  def testGetsMd5HashOnRedHatSystem(self, mock_md5):
+    # Can't actually compare output to calling hashlib.md5 because that could
+    # trigger an error on a non-Red Hat system.
+    # Return one ValueError to simulate a FIPS-mode distribution.
+    mock_md5.side_effect = [ValueError, 'hash']
+    self.assertEqual(GetMd5(b''), 'hash')
+    self.assertEqual(
+        mock_md5.mock_calls,
+        [mock.call(b''), mock.call(b'', usedforsecurity=False)])
 
 
 class TestHashingFileUploadWrapper(testcase.GsUtilUnitTestCase):
@@ -47,10 +73,10 @@ class TestHashingFileUploadWrapper(testcase.GsUtilUnitTestCase):
     return self._temp_test_file
 
   def testReadToEOF(self):
-    digesters = {'md5': md5()}
+    digesters = {'md5': GetMd5()}
     tmp_file = self.CreateTempFile(contents=b'a' * TRANSFER_BUFFER_SIZE * 4)
     with open(tmp_file, 'rb') as stream:
-      wrapper = HashingFileUploadWrapper(stream, digesters, {'md5': md5},
+      wrapper = HashingFileUploadWrapper(stream, digesters, {'md5': GetMd5},
                                          self._dummy_url, self.logger)
       wrapper.read()
     with open(tmp_file, 'rb') as stream:
@@ -85,9 +111,9 @@ class TestHashingFileUploadWrapper(testcase.GsUtilUnitTestCase):
         'initial_position must be less than test file size %s '
         '(but was actually: %s)' % (tmp_file_len, initial_position))
 
-    digesters = {'md5': md5()}
+    digesters = {'md5': GetMd5()}
     with open(tmp_file, 'rb') as stream:
-      wrapper = HashingFileUploadWrapper(stream, digesters, {'md5': md5},
+      wrapper = HashingFileUploadWrapper(stream, digesters, {'md5': GetMd5},
                                          self._dummy_url, self.logger)
       position = 0
       while position < initial_position - TRANSFER_BUFFER_SIZE:
@@ -155,9 +181,9 @@ class TestHashingFileUploadWrapper(testcase.GsUtilUnitTestCase):
         'initial_seek must be less than test file size %s '
         '(but was actually: %s)' % (tmp_file_len, initial_seek))
 
-    digesters = {'md5': md5()}
+    digesters = {'md5': GetMd5()}
     with open(tmp_file, 'rb') as stream:
-      wrapper = HashingFileUploadWrapper(stream, digesters, {'md5': md5},
+      wrapper = HashingFileUploadWrapper(stream, digesters, {'md5': GetMd5},
                                          self._dummy_url, self.logger)
       wrapper.seek(initial_seek)
       self.assertEqual(wrapper.tell(), initial_seek)
@@ -196,9 +222,9 @@ class TestHashingFileUploadWrapper(testcase.GsUtilUnitTestCase):
         'initial_read must be less than test file size %s '
         '(but was actually: %s)' % (tmp_file_len, initial_read))
 
-    digesters = {'md5': md5()}
+    digesters = {'md5': GetMd5()}
     with open(tmp_file, 'rb') as stream:
-      wrapper = HashingFileUploadWrapper(stream, digesters, {'md5': md5},
+      wrapper = HashingFileUploadWrapper(stream, digesters, {'md5': GetMd5},
                                          self._dummy_url, self.logger)
       wrapper.read(initial_read)
       self.assertEqual(wrapper.tell(), initial_read)
@@ -221,9 +247,9 @@ class TestHashingFileUploadWrapper(testcase.GsUtilUnitTestCase):
   def testInvalidSeekAway(self):
     """Tests seeking to EOF and then reading without first doing a SEEK_SET."""
     tmp_file = self._GetTestFile()
-    digesters = {'md5': md5()}
+    digesters = {'md5': GetMd5()}
     with open(tmp_file, 'rb') as stream:
-      wrapper = HashingFileUploadWrapper(stream, digesters, {'md5': md5},
+      wrapper = HashingFileUploadWrapper(stream, digesters, {'md5': GetMd5},
                                          self._dummy_url, self.logger)
       wrapper.read(TRANSFER_BUFFER_SIZE)
       wrapper.seek(0, os.SEEK_END)

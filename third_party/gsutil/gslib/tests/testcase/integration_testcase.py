@@ -24,6 +24,7 @@ import datetime
 import locale
 import logging
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -335,8 +336,8 @@ class GsUtilIntegrationTestCase(base.GsUtilTestCase):
 
   def _ServiceAccountCredentialsPresent(self):
     # TODO: Currently, service accounts cannot be project owners (unless
-    # they are grandfathered). Unfortunately, setting a canned ACL other
-    # than project-private, the ACL that buckets get by default, removes
+    # they are exempted for legacy reasons). Unfortunately, setting a canned ACL
+    # other than project-private, the ACL that buckets get by default, removes
     # project-editors access from the bucket ACL. So any canned ACL that would
     # actually represent a change the bucket would also orphan the service
     # account's access to the bucket. If service accounts can be owners
@@ -519,7 +520,9 @@ class GsUtilIntegrationTestCase(base.GsUtilTestCase):
                    versioning_enabled=False,
                    bucket_policy_only=False,
                    bucket_name_prefix='',
-                   bucket_name_suffix=''):
+                   bucket_name_suffix='',
+                   location=None,
+                   public_access_prevention=None):
     """Creates a test bucket.
 
     The bucket and all of its contents will be deleted after the test.
@@ -539,6 +542,9 @@ class GsUtilIntegrationTestCase(base.GsUtilTestCase):
           bucketPolicyOnly attribute to True.
       bucket_name_prefix: Unicode string to be prepended to bucket_name
       bucket_name_suffix: Unicode string to be appended to bucket_name
+      location: The location/region in which the bucket should be created.
+      public_access_prevention: String value of public access prevention. Valid
+          values are "enforced" and "unspecified".
 
     Returns:
       StorageUri for the created bucket.
@@ -547,13 +553,15 @@ class GsUtilIntegrationTestCase(base.GsUtilTestCase):
       provider = self.default_provider
 
     # Location is controlled by the -b test flag.
-    if self.multiregional_buckets or provider == 's3':
-      location = None
-    else:
-      # We default to the "us-central1" location for regional buckets, but allow
-      # overriding this value in the Boto config.
-      location = boto.config.get('GSUtil', 'test_cmd_regional_bucket_location',
-                                 'us-central1')
+    if location is None:
+      if self.multiregional_buckets or provider == 's3':
+        location = None
+      else:
+        # We default to the "us-central1" location for regional buckets,
+        # but allow overriding this value in the Boto config.
+        location = boto.config.get('GSUtil',
+                                   'test_cmd_regional_bucket_location',
+                                   'us-central1')
 
     bucket_name_prefix = six.ensure_text(bucket_name_prefix)
     bucket_name_suffix = six.ensure_text(bucket_name_suffix)
@@ -568,13 +576,15 @@ class GsUtilIntegrationTestCase(base.GsUtilTestCase):
                                       suffix=bucket_name_suffix)
 
     if prefer_json_api and provider == 'gs':
-      json_bucket = self.CreateBucketJson(bucket_name=bucket_name,
-                                          test_objects=test_objects,
-                                          storage_class=storage_class,
-                                          location=location,
-                                          versioning_enabled=versioning_enabled,
-                                          retention_policy=retention_policy,
-                                          bucket_policy_only=bucket_policy_only)
+      json_bucket = self.CreateBucketJson(
+          bucket_name=bucket_name,
+          test_objects=test_objects,
+          storage_class=storage_class,
+          location=location,
+          versioning_enabled=versioning_enabled,
+          retention_policy=retention_policy,
+          bucket_policy_only=bucket_policy_only,
+          public_access_prevention=public_access_prevention)
       bucket_uri = boto.storage_uri('gs://%s' % json_bucket.name.lower(),
                                     suppress_consec_slashes=False)
       return bucket_uri
@@ -775,7 +785,8 @@ class GsUtilIntegrationTestCase(base.GsUtilTestCase):
                        location=None,
                        versioning_enabled=False,
                        retention_policy=None,
-                       bucket_policy_only=False):
+                       bucket_policy_only=False,
+                       public_access_prevention=None):
     """Creates a test bucket using the JSON API.
 
     The bucket and all of its contents will be deleted after the test.
@@ -792,6 +803,8 @@ class GsUtilIntegrationTestCase(base.GsUtilTestCase):
       retention_policy: Retention policy to be used on the bucket.
       bucket_policy_only: If True, set the bucket's iamConfiguration's
           bucketPolicyOnly attribute to True.
+      public_access_prevention: String value of public access prevention. Valid
+          values are "enforced" and "unspecified".
 
     Returns:
       Apitools Bucket for the created bucket.
@@ -808,10 +821,13 @@ class GsUtilIntegrationTestCase(base.GsUtilTestCase):
           enabled=True))
     if retention_policy:
       bucket_metadata.retentionPolicy = retention_policy
-    if bucket_policy_only:
+    if bucket_policy_only or public_access_prevention:
       iam_config = apitools_messages.Bucket.IamConfigurationValue()
-      iam_config.bucketPolicyOnly = iam_config.BucketPolicyOnlyValue()
-      iam_config.bucketPolicyOnly.enabled = True
+      if bucket_policy_only:
+        iam_config.bucketPolicyOnly = iam_config.BucketPolicyOnlyValue()
+        iam_config.bucketPolicyOnly.enabled = True
+      if public_access_prevention:
+        iam_config.publicAccessPrevention = public_access_prevention
       bucket_metadata.iamConfiguration = iam_config
 
     # TODO: Add retry and exponential backoff.
@@ -921,6 +937,17 @@ class GsUtilIntegrationTestCase(base.GsUtilTestCase):
         metadata, attr_name, default_value=expected_value)
     self.assertEqual(expected_present, attr_present)
     self.assertEqual(expected_value, value)
+
+  def VerifyPublicAccessPreventionValue(self, bucket_uri, value):
+    stdout = self.RunGsUtil(['publicaccessprevention', 'get',
+                             suri(bucket_uri)],
+                            return_stdout=True)
+    public_access_prevention_re = re.compile(r':\s+(?P<pap_val>.+)$')
+    public_access_prevention_match = re.search(public_access_prevention_re,
+                                               stdout)
+    public_access_prevention_val = public_access_prevention_match.group(
+        'pap_val')
+    self.assertEqual(str(value), public_access_prevention_val)
 
   def RunGsUtil(self,
                 cmd,
@@ -1133,8 +1160,13 @@ class GsUtilIntegrationTestCase(base.GsUtilTestCase):
 
     with SetBotoConfigForTest(boto_config_for_test, use_existing_config=False):
       # Make sure to reset Developer Shell credential port so that the child
-      # gsutil process is really anonymous.
-      with SetEnvironmentForTest({'DEVSHELL_CLIENT_PORT': None}):
+      # gsutil process is really anonymous. Also, revent Boto from falling back
+      # on credentials from other files like ~/.aws/credentials or environment
+      # variables.
+      with SetEnvironmentForTest({
+          'DEVSHELL_CLIENT_PORT': None,
+          'AWS_SECRET_ACCESS_KEY': '_'
+      }):
         yield
 
   def _VerifyLocalMode(self, path, expected_mode):
@@ -1216,10 +1248,37 @@ class GsUtilIntegrationTestCase(base.GsUtilTestCase):
     return self.RunGsUtil(['ls', suri(bucket_url_string, '**')],
                           return_stdout=True)
 
+  def StorageUriCloneReplaceKey(self, storage_uri, key):
+    """Wrapper for StorageUri.clone_replace_key().
+
+    Args:
+      storage_uri: URI representing the object to be cloned
+      key: key for the new StorageUri to represent
+    """
+    return storage_uri.clone_replace_key(key)
+
+  def StorageUriCloneReplaceName(self, storage_uri, name):
+    """Wrapper for StorageUri.clone_replace_name().
+
+    Args:
+      storage_uri: URI representing the object to be cloned
+      key: new object name
+    """
+    return storage_uri.clone_replace_name(name)
+
+  def StorageUriSetContentsFromString(self, storage_uri, contents):
+    """Wrapper for StorageUri.set_contents_from_string().
+
+    Args:
+      storage_uri: URI representing the object
+      contents: String of the new contents of the object
+    """
+    return storage_uri.set_contents_from_string(contents)
+
 
 class KmsTestingResources(object):
   """Constants for KMS resource names to be used in integration testing."""
-  KEYRING_LOCATION = 'global'
+  KEYRING_LOCATION = 'us-central1'
   # Since KeyRings and their child resources cannot be deleted, we minimize the
   # number of resources created by using a hard-coded keyRing name.
   KEYRING_NAME = 'keyring-for-gsutil-integration-tests'

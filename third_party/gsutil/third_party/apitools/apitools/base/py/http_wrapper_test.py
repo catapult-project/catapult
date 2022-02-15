@@ -15,10 +15,10 @@
 
 """Tests for http_wrapper."""
 import socket
+import unittest
 
 import httplib2
 from six.moves import http_client
-import unittest2
 
 from mock import patch
 
@@ -57,7 +57,7 @@ class RaisesExceptionOnLen(object):
         return 1
 
 
-class HttpWrapperTest(unittest2.TestCase):
+class HttpWrapperTest(unittest.TestCase):
 
     def testRequestBodyUsesLengthProperty(self):
         http_wrapper.Request(body=RaisesExceptionOnLen())
@@ -65,8 +65,8 @@ class HttpWrapperTest(unittest2.TestCase):
     def testRequestBodyWithLen(self):
         http_wrapper.Request(body='burrito')
 
-    @unittest2.skipIf(not _TOKEN_REFRESH_STATUS_AVAILABLE,
-                      'oauth2client<1.5 lacks HttpAccessTokenRefreshError.')
+    @unittest.skipIf(not _TOKEN_REFRESH_STATUS_AVAILABLE,
+                     'oauth2client<1.5 lacks HttpAccessTokenRefreshError.')
     def testExceptionHandlerHttpAccessTokenError(self):
         exception_arg = HttpAccessTokenRefreshError(status=503)
         retry_args = http_wrapper.ExceptionRetryArgs(
@@ -80,8 +80,8 @@ class HttpWrapperTest(unittest2.TestCase):
             http_wrapper.HandleExceptionsAndRebuildHttpConnections(
                 retry_args)
 
-    @unittest2.skipIf(not _TOKEN_REFRESH_STATUS_AVAILABLE,
-                      'oauth2client<1.5 lacks HttpAccessTokenRefreshError.')
+    @unittest.skipIf(not _TOKEN_REFRESH_STATUS_AVAILABLE,
+                     'oauth2client<1.5 lacks HttpAccessTokenRefreshError.')
     def testExceptionHandlerHttpAccessTokenErrorRaises(self):
         exception_arg = HttpAccessTokenRefreshError(status=200)
         retry_args = http_wrapper.ExceptionRetryArgs(

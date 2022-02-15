@@ -296,8 +296,8 @@ class TestIamHelpers(testcase.GsUtilUnitTestCase):
     self.assertTrue(IsEqualBindings(res, base + diff))
 
   def test_valid_public_member_single_role(self):
-    """Tests parsing single role."""
-    (_, bindings) = bstt(True, 'allUsers:admin')
+    """Tests parsing single role (case insensitive)."""
+    (_, bindings) = bstt(True, 'allusers:admin')
     self.assertEquals(len(bindings), 1)
     self.assertIn(bvle(members=['allUsers'], role='roles/storage.admin'),
                   bindings)
@@ -344,20 +344,20 @@ class TestIamHelpers(testcase.GsUtilUnitTestCase):
                   bindings)
 
   def test_valid_member(self):
-    """Tests member parsing."""
-    (_, bindings) = bstt(True, 'user:foo@bar.com:admin')
+    """Tests member parsing (case insensitive)."""
+    (_, bindings) = bstt(True, 'User:foo@bar.com:admin')
     self.assertEquals(len(bindings), 1)
     self.assertIn(
         bvle(members=['user:foo@bar.com'], role='roles/storage.admin'),
         bindings)
 
   def test_valid_deleted_member(self):
-    """Tests deleted member parsing."""
-    (_, bindings) = bstt(False, 'deleted:user:foo@bar.com?uid=123')
+    """Tests deleted member parsing (case insensitive)."""
+    (_, bindings) = bstt(False, 'Deleted:User:foo@bar.com?uid=123')
     self.assertEquals(len(bindings), 1)
     self.assertIn(bvle(members=['deleted:user:foo@bar.com?uid=123'], role=''),
                   bindings)
-    (_, bindings) = bstt(True, 'deleted:user:foo@bar.com?uid=123:admin')
+    (_, bindings) = bstt(True, 'deleted:User:foo@bar.com?uid=123:admin')
     self.assertEquals(len(bindings), 1)
     self.assertIn(
         bvle(members=['deleted:user:foo@bar.com?uid=123'],

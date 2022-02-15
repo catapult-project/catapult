@@ -15,7 +15,8 @@
 
 """Test for generated sample module."""
 
-import unittest2
+import unittest
+
 import six
 
 from apitools.base.py import list_pager
@@ -25,7 +26,7 @@ from samples.dns_sample.dns_v1 import dns_v1_client
 from samples.dns_sample.dns_v1 import dns_v1_messages
 
 
-class DnsGenClientSanityTest(unittest2.TestCase):
+class DnsGenClientSanityTest(unittest.TestCase):
 
     def testBaseUrl(self):
         self.assertEquals(u'https://www.googleapis.com/dns/v1/',
@@ -46,7 +47,7 @@ class DnsGenClientSanityTest(unittest2.TestCase):
             'ResourceRecordSetsService']), inner_classes)
 
 
-class DnsGenClientTest(unittest2.TestCase):
+class DnsGenClientTest(unittest.TestCase):
 
     def setUp(self):
         self.mocked_dns_v1 = mock.Client(dns_v1_client.DnsV1)

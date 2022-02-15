@@ -23,15 +23,31 @@ from datetime import datetime
 from datetime import timedelta
 import pkgutil
 
+import boto
+
 import gslib.commands.signurl
 from gslib.commands.signurl import HAVE_OPENSSL
 from gslib.exception import CommandException
+from gslib.gcs_json_api import GcsJsonApi
+from gslib.iamcredentials_api import IamcredentailsApi
+from gslib.impersonation_credentials import ImpersonationCredentials
 import gslib.tests.testcase as testcase
-from gslib.tests.testcase.integration_testcase import SkipForS3
+from gslib.tests.testcase.integration_testcase import (SkipForS3, SkipForXML)
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import SetBotoConfigForTest
 from gslib.tests.util import unittest
 import gslib.tests.signurl_signatures as sigs
+from oauth2client import client
+from oauth2client.service_account import ServiceAccountCredentials
+
+from six import add_move, MovedModule
+
+add_move(MovedModule('mock', 'mock', 'unittest.mock'))
+from six.moves import mock
+
+SERVICE_ACCOUNT = boto.config.get_value('GSUtil',
+                                        'test_impersonate_service_account')
+TEST_EMAIL = 'test%40developer.gserviceaccount.com'
 
 
 # pylint: disable=protected-access
@@ -76,29 +92,48 @@ class TestSignUrl(testcase.GsUtilIntegrationTestCase):
     self.assertIn('CommandException: Max valid duration allowed is 7 days',
                   stderr)
 
+  def testSignUrlInvalidDurationWithUseServiceAccount(self):
+    """Tests signurl with -u flag fails duration > 12 hours."""
+    stderr = self.RunGsUtil(['signurl', '-d', '13h', '-u', 'gs://uri'],
+                            return_stderr=True,
+                            expected_status=1)
+    self.assertIn('CommandException: Max valid duration allowed is 12:00:00',
+                  stderr)
+
   def testSignUrlOutputP12(self):
     """Tests signurl output of a sample object with pkcs12 keystore."""
-    self._DoTestSignUrlOutput(self._GetKsFile())
-
-  def testSignUrlOutputJSON(self):
-    """Tests signurl output of a sample object with json keystore."""
-    self._DoTestSignUrlOutput(self._GetJSONKsFile(), json_keystore=True)
-
-  def _DoTestSignUrlOutput(self, ks_file, json_keystore=False):
-    """Tests signurl output of a sample object."""
-
     bucket_uri = self.CreateBucket()
     object_uri = self.CreateObject(bucket_uri=bucket_uri, contents=b'z')
-    cmd_base = ['signurl'] if json_keystore else ['signurl', '-p', 'notasecret']
-    stdout = self.RunGsUtil(
-        cmd_base +
-        ['-m', 'PUT', ks_file, suri(object_uri)], return_stdout=True)
-
-    self.assertIn('x-goog-credential=test%40developer.gserviceaccount.com',
-                  stdout)
+    cmd = [
+        'signurl', '-p', 'notasecret', '-m', 'PUT',
+        self._GetKsFile(),
+        suri(object_uri)
+    ]
+    stdout = self.RunGsUtil(cmd, return_stdout=True)
+    self.assertIn('x-goog-credential=test.apps.googleusercontent.com', stdout)
     self.assertIn('x-goog-expires=3600', stdout)
     self.assertIn('%2Fus-central1%2F', stdout)
     self.assertIn('\tPUT\t', stdout)
+
+  def testSignUrlOutputJSON(self):
+    """Tests signurl output of a sample object with JSON keystore."""
+    bucket_uri = self.CreateBucket()
+    object_uri = self.CreateObject(bucket_uri=bucket_uri, contents=b'z')
+    cmd = ['signurl', '-m', 'PUT', self._GetJSONKsFile(), suri(object_uri)]
+    stdout = self.RunGsUtil(cmd, return_stdout=True)
+    self.assertIn('x-goog-credential=' + TEST_EMAIL, stdout)
+    self.assertIn('x-goog-expires=3600', stdout)
+    self.assertIn('%2Fus-central1%2F', stdout)
+    self.assertIn('\tPUT\t', stdout)
+
+  def testSignUrlWithJSONKeyFileAndObjectGeneration(self):
+    """Tests signurl output of a sample object version with JSON keystore."""
+    bucket_uri = self.CreateBucket(versioning_enabled=True)
+    object_uri = self.CreateObject(bucket_uri=bucket_uri, contents=b'z')
+    cmd = ['signurl', self._GetJSONKsFile(), object_uri.version_specific_uri]
+    stdout = self.RunGsUtil(cmd, return_stdout=True)
+    self.assertIn('x-goog-credential=' + TEST_EMAIL, stdout)
+    self.assertIn('generation=' + object_uri.generation, stdout)
 
   def testSignUrlWithURLEncodeRequiredChars(self):
     objs = [
@@ -133,8 +168,7 @@ class TestSignUrl(testcase.GsUtilIntegrationTestCase):
     for obj, line, partial_url in zip(objs, lines, expected_partial_urls):
       self.assertIn(obj, line)
       self.assertIn(partial_url, line)
-      self.assertIn('x-goog-credential=test%40developer.gserviceaccount.com',
-                    line)
+      self.assertIn('x-goog-credential=test.apps.googleusercontent.com', line)
     self.assertIn('%2Fus%2F', stdout)
 
   def testSignUrlWithWildcard(self):
@@ -159,6 +193,24 @@ class TestSignUrl(testcase.GsUtilIntegrationTestCase):
 
     for obj_url in obj_urls:
       self.assertIn(suri(obj_url), stdout)
+
+  @unittest.skipUnless(SERVICE_ACCOUNT,
+                       'Test requires test_impersonate_service_account.')
+  @SkipForS3('Tests only uses gs credentials.')
+  @SkipForXML('Tests only run on JSON API.')
+  def testSignUrlWithServiceAccount(self):
+    with SetBotoConfigForTest([('Credentials', 'gs_impersonate_service_account',
+                                SERVICE_ACCOUNT)]):
+      stdout, stderr = self.RunGsUtil(
+          ['signurl', '-r', 'us-east1', '-u', 'gs://pub'],
+          return_stdout=True,
+          return_stderr=True)
+    # The signed url returned in stdout relies on current time.
+    # We are not able to mock the datetime here because RunGsUtil creates
+    # a separate process and runs the command.
+    self.assertIn('https://storage.googleapis.com/pub', stdout)
+    self.assertIn('All API calls will be executed as [%s]' % SERVICE_ACCOUNT,
+                  stderr)
 
   def testSignUrlOfNonObjectUrl(self):
     """Tests the signurl output of a non-existent file."""
@@ -185,7 +237,17 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
     def fake_now():
       return datetime(1900, 1, 1, 0, 5, 55)
 
-    gslib.commands.signurl._NowUTC = fake_now
+    gslib.utils.signurl_helper._NowUTC = fake_now
+
+  def _get_mock_api_delegator(self):
+    mock_api_delegator = self.MakeGsUtilApi()
+
+    # The MAkeGsUtilAPi maps apiclass.gs.JSON to BotoTranslation
+    # instead of GcsJsonApi
+    # Issue https://github.com/GoogleCloudPlatform/gsutil/issues/970
+    # SignUrl relies on the GcsJsonApi so we are replacing the mapping here.
+    mock_api_delegator.api_map['apiclass']['gs']['JSON'] = GcsJsonApi
+    return mock_api_delegator
 
   def testDurationSpec(self):
     tests = [
@@ -208,8 +270,8 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
         if expected is not None:
           self.fail('{0} failed to parse')
 
-  def testSignPut(self):
-    """Tests the _GenSignedUrl function with a PUT method."""
+  def testSignPutUsingKeyFile(self):
+    """Tests the _GenSignedUrl function with a PUT method using Key file."""
     expected = sigs.TEST_SIGN_PUT_SIG
 
     duration = timedelta(seconds=3600)
@@ -217,6 +279,9 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
                                 'storage.googleapis.com')]):
       signed_url = gslib.commands.signurl._GenSignedUrl(
           self.key,
+          api=None,
+          use_service_account=False,
+          provider='gs',
           client_id=self.client_email,
           method='RESUMABLE',
           gcs_path='test/test.txt',
@@ -226,8 +291,129 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
           content_type='')
     self.assertEquals(expected, signed_url)
 
-  def testSignResumable(self):
-    """Tests the _GenSignedUrl function with a RESUMABLE method."""
+  @SkipForS3('Tests only uses gs credentials.')
+  @SkipForXML('Tests only run on JSON API.')
+  def testSignPutUsingServiceAccount(self):
+    """Tests the _GenSignedUrl function PUT method with service account."""
+    expected = sigs.TEST_SIGN_URL_PUT_WITH_SERVICE_ACCOUNT
+    duration = timedelta(seconds=3600)
+
+    mock_api_delegator = self._get_mock_api_delegator()
+    json_api = mock_api_delegator._GetApi('gs')
+    # patch a service account credentials
+    mock_credentials = mock.Mock(spec=ServiceAccountCredentials)
+    mock_credentials.service_account_email = 'fake_service_account_email'
+    mock_credentials.sign_blob.return_value = ('fake_key', b'fake_signature')
+    json_api.credentials = mock_credentials
+    with SetBotoConfigForTest([('Credentials', 'gs_host',
+                                'storage.googleapis.com')]):
+      signed_url = gslib.commands.signurl._GenSignedUrl(
+          None,
+          api=mock_api_delegator,
+          use_service_account=True,
+          provider='gs',
+          client_id=self.client_email,
+          method='PUT',
+          gcs_path='test/test.txt',
+          duration=duration,
+          logger=self.logger,
+          region='us-east1',
+          content_type='')
+    self.assertEqual(expected, signed_url)
+    mock_credentials.sign_blob.assert_called_once_with(
+        b'GOOG4-RSA-SHA256\n19000101T000555Z\n19000101/us-east1/storage/'
+        b'goog4_request\n7f110b30eeca7fdd8846e876bceee85384d8e4c7388b359'
+        b'6544b1b503f9e2320')
+
+  @SkipForS3('Tests only uses gs credentials.')
+  @SkipForXML('Tests only run on JSON API.')
+  def testSignUrlWithIncorrectAccountType(self):
+    """Tests the _GenSignedUrl with incorrect account type.
+
+    Test that GenSignedUrl function with 'use_service_account' set to True
+    and a service account not used for credentials raises an error.
+    """
+    expected = sigs.TEST_SIGN_URL_PUT_WITH_SERVICE_ACCOUNT
+    duration = timedelta(seconds=3600)
+
+    mock_api_delegator = self._get_mock_api_delegator()
+    json_api = mock_api_delegator._GetApi('gs')
+    # patch a service account credentials
+    mock_credentials = mock.Mock(spec=client.OAuth2Credentials)
+    mock_credentials.service_account_email = 'fake_service_account_email'
+    json_api.credentials = mock_credentials
+    with SetBotoConfigForTest([('Credentials', 'gs_host',
+                                'storage.googleapis.com')]):
+      self.assertRaises(CommandException,
+                        gslib.commands.signurl._GenSignedUrl,
+                        None,
+                        api=mock_api_delegator,
+                        use_service_account=True,
+                        provider='gs',
+                        client_id=self.client_email,
+                        method='PUT',
+                        gcs_path='test/test.txt',
+                        duration=duration,
+                        logger=self.logger,
+                        region='us-east1',
+                        content_type='')
+
+  @SkipForS3('Tests only uses gs credentials.')
+  @SkipForXML('Tests only run on JSON API.')
+  @mock.patch('gslib.iamcredentials_api.apitools_client')
+  @mock.patch('gslib.iamcredentials_api.apitools_messages')
+  def testSignPutUsingImersonatedServiceAccount(self, mock_api_messages,
+                                                mock_apiclient):
+    """Tests the _GenSignedUrl function PUT method with impersonation.
+
+    Test _GenSignedUrl function using an impersonated service account.
+    """
+    expected = sigs.TEST_SIGN_URL_PUT_WITH_SERVICE_ACCOUNT
+    duration = timedelta(seconds=3600)
+
+    mock_api_delegator = self._get_mock_api_delegator()
+    json_api = mock_api_delegator._GetApi('gs')
+
+    # A mock object of type ImpersonationCredentials.
+    mock_credentials = mock.Mock(spec=ImpersonationCredentials)
+
+    api_client_obj = mock.Mock()
+    mock_apiclient.IamcredentialsV1.return_value = api_client_obj
+
+    # The api_client.IamcredntialsV1 get's in IamCredentialsApi's init
+    mock_iam_cred_api = IamcredentailsApi(credentials=mock.Mock())
+    mock_credentials.api = mock_iam_cred_api
+    mock_credentials.service_account_id = 'fake_service_account_email'
+
+    # Mock the response and assign it as a  return value for the SignBlob func.
+    mock_resp = mock.Mock()
+    mock_resp.signedBlob = b'fake_signature'
+    api_client_obj.projects_serviceAccounts.SignBlob.return_value = mock_resp
+
+    json_api.credentials = mock_credentials
+
+    with SetBotoConfigForTest([('Credentials', 'gs_host',
+                                'storage.googleapis.com')]):
+      signed_url = gslib.commands.signurl._GenSignedUrl(
+          None,
+          api=mock_api_delegator,
+          use_service_account=True,
+          provider='gs',
+          client_id=self.client_email,
+          method='PUT',
+          gcs_path='test/test.txt',
+          duration=duration,
+          logger=self.logger,
+          region='us-east1',
+          content_type='')
+    self.assertEqual(expected, signed_url)
+    mock_api_messages.SignBlobRequest.assert_called_once_with(
+        payload=b'GOOG4-RSA-SHA256\n19000101T000555Z\n19000101/us-east1'
+        b'/storage/goog4_request\n7f110b30eeca7fdd8846e876bceee'
+        b'85384d8e4c7388b3596544b1b503f9e2320')
+
+  def testSignResumableWithKeyFile(self):
+    """Tests _GenSignedUrl using key file with a RESUMABLE method."""
     expected = sigs.TEST_SIGN_RESUMABLE
 
     class MockLogger(object):
@@ -244,6 +430,9 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
                                 'storage.googleapis.com')]):
       signed_url = gslib.commands.signurl._GenSignedUrl(
           self.key,
+          api=None,
+          use_service_account=False,
+          provider='gs',
           client_id=self.client_email,
           method='RESUMABLE',
           gcs_path='test/test.txt',
@@ -260,6 +449,9 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
                                 'storage.googleapis.com')]):
       signed_url = gslib.commands.signurl._GenSignedUrl(
           self.key,
+          api=None,
+          use_service_account=False,
+          provider='gs',
           client_id=self.client_email,
           method='RESUMABLE',
           gcs_path='test/test.txt',
@@ -270,8 +462,8 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
     # No warning, since content type was included.
     self.assertFalse(mock_logger2.warning_issued)
 
-  def testSignurlPutContentype(self):
-    """Tests the _GenSignedUrl function a PUT method and content type."""
+  def testSignurlPutContentypeUsingKeyFile(self):
+    """Tests _GenSignedUrl using key file with a PUT method and content type."""
     expected = sigs.TEST_SIGN_URL_PUT_CONTENT
 
     duration = timedelta(seconds=3600)
@@ -279,6 +471,9 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
                                 'storage.googleapis.com')]):
       signed_url = gslib.commands.signurl._GenSignedUrl(
           self.key,
+          api=None,
+          use_service_account=False,
+          provider='gs',
           client_id=self.client_email,
           method='PUT',
           gcs_path='test/test.txt',
@@ -288,8 +483,8 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
           content_type='text/plain')
     self.assertEquals(expected, signed_url)
 
-  def testSignurlGet(self):
-    """Tests the _GenSignedUrl function with a GET method."""
+  def testSignurlGetUsingKeyFile(self):
+    """Tests the _GenSignedUrl function using key file with a GET method."""
     expected = sigs.TEST_SIGN_URL_GET
 
     duration = timedelta(seconds=0)
@@ -297,6 +492,9 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
                                 'storage.googleapis.com')]):
       signed_url = gslib.commands.signurl._GenSignedUrl(
           self.key,
+          api=None,
+          use_service_account=False,
+          provider='gs',
           client_id=self.client_email,
           method='GET',
           gcs_path='test/test.txt',
@@ -306,7 +504,7 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
           content_type='')
     self.assertEquals(expected, signed_url)
 
-  def testSignurlGetWithJSONKey(self):
+  def testSignurlGetWithJSONKeyUsingKeyFile(self):
     """Tests _GenSignedUrl with a GET method and the test JSON private key."""
     expected = sigs.TEST_SIGN_URL_GET_WITH_JSON_KEY
 
@@ -319,6 +517,9 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
                                 'storage.googleapis.com')]):
       signed_url = gslib.commands.signurl._GenSignedUrl(
           key,
+          api=None,
+          use_service_account=False,
+          provider='gs',
           client_id=client_email,
           method='GET',
           gcs_path='test/test.txt',
@@ -326,4 +527,26 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
           logger=self.logger,
           region='asia',
           content_type='')
+    self.assertEquals(expected, signed_url)
+
+  def testSignurlGetWithUserProject(self):
+    """Tests the _GenSignedUrl function with a userproject."""
+    expected = sigs.TEST_SIGN_URL_GET_USERPROJECT
+
+    duration = timedelta(seconds=0)
+    with SetBotoConfigForTest([('Credentials', 'gs_host',
+                                'storage.googleapis.com')]):
+      signed_url = gslib.commands.signurl._GenSignedUrl(
+          self.key,
+          api=None,
+          use_service_account=False,
+          provider='gs',
+          client_id=self.client_email,
+          method='GET',
+          gcs_path='test/test.txt',
+          duration=duration,
+          logger=self.logger,
+          region='asia',
+          content_type='',
+          billing_project='myproject')
     self.assertEquals(expected, signed_url)

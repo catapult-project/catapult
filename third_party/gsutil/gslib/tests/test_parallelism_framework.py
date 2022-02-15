@@ -27,28 +27,42 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import functools
+import mock
 import os
 import signal
+import six
 import threading
+import textwrap
 import time
 
-import six
+import boto
 from boto.storage_uri import BucketStorageUri
+from boto.storage_uri import StorageUri
 from gslib import cs_api_map
+from gslib import command
 from gslib.command import Command
 from gslib.command import CreateOrGetGsutilLogger
 from gslib.command import DummyArgChecker
 from gslib.tests.mock_cloud_api import MockCloudApi
+from gslib.tests.mock_logging_handler import MockLoggingHandler
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.base import RequiresIsolation
 from gslib.tests.util import unittest
 from gslib.utils.parallelism_framework_util import CheckMultiprocessingAvailableAndInit
+from gslib.utils.parallelism_framework_util import multiprocessing_context
+from gslib.utils.system_util import IS_OSX
 from gslib.utils.system_util import IS_WINDOWS
 
 # Amount of time for an individual test to run before timing out. We need a
 # reasonably high value since if many tests are running in parallel, an
 # individual test may take a while to complete.
 _TEST_TIMEOUT_SECONDS = 120
+
+PARALLEL_PROCESSING_MESSAGE = ('\n' + textwrap.fill(
+    '==> NOTE: You are performing a sequence of gsutil operations that '
+    'may run significantly faster if you instead use gsutil -m fake ...\n'
+    'Please see the -m section under "gsutil help options" for further '
+    'information about when gsutil -m can be advantageous.') + '\n')
 
 
 def Timeout(func):
@@ -619,6 +633,57 @@ class TestParallelismFramework(testcase.GsUtilUnitTestCase):
   def testRecursiveDepthThreeDifferentFunctionsMultiProcessMultiThread(self):
     self._TestRecursiveDepthThreeDifferentFunctions(3, 3)
 
+  @RequiresIsolation
+  @unittest.skipUnless(IS_OSX, 'This warning should only be printed on MacOS')
+  def testMacOSLogsMultiprocessingWarning(self):
+    logger = CreateOrGetGsutilLogger('FakeCommand')
+    mock_log_handler = MockLoggingHandler()
+    logger.addHandler(mock_log_handler)
+
+    self._TestRecursiveDepthThreeDifferentFunctions(3, 3)
+
+    macos_message = 'If you experience problems with multiprocessing on MacOS'
+    contains_message = [
+        message.startswith(macos_message)
+        for message in mock_log_handler.messages['info']
+    ]
+    self.assertTrue(any(contains_message))
+    logger.removeHandler(mock_log_handler)
+
+  @RequiresIsolation
+  @unittest.skipIf(IS_OSX, 'This warning should be printed on MacOS')
+  @unittest.skipIf(IS_WINDOWS, 'Multiprocessing is not supported on Windows')
+  def testNonMacOSDoesNotLogMultiprocessingWarning(self):
+    logger = CreateOrGetGsutilLogger('FakeCommand')
+    mock_log_handler = MockLoggingHandler()
+    logger.addHandler(mock_log_handler)
+
+    self._TestRecursiveDepthThreeDifferentFunctions(3, 3)
+
+    macos_message = 'If you experience problems with multiprocessing on MacOS'
+    contains_message = [
+        message.startswith(macos_message)
+        for message in mock_log_handler.messages['info']
+    ]
+    self.assertFalse(any(contains_message))
+    logger.removeHandler(mock_log_handler)
+
+  @RequiresIsolation
+  def testMultithreadingDoesNotLogMacOSWarning(self):
+    logger = CreateOrGetGsutilLogger('FakeCommand')
+    mock_log_handler = MockLoggingHandler()
+    logger.addHandler(mock_log_handler)
+
+    self._TestRecursiveDepthThreeDifferentFunctions(1, 3)
+
+    macos_message = 'If you experience problems with multiprocessing on MacOS'
+    contains_message = [
+        message.startswith(macos_message)
+        for message in mock_log_handler.messages['info']
+    ]
+    self.assertFalse(any(contains_message))
+    logger.removeHandler(mock_log_handler)
+
   @Timeout
   def _TestRecursiveDepthThreeDifferentFunctions(self, process_count,
                                                  thread_count):
@@ -706,6 +771,115 @@ class TestParallelismFramework(testcase.GsUtilUnitTestCase):
                              thread_count,
                              arg_checker=_SkipEvenNumbersArgChecker)
     self.assertEqual(0, len(results))
+
+  @mock.patch.object(command, 'OFFER_GSUTIL_M_SUGGESTION_THRESHOLD', 2)
+  @mock.patch.object(command, 'GetTermLines', return_value=100)
+  def testSequentialApplyRecommendsParallelismAfterThreshold(
+      self, mock_get_term_lines):
+    mock_get_term_lines.return_value = 100
+    logger = CreateOrGetGsutilLogger('FakeCommand')
+    mock_log_handler = MockLoggingHandler()
+    logger.addHandler(mock_log_handler)
+
+    self._RunApply(_ReturnOneValue, range(2), process_count=1, thread_count=1)
+
+    contains_message = [
+        message == PARALLEL_PROCESSING_MESSAGE
+        for message in mock_log_handler.messages['info']
+    ]
+    self.assertTrue(any(contains_message))
+    logger.removeHandler(mock_log_handler)
+
+  @mock.patch.object(command, 'OFFER_GSUTIL_M_SUGGESTION_THRESHOLD', 100)
+  @mock.patch.object(command, 'OFFER_GSUTIL_M_SUGGESTION_FREQUENCY', 10)
+  @mock.patch.object(command, 'GetTermLines', return_value=100)
+  def testSequentialApplyRecommendsParallelismAtSuggestionFrequency(
+      self, mock_get_term_lines):
+    logger = CreateOrGetGsutilLogger('FakeCommand')
+    mock_log_handler = MockLoggingHandler()
+    logger.addHandler(mock_log_handler)
+
+    self._RunApply(_ReturnOneValue, range(30), process_count=1, thread_count=1)
+
+    contains_message = [
+        message == PARALLEL_PROCESSING_MESSAGE
+        for message in mock_log_handler.messages['info']
+    ]
+    self.assertEqual(sum(contains_message), 3)
+    logger.removeHandler(mock_log_handler)
+
+  @mock.patch.object(command, 'OFFER_GSUTIL_M_SUGGESTION_THRESHOLD', 100)
+  @mock.patch.object(command, 'OFFER_GSUTIL_M_SUGGESTION_FREQUENCY', 10)
+  @mock.patch.object(command, 'GetTermLines', return_value=2)
+  def testSequentialApplyRecommendsParallelismAtEndIfLastSuggestionIsOutOfView(
+      self, mock_get_term_lines):
+    logger = CreateOrGetGsutilLogger('FakeCommand')
+    mock_log_handler = MockLoggingHandler()
+    logger.addHandler(mock_log_handler)
+
+    self._RunApply(_ReturnOneValue, range(22), process_count=1, thread_count=1)
+
+    contains_message = [
+        message == PARALLEL_PROCESSING_MESSAGE
+        for message in mock_log_handler.messages['info']
+    ]
+    self.assertEqual(sum(contains_message), 3)
+    logger.removeHandler(mock_log_handler)
+
+  @mock.patch.object(command, 'OFFER_GSUTIL_M_SUGGESTION_THRESHOLD', 100)
+  @mock.patch.object(command, 'OFFER_GSUTIL_M_SUGGESTION_FREQUENCY', 10)
+  @mock.patch.object(command, 'GetTermLines', return_value=3)
+  def testSequentialApplyDoesNotRecommendParallelismAtEndIfLastSuggestionInView(
+      self, mock_get_term_lines):
+    logger = CreateOrGetGsutilLogger('FakeCommand')
+    mock_log_handler = MockLoggingHandler()
+    logger.addHandler(mock_log_handler)
+
+    self._RunApply(_ReturnOneValue, range(22), process_count=1, thread_count=1)
+
+    contains_message = [
+        message == PARALLEL_PROCESSING_MESSAGE
+        for message in mock_log_handler.messages['info']
+    ]
+    self.assertEqual(sum(contains_message), 2)
+    logger.removeHandler(mock_log_handler)
+
+  def testResetConnectionPoolDeletesConnectionState(self):
+    StorageUri.connection = mock.Mock(spec=boto.s3.connection.S3Connection)
+    StorageUri.provider_pool = {
+        's3': mock.Mock(spec=boto.s3.connection.S3Connection)
+    }
+
+    self.command_class(True)._ResetConnectionPool()
+
+    self.assertIsNone(StorageUri.connection)
+    self.assertFalse(StorageUri.provider_pool)
+
+
+# _ResetConnectionPool is only called in child processes, so we need a queue
+# to track calls.
+call_queue = multiprocessing_context.Queue()
+
+
+class TestParallelismFrameworkWithMultiprocessing(testcase.GsUtilUnitTestCase):
+  """Tests that only run with multiprocessing enabled."""
+
+  @RequiresIsolation
+  @mock.patch.object(FakeCommand,
+                     '_ResetConnectionPool',
+                     side_effect=functools.partial(call_queue.put, None))
+  @unittest.skipIf(IS_WINDOWS, 'Multiprocessing is not supported on Windows')
+  def testResetConnectionPoolCalledOncePerProcess(self,
+                                                  mock_reset_connection_pool):
+    expected_call_count = 2
+    FakeCommand(True).Apply(_ReturnOneValue, [1, 2, 3],
+                            _ExceptionHandler,
+                            process_count=expected_call_count,
+                            thread_count=3,
+                            arg_checker=DummyArgChecker)
+
+    for _ in range(expected_call_count):
+      self.assertIsNone(call_queue.get(timeout=1.0))
 
 
 class TestParallelismFrameworkWithoutMultiprocessing(TestParallelismFramework):

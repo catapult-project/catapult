@@ -31,11 +31,11 @@ from gslib.utils.constants import NO_MAX
 from gslib.utils.text_util import NormalizeStorageClass
 
 _SET_SYNOPSIS = """
-  gsutil defstorageclass set <storage-class> bucket_url...
+  gsutil defstorageclass set <storage-class> gs://<bucket_name>...
 """
 
 _GET_SYNOPSIS = """
-  gsutil defstorageclass get bucket_url...
+  gsutil defstorageclass get gs://<bucket_name>...
 """
 
 _SYNOPSIS = _SET_SYNOPSIS + _GET_SYNOPSIS.lstrip('\n')

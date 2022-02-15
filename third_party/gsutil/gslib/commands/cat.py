@@ -52,12 +52,10 @@ _DETAILED_HELP_TEXT = ("""
 
   (The final '-' causes gsutil to stream the output to stdout.)
 
-
-<B>WARNING: DATA INTEGRITY CHECKING NOT DONE</B>
-  The gsutil cat command does not compute a checksum of the downloaded data.
-  Therefore, we recommend that users either perform their own validation of the
-  output of gsutil cat or use gsutil cp or rsync (both of which perform
-  integrity checking automatically).
+  WARNING: The gsutil cat command does not compute a checksum of the
+  downloaded data. Therefore, we recommend that users either perform
+  their own validation of the output of gsutil cat or use gsutil cp
+  or rsync (both of which perform integrity checking automatically).
 
 
 <B>OPTIONS</B>

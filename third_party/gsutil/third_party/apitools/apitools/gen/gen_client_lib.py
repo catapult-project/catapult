@@ -168,12 +168,14 @@ class DescriptorGenerator(object):
         else:
             printer('"""Package marker file."""')
         printer()
+        printer('from __future__ import absolute_import')
+        printer()
         printer('import pkgutil')
         printer()
         if self.__init_wildcards_file:
             printer('from %s import *', self.__base_files_package)
             if self.__root_package == '.':
-                import_prefix = ''
+                import_prefix = '.'
             else:
                 import_prefix = '%s.' % self.__root_package
             printer('from %s%s import *',

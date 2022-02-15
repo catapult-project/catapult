@@ -96,7 +96,7 @@ class TestSeekAheadThread(testcase.GsUtilUnitTestCase):
       seek_ahead_thread.join(self.thread_wait_time)
       status_queue.put(_ZERO_TASKS_TO_DO_ARGUMENT)
       ui_thread.join(self.thread_wait_time)
-      if seek_ahead_thread.isAlive():
+      if seek_ahead_thread.is_alive():
         seek_ahead_thread.terminate = True
         self.fail(
             'Cancellation issued after %s iterations, but SeekAheadThread '
@@ -138,7 +138,7 @@ class TestSeekAheadThread(testcase.GsUtilUnitTestCase):
     seek_ahead_thread.join(self.thread_wait_time)
     status_queue.put(_ZERO_TASKS_TO_DO_ARGUMENT)
     ui_thread.join(self.thread_wait_time)
-    if seek_ahead_thread.isAlive():
+    if seek_ahead_thread.is_alive():
       seek_ahead_thread.terminate = True
       self.fail('SeekAheadThread is still alive.')
 
@@ -181,7 +181,7 @@ class TestSeekAheadThread(testcase.GsUtilUnitTestCase):
     status_queue.put(_ZERO_TASKS_TO_DO_ARGUMENT)
     ui_thread.join(self.thread_wait_time)
 
-    if seek_ahead_thread.isAlive():
+    if seek_ahead_thread.is_alive():
       seek_ahead_thread.terminate = True
       self.fail('SeekAheadThread is still alive.')
 
@@ -226,7 +226,7 @@ class TestSeekAheadThread(testcase.GsUtilUnitTestCase):
     status_queue.put(_ZERO_TASKS_TO_DO_ARGUMENT)
     ui_thread.join(self.thread_wait_time)
 
-    if seek_ahead_thread.isAlive():
+    if seek_ahead_thread.is_alive():
       seek_ahead_thread.terminate = True
       self.fail('SeekAheadThread is still alive.')
 

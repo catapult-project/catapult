@@ -35,11 +35,15 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>OPTIONS</B>
-  -D          Shows HTTP requests/headers and additional debug info needed when
-              posting support requests, including exception stack traces.
+  -D          Shows HTTP requests/headers and additional debug info needed
+              when posting support requests, including exception stack traces.
 
-  -DD         Shows HTTP requests/headers, additional debug info,
-              exception stack traces, plus HTTP upstream payload.
+              CAUTION: The output from using this flag includes authentication
+              credentials. Before including this flag in your command, be sure
+              you understand how the command's output is used, and, if
+              necessary, remove or redact sensitive information.
+
+  -DD         Same as -D, plus HTTP upstream payload.
 
   -h          Allows you to specify certain HTTP headers, for example:
 
@@ -70,14 +74,12 @@ _DETAILED_HELP_TEXT = ("""
                 x-goog-meta-
 
               Note that for gs:// URLs, the Cache Control header is specific to
-              the API being used. The XML API will accept any cache control
-              headers and return them during object downloads.  The JSON API
-              respects only the public, private, no-cache, and max-age cache
-              control headers, and may add its own no-transform directive even
-              if it was not specified. See 'gsutil help apis' for more
-              information on gsutil's interaction with APIs.
+              the API being used. The XML API accepts any cache control headers
+              and returns them during object downloads.  The JSON API respects
+              only the public, private, no-cache, max-age, and no-transform
+              cache control headers.
 
-              See also "gsutil help setmeta" for the ability to set metadata
+              See "gsutil help setmeta" for the ability to set metadata
               fields on objects after they have been uploaded.
 
   -i          Allows you to use the configured credentials to impersonate a
@@ -95,32 +97,46 @@ _DETAILED_HELP_TEXT = ("""
               files over a reasonably fast network connection.
 
               gsutil performs the specified operation using a combination of
-              multi-threading and multi-processing, using a number of threads
-              and processors determined by the parallel_thread_count and
-              parallel_process_count values set in the boto configuration
-              file. You might want to experiment with these values, as the
-              best values can vary based on a number of factors, including
-              network speed, number of CPUs, and available memory.
+              multi-threading and multi-processing. The number of threads
+              and processors are determined by ``parallel_thread_count`` and
+              ``parallel_process_count``, respectively. These values are set in
+              the .boto configuration file or specified in individual requests
+              with the ``-o`` top-level flag. Because gsutil has no built-in
+              support for throttling requests, you should experiment with these
+              values. The optimal values can vary based on a number of factors,
+              including network speed, number of CPUs, and available memory.
 
-              Using the -m option may make your performance worse if you
-              are using a slower network, such as the typical network speeds
-              offered by non-business home network plans. It can also make
-              your performance worse for cases that perform all operations
-              locally (e.g., gsutil rsync, where both source and destination
-              URLs are on the local disk), because it can "thrash" your local
-              disk.
+              Using the -m option can consume a significant amount of network
+              bandwidth and cause problems or make your performance worse if
+              you use a slower network. For example, if you start a large rsync
+              operation over a network link that's also used by a number of
+              other important jobs, there could be degraded performance in
+              those jobs. Similarly, the -m option can make your performance
+              worse, especially for cases that perform all operations locally,
+              because it can "thrash" your local disk.
+
+              To prevent such issues, reduce the values for
+              ``parallel_thread_count`` and ``parallel_process_count``, or stop
+              using the -m option entirely. One tool that you can use to limit
+              how much I/O capacity gsutil consumes and prevent it from
+              monopolizing your local disk is `ionice
+              <http://www.tutorialspoint.com/unix_commands/ionice.htm>`_
+              (built in to many Linux systems). For example, the following
+              command reduces the I/O priority of gsutil so it doesn't
+              monopolize your local disk:
+
+                ionice -c 2 -n 7 gsutil -m rsync -r ./dir gs://some bucket
 
               If a download or upload operation using parallel transfer fails
               before the entire transfer is complete (e.g. failing after 300 of
-              1000 files have been transferred), you will need to restart the
-              entire transfer.
+              1000 files have been transferred), you must restart the entire
+              transfer.
 
-              Also, although most commands will normally fail upon encountering
-              an error when the -m flag is disabled, all commands will
-              continue to try all operations when -m is enabled with multiple
-              threads or processes, and the number of failed operations (if any)
-              will be reported as an exception at the end of the command's
-              execution.
+              Also, although most commands normally fail upon encountering an
+              error when the -m flag is disabled, all commands continue to try
+              all operations when -m is enabled with multiple threads or
+              processes, and the number of failed operations (if any) are
+              reported as an exception at the end of the command's execution.
 
   -o          Set/override values in the boto configuration value, in the format
               <section>:<name>=<value>, e.g. gsutil -o "Boto:proxy=host" ...

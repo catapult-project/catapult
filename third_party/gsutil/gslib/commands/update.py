@@ -23,6 +23,7 @@ import os
 import shutil
 import signal
 import stat
+import sys
 import tarfile
 import tempfile
 import textwrap
@@ -37,11 +38,11 @@ from gslib.sig_handling import RegisterSignalHandler
 from gslib.utils import system_util
 from gslib.utils.boto_util import GetConfigFilePaths
 from gslib.utils.boto_util import CERTIFICATE_VALIDATION_ENABLED
-from gslib.utils.constants import GSUTIL_PUB_TARBALL
 from gslib.utils.constants import RELEASE_NOTES_URL
 from gslib.utils.text_util import CompareVersions
 from gslib.utils.update_util import DisallowUpdateIfDataInGsutilDir
 from gslib.utils.update_util import LookUpGsutilVersion
+from gslib.utils.update_util import GsutilPubTarball
 
 _SYNOPSIS = """
   gsutil update [-f] [-n] [url]
@@ -53,10 +54,13 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>DESCRIPTION</B>
+  NOTE: This command is not available if you're using a gsutil installation
+  from a package manager or the Cloud SDK. When using the Cloud SDK, use
+  ``gcloud components update``.
+
   The gsutil update command downloads the latest gsutil release, checks its
   version, and offers to let you update to it if it differs from the version
-  you're currently running. Note that this functionality is not available if
-  you're using a gsutil installation from a package manager or the Cloud SDK.
+  you're currently running.
 
   Once you say "Y" to the prompt of whether to install the update, the gsutil
   update command locates where the running copy of gsutil is installed,
@@ -74,7 +78,7 @@ _DETAILED_HELP_TEXT = ("""
   instead. This is primarily used for distributing pre-release versions of
   the code to a small group of early test users.
 
-  Note: gsutil periodically checks whether a more recent software update is
+  NOTE: gsutil periodically checks whether a more recent software update is
   available. By default this check is performed every 30 days; you can change
   (or disable) this check by editing the software_update_check_period variable
   in the .boto config file. Note also that gsutil will only check for software
@@ -92,7 +96,7 @@ _DETAILED_HELP_TEXT = ("""
 
   -n          Causes update command to run without prompting [Y/n] whether to
               continue if an update is available.
-""" % GSUTIL_PUB_TARBALL)
+""" % GsutilPubTarball())
 
 
 class UpdateCommand(Command):
@@ -333,7 +337,7 @@ class UpdateCommand(Command):
           raise CommandException(
               'Invalid update object URL. Must name a single .tar.gz file.')
     else:
-      update_from_url_str = GSUTIL_PUB_TARBALL
+      update_from_url_str = GsutilPubTarball()
 
     # Try to retrieve version info from tarball metadata; failing that; download
     # the tarball and extract the VERSION file. The version lookup will fail

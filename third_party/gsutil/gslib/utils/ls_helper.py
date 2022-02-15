@@ -48,6 +48,7 @@ UNENCRYPTED_FULL_LISTING_FIELDS = [
     'contentEncoding',
     'contentLanguage',
     'contentType',
+    'customTime',
     'kmsKeyName',
     'customerEncryption',
     'etag',
@@ -209,9 +210,11 @@ def PrintFullInfoAboutObject(bucket_listing_ref, incl_acl=True):
   if obj.componentCount:
     text_util.print_to_fd(
         MakeMetadataLine('Component-Count', obj.componentCount))
+  if obj.customTime:
+    text_util.print_to_fd(MakeMetadataLine('Custom-Time', obj.customTime))
   if obj.timeDeleted:
     text_util.print_to_fd(
-        MakeMetadataLine('Archived time',
+        MakeMetadataLine('Noncurrent time',
                          obj.timeDeleted.strftime('%a, %d %b %Y %H:%M:%S GMT')))
   marker_props = {}
   if obj.metadata and obj.metadata.additionalProperties:
@@ -368,12 +371,15 @@ class LsHelper(object):
       return self._RecurseExpandUrlAndPrint(url.url_string,
                                             print_initial_newline=False)
     else:
-      # User provided a prefix or object URL, but it's impossible to tell
-      # which until we do a listing and see what matches.
+      # User provided a prefix or object URL, but can't tell which unless there
+      # is a generation or we do a listing to see what matches.
+      if url.HasGeneration():
+        iteration_url = url.url_string
+      else:
+        iteration_url = url.CreatePrefixUrl()
       top_level_iterator = PluralityCheckableIterator(
           self._iterator_func(
-              url.CreatePrefixUrl(wildcard_suffix=None),
-              all_versions=self.all_versions).IterAll(
+              iteration_url, all_versions=self.all_versions).IterAll(
                   expand_top_level_buckets=True,
                   bucket_listing_fields=self.bucket_listing_fields))
       plurality = top_level_iterator.HasPlurality()

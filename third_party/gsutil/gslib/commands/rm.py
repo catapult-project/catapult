@@ -30,7 +30,7 @@ from gslib.command import DecrementFailureCount
 from gslib.command_argument import CommandArgument
 from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
-from gslib.exception import NO_URLS_MATCHED_GENERIC
+from gslib.exception import NO_URLS_MATCHED_PREFIX
 from gslib.exception import NO_URLS_MATCHED_TARGET
 from gslib.name_expansion import NameExpansionIterator
 from gslib.name_expansion import SeekAheadNameExpansionIterator
@@ -56,6 +56,11 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>DESCRIPTION</B>
+  NOTE: As part of verifying the existence of objects prior to deletion,
+  ``gsutil rm`` makes ``GET`` requests to Cloud Storage for object metadata.
+  These requests incur `network and operations charges
+  <https://cloud.google.com/storage/pricing>`_.
+
   The gsutil rm command removes objects and/or buckets.
   For example, the command:
 
@@ -109,21 +114,14 @@ _DETAILED_HELP_TEXT = ("""
 
     gsutil rm *.txt
 
-  WARNING: Object removal cannot be undone. Google Cloud Storage is designed
-  to give developers a high amount of flexibility and control over their data,
-  and Google maintains strict controls over the processing and purging of
-  deleted data. To protect yourself from mistakes, you can configure object
-  versioning on your bucket(s). See 'gsutil help versions' for details.
-
-
-<B>DATA RESTORATION FROM ACCIDENTAL DELETION OR OVERWRITES</B>
-Google Cloud Storage does not provide support for restoring data lost
-or overwritten due to customer errors. If you have concerns that your
-application software (or your users) may at some point erroneously delete or
-overwrite data, you can protect yourself from that risk by enabling Object
-Versioning (see "gsutil help versioning"). Doing so increases storage costs,
-which can be partially mitigated by configuring Lifecycle Management to delete
-older object versions (see "gsutil help lifecycle").
+  WARNING: Object removal cannot be undone. Cloud Storage is designed to give
+  developers a high amount of flexibility and control over their data, and
+  Google maintains strict controls over the processing and purging of deleted
+  data. If you have concerns that your application software or your users may
+  at some point erroneously delete or replace data, see
+  `Best practices for deleting data
+  <https://cloud.google.com/storage/docs/best-practices#deleting>`_ for ways to
+  protect your data from accidental data deletion.
 
 
 <B>OPTIONS</B>
@@ -142,8 +140,9 @@ older object versions (see "gsutil help lifecycle").
               subdirectory contents (all objects and subdirectories that it
               contains) to be removed recursively. If used with a bucket-only
               URL (like gs://bucket), after deleting objects and subdirectories
-              gsutil will delete the bucket. This option implies the -a option
-              and will delete all object versions.
+              gsutil deletes the bucket. This option implies the -a option and
+              deletes all object versions. If you only want to delete live
+              object versions, use the '**' wildcard instead of -r.
 
   -a          Delete all versions of an object.
 """)
@@ -169,7 +168,7 @@ def _RemoveExceptionHandler(cls, e):
 # pylint: disable=unused-argument
 def _RemoveFoldersExceptionHandler(cls, e):
   """When removing folders, we don't mind if none exist."""
-  if ((isinstance(e, CommandException) and NO_URLS_MATCHED_GENERIC in e.reason)
+  if ((isinstance(e, CommandException) and NO_URLS_MATCHED_PREFIX in e.reason)
       or isinstance(e, NotFoundException)):
     DecrementFailureCount()
   else:
@@ -367,7 +366,7 @@ class RmCommand(Command):
                      fail_on_error=False)
         except CommandException as e:
           # Ignore exception from name expansion due to an absent folder file.
-          if not e.reason.startswith(NO_URLS_MATCHED_GENERIC):
+          if not e.reason.startswith(NO_URLS_MATCHED_PREFIX):
             raise
 
     # Now that all data has been deleted, delete any bucket URLs.
@@ -392,10 +391,20 @@ class RmCommand(Command):
 
     exp_src_url = name_expansion_result.expanded_storage_url
     self.logger.info('Removing %s...', exp_src_url)
-    gsutil_api.DeleteObject(exp_src_url.bucket_name,
-                            exp_src_url.object_name,
-                            preconditions=self.preconditions,
-                            generation=exp_src_url.generation,
-                            provider=exp_src_url.scheme)
+    try:
+      gsutil_api.DeleteObject(exp_src_url.bucket_name,
+                              exp_src_url.object_name,
+                              preconditions=self.preconditions,
+                              generation=exp_src_url.generation,
+                              provider=exp_src_url.scheme)
+    except NotFoundException as e:
+      # DeleteObject will sometimes return a 504 (DEADLINE_EXCEEDED) when
+      # the operation was in fact successful. When a retry is attempted in
+      # these cases, it will fail with a (harmless) 404. The 404 is harmless
+      # since it really just means the file was already deleted, which is
+      # what we want anyway. Here we simply downgrade the message to info
+      # rather than error and correct the command-level failure total.
+      self.logger.info('Cannot find %s', exp_src_url)
+      DecrementFailureCount()
     _PutToQueueWithTimeout(gsutil_api.status_queue,
                            MetadataMessage(message_time=time.time()))

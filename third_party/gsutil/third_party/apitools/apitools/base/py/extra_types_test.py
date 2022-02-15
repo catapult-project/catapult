@@ -16,8 +16,7 @@
 import datetime
 import json
 import math
-
-import unittest2
+import unittest
 
 from apitools.base.protorpclite import messages
 from apitools.base.py import encoding
@@ -25,7 +24,7 @@ from apitools.base.py import exceptions
 from apitools.base.py import extra_types
 
 
-class ExtraTypesTest(unittest2.TestCase):
+class ExtraTypesTest(unittest.TestCase):
 
     def assertRoundTrip(self, value):
         if isinstance(value, extra_types._JSON_PROTO_TYPES):

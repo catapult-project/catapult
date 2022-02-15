@@ -149,10 +149,10 @@ def Base64Sha256FromBase64EncryptionKey(csek_encryption_key):
   if six.PY3:
     if not isinstance(csek_encryption_key, bytes):
       csek_encryption_key = csek_encryption_key.encode('ascii')
-  decoded_bytes = base64.decodestring(csek_encryption_key)
+  decoded_bytes = base64.b64decode(csek_encryption_key)
   key_sha256 = _CalculateSha256FromString(decoded_bytes)
   sha256_bytes = binascii.unhexlify(key_sha256)
-  sha256_base64 = base64.encodestring(sha256_bytes)
+  sha256_base64 = base64.b64encode(sha256_bytes)
   return sha256_base64.replace(b'\n', b'')
 
 
@@ -193,7 +193,7 @@ def _GetAndVerifyBase64EncryptionKey(boto_config):
   if encryption_key:
     # Ensure the key has a valid encoding.
     try:
-      base64.decodestring(encryption_key)
+      base64.b64decode(encryption_key)
     except:
       raise CommandException(
           'Configured encryption_key is not a valid base64 string. Please '

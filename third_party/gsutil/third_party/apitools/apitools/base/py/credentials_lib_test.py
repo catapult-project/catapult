@@ -17,10 +17,10 @@ import json
 import os.path
 import shutil
 import tempfile
+import unittest
 
 import mock
 import six
-import unittest2
 
 from apitools.base.py import credentials_lib
 from apitools.base.py import util
@@ -43,7 +43,7 @@ class MetadataMock(object):
         self.fail('Unexpected HTTP request to %s' % request_url)
 
 
-class CredentialsLibTest(unittest2.TestCase):
+class CredentialsLibTest(unittest.TestCase):
 
     def _RunGceAssertionCredentials(
             self, service_account_name=None, scopes=None, cache_filename=None):
@@ -153,7 +153,7 @@ class CredentialsLibTest(unittest2.TestCase):
         self.assertIsNone(creds)
 
 
-class TestGetRunFlowFlags(unittest2.TestCase):
+class TestGetRunFlowFlags(unittest.TestCase):
 
     def setUp(self):
         self._flags_actual = credentials_lib.FLAGS

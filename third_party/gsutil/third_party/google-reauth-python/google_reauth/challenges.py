@@ -21,7 +21,7 @@ import pyu2f.errors
 import pyu2f.model
 import six
 
-from google_reauth import _helpers
+from google_reauth import _helpers, errors
 
 
 REAUTH_ORIGIN = 'https://accounts.google.com'
@@ -123,10 +123,29 @@ class SecurityKeyChallenge(ReauthChallenge):
         return None
 
 
+class SamlChallenge(ReauthChallenge):
+    """Challenge that asks the users to browse to their ID Providers."""
+
+    @property
+    def name(self):
+        return 'SAML'
+
+    @property
+    def is_locally_eligible(self):
+        return True
+
+    def obtain_challenge_input(self, metadata):
+        # Magic Arch has not fully supported returning a proper dedirect URL
+        # for programmatic SAML users today. So we error our here and request
+        # users to complete a web login.
+        raise errors.ReauthSamlLoginRequiredError()
+
+
 AVAILABLE_CHALLENGES = {
     challenge.name: challenge
     for challenge in [
         SecurityKeyChallenge(),
-        PasswordChallenge()
+        PasswordChallenge(),
+        SamlChallenge()
     ]
 }

@@ -39,6 +39,7 @@ from boto import config
 import crcmod
 from gslib.bucket_listing_ref import BucketListingObject
 from gslib.cloud_api import NotFoundException
+from gslib.cloud_api import ServiceException
 from gslib.command import Command
 from gslib.command import DummyArgChecker
 from gslib.command_argument import CommandArgument
@@ -116,47 +117,25 @@ _DETAILED_HELP_TEXT = ("""
   contents under src_url, by copying any missing files/objects (or those whose
   data has changed), and (if the -d option is specified) deleting any extra
   files/objects. src_url must specify a directory, bucket, or bucket
-  subdirectory. For example, to make gs://mybucket/data match the contents of
-  the local directory "data" you could do:
+  subdirectory. For example, to sync the contents of the local directory "data"
+  to the bucket gs://mybucket/data, you could do:
 
-    gsutil rsync -d data gs://mybucket/data
+    gsutil rsync data gs://mybucket/data
 
   To recurse into directories use the -r option:
-
-    gsutil rsync -d -r data gs://mybucket/data
-
-  To copy only new/changed files without deleting extra files from
-  gs://mybucket/data leave off the -d option:
 
     gsutil rsync -r data gs://mybucket/data
 
   If you have a large number of objects to synchronize you might want to use the
-  gsutil -m option, to perform parallel (multi-threaded/multi-processing)
-  synchronization:
+  gsutil -m option (see "gsutil help options"), to perform parallel
+  (multi-threaded/multi-processing) synchronization:
 
-    gsutil -m rsync -d -r data gs://mybucket/data
+    gsutil -m rsync -r data gs://mybucket/data
 
   The -m option typically will provide a large performance boost if either the
   source or destination (or both) is a cloud URL. If both source and
   destination are file URLs the -m option will typically thrash the disk and
   slow synchronization down.
-
-  To make the local directory "data" the same as the contents of
-  gs://mybucket/data:
-
-    gsutil rsync -d -r gs://mybucket/data data
-
-  To make the contents of gs://mybucket2 the same as gs://mybucket1:
-
-    gsutil rsync -d -r gs://mybucket1 gs://mybucket2
-
-  You can also mirror data across local directories:
-
-    gsutil rsync -d -r dir1 dir2
-
-  To mirror your content across clouds:
-
-    gsutil rsync -d -r gs://my-gs-bucket s3://my-s3-bucket
 
   Note 1: Shells (like bash, zsh) sometimes attempt to expand wildcards in ways
   that can be surprising. Also, attempting to copy files whose names contain
@@ -171,16 +150,46 @@ _DETAILED_HELP_TEXT = ("""
   flow through the machine where gsutil is running, doing this can make your
   transfer run significantly faster than running gsutil on your local
   workstation.
+  
+  Note 3: rsync does not copy empty directory trees, since Cloud Storage uses a
+  `flat namespace <https://cloud.google.com/storage/docs/folders>`_.
 
 
-<B>BE CAREFUL WHEN USING -d OPTION!</B>
+<B>Using -d Option (with caution!) to mirror source and destination.</B>
   The rsync -d option is very useful and commonly used, because it provides a
   means of making the contents of a destination bucket or directory match those
-  of a source bucket or directory. However, please exercise caution when you
+  of a source bucket or directory. This is done by copying all data from the
+  source to the destination and deleting all other data in the destination that
+  is not in the source. Please exercise caution when you
   use this option: It's possible to delete large amounts of data accidentally
-  if, for example, you erroneously reverse source and destination. For example,
-  if you meant to synchronize a local directory from a bucket in the cloud but
-  instead run the command:
+  if, for example, you erroneously reverse source and destination.
+
+  To make the local directory my-data the same as the contents of
+  gs://mybucket/data and delete objects in the local directory that are not in
+  gs://mybucket/data:
+
+    gsutil rsync -d -r gs://mybucket/data my-data
+
+  To make the contents of gs://mybucket2 the same as gs://mybucket1 and delete
+  objects in gs://mybucket2 that are not in gs://mybucket1:
+
+    gsutil rsync -d -r gs://mybucket1 gs://mybucket2
+
+  You can also mirror data across local directories. This example will copy all
+  objects from dir1 into dir2 and delete all objects in dir2 which are not in dir1:
+
+    gsutil rsync -d -r dir1 dir2
+
+  To mirror your content across clouds:
+
+    gsutil rsync -d -r gs://my-gs-bucket s3://my-s3-bucket
+
+  Change detection works if the other Cloud provider is using md5 or CRC32. AWS
+  multipart upload has an incompatible checksum.
+  
+  As mentioned above, using -d can be dangerous because of how quickly data can
+  be deleted. For example, if you meant to synchronize a local directory from
+  a bucket in the cloud but instead run the command:
 
     gsutil -m rsync -r -d ./your-dir gs://your-bucket
 
@@ -210,9 +219,10 @@ _DETAILED_HELP_TEXT = ("""
      it will be immediately evident that running that command without the -n
      option would cause many objects to be deleted.
 
-  2. Enable object versioning in your bucket, which will allow you to restore
+  2. Enable object versioning in your bucket, which allows you to restore
      objects if you accidentally delete them. For more details see
-     "gsutil help versions".
+     `Object Versioning
+     <https://cloud.google.com/storage/docs/object-versioning>`_.
 
 
 <B>BE CAREFUL WHEN SYNCHRONIZING OVER OS-SPECIFIC FILE TYPES (SYMLINKS, DEVICES, ETC.)</B>
@@ -268,26 +278,23 @@ _DETAILED_HELP_TEXT = ("""
 <B>CHECKSUM VALIDATION AND FAILURE HANDLING</B>
   At the end of every upload or download, the gsutil rsync command validates
   that the checksum of the source file/object matches the checksum of the
-  destination file/object. If the checksums do not match, gsutil will delete
+  destination file/object. If the checksums do not match, gsutil deletes
   the invalid copy and print a warning message. This very rarely happens, but
   if it does, please contact gs-team@google.com.
 
-  The rsync command will retry when failures occur, but if enough failures
-  happen during a particular copy or delete operation the command will fail.
+  The rsync command retries failures when it is useful to do so, but if
+  enough failures happen during a particular copy or delete operation, or if
+  a failure isn't retryable, the overall command fails.
 
-  If the -C option is provided, the command will instead skip the failing
-  object and move on. At the end of the synchronization run if any failures
-  were not successfully retried, the rsync command will report the count of
-  failures, and exit with non-zero status. At this point you can run the rsync
-  command again, and it will attempt any remaining needed copy and/or delete
+  If the -C option is provided, the command instead skips failing objects and
+  moves on. At the end of the synchronization run, if any failures were not
+  successfully retried, the rsync command reports the count of failures and
+  exits with non-zero status. At this point you can run the rsync command
+  again, and gsutil attempts any remaining needed copy and/or delete
   operations.
 
-  Note that there are cases where retrying will never succeed, such as if you
-  don't have write permission to the destination bucket or if the destination
-  path for some objects is longer than the maximum allowed length.
-
-  For more details about gsutil's retry handling, please see
-  "gsutil help retries".
+  For more details about gsutil's retry handling, see `Retry strategy
+  <https://cloud.google.com/storage/docs/retry-strategy#tools>`_.
 
 
 <B>CHANGE DETECTION ALGORITHM</B>
@@ -352,11 +359,11 @@ _DETAILED_HELP_TEXT = ("""
      times to be used in its comparisons. This means gsutil rsync will resort to
      using checksums for any file with a timestamp before 1970-01-01 UTC.
 
-  2. The gsutil rsync command considers only the current object generations in
+  2. The gsutil rsync command considers only the live object version in
      the source and destination buckets when deciding what to copy / delete. If
      versioning is enabled in the destination bucket then gsutil rsync's
-     overwriting or deleting objects will end up creating versions, but the
-     command doesn't try to make the archived generations match in the source
+     replacing or deleting objects will end up creating versions, but the
+     command doesn't try to make any noncurrent versions match in the source
      and destination buckets.
 
   3. The gsutil rsync command does not support copying special file types
@@ -370,9 +377,9 @@ _DETAILED_HELP_TEXT = ("""
   4. The gsutil rsync command copies changed files in their entirety and does
      not employ the
      `rsync delta-transfer algorithm <https://rsync.samba.org/tech_report/>`_
-     to transfer portions of a changed file. This is because cloud objects are
-     immutable and no facility exists to read partial cloud object checksums or
-     perform partial overwrites.
+     to transfer portions of a changed file. This is because Cloud Storage
+     objects are immutable and no facility exists to read partial object
+     checksums or perform partial replacements.
 
 <B>OPTIONS</B>
   -a canned_acl  Sets named canned_acl when uploaded objects created. See
@@ -390,21 +397,28 @@ _DETAILED_HELP_TEXT = ("""
   -C             If an error occurs, continue to attempt to copy the remaining
                  files. If errors occurred, gsutil's exit status will be
                  non-zero even if this flag is set. This option is implicitly
-                 set when running "gsutil -m rsync...".  Note: -C only applies
-                 to the actual copying operation. If an error occurs while
-                 iterating over the files in the local directory (e.g., invalid
-                 Unicode file name) gsutil will print an error message and
-                 abort.
+                 set when running "gsutil -m rsync...".
+
+                 NOTE: -C only applies to the actual copying operation. If an
+                 error occurs while iterating over the files in the local
+                 directory (e.g., invalid Unicode file name) gsutil will print
+                 an error message and abort.
 
   -d             Delete extra files under dst_url not found under src_url. By
-                 default extra files are not deleted. Note: this option can
-                 delete data quickly if you specify the wrong source/destination
-                 combination. See the help section above,
-                 "BE CAREFUL WHEN USING -d OPTION!".
+                 default extra files are not deleted.
+
+                 NOTE: this option can delete data quickly if you specify the
+                 wrong source/destination combination. See the help section
+                 above, "BE CAREFUL WHEN USING -d OPTION!".
 
   -e             Exclude symlinks. When specified, symbolic links will be
                  ignored. Note that gsutil does not follow directory symlinks,
                  regardless of whether -e is specified.
+
+  -i             This forces rsync to skip any files which exist on the destination
+                 and have a modified time that is newer than the source file.
+                 (If an existing destination file has a modification time equal to
+                 the source file's, it will be updated if the sizes are different.)
 
   -j <ext,...>   Applies gzip transport encoding to any file upload whose
                  extension matches the -j extension list. This is useful when
@@ -419,22 +433,20 @@ _DETAILED_HELP_TEXT = ("""
                  original files.
 
                  Note that if you want to use the top-level -m option to
-                 parallelize copies along with the -j/-J options, you should
-                 prefer using multiple processes instead of multiple threads;
-                 when using -j/-J, multiple threads in the same process are
-                 bottlenecked by Python's GIL. Thread and process count can be
-                 set using the "parallel_thread_count" and
-                 "parallel_process_count" boto config options, e.g.:
+                 parallelize copies along with the -j/-J options, your
+                 performance may be bottlenecked by the
+                 "max_upload_compression_buffer_size" boto config option,
+                 which is set to 2 GiB by default. This compression buffer
+                 size can be changed to a higher limit, e.g.:
 
-                   gsutil -o "GSUtil:parallel_process_count=8" \\
-                     -o "GSUtil:parallel_thread_count=1" \\
-                     -m rsync -j /local/source/dir gs://bucket/path
+                   gsutil -o "GSUtil:max_upload_compression_buffer_size=8G" \\
+                     -m rsync -j html,txt /local/source/dir gs://bucket/path
 
   -J             Applies gzip transport encoding to file uploads. This option
                  works like the -j option described above, but it applies to
                  all uploaded files, regardless of extension.
 
-                 Warning: If you use this option and some of the source files
+                 CAUTION: If you use this option and some of the source files
                  don't compress well (e.g., that's often true of binary data),
                  this option may result in longer uploads.
 
@@ -485,30 +497,35 @@ _DETAILED_HELP_TEXT = ("""
   -u             When a file/object is present in both the source and
                  destination, if mtime is available for both, do not perform
                  the copy if the destination mtime is newer.
-                 
+
   -U             Skip objects with unsupported object types instead of failing.
                  Unsupported object types are Amazon S3 Objects in the GLACIER
                  storage class.
 
   -x pattern     Causes files/objects matching pattern to be excluded, i.e., any
-                 matching files/objects will not be copied or deleted. Note that
-                 the pattern is a Python regular expression, not a wildcard (so,
-                 matching any string ending in "abc" would be specified using
-                 ".*abc$" rather than "*abc"). Note also that the exclude path
-                 is always relative (similar to Unix rsync or tar exclude
+                 matching files/objects are not copied or deleted. Note that the
+                 pattern is a `Python regular expression
+                 <https://docs.python.org/3/howto/regex.html>`_, not a wildcard
+                 (so, matching any string ending in "abc" would be specified
+                 using ".*abc$" rather than "*abc"). Note also that the exclude
+                 path is always relative (similar to Unix rsync or tar exclude
                  options). For example, if you run the command:
 
-                   gsutil rsync -x "data./.*\.txt$" dir gs://my-bucket
+                   gsutil rsync -x "data./.*\\.txt$" dir gs://my-bucket
 
-                 it will skip the file dir/data1/a.txt.
+                 it skips the file dir/data1/a.txt.
 
                  You can use regex alternation to specify multiple exclusions,
                  for example:
 
-                   gsutil rsync -x ".*\.txt$|.*\.jpg$" dir gs://my-bucket
+                   gsutil rsync -x ".*\\.txt$|.*\\.jpg$" dir gs://my-bucket
 
-                 NOTE: When using this on the Windows command line, use ^ as an
-                 escape character instead of \ and escape the | character.
+                 skips all .txt and .jpg files in dir.
+
+                 NOTE: When using the Windows cmd.exe command line interpreter,
+                 use ^ as an escape character instead of \\ and escape the |
+                 character. When using Windows PowerShell, use ' instead of "
+                 and surround the | character with ".
 """)
 # pylint: enable=anomalous-backslash-in-string
 
@@ -935,6 +952,7 @@ class _DiffIterator(object):
     self.base_dst_url = base_dst_url
     self.preserve_posix = command_obj.preserve_posix_attrs
     self.skip_old_files = command_obj.skip_old_files
+    self.ignore_existing = command_obj.ignore_existing
 
     self.logger.info('Building synchronization state...')
 
@@ -1131,6 +1149,8 @@ class _DiffIterator(object):
     use_hashes = (self.compute_file_checksums or
                   (StorageUrlFromString(src_url_str).IsCloudUrl() and
                    StorageUrlFromString(dst_url_str).IsCloudUrl()))
+    if self.ignore_existing:
+      return False, has_src_mtime, has_dst_mtime
     if (self.skip_old_files and has_src_mtime and has_dst_mtime and
         src_mtime < dst_mtime):
       return False, has_src_mtime, has_dst_mtime
@@ -1322,6 +1342,7 @@ class _AvoidChecksumAndListingDiffIterator(_DiffIterator):
     self.base_src_url = initialized_diff_iterator.base_src_url
     self.base_dst_url = initialized_diff_iterator.base_dst_url
     self.skip_old_files = initialized_diff_iterator.skip_old_files
+    self.ignore_existing = initialized_diff_iterator.ignore_existing
 
     # Note that while this leaves 2 open file handles, we track these in a
     # global list to be closed (if not closed in the calling scope) and deleted
@@ -1354,7 +1375,13 @@ def _RsyncFunc(cls, diff_to_apply, thread_state=None):
     else:
       cls.logger.info('Removing %s', dst_url)
       if dst_url.IsFileUrl():
-        os.unlink(dst_url.object_name)
+        try:
+          os.unlink(dst_url.object_name)
+        except FileNotFoundError:
+          # Missing file errors occur occasionally with .gstmp files
+          # and can be ignored for deletes.
+          cls.logger.debug('%s was already removed', dst_url)
+          pass
       else:
         try:
           gsutil_api.DeleteObject(dst_url.bucket_name,
@@ -1406,6 +1433,12 @@ def _RsyncFunc(cls, diff_to_apply, thread_state=None):
           # getmtime can return a float, so it needs to be converted to long.
           if posix_attrs.mtime > long(time.time()) + SECONDS_PER_DAY:
             WarnFutureTimestamp('mtime', src_url.url_string)
+          if src_url.IsFifo() or src_url.IsStream():
+            type_text = 'Streams' if src_url.IsStream() else 'Named pipes'
+            cls.logger.warn(
+                'WARNING: %s are not supported by gsutil rsync and '
+                'will likely fail. Use the -x option to exclude %s by name.',
+                type_text, src_url.url_string)
         if src_obj_metadata.metadata:
           custom_metadata = src_obj_metadata.metadata
         else:
@@ -1454,24 +1487,19 @@ def _RsyncFunc(cls, diff_to_apply, thread_state=None):
       if dst_url.IsCloudUrl():
         dst_url = StorageUrlFromString(diff_to_apply.dst_url_str)
         dst_generation = GenerationFromUrlAndString(dst_url, dst_url.generation)
-        dst_obj_metadata = gsutil_api.GetObjectMetadata(
-            dst_url.bucket_name,
-            dst_url.object_name,
-            generation=dst_generation,
-            provider=dst_url.scheme,
-            fields=['acl'])
-        if dst_obj_metadata.acl:
-          # We have ownership, and can patch the object.
+        try:
+          # Assume we have permission, and can patch the object.
           gsutil_api.PatchObjectMetadata(dst_url.bucket_name,
                                          dst_url.object_name,
                                          obj_metadata,
                                          provider=dst_url.scheme,
                                          generation=dst_url.generation)
-        else:
-          # We don't have object ownership, so it must be copied.
+        except ServiceException as err:
+          cls.logger.debug('Error while trying to patch: %s', err)
+          # We don't have permission to patch apparently, so it must be copied.
           cls.logger.info(
               'Copying whole file/object for %s instead of patching'
-              ' because you don\'t have owner permission on the '
+              ' because you don\'t have patch permission on the '
               'object.', dst_url.url_string)
           _RsyncFunc(cls,
                      RsyncDiffToApply(diff_to_apply.src_url_str,
@@ -1506,18 +1534,19 @@ def _RsyncFunc(cls, diff_to_apply, thread_state=None):
             generation=dst_generation,
             provider=dst_url.scheme,
             fields=['acl'])
-        if dst_obj_metadata.acl:
-          # We have ownership, and can patch the object.
+        try:
+          # Assume we have ownership, and can patch the object.
           gsutil_api.PatchObjectMetadata(dst_url.bucket_name,
                                          dst_url.object_name,
                                          obj_metadata,
                                          provider=dst_url.scheme,
                                          generation=dst_url.generation)
-        else:
-          # We don't have object ownership, so it must be copied.
+        except ServiceException as err:
+          cls.logger.debug('Error while trying to patch: %s', err)
+          # Apparently we don't have object ownership, so it must be copied.
           cls.logger.info(
               'Copying whole file/object for %s instead of patching'
-              ' because you don\'t have owner permission on the '
+              ' because you don\'t have patch permission on the '
               'object.', dst_url.url_string)
           _RsyncFunc(cls,
                      RsyncDiffToApply(diff_to_apply.src_url_str,
@@ -1552,7 +1581,7 @@ class RsyncCommand(Command):
       usage_synopsis=_SYNOPSIS,
       min_args=2,
       max_args=2,
-      supported_sub_args='a:cCdenpPrRuUx:j:J',
+      supported_sub_args='a:cCdenpPriRuUx:j:J',
       file_url_ok=True,
       provider_url_ok=False,
       urls_start_arg=0,
@@ -1591,8 +1620,9 @@ class RsyncCommand(Command):
         logger=self.logger)
     if not have_existing_container:
       raise CommandException(
-          'arg (%s) does not name a directory, bucket, or bucket subdir.' %
-          url_str)
+          'arg (%s) does not name a directory, bucket, or bucket subdir.\n'
+          'If there is an object with the same path, please add a trailing\n'
+          'slash to specify the directory.' % url_str)
     return url
 
   def RunCommand(self):
@@ -1690,6 +1720,7 @@ class RsyncCommand(Command):
     self.dryrun = False
     self.exclude_pattern = None
     self.skip_old_files = False
+    self.ignore_existing = False
     self.skip_unsupported_objects = False
     # self.recursion_requested is initialized in command.py (so it can be
     # checked in parent class for all commands).
@@ -1738,6 +1769,8 @@ class RsyncCommand(Command):
           self.recursion_requested = True
         elif o == '-u':
           self.skip_old_files = True
+        elif o == '-i':
+          self.ignore_existing = True
         elif o == '-U':
           self.skip_unsupported_objects = True
         elif o == '-x':

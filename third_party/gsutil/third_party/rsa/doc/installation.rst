@@ -5,23 +5,18 @@ Installation can be done in various ways. The simplest form uses pip
 or easy_install. Either one will work::
 
     pip install rsa
-    easy_install rsa
 
-Depending on your system you may need to use ``sudo pip`` or ``sudo
-easy_install``.
+Depending on your system you may need to use ``sudo pip`` if you want to install
+the library system-wide.
 
 Installation from source is also quite easy. Download the source and
 then type::
 
     python setup.py install
 
-or if that doesn't work::
-
-    sudo python setup.py install
-
 
 The sources are tracked in our `Git repository`_ at
-Github. It also hosts the `issue tracker`_.
+GitHub. It also hosts the `issue tracker`_.
 
 .. _`Git repository`: https://github.com/sybrenstuvel/python-rsa.git
 .. _`issue tracker`: https://github.com/sybrenstuvel/python-rsa/issues
@@ -49,7 +44,7 @@ pip to install the development requirements in a virtual environment::
 
 Once these are installed, use Git_ to get a copy of the source::
 
-    hg clone https://github.com/sybrenstuvel/python-rsa.git
+    git clone https://github.com/sybrenstuvel/python-rsa.git
     python setup.py develop
 
 .. _Git: https://git-scm.com/

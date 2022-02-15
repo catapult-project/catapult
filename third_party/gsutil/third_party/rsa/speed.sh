@@ -28,9 +28,7 @@ check_command() {
 
 python_versions="
     pypy
-    python2.6
     python2.7
-    python3.3
     python3.4
     python3.5
 "
@@ -41,14 +39,5 @@ for version in $python_versions; do
         echo "$version"
         "$version" -mtimeit -s'from rsa.transform import int2bytes; n = 1<<4096' 'int2bytes(n)'
         "$version" -mtimeit -s'from rsa.transform import _int2bytes; n = 1<<4096' '_int2bytes(n)'
-    fi
-done
-
-echo "bit_size speed test"
-for version in $python_versions; do
-    if check_command "$version"; then
-        echo "$version"
-        "$version" -mtimeit -s'from rsa.common import bit_size; n = 1<<4096' 'bit_size(n)'
-        "$version" -mtimeit -s'from rsa.common import _bit_size; n = 1<<4096' '_bit_size(n)'
     fi
 done

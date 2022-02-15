@@ -701,6 +701,11 @@ class HttpWithDownloadStream(httplib2.Http):
               logging.DEBUG, 'Only got %s bytes out of content-length %s '
               'for request URI %s. Resetting content-length to match '
               'bytes read.', bytes_read, content_length, request_uri)
+          # Failing to delete existing headers before setting new values results
+          # in the header being set twice, see https://docs.python.org/3/library/email.compat32-message.html#email.message.Message.__setitem__.
+          # This trips apitools up when executing a retry, so the line below is
+          # essential:
+          del response.msg['content-length']
           response.msg['content-length'] = str(bytes_read)
         response = httplib2.Response(response)
       else:

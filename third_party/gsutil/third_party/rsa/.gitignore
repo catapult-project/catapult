@@ -8,10 +8,12 @@
 /distribute*.tar.gz
 /distribute*.egg
 
-/.tox/
-/.coverage
-/.coverage.*
-/.cache/
+.tox/
+.coverage
+.coverage.*
+.cache/
+.pytest_cache/
+__pycache__/
 
 /build/
 /doc/_build/

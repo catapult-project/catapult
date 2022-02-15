@@ -18,7 +18,7 @@ import nox
 
 
 @nox.session
-@nox.parametrize('py', ['2.7'])
+@nox.parametrize('py', ['2.7', '3.4'])
 def tests(session, py):
     session.interpreter = 'python{}'.format(py)
     session.install('mock', 'pytest', 'pytest-cov')

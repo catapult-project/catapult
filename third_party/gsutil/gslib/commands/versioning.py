@@ -30,11 +30,11 @@ from gslib.third_party.storage_apitools import storage_v1_messages as apitools_m
 from gslib.utils.constants import NO_MAX
 
 _SET_SYNOPSIS = """
-  gsutil versioning set <on|off> bucket_url...
+  gsutil versioning set (on|off) gs://<bucket_name>...
 """
 
 _GET_SYNOPSIS = """
-  gsutil versioning get bucket_url...
+  gsutil versioning get gs://<bucket_name>...
 """
 
 _SYNOPSIS = _SET_SYNOPSIS + _GET_SYNOPSIS.lstrip('\n')

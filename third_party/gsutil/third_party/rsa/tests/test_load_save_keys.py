@@ -14,62 +14,63 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-'''Unittest for saving and loading keys.'''
+"""Unittest for saving and loading keys."""
 
 import base64
-import unittest
+import mock
 import os.path
 import pickle
+import unittest
+import warnings
 
-from rsa._compat import b
-
+from rsa._compat import range
 import rsa.key
 
-B64PRIV_DER = b('MC4CAQACBQDeKYlRAgMBAAECBQDHn4npAgMA/icCAwDfxwIDANcXAgInbwIDAMZt')
+B64PRIV_DER = b'MC4CAQACBQDeKYlRAgMBAAECBQDHn4npAgMA/icCAwDfxwIDANcXAgInbwIDAMZt'
 PRIVATE_DER = base64.standard_b64decode(B64PRIV_DER)
 
-B64PUB_DER = b('MAwCBQDeKYlRAgMBAAE=')
+B64PUB_DER = b'MAwCBQDeKYlRAgMBAAE='
 PUBLIC_DER = base64.standard_b64decode(B64PUB_DER)
 
-PRIVATE_PEM = b('''
+PRIVATE_PEM = b'''\
 -----BEGIN CONFUSING STUFF-----
 Cruft before the key
 
 -----BEGIN RSA PRIVATE KEY-----
 Comment: something blah
 
-%s
+''' + B64PRIV_DER + b'''
 -----END RSA PRIVATE KEY-----
 
 Stuff after the key
 -----END CONFUSING STUFF-----
-''' % B64PRIV_DER.decode("utf-8"))
+'''
 
-CLEAN_PRIVATE_PEM = b('''\
+CLEAN_PRIVATE_PEM = b'''\
 -----BEGIN RSA PRIVATE KEY-----
-%s
+''' + B64PRIV_DER + b'''
 -----END RSA PRIVATE KEY-----
-''' % B64PRIV_DER.decode("utf-8"))
+'''
 
-PUBLIC_PEM = b('''
+PUBLIC_PEM = b'''\
 -----BEGIN CONFUSING STUFF-----
 Cruft before the key
 
 -----BEGIN RSA PUBLIC KEY-----
 Comment: something blah
 
-%s
+''' + B64PUB_DER + b'''
 -----END RSA PUBLIC KEY-----
 
 Stuff after the key
 -----END CONFUSING STUFF-----
-''' % B64PUB_DER.decode("utf-8"))
+'''
 
-CLEAN_PUBLIC_PEM = b('''\
+CLEAN_PUBLIC_PEM = b'''\
 -----BEGIN RSA PUBLIC KEY-----
-%s
+''' + B64PUB_DER + b'''
 -----END RSA PUBLIC KEY-----
-''' % B64PUB_DER.decode("utf-8"))
+'''
 
 
 class DerTest(unittest.TestCase):
@@ -82,6 +83,39 @@ class DerTest(unittest.TestCase):
         expected = rsa.key.PrivateKey(3727264081, 65537, 3349121513, 65063, 57287)
 
         self.assertEqual(expected, key)
+        self.assertEqual(key.exp1, 55063)
+        self.assertEqual(key.exp2, 10095)
+        self.assertEqual(key.coef, 50797)
+
+    @mock.patch('pyasn1.codec.der.decoder.decode')
+    def test_load_malformed_private_key(self, der_decode):
+        """Test loading malformed private DER keys."""
+
+        # Decode returns an invalid exp2 value.
+        der_decode.return_value = (
+            [0, 3727264081, 65537, 3349121513, 65063, 57287, 55063, 0, 50797],
+            0,
+        )
+
+        with warnings.catch_warnings(record=True) as w:
+            # Always print warnings
+            warnings.simplefilter('always')
+
+            # Load 3 keys
+            for _ in range(3):
+                key = rsa.key.PrivateKey.load_pkcs1(PRIVATE_DER, 'DER')
+
+            # Check that 3 warnings were generated.
+            self.assertEqual(3, len(w))
+
+            for warning in w:
+                self.assertTrue(issubclass(warning.category, UserWarning))
+                self.assertIn('malformed', str(warning.message))
+
+        # Check that we are creating the key with correct values
+        self.assertEqual(key.exp1, 55063)
+        self.assertEqual(key.exp2, 10095)
+        self.assertEqual(key.coef, 50797)
 
     def test_save_private_key(self):
         """Test saving private DER keys."""
@@ -89,6 +123,7 @@ class DerTest(unittest.TestCase):
         key = rsa.key.PrivateKey(3727264081, 65537, 3349121513, 65063, 57287)
         der = key.save_pkcs1('DER')
 
+        self.assertIsInstance(der, bytes)
         self.assertEqual(PRIVATE_DER, der)
 
     def test_load_public_key(self):
@@ -105,6 +140,7 @@ class DerTest(unittest.TestCase):
         key = rsa.key.PublicKey(3727264081, 65537)
         der = key.save_pkcs1('DER')
 
+        self.assertIsInstance(der, bytes)
         self.assertEqual(PUBLIC_DER, der)
 
 
@@ -118,6 +154,9 @@ class PemTest(unittest.TestCase):
         expected = rsa.key.PrivateKey(3727264081, 65537, 3349121513, 65063, 57287)
 
         self.assertEqual(expected, key)
+        self.assertEqual(key.exp1, 55063)
+        self.assertEqual(key.exp2, 10095)
+        self.assertEqual(key.coef, 50797)
 
     def test_save_private_key(self):
         """Test saving private PEM files."""
@@ -125,6 +164,7 @@ class PemTest(unittest.TestCase):
         key = rsa.key.PrivateKey(3727264081, 65537, 3349121513, 65063, 57287)
         pem = key.save_pkcs1('PEM')
 
+        self.assertIsInstance(pem, bytes)
         self.assertEqual(CLEAN_PRIVATE_PEM, pem)
 
     def test_load_public_key(self):
@@ -141,6 +181,7 @@ class PemTest(unittest.TestCase):
         key = rsa.key.PublicKey(3727264081, 65537)
         pem = key.save_pkcs1('PEM')
 
+        self.assertIsInstance(pem, bytes)
         self.assertEqual(CLEAN_PUBLIC_PEM, pem)
 
     def test_load_from_disk(self):

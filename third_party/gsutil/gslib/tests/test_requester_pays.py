@@ -189,7 +189,8 @@ class TestRequesterPays(testcase.GsUtilIntegrationTestCase):
         self.CreateObject(bucket_uri=bucket_uri, contents=data).uri
         for data in data_list
     ]
-    composite = bucket_uri.clone_replace_name(self.MakeTempName('obj'))
+    composite = self.StorageUriCloneReplaceName(bucket_uri,
+                                                self.MakeTempName('obj'))
     self._run_non_requester_pays_test(['compose'] + components +
                                       [composite.uri])
 

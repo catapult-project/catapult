@@ -73,8 +73,13 @@ _DETAILED_HELP_TEXT = ("""
   The gsutil test command runs the gsutil unit tests and integration tests.
   The unit tests use an in-memory mock storage service implementation, while
   the integration tests send requests to the production service using the
-  preferred API set in the boto configuration file (see "gsutil help apis" for
-  details).
+  `preferred API
+  <https://cloud.google.com/storage/docs/request-endpoints#gsutil>`_ set in the
+  boto configuration file.
+
+  CAUTION: The ``test`` command creates test buckets and objects in your project.
+  Force quitting the ``test`` command can leave behind stale buckets, objects,
+  and HMAC keys in your project.
 
   To run both the unit tests and integration tests, run the command with no
   arguments:
@@ -252,6 +257,8 @@ def SplitParallelizableTestSuite(test_suite):
       # run sequentially.
       isolated_tests.append(TestCaseToName(test_case))
     elif not getattr(test_method, 'is_parallelizable', True):
+      sequential_tests.append(TestCaseToName(test_case))
+    elif not getattr(test_case, 'is_parallelizable', True):
       sequential_tests.append(TestCaseToName(test_case))
     elif isinstance(test_case, GsUtilUnitTestCase):
       parallelizable_unit_tests.append(TestCaseToName(test_case))

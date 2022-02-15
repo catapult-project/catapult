@@ -49,6 +49,7 @@ STORAGE_CLASS_SHORTHAND_TO_FULL_NAME = {
     'NL': 'NEARLINE',
     'S': 'STANDARD',
     'STD': 'STANDARD',
+    'A': 'ARCHIVE',
 }
 
 VERSION_MATCHER = LazyWrapper(

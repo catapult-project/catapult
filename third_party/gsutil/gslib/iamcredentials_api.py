@@ -19,7 +19,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
 
-import datetime
 import json
 import logging
 import traceback
@@ -39,7 +38,6 @@ from gslib.utils.boto_util import GetCertsFile
 from gslib.utils.boto_util import GetMaxRetryDelay
 from gslib.utils.boto_util import GetNewHttp
 from gslib.utils.boto_util import GetNumRetries
-from oauth2client import client
 
 TRANSLATABLE_APITOOLS_EXCEPTIONS = (apitools_exceptions.HttpError)
 
@@ -101,6 +99,18 @@ class IamcredentailsApi(object):
       self.api_client.AddGlobalParam(
           'key', u'AIzaSyDnacJHrKma0048b13sh8cgxNUwulubmJM')
 
+  def SignBlob(self, service_account_id, message):
+    """Sign the blob using iamcredentials.SignBlob API."""
+    name = 'projects/-/serviceAccounts/%s' % service_account_id
+    sign_blob_request = apitools_messages.SignBlobRequest(payload=message)
+    request = (
+        apitools_messages.IamcredentialsProjectsServiceAccountsSignBlobRequest(
+            name=name, signBlobRequest=sign_blob_request))
+    try:
+      return self.api_client.projects_serviceAccounts.SignBlob(request)
+    except TRANSLATABLE_APITOOLS_EXCEPTIONS as e:
+      self._TranslateExceptionAndRaise(e, service_account_id)
+
   def GenerateAccessToken(self, service_account_id, scopes):
     """Generates an access token for the given service account."""
     name = 'projects/-/serviceAccounts/%s' % service_account_id
@@ -115,7 +125,7 @@ class IamcredentailsApi(object):
       return self.api_client.projects_serviceAccounts.GenerateAccessToken(
           request)
     except TRANSLATABLE_APITOOLS_EXCEPTIONS as e:
-      raise self._TranslateExceptionAndRaise(e, service_account_id)
+      self._TranslateExceptionAndRaise(e, service_account_id)
 
   def _TranslateExceptionAndRaise(self, e, service_account_id=None):
     """Translates an HTTP exception and raises the translated or original value.

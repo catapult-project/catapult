@@ -236,7 +236,7 @@ class Download(_Transfer):
 
     @classmethod
     def FromData(cls, stream, json_data, http=None, auto_transfer=None,
-                 **kwds):
+                 client=None, **kwds):
         """Create a new Download object from a stream and serialized data."""
         info = json.loads(json_data)
         missing_keys = cls._REQUIRED_SERIALIZATION_KEYS - set(info.keys())
@@ -249,10 +249,15 @@ class Download(_Transfer):
             download.auto_transfer = auto_transfer
         else:
             download.auto_transfer = info['auto_transfer']
+        if client is not None:
+            url = client.FinalizeTransferUrl(info['url'])
+        else:
+            url = info['url']
+
         setattr(download, '_Download__progress', info['progress'])
         setattr(download, '_Download__total_size', info['total_size'])
         download._Initialize(  # pylint: disable=protected-access
-            http, info['url'])
+            http, url)
         return download
 
     @property
@@ -560,6 +565,9 @@ if six.PY3:
                 return
             self.write(msg._payload)
 
+        def _encode(self, s):
+            return s.encode('ascii', 'surrogateescape')
+
         # Default body handler
         _writeBody = _handle_text
 
@@ -634,7 +642,7 @@ class Upload(_Transfer):
 
     @classmethod
     def FromData(cls, stream, json_data, http, auto_transfer=None,
-                 gzip_encoded=False, **kwds):
+                 gzip_encoded=False, client=None, **kwds):
         """Create a new Upload of stream from serialized json_data and http."""
         info = json.loads(json_data)
         missing_keys = cls._REQUIRED_SERIALIZATION_KEYS - set(info.keys())
@@ -655,9 +663,14 @@ class Upload(_Transfer):
             upload.auto_transfer = auto_transfer
         else:
             upload.auto_transfer = info['auto_transfer']
+        if client is not None:
+          url = client.FinalizeTransferUrl(info['url'])
+        else:
+          url = info['url']
+
         upload.strategy = RESUMABLE_UPLOAD
         upload._Initialize(  # pylint: disable=protected-access
-            http, info['url'])
+            http, url)
         upload.RefreshResumableUploadState()
         upload.EnsureInitialized()
         if upload.auto_transfer:

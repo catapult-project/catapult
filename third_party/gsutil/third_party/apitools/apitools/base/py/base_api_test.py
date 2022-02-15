@@ -17,11 +17,11 @@ import base64
 import datetime
 import sys
 import contextlib
+import unittest
 
 import six
 from six.moves import http_client
 from six.moves import urllib_parse
-import unittest2
 
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
@@ -96,7 +96,7 @@ class FakeService(base_api.BaseApiService):
         super(FakeService, self).__init__(client)
 
 
-class BaseApiTest(unittest2.TestCase):
+class BaseApiTest(unittest.TestCase):
 
     def __GetFakeClient(self):
         return FakeClient('', credentials=FakeCredentials())
@@ -329,6 +329,15 @@ class BaseApiTest(unittest2.TestCase):
         self.assertEqual('http://www.example.com/path:withJustColon',
                          http_request.url)
 
+    def testOverwritesTransferUrlBase(self):
+        client = self.__GetFakeClient()
+        client.overwrite_transfer_urls_with_client_base = True
+        client._url = 'http://custom.p.googleapis.com/'
+        observed = client.FinalizeTransferUrl(
+            'http://normal.googleapis.com/path')
+        expected = 'http://custom.p.googleapis.com/path'
+        self.assertEqual(observed, expected)
+
 
 if __name__ == '__main__':
-    unittest2.main()
+    unittest.main()

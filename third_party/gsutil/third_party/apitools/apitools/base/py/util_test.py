@@ -14,7 +14,7 @@
 # limitations under the License.
 
 """Tests for util.py."""
-import unittest2
+import unittest
 
 from apitools.base.protorpclite import messages
 from apitools.base.py import encoding
@@ -48,7 +48,7 @@ encoding.AddCustomJsonEnumMapping(
     MessageWithRemappings.AnEnum, 'value_one', 'ONE')
 
 
-class UtilTest(unittest2.TestCase):
+class UtilTest(unittest.TestCase):
 
     def testExpand(self):
         method_config_xy = MockedMethodConfig(relative_path='{x}/y/{z}',

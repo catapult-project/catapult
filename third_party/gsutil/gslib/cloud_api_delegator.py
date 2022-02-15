@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 import boto
 from boto import config
+from gslib import context_config
 from gslib.cloud_api import ArgumentException
 from gslib.cloud_api import CloudApi
 from gslib.cs_api_map import ApiMapConstants
@@ -159,8 +160,8 @@ class CloudApiDelegator(CloudApi):
       raise ArgumentException('No provider selected for CloudApi')
 
     if (selected_provider not in self.api_map[ApiMapConstants.DEFAULT_MAP] or
-        self.api_map[ApiMapConstants.DEFAULT_MAP][selected_provider] not in
-        self.api_map[ApiMapConstants.API_MAP][selected_provider]):
+        self.api_map[ApiMapConstants.DEFAULT_MAP][selected_provider]
+        not in self.api_map[ApiMapConstants.API_MAP][selected_provider]):
       raise ArgumentException('No default api available for provider %s' %
                               selected_provider)
 
@@ -209,7 +210,19 @@ class CloudApiDelegator(CloudApi):
     elif self.prefer_api in (
         self.api_map[ApiMapConstants.SUPPORT_MAP][selected_provider]):
       api = self.prefer_api
+
+    if (api == ApiSelector.XML and context_config.get_context_config() and
+        context_config.get_context_config().use_client_certificate):
+      raise ArgumentException(
+          'User enabled mTLS by setting "use_client_certificate", but mTLS'
+          ' is not supported for the selected XML API. Try configuring for '
+          ' the GCS JSON API or setting "use_client_certificate" to "False" in'
+          ' the Boto config.')
+
     return api
+
+  def GetServiceAccountId(self, provider=None):
+    return self._GetApi(provider).GetServiceAccountId()
 
   # For function docstrings, see CloudApi class.
   def GetBucket(self, bucket_name, provider=None, fields=None):
@@ -535,6 +548,18 @@ class CloudApiDelegator(CloudApi):
     return self._GetApi(provider).ListHmacKeys(project_id,
                                                service_account_email,
                                                show_deleted_keys)
+
+  def SignUrl(self, provider, method, duration, path, generation, logger,
+              region, signed_headers, string_to_sign_debug):
+    return self._GetApi(provider).SignUrl(
+        method=method,
+        duration=duration,
+        path=path,
+        generation=generation,
+        logger=logger,
+        region=region,
+        signed_headers=signed_headers,
+        string_to_sign_debug=string_to_sign_debug)
 
   def UpdateHmacKey(self, project_id, access_id, state, etag, provider=None):
     return self._GetApi(provider).UpdateHmacKey(project_id, access_id, state,

@@ -37,12 +37,12 @@ from gslib.utils.constants import NO_MAX
 from gslib.utils import text_util
 
 _SET_SYNOPSIS = """
-  gsutil logging set on -b logging_bucket [-o log_object_prefix] url...
-  gsutil logging set off url...
+  gsutil logging set on -b <logging_bucket_name> [-o <log_object_prefix>] gs://<bucket_name>...
+  gsutil logging set off gs://<bucket_name>...
 """
 
 _GET_SYNOPSIS = """
-  gsutil logging get url
+  gsutil logging get gs://<bucket_name>
 """
 
 _SYNOPSIS = _SET_SYNOPSIS + _GET_SYNOPSIS.lstrip('\n') + '\n'
@@ -52,19 +52,20 @@ _SET_DESCRIPTION = """
   The set sub-command has two sub-commands:
 
 <B>ON</B>
-  The "gsutil logging set on" command will enable access logging of the
+  The "gsutil logging set on" command will enable usage logging of the
   buckets named by the specified URLs, outputting log files in the specified
-  logging_bucket. logging_bucket must already exist, and all URLs must name
-  buckets (e.g., gs://bucket). The required bucket parameter specifies the
+  logging_bucket. Cloud Storage doesn't validate the existence of logging_bucket
+  so users should ensure it already exists, and all URLs must name buckets
+  (e.g., gs://bucket). The required bucket parameter specifies the
   bucket to which the logs are written, and the optional log_object_prefix
   parameter specifies the prefix for log object names. The default prefix
   is the bucket name. For example, the command:
 
-    gsutil logging set on -b gs://my_logging_bucket -o AccessLog \\
+    gsutil logging set on -b gs://my_logging_bucket -o UsageLog \\
         gs://my_bucket1 gs://my_bucket2
 
   will cause all read and write activity to objects in gs://mybucket1 and
-  gs://mybucket2 to be logged to objects prefixed with the name "AccessLog",
+  gs://mybucket2 to be logged to objects prefixed with the name "UsageLog",
   with those log objects written to the bucket gs://my_logging_bucket.
 
   In addition to enabling logging on your bucket(s), you will also need to grant
@@ -78,7 +79,7 @@ _SET_DESCRIPTION = """
   "gsutil help defacl".)
 
 <B>OFF</B>
-  This command will disable access logging of the buckets named by the
+  This command will disable usage logging of the buckets named by the
   specified URLs. All URLs must name buckets (e.g., gs://bucket).
 
   No logging data is removed from the log buckets when you disable logging,
@@ -94,7 +95,7 @@ _GET_DESCRIPTION = """
 
     {
       "logBucket": "my_logging_bucket",
-      "logObjectPrefix": "AccessLog"
+      "logObjectPrefix": "UsageLog"
     }
 
   You can download log data from your log bucket using the gsutil cp command.
@@ -102,19 +103,21 @@ _GET_DESCRIPTION = """
 """
 
 _DESCRIPTION = """
-  Google Cloud Storage offers access logs and storage data in the form of
-  CSV files that you can download and view. Access logs provide information
-  for all of the requests made on a specified bucket in the last 24 hours,
-  while the storage logs provide information about the storage consumption of
-  that bucket for the last 24 hour period. The logs and storage data files
-  are automatically created as new objects in a bucket that you specify, in
-  24 hour intervals.
+  Google Cloud Storage offers usage logs and storage logs in the form of CSV
+  files that you can download and view. Usage logs provide information for all
+  of the requests made on a specified bucket and are created hourly. Storage
+  logs provide information about the storage consumption of that bucket for
+  the last day and are created daily.
+  
+  Once set up, usage logs and storage logs are automatically created as new
+  objects in a bucket that you specify. Usage logs and storage logs are
+  subject to the same pricing as other objects stored in Cloud Storage.
 
   The logging command has two sub-commands:
 """ + _SET_DESCRIPTION + _GET_DESCRIPTION + """
 
-<B>ACCESS LOG AND STORAGE DATA FIELDS</B>
-  For a complete list of access log fields and storage data fields, see:
+<B>USAGE LOG AND STORAGE DATA FIELDS</B>
+  For a complete list of usage log fields and storage data fields, see:
   https://cloud.google.com/storage/docs/access-logs#format
 """
 

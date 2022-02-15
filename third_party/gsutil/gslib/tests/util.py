@@ -41,7 +41,7 @@ from gslib.cloud_api import ResumableDownloadException
 from gslib.cloud_api import ResumableUploadException
 from gslib.lazy_wrapper import LazyWrapper
 import gslib.tests as gslib_tests
-from gslib.utils.boto_util import UsingCrcmodExtension
+from gslib.utils.boto_util import UsingCrcmodExtension, HasUserSpecifiedGsHost
 from gslib.utils.constants import UTF8
 from gslib.utils.encryption_helper import Base64Sha256FromBase64EncryptionKey
 from gslib.utils.posix_util import GetDefaultMode
@@ -209,15 +209,9 @@ def TailSet(start_point, listing):
 HAS_S3_CREDS = (boto.config.get('Credentials', 'aws_access_key_id', None) and
                 boto.config.get('Credentials', 'aws_secret_access_key', None))
 
-_GS_HOST = boto.config.get('Credentials', 'gs_host', None)
-_DEFAULT_HOST = six.ensure_str(boto.gs.connection.GSConnection.DefaultHost)
+HAS_NON_DEFAULT_GS_HOST = HasUserSpecifiedGsHost()
 
-if _GS_HOST is not None:
-  HAS_NON_DEFAULT_GS_HOST = _DEFAULT_HOST == six.ensure_str(_GS_HOST)
-else:
-  HAS_NON_DEFAULT_GS_HOST = False
-
-HAS_GS_HOST = _GS_HOST is not None
+HAS_GS_HOST = boto.config.get('Credentials', 'gs_host', None) is not None
 
 HAS_GS_PORT = boto.config.get('Credentials', 'gs_port', None) is not None
 
@@ -279,7 +273,8 @@ def GenerationFromURI(uri):
     Generation string for the URI.
   """
   if not (uri.generation or uri.version_id):
-    if uri.scheme == 's3': return 'null'
+    if uri.scheme == 's3':
+      return 'null'
   return uri.generation or uri.version_id
 
 
@@ -664,7 +659,13 @@ class HaltingCopyCallbackHandler(object):
 
   # pylint: disable=invalid-name
   def call(self, total_bytes_transferred, total_size):
-    """Forcibly exits if the transfer has passed the halting point."""
+    """Forcibly exits if the transfer has passed the halting point.
+
+    Note that this function is only called when the conditions in
+    gslib.progress_callback.ProgressCallbackWithTimeout.Progress are met, so
+    self._halt_at_byte is only precise if it's divisible by
+    gslib.progress_callback._START_BYTES_PER_CALLBACK.
+    """
     if total_bytes_transferred >= self._halt_at_byte:
       sys.stderr.write(
           'Halting transfer after byte %s. %s/%s transferred.\r\n' %

@@ -24,12 +24,16 @@
   to run tests in test_cp.py and test_label.py, one should pass the string
   "cp,label". To run individual cp tests, one might pass
   "cp.TestCp.test_noclobber,cp.TestCp.test_streaming".
+.PARAMETER TopLevelFlags
+  Top level flags to pass to gsutil, such as "-o GSUtil:gs_host=...".
+  Accepts a string containing all top level flags.
 #>
 
 param (
   [string]$GsutilRepoDir,
   [string]$PyExe,
-  [string]$Tests
+  [string]$Tests,
+  [string]$TopLevelFlags
 )
 
 $SCRIPT_START_DATE = (Get-Date)  # Used to calculate runtime duration upon completion.
@@ -105,6 +109,7 @@ foreach ($test_group in $Tests) {
     mkdir -Force "$using:state_dirs_path\state_dir_$using:test_group" > $null
     & $using:PyExe "$using:GsutilRepoDir\gsutil.py" `
         -o "GSUtil:state_dir=$using:state_dirs_path\state_dir_$using:test_group" `
+        $using:TopLevelFlags `
         test -p 1 $using:test_group 2>&1 |
             ForEach-Object ToString |
             Tee-Object "$using:log_dir_path\$using:test_group.log"

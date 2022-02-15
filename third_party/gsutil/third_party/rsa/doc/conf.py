@@ -28,7 +28,7 @@ import rsa
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.todo',
-              'sphinx.ext.coverage', 'sphinx.ext.pngmath']
+              'sphinx.ext.coverage']
 
 # I would like to add 'sphinx.ext.viewcode', but it causes a UnicodeDecodeError
 
@@ -46,7 +46,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Python-RSA'
-copyright = u'2011-2016, Sybren A. Stüvel'
+copyright = u'2011-2020, Sybren A. Stüvel'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

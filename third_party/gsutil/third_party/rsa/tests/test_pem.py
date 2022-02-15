@@ -17,7 +17,7 @@
 
 import unittest
 
-from rsa._compat import b
+from rsa._compat import is_bytes
 from rsa.pem import _markers
 import rsa.key
 
@@ -49,8 +49,8 @@ prime2 = 88103681619592083641803383393198542599284510949756076218404908654323473
 class TestMarkers(unittest.TestCase):
     def test_values(self):
         self.assertEqual(_markers('RSA PRIVATE KEY'),
-                         (b('-----BEGIN RSA PRIVATE KEY-----'),
-                          b('-----END RSA PRIVATE KEY-----')))
+                         (b'-----BEGIN RSA PRIVATE KEY-----',
+                          b'-----END RSA PRIVATE KEY-----'))
 
 
 class TestBytesAndStrings(unittest.TestCase):
@@ -72,3 +72,31 @@ class TestBytesAndStrings(unittest.TestCase):
         key = rsa.key.PrivateKey.load_pkcs1(private_key_pem.encode('ascii'))
         self.assertEqual(prime1, key.p)
         self.assertEqual(prime2, key.q)
+
+
+class TestByteOutput(unittest.TestCase):
+    """Tests that PEM and DER are returned as bytes."""
+
+    def test_bytes_public(self):
+        key = rsa.key.PublicKey.load_pkcs1_openssl_pem(public_key_pem)
+        self.assertTrue(is_bytes(key.save_pkcs1(format='DER')))
+        self.assertTrue(is_bytes(key.save_pkcs1(format='PEM')))
+
+    def test_bytes_private(self):
+        key = rsa.key.PrivateKey.load_pkcs1(private_key_pem)
+        self.assertTrue(is_bytes(key.save_pkcs1(format='DER')))
+        self.assertTrue(is_bytes(key.save_pkcs1(format='PEM')))
+
+
+class TestByteInput(unittest.TestCase):
+    """Tests that PEM and DER can be loaded from bytes."""
+
+    def test_bytes_public(self):
+        key = rsa.key.PublicKey.load_pkcs1_openssl_pem(public_key_pem.encode('ascii'))
+        self.assertTrue(is_bytes(key.save_pkcs1(format='DER')))
+        self.assertTrue(is_bytes(key.save_pkcs1(format='PEM')))
+
+    def test_bytes_private(self):
+        key = rsa.key.PrivateKey.load_pkcs1(private_key_pem.encode('ascii'))
+        self.assertTrue(is_bytes(key.save_pkcs1(format='DER')))
+        self.assertTrue(is_bytes(key.save_pkcs1(format='PEM')))

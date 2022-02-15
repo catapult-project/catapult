@@ -15,7 +15,7 @@
 
 """Tests for list_pager."""
 
-import unittest2
+import unittest
 
 from apitools.base.py import list_pager
 from apitools.base.py.testing import mock
@@ -27,7 +27,33 @@ from samples.iam_sample.iam_v1 import iam_v1_client as iam_client
 from samples.iam_sample.iam_v1 import iam_v1_messages as iam_messages
 
 
-class ListPagerTest(unittest2.TestCase):
+class Example(object):
+    def __init__(self):
+        self.a = 'aaa'
+        self.b = 'bbb'
+        self.c = 'ccc'
+
+
+class GetterSetterTest(unittest.TestCase):
+
+    def testGetattrNested(self):
+        o = Example()
+        self.assertEqual(list_pager._GetattrNested(o, 'a'), 'aaa')
+        self.assertEqual(list_pager._GetattrNested(o, ('a',)), 'aaa')
+        o.b = Example()
+        self.assertEqual(list_pager._GetattrNested(o, ('b', 'c')), 'ccc')
+
+    def testSetattrNested(self):
+        o = Example()
+        list_pager._SetattrNested(o, 'b', Example())
+        self.assertEqual(o.b.a, 'aaa')
+        list_pager._SetattrNested(o, ('b', 'a'), 'AAA')
+        self.assertEqual(o.b.a, 'AAA')
+        list_pager._SetattrNested(o, ('c',), 'CCC')
+        self.assertEqual(o.c, 'CCC')
+
+
+class ListPagerTest(unittest.TestCase):
 
     def _AssertInstanceSequence(self, results, n):
         counter = 0
@@ -242,8 +268,34 @@ class ListPagerTest(unittest2.TestCase):
 
         self._AssertInstanceSequence(results, 3)
 
+    def testYieldFromListWithCustomGetFieldFunction(self):
+        self.mocked_client.column.List.Expect(
+            messages.FusiontablesColumnListRequest(
+                maxResults=100,
+                pageToken=None,
+                tableId='mytable',
+            ),
+            messages.ColumnList(
+                items=[
+                    messages.Column(name='c0')
+                ]
+            ))
+        custom_getter_called = []
 
-class ListPagerAttributeTest(unittest2.TestCase):
+        def Custom_Getter(message, attribute):
+            custom_getter_called.append(True)
+            return getattr(message, attribute)
+
+        client = fusiontables.FusiontablesV1(get_credentials=False)
+        request = messages.FusiontablesColumnListRequest(tableId='mytable')
+        results = list_pager.YieldFromList(
+            client.column, request, get_field_func=Custom_Getter)
+
+        self._AssertInstanceSequence(results, 1)
+        self.assertEquals(1, len(custom_getter_called))
+
+
+class ListPagerAttributeTest(unittest.TestCase):
 
     def setUp(self):
         self.mocked_client = mock.Client(iam_client.IamV1)

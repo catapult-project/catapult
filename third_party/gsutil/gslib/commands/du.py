@@ -48,67 +48,66 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>DESCRIPTION</B>
-  The du command displays the amount of space (in bytes) being used by the
-  objects in the file or object hierarchy under a given URL. The syntax emulates
-  the Linux du command (which stands for disk usage). For example, the command:
+  The du command displays the amount of space in bytes used up by the
+  objects in a bucket, subdirectory, or project. The syntax emulates
+  the Linux ``du -b`` command, which reports the disk usage of files and subdirectories.
+  For example, the following command reports the total space used by all objects and
+  subdirectories under gs://your-bucket/dir:
 
-  gsutil du -s gs://your-bucket/dir
-
-  will report the total space used by all objects under gs://your-bucket/dir and
-  any sub-directories.
+    gsutil du -s gs://your-bucket/dir
 
 
 <B>OPTIONS</B>
-  -0          Ends each output line with a 0 byte rather than a newline. This
-              can be useful to make the output more easily machine-readable.
+  -0          Ends each output line with a 0 byte rather than a newline. You
+              can use this to make the output machine-readable.
 
-  -a          Includes non-current object versions / generations in the listing
-              (only useful with a versioning-enabled bucket). Also prints
-              generation and metageneration for each listed object.
+  -a          Includes noncurrent object versions for a bucket with Object
+              Versioning enabled. Also prints the
+              generation and metageneration number for each listed object.
 
-  -c          Includes a grand total at the end of the output.
+  -c          Includes a total size at the end of the output.
 
-  -e          A pattern to exclude from reporting. Example: -e "*.o" would
-              exclude any object that ends in ".o". Can be specified multiple
+  -e          Exclude a pattern from the report. Example: -e "*.o"
+              excludes any object that ends in ".o". Can be specified multiple
               times.
 
-  -h          Prints object sizes in human-readable format (e.g., 1 KiB,
-              234 MiB, 2GiB, etc.)
+  -h          Prints object sizes in human-readable format. For example, ``1 KiB``,
+              ``234 MiB``, or ``2GiB``.
 
-  -s          Displays only the grand total for each argument.
+  -s          Displays only the total size for each argument.
 
-  -X          Similar to -e, but excludes patterns from the given file. The
-              patterns to exclude should be one per line.
+  -X          Similar to ``-e``, but excludes patterns from the given file. The
+              patterns to exclude should be listed one per line.
 
 
 <B>EXAMPLES</B>
-  To list the size of all objects in a bucket:
+  To list the size of each object in a bucket:
 
     gsutil du gs://bucketname
 
-  To list the size of all objects underneath a prefix:
+  To list the size of each object in the ``prefix`` subdirectory:
 
     gsutil du gs://bucketname/prefix/*
 
-  To print the total number of bytes in a bucket, in human-readable form:
+  To print the total number of bytes in a bucket in human-readable form:
 
     gsutil du -ch gs://bucketname
 
-  To see a summary of the total bytes in the two given buckets:
+  To see a summary of the total number of bytes in two given buckets:
 
     gsutil du -s gs://bucket1 gs://bucket2
 
-  To list the size of all objects in a versioned bucket, including objects that
-  are not the latest:
+  To list the size of each object in a bucket with Object Versioning
+  enabled, including noncurrent objects:
 
     gsutil du -a gs://bucketname
 
-  To list all objects in a bucket, except objects that end in ".bak",
+  To list the size of each object in a bucket, except objects that end in ".bak",
   with each object printed ending in a null byte:
 
     gsutil du -e "*.bak" -0 gs://bucketname
 
-  To get a total of all buckets in a project with a grand total for an entire
+  To list the size of each bucket in a project and the total size of the
   project:
 
       gsutil -o GSUtil:default_project_id=project-name du -shc

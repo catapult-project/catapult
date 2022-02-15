@@ -228,6 +228,11 @@ class _CloudUrl(StorageUrl):
         raise InvalidUrlError(
             'CloudUrl: URL string %s did not match URL regex' % url_string)
 
+    if url_string[(len(self.scheme) + len('://')):].startswith(self.delim):
+      raise InvalidUrlError(
+          'Cloud URL scheme should be followed by colon and two slashes: "://".'
+          ' Found: "{}"'.format(url_string))
+
   def Clone(self):
     return _CloudUrl(self.url_string)
 
@@ -284,7 +289,7 @@ class _CloudUrl(StorageUrl):
     return self.url_string
 
 
-def _GetSchemeFromUrlString(url_str):
+def GetSchemeFromUrlString(url_str):
   """Returns scheme component of a URL string."""
 
   end_scheme_idx = url_str.find('://')
@@ -293,6 +298,10 @@ def _GetSchemeFromUrlString(url_str):
     return 'file'
   else:
     return url_str[0:end_scheme_idx].lower()
+
+
+def IsKnownUrlScheme(scheme_str):
+  return scheme_str in ('file', 's3', 'gs')
 
 
 def _GetPathFromUrlString(url_str):
@@ -403,15 +412,15 @@ def IsCloudSubdirPlaceholder(url, blr=None):
 def IsFileUrlString(url_str):
   """Returns whether a string is a file URL."""
 
-  return _GetSchemeFromUrlString(url_str) == 'file'
+  return GetSchemeFromUrlString(url_str) == 'file'
 
 
 def StorageUrlFromString(url_str):
   """Static factory function for creating a StorageUrl from a string."""
 
-  scheme = _GetSchemeFromUrlString(url_str)
+  scheme = GetSchemeFromUrlString(url_str)
 
-  if scheme not in ('file', 's3', 'gs'):
+  if not IsKnownUrlScheme(scheme):
     raise InvalidUrlError('Unrecognized scheme "%s"' % scheme)
   if scheme == 'file':
     path = _GetPathFromUrlString(url_str)

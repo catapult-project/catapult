@@ -13,13 +13,13 @@ and a public key.
     The private key is called *private* for a reason. Never share this
     key with anyone.
 
-The public key is used for encypting a message such that it can only
+The public key is used for encrypting a message such that it can only
 be read by the owner of the private key. As such it's also referred to
 as the *encryption key*. Decrypting a message can only be done using
 the private key, hence it's also called the *decryption key*.
 
 The private key is used for signing a message. With this signature and
-the public key, the receiver can verifying that a message was signed
+the public key, the receiver can verify that a message was signed
 by the owner of the private key, and that the message was not modified
 after signing.
 
@@ -89,32 +89,6 @@ If key generation is too slow for you, you could use OpenSSL to
 generate them for you, then load them in your Python code. OpenSSL
 generates a 4096-bit key in 3.5 seconds on the same machine as used
 above. See :ref:`openssl` for more information.
-
-Key size requirements
----------------------
-
-Python-RSA version 3.0 introduced PKCS#1-style random padding. This
-means that 11 bytes (88 bits) of your key are no longer usable for
-encryption, so keys smaller than this are unusable. The larger the
-key, the higher the security.
-
-Creating signatures also requires a key of a certain size, depending
-on the used hash method:
-
-+-------------+-----------------------------------+
-| Hash method | Suggested minimum key size (bits) |
-+=============+===================================+
-| MD5         | 360                               |
-+-------------+-----------------------------------+
-| SHA-1       | 368                               |
-+-------------+-----------------------------------+
-| SHA-256     | 496                               |
-+-------------+-----------------------------------+
-| SHA-384     | 624                               |
-+-------------+-----------------------------------+
-| SHA-512     | 752                               |
-+-------------+-----------------------------------+
-
 
 
 Encryption and decryption
@@ -198,10 +172,19 @@ You can create a detached signature for a message using the
     >>> (pubkey, privkey) = rsa.newkeys(512)
     >>> message = 'Go left at the blue tree'
     >>> signature = rsa.sign(message, privkey, 'SHA-1')
-    
+
 This hashes the message using SHA-1. Other hash methods are also
 possible, check the :py:func:`rsa.sign` function documentation for
 details. The hash is then signed with the private key.
+
+It is possible to calculate the hash and signature in separate operations
+(i.e for generating the hash on a client machine and then sign with a
+private key on remote server). To hash a message use the :py:func:`rsa.compute_hash`
+function and then use the :py:func:`rsa.sign_hash` function to sign the hash:
+
+    >>> message = 'Go left at the blue tree'
+    >>> hash = rsa.compute_hash(message, 'SHA-1')
+    >>> signature = rsa.sign_hash(hash, privkey, 'SHA-1')
 
 In order to verify the signature, use the :py:func:`rsa.verify`
 function. This function returns True if the verification is successful:
@@ -285,7 +268,7 @@ Only using Python-RSA: the VARBLOCK format
 .. warning::
 
     The VARBLOCK format is NOT recommended for general use, has been deprecated since
-    Python-RSA 3.4, and will be removed in a future release. It's vulnerable to a
+    Python-RSA 3.4, and has been removed in version 4.0. It's vulnerable to a
     number of attacks:
 
     1. decrypt/encrypt_bigfile() does not implement `Authenticated encryption`_ nor
@@ -294,60 +277,11 @@ Only using Python-RSA: the VARBLOCK format
     2. decrypt/encrypt_bigfile() does not use hybrid encryption (it uses plain RSA)
        and has no method for chaining, so block reordering is possible.
 
-    See `issue #19 on Github`_ for more information.
+    See `issue #19 on GitHub`_ for more information.
 
 .. _Authenticated encryption: https://en.wikipedia.org/wiki/Authenticated_encryption
-.. _issue #19 on Github: https://github.com/sybrenstuvel/python-rsa/issues/13
+.. _issue #19 on GitHub: https://github.com/sybrenstuvel/python-rsa/issues/13
 
-
-As far as we know, there is no pure-Python AES encryption. Previous
-versions of Python-RSA included functionality to encrypt large files
-with just RSA, and so does this version. The format has been improved,
-though.
-
-Encrypting works as follows: the input file is split into blocks that
-are just large enough to encrypt with your RSA key. Every block is
-then encrypted using RSA, and the encrypted blocks are assembled into
-the output file. This file format is called the :ref:`VARBLOCK
-<VARBLOCK>` format.
-
-Decrypting works in reverse. The encrypted file is separated into
-encrypted blocks. Those are decrypted, and assembled into the original
-file.
-
-.. note::
-
-    The file will get larger after encryption, as each encrypted block
-    has 8 bytes of random padding and 3 more bytes of overhead.
-
-Since these encryption/decryption functions are potentially called on
-very large files, they use another approach. Where the regular
-functions store the message in memory in its entirety, these functions
-work on one block at the time. As a result, you should call them with
-:py:class:`file`-like objects as the parameters.
-
-Before using we of course need a keypair:
-
->>> import rsa
->>> (pub_key, priv_key) = rsa.newkeys(512)
-
-Encryption works on file handles using the
-:py:func:`rsa.bigfile.encrypt_bigfile` function:
-
->>> from rsa.bigfile import *
->>> with open('inputfile', 'rb') as infile, open('outputfile', 'wb') as outfile:
-...     encrypt_bigfile(infile, outfile, pub_key)
-
-As does decryption using the :py:func:`rsa.bigfile.decrypt_bigfile`
-function:
-
->>> from rsa.bigfile import *
->>> with open('inputfile', 'rb') as infile, open('outputfile', 'wb') as outfile:
-...     decrypt_bigfile(infile, outfile, priv_key)
-
-.. note::
-
-    :py:func:`rsa.sign` and :py:func:`rsa.verify` work on arbitrarily
-    long files, so they do not have a "bigfile" equivalent.
-
-
+As of Python-RSA version 4.0, the VARBLOCK format has been removed from the
+library. For now, this section is kept here to document the issues with that
+format, and ensure we don't do something like that again.

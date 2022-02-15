@@ -20,12 +20,12 @@ import os
 import shutil
 import sys
 import tempfile
+import unittest
 
 import six
-import unittest2
 
 
-SkipOnWindows = unittest2.skipIf(
+SkipOnWindows = unittest.skipIf(
     os.name == 'nt', 'Does not run on windows')
 
 

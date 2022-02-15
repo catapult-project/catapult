@@ -27,6 +27,7 @@ import xml.etree.ElementTree
 from xml.etree.ElementTree import ParseError as XmlParseError
 
 import six
+from apitools.base.protorpclite.util import decode_datetime
 from apitools.base.py import encoding
 import boto
 from boto.gs.acl import ACL
@@ -60,6 +61,7 @@ CONTENT_ENCODING_REGEX = re.compile(r'^content-encoding', re.I)
 CONTENT_LANGUAGE_REGEX = re.compile(r'^content-language', re.I)
 CONTENT_MD5_REGEX = re.compile(r'^content-md5', re.I)
 CONTENT_TYPE_REGEX = re.compile(r'^content-type', re.I)
+CUSTOM_TIME_REGEX = re.compile(r'^custom-time', re.I)
 GOOG_API_VERSION_REGEX = re.compile(r'^x-goog-api-version', re.I)
 GOOG_GENERATION_MATCH_REGEX = re.compile(r'^x-goog-if-generation-match', re.I)
 GOOG_METAGENERATION_MATCH_REGEX = re.compile(r'^x-goog-if-metageneration-match',
@@ -131,6 +133,8 @@ def ObjectMetadataFromHeaders(headers):
         obj_metadata.contentType = DEFAULT_CONTENT_TYPE
       else:
         obj_metadata.contentType = value.strip()
+    elif CUSTOM_TIME_REGEX.match(header):
+      obj_metadata.customTime = decode_datetime(value.strip())
     elif GOOG_API_VERSION_REGEX.match(header):
       # API version is only relevant for XML, ignore and rely on the XML API
       # to add the appropriate version.
@@ -217,6 +221,11 @@ def HeadersFromObjectMetadata(dst_obj_metadata, provider):
       headers['content-type'] = None
     else:
       headers['content-type'] = dst_obj_metadata.contentType.strip()
+  if dst_obj_metadata.customTime is not None:
+    if not dst_obj_metadata.customTime:
+      headers['custom-time'] = None
+    else:
+      headers['custom-time'] = dst_obj_metadata.customTime.strip()
   if dst_obj_metadata.storageClass:
     header_name = 'storage-class'
     if provider == 'gs':
@@ -274,6 +283,8 @@ def CopyObjectMetadata(src_obj_metadata, dst_obj_metadata, override=False):
     dst_obj_metadata.contentLanguage = src_obj_metadata.contentLanguage
   if override or not dst_obj_metadata.contentType:
     dst_obj_metadata.contentType = src_obj_metadata.contentType
+  if override or not dst_obj_metadata.customTime:
+    dst_obj_metadata.customTime = src_obj_metadata.customTime
   if override or not dst_obj_metadata.md5Hash:
     dst_obj_metadata.md5Hash = src_obj_metadata.md5Hash
   CopyCustomMetadata(src_obj_metadata, dst_obj_metadata, override=override)

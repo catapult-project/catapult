@@ -16,7 +16,6 @@
 
 """Extra types understood by apitools."""
 
-import collections
 import datetime
 import json
 import numbers
@@ -29,6 +28,11 @@ from apitools.base.protorpclite import protojson
 from apitools.base.py import encoding_helper as encoding
 from apitools.base.py import exceptions
 from apitools.base.py import util
+
+if six.PY3:
+    from collections.abc import Iterable
+else:
+    from collections import Iterable
 
 __all__ = [
     'DateField',
@@ -129,7 +133,7 @@ def _PythonValueToJsonValue(py_value):
         return JsonValue(double_value=float(py_value))
     if isinstance(py_value, dict):
         return JsonValue(object_value=_PythonValueToJsonObject(py_value))
-    if isinstance(py_value, collections.Iterable):
+    if isinstance(py_value, Iterable):
         return JsonValue(array_value=_PythonValueToJsonArray(py_value))
     raise exceptions.InvalidDataError(
         'Cannot convert "%s" to JsonValue' % py_value)
@@ -212,7 +216,7 @@ def _JsonProtoToPythonValue(json_proto):
 def _PythonValueToJsonProto(py_value):
     if isinstance(py_value, dict):
         return _PythonValueToJsonObject(py_value)
-    if (isinstance(py_value, collections.Iterable) and
+    if (isinstance(py_value, Iterable) and
             not isinstance(py_value, six.string_types)):
         return _PythonValueToJsonArray(py_value)
     return _PythonValueToJsonValue(py_value)

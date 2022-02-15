@@ -19,7 +19,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
 
-from hashlib import md5
 import logging
 import os
 import time
@@ -165,7 +164,7 @@ class HashCommand(Command):
     if calc_crc32c:
       hash_dict['crc32c'] = crcmod.predefined.Crc('crc-32c')
     if calc_md5:
-      hash_dict['md5'] = md5()
+      hash_dict['md5'] = hashing_helper.GetMd5()
     return hash_dict
 
   def RunCommand(self):
@@ -223,12 +222,11 @@ class HashCommand(Command):
             hash_dict['md5'] = obj_metadata.md5Hash
           if crc32c_present:
             hash_dict['crc32c'] = obj_metadata.crc32c
-        text_util.print_to_fd('Hashes [%s] for %s:' %
-                              (output_format, file_name))
+        print('Hashes [%s] for %s:' % (output_format, file_name))
         for name, digest in six.iteritems(hash_dict):
-          text_util.print_to_fd('\tHash (%s):\t\t%s' %
-                                (name, (format_func(digest) if url.IsFileUrl()
-                                        else cloud_format_func(digest))))
+          print('\tHash (%s):\t\t%s' % (name,
+                                        (format_func(digest) if url.IsFileUrl()
+                                         else cloud_format_func(digest))))
 
     if not matched_one:
       raise CommandException('No files matched')

@@ -22,14 +22,10 @@ import six
 import subprocess
 import sys
 import tempfile
+import unittest
 
 from apitools.gen import gen_client
 from apitools.gen import test_utils
-
-if six.PY2:
-    import unittest2 as unittest
-else:
-    import unittest
 
 _API_LIST = [
     'bigquery.v2',

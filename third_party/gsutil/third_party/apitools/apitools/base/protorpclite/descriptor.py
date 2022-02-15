@@ -292,7 +292,7 @@ def describe_enum(enum_definition):
     enum_descriptor.name = enum_definition.definition_name().split('.')[-1]
 
     values = []
-    for number in enum_definition.numbers():
+    for number in sorted(enum_definition.numbers()):
         value = enum_definition.lookup_by_number(number)
         values.append(describe_enum_value(value))
 

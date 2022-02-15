@@ -29,7 +29,7 @@ from gslib.storage_url import StorageUrlFromString
 from gslib.utils.constants import NO_MAX
 
 _SYNOPSIS = """
-  gsutil rb [-f] url...
+  gsutil rb [-f] gs://<bucket_name>...
 """
 
 _DETAILED_HELP_TEXT = ("""
@@ -51,6 +51,8 @@ _DETAILED_HELP_TEXT = ("""
   -f          Continues silently (without printing error messages) despite
               errors when removing buckets. If some buckets couldn't be removed,
               gsutil's exit status will be non-zero even if this flag is set.
+              If no buckets could be removed, the command raises a
+              "no matches" error.
 """)
 
 

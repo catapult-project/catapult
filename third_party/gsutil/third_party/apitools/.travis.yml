@@ -1,5 +1,4 @@
 language: python
-sudo: false
 matrix:
   include:
   - python: "2.7"
@@ -12,8 +11,6 @@ matrix:
     env: TOX_ENV=py27-oauth2client3
   - python: "2.7"
     env: TOX_ENV=py27-oauth2client4
-  - python: "3.4"
-    env: TOX_ENV=py34-oauth2client4
   - python: "3.5"
     env: TOX_ENV=py35-oauth2client1
   - python: "3.5"

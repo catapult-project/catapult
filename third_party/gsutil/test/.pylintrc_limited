@@ -10,7 +10,7 @@
 # Profiled execution.
 profile=no
 
-# Add <file or directory> to the black list. It should be a base name, not a
+# Add <file or directory> to the deny list. It should be a base name, not a
 # path. You may set this option multiple times.
 # NOTE: To ignore specific directories, use the helper script to run pylint.
 #       It uses the `find` command's `-prune` action, and it's much easier to
@@ -41,7 +41,7 @@ load-plugins=
 ##################################
 # TODO: Come back to this approach. We should probably enable error messages
 #       one at a time, determining which ones are feasible to enable, and
-#       eventually switch to a blacklist strategy, running all of them except
+#       eventually switch to a denylist strategy, running all of them except
 #       the ones we've determined aren't helpful.
 # disable=bad-option-value,
 #         fixme,
@@ -50,7 +50,7 @@ load-plugins=
 #         locally-disabled
 #
 ##################################
-# Whitelist strategy:
+# Allowlist strategy:
 disable=all
 enable=abstract-class-instantiated,
        anomalous-backslash-in-string,

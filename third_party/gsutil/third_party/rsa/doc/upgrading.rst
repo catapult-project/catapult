@@ -1,6 +1,22 @@
 Upgrading from older versions
 =============================
 
+From versions older than Python-RSA 4.0
+---------------------------------------
+
+Support for the VARBLOCK/bigfile format has been dropped in version 4.0, after
+being deprecated for a year. There is no alternative implementation in
+Python-RSA 4.0. If you need this, or have ideas on how to do handle encryption
+of large files securely and in a compatible way with existing standards,
+`open a ticket to discuss this`_.
+
+.. _open a ticket to discuss this:
+    https://github.com/sybrenstuvel/python-rsa/issues/new
+
+
+From versions older than Python-RSA 3.4
+---------------------------------------
+
 Previous versions of Python-RSA were less secure than the current
 version. In order to be able to gradually upgrade your software, those
 old versions will be available until Python-RSA 4.0.
@@ -34,8 +50,7 @@ less secure code into your project.
 
 The random padding introduced in version 3.0 made things much more
 secure, but also requires a larger key to encrypt the same message.
-You can either generate a new key with :py:func:`rsa.newkeys`, or use
-:py:func:`rsa.bigfile.encrypt_bigfile` to encrypt your files.
+
 
 Converting keys
 ---------------
@@ -70,4 +85,3 @@ older version of Python-RSA, use the following::
 
     old_priv_key.update(old_pub_key)
     priv_key = rsa.PrivateKey(**old_priv_key)
-

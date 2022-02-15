@@ -22,8 +22,8 @@
 """Package marker file."""
 
 from __future__ import absolute_import
-from __future__ import print_function
 from __future__ import division
+from __future__ import print_function
 from __future__ import unicode_literals
 
 import os
@@ -37,7 +37,6 @@ from gslib.utils.version_check import check_python_version_support
 supported, err = check_python_version_support()
 if not supported:
   raise gslib.exception.CommandException(err)
-  sys.exit(1)
 
 coverage_outfile = os.getenv('GSUTIL_COVERAGE_OUTPUT_FILE', None)
 if coverage_outfile:
@@ -90,6 +89,9 @@ if not os.path.isfile(os.path.join(PROGRAM_FILES_DIR, 'VERSION')):
   PROGRAM_FILES_DIR = os.path.normpath(os.path.join(GSLIB_DIR, '..'))
   IS_EDITABLE_INSTALL = True
 
+# Give USER_AGENT a default value for web doc generation.
+USER_AGENT = ''
+
 
 def _AddVendoredDepsToPythonPath():
   """Fix our Python path so that it correctly finds our vendored libraries."""
@@ -97,6 +99,7 @@ def _AddVendoredDepsToPythonPath():
   # Similar structure to the THIRD_PARTY_LIBS list in gsutil.py:
   vendored_lib_dirs = [
       ('boto', ''),
+      ('oauth2client', ''),
   ]
 
   # Prepend our vendored libraries to be in the front of the Python path so that

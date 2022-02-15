@@ -170,7 +170,8 @@ class _ExpectedRequestResponse(object):
           The response that was specified to be returned.
 
         """
-        if key != self.__key or not _MessagesEqual(request, self.__request):
+        if key != self.__key or not (self.__request == request or
+                                     _MessagesEqual(request, self.__request)):
             raise UnexpectedRequestException((key, request),
                                              (self.__key, self.__request))
 

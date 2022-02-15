@@ -36,7 +36,13 @@ import six
 from six.moves import configparser
 from six.moves import range
 
+import gslib.exception
+from gslib.exception import CommandException
+from gslib.exception import ControlCException
+
 from gslib.utils.version_check import check_python_version_support
+from gslib.utils.arg_helper import GetArgumentsAndOptions
+from gslib.utils.user_agent_helper import GetUserAgent
 
 # Load the gsutil version number and append it to boto.UserAgent so the value is
 # set before anything instantiates boto. This has to run after THIRD_PARTY_DIR
@@ -46,26 +52,39 @@ from gslib.utils.version_check import check_python_version_support
 # so boto requests would not include gsutil/version# in the UserAgent string.
 import boto
 import gslib
-from gslib.utils import system_util
+from gslib.utils import system_util, text_util
 
-boto.UserAgent += ' gsutil/%s (%s)' % (gslib.VERSION, sys.platform)
-if system_util.InvokedViaCloudSdk():
-  boto.UserAgent += ' google-cloud-sdk'
-  if system_util.CloudSdkVersion():
-    boto.UserAgent += '/%s' % system_util.CloudSdkVersion()
 # pylint: disable=g-import-not-at-top
 # This module also imports boto, and will override the UserAgent global variable
 # if imported above.
 from gslib import metrics
-if metrics.MetricsCollector.IsDisabled():
-  boto.UserAgent += ' analytics/disabled'
-else:
-  boto.UserAgent += ' analytics/enabled'
+
+# We parse the options and arguments here so we can pass the results to the user
+# agent helper.
+try:
+  opts, args = GetArgumentsAndOptions()
+except CommandException as e:
+  reason = e.reason if e.informational else 'CommandException: %s' % e.reason
+  err = '%s\n' % reason
+  try:
+    text_util.print_to_fd(err, end='', file=sys.stderr)
+  except UnicodeDecodeError:
+    # Can happen when outputting invalid Unicode filenames.
+    sys.stderr.write(err)
+  if e:
+    metrics.LogFatalError(e)
+  sys.exit(1)
+
+# This calculated user agent can be stored for use in StorageV1.
+gslib.USER_AGENT = GetUserAgent(args, metrics.MetricsCollector.IsDisabled())
+boto.UserAgent += gslib.USER_AGENT
 
 # pylint: disable=g-bad-import-order
 import httplib2
 import oauth2client
 from google_reauth import reauth_creds
+from google_reauth import errors as reauth_errors
+from gslib import context_config
 from gslib import wildcard_iterator
 from gslib.cloud_api import AccessDeniedException
 from gslib.cloud_api import ArgumentException
@@ -73,14 +92,10 @@ from gslib.cloud_api import BadRequestException
 from gslib.cloud_api import ProjectIdException
 from gslib.cloud_api import ServiceException
 from gslib.command_runner import CommandRunner
-import gslib.exception
-from gslib.exception import CommandException
-from gslib.exception import ControlCException
 import apitools.base.py.exceptions as apitools_exceptions
 from gslib.utils import boto_util
 from gslib.utils import constants
 from gslib.utils import system_util
-from gslib.utils import text_util
 from gslib.sig_handling import GetCaughtSignals
 from gslib.sig_handling import InitializeSignalHandling
 from gslib.sig_handling import RegisterSignalHandler
@@ -290,14 +305,6 @@ def main():
     RegisterSignalHandler(signal_num, _CleanupSignalHandler)
 
   try:
-    try:
-      opts, args = getopt.getopt(sys.argv[1:], 'dDvo:?h:i:u:mq', [
-          'debug', 'detailedDebug', 'version', 'option', 'help', 'header',
-          'impersonate-service-account=', 'multithreaded', 'quiet',
-          'testexceptiontraces', 'trace-token=', 'perf-trace-token='
-      ])
-    except getopt.GetoptError as e:
-      _HandleCommandException(CommandException(e.msg))
     for o, a in opts:
       if o in ('-d', '--debug'):
         # Also causes boto to include httplib header output.
@@ -407,6 +414,10 @@ def main():
       command_name = 'help'
     else:
       command_name = args[0]
+      if command_name != 'test':
+        # Don't initialize mTLS authentication because
+        # tests that need it will do this initialization themselves.
+        context_config.create_context_config(logging.getLogger())
 
     _CheckAndWarnForProxyDifferences()
 
@@ -739,6 +750,13 @@ def _RunNamedCommandAndHandleExceptions(command_runner,
             'pasted the ENTIRE authorization code (including any numeric prefix '
             "e.g. '4/')." % e)),
                    exception=e)
+  except reauth_errors.ReauthSamlLoginRequiredError:
+    if system_util.InvokedViaCloudSdk():
+      _OutputAndExit('You must re-authenticate with your SAML IdP. '
+                     'Please run\n$ gcloud auth login')
+    else:
+      _OutputAndExit('You must re-authenticate with your SAML IdP. '
+                     'Please run\n$ gsutil config')
   except Exception as e:  # pylint: disable=broad-except
     config_paths = ', '.join(boto_util.GetFriendlyConfigFilePaths())
     # Check for two types of errors related to service accounts. These errors

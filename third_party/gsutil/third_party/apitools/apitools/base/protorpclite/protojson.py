@@ -327,7 +327,7 @@ class ProtoJson(object):
 
         elif isinstance(field, message_types.DateTimeField):
             try:
-                return util.decode_datetime(value)
+                return util.decode_datetime(value, truncate_time=True)
             except ValueError as err:
                 raise messages.DecodeError(err)
 

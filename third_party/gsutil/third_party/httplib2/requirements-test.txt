@@ -1,4 +1,5 @@
 flake8==3.4.1
+future==0.16.0
 mock==2.0.0
 pytest-cov==2.5.1
 pytest-forked==0.2

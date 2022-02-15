@@ -16,12 +16,13 @@
 
 """Tests for transfer.py."""
 import string
+import unittest
 
 import httplib2
+import json
 import mock
 import six
 from six.moves import http_client
-import unittest2
 
 from apitools.base.py import base_api
 from apitools.base.py import exceptions
@@ -30,7 +31,7 @@ from apitools.base.py import http_wrapper
 from apitools.base.py import transfer
 
 
-class TransferTest(unittest2.TestCase):
+class TransferTest(unittest.TestCase):
 
     def assertRangeAndContentRangeCompatible(self, request, response):
         request_prefix = 'bytes='
@@ -243,6 +244,21 @@ class TransferTest(unittest2.TestCase):
             self.assertEqual(string.ascii_lowercase + string.ascii_uppercase,
                              download_stream.getvalue())
 
+    # @mock.patch.object(transfer.Upload, 'RefreshResumableUploadState',
+    #                    new=mock.Mock())
+    def testFinalizesTransferUrlIfClientPresent(self):
+        """Tests download's enforcement of client custom endpoints."""
+        mock_client = mock.Mock()
+        fake_json_data = json.dumps({
+            'auto_transfer': False,
+            'progress': 0,
+            'total_size': 0,
+            'url': 'url',
+        })
+        transfer.Download.FromData(six.BytesIO(), fake_json_data,
+                                   client=mock_client)
+        mock_client.FinalizeTransferUrl.assert_called_once_with('url')
+
     def testMultipartEncoding(self):
         # This is really a table test for various issues we've seen in
         # the past; see notes below for particular histories.
@@ -311,7 +327,7 @@ class TransferTest(unittest2.TestCase):
             self.assertTrue(rewritten_upload_contents.endswith(upload_bytes))
 
 
-class UploadTest(unittest2.TestCase):
+class UploadTest(unittest.TestCase):
 
     def setUp(self):
         # Sample highly compressible data.
@@ -574,3 +590,19 @@ class UploadTest(unittest2.TestCase):
 
             # Ensure the mock was called the correct number of times.
             self.assertEquals(make_request.call_count, len(responses))
+
+    @mock.patch.object(transfer.Upload, 'RefreshResumableUploadState',
+                       new=mock.Mock())
+    def testFinalizesTransferUrlIfClientPresent(self):
+        """Tests upload's enforcement of client custom endpoints."""
+        mock_client = mock.Mock()
+        mock_http = mock.Mock()
+        fake_json_data = json.dumps({
+            'auto_transfer': False,
+            'mime_type': '',
+            'total_size': 0,
+            'url': 'url',
+        })
+        transfer.Upload.FromData(self.sample_stream, fake_json_data, mock_http,
+                                 client=mock_client)
+        mock_client.FinalizeTransferUrl.assert_called_once_with('url')

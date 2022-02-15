@@ -48,7 +48,7 @@ class TestMv(testcase.GsUtilIntegrationTestCase):
 
     # Move two objects from bucket1 to bucket2.
     objs = [
-        bucket1_uri.clone_replace_key(key).versionless_uri
+        self.StorageUriCloneReplaceKey(bucket1_uri, key).versionless_uri
         for key in bucket1_uri.list_bucket()
     ]
     cmd = (['-m', 'mv'] + objs + [suri(bucket2_uri)])
@@ -71,7 +71,7 @@ class TestMv(testcase.GsUtilIntegrationTestCase):
 
     # Remove one of the objects.
     objs = [
-        bucket2_uri.clone_replace_key(key).versionless_uri
+        self.StorageUriCloneReplaceKey(bucket2_uri, key).versionless_uri
         for key in bucket2_uri.list_bucket()
     ]
     obj1 = objs[0]
@@ -82,7 +82,7 @@ class TestMv(testcase.GsUtilIntegrationTestCase):
 
     # Move the 1 remaining object back.
     objs = [
-        suri(bucket2_uri.clone_replace_key(key))
+        suri(self.StorageUriCloneReplaceKey(bucket2_uri, key))
         for key in bucket2_uri.list_bucket()
     ]
     cmd = (['-m', 'mv'] + objs + [suri(bucket1_uri)])

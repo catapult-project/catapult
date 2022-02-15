@@ -17,14 +17,14 @@
 
 import unittest
 import struct
-from rsa._compat import byte, b
-from rsa.common import byte_size, bit_size, _bit_size
+from rsa._compat import byte
+from rsa.common import byte_size, bit_size, inverse
 
 
 class TestByte(unittest.TestCase):
     def test_values(self):
-        self.assertEqual(byte(0), b('\x00'))
-        self.assertEqual(byte(255), b('\xff'))
+        self.assertEqual(byte(0), b'\x00')
+        self.assertEqual(byte(255), b'\xff')
 
     def test_struct_error_when_out_of_bounds(self):
         self.assertRaises(struct.error, byte, 256)
@@ -69,9 +69,28 @@ class TestBitSize(unittest.TestCase):
         self.assertEqual(bit_size((1 << 1024) + 1), 1025)
         self.assertEqual(bit_size((1 << 1024) - 1), 1024)
 
-        self.assertEqual(_bit_size(1023), 10)
-        self.assertEqual(_bit_size(1024), 11)
-        self.assertEqual(_bit_size(1025), 11)
-        self.assertEqual(_bit_size(1 << 1024), 1025)
-        self.assertEqual(_bit_size((1 << 1024) + 1), 1025)
-        self.assertEqual(_bit_size((1 << 1024) - 1), 1024)
+    def test_negative_values(self):
+        self.assertEqual(bit_size(-1023), 10)
+        self.assertEqual(bit_size(-1024), 11)
+        self.assertEqual(bit_size(-1025), 11)
+        self.assertEqual(bit_size(-1 << 1024), 1025)
+        self.assertEqual(bit_size(-((1 << 1024) + 1)), 1025)
+        self.assertEqual(bit_size(-((1 << 1024) - 1)), 1024)
+
+    def test_bad_type(self):
+        self.assertRaises(TypeError, bit_size, [])
+        self.assertRaises(TypeError, bit_size, ())
+        self.assertRaises(TypeError, bit_size, dict())
+        self.assertRaises(TypeError, bit_size, "")
+        self.assertRaises(TypeError, bit_size, None)
+        self.assertRaises(TypeError, bit_size, 0.0)
+
+
+class TestInverse(unittest.TestCase):
+    def test_normal(self):
+        self.assertEqual(3, inverse(7, 4))
+        self.assertEqual(9, inverse(5, 11))
+
+    def test_not_relprime(self):
+        self.assertRaises(ValueError, inverse, 4, 8)
+        self.assertRaises(ValueError, inverse, 25, 5)

@@ -271,6 +271,9 @@ class BaseApiClient(object):
         self.check_response_func = check_response_func
         self.retry_func = retry_func
         self.response_encoding = response_encoding
+        # Since we can't change the init arguments without regenerating clients,
+        # offer this hook to affect FinalizeTransferUrl behavior.
+        self.overwrite_transfer_urls_with_client_base = False
 
         # TODO(craigcitro): Finish deprecating these fields.
         _ = model
@@ -454,8 +457,11 @@ class BaseApiClient(object):
     def FinalizeTransferUrl(self, url):
         """Modify the url for a given transfer, based on auth and version."""
         url_builder = _UrlBuilder.FromUrl(url)
-        if self.global_params.key:
+        if getattr(self.global_params, 'key', None):
             url_builder.query_params['key'] = self.global_params.key
+        if self.overwrite_transfer_urls_with_client_base:
+            client_url_builder = _UrlBuilder.FromUrl(self._url)
+            url_builder.base_url = client_url_builder.base_url
         return url_builder.url
 
 

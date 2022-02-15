@@ -41,15 +41,15 @@ from gslib.utils.retry_util import Retry
 from gslib.utils.translation_helper import LabelTranslation
 
 _SET_SYNOPSIS = """
-  gsutil label set label-json-file url...
+  gsutil label set <label-json-file> gs://<bucket_name>...
 """
 
 _GET_SYNOPSIS = """
-  gsutil label get url
+  gsutil label get gs://<bucket_name>
 """
 
 _CH_SYNOPSIS = """
-  gsutil label ch <label_modifier>... url...
+  gsutil label ch <label_modifier>... gs://<bucket_name>...
 
   where each <label_modifier> is one of the following forms:
 

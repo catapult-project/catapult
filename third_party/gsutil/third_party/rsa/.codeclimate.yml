@@ -15,4 +15,3 @@ ratings:
   - "**.py"
 exclude_paths:
 - tests/**/*
-- rsa/_version*.py

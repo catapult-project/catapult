@@ -339,6 +339,10 @@ def MakeRequest(http, http_request, retries=7, max_retry_wait=60,
     """
     retry = 0
     first_req_time = time.time()
+    # Provide compatibility for breaking change in httplib2 0.16.0+:
+    # https://github.com/googleapis/google-api-python-client/issues/803
+    if hasattr(http, 'redirect_codes'):
+        http.redirect_codes = set(http.redirect_codes) - {308}
     while True:
         try:
             return _MakeRequestNoRetry(

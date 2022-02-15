@@ -24,10 +24,11 @@ from gslib.help_provider import HelpProvider
 _DETAILED_HELP_TEXT = ("""
 <B>OVERVIEW</B>
   gsutil currently supports several types of credentials/authentication, as
-  well as the ability to access public data anonymously (see "gsutil help anon"
-  for more on anonymous access). Each of these type of credentials is discussed
-  in more detail below, along with information about configuring and using
-  credentials via either the Cloud SDK or standalone installations of gsutil.
+  well as the ability to `access public data anonymously
+  <https://cloud.google.com/storage/docs/access-public-data>`_. Each of these
+  type of credentials is discussed in more detail below, along with
+  information about configuring and using credentials via either the Cloud SDK
+  or standalone installations of gsutil.
 
 
 <B>Configuring/Using Credentials via Cloud SDK Distribution of gsutil</B>
@@ -38,7 +39,7 @@ _DETAILED_HELP_TEXT = ("""
   for an individual user account and a second for a service account), the
   gcloud auth command manages the credentials for you, and you switch between
   credentials using the gcloud auth command as well (for more details see
-  https://developers.google.com/cloud/sdk/gcloud/#gcloud.auth).
+  https://cloud.google.com/sdk/gcloud/reference/auth).
 
   Once credentials have been configured via gcloud auth, those credentials will
   be used regardless of whether the user has any boto configuration files (which

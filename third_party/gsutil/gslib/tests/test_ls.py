@@ -20,16 +20,20 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from datetime import datetime
+import os
 import posixpath
 import re
+import stat
 import subprocess
 import sys
 import time
 
 import gslib
+from gslib.commands import ls
 from gslib.cs_api_map import ApiSelector
 from gslib.project_id import PopulateProjectId
 import gslib.tests.testcase as testcase
+from gslib.tests.testcase.integration_testcase import SkipForGS
 from gslib.tests.testcase.integration_testcase import SkipForS3
 from gslib.tests.testcase.integration_testcase import SkipForXML
 from gslib.tests.util import CaptureStdout
@@ -67,6 +71,7 @@ from gslib.utils.retry_util import Retry
 from gslib.utils.system_util import IS_WINDOWS
 
 from six import add_move, MovedModule
+
 add_move(MovedModule('mock', 'mock', 'unittest.mock'))
 from six.moves import mock
 
@@ -151,6 +156,21 @@ class TestLsUnit(testcase.GsUtilUnitTestCase):
     self.assertEqual(
         stor_update_time,
         datetime.strftime(new_update_time, '%a, %d %b %Y %H:%M:%S GMT'))
+
+  @mock.patch.object(ls.LsCommand, 'WildcardIterator')
+  def test_satisfies_pzs_is_displayed_if_present(self, mock_wildcard):
+    bucket_uri = self.CreateBucket(bucket_name='foo')
+    bucket_metadata = apitools_messages.Bucket(name='foo', satisfiesPZS=True)
+    bucket_uri.root_object = bucket_metadata
+    bucket_uri.url_string = 'foo'
+    bucket_uri.storage_url = mock.Mock()
+
+    mock_wildcard.return_value.IterBuckets.return_value = [bucket_uri]
+    # MockKey doesn't support hash_algs, so the MD5 will not match.
+    with SetBotoConfigForTest([('GSUtil', 'check_hashes', 'never')]):
+      stdout = self.RunCommand('ls', ['-Lb', suri(bucket_uri)],
+                               return_stdout=True)
+    self.assertRegex(stdout, 'Satisfies PZS:\t\t\tTrue')
 
 
 class TestLs(testcase.GsUtilIntegrationTestCase):
@@ -314,6 +334,55 @@ class TestLs(testcase.GsUtilIntegrationTestCase):
 
     _Check1()
 
+  def location_redirect_test_helper(self, bucket_region, client_region):
+    bucket_host = 's3.%s.amazonaws.com' % bucket_region
+    client_host = 's3.%s.amazonaws.com' % client_region
+    with SetBotoConfigForTest([('s3', 'host', bucket_host)]):
+      bucket_uri = self.CreateBucket(location=bucket_region)
+      obj_uri = self.CreateObject(bucket_uri=bucket_uri, contents=b'foo')
+
+    @Retry(AssertionError, tries=3, timeout_secs=1)
+    def _Check1(uri):
+      stdout = self.RunGsUtil(['ls', uri], return_stdout=True)
+      self.assertEqual('%s\n' % obj_uri, stdout)
+
+    with SetBotoConfigForTest([('s3', 'host', client_host)]):
+      # sends a GET request
+      _Check1(suri(bucket_uri))
+      # sends a HEAD request, meaning error body is not included.
+      _Check1(suri(obj_uri))
+
+  @SkipForGS('Only s3 V4 signatures error on location mismatches.')
+  def test_400_location_redirect(self):
+    # ap-east-1 used here since regions launched before March 20, 2019 do
+    # some temporary redirecting for new buckets which suppresses 400 errors.
+    self.location_redirect_test_helper('ap-east-1', 'us-east-2')
+
+  @SkipForGS('Only s3 V4 signatures error on location mismatches.')
+  def test_301_location_redirect(self):
+    self.location_redirect_test_helper('eu-west-1', 'us-east-2')
+
+  @SkipForXML('Credstore file gets created only for json API')
+  def test_credfile_lock_permissions(self):
+    tmpdir = self.CreateTempDir()
+    filepath = os.path.join(tmpdir, 'credstore2')
+    option = 'GSUtil:state_dir={}'.format(tmpdir)
+    bucket_uri = self.CreateBucket()
+    obj_uri = self.CreateObject(bucket_uri=bucket_uri, contents=b'foo')
+    # Use @Retry as hedge against bucket listing eventual consistency.
+    @Retry(AssertionError, tries=3, timeout_secs=1)
+    def _Check1():
+      stdout = self.RunGsUtil(
+          ['-o', option, 'ls', suri(bucket_uri)], return_stdout=True)
+      self.assertEqual('%s\n' % obj_uri, stdout)
+      if os.name == 'posix':
+        self.assertTrue(os.path.exists(filepath))
+        mode = oct(stat.S_IMODE(os.stat(filepath).st_mode))
+        # Assert that only user has read/write permission
+        self.assertEqual(oct(0o600), mode)
+
+    _Check1()
+
   def test_one_object_with_l(self):
     """Tests listing one object with -l."""
     obj_uri = self.CreateObject(contents=b'foo')
@@ -351,13 +420,32 @@ class TestLs(testcase.GsUtilIntegrationTestCase):
       time_updated = time.strptime(time_updated, '%a, %d %b %Y %H:%M:%S %Z')
       self.assertGreater(time_updated, time_created)
 
+  @SkipForS3('Integration test utils only support GCS JSON for versioning.')
+  @SkipForXML('Integration test utils only support GCS JSON for versioning.')
+  def test_one_object_with_generation(self):
+    """Tests listing one object by generation when multiple versions exist."""
+    bucket = self.CreateBucketJson(versioning_enabled=True)
+    object1 = self.CreateObjectJson(bucket_name=bucket.name, contents=b'1')
+    object2 = self.CreateObjectJson(bucket_name=bucket.name,
+                                    object_name=object1.name,
+                                    contents=b'2')
+    object_url_string1 = 'gs://{}/{}#{}'.format(object1.bucket, object1.name,
+                                                object1.generation)
+    object_url_string2 = 'gs://{}/{}#{}'.format(object2.bucket, object2.name,
+                                                object2.generation)
+
+    stdout = self.RunGsUtil(['ls', object_url_string2], return_stdout=True)
+
+    self.assertNotIn(object_url_string1, stdout)
+    self.assertIn(object_url_string2, stdout)
+
   def test_subdir(self):
     """Tests listing a bucket subdirectory."""
     bucket_uri = self.CreateBucket(test_objects=1)
-    k1_uri = bucket_uri.clone_replace_name('foo')
-    k1_uri.set_contents_from_string('baz')
-    k2_uri = bucket_uri.clone_replace_name('dir/foo')
-    k2_uri.set_contents_from_string('bar')
+    k1_uri = self.StorageUriCloneReplaceName(bucket_uri, 'foo')
+    self.StorageUriSetContentsFromString(k1_uri, 'baz')
+    k2_uri = self.StorageUriCloneReplaceName(bucket_uri, 'dir/foo')
+    self.StorageUriSetContentsFromString(k2_uri, 'bar')
     # Use @Retry as hedge against bucket listing eventual consistency.
     @Retry(AssertionError, tries=3, timeout_secs=1)
     def _Check1():
@@ -376,14 +464,14 @@ class TestLs(testcase.GsUtilIntegrationTestCase):
     to show multiple matching subdirectories.
     """
     bucket_uri = self.CreateBucket(test_objects=1)
-    k1_uri = bucket_uri.clone_replace_name('foo')
-    k1_uri.set_contents_from_string('baz')
-    k2_uri = bucket_uri.clone_replace_name('dir/foo')
-    k2_uri.set_contents_from_string('bar')
-    k3_uri = bucket_uri.clone_replace_name('dir/foo2')
-    k3_uri.set_contents_from_string('foo')
-    k4_uri = bucket_uri.clone_replace_name('dir2/foo3')
-    k4_uri.set_contents_from_string('foo2')
+    k1_uri = self.StorageUriCloneReplaceName(bucket_uri, 'foo')
+    self.StorageUriSetContentsFromString(k1_uri, 'baz')
+    k2_uri = self.StorageUriCloneReplaceName(bucket_uri, 'dir/foo')
+    self.StorageUriSetContentsFromString(k2_uri, 'bar')
+    k3_uri = self.StorageUriCloneReplaceName(bucket_uri, 'dir/foo2')
+    self.StorageUriSetContentsFromString(k3_uri, 'foo')
+    k4_uri = self.StorageUriCloneReplaceName(bucket_uri, 'dir2/foo3')
+    self.StorageUriSetContentsFromString(k4_uri, 'foo2')
     # Use @Retry as hedge against bucket listing eventual consistency.
     @Retry(AssertionError, tries=3, timeout_secs=1)
     def _Check1():
@@ -404,7 +492,7 @@ class TestLs(testcase.GsUtilIntegrationTestCase):
     bucket_list = list(bucket1_uri.list_bucket())
 
     objuri = [
-        bucket1_uri.clone_replace_key(key).versionless_uri
+        self.StorageUriCloneReplaceKey(bucket1_uri, key).versionless_uri
         for key in bucket_list
     ][0]
     self.RunGsUtil(['cp', objuri, suri(bucket2_uri)])
@@ -417,8 +505,10 @@ class TestLs(testcase.GsUtilIntegrationTestCase):
       self.assertNumLines(stdout, 3)
       stdout = self.RunGsUtil(['ls', '-la', suri(bucket2_uri)],
                               return_stdout=True)
-      self.assertIn('%s#' % bucket2_uri.clone_replace_name(bucket_list[0].name),
-                    stdout)
+      self.assertIn(
+          '%s#' %
+          self.StorageUriCloneReplaceName(bucket2_uri, bucket_list[0].name),
+          stdout)
       self.assertIn('metageneration=', stdout)
 
     _Check2()
@@ -717,7 +807,9 @@ class TestLs(testcase.GsUtilIntegrationTestCase):
     # Make sure it still exited cleanly.
     self.assertEqual(p.returncode, 0)
 
-  def test_recursive_list_trailing_slash(self):
+  @SkipForS3('Boto lib required for S3 does not handle paths '
+             'starting with slash.')
+  def test_recursive_list_slash_only(self):
     """Tests listing an object with a trailing slash."""
     bucket_uri = self.CreateBucket()
     self.CreateObject(bucket_uri=bucket_uri, object_name='/', contents=b'foo')
@@ -727,6 +819,20 @@ class TestLs(testcase.GsUtilIntegrationTestCase):
     # removed.
     self.assertIn(suri(bucket_uri) + '/', stdout)
 
+  def test_recursive_list_trailing_slash(self):
+    """Tests listing an object with a trailing slash."""
+    bucket_uri = self.CreateBucket()
+    self.CreateObject(bucket_uri=bucket_uri,
+                      object_name='foo/',
+                      contents=b'foo')
+    self.AssertNObjectsInBucket(bucket_uri, 1)
+    stdout = self.RunGsUtil(['ls', '-R', suri(bucket_uri)], return_stdout=True)
+    # Note: The suri function normalizes the URI, so the double slash gets
+    # removed.
+    self.assertIn(suri(bucket_uri) + '/foo/', stdout)
+
+  @SkipForS3('Boto lib required for S3 does not handle paths '
+             'starting with slash.')
   def test_recursive_list_trailing_two_slash(self):
     """Tests listing an object with two trailing slashes."""
     bucket_uri = self.CreateBucket()
@@ -974,3 +1080,14 @@ class TestLs(testcase.GsUtilIntegrationTestCase):
     self.RunGsUtil(['retention', 'event', 'release', suri(object_uri)])
     stdout = self.RunGsUtil(['ls', '-L', suri(object_uri)], return_stdout=True)
     self.assertNotRegex(stdout, r'Event-Based Hold')
+
+  @SkipForXML('public access prevention is not supported for the XML API.')
+  @SkipForS3('public access prevention is not supported for S3 buckets.')
+  def test_list_public_access_prevention(self):
+    bucket_uri = self.CreateBucket()
+    stdout = self.RunGsUtil(['ls', '-Lb', suri(bucket_uri)], return_stdout=True)
+    self.assertRegex(stdout, r'Public access prevention:\t*unspecified')
+    # Enforce public access prevention.
+    self.RunGsUtil(['pap', 'set', 'enforced', suri(bucket_uri)])
+    stdout = self.RunGsUtil(['ls', '-Lb', suri(bucket_uri)], return_stdout=True)
+    self.assertRegex(stdout, r'Public access prevention:\t*enforced')

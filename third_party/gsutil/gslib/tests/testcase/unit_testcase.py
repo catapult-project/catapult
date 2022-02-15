@@ -36,6 +36,7 @@ from gslib.command_runner import CommandRunner
 from gslib.cs_api_map import ApiMapConstants
 from gslib.cs_api_map import ApiSelector
 from gslib.discard_messages_queue import DiscardMessagesQueue
+from gslib.gcs_json_api import GcsJsonApi
 from gslib.tests.mock_logging_handler import MockLoggingHandler
 from gslib.tests.testcase import base
 import gslib.tests.util as util
@@ -71,8 +72,12 @@ class GsutilApiUnitTestClassMapFactory(object):
   def GetClassMap(cls):
     """Returns a class map for use in unit tests."""
     gs_class_map = {
-        ApiSelector.XML: BotoTranslation,
-        ApiSelector.JSON: BotoTranslation
+        ApiSelector.XML:
+            BotoTranslation,
+        # TODO: This should be replaced with 'ApiSelector.JSON: GcsJsonApi'.
+        # Refer Issue https://github.com/GoogleCloudPlatform/gsutil/issues/970
+        ApiSelector.JSON:
+            BotoTranslation
     }
     s3_class_map = {ApiSelector.XML: BotoTranslation}
     class_map = {'gs': gs_class_map, 's3': s3_class_map}
@@ -102,10 +107,18 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
     self.stdout_save = sys.stdout
     self.stderr_save = sys.stderr
     fd, self.stdout_file = tempfile.mkstemp()
-    sys.stdout = os.fdopen(fd, 'wb+')
+    # Specify the encoding explicitly to ensure Windows uses 'utf-8' instead of
+    # the default of 'cp1252'.
+    if six.PY2:
+      sys.stdout = os.fdopen(fd, 'w+')
+    else:
+      sys.stdout = os.fdopen(fd, 'w+', encoding='utf-8')
     fd, self.stderr_file = tempfile.mkstemp()
     # do not set sys.stderr to be 'wb+' - it will blow up the logger
-    sys.stderr = os.fdopen(fd, 'w+')
+    if six.PY2:
+      sys.stderr = os.fdopen(fd, 'w+')
+    else:
+      sys.stderr = os.fdopen(fd, 'w+', encoding='utf-8')
     self.accumulated_stdout = []
     self.accumulated_stderr = []
 
@@ -204,7 +217,7 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
       One or a tuple of requested return values, depending on whether
       return_stdout, return_stderr, and/or return_log_handler were specified.
       Return Types:
-        stdout - binary
+        stdout - str (binary in Py2, text in Py3)
         stderr - str (binary in Py2, text in Py3)
         log_handler - MockLoggingHandler
     """
@@ -257,8 +270,8 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
         except UnicodeDecodeError:
           sys.stdout.seek(0)
           sys.stderr.seek(0)
-          stdout = sys.stdout.buffer.read().decode(UTF8)
-          stderr = sys.stderr.buffer.read().decode(UTF8)
+          stdout = sys.stdout.buffer.read()
+          stderr = sys.stderr.buffer.read()
       logging.getLogger(command_name).removeHandler(mock_log_handler)
       mock_log_handler.close()
 

@@ -32,7 +32,7 @@ from gslib.utils.constants import NO_MAX
 from gslib.utils.text_util import InsistOnOrOff
 
 _SET_SYNOPSIS = """
-  gsutil ubla set <on|off> bucket_url...
+  gsutil ubla set (on|off) gs://<bucket_name>...
 """
 
 _GET_SYNOPSIS = """

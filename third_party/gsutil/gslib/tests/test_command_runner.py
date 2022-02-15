@@ -26,6 +26,7 @@ import time
 import six
 from six.moves import input
 import boto
+import sys
 
 import gslib
 from gslib import command_runner
@@ -51,6 +52,7 @@ from gslib.utils.text_util import InsistAscii
 from gslib.utils.unit_util import SECONDS_PER_DAY
 
 from six import add_move, MovedModule
+
 add_move(MovedModule('mock', 'mock', 'unittest.mock'))
 from six.moves import mock
 
@@ -219,6 +221,39 @@ class TestCommandRunnerUnitTests(testcase.unit_testcase.GsUtilUnitTestCase):
     return gslib.IS_PACKAGE_INSTALL or system_util.InvokedViaCloudSdk()
 
   @unittest.skipIf(util.HAS_NON_DEFAULT_GS_HOST, SKIP_BECAUSE_RETRIES_ARE_SLOW)
+  def test_py3_not_interactive(self):
+    """Tests that py3 prompt is not triggered if not running interactively."""
+    with mock.patch.object(sys, 'version_info') as version_info:
+      version_info.major = 2
+      self.running_interactively = False
+      self.assertFalse(self.command_runner.MaybePromptForPythonUpdate('ver'))
+
+  @unittest.skipIf(util.HAS_NON_DEFAULT_GS_HOST, SKIP_BECAUSE_RETRIES_ARE_SLOW)
+  def test_py3_skipped_in_boto(self):
+    """Tests that py3 prompt is not triggered if skipped in boto config."""
+    with SetBotoConfigForTest([('GSUtil', 'skip_python_update_prompt', 'True')
+                              ]):
+      with mock.patch.object(sys, 'version_info') as version_info:
+        version_info.major = 2
+        self.assertFalse(self.command_runner.MaybePromptForPythonUpdate('ver'))
+
+  @unittest.skipIf(util.HAS_NON_DEFAULT_GS_HOST, SKIP_BECAUSE_RETRIES_ARE_SLOW)
+  def test_py3_prompt_on_py2(self):
+    """Tests that py3 prompt is triggered on Python 2."""
+    with mock.patch.object(sys, 'version_info') as version_info:
+      version_info.major = 2
+      self.assertEqual(True,
+                       self.command_runner.MaybePromptForPythonUpdate('ver'))
+
+  @unittest.skipIf(util.HAS_NON_DEFAULT_GS_HOST, SKIP_BECAUSE_RETRIES_ARE_SLOW)
+  def test_py3_prompt_on_py3(self):
+    """Tests that py3 prompt is not triggered on Python 3."""
+    with mock.patch.object(sys, 'version_info') as version_info:
+      version_info.major = 3
+      self.assertEqual(False,
+                       self.command_runner.MaybePromptForPythonUpdate('ver'))
+
+  @unittest.skipIf(util.HAS_NON_DEFAULT_GS_HOST, SKIP_BECAUSE_RETRIES_ARE_SLOW)
   def test_not_interactive(self):
     """Tests that update is not triggered if not running interactively."""
     with SetBotoConfigForTest([('GSUtil', 'software_update_check_period', '1')
@@ -255,6 +290,15 @@ class TestCommandRunnerUnitTests(testcase.unit_testcase.GsUtilUnitTestCase):
   @unittest.skipIf(util.HAS_NON_DEFAULT_GS_HOST, SKIP_BECAUSE_RETRIES_ARE_SLOW)
   def test_invalid_commands(self):
     """Tests that update is not triggered for certain commands."""
+    self.assertEqual(
+        False,
+        self.command_runner.MaybeCheckForAndOfferSoftwareUpdate('update', 0))
+
+  @unittest.skipIf(util.HAS_NON_DEFAULT_GS_HOST, SKIP_BECAUSE_RETRIES_ARE_SLOW)
+  def test_fails_silently_when_version_check_fails(self):
+    """Tests that update is not triggered for certain commands."""
+
+    command_runner.LookUpGsutilVersion = self.old_look_up_gsutil_version
     self.assertEqual(
         False,
         self.command_runner.MaybeCheckForAndOfferSoftwareUpdate('update', 0))

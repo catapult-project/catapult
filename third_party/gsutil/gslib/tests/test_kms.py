@@ -157,7 +157,7 @@ class TestKmsSubcommandsFailWhenXmlForced(testcase.GsUtilIntegrationTestCase):
       ('Credentials', 'gs_access_key_id', 'dummykey'),
       ('Credentials', 'gs_secret_access_key', 'dummysecret'),
   ]
-  dummy_keyname = ('projects/my-project/locations/global/'
+  dummy_keyname = ('projects/my-project/locations/us-central1/'
                    'keyRings/my-keyring/cryptoKeys/my-key')
 
   def DoTestSubcommandFailsWhenXmlForcedFromHmacInBotoConfig(self, subcommand):
@@ -189,11 +189,12 @@ class TestKmsSubcommandsFailWhenXmlForced(testcase.GsUtilIntegrationTestCase):
 class TestKmsUnitTests(testcase.GsUtilUnitTestCase):
   """Unit tests for gsutil kms."""
 
-  dummy_keyname = ('projects/my-project/locations/global/'
+  dummy_keyname = ('projects/my-project/locations/us-central1/'
                    'keyRings/my-keyring/cryptoKeys/my-key')
 
-  @mock.patch('gslib.boto_translation.CloudApi.GetProjectServiceAccount')
-  @mock.patch('gslib.boto_translation.CloudApi.PatchBucket')
+  @mock.patch(
+      'gslib.cloud_api_delegator.CloudApiDelegator.GetProjectServiceAccount')
+  @mock.patch('gslib.cloud_api_delegator.CloudApiDelegator.PatchBucket')
   @mock.patch('gslib.kms_api.KmsApi.GetKeyIamPolicy')
   @mock.patch('gslib.kms_api.KmsApi.SetKeyIamPolicy')
   def testEncryptionSetKeySucceedsWhenUpdateKeyPolicySucceeds(
@@ -207,10 +208,12 @@ class TestKmsUnitTests(testcase.GsUtilUnitTestCase):
         'kms', ['encryption', '-k', self.dummy_keyname,
                 suri(bucket_uri)],
         return_stdout=True)
-    self.assertIn(b'Setting default KMS key for bucket', stdout)
+    self.assertIn('Setting default KMS key for bucket', stdout)
+    mock_patch_bucket.assert_called()
 
-  @mock.patch('gslib.boto_translation.CloudApi.GetProjectServiceAccount')
-  @mock.patch('gslib.boto_translation.CloudApi.PatchBucket')
+  @mock.patch(
+      'gslib.cloud_api_delegator.CloudApiDelegator.GetProjectServiceAccount')
+  @mock.patch('gslib.cloud_api_delegator.CloudApiDelegator.PatchBucket')
   @mock.patch('gslib.kms_api.KmsApi.GetKeyIamPolicy')
   @mock.patch('gslib.kms_api.KmsApi.SetKeyIamPolicy')
   def testEncryptionSetKeySucceedsWhenUpdateKeyPolicyFailsWithWarningFlag(
@@ -225,10 +228,12 @@ class TestKmsUnitTests(testcase.GsUtilUnitTestCase):
         'kms', ['encryption', '-k', self.dummy_keyname, '-w',
                 suri(bucket_uri)],
         return_stdout=True)
-    self.assertIn(b'Setting default KMS key for bucket', stdout)
+    self.assertIn('Setting default KMS key for bucket', stdout)
+    mock_patch_bucket.assert_called()
 
-  @mock.patch('gslib.boto_translation.CloudApi.GetProjectServiceAccount')
-  @mock.patch('gslib.boto_translation.CloudApi.PatchBucket')
+  @mock.patch(
+      'gslib.cloud_api_delegator.CloudApiDelegator.GetProjectServiceAccount')
+  @mock.patch('gslib.cloud_api_delegator.CloudApiDelegator.PatchBucket')
   @mock.patch('gslib.kms_api.KmsApi.GetKeyIamPolicy')
   @mock.patch('gslib.kms_api.KmsApi.SetKeyIamPolicy')
   def testEncryptionSetKeyFailsWhenUpdateKeyPolicyFailsWithoutWarningFlag(

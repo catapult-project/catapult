@@ -120,7 +120,7 @@ _DETAILED_HELP_TEXT = ("""
   10. Please run the yapf linter with the config files in the root of the GitHub
       repository.
 
-        yapf -irp .
+       yapf -irp .
 
   11. When it's time to send us code, please submit a PR to the `gsutil GitHub
       repository <https://github.com/GoogleCloudPlatform/gsutil>`_. For help on

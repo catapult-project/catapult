@@ -105,14 +105,15 @@ class Bucket(_messages.Message):
       retention policy cannot be removed or shortened in duration for the
       lifetime of the bucket. Attempting to remove or decrease period of a
       locked retention policy will result in a PERMISSION_DENIED error.
+    satisfiesPZS: Reserved for future use.
     selfLink: The URI of this bucket.
     storageClass: The bucket's default storage class, used whenever no
       storageClass is specified for a newly-created object. This defines how
       objects in the bucket are stored and determines the SLA and the cost of
       storage. Values include MULTI_REGIONAL, REGIONAL, STANDARD, NEARLINE,
-      COLDLINE, and DURABLE_REDUCED_AVAILABILITY. If this value is not
-      specified when the bucket is created, it will default to STANDARD. For
-      more information, see storage classes.
+      COLDLINE, ARCHIVE, and DURABLE_REDUCED_AVAILABILITY. If this value is
+      not specified when the bucket is created, it will default to STANDARD.
+      For more information, see storage classes.
     timeCreated: The creation time of the bucket in RFC 3339 format.
     updated: The modification time of the bucket in RFC 3339 format.
     versioning: The bucket's versioning configuration.
@@ -169,6 +170,8 @@ class Bucket(_messages.Message):
 
     Fields:
       bucketPolicyOnly: The bucket's Bucket Policy Only configuration.
+      publicAccessPrevention: The bucket's public access prevention
+        configuration. Valid values are `unspecified` and `enforced`.
     """
 
     class BucketPolicyOnlyValue(_messages.Message):
@@ -188,6 +191,7 @@ class Bucket(_messages.Message):
       lockedTime = _message_types.DateTimeField(2)
 
     bucketPolicyOnly = _messages.MessageField('BucketPolicyOnlyValue', 1)
+    publicAccessPrevention = _messages.StringField(2)
 
   @encoding.MapUnrecognizedFields('additionalProperties')
   class LabelsValue(_messages.Message):
@@ -259,13 +263,30 @@ class Bucket(_messages.Message):
           createdBefore: A date in RFC 3339 format with only the date part
             (for instance, "2013-01-15"). This condition is satisfied when an
             object is created before midnight of the specified date in UTC.
+          customTimeBefore: A date in RFC 3339 format with only the date part
+            (for instance, "2013-01-15"). This condition is satisfied when the
+            custom time on an object is before this date in UTC.
+          daysSinceCustomTime: Number of days elapsed since the user-specified
+            timestamp set on an object. The condition is satisfied if the days
+            elapsed is at least this number. If no custom timestamp is
+            specified on an object, the condition does not apply.
+          daysSinceNoncurrentTime: Number of days elapsed since the noncurrent
+            timestamp of an object. The condition is satisfied if the days
+            elapsed is at least this number. This condition is relevant only
+            for versioned objects. The value of the field must be a
+            nonnegative integer. If it's zero, the object version will become
+            eligible for Lifecycle action as soon as it becomes noncurrent.
           isLive: Relevant only for versioned objects. If the value is true,
             this condition matches live objects; if the value is false, it
             matches archived objects.
           matchesStorageClass: Objects having any of the storage classes
             specified by this condition will be matched. Values include
-            MULTI_REGIONAL, REGIONAL, NEARLINE, COLDLINE, STANDARD, and
-            DURABLE_REDUCED_AVAILABILITY.
+            MULTI_REGIONAL, REGIONAL, NEARLINE, COLDLINE, ARCHIVE, STANDARD,
+            and DURABLE_REDUCED_AVAILABILITY.
+          noncurrentTimeBefore: A date in RFC 3339 format with only the date
+            part (for instance, "2013-01-15"). This condition is satisfied
+            when the noncurrent time on an object is before this date in UTC.
+            This condition is relevant only for versioned objects.
           numNewerVersions: Relevant only for versioned objects. If the value
             is N, this condition is satisfied when there are at least N
             versions (including the live version) newer than this version of
@@ -274,8 +295,12 @@ class Bucket(_messages.Message):
 
         age = _messages.IntegerField(1, variant=_messages.Variant.INT32)
         createdBefore = extra_types.DateField(2)
+        customTimeBefore = extra_types.DateField(6)
+        daysSinceCustomTime = _messages.IntegerField(7, variant=_messages.Variant.INT32)
+        daysSinceNoncurrentTime = _messages.IntegerField(8, variant=_messages.Variant.INT32)
         isLive = _messages.BooleanField(3)
         matchesStorageClass = _messages.StringField(4, repeated=True)
+        noncurrentTimeBefore = extra_types.DateField(9)
         numNewerVersions = _messages.IntegerField(5, variant=_messages.Variant.INT32)
 
       action = _messages.MessageField('ActionValue', 1)
@@ -383,12 +408,13 @@ class Bucket(_messages.Message):
   owner = _messages.MessageField('OwnerValue', 18)
   projectNumber = _messages.IntegerField(19, variant=_messages.Variant.UINT64)
   retentionPolicy = _messages.MessageField('RetentionPolicyValue', 20)
-  selfLink = _messages.StringField(21)
-  storageClass = _messages.StringField(22)
-  timeCreated = _message_types.DateTimeField(23)
-  updated = _message_types.DateTimeField(24)
-  versioning = _messages.MessageField('VersioningValue', 25)
-  website = _messages.MessageField('WebsiteValue', 26)
+  satisfiesPZS = _messages.BooleanField(21)
+  selfLink = _messages.StringField(22)
+  storageClass = _messages.StringField(23)
+  timeCreated = _message_types.DateTimeField(24)
+  updated = _message_types.DateTimeField(25)
+  versioning = _messages.MessageField('VersioningValue', 26)
+  website = _messages.MessageField('WebsiteValue', 27)
 
 
 class BucketAccessControl(_messages.Message):
@@ -747,6 +773,8 @@ class Object(_messages.Message):
     crc32c: CRC32c checksum, as described in RFC 4960, Appendix B; encoded
       using base64 in big-endian byte order. For more information about using
       the CRC32c checksum, see Hashes and ETags: Best Practices.
+    customTime: A timestamp in RFC 3339 format specified by the user for an
+      object.
     customerEncryption: Metadata of customer-supplied encryption key, if the
       object is encrypted by such a key.
     etag: HTTP 1.1 Entity tag for the object.
@@ -863,6 +891,7 @@ class Object(_messages.Message):
   contentLanguage = _messages.StringField(7)
   contentType = _messages.StringField(8)
   crc32c = _messages.StringField(9)
+  customTime = _message_types.DateTimeField(32)
   customerEncryption = _messages.MessageField('CustomerEncryptionValue', 10)
   etag = _messages.StringField(11)
   eventBasedHold = _messages.BooleanField(12)

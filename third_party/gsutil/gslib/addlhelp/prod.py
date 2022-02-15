@@ -37,17 +37,18 @@ _DETAILED_HELP_TEXT = ("""
   reliably. gsutil uses resumable transfer support when you attempt to download
   a file of any size or to upload a file larger than a configurable threshold
   (by default, this threshold is %d MiB). If a transfer fails partway through
-  (e.g., because of an intermittent network problem), gsutil uses a truncated
-  randomized binary exponential backoff-and-retry strategy that by default will
-  retry transfers up to 23 times over a 10 minute period of time (see
-  "gsutil help retries" for details). If the transfer fails each of these
-  attempts with no intervening progress, gsutil gives up on the transfer, but
-  keeps a "tracker" file for it in a configurable location (the default
-  location is ~/.gsutil/, in a file named by a combination of the SHA1 hash of
-  the name of the bucket and object being transferred and the last 16
-  characters of the file name). When transfers fail in this fashion, you can
-  rerun gsutil at some later time (e.g., after the networking problem has been
-  resolved), and the resumable transfer picks up where it left off.
+  (e.g., because of an intermittent network problem), gsutil uses a
+  `truncated randomized binary exponential backoff-and-retry strategy
+  <https://cloud.google.com/storage/docs/retry-strategy#tools>`_ that by
+  default retries transfers up to 23 times over a 10 minute period of time. If
+  the transfer fails each of these attempts with no intervening progress,
+  gsutil gives up on the transfer, but keeps a "tracker" file for it in a
+  configurable location (the default location is ~/.gsutil/, in a file named
+  by a combination of the SHA1 hash of the name of the bucket and object being
+  transferred and the last 16 characters of the file name). When transfers
+  fail in this fashion, you can rerun gsutil at some later time (e.g., after
+  the networking problem has been resolved), and the resumable transfer picks
+  up where it left off.
 
 
 <B>SCRIPTING DATA TRANSFER TASKS</B>

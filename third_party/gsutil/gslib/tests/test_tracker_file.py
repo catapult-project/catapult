@@ -19,6 +19,9 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
 
+import os
+import stat
+
 from gslib.exception import CommandException
 from gslib.parallel_tracker_file import ObjectFromTracker
 from gslib.parallel_tracker_file import ReadParallelUploadTrackerFile
@@ -175,7 +178,8 @@ class TestTrackerFile(GsUtilUnitTestCase):
     self.assertEqual(objects + [new_object], actual_objects)
 
   def testValidateParallelCompositeTrackerData(self):
-    fpath = self.CreateTempFile(file_name='foo')
+    tempdir = self.CreateTempDir()
+    fpath = os.path.join(tempdir, 'foo')
     random_prefix = '123'
     old_enc_key = '456'
     bucket_url = StorageUrlFromString('gs://foo')
@@ -187,6 +191,11 @@ class TestTrackerFile(GsUtilUnitTestCase):
                                    random_prefix,
                                    objects,
                                    encryption_key_sha256=old_enc_key)
+    # Test the permissions
+    if os.name == 'posix':
+      mode = oct(stat.S_IMODE(os.stat(fpath).st_mode))
+      # Assert that only user has read/write permission
+      self.assertEqual(oct(0o600), mode)
 
     # Mock command object since Valdiate will call Apply() to delete the
     # existing components.

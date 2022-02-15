@@ -31,6 +31,7 @@ from gslib.tests.util import SetBotoConfigForTest
 from gslib.tests.util import TEST_ENCRYPTION_KEY1
 from gslib.tests.util import TEST_ENCRYPTION_KEY2
 from gslib.tests.util import unittest
+from gslib.project_id import PopulateProjectId
 
 
 @SkipForS3('S3 does not support object composition.')
@@ -49,7 +50,8 @@ class TestCompose(testcase.GsUtilIntegrationTestCase):
         for data in data_list
     ]
 
-    composite = bucket_uri.clone_replace_name(self.MakeTempName('obj'))
+    composite = self.StorageUriCloneReplaceName(bucket_uri,
+                                                self.MakeTempName('obj'))
 
     self.RunGsUtil(['compose'] + components + [composite.uri])
     self.assertEqual(composite.get_contents_as_string(), b''.join(data_list))
@@ -94,6 +96,25 @@ class TestCompose(testcase.GsUtilIntegrationTestCase):
     self.check_n_ary_compose(1)
     self.check_n_ary_compose(2)
 
+  def test_compose_copies_type_and_encoding_from_first_object(self):
+    bucket_uri = self.CreateBucket()
+    object_uri1 = self.CreateObject(bucket_uri=bucket_uri, contents=b'1')
+    object_uri2 = self.CreateObject(bucket_uri=bucket_uri, contents=b'2')
+    composite = self.StorageUriCloneReplaceName(bucket_uri,
+                                                self.MakeTempName('obj'))
+    self.RunGsUtil([
+        'setmeta', '-h', 'Content-Type:python-x', '-h', 'Content-Encoding:gzip',
+        suri(object_uri1)
+    ])
+    self.RunGsUtil(
+        ['compose',
+         suri(object_uri1),
+         suri(object_uri2),
+         suri(composite)])
+    stdout = self.RunGsUtil(['stat', suri(composite)], return_stdout=True)
+    self.assertRegex(stdout, r'Content-Type:\s+python-x')
+    self.assertRegex(stdout, r'Content-Encoding:\s+gzip')
+
   def test_maximal_compose(self):
     self.check_n_ary_compose(MAX_COMPOSE_ARITY)
 
@@ -108,7 +129,8 @@ class TestCompose(testcase.GsUtilIntegrationTestCase):
                                    contents=b'world!',
                                    object_name='component2')
 
-    composite = bucket_uri.clone_replace_name(self.MakeTempName('obj'))
+    composite = self.StorageUriCloneReplaceName(bucket_uri,
+                                                self.MakeTempName('obj'))
 
     self.RunGsUtil(['compose', component1.uri, component2.uri, composite.uri])
     self.assertEqual(composite.get_contents_as_string(), b'hello world!')
@@ -191,6 +213,44 @@ class TestCompose(testcase.GsUtilIntegrationTestCase):
           suri(bucket_uri, 'obj')
       ])
 
+  def authorize_project_to_use_testing_kms_key(
+      self, key_name=testcase.KmsTestingResources.CONSTANT_KEY_NAME):
+    # Make sure our keyRing and cryptoKey exist.
+    keyring_fqn = self.kms_api.CreateKeyRing(
+        PopulateProjectId(None),
+        testcase.KmsTestingResources.KEYRING_NAME,
+        location=testcase.KmsTestingResources.KEYRING_LOCATION)
+    key_fqn = self.kms_api.CreateCryptoKey(keyring_fqn, key_name)
+    # Make sure that the service account for our default project is authorized
+    # to use our test KMS key.
+    self.RunGsUtil(['kms', 'authorize', '-k', key_fqn])
+    return key_fqn
+
+  @SkipForS3('Test uses gs-specific KMS encryption')
+  def test_compose_with_kms_encryption(self):
+    """Tests composing encrypted objects."""
+    if self.test_api == ApiSelector.XML:
+      return unittest.skip(
+          'gsutil does not support encryption with the XML API')
+    bucket_uri = self.CreateBucket()
+    object_uri1 = self.CreateObject(bucket_uri=bucket_uri, contents=b'foo')
+    object_uri2 = self.CreateObject(bucket_uri=bucket_uri, contents=b'bar')
+
+    obj_suri = suri(bucket_uri, 'composed')
+    key_fqn = self.authorize_project_to_use_testing_kms_key()
+
+    with SetBotoConfigForTest([('GSUtil', 'encryption_key', key_fqn)]):
+      self.RunGsUtil([
+          'compose',
+          suri(object_uri1),
+          suri(object_uri2),
+          obj_suri,
+      ])
+
+    # verify composed object uses CMEK.
+    with SetBotoConfigForTest([('GSUtil', 'prefer_api', 'json')]):
+      self.AssertObjectUsesCMEK(obj_suri, key_fqn)
+
   def test_compose_different_encryption_keys(self):
     """Tests composing encrypted objects with different encryption keys."""
     bucket_uri = self.CreateBucket()
@@ -244,6 +304,21 @@ class TestCompose(testcase.GsUtilIntegrationTestCase):
     self.assertIn('NotFoundException', stderr)
     if self.test_api == ApiSelector.JSON:
       self.assertIn('One of the source objects does not exist', stderr)
+
+  def test_compose_with_generations(self):
+    """Tests composing objects with generations."""
+    bucket_uri = self.CreateBucket()
+    components = []
+    data_list = [b'1', b'2', b'3']
+    for data in data_list:
+      object_uri = self.CreateObject(bucket_uri=bucket_uri, contents=data)
+      components.append(object_uri.version_specific_uri)
+
+    composite = self.StorageUriCloneReplaceName(bucket_uri,
+                                                self.MakeTempName('obj'))
+
+    self.RunGsUtil(['compose'] + components + [composite.uri])
+    self.assertEqual(composite.get_contents_as_string(), b''.join(data_list))
 
 
 class TestCompatibleCompose(testcase.GsUtilIntegrationTestCase):

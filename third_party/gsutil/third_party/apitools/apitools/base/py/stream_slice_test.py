@@ -16,15 +16,15 @@
 """Tests for stream_slice."""
 
 import string
+import unittest
 
 import six
-import unittest2
 
 from apitools.base.py import exceptions
 from apitools.base.py import stream_slice
 
 
-class StreamSliceTest(unittest2.TestCase):
+class StreamSliceTest(unittest.TestCase):
 
     def setUp(self):
         self.stream = six.StringIO(string.ascii_letters)

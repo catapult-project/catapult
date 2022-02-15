@@ -41,7 +41,7 @@ _DEFAULT_DOWNLOAD_CHUNK_SIZE = 1024 * 1024 * 100
 class BufferWrapper(object):
   """Wraps the download file pointer to use our in-memory buffer."""
 
-  def __init__(self, daisy_chain_wrapper):
+  def __init__(self, daisy_chain_wrapper, mode='b'):
     """Provides a buffered write interface for a file download.
 
     Args:
@@ -49,6 +49,10 @@ class BufferWrapper(object):
                            locking.
     """
     self.daisy_chain_wrapper = daisy_chain_wrapper
+    if hasattr(daisy_chain_wrapper, 'mode'):
+      self.mode = daisy_chain_wrapper.mode
+    else:
+      self.mode = mode
 
   def write(self, data):  # pylint: disable=invalid-name
     """Waits for space in the buffer, then writes data to the buffer."""
@@ -157,6 +161,7 @@ class DaisyChainWrapper(object):
     self.StartDownloadThread(progress_callback=self.progress_callback)
     if not self.download_started.wait(60):
       raise Exception('Could not start download thread after 60 seconds.')
+    self._unused_data_from_previous_read = b''
 
   def StartDownloadThread(self, start_byte=0, progress_callback=None):  # pylint: disable=invalid-name
     """Starts the download thread for the source object (from start_byte)."""
@@ -235,34 +240,52 @@ class DaisyChainWrapper(object):
           'Invalid HTTP read size %s during daisy chain operation, '
           'expected <= %s.' % (amt, constants.TRANSFER_BUFFER_SIZE))
 
-    while True:
-      with self.lock:
-        if self.buffer:
-          break
-        if AcquireLockWithTimeout(self.download_exception_lock, 30):
-          if self.download_exception:
-            # Download thread died, so we will never recover. Raise the
-            # exception that killed it.
-            raise self.download_exception  # pylint: disable=raising-bad-type
-        else:
-          if not self.download_thread.is_alive():
-            raise Exception('Download thread died suddenly.')
-      # Buffer was empty, yield thread priority so the download thread can fill.
-      time.sleep(0)
+    if self._unused_data_from_previous_read:
+      valid_data = self._unused_data_from_previous_read[:amt]
+      self._unused_data_from_previous_read = (
+          self._unused_data_from_previous_read[amt:])
+    else:
+      valid_data = b''
+
+      while True:
+        with self.lock:
+          if self.buffer:
+            break
+          if AcquireLockWithTimeout(self.download_exception_lock, 30):
+            if self.download_exception:
+              # Download thread died, so we will never recover. Raise the
+              # exception that killed it.
+              raise self.download_exception  # pylint: disable=raising-bad-type
+          else:
+            if not self.download_thread.is_alive():
+              raise Exception('Download thread died suddenly.')
+        # Buffer was empty, yield thread priority so the download thread can fill.
+        time.sleep(0)
     with self.lock:
-      # TODO: Need to handle the caller requesting less than a
-      # transfer_buffer_size worth of data.
-      data = self.buffer.popleft()
+      # In a rare case where len(valid_data) < amt, and there are
+      # elements in the buffer, e.g let's say valid_data = 'foo' and amt = 5,
+      # and we have 'barbaz' in self.buffer, instead of returning 'fooba'
+      # in the current call, we return 'foo', and in the subsequent calls
+      # we will return 'barba' and 'z'. Given that we set
+      # TRANSFER_BUFFER_SIZE as a multiple of the amt (8KiB),
+      # we can safely assume that this will never happen practically.
+      # This assumption helps us keep the logic simple and avoid
+      # string concatenations and splits ('foo' + 'ba' in the above case).
+      if not valid_data:
+        data = self.buffer.popleft()
+        valid_data = data[:amt]
+        self._unused_data_from_previous_read = data[amt:]
+
       self.last_position = self.position
-      self.last_data = data
-      data_len = len(data)
+      self.last_data = valid_data
+      data_len = len(valid_data)
       self.position += data_len
       self.bytes_buffered -= data_len
     if data_len > amt:
       raise BadRequestException(
           'Invalid read during daisy chain operation, got data of size '
           '%s, expected size %s.' % (data_len, amt))
-    return data
+    return valid_data
 
   def tell(self):  # pylint: disable=invalid-name
     with self.lock:

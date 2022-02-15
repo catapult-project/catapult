@@ -23,11 +23,14 @@ import logging
 import os
 import re
 import textwrap
+import sys
 
 import gslib
 from gslib.utils.system_util import IS_OSX
 from gslib.exception import CommandException
 from gslib.storage_url import StorageUrlFromString
+from gslib.utils.constants import GSUTIL_PUB_TARBALL
+from gslib.utils.constants import GSUTIL_PUB_TARBALL_PY2
 
 
 # This function used to belong inside of update.py. However, it needed to be
@@ -75,11 +78,13 @@ def DisallowUpdateIfDataInGsutilDir(directory=gslib.GSUTIL_DIR):
   # MANFFEST.in, and most users who drop data into gsutil dir do so at the top
   # level directory.
   addl_excludes = (
+      '.coverage',
       '.DS_Store',
+      '.github',
       '.style.yapf',
-      '.travis.yml',
       '.yapfignore',
       '__pycache__',
+      '.github',
   )
   for filename in os.listdir(directory):
     if filename.endswith('.pyc') or filename in addl_excludes:
@@ -116,3 +121,14 @@ def LookUpGsutilVersion(gsutil_api, url_str):
       for prop in obj.metadata.additionalProperties:
         if prop.key == 'gsutil_version':
           return prop.value
+
+
+def GsutilPubTarball():
+  """Returns the appropriate gsutil pub tarball based on the Python version.
+
+  Returns:
+    The storage_uri of the appropriate pub tarball.
+  """
+  if sys.version_info.major == 2:
+    return GSUTIL_PUB_TARBALL_PY2
+  return GSUTIL_PUB_TARBALL

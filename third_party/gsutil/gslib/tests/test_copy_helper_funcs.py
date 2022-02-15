@@ -19,6 +19,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
 
+import collections
 import datetime
 import logging
 import os
@@ -43,10 +44,12 @@ from gslib.tests.util import GSMockBucketStorageUri
 from gslib.tests.util import SetBotoConfigForTest
 from gslib.tests.util import unittest
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
+from gslib.utils import copy_helper
 from gslib.utils import parallelism_framework_util
 from gslib.utils import posix_util
 from gslib.utils import system_util
 from gslib.utils import hashing_helper
+from gslib.utils.copy_helper import _CheckCloudHashes
 from gslib.utils.copy_helper import _DelegateUploadFileToObject
 from gslib.utils.copy_helper import _GetPartitionInfo
 from gslib.utils.copy_helper import _SelectUploadCompressionStrategy
@@ -58,6 +61,7 @@ from gslib.utils.copy_helper import PerformParallelUploadFileToObjectArgs
 from gslib.utils.copy_helper import WarnIfMvEarlyDeletionChargeApplies
 
 from six import add_move, MovedModule
+
 add_move(MovedModule('mock', 'mock', 'unittest.mock'))
 from six.moves import mock
 
@@ -363,6 +367,18 @@ class TestCpFuncs(GsUtilUnitTestCase):
     self.assertIn('this can happen if a file changes size',
                   translated_exc.reason)
 
+  def testTranslateApitoolsResumableUploadExceptionStreamExhausted(self):
+    """Test that StreamExhausted error gets handled."""
+    gsutil_api = GcsJsonApi(GSMockBucketStorageUri,
+                            CreateOrGetGsutilLogger('copy_test'),
+                            DiscardMessagesQueue())
+    exc = apitools_exceptions.StreamExhausted('Not enough bytes')
+    translated_exc = gsutil_api._TranslateApitoolsResumableUploadException(exc)
+    self.assertTrue(isinstance(translated_exc, ResumableUploadAbortException))
+    self.assertIn(
+        'if this issue persists, try deleting the tracker files'
+        ' present under ~/.gsutil/tracker-files/', translated_exc.reason)
+
   def testSetContentTypeFromFile(self):
     """Tests that content type is correctly determined for symlinks."""
     if system_util.IS_WINDOWS:
@@ -378,12 +394,10 @@ class TestCpFuncs(GsUtilUnitTestCase):
     # Content-type of a symlink should be obtained from the link's target.
     dst_obj_metadata_mock = mock.MagicMock(contentType=None)
     src_url_stub = mock.MagicMock(object_name=temp_dir_path + os.path.sep +
-                                  link_name,
-                                  **{
-                                      'IsFileUrl.return_value': True,
-                                      'IsStream.return_value': False,
-                                      'IsFifo.return_value': False
-                                  })
+                                  link_name)
+    src_url_stub.IsFileUrl.return_value = True
+    src_url_stub.IsStream.return_value = False
+    src_url_stub.IsFifo.return_value = False
 
     # The file command should detect HTML in the real file.
     with SetBotoConfigForTest([('GSUtil', 'use_magicfile', 'True')]):
@@ -396,6 +410,19 @@ class TestCpFuncs(GsUtilUnitTestCase):
     with SetBotoConfigForTest([('GSUtil', 'use_magicfile', 'False')]):
       _SetContentTypeFromFile(src_url_stub, dst_obj_metadata_mock)
     self.assertEqual('text/plain', dst_obj_metadata_mock.contentType)
+
+  def testSetsContentTypesForCommonFileExtensionsCorrectly(self):
+    extension_rules = copy_helper.COMMON_EXTENSION_RULES.items()
+    for extension, expected_content_type in extension_rules:
+      dst_obj_metadata_mock = mock.MagicMock(contentType=None)
+      src_url_stub = mock.MagicMock(object_name='file.' + extension)
+      src_url_stub.IsFileUrl.return_value = True
+      src_url_stub.IsStream.return_value = False
+      src_url_stub.IsFifo.return_value = False
+
+      _SetContentTypeFromFile(src_url_stub, dst_obj_metadata_mock)
+
+      self.assertEqual(expected_content_type, dst_obj_metadata_mock.contentType)
 
   _PI_DAY = datetime.datetime(2016, 3, 14, 15, 9, 26)
 
@@ -437,6 +464,21 @@ class TestCpFuncs(GsUtilUnitTestCase):
             'according to the local system time.', 'coldline',
             src_url.url_string, 90)
 
+    # Recent archive objects should generate a warning.
+    for object_time_created in (self._PI_DAY, self._PI_DAY -
+                                datetime.timedelta(days=364, hours=23)):
+      recent_archive_obj = apitools_messages.Object(
+          storageClass='ARCHIVE', timeCreated=object_time_created)
+
+      with mock.patch.object(test_logger, 'warn') as mocked_warn:
+        WarnIfMvEarlyDeletionChargeApplies(src_url, recent_archive_obj,
+                                           test_logger)
+        mocked_warn.assert_called_with(
+            'Warning: moving %s object %s may incur an early deletion '
+            'charge, because the original object is less than %s days old '
+            'according to the local system time.', 'archive',
+            src_url.url_string, 365)
+
     # Sufficiently old objects should not generate a warning.
     with mock.patch.object(test_logger, 'warn') as mocked_warn:
       old_nearline_obj = apitools_messages.Object(
@@ -449,6 +491,12 @@ class TestCpFuncs(GsUtilUnitTestCase):
           storageClass='COLDLINE',
           timeCreated=self._PI_DAY - datetime.timedelta(days=90, seconds=1))
       WarnIfMvEarlyDeletionChargeApplies(src_url, old_coldline_obj, test_logger)
+      mocked_warn.assert_not_called()
+    with mock.patch.object(test_logger, 'warn') as mocked_warn:
+      old_archive_obj = apitools_messages.Object(
+          storageClass='ARCHIVE',
+          timeCreated=self._PI_DAY - datetime.timedelta(days=365, seconds=1))
+      WarnIfMvEarlyDeletionChargeApplies(src_url, old_archive_obj, test_logger)
       mocked_warn.assert_not_called()
 
     # Recent standard storage class object should not generate a warning.
@@ -562,6 +610,11 @@ class TestCpFuncs(GsUtilUnitTestCase):
     self.assertTrue(mock_stream.close.called)
     # Ensure the lock was released.
     self.assertFalse(mock_lock.__exit__.called)
+
+  def testDoesNotGetSizeSourceFieldIfFileSizeWillChange(self):
+    fields = copy_helper.GetSourceFieldsNeededForCopy(
+        True, True, False, file_size_will_change=True)
+    self.assertNotIn('size', fields)
 
 
 class TestExpandUrlToSingleBlr(GsUtilUnitTestCase):
@@ -716,3 +769,14 @@ class TestExpandUrlToSingleBlr(GsUtilUnitTestCase):
 
     self.assertTrue(have_existing_dst_container)
     self.assertEqual(exp_url, StorageUrlFromString('gs://test/folder/'))
+
+  def testCheckCloudHashesIsSkippedCorrectly(self):
+    FakeObject = collections.namedtuple('FakeObject', ['md5Hash'])
+
+    with SetBotoConfigForTest([('GSUtil', 'check_hashes', 'never')]):
+      # Should not raise a hash mismatch error:
+      _CheckCloudHashes(logger=None,
+                        src_url=None,
+                        dst_url=None,
+                        src_obj_metadata=FakeObject(md5Hash='a'),
+                        dst_obj_metadata=FakeObject(md5Hash='b'))

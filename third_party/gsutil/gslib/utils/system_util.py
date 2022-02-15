@@ -235,12 +235,11 @@ def InvokedViaCloudSdk():
 
 
 def IsRunningInCiEnvironment():
-  """Returns True if running in a CI environment, e.g. TravisCI."""
-  # TravisCI exports several env vars, the two most obvious ones being CI=true
-  # and TRAVIS=true. We check for the latter.
-  on_travis = 'TRAVIS' in os.environ
+  """Returns True if running in a CI environment, e.g. GitHub CI."""
+  # https://docs.github.com/en/actions/reference/environment-variables
+  on_github_ci = 'CI' in os.environ
   on_kokoro = 'KOKORO_ROOT' in os.environ
-  return on_travis or on_kokoro
+  return on_github_ci or on_kokoro
 
 
 def IsRunningInteractively():

@@ -34,38 +34,36 @@ from gslib.third_party.storage_apitools import storage_v1_messages as apitools_m
 from gslib.utils.constants import NO_MAX
 
 _SET_SYNOPSIS = """
-  gsutil web set [-m main_page_suffix] [-e error_page] bucket_url...
+  gsutil web set [-m <main_page_suffix>] [-e <error_page>] gs://<bucket_name>...
 """
 
 _GET_SYNOPSIS = """
-  gsutil web get bucket_url
+  gsutil web get gs://<bucket_name>
 """
 
 _SYNOPSIS = _SET_SYNOPSIS + _GET_SYNOPSIS.lstrip('\n')
 
 _SET_DESCRIPTION = """
 <B>SET</B>
-  The "gsutil web set" command will allow you to configure or disable
-  Website Configuration on your bucket(s). The "set" sub-command has the
-  following options (leave both options blank to disable):
+  The ``gsutil web set`` command allows you to configure or disable the website
+  configuration on your buckets. The ``set`` sub-command has the following
+  options (omit both options to unset the configuration):
 
 <B>SET OPTIONS</B>
   -m <index.html>      Specifies the object name to serve when a bucket
-                       listing is requested via the CNAME alias to
-                       c.storage.googleapis.com.
+                       listing is requested via a custom domain.
 
   -e <404.html>        Specifies the error page to serve when a request is made
-                       for a non-existent object via the CNAME alias to
-                       c.storage.googleapis.com.
+                       for a non-existent object via a custom domain
 
 """
 
 _GET_DESCRIPTION = """
 <B>GET</B>
-  The "gsutil web get" command will gets the web semantics configuration for
+  The ``gsutil web get`` command retrieves the web semantics configuration for
   a bucket and displays a JSON representation of the configuration.
 
-  In Google Cloud Storage, this would look like:
+  In Google Cloud Storage, this would look like the following:
 
     {
       "notFoundPage": "404.html",
@@ -75,55 +73,41 @@ _GET_DESCRIPTION = """
 """
 
 _DESCRIPTION = """
-  The Website Configuration feature enables you to configure a Google Cloud
-  Storage bucket to behave like a static website. This means requests made via a
-  domain-named bucket aliased using a Domain Name System "CNAME" to
-  c.storage.googleapis.com will work like any other website, i.e., a GET to the
-  bucket will serve the configured "main" page instead of the usual bucket
-  listing and a GET for a non-existent object will serve the configured error
-  page.
+  Cloud Storage allows you to configure a bucket to behave like a static
+  website. When you set a configuration, requests made to the bucket via a
+  `custom domain
+  <https://cloud.google.com/storage/docs/request-endpoints#custom-domains>`_
+  work like any other website. For example, if you set a ``main_page_suffix``,
+  a subsequent GET bucket request through a custom domain serves the specified
+  "main" page instead of performing the usual bucket listing. Similarly, if
+  you set an ``error_page``, a subsequent GET object request through a custom
+  domain for a non-existent object serves the specified error page instead of
+  the standard Cloud Storage error.
 
-  For example, suppose your company's Domain name is example.com. You could set
-  up a website bucket as follows:
+  
+  See `Static website examples and tips
+  <https://cloud.google.com/storage/docs/static-website>`_ for additional
+  examples and information.
 
-  1. Create a bucket called www.example.com (see the "DOMAIN NAMED BUCKETS"
-     section of "gsutil help naming" for details about creating such buckets).
-
-  2. Create index.html and 404.html files and upload them to the bucket.
-
-  3. Configure the bucket to have website behavior using the command:
-
-       gsutil web set -m index.html -e 404.html gs://www.example.com
-
-  4. Add a DNS CNAME record for www.example.com pointing to
-     c.storage.googleapis.com (ask your DNS administrator for help with this).
-
-  Now if you open a browser and navigate to http://www.example.com, it will
-  display the main page instead of the default bucket listing. Note: It can
-  take time for DNS updates to propagate because of caching used by the DNS,
-  so it may take up to a day for the domain-named bucket website to work after
-  you create the CNAME DNS record.
-
-  Additional notes:
+  Notes:
 
   1. Because the main page is only served when a bucket listing request is made
-     via the CNAME alias, you can continue to use "gsutil ls" to list the bucket
-     and get the normal bucket listing (rather than the main page).
+     via a custom domain endpoint, you can continue to use ``gsutil ls`` as you
+     normally would for bucket listing.
 
   2. The main_page_suffix applies to each subdirectory of the bucket. For
      example, with the main_page_suffix configured to be index.html, a GET
-     request for http://www.example.com would retrieve
-     http://www.example.com/index.html, and a GET request for
-     http://www.example.com/photos would retrieve
-     http://www.example.com/photos/index.html.
+     request for ``http://www.example.com`` retrieves
+     ``http://www.example.com/index.html`` but shows ``http://www.example.com`` as
+     the URL to the requester, and a GET request for
+     ``http://www.example.com/photos`` retrieves
+     ``http://www.example.com/photos/index.html`` but shows ``http://www.example.com/photos``
+     as the URL to the requester.
 
-  3. There is just one 404.html page: For example, a GET request for
-     http://www.example.com/photos/missing would retrieve
-     http://www.example.com/404.html, not
-     http://www.example.com/photos/404.html.
-
-  4. For additional details see
-     https://cloud.google.com/storage/docs/website-configuration.
+  3. There is just one 404.html page. For example, a GET request for
+     ``http://www.example.com/photos/missing`` retrieves
+     ``http://www.example.com/404.html``, not
+     ``http://www.example.com/photos/404.html``.
 
   The web command has two sub-commands:
 """ + _SET_DESCRIPTION + _GET_DESCRIPTION

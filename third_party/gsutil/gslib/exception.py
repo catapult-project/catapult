@@ -31,8 +31,10 @@ from __future__ import unicode_literals
 
 import six
 
-NO_URLS_MATCHED_GENERIC = 'No URLs matched'
-NO_URLS_MATCHED_TARGET = 'No URLs matched: %s'
+NO_URLS_MATCHED_PREFIX = 'No URLs matched'
+NO_URLS_MATCHED_GENERIC = (NO_URLS_MATCHED_PREFIX +
+                           '. Do the files you\'re operating on exist?')
+NO_URLS_MATCHED_TARGET = NO_URLS_MATCHED_PREFIX + ': %s'
 
 if six.PY3:
   # StandardError was removed, so use the base exception type instead

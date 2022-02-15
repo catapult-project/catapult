@@ -41,7 +41,7 @@ from gslib.utils.constants import NO_MAX
 from gslib.utils.retry_util import Retry
 
 _SET_SYNOPSIS = """
-  gsutil acl set [-f] [-r] [-a] file-or-canned_acl_name url...
+  gsutil acl set [-f] [-r] [-a] <file-or-canned_acl_name> url...
 """
 
 _GET_SYNOPSIS = """
@@ -53,10 +53,10 @@ _CH_SYNOPSIS = """
 
   where each <grant> is one of the following forms:
 
-    -u <id|email>:<perm>
-    -g <id|email|domain|All|AllAuth>:<perm>
-    -p <viewers|editors|owners>-<project number>:<perm>
-    -d <id|email|domain|All|AllAuth|<viewers|editors|owners>-<project number>>:<perm>
+    -u <id>|<email>:<permission>
+    -g <id>|<email>|<domain>|All|AllAuth:<permission>
+    -p (viewers|editors|owners)-<project number>:<permission>
+    -d <id>|<email>|<domain>|All|AllAuth|(viewers|editors|owners)-<project number>
 """
 
 _GET_DESCRIPTION = """
@@ -68,8 +68,9 @@ _GET_DESCRIPTION = """
 _SET_DESCRIPTION = """
 <B>SET</B>
   The "acl set" command allows you to set an Access Control List on one or
-  more buckets and objects. The simplest way to use it is to specify one of
-  the canned ACLs, e.g.,:
+  more buckets and objects. The file-or-canned_acl_name parameter names either
+  a canned ACL or the path to a file that contains ACL text. The simplest way
+  to use the "acl set" command is to specify one of the canned ACLs, e.g.,:
 
     gsutil acl set private gs://bucket
 
@@ -92,16 +93,16 @@ _SET_DESCRIPTION = """
 
     gsutil acl set acl.txt gs://cats/file.txt
 
-  Note that you can set an ACL on multiple buckets or objects at once,
-  for example:
+  Note that you can set an ACL on multiple buckets or objects at once. For
+  example, to set ACLs on all .jpg files found in a bucket:
 
-    gsutil acl set acl.txt gs://bucket/*.jpg
+    gsutil acl set acl.txt gs://bucket/**.jpg
 
   If you have a large number of ACLs to update you might want to use the
   gsutil -m option, to perform a parallel (multi-threaded/multi-processing)
   update:
 
-    gsutil -m acl set acl.txt gs://bucket/*.jpg
+    gsutil -m acl set acl.txt gs://bucket/**.jpg
 
   Note that multi-threading/multi-processing is only done when the named URLs
   refer to objects, which happens either if you name specific objects or
@@ -150,8 +151,9 @@ _CH_DESCRIPTION = """
   Cache-Control header of "Cache-Control:private, max-age=0, no-transform" on
   such objects. For help doing this, see "gsutil help setmeta".
 
-  Grant anyone on the internet WRITE access to the bucket example-bucket
-  (WARNING: this is not recommended as you will be responsible for the content):
+  Grant anyone on the internet WRITE access to the bucket example-bucket:
+  
+  WARNING: this is not recommended as you will be responsible for the content
 
     gsutil acl ch -u AllUsers:W gs://example-bucket
 
@@ -161,9 +163,9 @@ _CH_DESCRIPTION = """
     gsutil acl ch -u john.doe@example.com:WRITE gs://example-bucket
 
   Grant the group admins@example.com OWNER access to all jpg files in
-  the top level of example-bucket:
+  example-bucket:
 
-    gsutil acl ch -g admins@example.com:O gs://example-bucket/*.jpg
+    gsutil acl ch -g admins@example.com:O gs://example-bucket/**.jpg
 
   Grant the owners of project example-project WRITE access to the bucket
   example-bucket:
@@ -243,7 +245,7 @@ _CH_DESCRIPTION = """
   "-u john-doe@gmail.com:r". Note: Service Accounts are considered to be users.
 
   Groups are like users, but specified with the -g flag, as in
-  "-g power-users@example.com:fc". Groups may also be specified as a full
+  "-g power-users@example.com:O". Groups may also be specified as a full
   domain, as in "-g my-company.com:r".
 
   AllAuthenticatedUsers and AllUsers are specified directly, as

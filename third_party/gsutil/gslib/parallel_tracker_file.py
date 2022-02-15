@@ -28,7 +28,8 @@ import six
 
 import gslib
 from gslib.exception import CommandException
-from gslib.tracker_file import RaiseUnwritableTrackerFileException
+from gslib.tracker_file import (WriteJsonDataToTrackerFile,
+                                RaiseUnwritableTrackerFileException)
 from gslib.utils.constants import UTF8
 
 ObjectFromTracker = namedtuple('ObjectFromTracker', 'object_name generation')
@@ -300,9 +301,4 @@ def WriteParallelUploadTrackerFile(tracker_file_name,
       _CompositeUploadTrackerEntry.ENC_SHA256: encryption_key_sha256,
       _CompositeUploadTrackerEntry.PREFIX: prefix
   }
-  try:
-    open(tracker_file_name, 'w').close()  # Clear the file.
-    with open(tracker_file_name, 'w') as fp:
-      fp.write(json.dumps(tracker_file_data))
-  except IOError as e:
-    RaiseUnwritableTrackerFileException(tracker_file_name, e.strerror)
+  WriteJsonDataToTrackerFile(tracker_file_name, tracker_file_data)

@@ -45,9 +45,9 @@ auto_prepare_release() {
 		last_tag=$(git tag --sort=-version:refname |head -n1)
 		last_tag=${last_tag##v}
 		version_replace="${last_tag}.post$(date -u +%y%m%d%H%M)"
-		update_version "setup.py" "s/VERSION =.+/VERSION = '$version_replace'/"
-		update_version "python2/httplib2/__init__.py" "s/__version__ =.+/__version__ = '$version_replace'/"
-		update_version "python3/httplib2/__init__.py" "s/__version__ =.+/__version__ = '$version_replace'/"
+		update_version "setup.py" "s/VERSION =.+/VERSION = \"$version_replace\"/"
+		update_version "python2/httplib2/__init__.py" "s/__version__ =.+/__version__ = \"$version_replace\"/"
+		update_version "python3/httplib2/__init__.py" "s/__version__ =.+/__version__ = \"$version_replace\"/"
 		version_check "$version_replace"
 	fi
 }
@@ -83,18 +83,18 @@ interactive() {
 		confirm "Continue still? [yN] " || exit 1
 	fi
 
-    echo "Building package" >&2
-    find . -name '*.pyc' -o -name '*.pyo' -o -name '*.orig' -delete
-    rm -rf python{2,3}/.cache
-    rm -rf build dist
-    # TODO: sdist bdist_wheel
-    # but wheels don't roll well with our 2/3 split code base
-    local venv=./venv-release
-    if [[ ! -d "$venv" ]] ; then
-        virtualenv $venv
-        $venv/bin/pip install -U pip setuptools wheel twine
-    fi
-    $venv/bin/python setup.py sdist
+	echo "Building package" >&2
+	find . -name '*.pyc' -o -name '*.pyo' -o -name '*.orig' -delete
+	rm -rf python{2,3}/.cache
+	rm -rf build dist
+	local venv=./venv-release
+	if [[ ! -d "$venv" ]] ; then
+		virtualenv $venv
+		$venv/bin/pip install -U check-manifest pip 'setuptools>=43.0' wheel twine
+	fi
+	$venv/bin/python setup.py clean --all
+	$venv/bin/python setup.py sdist bdist_wheel
+	$venv/bin/check-manifest || echo "FIXME check-manifest" >&2
 
 	if confirm "Upload to PyPI? Use in special situation, normally CI (Travis) will upload to PyPI. [yN] " ; then
 		$venv/bin/twine upload dist/* || exit 1
@@ -133,9 +133,9 @@ bump_version() {
 	fi
 	echo "Next version:    '$version_next'" >&2
 
-	update_version "python3/httplib2/__init__.py" "s/__version__ =.+/__version__ = '$version_next'/"
-	update_version "python2/httplib2/__init__.py" "s/__version__ =.+/__version__ = '$version_next'/"
-	update_version "setup.py" "s/VERSION =.+/VERSION = '$version_next'/"
+	update_version "python3/httplib2/__init__.py" "s/__version__ =.+/__version__ = \"$version_next\"/"
+	update_version "python2/httplib2/__init__.py" "s/__version__ =.+/__version__ = \"$version_next\"/"
+	update_version "setup.py" "s/VERSION =.+/VERSION = \"$version_next\"/"
 
 	confirm "Confirm changes? [yN] " || exit 1
 }
@@ -143,8 +143,8 @@ bump_version() {
 update_version() {
 	local path="$1"
 	local sed_expr="$2"
-		# sed -E --in-place='' -e "s/VERSION =.+/VERSION = '$version_replace'/" setup.py
-		# sed -E --in-place='' -e "s/__version__ =.+/__version__ = '$version_replace'/" python2/httplib2/__init__.py python3/httplib2/__init__.py
+		# sed -E --in-place='' -e "s/VERSION =.+/VERSION = \"$version_replace\"/" setup.py
+		# sed -E --in-place='' -e "s/__version__ =.+/__version__ = \"$version_replace\"/" python2/httplib2/__init__.py python3/httplib2/__init__.py
 	echo "Updating file '$path'" >&2
 	if ! sed -E --in-place='' -e "$sed_expr" "$path" ; then
 		echo "sed error $?" >&2
@@ -210,7 +210,7 @@ assert_tree_clean() {
 
 version_check() {
 	local need=$1
-	local version_setup=$(fgrep 'VERSION =' setup.py |tr -d " '" |cut -d\= -f2)
+	local version_setup=$(fgrep 'VERSION =' setup.py |tr -d " '\"" |cut -d\= -f2)
 	local version_py2=$(cd python2 ; python2 -Es -c 'import httplib2;print(httplib2.__version__)')
 	local version_py3=$(cd python3 ; python3 -Es -c 'import httplib2;print(httplib2.__version__)')
 	if [[ "$version_setup" != "$need" ]] ; then

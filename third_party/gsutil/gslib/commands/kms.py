@@ -39,15 +39,15 @@ from gslib.utils.constants import NO_MAX
 from gslib.utils.encryption_helper import ValidateCMEK
 
 _AUTHORIZE_SYNOPSIS = """
-  gsutil kms authorize [-p proj_id] -k kms_key
+  gsutil kms authorize [-p <proj_id>] -k <kms_key>
 """
 
 _ENCRYPTION_SYNOPSIS = """
-  gsutil kms encryption [(-d|[-k kms_key])] [-w] bucket_url...
+  gsutil kms encryption [(-d|[-k <kms_key>])] [-w] gs://<bucket_name>...
 """
 
 _SERVICEACCOUNT_SYNOPSIS = """
-  gsutil kms serviceaccount [-p proj_id]
+  gsutil kms serviceaccount [-p <proj_id>]
 """
 
 _SYNOPSIS = (_AUTHORIZE_SYNOPSIS + _ENCRYPTION_SYNOPSIS.lstrip('\n') +
@@ -57,21 +57,26 @@ _SYNOPSIS = (_AUTHORIZE_SYNOPSIS + _ENCRYPTION_SYNOPSIS.lstrip('\n') +
 _AUTHORIZE_DESCRIPTION = """
 <B>AUTHORIZE</B>
   The authorize sub-command checks that the default (or supplied) project has a
-  Cloud Storage-owned service account created for it, and if not, it creates
-  one. It then adds appropriate encrypt/decrypt permissions to Cloud KMS
-  resources such that the Cloud Storage service account can write and read Cloud
-  KMS-encrypted objects in buckets associated with the specified project.
+  Cloud Storage service agent created for it, and if not, it creates one. It then
+  adds appropriate encrypt/decrypt permissions to Cloud KMS resources such that the
+  service agent can write and read Cloud KMS-encrypted objects in buckets associated
+  with the service agent's project.
 
 <B>AUTHORIZE EXAMPLES</B>
-  Authorize your default project to use a Cloud KMS key:
-
-    gsutil kms authorize \\
-        -k projects/key-project/locations/us-east1/keyRings/key-ring/cryptoKeys/my-key
-
   Authorize "my-project" to use a Cloud KMS key:
 
     gsutil kms authorize -p my-project \\
         -k projects/key-project/locations/us-east1/keyRings/key-ring/cryptoKeys/my-key
+        
+<B>AUTHORIZE OPTIONS</B>
+  -k <key>      The path to the KMS key to use. The path has
+                the following form:
+                ``projects/[project-id]/locations/[location]/keyRings/[key-ring]/cryptoKeys/[my-key]``
+     
+  -p <project>  The project being authorized to use the Cloud
+                KMS key. If this flag is not included, your
+                default project is authorized.
+
 """
 
 _ENCRYPTION_DESCRIPTION = """
@@ -87,49 +92,63 @@ _ENCRYPTION_DESCRIPTION = """
         -k projects/key-project/locations/us-east1/keyRings/key-ring/cryptoKeys/my-key \\
         gs://my-bucket
 
-  Set the default KMS key for my-bucket, but display a warning rather than failing if 
-  gsutil is unable to verify that the specified key contains the correct IAM bindings 
-  for encryption/decryption. This is useful for users that do not have getIamPolicy
-  permission but know that the key has the correct IAM policy for encryption in the  
-  user's project.
-
-    gsutil kms encryption \\
-        -k projects/key-project/locations/us-east1/keyRings/key-ring/cryptoKeys/my-key \\
-        -w \\
-        gs://my-bucket
-
   Show the default KMS key for my-bucket, if one is set:
 
     gsutil kms encryption gs://my-bucket
 
-  Clear the default KMS key so newly-written objects will not be encrypted:
+  Clear the default KMS key so newly-written objects are not encrypted using it:
 
     gsutil kms encryption -d gs://my-bucket
+    
+  Once you clear the default KMS key, newly-written objects are encrypted with
+  Google-managed encryption keys by default.
+
+<B>ENCRYPTION OPTIONS</B>
+  -k <key>      Set the default KMS key for my-bucket using the
+                full path to the key, which has the following
+                form:
+                ``projects/[project-id]/locations/[location]/keyRings/[key-ring]/cryptoKeys/[my-key]``
+                
+  -w            (used with -k key) Display a warning rather than 
+                failing if gsutil is unable to verify that
+                the specified key contains the correct IAM bindings 
+                for encryption/decryption. This is useful for
+                users that do not have getIamPolicy permission 
+                but know that the key has the correct IAM policy
+                for encryption in the user's project.
+     
+  -d            Clear the default KMS key.
+  
 """
 # pylint: enable=line-too-long
 
 _SERVICEACCOUNT_DESCRIPTION = """
 <B>SERVICEACCOUNT</B>
-  The serviceaccount sub-command displays the Cloud Storage-owned service
-  account that is used to perform Cloud KMS operations against your default
-  project (or a supplied project).
+  The serviceaccount sub-command displays the Cloud Storage service agent
+  that is used to perform Cloud KMS operations against your default project
+  (or a supplied project).
 
 <B>SERVICEACCOUNT EXAMPLES</B>
-  Show the service account for your default project:
-
-    gsutil kms serviceaccount
-
   Show the service account for my-project:
 
     gsutil kms serviceaccount -p my-project
+
+<B>SERVICEACCOUNT OPTIONS</B>
+  -p <project>  The project whose Cloud Storage service agent
+                is being requested. If this flag is not
+                included, your default project is used.
+
 """
 
 _DESCRIPTION = """
   The kms command is used to configure Google Cloud Storage and Cloud KMS
-  resources to support encryption of Cloud Storage objects with Cloud KMS keys.
+  resources to support encryption of Cloud Storage objects with
+  `Cloud KMS keys
+  <https://cloud.google.com/storage/docs/encryption/customer-managed-keys>`_.
 
-  The kms command has several sub-commands that deal with configuring
-  Cloud Storage's integration with Cloud KMS:
+  The kms command has three sub-commands that deal with configuring Cloud
+  Storage's integration with Cloud KMS: ``authorize``, ``encryption``,
+  and ``serviceaccount``.
 """ + (_AUTHORIZE_DESCRIPTION + _ENCRYPTION_DESCRIPTION +
        _SERVICEACCOUNT_DESCRIPTION)
 
@@ -249,12 +268,10 @@ class KmsCommand(Command):
       if self.warn_on_key_authorize_failure:
         text_util.print_to_fd('\n'.join(
             textwrap.wrap(
-                'Warning: Unable to check the IAM policy for the specified '
-                'encryption key. Check that your Cloud Platform project\'s '
-                'service account has the '
-                '"cloudkms.cryptoKeyEncrypterDecrypter" role for the '
-                'specified key. Without this role, you may not be able to '
-                'encrypt or decrypt objects using the key which will '
+                'Warning: Check that your Cloud Platform project\'s service '
+                'account has the "cloudkms.cryptoKeyEncrypterDecrypter" role '
+                'for the specified key. Without this role, you may not be '
+                'able to encrypt or decrypt objects using the key which will '
                 'prevent you from uploading or downloading objects.')))
         return (service_account, False)
       else:
@@ -316,8 +333,8 @@ class KmsCommand(Command):
 
     bucket_metadata.encryption = apitools_messages.Bucket.EncryptionValue(
         defaultKmsKeyName=self.kms_key)
-    text_util.print_to_fd('Setting default KMS key for bucket %s...' %
-                          str(bucket_url).rstrip('/'))
+    print('Setting default KMS key for bucket %s...' %
+          str(bucket_url).rstrip('/'))
     self.gsutil_api.PatchBucket(bucket_url.bucket_name,
                                 bucket_metadata,
                                 fields=['encryption'],

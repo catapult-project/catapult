@@ -33,10 +33,10 @@ import os
 import re
 import socket
 import types
+import unittest
 
 import six
 from six.moves import range  # pylint: disable=redefined-builtin
-import unittest2 as unittest
 
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages

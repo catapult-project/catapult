@@ -22,12 +22,10 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
 
-import base64
 import calendar
 from datetime import datetime
 from datetime import timedelta
 import getpass
-import hashlib
 import json
 import re
 import sys
@@ -40,16 +38,15 @@ from apitools.base.py.http_wrapper import Request
 
 from boto import config
 
-from gslib.cloud_api import AccessDeniedException
 from gslib.command import Command
 from gslib.command_argument import CommandArgument
 from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
 from gslib.storage_url import ContainsWildcard
 from gslib.storage_url import StorageUrlFromString
+from gslib.utils import constants
 from gslib.utils.boto_util import GetNewHttp
-from gslib.utils.constants import NO_MAX
-from gslib.utils.constants import UTF8
+from gslib.utils.signurl_helper import CreatePayload, GetFinalUrl
 
 try:
   # Check for openssl.
@@ -67,19 +64,13 @@ except ImportError:
   FILETYPE_PEM = None
 
 _AUTO_DETECT_REGION = 'auto'
-_SIGNING_ALGO = 'GOOG4-RSA-SHA256'
-_UNSIGNED_PAYLOAD = 'UNSIGNED-PAYLOAD'
-_CANONICAL_REQUEST_FORMAT = ('{method}\n{resource}\n{query_string}\n{headers}'
-                             '\n{signed_headers}\n{hashed_payload}')
-_STRING_TO_SIGN_FORMAT = ('{signing_algo}\n{request_time}\n{credential_scope}'
-                          '\n{hashed_request}')
-_SIGNED_URL_FORMAT = ('https://{host}/{path}?x-goog-signature={sig}&'
-                      '{query_string}')
 _MAX_EXPIRATION_TIME = timedelta(days=7)
+_MAX_EXPIRATION_TIME_WITH_MINUS_U = timedelta(hours=12)
 
 _SYNOPSIS = """
   gsutil signurl [-c <content_type>] [-d <duration>] [-m <http_method>] \\
-      [-p <password>] [-r <region>] keystore-file url...
+      [-p <password>] [-r <region>] [-b <project>]  (-u | <private-key-file>) \\
+      (gs://<bucket_name> | gs://<bucket_name>/<object_name>)...
 """
 
 _DETAILED_HELP_TEXT = ("""
@@ -98,10 +89,10 @@ _DETAILED_HELP_TEXT = ("""
   will be produced for each provided url, authorized
   for the specified HTTP method and valid for the given duration.
 
-  Note: Unlike the gsutil ls command, the signurl command does not support
-  operations on sub-directories. For example, if you run the command:
-
-    gsutil signurl <private-key-file> gs://some-bucket/some-object/
+  NOTE: Unlike the gsutil ls command, the signurl command does not support
+  operations on sub-directories. For example, unless you have an object named
+  ``some-directory/`` stored inside the bucket ``some-bucket``, the following
+  command returns an error: ``gsutil signurl <private-key-file> gs://some-bucket/some-directory/``
 
   The signurl command uses the private key for a service account (the
   '<private-key-file>' argument) to generate the cryptographic
@@ -113,53 +104,85 @@ _DETAILED_HELP_TEXT = ("""
   documentation.
   <https://cloud.google.com/storage/docs/authentication#generating-a-private-key>`_
 
-  gsutil will look up information about the object "some-object/" (with a
-  trailing slash) inside bucket "some-bucket", as opposed to operating on
-  objects nested under gs://some-bucket/some-object. Unless you actually
-  have an object with that name, the operation will fail.
+  If you used `service account credentials
+  <https://cloud.google.com/storage/docs/gsutil/addlhelp/CredentialTypesSupportingVariousUseCases#supported-credential-types_1>`_
+  for authentication, you can replace the  <private-key-file> argument with
+  the -u or --use-service-account option to use the system-managed private key
+  directly. This avoids the need to download the private key file.
 
 <B>OPTIONS</B>
-  -m           Specifies the HTTP method to be authorized for use
-               with the signed url, default is GET. You may also specify
-               RESUMABLE to create a signed resumable upload start URL. When
-               using a signed URL to start a resumable upload session, you will
-               need to specify the 'x-goog-resumable:start' header in the
-               request or else signature validation will fail.
+  -b <project>  Allows you to specify a user project that will be billed for
+                requests that use the signed URL. This is useful for generating
+                presigned links for buckets that use requester pays.
 
-  -d           Specifies the duration that the signed url should be valid
-               for, default duration is 1 hour.
+                Note that it's not valid to specify both the ``-b`` and
+                ``--use-service-account`` options together.
 
-               Times may be specified with no suffix (default hours), or
-               with s = seconds, m = minutes, h = hours, d = days.
+  -c            Specifies the content type for which the signed url is
+                valid for.
 
-               This option may be specified multiple times, in which case
-               the duration the link remains valid is the sum of all the
-               duration options.
+  -d            Specifies the duration that the signed url should be valid
+                for, default duration is 1 hour.
 
-               The max duration allowed is 7d.
+                Times may be specified with no suffix (default hours), or
+                with s = seconds, m = minutes, h = hours, d = days.
 
-  -c           Specifies the content type for which the signed url is
-               valid for.
+                This option may be specified multiple times, in which case
+                the duration the link remains valid is the sum of all the
+                duration options.
 
-  -p           Specify the keystore password instead of prompting.
+                The max duration allowed is 7 days when ``private-key-file``
+                is used.
 
-  -r <region>  Specifies the `region
-               <https://cloud.google.com/storage/docs/locations>`_ in
-               which the resources for which you are creating signed URLs are
-               stored.
+                The max duration allowed is 12 hours when -u option is used.
+                This limitation exists because the system-managed key used to
+                sign the url may not remain valid after 12 hours.
 
-               Default value is 'auto' which will cause gsutil to fetch the
-               region for the resource. When auto-detecting the region, the
-               current gsutil user's credentials, not the credentials from the
-               private-key-file, are used to fetch the bucket's metadata.
+  -m            Specifies the HTTP method to be authorized for use
+                with the signed url, default is GET. You may also specify
+                RESUMABLE to create a signed resumable upload start URL. When
+                using a signed URL to start a resumable upload session, you will
+                need to specify the 'x-goog-resumable:start' header in the
+                request or else signature validation will fail.
 
-               This option must be specified and not 'auto' when generating a
-               signed URL to create a bucket.
+  -p            Specify the private key password instead of prompting.
+
+  -r <region>   Specifies the `region
+                <https://cloud.google.com/storage/docs/locations>`_ in
+                which the resources for which you are creating signed URLs are
+                stored.
+
+                Default value is 'auto' which will cause gsutil to fetch the
+                region for the resource. When auto-detecting the region, the
+                current gsutil user's credentials, not the credentials from the
+                private-key-file, are used to fetch the bucket's metadata.
+
+                This option must be specified and not 'auto' when generating a
+                signed URL to create a bucket.
+
+  -u            Use service account credentials instead of a private key file
+                to sign the url.
+
+                You can also use the ``--use-service-account`` option,
+                which is equivalent to ``-u``.
+                Note that both options have a maximum allowed duration of
+                12 hours for a valid link.
+
+
 
 <B>USAGE</B>
   Create a signed url for downloading an object valid for 10 minutes:
 
     gsutil signurl -d 10m <private-key-file> gs://<bucket>/<object>
+
+  Create a signed url without a private key, using a service account's
+  credentials:
+
+    gsutil signurl -d 10m -u gs://<bucket>/<object>
+
+  Create a signed url by impersonating a service account:
+
+    gsutil -i <service account email> signurl -d 10m -u gs://<bucket>/<object>
 
   Create a signed url, valid for one hour, for uploading a plain text
   file via HTTP PUT:
@@ -212,6 +235,9 @@ def _DurationToTimeDelta(duration):
 
 
 def _GenSignedUrl(key,
+                  api,
+                  use_service_account,
+                  provider,
                   client_id,
                   method,
                   duration,
@@ -219,11 +245,18 @@ def _GenSignedUrl(key,
                   logger,
                   region,
                   content_type=None,
-                  string_to_sign_debug=False):
+                  billing_project=None,
+                  string_to_sign_debug=False,
+                  generation=None):
   """Construct a string to sign with the provided key.
 
   Args:
     key: The private key to use for signing the URL.
+    api: The CloudApiDelegator instance
+    use_service_account: If True, use the service account credentials
+        instead of using the key file to sign the url
+    provider: Cloud storage provider to connect to.  If not present,
+        class-wide default is used.
     client_id: Client ID signing this URL.
     method: The HTTP method to be used with the signed URL.
     duration: timedelta for which the constructed signed URL should be valid.
@@ -233,15 +266,15 @@ def _GenSignedUrl(key,
     region: Geographic region in which the requested resource resides.
     content_type: Optional Content-Type for the signed URL. HTTP requests using
         the URL must match this Content-Type.
+    billing_project: Specify a user project to be billed for the request.
     string_to_sign_debug: If true AND logger is enabled for debug level,
         print string to sign to debug. Used to differentiate user's
         signed URL from the probing permissions-check signed URL.
+    generation: If not None, specifies a version of an object for signing.
 
   Returns:
     The complete url (string).
   """
-  signing_time = _NowUTC()
-
   gs_host = config.get('Credentials', 'gs_host', 'storage.googleapis.com')
   signed_headers = {'host': gs_host}
 
@@ -256,84 +289,43 @@ def _GenSignedUrl(key,
   if content_type:
     signed_headers['content-type'] = content_type
 
-  canonical_day = signing_time.strftime('%Y%m%d')
-  canonical_time = signing_time.strftime('%Y%m%dT%H%M%SZ')
-  canonical_scope = '{date}/{region}/storage/goog4_request'.format(
-      date=canonical_day, region=region)
-
-  signed_query_params = {
-      'x-goog-algorithm': _SIGNING_ALGO,
-      'x-goog-credential': client_id + '/' + canonical_scope,
-      'x-goog-date': canonical_time,
-      'x-goog-signedheaders': ';'.join(sorted(signed_headers.keys())),
-      'x-goog-expires': '%d' % duration.total_seconds()
-  }
-
-  canonical_resource = '/{}'.format(gcs_path)
-  canonical_query_string = '&'.join([
-      '{}={}'.format(param, urllib.parse.quote_plus(signed_query_params[param]))
-      for param in sorted(signed_query_params.keys())
-  ])
-  canonical_headers = '\n'.join([
-      '{}:{}'.format(header.lower(), signed_headers[header])
-      for header in sorted(signed_headers.keys())
-  ]) + '\n'
-  canonical_signed_headers = ';'.join(sorted(signed_headers.keys()))
-
-  canonical_request = _CANONICAL_REQUEST_FORMAT.format(
-      method=method,
-      resource=canonical_resource,
-      query_string=canonical_query_string,
-      headers=canonical_headers,
-      signed_headers=canonical_signed_headers,
-      hashed_payload=_UNSIGNED_PAYLOAD)
-
-  if six.PY3:
-    canonical_request = canonical_request.encode(UTF8)
-
-  canonical_request_hasher = hashlib.sha256()
-  canonical_request_hasher.update(canonical_request)
-  hashed_canonical_request = base64.b16encode(
-      canonical_request_hasher.digest()).lower().decode(UTF8)
-
-  string_to_sign = _STRING_TO_SIGN_FORMAT.format(
-      signing_algo=_SIGNING_ALGO,
-      request_time=canonical_time,
-      credential_scope=canonical_scope,
-      hashed_request=hashed_canonical_request)
-
-  if string_to_sign_debug and logger:
-    logger.debug(
-        'Canonical request (ignore opening/closing brackets): [[[%s]]]' %
-        canonical_request)
-    logger.debug('String to sign (ignore opening/closing brackets): [[[%s]]]' %
-                 string_to_sign)
-
-  if six.PY2:
-    digest = b'RSA-SHA256'
+  if use_service_account:
+    final_url = api.SignUrl(provider=provider,
+                            method=method,
+                            duration=duration,
+                            path=gcs_path,
+                            generation=generation,
+                            logger=logger,
+                            region=region,
+                            signed_headers=signed_headers,
+                            string_to_sign_debug=string_to_sign_debug)
   else:
-    # Your IDE may complain about this due to a bad docstring in pyOpenSsl:
-    # https://github.com/pyca/pyopenssl/issues/741
-    digest = 'RSA-SHA256'
-
-  signature = (
-      base64.b16encode(sign(key, string_to_sign, digest))
-          .lower()
-          .decode()
-  )  # yapf: disable
-
-  final_url = _SIGNED_URL_FORMAT.format(host=gs_host,
-                                        path=gcs_path,
-                                        sig=signature,
-                                        query_string=canonical_query_string)
-
+    if six.PY2:
+      digest = b'RSA-SHA256'
+    else:
+      # Your IDE may complain about this due to a bad docstring in pyOpenSsl:
+      # https://github.com/pyca/pyopenssl/issues/741
+      digest = 'RSA-SHA256'
+    string_to_sign, canonical_query_string = CreatePayload(
+        client_id=client_id,
+        method=method,
+        duration=duration,
+        path=gcs_path,
+        generation=generation,
+        logger=logger,
+        region=region,
+        signed_headers=signed_headers,
+        billing_project=billing_project,
+        string_to_sign_debug=string_to_sign_debug)
+    raw_signature = sign(key, string_to_sign, digest)
+    final_url = GetFinalUrl(raw_signature, gs_host, gcs_path,
+                            canonical_query_string)
   return final_url
 
 
 def _ReadKeystore(ks_contents, passwd):
   ks = load_pkcs12(ks_contents, passwd)
-  client_email = ks.get_certificate().get_subject().CN.replace(
-      '.apps.googleusercontent.com', '@developer.gserviceaccount.com')
+  client_email = ks.get_certificate().get_subject().CN
 
   return ks.get_privatekey(), client_email
 
@@ -384,16 +376,17 @@ class UrlSignCommand(Command):
       'signurl',
       command_name_aliases=['signedurl', 'queryauth'],
       usage_synopsis=_SYNOPSIS,
-      min_args=2,
-      max_args=NO_MAX,
-      supported_sub_args='m:d:c:p:r:',
+      min_args=1,
+      max_args=constants.NO_MAX,
+      supported_sub_args='m:d:b:c:p:r:u',
+      supported_private_args=['use-service-account'],
       file_url_ok=False,
       provider_url_ok=False,
       urls_start_arg=1,
       gs_api_support=[ApiSelector.XML, ApiSelector.JSON],
       gs_default_api=ApiSelector.JSON,
       argparse_arguments=[
-          CommandArgument.MakeNFileURLsArgument(1),
+          CommandArgument.MakeZeroOrMoreFileURLsArgument(),
           CommandArgument.MakeZeroOrMoreCloudURLsArgument(),
       ],
   )
@@ -417,11 +410,13 @@ class UrlSignCommand(Command):
     content_type = ''
     passwd = None
     region = _AUTO_DETECT_REGION
+    use_service_account = False
+    billing_project = None
 
     for o, v in self.sub_opts:
       # TODO(PY3-ONLY): Delete this if block.
       if six.PY2:
-        v = v.decode(sys.stdin.encoding or UTF8)
+        v = v.decode(sys.stdin.encoding or constants.UTF8)
       if o == '-d':
         if delta is not None:
           delta += _DurationToTimeDelta(v)
@@ -435,13 +430,25 @@ class UrlSignCommand(Command):
         passwd = v
       elif o == '-r':
         region = v
+      elif o == '-u' or o == '--use-service-account':
+        use_service_account = True
+      elif o == '-b':
+        billing_project = v
       else:
         self.RaiseInvalidArgumentException()
 
     if delta is None:
       delta = timedelta(hours=1)
     else:
-      if delta > _MAX_EXPIRATION_TIME:
+      if use_service_account and delta > _MAX_EXPIRATION_TIME_WITH_MINUS_U:
+        # This restriction comes from the IAM SignBlob API. The SignBlob
+        # API uses a system-managed key which can guarantee validation only
+        # up to 12 hours. b/156160482#comment4
+        raise CommandException(
+            'Max valid duration allowed is %s when -u flag is used. For longer'
+            ' duration, consider using the private-key-file instead of the -u'
+            ' option.' % _MAX_EXPIRATION_TIME_WITH_MINUS_U)
+      elif delta > _MAX_EXPIRATION_TIME:
         raise CommandException('Max valid duration allowed is '
                                '%s' % _MAX_EXPIRATION_TIME)
 
@@ -449,16 +456,39 @@ class UrlSignCommand(Command):
       raise CommandException('HTTP method must be one of'
                              '[GET|HEAD|PUT|DELETE|RESUMABLE]')
 
-    return method, delta, content_type, passwd, region
+    if not use_service_account and len(self.args) < 2:
+      raise CommandException(
+          'The command requires a key file argument and one or more '
+          'url arguments if the --use-service-account flag is missing. '
+          'Run `gsutil help signurl` for more info')
 
-  def _ProbeObjectAccessWithClient(self, key, client_email, gcs_path, logger,
-                                   region):
+    if use_service_account and billing_project:
+      raise CommandException(
+          'Specifying both the -b and --use-service-account options together is'
+          'invalid.')
+
+    return method, delta, content_type, passwd, region, use_service_account, billing_project
+
+  def _ProbeObjectAccessWithClient(self, key, use_service_account, provider,
+                                   client_email, gcs_path, generation, logger,
+                                   region, billing_project):
     """Performs a head request against a signed url to check for read access."""
 
     # Choose a reasonable time in the future; if the user's system clock is
     # 60 or more seconds behind the server's this will generate an error.
-    signed_url = _GenSignedUrl(key, client_email, 'HEAD', timedelta(seconds=60),
-                               gcs_path, logger, region)
+    signed_url = _GenSignedUrl(key=key,
+                               api=self.gsutil_api,
+                               use_service_account=use_service_account,
+                               provider=provider,
+                               client_id=client_email,
+                               method='HEAD',
+                               duration=timedelta(seconds=60),
+                               gcs_path=gcs_path,
+                               generation=generation,
+                               logger=logger,
+                               region=region,
+                               billing_project=billing_project,
+                               string_to_sign_debug=True)
 
     try:
       h = GetNewHttp()
@@ -501,25 +531,29 @@ class UrlSignCommand(Command):
           'The signurl command requires the pyopenssl library (try pip '
           'install pyopenssl or easy_install pyopenssl)')
 
-    method, delta, content_type, passwd, region = self._ParseAndCheckSubOpts()
-    storage_urls = self._EnumerateStorageUrls(self.args[1:])
+    method, delta, content_type, passwd, region, use_service_account, billing_project = (
+        self._ParseAndCheckSubOpts())
+    arg_start_index = 0 if use_service_account else 1
+    storage_urls = self._EnumerateStorageUrls(self.args[arg_start_index:])
     region_cache = {}
 
     key = None
-    client_email = None
-    try:
-      key, client_email = _ReadJSONKeystore(
-          open(self.args[0], 'rb').read(), passwd)
-    except ValueError:
-      # Ignore and try parsing as a pkcs12.
-      if not passwd:
-        passwd = getpass.getpass('Keystore password:')
+    if not use_service_account:
       try:
-        key, client_email = _ReadKeystore(
+        key, client_email = _ReadJSONKeystore(
             open(self.args[0], 'rb').read(), passwd)
       except ValueError:
-        raise CommandException('Unable to parse private key from {0}'.format(
-            self.args[0]))
+        # Ignore and try parsing as a pkcs12.
+        if not passwd:
+          passwd = getpass.getpass('Keystore password:')
+        try:
+          key, client_email = _ReadKeystore(
+              open(self.args[0], 'rb').read(), passwd)
+        except ValueError:
+          raise CommandException('Unable to parse private key from {0}'.format(
+              self.args[0]))
+    else:
+      client_email = self.gsutil_api.GetServiceAccountId(provider='gs')
 
     print('URL\tHTTP Method\tExpiration\tSigned URL')
     for url in storage_urls:
@@ -540,7 +574,8 @@ class UrlSignCommand(Command):
         # computing the string to sign when checking the signature.
         gcs_path = '{0}/{1}'.format(
             url.bucket_name,
-            urllib.parse.quote(url.object_name.encode(UTF8), safe=b'/~'))
+            urllib.parse.quote(url.object_name.encode(constants.UTF8),
+                               safe=b'/~'))
 
       if region == _AUTO_DETECT_REGION:
         if url.bucket_name in region_cache:
@@ -559,14 +594,19 @@ class UrlSignCommand(Command):
           region_cache[url.bucket_name] = bucket_region
       else:
         bucket_region = region
-      final_url = _GenSignedUrl(key,
-                                client_email,
-                                method,
-                                delta,
-                                gcs_path,
-                                self.logger,
-                                bucket_region,
-                                content_type,
+      final_url = _GenSignedUrl(key=key,
+                                api=self.gsutil_api,
+                                use_service_account=use_service_account,
+                                provider=url.scheme,
+                                client_id=client_email,
+                                method=method,
+                                duration=delta,
+                                gcs_path=gcs_path,
+                                generation=url.generation,
+                                logger=self.logger,
+                                region=bucket_region,
+                                content_type=content_type,
+                                billing_project=billing_project,
                                 string_to_sign_debug=True)
 
       expiration = calendar.timegm((datetime.utcnow() + delta).utctimetuple())
@@ -575,20 +615,20 @@ class UrlSignCommand(Command):
       time_str = expiration_dt.strftime('%Y-%m-%d %H:%M:%S')
       # TODO(PY3-ONLY): Delete this if block.
       if six.PY2:
-        time_str = time_str.decode(UTF8)
+        time_str = time_str.decode(constants.UTF8)
 
       url_info_str = '{0}\t{1}\t{2}\t{3}'.format(url.url_string, method,
                                                  time_str, final_url)
 
       # TODO(PY3-ONLY): Delete this if block.
       if six.PY2:
-        url_info_str = url_info_str.encode(UTF8)
+        url_info_str = url_info_str.encode(constants.UTF8)
 
       print(url_info_str)
 
-      response_code = self._ProbeObjectAccessWithClient(key, client_email,
-                                                        gcs_path, self.logger,
-                                                        bucket_region)
+      response_code = self._ProbeObjectAccessWithClient(
+          key, use_service_account, url.scheme, client_email, gcs_path,
+          url.generation, self.logger, bucket_region, billing_project)
 
       if response_code == 404:
         if url.IsBucket() and method != 'PUT':
@@ -606,6 +646,6 @@ class UrlSignCommand(Command):
         self.logger.warn(
             '%s does not have permissions on %s, using this link will likely '
             'result in a 403 error until at least READ permissions are granted',
-            client_email, url)
+            client_email or 'The account', url)
 
     return 0

@@ -46,6 +46,10 @@ class ImpersonationCredentials(client.OAuth2Credentials):
                                                    None,
                                                    scopes=scopes)
 
+  @property
+  def service_account_id(self):
+    return self._service_account_id
+
   def _refresh(self, http):
     # client.Oauth2Credentials converts scopes into a set, so we need to convert
     # back to a list before making the API request.

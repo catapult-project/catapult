@@ -15,8 +15,8 @@
 """Additional help about CRC32C and installing crcmod."""
 
 from __future__ import absolute_import
-from __future__ import print_function
 from __future__ import division
+from __future__ import print_function
 from __future__ import unicode_literals
 
 from gslib.help_provider import HelpProvider
@@ -76,41 +76,33 @@ _DETAILED_HELP_TEXT = ("""
      <https://pip.pypa.io/en/stable/installing/>`_ for details on how
      to install ``pip``.
   -  Your installation of ``pip`` can be found in your ``PATH`` environment
-     variable. If it cannot, you may need to replace ``pip`` in the commands
+     variable. If it cannot, you may need to replace ``pip3`` in the commands
      below with the full path to the executable.
   -  You are installing the crcmod package for use with your system installation
      of Python, and thus use the ``sudo`` command. If installing crcmod for a
      different Python environment (e.g. in a virtualenv), you should omit
      ``sudo`` from the commands below.
+  -  You are using a Python 3 version with gsutil. You can determine which
+     Python version gsutil is using by running ``gsutil version -l`` and looking
+     for the ``python version: 2.x.x`` or ``python version: 3.x.x`` line.
 
   CentOS, RHEL, and Fedora
   ------------------------
 
-  Note that CentOS 6 and similar variants use Python 2.6 by default, which will
-  not run gsutil. To enable Python 2.7 and compile/install crcmod on CentOS 6:
+  To compile and install crcmod:
 
-    sudo su  # Run as root; need shell session with Python 2.7 enabled
-    yum install gcc python-devel python-setuptools redhat-rpm-config
-    source /opt/rh/python27/enable  # Make default `python` executable use 2.7.X
-    python -m pip install -U pip  # Upgrade old default version of pip
-    python -m pip uninstall crcmod
-    python -m pip install --no-cache-dir -U crcmod
-    exit  # Exit su session
-
-  To compile and install crcmod on OS versions that use Python 2.7 by default:
-
-    sudo yum install gcc python-devel python-setuptools redhat-rpm-config
-    sudo pip uninstall crcmod
-    sudo pip install --no-cache-dir -U crcmod
+    yum install gcc python3-devel python3-setuptools redhat-rpm-config
+    sudo pip3 uninstall crcmod
+    sudo pip3 install --no-cache-dir -U crcmod
 
   Debian and Ubuntu
   -----------------
 
   To compile and install crcmod:
 
-    sudo apt-get install gcc python-dev python-setuptools
-    sudo pip uninstall crcmod
-    sudo pip install --no-cache-dir -U crcmod
+    sudo apt-get install gcc python3-dev python3-setuptools
+    sudo pip3 uninstall crcmod
+    sudo pip3 install --no-cache-dir -U crcmod
 
   Enterprise SUSE
   -----------------
@@ -132,7 +124,7 @@ _DETAILED_HELP_TEXT = ("""
   To compile manually on macOS, you will first need to install
   `XCode <https://developer.apple.com/xcode/>`_ and then run:
 
-    sudo pip install -U crcmod
+    pip3 install -U crcmod
 
   Windows
   -------
@@ -142,12 +134,7 @@ _DETAILED_HELP_TEXT = ("""
 
   https://pypi.python.org/pypi/crcmod/1.7
 
-  MSI installers are available for the 32-bit versions of Python 2.7.
-  Make sure to install to a 32-bit Python directory. If you're using 64-bit
-  Python it won't work with 32-bit crcmod, and instead you'll need to install
-  32-bit Python in order to use crcmod.
-
-  Note: If you have installed crcmod and gsutil hasn't detected it, it may have
+  NOTE: If you have installed crcmod and gsutil hasn't detected it, it may have
   been installed to the wrong directory. It should be located at
   <python_dir>\\files\\Lib\\site-packages\\crcmod\\
 

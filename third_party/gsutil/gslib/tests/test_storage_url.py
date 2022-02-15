@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 import os
 
 from gslib import storage_url
+from gslib.exception import InvalidUrlError
 import gslib.tests.testcase as testcase
 
 
@@ -51,7 +52,19 @@ class TestStorageUrl(testcase.GsUtilUnitTestCase):
     self.assertEquals('abc', url.bucket_name)
     self.assertEquals('123/456', url.object_name)
 
+    url = storage_url.StorageUrlFromString('gs://abc///:/')
+    self.assertTrue(url.IsCloudUrl())
+    self.assertEquals('abc', url.bucket_name)
+    self.assertEquals('//:/', url.object_name)
+
     url = storage_url.StorageUrlFromString('s3://abc/123/456')
     self.assertTrue(url.IsCloudUrl())
     self.assertEquals('abc', url.bucket_name)
     self.assertEquals('123/456', url.object_name)
+
+  def test_raises_error_for_too_many_slashes_after_scheme(self):
+    with self.assertRaises(InvalidUrlError):
+      storage_url.StorageUrlFromString('gs:///')
+
+    with self.assertRaises(InvalidUrlError):
+      storage_url.StorageUrlFromString('gs://////')

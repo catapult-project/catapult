@@ -23,6 +23,7 @@ import itertools
 import os
 import pkgutil
 import re
+import six
 from subprocess import PIPE
 from subprocess import Popen
 
@@ -33,6 +34,7 @@ import gslib.commands
 from gslib.exception import CommandException
 from gslib.help_provider import HelpProvider
 from gslib.help_provider import MAX_HELP_NAME_LEN
+from gslib.utils import constants
 from gslib.utils.system_util import IS_WINDOWS
 from gslib.utils.system_util import IsRunningInteractively
 from gslib.utils.system_util import GetTermLines
@@ -48,36 +50,32 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>DESCRIPTION</B>
-  Running:
+  The following command provides a summary of gsutil commands and additional topics on which
+  help is available:
 
     gsutil help
 
-  will provide a summary of all commands and additional topics on which
-  help is available.
-
-  Running:
+  The following command provides help about the specified command or topic:
 
     gsutil help command or topic
 
-  will provide help about the specified command or topic.
-
-  Running:
+  The following command provides help about the specified sub-command:
 
     gsutil help command sub-command
 
-  will provide help about the specified sub-command. For example, running:
+  For example, running the following provides help about the "set" subcommand of the "acl" command:
 
     gsutil help acl set
 
-  will provide help about the "set" subcommand of the "acl" command.
-
   If you set the PAGER environment variable to the path to a pager program
-  (such as /bin/less on Linux), long help sections will be piped through
+  (such as /bin/less on Linux), long help sections are piped through
   the specified pager.
 """)
 
-top_level_usage_string = ('Usage: gsutil [-D] [-DD] [-h header]... '
-                          '[-m] [-o] [-q] [command [opts...] args...]')
+top_level_usage_string = (
+    'Usage: gsutil [-D] [-DD] [-h header]... [-i service_account] '
+    '[-m] [-o section:flag=value]... [-q] [-u user_project] [command [opts...] args...]'
+)
 
 
 class HelpCommand(Command):
@@ -198,8 +196,12 @@ class HelpCommand(Command):
       if pager[0].endswith('less'):
         pager.append('-r')
       try:
+        if six.PY2:
+          input_for_pager = help_str.encode(constants.UTF8)
+        else:
+          input_for_pager = help_str
         Popen(pager, stdin=PIPE,
-              universal_newlines=True).communicate(input=help_str)
+              universal_newlines=True).communicate(input=input_for_pager)
       except OSError as e:
         raise CommandException('Unable to open pager (%s): %s' %
                                (' '.join(pager), e))

@@ -40,15 +40,15 @@ from gslib.utils.retry_util import Retry
 from gslib.utils.translation_helper import PRIVATE_DEFAULT_OBJ_ACL
 
 _SET_SYNOPSIS = """
-  gsutil defacl set file-or-canned_acl_name url...
+  gsutil defacl set <file-or-canned_acl_name> gs://<bucket_name>...
 """
 
 _GET_SYNOPSIS = """
-  gsutil defacl get url
+  gsutil defacl get gs://<bucket_name>
 """
 
 _CH_SYNOPSIS = """
-  gsutil defacl ch [-f] -u|-g|-d|-p <grant>... url...
+  gsutil defacl ch [-f] -u|-g|-d|-p <grant>... gs://<bucket_name>...
 """
 
 _SET_DESCRIPTION = """

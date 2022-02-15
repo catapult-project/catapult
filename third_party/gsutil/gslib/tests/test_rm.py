@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 import re
 
-from gslib.exception import NO_URLS_MATCHED_GENERIC
+from gslib.exception import NO_URLS_MATCHED_PREFIX
 from gslib.exception import NO_URLS_MATCHED_TARGET
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.base import MAX_BUCKET_LENGTH
@@ -31,6 +31,13 @@ from gslib.tests.util import GenerationFromURI as urigen
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import SetBotoConfigForTest
 from gslib.utils.retry_util import Retry
+
+MACOS_WARNING = (
+    'If you experience problems with multiprocessing on MacOS, they might be '
+    'related to https://bugs.python.org/issue33725. You can disable '
+    'multiprocessing by editing your .boto config or by adding the following '
+    'flag to your command: `-o "GSUtil:parallel_process_count=1"`. Note that '
+    'multithreading is still available even if you disable multiprocessing.')
 
 
 class TestRm(testcase.GsUtilIntegrationTestCase):
@@ -106,6 +113,8 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
       stderr_set = set(stderr.splitlines())
       if '' in stderr_set:
         stderr_set.remove('')  # Avoid groups represented by an empty string.
+      if MACOS_WARNING in stderr_set:
+        stderr_set.remove(MACOS_WARNING)
       self.assertEqual(stderr_set, expected_stderr_lines)
     else:
       cumulative_stderr_lines = set()
@@ -121,7 +130,7 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
         update_lines = True
         # Retry 404's and 409's due to eventual listing consistency, but don't
         # add the output to the set.
-        if (NO_URLS_MATCHED_GENERIC in stderr or
+        if (NO_URLS_MATCHED_PREFIX in stderr or
             '409 BucketNotEmpty' in stderr or
             '409 VersionedBucketNotEmpty' in stderr):
           update_lines = False
@@ -155,10 +164,10 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
   def test_all_versions_current(self):
     """Test that 'rm -a' for an object with a current version works."""
     bucket_uri = self.CreateVersionedBucket()
-    key_uri = bucket_uri.clone_replace_name('foo')
-    key_uri.set_contents_from_string('bar')
+    key_uri = self.StorageUriCloneReplaceName(bucket_uri, 'foo')
+    self.StorageUriSetContentsFromString(key_uri, 'bar')
     g1 = urigen(key_uri)
-    key_uri.set_contents_from_string('baz')
+    self.StorageUriSetContentsFromString(key_uri, 'baz')
     g2 = urigen(key_uri)
 
     def _Check1(stderr_lines):
@@ -189,10 +198,10 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
   def test_all_versions_no_current(self):
     """Test that 'rm -a' for an object without a current version works."""
     bucket_uri = self.CreateVersionedBucket()
-    key_uri = bucket_uri.clone_replace_name('foo')
-    key_uri.set_contents_from_string('bar')
+    key_uri = self.StorageUriCloneReplaceName(bucket_uri, 'foo')
+    self.StorageUriSetContentsFromString(key_uri, 'bar')
     g1 = urigen(key_uri)
-    key_uri.set_contents_from_string('baz')
+    self.StorageUriSetContentsFromString(key_uri, 'baz')
     g2 = urigen(key_uri)
     self._RunRemoveCommandAndCheck(
         ['-m', 'rm', '-a', suri(key_uri)],
@@ -225,14 +234,14 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
   def test_remove_all_versions_recursive_on_bucket(self):
     """Test that 'rm -r' works on bucket."""
     bucket_uri = self.CreateVersionedBucket()
-    k1_uri = bucket_uri.clone_replace_name('foo')
-    k2_uri = bucket_uri.clone_replace_name('foo2')
-    k1_uri.set_contents_from_string('bar')
-    k2_uri.set_contents_from_string('bar2')
+    k1_uri = self.StorageUriCloneReplaceName(bucket_uri, 'foo')
+    k2_uri = self.StorageUriCloneReplaceName(bucket_uri, 'foo2')
+    self.StorageUriSetContentsFromString(k1_uri, 'bar')
+    self.StorageUriSetContentsFromString(k2_uri, 'bar2')
     k1g1 = urigen(k1_uri)
     k2g1 = urigen(k2_uri)
-    k1_uri.set_contents_from_string('baz')
-    k2_uri.set_contents_from_string('baz2')
+    self.StorageUriSetContentsFromString(k1_uri, 'baz')
+    self.StorageUriSetContentsFromString(k2_uri, 'baz2')
     k1g2 = urigen(k1_uri)
     k2g2 = urigen(k2_uri)
 
@@ -262,14 +271,14 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
   def test_remove_all_versions_recursive_on_subdir(self):
     """Test that 'rm -r' works on subdir."""
     bucket_uri = self.CreateVersionedBucket()
-    k1_uri = bucket_uri.clone_replace_name('dir/foo')
-    k2_uri = bucket_uri.clone_replace_name('dir/foo2')
-    k1_uri.set_contents_from_string('bar')
-    k2_uri.set_contents_from_string('bar2')
+    k1_uri = self.StorageUriCloneReplaceName(bucket_uri, 'dir/foo')
+    k2_uri = self.StorageUriCloneReplaceName(bucket_uri, 'dir/foo2')
+    self.StorageUriSetContentsFromString(k1_uri, 'bar')
+    self.StorageUriSetContentsFromString(k2_uri, 'bar2')
     k1g1 = urigen(k1_uri)
     k2g1 = urigen(k2_uri)
-    k1_uri.set_contents_from_string('baz')
-    k2_uri.set_contents_from_string('baz2')
+    self.StorageUriSetContentsFromString(k1_uri, 'baz')
+    self.StorageUriSetContentsFromString(k2_uri, 'baz2')
     k1g2 = urigen(k1_uri)
     k2g2 = urigen(k2_uri)
 
@@ -326,8 +335,8 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
   def test_some_missing(self):
     """Test that 'rm -a' fails when some but not all uris don't exist."""
     bucket_uri = self.CreateVersionedBucket()
-    key_uri = bucket_uri.clone_replace_name('foo')
-    key_uri.set_contents_from_string('bar')
+    key_uri = self.StorageUriCloneReplaceName(bucket_uri, 'foo')
+    self.StorageUriSetContentsFromString(key_uri, 'bar')
     if self.multiregional_buckets:
       self.AssertNObjectsInBucket(bucket_uri, 1, versioned=True)
     stderr = self.RunGsUtil(
@@ -342,8 +351,8 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
   def test_some_missing_force(self):
     """Test that 'rm -af' succeeds despite hidden first uri."""
     bucket_uri = self.CreateVersionedBucket()
-    key_uri = bucket_uri.clone_replace_name('foo')
-    key_uri.set_contents_from_string('bar')
+    key_uri = self.StorageUriCloneReplaceName(bucket_uri, 'foo')
+    self.StorageUriSetContentsFromString(key_uri, 'bar')
     if self.multiregional_buckets:
       self.AssertNObjectsInBucket(bucket_uri, 1, versioned=True)
     stderr = self.RunGsUtil(
@@ -358,10 +367,10 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
   def test_folder_objects_deleted(self):
     """Test for 'rm -r' of a folder with a dir_$folder$ marker."""
     bucket_uri = self.CreateVersionedBucket()
-    key_uri = bucket_uri.clone_replace_name('abc/o1')
-    key_uri.set_contents_from_string('foobar')
-    folder_uri = bucket_uri.clone_replace_name('abc_$folder$')
-    folder_uri.set_contents_from_string('')
+    key_uri = self.StorageUriCloneReplaceName(bucket_uri, 'abc/o1')
+    self.StorageUriSetContentsFromString(key_uri, 'foobar')
+    folder_uri = self.StorageUriCloneReplaceName(bucket_uri, 'abc_$folder$')
+    self.StorageUriSetContentsFromString(folder_uri, '')
 
     def _RemoveAndCheck():
       self.RunGsUtil(['rm', '-r', '%s' % suri(bucket_uri, 'abc')],
@@ -385,10 +394,10 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
   def test_folder_objects_deleted_with_wildcard(self):
     """Test for 'rm -r' of a folder with a dir_$folder$ marker."""
     bucket_uri = self.CreateVersionedBucket()
-    key_uri = bucket_uri.clone_replace_name('abc/o1')
-    key_uri.set_contents_from_string('foobar')
-    folder_uri = bucket_uri.clone_replace_name('abc_$folder$')
-    folder_uri.set_contents_from_string('')
+    key_uri = self.StorageUriCloneReplaceName(bucket_uri, 'abc/o1')
+    self.StorageUriSetContentsFromString(key_uri, 'foobar')
+    folder_uri = self.StorageUriCloneReplaceName(bucket_uri, 'abc_$folder$')
+    self.StorageUriSetContentsFromString(folder_uri, '')
 
     if self.multiregional_buckets:
       self.AssertNObjectsInBucket(bucket_uri, 2, versioned=True)
@@ -492,11 +501,32 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
     self._RunRemoveCommandAndCheck(['-q', 'rm', suri(key_uri)], [])
     self.AssertNObjectsInBucket(bucket_uri, 0)
 
-  def test_rm_object_with_slash(self):
-    """Tests removing a bucket that has an object with a slash in it."""
+  @SkipForS3('The boto lib used for S3 does not handle objects '
+             'starting with slashes if we use V4 signature')
+  def test_rm_object_with_prefix_slash(self):
+    """Tests removing a bucket that has an object starting with slash.
+
+    The boto lib used for S3 does not handle objects starting with slashes
+    if we use V4 signature. Hence we are testing objects with prefix
+    slashes separately.
+    """
     bucket_uri = self.CreateVersionedBucket()
     ouri1 = self.CreateObject(bucket_uri=bucket_uri,
                               object_name='/dirwithslash/foo',
+                              contents=b'z')
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(bucket_uri, 1, versioned=True)
+
+    self._RunRemoveCommandAndCheck(
+        ['rm', '-r', suri(bucket_uri)],
+        objects_to_remove=['%s#%s' % (suri(ouri1), urigen(ouri1))],
+        buckets_to_remove=[suri(bucket_uri)])
+
+  def test_rm_object_with_slashes(self):
+    """Tests removing a bucket that has objects with slashes."""
+    bucket_uri = self.CreateVersionedBucket()
+    ouri1 = self.CreateObject(bucket_uri=bucket_uri,
+                              object_name='h/e/l//lo',
                               contents=b'z')
     ouri2 = self.CreateObject(bucket_uri=bucket_uri,
                               object_name='dirnoslash/foo',
@@ -515,6 +545,8 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
                                    ],
                                    buckets_to_remove=[suri(bucket_uri)])
 
+  @SkipForS3('The boto lib used for S3 does not handle objects '
+             'starting with slashes if we use V4 signature')
   def test_slasher_horror_film(self):
     """Tests removing a bucket with objects that are filled with slashes."""
     bucket_uri = self.CreateVersionedBucket()
@@ -579,8 +611,7 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
          suri(object_uri)],
         return_stderr=True,
         expected_status=1)
-    self.assertRegex(
-        stderr, r'PreconditionException: 412 (Precondition)?\s*(Failed|None)')
+    self.assertRegex(stderr, r'PreconditionException: 412')
 
   def test_stdin_args(self):
     """Tests rm with the -I option."""

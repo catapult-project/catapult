@@ -15,7 +15,8 @@
 
 """Test for generated sample module."""
 
-import unittest2
+import unittest
+
 import six
 
 from apitools.base.py.testing import mock
@@ -24,7 +25,7 @@ from samples.iam_sample.iam_v1 import iam_v1_client  # nopep8
 from samples.iam_sample.iam_v1 import iam_v1_messages  # nopep8
 
 
-class DnsGenClientSanityTest(unittest2.TestCase):
+class DnsGenClientSanityTest(unittest.TestCase):
 
     def testBaseUrl(self):
         self.assertEquals(u'https://iam.googleapis.com/',
@@ -46,7 +47,7 @@ class DnsGenClientSanityTest(unittest2.TestCase):
             'RolesService']), inner_classes)
 
 
-class IamGenClientTest(unittest2.TestCase):
+class IamGenClientTest(unittest.TestCase):
 
     def setUp(self):
         self.mocked_iam_v1 = mock.Client(iam_v1_client.IamV1)

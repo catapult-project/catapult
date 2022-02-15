@@ -41,7 +41,11 @@ class TestEncryptionHelper(GsUtilUnitTestCase):
     boto_101_key_config = []
     # Generate 101 keys.
     for i in range(1, 102):
-      keys.append(base64.encodestring(os.urandom(32)).rstrip(b'\n'))
+      try:
+        keys.append(base64.encodebytes(os.urandom(32)).rstrip(b'\n'))
+      except AttributeError:
+        # For Python 2 compatability.
+        keys.append(base64.encodestring(os.urandom(32)).rstrip(b'\n'))
       boto_101_key_config.append(
           ('GSUtil', 'decryption_key%s' % i, keys[i - 1]))
     with SetBotoConfigForTest(boto_101_key_config):
@@ -70,7 +74,11 @@ class TestEncryptionHelper(GsUtilUnitTestCase):
     """Tests a config file with non-sequential decryption key numbering."""
     keys = []
     for _ in range(3):
-      keys.append(base64.encodestring(os.urandom(32)).rstrip(b'\n'))
+      try:
+        keys.append(base64.encodebytes(os.urandom(32)).rstrip(b'\n'))
+      except AttributeError:
+        # For Python 2 compatability.
+        keys.append(base64.encodestring(os.urandom(32)).rstrip(b'\n'))
     boto_config = [('GSUtil', 'decryption_key4', keys[2]),
                    ('GSUtil', 'decryption_key1', keys[0]),
                    ('GSUtil', 'decryption_key2', keys[1])]

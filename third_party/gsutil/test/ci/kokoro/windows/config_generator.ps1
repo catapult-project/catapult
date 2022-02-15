@@ -12,24 +12,40 @@
 # parameters.
 
 param (
-    [Parameter(Mandatory=$true)][string]$KeyFile,
+    [Parameter(Mandatory=$true)][AllowEmptyString()][string]$KeyFile,
     [Parameter(Mandatory=$true)][string]$Api,
-    [Parameter(Mandatory=$true)][string]$OutFile
+    [Parameter(Mandatory=$true)][string]$OutFile,
+    [Parameter(Mandatory=$false)][string]$MtlsTestAccountRefreshToken,
+    [Parameter(Mandatory=$false)][string]$MtlsTestAccountClientId,
+    [Parameter(Mandatory=$false)][string]$MtlsTestAccountClientSecret,
+    [Parameter(Mandatory=$false)][string]$MtlsTestCertPath
  )
 
 $stream = [System.IO.StreamWriter] $OutFile
 $stream.WriteLine("[Credentials]")
-$stream.WriteLine("gs_service_key_file = $KeyFile")
-$stream.WriteLine("[GSUtil]")
-$stream.WriteLine("default_project_id = bigstore-gsutil-testing")
-$stream.WriteLine("prefer_api = $Api")
-$stream.WriteLine("test_hmac_service_account = sa-hmac@bigstore-gsutil-testing.iam.gserviceaccount.com")
-$stream.WriteLine("test_hmac_list_service_account = sa-hmac-list@bigstore-gsutil-testing.iam.gserviceaccount.com")
-$stream.WriteLine("test_hmac_alt_service_account = sa-hmac2@bigstore-gsutil-testing.iam.gserviceaccount.com")
-$stream.WriteLine("test_impersonate_service_account = bigstore-gsutil-impersonation@bigstore-gsutil-testing.iam.gserviceaccount.com")
-$stream.WriteLine("test_impersonate_failure_account = no-impersonation@bigstore-gsutil-testing.iam.gserviceaccount.com")
-$stream.WriteLine("[OAuth2]")
-$stream.WriteLine("client_id = 909320924072.apps.googleusercontent.com")
-$stream.WriteLine("client_secret = p3RlpR10xMFh9ZXBS/ZNLYUu")
-$stream.close()
+if ($KeyFile) {
+  $stream.WriteLine("gs_service_key_file = $KeyFile")
+  $stream.WriteLine("[GSUtil]")
+  $stream.WriteLine("default_project_id = bigstore-gsutil-testing")
+  $stream.WriteLine("prefer_api = $Api")
+  $stream.WriteLine("test_hmac_service_account = sa-hmac@bigstore-gsutil-testing.iam.gserviceaccount.com")
+  $stream.WriteLine("test_hmac_list_service_account = sa-hmac-list@bigstore-gsutil-testing.iam.gserviceaccount.com")
+  $stream.WriteLine("test_hmac_alt_service_account = sa-hmac2@bigstore-gsutil-testing.iam.gserviceaccount.com")
+  $stream.WriteLine("test_impersonate_service_account = bigstore-gsutil-impersonation@bigstore-gsutil-testing.iam.gserviceaccount.com")
+  $stream.WriteLine("test_impersonate_failure_account = no-impersonation@bigstore-gsutil-testing.iam.gserviceaccount.com")
+} else {
+  $RefreshTokenString = [IO.File]::ReadAllText($MtlsTestAccountRefreshToken)
+  $ClientIdString = [IO.File]::ReadAllText($MtlsTestAccountClientId)
+  $ClientSecretString = [IO.File]::ReadAllText($MtlsTestAccountClientSecret)
 
+  $stream.WriteLine("gs_oauth2_refresh_token = $RefreshTokenString")
+  $stream.WriteLine("use_client_certificate = True")
+  $stream.WriteLine("cert_provider_command = powershell cat $MtlsTestCertPath")
+  $stream.WriteLine("[GSUtil]")
+  $stream.WriteLine("default_project_id = dcatest-281318")
+  $stream.WriteLine("prefer_api = $Api")
+  $stream.WriteLine("[OAuth2]")
+  $stream.WriteLine("client_id = $ClientIdString")
+  $stream.WriteLine("client_secret = $ClientSecretString")
+}
+$stream.close()

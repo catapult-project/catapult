@@ -50,7 +50,6 @@ from gslib.no_op_credentials import NoOpCredentials
 from gslib.tab_complete import MakeCompleter
 from gslib.utils import boto_util
 from gslib.utils import system_util
-from gslib.utils.constants import GSUTIL_PUB_TARBALL
 from gslib.utils.constants import RELEASE_NOTES_URL
 from gslib.utils.constants import UTF8
 from gslib.utils.metadata_util import IsCustomMetadataHeader
@@ -61,7 +60,7 @@ from gslib.utils.text_util import InsistAsciiHeaderValue
 from gslib.utils.text_util import print_to_fd
 from gslib.utils.unit_util import SECONDS_PER_DAY
 from gslib.utils.update_util import LookUpGsutilVersion
-from gslib.tests.util import HAS_NON_DEFAULT_GS_HOST
+from gslib.utils.update_util import GsutilPubTarball
 
 
 def HandleHeaderCoding(headers):
@@ -342,6 +341,8 @@ class CommandRunner(object):
       if system_util.IsRunningInteractively() and collect_analytics:
         metrics.CheckAndMaybePromptForAnalyticsEnabling()
 
+    self.MaybePromptForPythonUpdate(command_name)
+
     if not args:
       args = []
 
@@ -425,6 +426,46 @@ class CommandRunner(object):
           )))
     return return_code
 
+  def SkipUpdateCheck(self):
+    """Helper function that will determine if update checks should be skipped.
+
+    Args:
+      command_name: The name of the command being run.
+
+    Returns:
+      True if:
+      - gsutil is not connected to a tty (e.g., if being run from cron);
+      - user is running gsutil -q
+      - user specified gs_host (which could be a non-production different
+        service instance, in which case credentials won't work for checking
+        gsutil tarball)."""
+    logger = logging.getLogger()
+    if (not system_util.IsRunningInteractively() or
+        not logger.isEnabledFor(logging.INFO) or
+        boto_util.HasUserSpecifiedGsHost()):
+      return True
+    return False
+
+  def MaybePromptForPythonUpdate(self, command_name):
+    """Alert the user that they should install Python 3.
+
+    Args:
+      command_name: The name of the command being run.
+
+    Returns:
+      True if a prompt was output.
+    """
+    if (sys.version_info.major != 2 or self.SkipUpdateCheck() or
+        command_name not in ('update', 'ver', 'version') or
+        boto.config.getbool('GSUtil', 'skip_python_update_prompt', False)):
+      return False
+
+    # Notify the user about Python 2 deprecation.
+    print_to_fd(
+        'Gsutil 5 drops Python 2 support. Please install Python 3 to update '
+        'to the latest version of gsutil. https://goo.gle/py3\n')
+    return True
+
   def MaybeCheckForAndOfferSoftwareUpdate(self, command_name, debug):
     """Checks the last time we checked for an update and offers one if needed.
 
@@ -439,8 +480,7 @@ class CommandRunner(object):
       True if the user decides to update.
     """
     # Don't try to interact with user if:
-    # - gsutil is not connected to a tty (e.g., if being run from cron);
-    # - user is running gsutil -q
+    # - SkipUpdateChecks returns True.
     # - user is running the config command (which could otherwise attempt to
     #   check for an update for a user running behind a proxy, who has not yet
     #   configured gsutil to go through the proxy; for such users we need the
@@ -451,15 +491,11 @@ class CommandRunner(object):
     # - user is running the update command (which could otherwise cause an
     #   additional note that an update is available when user is already trying
     #   to perform an update);
-    # - user specified gs_host (which could be a non-production different
-    #   service instance, in which case credentials won't work for checking
-    #   gsutil tarball).
     # - user is using a Cloud SDK install (which should only be updated via
     #   gcloud components update)
     logger = logging.getLogger()
-    if (not system_util.IsRunningInteractively() or
+    if (self.SkipUpdateCheck() or
         command_name in ('config', 'update', 'ver', 'version') or
-        not logger.isEnabledFor(logging.INFO) or HAS_NON_DEFAULT_GS_HOST or
         system_util.InvokedViaCloudSdk()):
       return False
 
@@ -498,7 +534,12 @@ class CommandRunner(object):
                               credentials=NoOpCredentials(),
                               debug=debug)
 
-      cur_ver = LookUpGsutilVersion(gsutil_api, GSUTIL_PUB_TARBALL)
+      cur_ver = gslib.VERSION
+      try:
+        cur_ver = LookUpGsutilVersion(gsutil_api, GsutilPubTarball())
+      except Exception:
+        return False
+
       with open(last_checked_for_gsutil_update_timestamp_file, 'w') as f:
         f.write(str(cur_ts))
       (g, m) = CompareVersions(cur_ver, gslib.VERSION)

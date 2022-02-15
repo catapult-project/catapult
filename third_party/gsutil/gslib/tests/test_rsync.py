@@ -66,7 +66,21 @@ if not IS_WINDOWS:
 if six.PY3:
   long = int
 
-NO_CHANGES = 'Building synchronization state...\nStarting synchronization...\n'
+MACOS_WARNING = (
+    'If you experience problems with multiprocessing on MacOS, they might be '
+    'related to https://bugs.python.org/issue33725. You can disable '
+    'multiprocessing by editing your .boto config or by adding the following '
+    'flag to your command: `-o "GSUtil:parallel_process_count=1"`. Note that '
+    'multithreading is still available even if you disable multiprocessing.\n\n'
+)
+
+if IS_OSX:
+  NO_CHANGES = ('Building synchronization state...\n' + MACOS_WARNING +
+                'Starting synchronization...\n')
+else:
+  NO_CHANGES = (
+      'Building synchronization state...\nStarting synchronization...\n')
+
 if not UsingCrcmodExtension():
   NO_CHANGES = SLOW_CRCMOD_RSYNC_WARNING + '\n' + NO_CHANGES
 
@@ -2172,6 +2186,8 @@ class TestRsync(testcase.GsUtilIntegrationTestCase):
     _Check1()
 
   @unittest.skipUnless(UsingCrcmodExtension(), 'Test requires fast crcmod.')
+  @SkipForS3('The boto lib used for S3 does not handle objects'
+             ' starting with slashes if we use V4 signature.')
   def test_bucket_to_dir_minus_d_with_leftover_dir_placeholder(self):
     """Tests that we correctly handle leftover dir placeholders.
 
@@ -2183,8 +2199,8 @@ class TestRsync(testcase.GsUtilIntegrationTestCase):
                       object_name='obj1',
                       contents=b'obj1')
     # Create a placeholder like what can be left over by web GUI tools.
-    key_uri = bucket_uri.clone_replace_name('/')
-    key_uri.set_contents_from_string('')
+    key_uri = self.StorageUriCloneReplaceName(bucket_uri, '/')
+    self.StorageUriSetContentsFromString(key_uri, '')
 
     # Use @Retry as hedge against bucket listing eventual consistency.
     @Retry(AssertionError, tries=3, timeout_secs=1)
@@ -2521,7 +2537,8 @@ class TestRsync(testcase.GsUtilIntegrationTestCase):
       listing1 = TailSet(tmpdir, self.FlatListDir(tmpdir))
       listing2 = TailSet(
           suri(bucket_url, 'subdir'),
-          self.FlatListBucket(bucket_url.clone_replace_name('subdir')))
+          self.FlatListBucket(
+              self.StorageUriCloneReplaceName(bucket_url, 'subdir')))
       # Dir should have un-altered content.
       self.assertEquals(listing1, set(['/obj1', '/.obj2', '/subdir/obj3']))
       # Bucket subdir should have content like dir.
@@ -2537,6 +2554,53 @@ class TestRsync(testcase.GsUtilIntegrationTestCase):
           NO_CHANGES,
           self.RunGsUtil(['rsync', '-r', tmpdir,
                           suri(bucket_url, 'subdir')],
+                         return_stderr=True))
+
+    _Check2()
+
+  def test_rsync_to_nonexistent_bucket_subdir_prefix_of_existing_obj(self):
+    """Tests that rsync with destination url as a prefix of existing obj works.
+
+    Test to make sure that a dir/subdir gets created if it does not exist
+    even when the new dir is a prefix of an existing dir.
+    e.g if gs://some_bucket/foobar exists, and we run the command
+    rsync some_dir gs://some_bucket/foo
+    this should create a subdir foo
+    """
+    # Create dir with some objects and empty bucket.
+    tmpdir = self.CreateTempDir()
+    bucket_url = self.CreateBucket()
+    self.CreateObject(bucket_uri=bucket_url,
+                      object_name='foobar',
+                      contents=b'obj1')
+    self.CreateTempFile(tmpdir=tmpdir, file_name='obj1', contents=b'obj1')
+    self.CreateTempFile(tmpdir=tmpdir, file_name='.obj2', contents=b'.obj2')
+
+    # Use @Retry as hedge against bucket listing eventual consistency.
+    @Retry(AssertionError, tries=3, timeout_secs=1)
+    def _Check1():
+      """Tests rsync works as expected."""
+      self.RunGsUtil(['rsync', '-r', tmpdir, suri(bucket_url, 'foo')])
+      listing1 = TailSet(tmpdir, self.FlatListDir(tmpdir))
+      listing2 = TailSet(
+          suri(bucket_url, 'foo'),
+          self.FlatListBucket(self.StorageUriCloneReplaceName(
+              bucket_url, 'foo')))
+      # Dir should have un-altered content.
+      self.assertEquals(listing1, set(['/obj1', '/.obj2']))
+      # Bucket subdir should have content like dir.
+      self.assertEquals(listing2, set(['/obj1', '/.obj2']))
+
+    _Check1()
+
+    # Use @Retry as hedge against bucket listing eventual consistency.
+    @Retry(AssertionError, tries=3, timeout_secs=1)
+    def _Check2():
+      # Check that re-running the same rsync command causes no more changes.
+      self.assertEquals(
+          NO_CHANGES,
+          self.RunGsUtil(['rsync', '-r', tmpdir,
+                          suri(bucket_url, 'foo')],
                          return_stderr=True))
 
     _Check2()
@@ -2578,6 +2642,8 @@ class TestRsync(testcase.GsUtilIntegrationTestCase):
       listing = TailSet(tmpdir, self.FlatListDir(tmpdir))
       # Dir should have un-altered content.
       self.assertEquals(listing, set(['/obj1', '/.obj2']))
+
+    _Check()
 
   def test_bucket_to_bucket_minus_d_with_overwrite_and_punc_chars(self):
     """Tests that punc chars in filenames don't confuse sort order."""
@@ -2849,6 +2915,53 @@ class TestRsync(testcase.GsUtilIntegrationTestCase):
 
     _Check()
 
+  def test_dir_to_bucket_minus_i(self):
+    """Tests that rsync -i works correctly."""
+    tmpdir = self.CreateTempDir()
+    dst_bucket = self.CreateBucket()
+    ORIG_MTIME = 10
+
+    self.CreateObject(bucket_uri=dst_bucket,
+                      object_name='obj1',
+                      contents=b'obj1-1')
+    self.CreateObject(bucket_uri=dst_bucket,
+                      object_name='obj2',
+                      contents=b'obj2-1')
+    self.CreateObject(bucket_uri=dst_bucket,
+                      object_name='obj3',
+                      contents=b'obj3-1',
+                      mtime=ORIG_MTIME)
+
+    # Source files with same name should NOT be copied:
+    # Same size, different contents.
+    self.CreateTempFile(tmpdir=tmpdir, file_name='obj1', contents=b'obj1-2')
+    # Same size, same contents.
+    self.CreateTempFile(tmpdir=tmpdir,
+                        file_name='obj2',
+                        contents=b'obj2-1',
+                        mtime=ORIG_MTIME)
+    # Different size and contents.
+    self.CreateTempFile(tmpdir=tmpdir,
+                        file_name='obj3',
+                        contents=b'obj3-newer',
+                        mtime=ORIG_MTIME - 1)
+
+    @Retry(AssertionError, tries=3, timeout_secs=1)
+    def _Check():
+      self.RunGsUtil(['rsync', '-i', tmpdir, suri(dst_bucket)])
+      # Objects 1-3 should NOT have been overwritten:
+      self.assertEquals(
+          'obj1-1',
+          self.RunGsUtil(['cat', suri(dst_bucket, 'obj1')], return_stdout=True))
+      self.assertEquals(
+          'obj2-1',
+          self.RunGsUtil(['cat', suri(dst_bucket, 'obj2')], return_stdout=True))
+      self.assertEquals(
+          'obj3-1',
+          self.RunGsUtil(['cat', suri(dst_bucket, 'obj3')], return_stdout=True))
+
+    _Check()
+
   def test_rsync_files_with_whitespace(self):
     """Test to ensure filenames with whitespace can be rsynced"""
     filename = 'foo bar baz.txt'
@@ -2859,6 +2972,24 @@ class TestRsync(testcase.GsUtilIntegrationTestCase):
     local_file = self.CreateTempFile(tmpdir, contents, filename)
 
     expected_list_results = frozenset(['/foo bar baz.txt'])
+
+    # Tests rsync works as expected.
+    self.RunGsUtil(['rsync', '-r', tmpdir, suri(bucket_uri)])
+    listing1 = TailSet(tmpdir, self.FlatListDir(tmpdir))
+    listing2 = TailSet(suri(bucket_uri), self.FlatListBucket(bucket_uri))
+    self.assertEquals(set(listing1), expected_list_results)
+    self.assertEquals(set(listing2), expected_list_results)
+
+  def test_rsync_files_with_special_characters(self):
+    """Test to ensure filenames with special characters can be rsynced"""
+    filename = 'Æ.txt'
+    local_uris = []
+    bucket_uri = self.CreateBucket()
+    tmpdir = self.CreateTempDir()
+    contents = 'File from rsync test: test_rsync_files_with_special_characters'
+    local_file = self.CreateTempFile(tmpdir, contents, filename)
+
+    expected_list_results = frozenset(['/Æ.txt'])
 
     # Tests rsync works as expected.
     self.RunGsUtil(['rsync', '-r', tmpdir, suri(bucket_uri)])

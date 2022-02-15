@@ -89,64 +89,6 @@ class ProgressCallbackWithTimeout(object):
       self._last_time = cur_time
 
 
-class ProgressCallbackWithBackoff(object):
-  """Makes progress callbacks with exponential backoff to a maximum value.
-
-  This prevents excessive log message output.
-  """
-
-  def __init__(self,
-               total_size,
-               callback_func,
-               start_bytes_per_callback=_START_BYTES_PER_CALLBACK,
-               max_bytes_per_callback=_MAX_BYTES_PER_CALLBACK,
-               calls_per_exponent=10):
-    """Initializes the callback with backoff.
-
-    Args:
-      total_size: Total bytes to process. If this is None, size is not known
-          at the outset.
-      callback_func: Func of (int: processed_so_far, int: total_bytes)
-          used to make callbacks.
-      start_bytes_per_callback: Lower bound of bytes per callback.
-      max_bytes_per_callback: Upper bound of bytes per callback.
-      calls_per_exponent: Number of calls to make before reducing rate.
-    """
-    self._bytes_per_callback = start_bytes_per_callback
-    self._callback_func = callback_func
-    self._calls_per_exponent = calls_per_exponent
-    self._max_bytes_per_callback = max_bytes_per_callback
-    self._total_size = total_size
-
-    self._bytes_processed_since_callback = 0
-    self._callbacks_made = 0
-    self._total_bytes_processed = 0
-
-  def Progress(self, bytes_processed):
-    """Tracks byte processing progress, making a callback if necessary."""
-    self._bytes_processed_since_callback += bytes_processed
-    if (self._bytes_processed_since_callback > self._bytes_per_callback or
-        (self._total_bytes_processed + self._bytes_processed_since_callback >=
-         self._total_size and self._total_size is not None)):
-      self._total_bytes_processed += self._bytes_processed_since_callback
-      # TODO: We check if >= total_size and truncate because JSON uploads count
-      # multipart metadata during their send progress. If the size is unknown,
-      # we can't do this and the progress message will make it appear that we
-      # send more than the original stream.
-      if self._total_size is not None:
-        bytes_sent = min(self._total_bytes_processed, self._total_size)
-      else:
-        bytes_sent = self._total_bytes_processed
-      self._callback_func(bytes_sent, self._total_size)
-      self._bytes_processed_since_callback = 0
-      self._callbacks_made += 1
-
-      if self._callbacks_made > self._calls_per_exponent:
-        self._bytes_per_callback = min(self._bytes_per_callback * 2,
-                                       self._max_bytes_per_callback)
-        self._callbacks_made = 0
-
-
 class FileProgressCallbackHandler(object):
   """Tracks progress info for large operations like file copy or hash.
 

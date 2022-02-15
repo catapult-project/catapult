@@ -39,7 +39,6 @@ CLI_PACKAGES = [
 ]
 
 TESTING_PACKAGES = [
-    'unittest2>=0.5.1',
     'mock>=1.0.1',
 ]
 
@@ -49,7 +48,7 @@ CONSOLE_SCRIPTS = [
 
 py_version = platform.python_version()
 
-_APITOOLS_VERSION = '0.5.30'
+_APITOOLS_VERSION = '0.5.32'
 
 with open('README.rst') as fileobj:
     README = fileobj.read()
@@ -62,6 +61,7 @@ setuptools.setup(
     url='http://github.com/google/apitools',
     author='Craig Citro',
     author_email='craigcitro@google.com',
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
     # Contained modules and scripts.
     packages=setuptools.find_packages(include=['apitools']),
     entry_points={'console_scripts': CONSOLE_SCRIPTS},
@@ -88,6 +88,10 @@ setuptools.setup(
     # PyPI package information.
     classifiers=[
         'License :: OSI Approved :: Apache Software License',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
         ],

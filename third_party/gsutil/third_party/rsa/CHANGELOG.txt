@@ -1,6 +1,46 @@
 Python-RSA changelog
 ========================================
 
+Version 4.3 & 4.5 - released 2020-06-12
+----------------------------------------
+
+Version 4.3 and 4.5 are almost a re-tagged release of version 4.0. It is the
+last to support Python 2.7. This is now made explicit in the `python_requires`
+argument in `setup.py`. Python 3.4 is not supported by this release. There was a
+mistake releasing 4.4 as "3.5+ only", which made it necessary to retag 4.3 as
+4.5 as well.
+
+Two security fixes have also been backported, so 4.3 = 4.0 + these two fixes.
+
+- Choose blinding factor relatively prime to N. Thanks Christian Heimes for pointing this out.
+- Reject cyphertexts (when decrypting) and signatures (when verifying) that have
+  been modified by prepending zero bytes. This resolves CVE-2020-13757. Thanks
+  Carnil for pointing this out.
+
+
+Version 4.0 - released 2018-09-16
+----------------------------------------
+
+- Removed deprecated modules:
+    - rsa.varblock
+    - rsa.bigfile
+    - rsa._version133
+    - rsa._version200
+- Removed CLI commands that use the VARBLOCK/bigfile format.
+- Ensured that PublicKey.save_pkcs1() and PrivateKey.save_pkcs1() always return bytes.
+- Dropped support for Python 2.6 and 3.3.
+- Dropped support for Psyco.
+- Miller-Rabin iterations determined by bitsize of key.
+  [#58](https://github.com/sybrenstuvel/python-rsa/pull/58)
+- Added function `rsa.find_signature_hash()` to return the name of the hashing
+  algorithm used to sign a message. `rsa.verify()` now also returns that name,
+  instead of always returning `True`.
+  [#78](https://github.com/sybrenstuvel/python-rsa/issues/13)
+- Add support for SHA-224 for PKCS1 signatures.
+  [#104](https://github.com/sybrenstuvel/python-rsa/pull/104)
+- Transitioned from `requirements.txt` to Pipenv for package management.
+
+
 Version 3.4.2 - released 2016-03-29
 ----------------------------------------
 
@@ -17,7 +57,7 @@ Version 3.4.1 - released 2016-03-26
 Version 3.4 - released 2016-03-17
 ----------------------------------------
 
-- Moved development to Github: https://github.com/sybrenstuvel/python-rsa
+- Moved development to GitHub: https://github.com/sybrenstuvel/python-rsa
 - Solved side-channel vulnerability by implementing blinding, fixes #19
 - Deprecated the VARBLOCK format and rsa.bigfile module due to security issues, see
     https://github.com/sybrenstuvel/python-rsa/issues/13
@@ -33,7 +73,7 @@ Version 3.4 - released 2016-03-17
 [1] https://travis-ci.org/sybrenstuvel/python-rsa
 [2] https://coveralls.io/github/sybrenstuvel/python-rsa
 [3] https://codeclimate.com/github/sybrenstuvel/python-rsa
-[4] http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pd
+[4] http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf
 
 
 Version 3.3 - released 2016-01-13
@@ -121,7 +161,7 @@ Version 3.0 - released 2011-08-05
   the size of both ``p`` and ``q``. This is the common interpretation of
   RSA keysize. To get the old behaviour, double the keysize when generating a
   new key.
-  
+
 - Added a lot of doctests
 
 - Added random-padded encryption and decryption using PKCS#1 version 1.5
@@ -139,4 +179,3 @@ Version 2.0
 ----------------------------------------
 
 - Security improvements by Barry Mead.
-

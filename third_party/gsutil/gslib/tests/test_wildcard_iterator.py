@@ -46,7 +46,7 @@ class CloudWildcardIteratorTests(testcase.GsUtilUnitTestCase):
     self.immed_child_obj_names = ['abcd', 'abdd', 'ade$']
     self.all_obj_names = [
         'abcd', 'abdd', 'ade$', 'nested1/nested2/xyz1', 'nested1/nested2/xyz2',
-        'nested1/nfile_abc'
+        'nested1/nested2xyz1', 'nested1/nfile_abc'
     ]
 
     self.base_bucket_uri = self.CreateBucket()
@@ -72,6 +72,27 @@ class CloudWildcardIteratorTests(testcase.GsUtilUnitTestCase):
                                   object_name=obj_name,
                                   contents='')
       self.test_bucket1_obj_uri_strs.add(suri(obj_uri))
+
+    self.test_bucket2_uri = self.CreateBucket(bucket_name='%s2' %
+                                              self.prefix_bucket_name)
+    self.test_bucket2_obj_uri_strs = set()
+    object_list = [
+        # For testing ** patterns.
+        # zf.txt has been added in every folder here to test that it does not
+        # get listed for **/f.txt requests.
+        'f.txt',
+        'double/f.txt',
+        'double/zf.txt',
+        'double/foo/f.txt',
+        'double/foo/zf.txt',
+        'double/bar/f.txt',
+        'double/bar/zf.txt',
+    ]
+    for obj_name in object_list:
+      obj_uri = self.CreateObject(bucket_uri=self.test_bucket2_uri,
+                                  object_name=obj_name,
+                                  contents='')
+      self.test_bucket2_obj_uri_strs.add(suri(obj_uri))
 
   def testNoOpObjectIterator(self):
     """Tests that bucket-only URI iterates just that one URI."""
@@ -210,7 +231,8 @@ class CloudWildcardIteratorTests(testcase.GsUtilUnitTestCase):
     """Tests matching a multiple buckets based on a wildcarded bucket URI."""
     exp_obj_uri_strs = set([
         suri(self.test_bucket0_uri) + self.test_bucket0_uri.delim,
-        suri(self.test_bucket1_uri) + self.test_bucket1_uri.delim
+        suri(self.test_bucket1_uri) + self.test_bucket1_uri.delim,
+        suri(self.test_bucket2_uri) + self.test_bucket2_uri.delim,
     ])
     with SetDummyProjectForUnitTest():
       actual_obj_uri_strs = set(
@@ -265,6 +287,82 @@ class CloudWildcardIteratorTests(testcase.GsUtilUnitTestCase):
     self.assertTrue(len(blrs))
     for blr in blrs:
       self.assertTrue(blr.root_object and not blr.root_object.timeCreated)
+
+  def testDoesNotStripDelimiterForDoubleWildcard(self):
+    """Tests gs://bucket/*/subdir matching."""
+    actual_uri_strs = set()
+    actual_prefixes = set()
+    for blr in self._test_wildcard_iterator(
+        self.test_bucket0_uri.clone_replace_name('**/xyz*')):
+      if blr.IsPrefix():
+        actual_prefixes.add(blr.root_object)
+      else:
+        actual_uri_strs.add(blr.url_string)
+    expected_uri_strs = set([
+        self.test_bucket0_uri.clone_replace_name('nested1/nested2/xyz1').uri,
+        self.test_bucket0_uri.clone_replace_name('nested1/nested2/xyz2').uri
+    ])
+    expected_prefixes = set()
+    self.assertEqual(expected_prefixes, actual_prefixes)
+    self.assertEqual(expected_uri_strs, actual_uri_strs)
+
+  def testDoubleWildcardAfterBucket(self):
+    """Tests gs://bucket/**/object matching."""
+    actual_uri_strs = set()
+    actual_prefixes = set()
+    for blr in self._test_wildcard_iterator(
+        self.test_bucket2_uri.clone_replace_name('**/f.txt')):
+      if blr.IsPrefix():
+        actual_prefixes.add(blr.root_object)
+      else:
+        actual_uri_strs.add(blr.url_string)
+    expected_uri_strs = set([
+        self.test_bucket2_uri.clone_replace_name('f.txt').uri,
+        self.test_bucket2_uri.clone_replace_name('double/f.txt').uri,
+        self.test_bucket2_uri.clone_replace_name('double/foo/f.txt').uri,
+        self.test_bucket2_uri.clone_replace_name('double/bar/f.txt').uri,
+    ])
+    expected_prefixes = set()
+    self.assertEqual(expected_prefixes, actual_prefixes)
+    self.assertEqual(expected_uri_strs, actual_uri_strs)
+
+  def testDoubleWildcardAfterPrefix(self):
+    """Tests gs://bucket/dir/**/object matching."""
+    actual_uri_strs = set()
+    actual_prefixes = set()
+    for blr in self._test_wildcard_iterator(
+        self.test_bucket2_uri.clone_replace_name('double/**/f.txt')):
+      if blr.IsPrefix():
+        actual_prefixes.add(blr.root_object)
+      else:
+        actual_uri_strs.add(blr.url_string)
+    expected_uri_strs = set([
+        self.test_bucket2_uri.clone_replace_name('double/f.txt').uri,
+        self.test_bucket2_uri.clone_replace_name('double/foo/f.txt').uri,
+        self.test_bucket2_uri.clone_replace_name('double/bar/f.txt').uri,
+    ])
+    expected_prefixes = set()
+    self.assertEqual(expected_prefixes, actual_prefixes)
+    self.assertEqual(expected_uri_strs, actual_uri_strs)
+
+  def testDoubleWildcardBeforeAndAfterPrefix(self):
+    """Tests gs://bucket/**/dir/**/object matching."""
+    actual_uri_strs = set()
+    actual_prefixes = set()
+    for blr in self._test_wildcard_iterator(
+        self.test_bucket2_uri.clone_replace_name('**/double/**/f.txt')):
+      if blr.IsPrefix():
+        actual_prefixes.add(blr.root_object)
+      else:
+        actual_uri_strs.add(blr.url_string)
+    expected_uri_strs = set([
+        self.test_bucket2_uri.clone_replace_name('double/f.txt').uri,
+        self.test_bucket2_uri.clone_replace_name('double/foo/f.txt').uri,
+        self.test_bucket2_uri.clone_replace_name('double/bar/f.txt').uri,
+    ])
+    expected_prefixes = set()
+    self.assertEqual(expected_prefixes, actual_prefixes)
+    self.assertEqual(expected_uri_strs, actual_uri_strs)
 
 
 class FileIteratorTests(testcase.GsUtilUnitTestCase):

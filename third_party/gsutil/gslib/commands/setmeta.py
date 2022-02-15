@@ -61,14 +61,15 @@ _DETAILED_HELP_TEXT = ("""
   or more objects. It takes one or more header arguments followed by one or
   more URLs, where each header argument is in one of two forms:
 
-  - if you specify header:value, it will set the given header on all
-    named objects.
+  - If you specify ``header:value``, it sets the provided value for the
+    given header on all applicable objects.
 
-  - if you specify header (with no value), it will remove the given header
-    from all named objects.
+  - If you specify ``header`` (with no value), it removes the given header
+    from all applicable objects.
 
-  For example, the following command would set the Content-Type and
-  Cache-Control and remove the Content-Disposition on the specified objects:
+  For example, the following command sets the ``Content-Type`` and
+  ``Cache-Control`` headers while also removing the ``Content-Disposition``
+  header on the specified objects:
 
     gsutil setmeta -h "Content-Type:text/html" \\
       -h "Cache-Control:public, max-age=3600" \\
@@ -86,6 +87,10 @@ _DETAILED_HELP_TEXT = ("""
 
     gsutil setmeta -h "x-goog-meta-icecreamflavor:vanilla" gs://bucket/object
 
+  Custom metadata is always prefixed in gsutil with ``x-goog-meta-``. This
+  distinguishes it from standard request headers. Other tools that send and
+  receive object metadata by using the request body do not use this prefix.
+
   See "gsutil help metadata" for details about how you can set metadata
   while uploading objects, what metadata fields can be set and the meaning of
   these fields, use of custom metadata, and how to view currently set metadata.
@@ -102,13 +107,12 @@ _DETAILED_HELP_TEXT = ("""
 
   The setmeta command reads each object's current generation and metageneration
   and uses those as preconditions unless they are otherwise specified by
-  top-level arguments. For example:
+  top-level arguments. For example, the following command sets the custom
+  metadata ``icecreamflavor:vanilla`` if the current live object has a
+  metageneration of 2:
 
     gsutil -h "x-goog-if-metageneration-match:2" setmeta
       -h "x-goog-meta-icecreamflavor:vanilla"
-
-  will set the icecreamflavor:vanilla metadata if the current live object has a
-  metageneration of 2.
 
 <B>OPTIONS</B>
   -h          Specifies a header:value to be added, or header to be removed,
@@ -119,11 +123,8 @@ _DETAILED_HELP_TEXT = ("""
 # of doing things. This list comes from functionality that was supported by
 # gsutil3 at the time gsutil4 was released.
 SETTABLE_FIELDS = [
-    'cache-control',
-    'content-disposition',
-    'content-encoding',
-    'content-language',
-    'content-type',
+    'cache-control', 'content-disposition', 'content-encoding',
+    'content-language', 'content-type', 'custom-time'
 ]
 
 
@@ -187,6 +188,11 @@ class SetMetaCommand(Command):
     self.metadata_change = metadata_plus
     for header in metadata_minus:
       self.metadata_change[header] = ''
+
+    if not self.metadata_change:
+      raise CommandException(
+          'gsutil setmeta requires one or more headers to be provided with the'
+          ' -h flag. See "gsutil help setmeta" for more information.')
 
     if len(self.args) == 1 and not self.recursion_requested:
       url = StorageUrlFromString(self.args[0])

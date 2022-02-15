@@ -9,4 +9,4 @@ find "$GSUTIL_DIR" \
     -path "$GSUTIL_DIR/gslib/vendored" -prune -o \
     -path "$GSUTIL_DIR/third_party" -prune -o \
     -name "*.py" -print \
-  | xargs python -m pylint --rcfile="$TEST_DIR/.pylintrc_limited"
+  | xargs python3 -m pylint --rcfile="$TEST_DIR/.pylintrc_limited"

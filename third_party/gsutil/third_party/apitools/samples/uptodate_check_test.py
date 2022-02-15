@@ -14,9 +14,9 @@
 
 import os
 import difflib
+import unittest
 
 import six
-import unittest2
 
 from apitools.gen import gen_client
 from apitools.gen import test_utils
@@ -31,7 +31,7 @@ def _GetContent(file_path):
         return f.read()
 
 
-class ClientGenCliTest(unittest2.TestCase):
+class ClientGenCliTest(unittest.TestCase):
 
     def AssertDiffEqual(self, expected, actual):
         """Like unittest.assertEqual with a diff in the exception message."""

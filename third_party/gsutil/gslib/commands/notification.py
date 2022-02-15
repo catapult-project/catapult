@@ -45,26 +45,26 @@ from gslib.utils import copy_helper
 # Cloud Pub/Sub commands
 
 _LIST_SYNOPSIS = """
-  gsutil notification list bucket_url...
+  gsutil notification list gs://<bucket_name>...
 """
 
 _DELETE_SYNOPSIS = """
-  gsutil notification delete (notificationConfigName|bucket_url)...
+  gsutil notification delete (<notificationConfigName>|gs://<bucket_name>)...
 """
 
 _CREATE_SYNOPSIS = """
-  gsutil notification create -f (json|none) [-p prefix] [-t topic] \\
-      [-m key:value]... [-e eventType]... bucket_url
+  gsutil notification create -f (json|none) [-p <prefix>] [-t <topic>] \\
+      [-m <key>:<value>]... [-e <eventType>]... gs://<bucket_name>
 """
 
 # Object Change Notification commands
 
 _WATCHBUCKET_SYNOPSIS = """
-  gsutil notification watchbucket [-i id] [-t token] app_url bucket_url
+  gsutil notification watchbucket [-i <id>] [-t <token>] <app_url> gs://<bucket_name>
 """
 
 _STOPCHANNEL_SYNOPSIS = """
-  gsutil notification stopchannel channel_id resource_id
+  gsutil notification stopchannel <channel_id> <resource_id>
 """
 
 _SYNOPSIS = (
@@ -106,10 +106,10 @@ _DELETE_DESCRIPTION = """
 <B>DELETE</B>
   The delete sub-command deletes notification configs from a bucket. If a
   notification config name is passed as a parameter, that notification config
-  alone will be deleted. If a bucket name is passed, all notification configs
-  associated with that bucket will be deleted.
+  alone is deleted. If a bucket name is passed, all notification configs
+  associated with that bucket are deleted.
 
-  Cloud Pub/Sub topics associated with this notification config will not be
+  Cloud Pub/Sub topics associated with this notification config are not
   deleted by this command. Those must be deleted separately, for example with
   the gcloud command `gcloud beta pubsub topics delete`.
 
@@ -136,22 +136,20 @@ _CREATE_DESCRIPTION = """
   granting the permission if necessary.
 
   If a destination Cloud Pub/Sub topic is not specified with the -t flag, Cloud
-  Storage will by default choose a topic name in the default project whose ID is
-  the same the bucket name. For example, if the default project ID specified is
+  Storage chooses a topic name in the default project whose ID is the same as
+  the bucket name. For example, if the default project ID specified is
   'default-project' and the bucket being configured is gs://example-bucket, the
-  create command will use the Cloud Pub/Sub topic
+  create command uses the Cloud Pub/Sub topic
   "projects/default-project/topics/example-bucket".
 
-  In order to enable notifications, a `special Cloud Storage service account
-  <https://cloud.google.com/storage/docs/projects#service-accounts>`_ unique to
-  each project must have the IAM permission "pubsub.topics.publish". This
-  command will check to see if that permission exists and, if not, will attempt
-  to grant it.
+  In order to enable notifications, your project's `Cloud Storage service agent
+  <https://cloud.google.com/storage/docs/projects#service-accounts>`_ must have
+  the IAM permission "pubsub.topics.publish". This command checks to see if the
+  destination Cloud Pub/Sub topic grants the service agent this permission. If
+  not, the create command attempts to grant it.
 
-  You can create multiple notification configurations for a bucket, but their
-  triggers cannot overlap such that a single event could send multiple
-  notifications. Attempting to create a notification configuration that
-  overlaps with an existing notification configuration results in an error.
+  A bucket can have up to 100 total notification configurations and up to 10
+  notification configurations set to trigger for a specific event.
 
 <B>CREATE EXAMPLES</B>
   Begin sending notifications of all changes to the bucket example-bucket
@@ -171,12 +169,12 @@ _CREATE_DESCRIPTION = """
     gsutil notification create -f json \\
       -t projects/example-project/topics/files-to-process gs://example-bucket
 
-  Create a notification config that will only send an event when a new object
+  Create a notification config that only sends an event when a new object
   has been created:
 
     gsutil notification create -f json -e OBJECT_FINALIZE gs://example-bucket
 
-  Create a topic and notification config that will only send an event when
+  Create a topic and notification config that only sends an event when
   an object beginning with "photos/" is affected:
 
     gsutil notification create -p photos/ gs://example-bucket
@@ -198,29 +196,30 @@ _CREATE_DESCRIPTION = """
   The create sub-command has the following options
 
   -e        Specify an event type filter for this notification config. Cloud
-            Storage will only send notifications of this type. You may specify
-            this parameter multiple times to allow multiple event types. If not
-            specified, Cloud Storage will send notifications for all event
-            types. The valid types are:
+            Storage only sends notifications of this type. You may specify this
+            parameter multiple times to allow multiple event types. If not
+            specified, Cloud Storage sends notifications for all event types.
+            The valid types are:
 
               OBJECT_FINALIZE - An object has been created.
               OBJECT_METADATA_UPDATE - The metadata of an object has changed.
               OBJECT_DELETE - An object has been permanently deleted.
-              OBJECT_ARCHIVE - A live Cloud Storage object has been archived.
+              OBJECT_ARCHIVE - A live version of an object has become a
+                noncurrent version.
 
   -f        Specifies the payload format of notification messages. Must be
             either "json" for a payload matches the object metadata for the
             JSON API, or "none" to specify no payload at all. In either case,
             notification details are available in the message attributes.
 
-  -m        Specifies a key:value attribute that will be appended to the set
+  -m        Specifies a key:value attribute that is appended to the set
             of attributes sent to Cloud Pub/Sub for all events associated with
             this notification config. You may specify this parameter multiple
             times to set multiple attributes.
 
   -p        Specifies a prefix path filter for this notification config. Cloud
-            Storage will only send notifications for objects in this bucket
-            whose names begin with the specified prefix.
+            Storage only sends notifications for objects in this bucket whose
+            names begin with the specified prefix.
 
   -s        Skips creation and permission assignment of the Cloud Pub/Sub topic.
             This is useful if the caller does not have permission to access
@@ -228,12 +227,12 @@ _CREATE_DESCRIPTION = """
             appropriate publish permission assigned.
 
   -t        The Cloud Pub/Sub topic to which notifications should be sent. If
-            not specified, this command will choose a topic whose project is
-            your default project and whose ID is the same as the Cloud Storage
-            bucket name.
+            not specified, this command chooses a topic whose project is your
+            default project and whose ID is the same as the Cloud Storage bucket
+            name.
 
 <B>NEXT STEPS</B>
-  Once the create command has succeeded, Cloud Storage will publish a message to
+  Once the create command has succeeded, Cloud Storage publishes a message to
   the specified Cloud Pub/Sub topic when eligible changes occur. In order to
   receive these messages, you must create a Pub/Sub subscription for your
   Pub/Sub topic. To learn more about creating Pub/Sub subscriptions, see `the
@@ -259,7 +258,7 @@ _WATCHBUCKET_DESCRIPTION = """
   for details.
 
   The optional id parameter can be used to assign a unique identifier to the
-  created notification channel. If not provided, a random UUID string will be
+  created notification channel. If not provided, a random UUID string is
   generated.
 
   The optional token parameter can be used to validate notifications events.
@@ -278,7 +277,7 @@ _WATCHBUCKET_DESCRIPTION = """
     gsutil notification watchbucket -i my-channel-id \\
       https://example.com/notify gs://example-bucket
 
-  Set a custom client token that will be included with each notification event:
+  Set a custom client token that is included with each notification event:
 
     gsutil notification watchbucket -t my-client-token \\
       https://example.com/notify gs://example-bucket
@@ -300,33 +299,40 @@ _STOPCHANNEL_DESCRIPTION = """
 """
 
 _DESCRIPTION = """
-  The notification command is used to configure Google Cloud Storage support for
-  sending notifications to Cloud Pub/Sub as well as to configure the object
-  change notification feature.
+  You can use the ``notification`` command to configure
+  `Pub/Sub notifications for Cloud Storage
+  <https://cloud.google.com/storage/docs/pubsub-notifications>`_
+  and `Object change notification
+  <https://cloud.google.com/storage/docs/object-change-notification>`_ channels.
 
 <B>CLOUD PUB/SUB</B>
   The "create", "list", and "delete" sub-commands deal with configuring Cloud
   Storage integration with Google Cloud Pub/Sub.
 """ + _CREATE_DESCRIPTION + _LIST_DESCRIPTION + _DELETE_DESCRIPTION + """
 <B>OBJECT CHANGE NOTIFICATIONS</B>
-  For more information on the Object Change Notification feature, please see
-  `the Object Change Notification docs
+  Object change notification is a separate, older feature within Cloud Storage
+  for generating notifications. This feature sends HTTPS messages to a client
+  application that you've set up separately. This feature is generally not
+  recommended, because Pub/Sub notifications are cheaper, easier to use, and
+  more flexible. For more information, see
+  `Object change notification
   <https://cloud.google.com/storage/docs/object-change-notification>`_.
 
   The "watchbucket" and "stopchannel" sub-commands enable and disable Object
-  Change Notifications.
+  change notifications.
 """ + _WATCHBUCKET_DESCRIPTION + _STOPCHANNEL_DESCRIPTION + """
 <B>NOTIFICATIONS AND PARALLEL COMPOSITE UPLOADS</B>
-  By default, gsutil enables parallel composite uploads for large files (see
-  "gsutil help cp"), which means that an upload of a large object can result
-  in multiple temporary component objects being uploaded before the actual
-  intended object is created. Any subscriber to notifications for this bucket
-  will then see a notification for each of these components being created and
-  deleted. If this is a concern for you, note that parallel composite uploads
-  can be disabled by setting "parallel_composite_upload_threshold = 0" in your
-  boto config file. Alternately, your subscriber code can filter out gsutil's
-  parallel composite uploads by ignoring any notification about objects whose
-  names contain (but do not start with) the following string:
+  gsutil supports `parallel composite uploads
+  <https://cloud.google.com/storage/docs/uploads-downloads#parallel-composite-uploads>`_.
+  If enabled, an upload can result in multiple temporary component objects
+  being uploaded before the actual intended object is created. Any subscriber
+  to notifications for this bucket then sees a notification for each of these
+  components being created and deleted. If this is a concern for you, note
+  that parallel composite uploads can be disabled by setting
+  "parallel_composite_upload_threshold = 0" in your .boto config file.
+  Alternately, your subscriber code can filter out gsutil's parallel
+  composite uploads by ignoring any notification about objects whose names
+  contain (but do not start with) the following string:
     "{composite_namespace}".
 
 """.format(composite_namespace=copy_helper.PARALLEL_UPLOAD_TEMP_NAMESPACE)

@@ -15,37 +15,36 @@
 #  limitations under the License.
 
 import unittest
-from rsa._compat import b
 from rsa.transform import int2bytes, bytes2int, _int2bytes
 
 
 class Test_int2bytes(unittest.TestCase):
     def test_accuracy(self):
-        self.assertEqual(int2bytes(123456789), b('\x07[\xcd\x15'))
-        self.assertEqual(_int2bytes(123456789), b('\x07[\xcd\x15'))
+        self.assertEqual(int2bytes(123456789), b'\x07[\xcd\x15')
+        self.assertEqual(_int2bytes(123456789), b'\x07[\xcd\x15')
 
     def test_codec_identity(self):
         self.assertEqual(bytes2int(int2bytes(123456789, 128)), 123456789)
         self.assertEqual(bytes2int(_int2bytes(123456789, 128)), 123456789)
 
     def test_chunk_size(self):
-        self.assertEqual(int2bytes(123456789, 6), b('\x00\x00\x07[\xcd\x15'))
+        self.assertEqual(int2bytes(123456789, 6), b'\x00\x00\x07[\xcd\x15')
         self.assertEqual(int2bytes(123456789, 7),
-                         b('\x00\x00\x00\x07[\xcd\x15'))
+                         b'\x00\x00\x00\x07[\xcd\x15')
 
         self.assertEqual(_int2bytes(123456789, 6),
-                         b('\x00\x00\x07[\xcd\x15'))
+                         b'\x00\x00\x07[\xcd\x15')
         self.assertEqual(_int2bytes(123456789, 7),
-                         b('\x00\x00\x00\x07[\xcd\x15'))
+                         b'\x00\x00\x00\x07[\xcd\x15')
 
     def test_zero(self):
-        self.assertEqual(int2bytes(0, 4), b('\x00') * 4)
-        self.assertEqual(int2bytes(0, 7), b('\x00') * 7)
-        self.assertEqual(int2bytes(0), b('\x00'))
+        self.assertEqual(int2bytes(0, 4), b'\x00' * 4)
+        self.assertEqual(int2bytes(0, 7), b'\x00' * 7)
+        self.assertEqual(int2bytes(0), b'\x00')
 
-        self.assertEqual(_int2bytes(0, 4), b('\x00') * 4)
-        self.assertEqual(_int2bytes(0, 7), b('\x00') * 7)
-        self.assertEqual(_int2bytes(0), b('\x00'))
+        self.assertEqual(_int2bytes(0, 4), b'\x00' * 4)
+        self.assertEqual(_int2bytes(0, 7), b'\x00' * 7)
+        self.assertEqual(_int2bytes(0), b'\x00')
 
     def test_correctness_against_base_implementation(self):
         # Slow test.

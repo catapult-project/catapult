@@ -29,7 +29,7 @@ from boto.auth_handler import AuthHandler
 class NoOpAuth(AuthHandler):
   """No-op authorization plugin class."""
 
-  capability = ['s3']
+  capability = ['hmac-v4-s3', 's3']
 
   def __init__(self, path, config, provider):
     pass

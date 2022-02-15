@@ -1,17 +1,43 @@
+import os
 import setuptools
+import setuptools.command.test
 import sys
 
-pkgdir = {'': 'python%s' % sys.version_info[0]}
-VERSION = '0.11.3'
+pkgdir = {"": "python%s" % sys.version_info[0]}
+VERSION = "0.18.1"
+
+
+# `python setup.py test` uses existing Python environment, no virtualenv, no pip.
+# Use case: Archlinux package. https://github.com/httplib2/httplib2/issues/103
+# Otherwise, use `script/test`
+class TestCommand(setuptools.command.test.test):
+    def run_tests(self):
+        # pytest may be not installed yet
+        import pytest
+        args = ['--forked', '--fulltrace', '--no-cov', 'tests/']
+        if self.test_suite:
+            args += ['-k', self.test_suite]
+        sys.stderr.write('setup.py:test run pytest {}\n'.format(' '.join(args)))
+        errno = pytest.main(args)
+        sys.exit(errno)
+
+
+def read_requirements(name):
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(project_root, name), 'rb') as f:
+        # remove whitespace and comments
+        g = (line.decode('utf-8').lstrip().split('#', 1)[0].rstrip() for line in f)
+        return [l for l in g if l]
+
 
 setuptools.setup(
-    name='httplib2',
+    name="httplib2",
     version=VERSION,
-    author='Joe Gregorio',
-    author_email='joe@bitworking.org',
-    url='https://github.com/httplib2/httplib2',
-    description='A comprehensive HTTP client library.',
-    license='MIT',
+    author="Joe Gregorio",
+    author_email="joe@bitworking.org",
+    url="https://github.com/httplib2/httplib2",
+    description="A comprehensive HTTP client library.",
+    license="MIT",
     long_description="""
 
 A comprehensive HTTP client library, ``httplib2`` supports many features left out of other HTTP libraries.
@@ -57,23 +83,25 @@ A comprehensive HTTP client library, ``httplib2`` supports many features left ou
   A large and growing set of unit tests.
 """,
     package_dir=pkgdir,
-    packages=['httplib2'],
-    package_data={'httplib2': ['*.txt']},
-    classifiers=(
-        'Development Status :: 4 - Beta',
-        'Environment :: Web Environment',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Topic :: Internet :: WWW/HTTP',
-        'Topic :: Software Development :: Libraries',
-    ),
+    packages=["httplib2"],
+    package_data={"httplib2": ["*.txt"]},
+    tests_require=read_requirements("requirements-test.txt"),
+    cmdclass={"test": TestCommand},
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Environment :: Web Environment",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Topic :: Internet :: WWW/HTTP",
+        "Topic :: Software Development :: Libraries",
+    ],
 )

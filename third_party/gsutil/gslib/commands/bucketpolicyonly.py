@@ -32,47 +32,51 @@ from gslib.utils.constants import NO_MAX
 from gslib.utils.text_util import InsistOnOrOff
 
 _SET_SYNOPSIS = """
-  gsutil bucketpolicyonly set <on|off> bucket_url...
+  gsutil bucketpolicyonly set (on|off) gs://<bucket_name>...
 """
 
 _GET_SYNOPSIS = """
-  gsutil bucketpolicyonly get bucket_url...
+  gsutil bucketpolicyonly get gs://<bucket_name>...
 """
 
 _SYNOPSIS = _SET_SYNOPSIS + _GET_SYNOPSIS.lstrip('\n')
 
 _SET_DESCRIPTION = """
 <B>SET</B>
-  The ``bucketpolicyonly set`` command enables or disables the Bucket Policy
-  Only feature on Google Cloud Storage bucket(s).
+  The ``bucketpolicyonly set`` command enables or disables the uniform bucket-level
+  access feature on Google Cloud Storage buckets.
 
 <B>SET EXAMPLES</B>
-  Configure your buckets to use Bucket Policy Only:
+  Configure your buckets to use uniform bucket-level access:
 
     gsutil bucketpolicyonly set on gs://redbucket gs://bluebucket
 
-  Configure your buckets to NOT use Bucket Policy Only:
+  Configure your buckets to NOT use uniform bucket-level access:
 
     gsutil bucketpolicyonly set off gs://redbucket gs://bluebucket
 """
 
 _GET_DESCRIPTION = """
 <B>GET</B>
-  The ``bucketpolicyonly get`` command shows whether Bucket Policy Only is
-  enabled for the specified Cloud Storage bucket(s).
+  The ``bucketpolicyonly get`` command shows whether uniform bucket-level
+  access is enabled for the specified Cloud Storage bucket.
 
 <B>GET EXAMPLES</B>
-  Check if your buckets are using Bucket Policy Only:
+  Check if your buckets are using uniform bucket-level access:
 
     gsutil bucketpolicyonly get gs://redbucket gs://bluebucket
 """
 
 _DESCRIPTION = """
+  The Bucket Policy Only feature is now known as `uniform bucket-level access
+  <https://cloud.google.com/storage/docs/uniform-bucket-level-access>`_.
+  The ``bucketpolicyonly`` command is still supported, but we recommend using
+  the equivalent ``ubla`` `command
+  <https://cloud.google.com/storage/docs/gsutil/commands/ubla>`_.
+
   The ``bucketpolicyonly`` command is used to retrieve or configure the
-  `Bucket Policy Only (Beta)
-  <https://cloud.google.com/storage/docs/bucket-policy-only>`_ setting of
-  Cloud Storage bucket(s). This command has two sub-commands, ``get`` and
-  ``set``.
+  uniform bucket-level access setting of Cloud Storage buckets. This command has
+  two sub-commands, ``get`` and ``set``.
 """ + _GET_DESCRIPTION + _SET_DESCRIPTION
 
 _DETAILED_HELP_TEXT = CreateHelpText(_SYNOPSIS, _DESCRIPTION)
@@ -110,7 +114,7 @@ class BucketPolicyOnlyCommand(Command):
       help_name='bucketpolicyonly',
       help_name_aliases=[],
       help_type='command_help',
-      help_one_line_summary='Configure Bucket Policy Only (Beta)',
+      help_one_line_summary='Configure uniform bucket-level access',
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={
           'get': _get_help_text,

@@ -34,42 +34,43 @@ from gslib.utils.constants import NO_MAX
 from gslib.utils.translation_helper import LifecycleTranslation
 
 _GET_SYNOPSIS = """
-  gsutil lifecycle get url
+  gsutil lifecycle get gs://<bucket_name>
 """
 
 _SET_SYNOPSIS = """
-  gsutil lifecycle set config-json-file url...
+  gsutil lifecycle set <config-json-file> gs://<bucket_name>...
 """
 
 _SYNOPSIS = _GET_SYNOPSIS + _SET_SYNOPSIS.lstrip('\n') + '\n'
 
 _GET_DESCRIPTION = """
 <B>GET</B>
-  Gets the lifecycle configuration for a given bucket. You can get the
-  lifecycle configuration for only one bucket at a time. The output can be
-  redirected into a file, edited and then updated via the set sub-command.
+  Gets the lifecycle management configuration for a given bucket. You can get the
+  lifecycle management configuration for only one bucket at a time. To update the
+  configuration, you can redirect the output of the ``get`` command into a file,
+  edit the file, and then set it on the bucket using the ``set`` sub-command.
 
 """
 
 _SET_DESCRIPTION = """
 <B>SET</B>
-  Sets the lifecycle configuration on one or more buckets. The config-json-file
+  Sets the lifecycle management configuration on one or more buckets. The ``config-json-file``
   specified on the command line should be a path to a local file containing
   the lifecycle configuration JSON document.
 
 """
 
 _DESCRIPTION = """
-  The lifecycle command can be used to get or set lifecycle management policies
-  for the given bucket(s). This command is supported for buckets only, not
-  objects. For more information on object lifecycle management, please see the
-  `Google Cloud Storage docs <https://cloud.google.com/storage/docs/lifecycle>`_.
+  You can use the ``lifecycle`` command to get or set lifecycle management policies
+  for a given bucket. This command is supported for buckets only, not
+  objects. For more information, see `Object Lifecycle Management
+  <https://cloud.google.com/storage/docs/lifecycle>`_.
 
-  The lifecycle command has two sub-commands:
+  The ``lifecycle`` command has two sub-commands:
 """ + _GET_DESCRIPTION + _SET_DESCRIPTION + """
 <B>EXAMPLES</B>
-  The following lifecycle configuration JSON document specifies that all objects
-  in this bucket that are more than 365 days old will be deleted automatically:
+  The following lifecycle management configuration JSON document specifies that all objects
+  in this bucket that are more than 365 days old are deleted automatically:
 
     {
       "rule":
@@ -81,7 +82,7 @@ _DESCRIPTION = """
       ]
     }
 
-  The following (empty) lifecycle configuration JSON document removes all
+  The following empty lifecycle management configuration JSON document removes all
   lifecycle configuration for a bucket:
 
     {}

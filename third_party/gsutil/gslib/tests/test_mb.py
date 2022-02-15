@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 import boto
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.integration_testcase import SkipForS3
+from gslib.tests.testcase.integration_testcase import SkipForXML
 from gslib.tests.util import ObjectToURI as suri
 from gslib.utils.retention_util import SECONDS_IN_DAY
 from gslib.utils.retention_util import SECONDS_IN_MONTH
@@ -105,3 +106,30 @@ class TestMb(testcase.GsUtilIntegrationTestCase):
         return_stderr=True)
     self.assertRegexpMatches(
         stderr, r'Retention policy can only be specified for GCS buckets.')
+
+  @SkipForXML('Public access prevention only runs on GCS JSON API')
+  def test_create_with_pap_enforced(self):
+    bucket_name = self.MakeTempName('bucket')
+    bucket_uri = boto.storage_uri('gs://%s' % (bucket_name.lower()),
+                                  suppress_consec_slashes=False)
+    self.RunGsUtil(['mb', '--pap', 'enforced', suri(bucket_uri)])
+    self.VerifyPublicAccessPreventionValue(bucket_uri, 'enforced')
+
+  @SkipForXML('Public access prevention only runs on GCS JSON API')
+  def test_create_with_pap_unspecified(self):
+    bucket_name = self.MakeTempName('bucket')
+    bucket_uri = boto.storage_uri('gs://%s' % (bucket_name.lower()),
+                                  suppress_consec_slashes=False)
+    self.RunGsUtil(['mb', '--pap', 'unspecified', suri(bucket_uri)])
+    self.VerifyPublicAccessPreventionValue(bucket_uri, 'unspecified')
+
+  @SkipForXML('Public access prevention only runs on GCS JSON API')
+  def test_create_with_pap_invalid_arg(self):
+    bucket_name = self.MakeTempName('bucket')
+    bucket_uri = boto.storage_uri('gs://%s' % (bucket_name.lower()),
+                                  suppress_consec_slashes=False)
+    stderr = self.RunGsUtil(['mb', '--pap', 'invalid_arg',
+                             suri(bucket_uri)],
+                            expected_status=1,
+                            return_stderr=True)
+    self.assertRegexpMatches(stderr, r'invalid_arg is not a valid value')

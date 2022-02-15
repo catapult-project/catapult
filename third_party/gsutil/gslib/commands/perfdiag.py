@@ -79,7 +79,7 @@ _SYNOPSIS = """
   gsutil perfdiag [-i in.json]
   gsutil perfdiag [-o out.json] [-n objects] [-c processes]
       [-k threads] [-p parallelism type] [-y slices] [-s size] [-d directory]
-      [-t tests] [-j ratio] url...
+      [-t tests] [-j ratio] gs://<bucket_name>...
 """
 
 _DETAILED_HELP_TEXT = ("""
@@ -91,10 +91,10 @@ _DETAILED_HELP_TEXT = ("""
   The perfdiag command runs a suite of diagnostic tests for a given Google
   Storage bucket.
 
-  The 'url' parameter must name an existing bucket (e.g. gs://foo) to which
-  the user has write permission. Several test files will be uploaded to and
-  downloaded from this bucket. All test files will be deleted at the completion
-  of the diagnostic if it finishes successfully.
+  The 'bucket_name' parameter must name an existing bucket to which the user
+  has write permission. Several test files will be uploaded to and downloaded
+  from this bucket. All test files will be deleted at the completion of the
+  diagnostic if it finishes successfully.
 
   gsutil performance can be impacted by many factors at the client, server,
   and in-between, such as: CPU speed; available memory; the access path to the
@@ -124,7 +124,7 @@ _DETAILED_HELP_TEXT = ("""
               throughput experiments. Each process will receive an equal number
               of threads. The default value is 1.
 
-              Note: All specified threads and processes will be created, but may
+              NOTE: All specified threads and processes will be created, but may
               not by saturated with work if too few objects (specified with -n)
               and too few components (specified with -y) are specified.
 
@@ -156,9 +156,11 @@ _DETAILED_HELP_TEXT = ("""
   -s          Sets the size (in bytes) for each of the N (set with -n) objects
               used in the read and write throughput tests. The default is 1 MiB.
               This can also be specified using byte suffixes such as 500K or 1M.
-              Note: these values are interpreted as multiples of 1024 (K=1024,
+              
+              NOTE: these values are interpreted as multiples of 1024 (K=1024,
               M=1024*1024, etc.)
-              Note: If rthru_file or wthru_file are performed, N (set with -n)
+              
+              NOTE: If rthru_file or wthru_file are performed, N (set with -n)
               times as much disk space as specified will be required for the
               operation.
 

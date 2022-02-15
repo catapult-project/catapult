@@ -1,3 +1,327 @@
+Release 4.68 (release date: 2021-09-14)
+=======================================
+Bug Fixes
+------------------
+- Improve content type inference for some common extensions. (#1321)
+- Copy Content-Encoding from first object in compose command. (#1320)
+- Support generation querying for ls command. (#1319)
+
+Other Changes
+------------------
+- Add a message encouraging py3 upgrade. (#1322)
+- Update mock library version. (#1315)
+- Several documentation updates and clarifications.
+
+Release 4.67 (release date: 2021-08-16)
+=======================================
+Bug Fixes
+------------------
+- Update pyu2f to latest version to fix a security key reauth bug (#1310)
+
+Other Changes
+------------------
+ - Several documentation updates and clarifications.
+
+Release 4.66 (release date: 2021-07-29)
+=======================================
+New Features
+------------------
+ - Onboard mTLS support with AIP-4114 for gsutil (#1302)
+
+Other Changes
+------------------
+ - Several documentation updates and clarifications.
+
+Release 4.65 (release date: 2021-07-02)
+=======================================
+New Features
+------------------
+ - Add gsutil support for Public Access Prevention (#1255)
+
+Bug Fixes
+------------------
+ - Fix raising-bad-type yapf errors. (#1303)
+
+Other Changes
+------------------
+ - Link fix pointing to CGC docs again (#1291).
+ - Backfill some small doc changes (#1294)
+ - Small text tweak (#1293)
+ - Update CHECKSUM and VERSION for 4.64 release.
+ - Update CHANGES.md for 4.64 release.
+ - Delete encryption addhelp page (#1297)
+ - Putting cl/381035251 into github (#1296)
+ - Backfill cl/381932961 (#1298)
+
+Release 4.64 (release date: 2021-06-18)
+=======================================
+Bug Fixes
+------------------
+ - None
+
+Other Changes
+------------------
+ - Link fix pointing to CGC docs.
+
+Release 4.63 (release date: 2021-06-09)
+=======================================
+Bug Fixes
+------------------
+ - Update warning text on KMS access denied (#1278)
+ - Make ** to represent zero or more folders for cloud urls (#1277)
+ - Raise error if final destination path ends with a delimiter. (#1273)
+
+Other Changes
+------------------
+ - Fix flaky test for rm using preconditions (#1288)
+ - Fix pyenv issue for macOS (#1280)
+ - Fix rewrite tests (#1279)
+ - Remove unused progress callback. (#1274)
+ - Several documentation updates and clarifications.
+
+Release 4.62 (release date: 2021-05-13)
+=======================================
+New Features
+------------------
+ - Add ignore-existing option for rsync (#1183).
+ - Show satisifiesPZS info in bucket info listing (ls -Lb). (#1191)
+ - Support composite uploads with KMS. (#1214)
+ - Enforce custom endpoints through multipart copies and complex downloads. (#1247, #1250)
+
+Bug Fixes
+------------------
+ - rm will continue on object 404s. (#1033)
+ - Update boto submodule to include a fix for integrity checks with KMS. (#1258)
+ - iam ch is now case-insensitive for public members and member types. (#1241)
+ - Support skipping integrity checks in daisy chain transfers. (#1257)
+ - Ensure the correct content-length is provided for incomplete downloads. (#1231)
+ - Fix daisy chain for windows. (#1251)
+ - Fix stats crashing because of nanosecs in custom-time. (#1246)
+ - Delete connections after fork. (#1238)
+ - Patch md5 import for compliance on Red Hat FIPS mode distributions. (#1224)
+ - Handle case where there are too many slashes after CloudUrl scheme. (#1237)
+ - Allow specifying object generations in compose. (#1229)
+ - Raise error in setmeta if no headers are provided. (#1227)
+ - Fix encoding issue for rfc822 messages. (#1234)
+ - Fix StreamExhausted Error handling for Resumable uploads. (#1232)
+ - Fix wildcard ** bug. (#1235)
+ - Fix alignment of ls -l output. (#1219)
+ - Fix newlines around lists. (#1220)
+
+Other Changes
+------------------
+ - Fix sonatype errors. (#1266)
+ - gslib: boto\_util: implement a HasUserSpecifiedGsHost() helper. (#1265)
+ - Adding warning to rsync if streams or named paths are included in a folder. (#1031)
+ - Improve parallelism warnings. (#1226)
+ - Several documentation updates and clarifications.
+
+Release 4.61 (release date: 2021-04-06)
+=======================================
+Bug Fixes
+------------------
+ - Update to RSA v4.5.
+ - CopyHelper accepts kms check bypass. (#1217)
+
+Other Changes
+------------------
+ - Doc updates.
+
+Release 4.60 (release date: 2021-03-11)
+=======================================
+Bug Fixes
+------------------
+ - Fixed proxy connections when using the GCS XML API.
+ - Improve reliability when multiple instances of gsutil transfer to the same destination. (#1202)
+
+Other Changes
+------------------
+ - Remove TravisCI and update "check for CI" references to use GitHub CI. (#1200)
+ - Several documentation updates and clarifications.
+
+Release 4.59 (release date: 2021-02-10)
+======================================
+New Features
+------------------
+ - Add ignore-existing option for rsync (#1183).
+ - Show satisifiesPZS info in bucket info listing (ls -Lb) (#1191).
+
+Bug Fixes
+------------------
+ - Register integration test failures in kokoro script (#1189).
+
+Other Changes
+------------------
+ - Use respectful code (#1190).
+ - Several documentation updates and clarifications.
+
+Release 4.58 (release date: 2021-01-21)
+======================================
+Bug Fixes
+------------------
+ - Fix more occurrences of encodestring/decodestring (#1177)
+ - Ignore the .github directory for updates (#1164)
+ - Make signurl use generation information. (#1169)
+ - Fix UnicodeEncodeError in Python2 for help metadata command (#1172)
+ - Open files in non-append mode to make stripe functionality work in Lustre file systems (#1171)
+ - Persist request reason header for resumable uploads and downloads. (#1170)
+ - improve upload speed significantly when it runs on Windows (#1146)
+ - Add perf-trace-token support for resumable uploads. (#1168)
+ - Improve error message when a bucket's name collides with another. (#1166)
+ - Fix formatting for empty CORS JSON document (#1156)
+
+Other Changes
+------------------
+ - Several documentation updates and clarifications.
+ - Add CI checks for Python 3.8 (#1167)
+
+ Release 4.57 (release date: 2020-12-08)
+======================================
+Bug Fixes
+------------------
+ - Remove Unicode character from config command that was causing Python 2 issues.
+ - Sync docs with web.
+
+Release 4.56 (release date: 2020-12-03)
+======================================
+New Features
+------------------
+ - mTLS/DCA Authentication (#1141, #1122, #1142)
+ - Add GitHub Actions CI (#1153)
+
+Bug Fixes
+------------------
+ - Delete the projects.py help topic (#1154)
+ - Format fix for cp.py (#1152)
+
+Release 4.55 (release date: 2020-11-12)
+======================================
+Bug Fixes
+------------------
+ - Prevent trailing spaces in json output of iam get (#977)
+ - Fix deprecation warnings due to invalid escape sequences. (#1119)
+ - Use is_alive in favour of isAlive for Python 3.9 compatibility. (#1121)
+ - Fix for base64.{encode/decode}string in python 3.9 (#1129)
+
+Other Changes
+------------------
+ - Several documentation updates and clarifications.
+
+Release 4.54 (release date: 2020-10-22)
+======================================
+New Features
+------------------
+ - Add userProject support to signurl (#1068)
+
+Bug Fixes
+------------------
+ - Explicitly set multiprocessing start method to 'fork' (#1107)
+ - Headers can now be removed (#1091)
+ - Fix CommandException.informational attribute error (#1109)
+ - Fix broken signurl error message. (#1097)
+
+Other Changes
+------------------
+ - Warn when disabling parallel composite uploads for KMS encryption. (#1102)
+ - Handle SAML reauth challenge. (#1106)
+ - Several documentation updates and clarifications.
+
+Release 4.53 (release date: 2020-08-19)
+======================================
+Bug Fixes
+------------------
+- Remove socksipy dependency to fix proxy authentication (#1084)
+- Retry on errors relating to region specification for S3 (#1049)
+
+Other Changes
+------------------
+- Prompt Daisy chain users to try STS (#1077)
+- Add new IAM types, and disable URL parsing for  IAM b/c it has subcommands. (#1067)
+- Many text updates and clarifications.
+
+Release 4.52 (release date: 2020-07-07)
+======================================
+Bug Fixes
+------------------
+- Fix tests using wrong AWS credentials if AWS CLI is installed. (#1056)
+- Fix `AttributeError: module 'gslib' has no attribute 'USER_AGENT'`. (#1052)
+- Fix encoding error in `user_agent_helper`. (#1055)
+- Fix stdout ordering issue in hash command. (#1037)
+- Fix multithread race condition for cp/mv command when multiple operations are attempting to create the same directory. (#1027)
+- Fix OSError on interrupted rsync -d. (#1042)
+
+Other Changes
+------------------
+- Many text updates and clarifications.
+
+Release 4.51 (release date: 2020-05-19)
+======================================
+Bug Fixes
+------------------
+- Fixed file permissions for credstor2 and tracker files (#1002 and # 1005)
+- Added a check to restrict the duration (-d option) for signurl command
+  to 12 hours if -u flag is used. (#1014)
+- Updated rsync command to try patching before overwriting,
+  rather than checking ACL (#1016)
+
+Other Changes
+------------------
+- Several documentation updates and clarifications.
+
+Release 4.50 (release date: 2020-04-30)
+======================================
+New Features
+------------------
+- Switched to Using V4 signature as default for S3 (#981)
+
+Bug Fixes
+------------------
+- Updated rsa library to release-4.0 (#992)
+- Updated test script to install pyenv if missing for kokoro (#990)
+- Fixed print ordering in kms set by using print instead of
+  text_util.print_to_fd (#974)
+
+Other Changes
+------------------
+- Several documentation updates and clarifications (#969) (#987)
+
+Release 4.49 (release date: 2020-03-26)
+======================================
+New Features
+------------------
+- Added support for service account impersonation for signurl.
+
+Bug Fixes
+------------------
+- Fixed an issue with rsync throwing error when the destination url is a prefix of
+  an existing object.
+
+Other Changes
+------------------
+- Several documentation updates and clarifications.
+
+Release 4.48 (release date: 2020-02-28)
+======================================
+Bug Fixes
+------------------
+- Fixed special character handling in filenames on Windows with Python3.
+- Fixed issue while transferring binary files from S3 with Python3.
+- Fixed KMS tests, so that keys are created in the same region as their buckets.
+
+Other Changes
+------------------
+- Several documentation updates and clarifications.
+
+Release 4.47 (release date: 2020-01-10)
+======================================
+New Features
+------------------
+- Added support for the new archive storage class.
+
+Other Changes
+------------------
+- Several documentation updates and clarifications.
+
 Release 4.46 (release date: 2019-10-31)
 =======================================
 Bug Fixes
@@ -11,7 +335,7 @@ Bug Fixes
  - Fixed exception when using CMEK with resumable uploads.
  - Fixed alias for new ubla command.
  - Fixed default RDNS behavior for backwards compatibility with 4.42 and earlier.
- 
+
 Other Changes
 ------------------
 - Improvements to continuous integration workflow.
@@ -75,7 +399,7 @@ New Features
 ------------------
 - Added HMAC key management for service accounts. This includes a new "hmac"
   command to create/get/list/update/delete HMAC keys on service accounts.
-  Currently, your project must be whitelisted for use with this new HMAC
+  Currently, your project must be added to the allowlist for use with this new HMAC
   functionality. This restriction will be lifted in the near future.
 
  Bug Fixes
@@ -163,8 +487,8 @@ New features
 - Added Bucket Policy Only support to gsutil. This includes a new
   "bucketpolicyonly" command to get/set BPO on existing buckets, as well adding
   the ability to set BPO at bucket creation time with "mb -b". Currently, your
-  project must be whitelisted for use with the new BPO functionality. This
-  restriction will be lifted in the near future.
+  project must be added to the allowlist for use with the new BPO functionality.
+  This restriction will be lifted in the near future.
 
 Bug Fixes
 ------------------
@@ -206,8 +530,8 @@ Release 4.34 (release date: 2018-09-11)
 =======================================
 New features
 ------------------
-- Added bucket lock support to gsutil. Currently, your project must be
-  whitelisted for use with the new bucket lock functionality. This restriction
+- Added bucket lock support to gsutil. Currently, your project must be added to
+  the allowlist for use with the new bucket lock functionality. This restriction
   will be lifted in the near future.
 
 Bug Fixes
@@ -548,7 +872,7 @@ New Features
   configuration file.
 - Added the iam commmand, which can be used to set IAM policies on
   Google Cloud Storage buckets and objects. This feature is currently in
-  alpha and requires a whitelist application to use it - see
+  alpha and requires a safelist application to use it - see
   "gsutil help iam" for  details.
 - The hash command now supports retrieving hashes for cloud objects.
 

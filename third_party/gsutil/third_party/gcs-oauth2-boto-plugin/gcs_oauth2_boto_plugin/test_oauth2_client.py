@@ -26,7 +26,11 @@ import unittest
 from freezegun import freeze_time
 from gcs_oauth2_boto_plugin import oauth2_client
 import httplib2
-import mock
+
+try:
+  from unittest import mock
+except ImportError:
+  import mock
 
 LOG = logging.getLogger('test_oauth2_client')
 

@@ -24,7 +24,6 @@ import binascii
 import datetime
 import errno
 import json
-import multiprocessing
 import os
 import pickle
 import random
@@ -41,6 +40,7 @@ from xml.sax import _exceptions as SaxExceptions
 import six
 from six.moves import http_client
 import boto
+from boto import config
 from boto import handler
 from boto.gs.cors import Cors
 from boto.gs.lifecycle import LifecycleConfig
@@ -88,6 +88,7 @@ from gslib.utils.constants import XML_PROGRESS_CALLBACKS
 from gslib.utils.hashing_helper import Base64EncodeHash
 from gslib.utils.hashing_helper import Base64ToHexHash
 from gslib.utils.metadata_util import AddAcceptEncodingGzipIfNeeded
+from gslib.utils.parallelism_framework_util import multiprocessing_context
 from gslib.utils.text_util import EncodeStringAsLong
 from gslib.utils.translation_helper import AclTranslation
 from gslib.utils.translation_helper import AddS3MarkerAclToObjectMetadata
@@ -127,6 +128,19 @@ NON_EXISTENT_OBJECT_REGEX = re.compile(r'.*non-\s*existent\s*object',
 MD5_REGEX = re.compile(r'^"*[a-fA-F0-9]{32}"*$')
 
 
+def _AddCustomEndpointToKey(key):
+  """Update Boto Key object with user config's custom endpoint."""
+  user_setting_to_key_attribute = {
+      'gs_host': 'host',
+      'gs_port': 'port',
+      'gs_host_header': 'host_header',
+  }
+  for user_setting, key_attribute in user_setting_to_key_attribute.items():
+    user_setting_value = config.get('Credentials', user_setting, None)
+    if user_setting_value is not None:
+      setattr(key.bucket.connection, key_attribute, user_setting_value)
+
+
 def InitializeMultiprocessingVariables():  # pylint: disable=invalid-name
   """Perform necessary initialization for multiprocessing.
 
@@ -136,7 +150,7 @@ def InitializeMultiprocessingVariables():  # pylint: disable=invalid-name
   # pylint: disable=global-variable-undefined
   global boto_auth_initialized, boto_auth_initialized_lock
   boto_auth_initialized_lock = parallelism_framework_util.CreateLock()
-  boto_auth_initialized = multiprocessing.Value('i', 0)
+  boto_auth_initialized = multiprocessing_context.Value('i', 0)
 
 
 class DownloadProxyCallbackHandler(object):
@@ -218,6 +232,10 @@ class BotoTranslation(CloudApi):
         boto_auth_initialized.value = 1
     self.api_version = boto.config.get_value('GSUtil', 'default_api_version',
                                              '1')
+
+  def GetServiceAccountId(self):
+    """Service account credentials unused for S3."""
+    return None
 
   def GetBucket(self, bucket_name, provider=None, fields=None):
     """See CloudApi class for function doc strings."""
@@ -542,6 +560,8 @@ class BotoTranslation(CloudApi):
     if serialization_data:
       serialization_dict = json.loads(serialization_data)
       key = pickle.loads(binascii.a2b_base64(serialization_dict['url']))
+      if self.provider == 'gs':
+        _AddCustomEndpointToKey(key)
     else:
       key = self._GetBotoKey(bucket_name, object_name, generation=generation)
 
@@ -685,6 +705,8 @@ class BotoTranslation(CloudApi):
       try:
         cb_handler = DownloadProxyCallbackHandler(start_byte, callback)
         headers = headers.copy()
+        if 'range' in headers:
+          headers.pop('range')
         headers['Range'] = 'bytes=%d-%d' % (start_byte, end_byte)
 
         # Disable AWSAuthConnection-level retry behavior, since that would
@@ -1525,11 +1547,11 @@ class BotoTranslation(CloudApi):
     crc32c = None
     if not fields or 'crc32c' in fields:
       if hasattr(key, 'cloud_hashes') and 'crc32c' in key.cloud_hashes:
-        crc32c = base64.encodestring(key.cloud_hashes['crc32c']).rstrip(b'\n')
+        crc32c = base64.b64encode(key.cloud_hashes['crc32c']).rstrip(b'\n')
     md5_hash = None
     if not fields or 'md5Hash' in fields:
       if hasattr(key, 'cloud_hashes') and 'md5' in key.cloud_hashes:
-        md5_hash = base64.encodestring(key.cloud_hashes['md5']).rstrip(b'\n')
+        md5_hash = base64.b64encode(key.cloud_hashes['md5']).rstrip(b'\n')
       elif self._GetMD5FromETag(getattr(key, 'etag', None)):
         md5_hash = Base64EncodeHash(self._GetMD5FromETag(key.etag))
       elif self.provider == 's3':

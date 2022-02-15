@@ -32,6 +32,7 @@ from gslib.exception import CommandException
 from gslib.utils.boto_util import GetGsutilStateDir
 from gslib.utils.boto_util import ResumableThreshold
 from gslib.utils.constants import UTF8
+from gslib.utils.hashing_helper import GetMd5
 from gslib.utils.system_util import CreateDirIfNeeded
 
 # The maximum length of a file name can vary wildly between different
@@ -306,7 +307,7 @@ def HashRewriteParameters(src_obj_metadata,
       not dst_obj_metadata or not dst_obj_metadata.bucket or
       not dst_obj_metadata.name or not projection):
     return
-  md5_hash = hashlib.md5()
+  md5_hash = GetMd5()
   for input_param in (
       src_obj_metadata,
       dst_obj_metadata,
@@ -554,12 +555,26 @@ def WriteDownloadComponentTrackerFile(tracker_file_name, src_obj_metadata,
 def _WriteTrackerFile(tracker_file_name, data):
   """Creates a tracker file, storing the input data."""
   try:
-    with os.fdopen(os.open(tracker_file_name, os.O_WRONLY | os.O_CREAT, 0o600),
-                   'w') as tf:
+    fd = os.open(tracker_file_name, os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+                 0o600)
+    with os.fdopen(fd, 'w') as tf:
       tf.write(data)
     return False
   except (IOError, OSError) as e:
     raise RaiseUnwritableTrackerFileException(tracker_file_name, e.strerror)
+
+
+def WriteJsonDataToTrackerFile(tracker_file_name, data):
+  """Create a tracker file and write json data to it.
+
+  Raises:
+    TypeError: If the data is not JSON serializable
+  """
+  try:
+    json_str = json.dumps(data)
+  except TypeError as err:
+    raise RaiseUnwritableTrackerFileException(tracker_file_name, err.strerror)
+  _WriteTrackerFile(tracker_file_name, json_str)
 
 
 def GetUploadTrackerData(tracker_file_name, logger, encryption_key_sha256=None):

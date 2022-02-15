@@ -74,7 +74,6 @@ THIRD_PARTY_LIBS = [
     ('funcsigs', ''),  # mock dependency
     ('google-reauth-python', ''),  # Package name: google_reauth
     ('pyu2f', ''),  # google_reauth dependency
-    ('oauth2client', ''),
     ('pyasn1', ''),  # oauth2client dependency
     ('pyasn1-modules', ''),  # oauth2client dependency
     ('rsa', ''),  # oauth2client dependency
@@ -85,7 +84,6 @@ THIRD_PARTY_LIBS = [
     ('httplib2', submodule_pyvers),
     ('retry-decorator', ''),
     ('six', ''),  # Python 2 / 3 compatibility dependency
-    ('socksipy-branch', ''),
 ]
 
 # The wrapper script adds all third_party libraries to the Python path, since

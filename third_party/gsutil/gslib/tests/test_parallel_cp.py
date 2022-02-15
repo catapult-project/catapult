@@ -40,6 +40,7 @@ from __future__ import unicode_literals
 import os
 
 import gslib.tests.testcase as testcase
+from gslib.tests.testcase.integration_testcase import SkipForS3
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import SequentialAndParallelTransfer
 from gslib.utils.retry_util import Retry
@@ -124,6 +125,8 @@ class TestParallelCp(testcase.GsUtilIntegrationTestCase):
     lines = self.AssertNObjectsInBucket(dst_bucket_uri, 1)
     self.assertEqual(suri(dst_bucket_uri, 'dir1', 'foo'), lines[0])
 
+  @SkipForS3('The boto lib used for S3 does not handle objects '
+             'starting with slashes if we use V4 signature')
   @SequentialAndParallelTransfer
   def testCopyingFileToObjectWithConsecutiveSlashes(self):
     """Tests copying a file to an object containing consecutive slashes."""

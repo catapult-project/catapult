@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest2
+import unittest
 
 from apitools.base.py import exceptions
 from apitools.base.py import http_wrapper
@@ -24,7 +24,7 @@ def _MakeResponse(status_code):
         request_url='http://www.google.com')
 
 
-class HttpErrorFromResponseTest(unittest2.TestCase):
+class HttpErrorFromResponseTest(unittest.TestCase):
 
     """Tests for exceptions.HttpError.FromResponse."""
 

@@ -27,38 +27,38 @@ _DETAILED_HELP_TEXT = ("""
 
     gsutil cp gs://bucket/data/abc* .
 
-  will copy all objects that start with gs://bucket/data/abc followed by any
+  copies all objects that start with gs://bucket/data/abc followed by any
   number of characters within that subdirectory.
 
+  NOTE: Some command shells expand wildcard matches prior to running the
+  gsutil command; however, most shells do not support recursive wildcards
+  (``**``). You can skip command shell wildcard expansion and instead use
+  gsutil's wildcarding support in such shells by single-quoting (on Linux)
+  or double-quoting (on Windows) the argument. For example:
+  
+    gsutil cp 'data/abc**' gs://bucket
+    
 
 <B>DIRECTORY BY DIRECTORY VS RECURSIVE WILDCARDS</B>
-  The "*" wildcard only matches up to the end of a path within
-  a subdirectory. For example, if bucket contains objects
+  The ``*`` wildcard only matches up to the end of a path within
+  a subdirectory. For example, if your bucket contains objects
   named gs://bucket/data/abcd, gs://bucket/data/abcdef,
   and gs://bucket/data/abcxyx, as well as an object in a sub-directory
   (gs://bucket/data/abc/def) the above gsutil cp command would match the
   first 3 object names but not the last one.
 
-  If you want matches to span directory boundaries, use a '**' wildcard:
+  If you want matches to span directory boundaries, use a ``**`` wildcard:
 
     gsutil cp gs://bucket/data/abc** .
 
-  will match all four objects above.
+  matches all four objects above.
 
-  Note that gsutil supports the same wildcards for both objects and file names.
+  Note that gsutil supports the same wildcards for both object and file names.
   Thus, for example:
 
     gsutil cp data/abc* gs://bucket
 
-  will match all names in the local file system. Most command shells also
-  support wildcarding, so if you run the above command probably your shell
-  is expanding the matches before running gsutil. However, most shells do not
-  support recursive wildcards ('**'), and you can cause gsutil's wildcarding
-  support to work for such shells by single-quoting the arguments so they
-  don't get interpreted by the shell before being passed to gsutil:
-
-    gsutil cp 'data/abc**' gs://bucket
-
+  matches all names in the local file system. 
 
 <B>BUCKET WILDCARDS</B>
   You can specify wildcards for bucket names within a single project. For
@@ -66,21 +66,21 @@ _DETAILED_HELP_TEXT = ("""
 
     gsutil ls gs://data*.example.com
 
-  will list the contents of all buckets whose name starts with "data" and
-  ends with ".example.com" in the default project. The -p option can be used
-  to specify a project other than the default.  For example:
+  lists the contents of all buckets whose name starts with ``data`` and
+  ends with ``.example.com`` in the default project. The -p option can be
+  used to specify a project other than the default.  For example:
 
     gsutil ls -p other-project gs://data*.example.com
 
-  You can also combine bucket and object name wildcards. For example this
-  command will remove all ".txt" files in any of your Google Cloud Storage
+  You can also combine bucket and object name wildcards. For example, this
+  command removes all ``.txt`` files in any of your Google Cloud Storage
   buckets in the default project:
 
     gsutil rm gs://*/**.txt
 
 
 <B>OTHER WILDCARD CHARACTERS</B>
-  In addition to '*', you can use these wildcards:
+  In addition to ``*``, you can use these wildcards:
 
   ?
     Matches a single character. For example "gs://bucket/??.txt"
@@ -88,13 +88,13 @@ _DETAILED_HELP_TEXT = ("""
 
   [chars]
     Match any of the specified characters. For example
-    "gs://bucket/[aeiou].txt" matches objects that contain a single vowel
-    character followed by .txt
+    ``gs://bucket/[aeiou].txt`` matches objects that contain a single
+    vowel character followed by ``.txt``.
 
   [char range]
     Match any of the range of characters. For example
-    "gs://bucket/[a-m].txt" matches objects that contain letters
-    a, b, c, ... or m, and end with .txt.
+    ``gs://bucket/[a-m].txt`` matches objects that contain letters
+    a, b, c, ... or m, and end with ``.txt``.
 
   You can combine wildcards to provide more powerful matches, for example:
 
@@ -108,25 +108,27 @@ _DETAILED_HELP_TEXT = ("""
   1. Shells (like bash and zsh) can attempt to expand wildcards before passing
      the arguments to gsutil. If the wildcard was supposed to refer to a cloud
      object, this can result in surprising "Not found" errors (e.g., if the
-     shell tries to expand the wildcard "gs://my-bucket/*" on the local
+     shell tries to expand the wildcard ``gs://my-bucket/*`` on the local
      machine, matching no local files, and failing the command).
 
      Note that some shells include additional characters in their wildcard
      character sets. For example, if you use zsh with the extendedglob option
-     enabled it will treat "#" as a special character, which conflicts with
+     enabled it treats ``#`` as a special character, which conflicts with
      that character's use in referencing versioned objects (see
-     "gsutil help versions" for details).
+     `Restore noncurrent object versions
+     <https://cloud.google.com/storage/docs/using-versioned-objects#restore>`_
+     for an example).
 
      To avoid these problems, surround the wildcarded expression with single
      quotes (on Linux) or double quotes (on Windows).
 
   2. Attempting to specify a filename that contains wildcard characters won't
-     work, because gsutil will try to expand the wildcard characters rather
+     work, because gsutil tries to expand the wildcard characters rather
      than using them as literal characters. For example, running the command:
 
        gsutil cp './file[1]' gs://my-bucket
 
-     will cause gsutil to try to match the '[1]' part as a wildcard.
+     causes gsutil to try to match the ``[1]`` part as a wildcard.
 
      There's an open issue to support a "raw" mode for gsutil to provide a
      way to work with file names that contain wildcard characters, but until /
@@ -140,17 +142,17 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>DIFFERENT BEHAVIOR FOR "DOT" FILES IN LOCAL FILE SYSTEM</B>
-  Per standard Unix behavior, the wildcard "*" only matches files that don't
-  start with a "." character (to avoid confusion with the "." and ".."
-  directories present in all Unix directories). gsutil provides this same
-  behavior when using wildcards over a file system URI, but does not provide
-  this behavior over cloud URIs. For example, the following command will copy
-  all objects from gs://bucket1 to gs://bucket2:
+  Per standard Unix behavior, the wildcard ``*`` only matches files that
+  don't start with a ``.`` character (to avoid confusion with the ``.`` and
+  ``..`` directories present in all Unix directories). gsutil provides this
+  same behavior when using wildcards over a file system URI, but does not
+  provide this behavior over cloud URIs. For example, the following command
+  copies all objects from gs://bucket1 to gs://bucket2:
 
     gsutil cp gs://bucket1/* gs://bucket2
 
-  but the following command will copy only files that don't start with a "."
-  from the directory "dir" to gs://bucket1:
+  but the following command copies only files that don't start with a ``.``
+  from the directory ``dir`` to gs://bucket1:
 
     gsutil cp dir/* gs://bucket1
 
@@ -165,17 +167,17 @@ _DETAILED_HELP_TEXT = ("""
 
     gs://bucket/*abc.txt
 
-  This is because the request for "gs://bucket/abc*.txt" asks the server to send
-  back the subset of results whose object name start with "abc" at the bucket
-  root, and then gsutil filters the result list for objects whose name ends with
-  ".txt".  In contrast, "gs://bucket/*abc.txt" asks the server for the complete
-  list of objects in the bucket root, and then filters for those objects whose
-  name ends with "abc.txt". This efficiency consideration becomes increasingly
-  noticeable when you use buckets containing thousands or more objects. It is
-  sometimes possible to set up the names of your objects to fit with expected
-  wildcard matching patterns, to take advantage of the efficiency of doing
-  server-side prefix requests. See, for example "gsutil help prod" for a
-  concrete use case example.
+  This is because the request for ``gs://bucket/abc*.txt`` asks the server to
+  send back the subset of results whose object name start with ``abc`` at the
+  bucket root, and then gsutil filters the result list for objects whose name
+  ends with ``.txt``.  In contrast, ``gs://bucket/*abc.txt`` asks the server for
+  the complete list of objects in the bucket root, and then filters for those
+  objects whose name ends with ``abc.txt``. This efficiency consideration
+  becomes increasingly noticeable when you use buckets containing thousands or
+  more objects. It is sometimes possible to set up the names of your objects to
+  fit with expected wildcard matching patterns, to take advantage of the
+  efficiency of doing server-side prefix requests. See, for example
+  "gsutil help prod" for a concrete use case example.
 
 
 <B>EFFICIENCY CONSIDERATION: USING MID-PATH WILDCARDS</B>
@@ -192,7 +194,7 @@ _DETAILED_HELP_TEXT = ("""
 
     gsutil ls gs://bucket/*/obj5
 
-  gsutil will perform a /-delimited top-level bucket listing and then one bucket
+  gsutil performs a /-delimited top-level bucket listing and then one bucket
   listing for each subdirectory, for a total of 3 bucket listings:
 
     GET /bucket/?delimiter=/
@@ -200,7 +202,7 @@ _DETAILED_HELP_TEXT = ("""
     GET /bucket/?prefix=dir2/obj5&delimiter=/
 
   The more bucket listings your wildcard requires, the slower and more expensive
-  it will be. The number of bucket listings required grows as:
+  it becomes. The number of bucket listings required grows as:
 
   - the number of wildcard components (e.g., "gs://bucket/a??b/c*/*/d"
     has 3 wildcard components);
@@ -213,11 +215,11 @@ _DETAILED_HELP_TEXT = ("""
 
     gsutil ls gs://bucket/**/obj5
 
-  This will match more objects than "gs://bucket/*/obj5" (since it spans
+  This matches more objects than ``gs://bucket/*/obj5`` (since it spans
   directories), but is implemented using a delimiter-less bucket listing
-  request (which means fewer bucket requests, though it will list the entire
-  bucket and filter locally, so that could require a non-trivial amount of
-  network traffic).
+  request (which means fewer bucket requests, though it lists the entire
+  bucket and filters locally, so that could require a non-trivial amount
+  of network traffic).
 """)
 
 

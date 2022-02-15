@@ -16,8 +16,7 @@
 """Test for gen_client module."""
 
 import os
-
-import unittest2
+import unittest
 
 from apitools.gen import gen_client
 from apitools.gen import test_utils
@@ -32,7 +31,7 @@ def _GetContent(file_path):
         return f.read()
 
 
-class ClientGenCliTest(unittest2.TestCase):
+class ClientGenCliTest(unittest.TestCase):
 
     def testHelp_NotEnoughArguments(self):
         with self.assertRaisesRegexp(SystemExit, '0'):
@@ -73,6 +72,8 @@ class ClientGenCliTest(unittest2.TestCase):
             self.assertEquals(expected_files, set(os.listdir(tmp_dir_path)))
             init_file = _GetContent(os.path.join(tmp_dir_path, '__init__.py'))
             self.assertEqual("""\"""Package marker file.\"""
+
+from __future__ import absolute_import
 
 import pkgutil
 

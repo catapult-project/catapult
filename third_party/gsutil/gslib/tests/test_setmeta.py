@@ -222,6 +222,23 @@ class TestSetMeta(testcase.GsUtilIntegrationTestCase):
     stdout = self.RunGsUtil(['stat', suri(objuri)], return_stdout=True)
     self.assertRegex(stdout, r'CaSe:\s+SeNsItIvE')
 
+  def test_remove_header(self):
+    """Tests removing a header"""
+    objuri = self.CreateObject(contents=b'foo')
+
+    def _Check1():
+      self.RunGsUtil(['setmeta', '-h', 'content-disposition:br', suri(objuri)])
+      stdout = self.RunGsUtil(['stat', suri(objuri)], return_stdout=True)
+      self.assertRegex(stdout, r'Content-Disposition')
+
+    def _Check2():
+      self.RunGsUtil(['setmeta', '-h', 'content-disposition', suri(objuri)])
+      stdout = self.RunGsUtil(['stat', suri(objuri)], return_stdout=True)
+      self.assertRegex(stdout, r'(?!Content-Disposition)')
+
+    _Check1()
+    _Check2()
+
   def test_disallowed_header(self):
     stderr = self.RunGsUtil(
         ['setmeta', '-h', 'Content-Length:5', 'gs://foo/bar'],
@@ -265,3 +282,12 @@ class TestSetMeta(testcase.GsUtilIntegrationTestCase):
                             expected_status=1,
                             return_stderr=True)
     self.assertIn('Invalid non-ASCII value', stderr)
+
+  def test_setmeta_raises_error_if_not_provided_headers(self):
+    bucket_uri = self.CreateBucket()
+    stderr = self.RunGsUtil(['setmeta', suri(bucket_uri)],
+                            expected_status=1,
+                            return_stderr=True)
+    self.assertIn(
+        'gsutil setmeta requires one or more headers to be provided with the'
+        ' -h flag. See "gsutil help setmeta" for more information.', stderr)

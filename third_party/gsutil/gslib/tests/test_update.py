@@ -42,6 +42,12 @@ from gslib.utils import system_util
 from gslib.utils.boto_util import CERTIFICATE_VALIDATION_ENABLED
 from gslib.utils.constants import UTF8
 from gslib.utils.update_util import DisallowUpdateIfDataInGsutilDir
+from gslib.utils.update_util import GsutilPubTarball
+
+from six import add_move, MovedModule
+
+add_move(MovedModule('mock', 'mock', 'unittest.mock'))
+from six.moves import mock
 
 TESTS_DIR = os.path.abspath(os.path.dirname(__file__))
 GSUTIL_DIR = os.path.join(TESTS_DIR, '..', '..')
@@ -253,3 +259,11 @@ class UpdateUnitTest(testcase.GsUtilUnitTestCase):
         func = shutil.copyfile
       func(os.path.join(GSUTIL_DIR, comp), os.path.join(gsutil_src, comp))
     DisallowUpdateIfDataInGsutilDir(directory=gsutil_src)
+
+  def test_pub_tarball(self):
+    """Ensure that the correct URI is returned based on the Python version."""
+    with mock.patch.object(sys, 'version_info') as version_info:
+      version_info.major = 3
+      self.assertIn('gsutil.tar.gz', GsutilPubTarball())
+      version_info.major = 2
+      self.assertIn('gsutil4.tar.gz', GsutilPubTarball())

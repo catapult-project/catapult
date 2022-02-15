@@ -38,15 +38,11 @@ from gslib.utils.posix_util import NA_MODE
 MAX_BUCKET_LENGTH = 63
 
 
-def NotParallelizable(func):
-  """Wrapper function for cases that are not parallelizable."""
+def NotParallelizable(test):
+  """Wrapper for cases that are not parallelizable."""
 
-  @wraps(func)
-  def ParallelAnnotatedFunc(*args, **kwargs):
-    return func(*args, **kwargs)
-
-  ParallelAnnotatedFunc.is_parallelizable = False
-  return ParallelAnnotatedFunc
+  setattr(test, 'is_parallelizable', False)
+  return test
 
 
 def RequiresIsolation(func):

@@ -40,3 +40,40 @@ class KeyGenTest(unittest.TestCase):
 
         self.assertEqual(0x10001, priv.e)
         self.assertEqual(0x10001, pub.e)
+
+    def test_exponents_coefficient_calculation(self):
+        pk = rsa.key.PrivateKey(3727264081, 65537, 3349121513, 65063, 57287)
+
+        self.assertEqual(pk.exp1, 55063)
+        self.assertEqual(pk.exp2, 10095)
+        self.assertEqual(pk.coef, 50797)
+
+    def test_custom_getprime_func(self):
+        # List of primes to test with, in order [p, q, p, q, ....]
+        # By starting with two of the same primes, we test that this is
+        # properly rejected.
+        primes = [64123, 64123, 64123, 50957, 39317, 33107]
+
+        def getprime(_):
+            return primes.pop(0)
+
+        # This exponent will cause two other primes to be generated.
+        exponent = 136407
+
+        (p, q, e, d) = rsa.key.gen_keys(64,
+                                        accurate=False,
+                                        getprime_func=getprime,
+                                        exponent=exponent)
+        self.assertEqual(39317, p)
+        self.assertEqual(33107, q)
+
+
+class HashTest(unittest.TestCase):
+    """Test hashing of keys"""
+
+    def test_hash_possible(self):
+        priv, pub = rsa.key.newkeys(16)
+
+        # This raises a TypeError when hashing isn't possible.
+        hash(priv)
+        hash(pub)

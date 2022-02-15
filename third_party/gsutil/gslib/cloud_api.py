@@ -15,7 +15,6 @@
 """Gsutil API for interacting with cloud storage providers."""
 
 from __future__ import absolute_import
-from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
 
@@ -61,6 +60,10 @@ class CloudApi(object):
     self.trace_token = trace_token
     self.perf_trace_token = perf_trace_token
     self.user_project = user_project
+
+  def GetServiceAccountId(self):
+    """Returns the service account email id."""
+    raise NotImplementedError('GetServiceAccountId must be overridden.')
 
   def GetBucket(self, bucket_name, provider=None, fields=None):
     """Gets Bucket metadata.
@@ -116,6 +119,34 @@ class CloudApi(object):
       Policy object of the bucket. May differ from input Policy.
     """
     raise NotImplementedError('SetBucketIamPolicy must be overloaded')
+
+  def SignUrl(self, method, duration, path, generation, logger, region,
+              signed_headers, string_to_sign_debug):
+    """Sign a url using service account's system managed private key.
+
+    Args:
+      method: The HTTP method to be used with the signed URL.
+      duration: timedelta for which the constructed signed URL should be valid.
+      path: String path to the bucket or object for signing, in the form
+          'bucket' or 'bucket/object'.
+      generation: If not None, specifies a version of an object for signing.
+      logger: logging.Logger for warning and debug output.
+      region: Geographic region in which the requested resource resides.
+      signed_headers: Dict containing the header  info like host
+          content-type etc.
+      string_to_sign_debug: If true AND logger is enabled for debug level,
+          print string to sign to debug. Used to differentiate user's
+          signed URL from the probing permissions-check signed URL.
+
+    Raises:
+      ArgumentException for errors during input validation.
+      ServiceException for errors interacting with cloud storage providers.
+      CommandException for errors because of invalid account used for signing.
+
+    Returns:
+      The signed url.
+    """
+    raise NotImplementedError('SignUrl must be overloaded')
 
   def ListBuckets(self, project_id=None, provider=None, fields=None):
     """Lists bucket metadata for the given project.

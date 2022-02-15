@@ -24,13 +24,13 @@ from gslib.help_provider import HelpProvider
 _DETAILED_HELP_TEXT = ("""
 <B>OVERVIEW</B>
   To reduce the chance for `filename encoding interoperability problems
-  <https://en.wikipedia.org/wiki/Filename#Encoding_indication_interoperability>`_ 
+  <https://en.wikipedia.org/wiki/Filename#Encoding_indication_interoperability>`_
   gsutil uses `UTF-8 <https://en.wikipedia.org/wiki/UTF-8>`_ character encoding
   when uploading and downloading files. Because UTF-8 is in widespread (and
   growing) use, for most users nothing needs to be done to use UTF-8. Users with
   files stored in other encodings (such as
   `Latin 1 <https://en.wikipedia.org/wiki/ISO/IEC_8859-1>`_) must convert those
-  filenames to UTF-8 before attempting to upload the files. 
+  filenames to UTF-8 before attempting to upload the files.
 
   The most common place where users who have filenames that use some other
   encoding encounter a gsutil error is while uploading files using the recursive
@@ -50,9 +50,8 @@ _DETAILED_HELP_TEXT = ("""
   or try to rename them and re-run the command. If you have a modest number of
   such files the simplest thing to do is to think of a different name for the
   file and manually rename the file (using local filesystem tools). If you have
-  too many files for that to be practical you can use a tool to convert the old
-  character encoding to UTF-8. One such tool is `native2ascii
-  <http://docs.oracle.com/javase/7/docs/technotes/tools/solaris/native2ascii.html>`_.
+  too many files for that to be practical, you can use a bulk rename tool or
+  script.
 
   Unicode errors for valid Unicode filepaths can be caused by lack of Python
   locale configuration on Linux and Mac OSes. If your file paths are Unicode
@@ -105,7 +104,7 @@ _DETAILED_HELP_TEXT = ("""
   cloud, it is stored as named. But if you use gsutil rysnc to bring the file to
   a macOS machine and edit the file, then when you use gsutil rsync to bring
   this version back to the cloud, you end up with two different objects, instead
-  of overwriting the original. This is because macOS converted the filename to
+  of replacing the original. This is because macOS converted the filename to
   a decomposed form, and Cloud Storage sees this as a different object name.
 
 

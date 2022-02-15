@@ -19,6 +19,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
 
+import math
 import os
 import pkgutil
 
@@ -144,6 +145,37 @@ class TestDaisyChainWrapper(testcase.GsUtilUnitTestCase):
     num_expected_calls = self.test_data_file_len // TRANSFER_BUFFER_SIZE
     if self.test_data_file_len % TRANSFER_BUFFER_SIZE:
       num_expected_calls += 1
+    # Since the chunk size is < the file size, multiple calls to GetObjectMedia
+    # should be made.
+    self.assertEqual(mock_api.get_calls, num_expected_calls)
+    with open(upload_file, 'rb') as upload_stream:
+      with open(self.test_data_file, 'rb') as download_stream:
+        self.assertEqual(upload_stream.read(), download_stream.read())
+
+  def testDownloadWithDifferentChunkSize(self):
+    """Tests multiple calls to GetObjectMedia."""
+    upload_file = self.CreateTempFile()
+    write_values = []
+    with open(self.test_data_file, 'rb') as stream:
+      # Use an arbitrary size greater than TRANSFER_BUFFER_SIZE for writing
+      # data to the buffer. For reading from the buffer
+      # WriteFromWrapperToFile will use TRANSFER_BUFFER_SIZE.
+      buffer_write_size = TRANSFER_BUFFER_SIZE * 2 + 10
+      while True:
+        # Write data with size.
+        data = stream.read(buffer_write_size)
+        if not data:
+          break
+        write_values.append(data)
+    mock_api = self.MockDownloadCloudApi(write_values)
+    daisy_chain_wrapper = DaisyChainWrapper(
+        self._dummy_url,
+        self.test_data_file_len,
+        mock_api,
+        download_chunk_size=TRANSFER_BUFFER_SIZE)
+    self._WriteFromWrapperToFile(daisy_chain_wrapper, upload_file)
+    num_expected_calls = math.ceil(self.test_data_file_len /
+                                   TRANSFER_BUFFER_SIZE)
     # Since the chunk size is < the file size, multiple calls to GetObjectMedia
     # should be made.
     self.assertEqual(mock_api.get_calls, num_expected_calls)

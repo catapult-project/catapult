@@ -17,8 +17,7 @@ import base64
 import datetime
 import json
 import sys
-
-import unittest2
+import unittest
 
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
@@ -238,7 +237,7 @@ encoding.AddCustomJsonFieldMapping(MessageWithRemappings,
                                    'repeated_field', 'repeatedField')
 
 
-class EncodingTest(unittest2.TestCase):
+class EncodingTest(unittest.TestCase):
 
     def testCopyProtoMessage(self):
         msg = SimpleMessage(field='abc')

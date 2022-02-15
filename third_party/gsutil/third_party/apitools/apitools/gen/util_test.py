@@ -21,13 +21,13 @@ import gzip
 import os
 import six.moves.urllib.request as urllib_request
 import tempfile
-import unittest2
+import unittest
 
 from apitools.gen import util
 from mock import patch
 
 
-class NormalizeVersionTest(unittest2.TestCase):
+class NormalizeVersionTest(unittest.TestCase):
 
     def testVersions(self):
         already_valid = 'v1'
@@ -36,7 +36,7 @@ class NormalizeVersionTest(unittest2.TestCase):
         self.assertEqual('v0_1', util.NormalizeVersion(to_clean))
 
 
-class NamesTest(unittest2.TestCase):
+class NamesTest(unittest.TestCase):
 
     def testKeywords(self):
         names = util.Names([''])
@@ -81,7 +81,7 @@ def _Gzip(raw_content):
         os.unlink(f.name)
 
 
-class GetURLContentTest(unittest2.TestCase):
+class GetURLContentTest(unittest.TestCase):
 
     def testUnspecifiedContentEncoding(self):
         data = 'regular non-gzipped content'

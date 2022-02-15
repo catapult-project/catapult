@@ -26,7 +26,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
 
-from hashlib import md5
 import os
 import pickle
 
@@ -69,6 +68,7 @@ from gslib.utils.constants import START_CALLBACK_PER_BYTES
 from gslib.utils.constants import UTF8
 from gslib.utils.copy_helper import PARALLEL_UPLOAD_STATIC_SALT
 from gslib.utils.copy_helper import PARALLEL_UPLOAD_TEMP_NAMESPACE
+from gslib.utils.hashing_helper import GetMd5
 from gslib.utils.parallelism_framework_util import PutToQueueWithTimeout
 from gslib.utils.parallelism_framework_util import ZERO_TASKS_TO_DO_ARGUMENT
 from gslib.utils.retry_util import Retry
@@ -94,7 +94,7 @@ def JoinThreadAndRaiseOnTimeout(ui_thread, thread_wait_time=THREAD_WAIT_TIME):
     Exception: Warns UIThread is still alive.
   """
   ui_thread.join(thread_wait_time)
-  if ui_thread.isAlive():
+  if ui_thread.is_alive():
     raise Exception('UIThread is still alive')
 
 
@@ -575,7 +575,7 @@ class TestUi(testcase.GsUtilIntegrationTestCase):
     # Create component 0 to be used in the resume; it must match the name
     # that will be generated in copy_helper, so we use the same scheme.
     encoded_name = (PARALLEL_UPLOAD_STATIC_SALT + source_file).encode(UTF8)
-    content_md5 = md5()
+    content_md5 = GetMd5()
     content_md5.update(encoded_name)
     digest = content_md5.hexdigest()
     component_object_name = (tracker_prefix + PARALLEL_UPLOAD_TEMP_NAMESPACE +

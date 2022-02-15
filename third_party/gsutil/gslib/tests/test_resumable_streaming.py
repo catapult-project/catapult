@@ -19,7 +19,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
 
-from hashlib import md5
 import os
 import pkgutil
 
@@ -32,6 +31,7 @@ from gslib.utils.boto_util import GetJsonResumableChunkSize
 from gslib.utils.constants import TRANSFER_BUFFER_SIZE
 from gslib.utils.hashing_helper import CalculateHashesFromContents
 from gslib.utils.hashing_helper import CalculateMd5FromContents
+from gslib.utils.hashing_helper import GetMd5
 
 _TEST_FILE = 'test.txt'
 
@@ -58,7 +58,7 @@ class TestResumableStreamingJsonUploadWrapper(testcase.GsUtilUnitTestCase):
       wrapper = ResumableStreamingJsonUploadWrapper(stream,
                                                     TRANSFER_BUFFER_SIZE,
                                                     test_small_buffer=True)
-      hash_dict = {'md5': md5()}
+      hash_dict = {'md5': GetMd5()}
       # CalculateHashesFromContents reads in chunks, but does not seek.
       CalculateHashesFromContents(wrapper, hash_dict)
     with open(tmp_file, 'rb') as stream:

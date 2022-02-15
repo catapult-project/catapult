@@ -16,12 +16,12 @@
 """Tests for apitools.base.py.batch."""
 
 import textwrap
+import unittest
 
 import mock
 from six.moves import http_client
 from six.moves import range  # pylint:disable=redefined-builtin
 from six.moves.urllib import parse
-import unittest2
 
 from apitools.base.py import batch
 from apitools.base.py import exceptions
@@ -69,7 +69,7 @@ class FakeService(object):
         return http_response
 
 
-class BatchTest(unittest2.TestCase):
+class BatchTest(unittest.TestCase):
 
     def assertUrlEqual(self, expected_url, provided_url):
 

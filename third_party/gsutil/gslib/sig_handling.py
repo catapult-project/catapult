@@ -143,8 +143,10 @@ def MultithreadedMainSignalHandler(signal_num, cur_stack_frame):
              '    %s' % (signal_num, re.sub('\\n', '\n    ', stack_trace)))
       try:
         sys.stderr.write(err.encode(UTF8))
-      except UnicodeDecodeError:
+      except (UnicodeDecodeError, TypeError) as e:
         # Can happen when outputting invalid Unicode filenames.
+        # or in python3, where stderr only accepts arguments of type
+        # str, not bytes.
         sys.stderr.write(err)
     else:
       sys.stderr.write('Caught CTRL-C (signal %d) - exiting\n' % signal_num)

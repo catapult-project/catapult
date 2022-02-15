@@ -66,7 +66,7 @@ class TestStat(testcase.GsUtilIntegrationTestCase):
     stdout = self.RunGsUtil(['stat', old_object_uri.version_specific_uri],
                             return_stdout=True)
 
-    self.assertIn('Archived time', stdout)
+    self.assertIn('Noncurrent time', stdout)
 
   def test_stat_output(self):
     """Tests stat output of a single object."""

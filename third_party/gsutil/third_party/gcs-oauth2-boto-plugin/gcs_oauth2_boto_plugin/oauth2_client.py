@@ -52,7 +52,6 @@ import oauth2client.client
 import oauth2client.service_account
 from google_reauth import reauth_creds
 import retry_decorator.retry_decorator
-import socks
 
 import six
 from six import BytesIO
@@ -287,7 +286,7 @@ class OAuth2Client(object):
     self.disable_ssl_certificate_validation = disable_ssl_certificate_validation
     self.ca_certs_file = ca_certs_file
     if proxy_host and proxy_port:
-      self._proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP,
+      self._proxy_info = httplib2.ProxyInfo(httplib2.socks.PROXY_TYPE_HTTP,
                                             proxy_host,
                                             proxy_port,
                                             proxy_user=proxy_user,

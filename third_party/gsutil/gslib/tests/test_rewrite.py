@@ -574,6 +574,10 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
     if self.test_api == ApiSelector.XML:
       return unittest.skip('Rewrite API is only supported in JSON.')
     bucket_uri = self.CreateBucket()
+    # If the source and destination are in the same location and have the same
+    # storage class the rewrite completes in a single request. Using a different
+    # storage class for destination so that maxBytesPerCall gets used.
+    destination_bucket_uri = self.CreateBucket(storage_class='NEARLINE')
     # maxBytesPerCall must be >= 1 MiB, so create an object > 2 MiB because we
     # need 2 response from the service: 1 success, 1 failure prior to
     # completion.
@@ -582,6 +586,12 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
                                    contents=(b'12' * ONE_MIB) + b'bar',
                                    prefer_json_api=True,
                                    encryption_key=initial_dec_key)
+    destination_object_uri = self.CreateObject(
+        bucket_uri=destination_bucket_uri,
+        object_name='foo',
+        contents='test',
+        prefer_json_api=True,
+        encryption_key=initial_dec_key)
     gsutil_api = GcsJsonApi(BucketStorageUri, logging.getLogger(),
                             DiscardMessagesQueue(), self.default_provider)
     with SetBotoConfigForTest([('GSUtil', 'decryption_key1', initial_dec_key)]):
@@ -590,7 +600,11 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
           object_uri.object_name,
           provider=self.default_provider,
           fields=['bucket', 'contentType', 'etag', 'name'])
-    dst_obj_metadata = src_obj_metadata
+    dst_obj_metadata = gsutil_api.GetObjectMetadata(
+        destination_object_uri.bucket_name,
+        destination_object_uri.object_name,
+        provider=self.default_provider,
+        fields=['bucket', 'contentType', 'etag', 'name'])
     tracker_file_name = GetRewriteTrackerFilePath(src_obj_metadata.bucket,
                                                   src_obj_metadata.name,
                                                   dst_obj_metadata.bucket,
