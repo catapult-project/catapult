@@ -415,6 +415,14 @@ def _MakeRowDict(revision, test_path, tracing_histogram, stat_name=None):
   if trace_url_set and not is_summary:
     d['supplemental_columns']['a_tracing_uri'] = list(trace_url_set)[-1]
 
+  try:
+    bot_id_name = tracing_histogram.diagnostics.get(
+        reserved_infos.BOT_ID.name)
+    if bot_id_name:
+      d['supplemental_columns']['bot_id'] = list(bot_id_name)
+  except Exception as e: # pylint: disable=broad-except
+    logging.debug('crbug/1266965 - bot_id failed. Error: %s', e)
+
   for diag_name, annotation in DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES.items():
     revision_info = tracing_histogram.diagnostics.get(diag_name)
     if not revision_info:
