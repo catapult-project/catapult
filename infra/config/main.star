@@ -146,6 +146,7 @@ def try_builder(
         name = "catapult",
         cipd_package = "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
         use_bbagent = True,
+        use_python3 = True,
     )
     if is_presubmit:
         executable = luci.recipe(
@@ -167,7 +168,6 @@ def try_builder(
         execution_timeout = 2 * time.hour,
         service_account = "catapult-try-builder@chops-service-accounts.iam.gserviceaccount.com",
         properties = props,
-        experiments = {"luci.recipes.use_python3": 20},
     )
 
     verifier_kwargs = {}
