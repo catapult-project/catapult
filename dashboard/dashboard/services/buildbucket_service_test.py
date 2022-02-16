@@ -21,6 +21,9 @@ _BUILD_PARAMETERS = {
 }
 
 
+def _mock_uuid(): # pylint: disable=invalid-name
+  return 'mock uuid'
+
 class BuildbucketServiceTest(unittest.TestCase):
 
   def setUp(self):
@@ -37,30 +40,37 @@ class BuildbucketServiceTest(unittest.TestCase):
     self._request_json.assert_called_once_with(
         buildbucket_service.API_BASE_URL + path, *args, **kwargs)
 
+  def testPut_badBucketName(self):
+    self.assertRaises(ValueError, buildbucket_service.Put,
+                      'invalid bucket string', [''], _BUILD_PARAMETERS)
+
+  @mock.patch('uuid.uuid4', _mock_uuid)
   def testPut(self):
     expected_body = {
-        'bucket': 'bucket_name',
-        'tags': ['buildset:foo'],
-        'parameters_json': json.dumps(_BUILD_PARAMETERS, separators=(',', ':')),
+        'request_id': 'mock uuid',
+        'builder': {
+            'project': 'chrome',
+            'bucket': 'bucket_name',
+            'builder': _BUILD_PARAMETERS['builder_name'],
+        },
+        'tags': [{'key': 'buildset', 'value': 'foo'}],
+        'properties': json.dumps(_BUILD_PARAMETERS.get('properties', {}),
+                                 separators=(',', ':')),
     }
-    response = buildbucket_service.Put('bucket_name', ['buildset:foo'],
+    response = buildbucket_service.Put('luci.chrome.bucket_name',
+                                       ['buildset:foo'],
                                        _BUILD_PARAMETERS)
     self._AssertCorrectResponse(response)
-    self._AssertRequestMadeOnce('builds', method='PUT', body=expected_body)
-
-  def testPutJob(self):
-    expected_body = {
-        'bucket': buildbucket_service._BUCKET_NAME,
-        'tags': [],
-        'parameters_json': json.dumps(_BUILD_PARAMETERS, separators=(',', ':')),
-    }
-    self.assertEqual(buildbucket_service.PutJob(FakeJob()), 'build id')
-    self._AssertRequestMadeOnce('builds', method='PUT', body=expected_body)
+    self._AssertRequestMadeOnce('ScheduleBuild', method='POST',
+                                body=expected_body)
 
   def testGetJobStatus(self):
     response = buildbucket_service.GetJobStatus('job_id')
     self._AssertCorrectResponse(response)
-    self._AssertRequestMadeOnce('builds/job_id')
+    expected_body = json.dumps({
+        'id': 'job_id',
+    })
+    self._AssertRequestMadeOnce('GetBuild', method='POST', body=expected_body)
 
 
 class FakeJob(object):
