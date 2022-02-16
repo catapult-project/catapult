@@ -100,10 +100,12 @@ def InstallPrivilegedApps(device, apk_tuples):
     device.RunShellCommand(['am', 'restart'])
 
 
+# TODO(crbug.com/1298252): Remove the package_name arg and set replacement_apk
+# back to a non-default argument
 @contextlib.contextmanager
 def ReplaceSystemApp(device,
-                     package_name,
-                     replacement_apk,
+                     package_name=None,
+                     replacement_apk=None,
                      install_timeout=None):
   """A context manager that replaces the given system app while in scope.
 
@@ -113,6 +115,7 @@ def ReplaceSystemApp(device,
     package_name: (str) the name of the package to replace.
     replacement_apk: (str) the path to the APK to use as a replacement.
   """
+  package_name = apk_helper.GetPackageName(replacement_apk)
   storage_dir = device_temp_file.NamedDeviceTemporaryDirectory(device.adb)
   relocate_app = _RelocateApp(device, package_name, storage_dir.name)
   install_app = _TemporarilyInstallApp(device, replacement_apk, install_timeout)
@@ -297,6 +300,7 @@ def _RelocateApp(device, package_name, relocate_to):
   relocation_map = {}
   system_package_paths = _FindSystemPackagePaths(device, [package_name])
   if system_package_paths:
+    logger.info('Relocating system package "%s"', package_name)
     relocation_map = {
         p: posixpath.join(relocate_to, posixpath.relpath(p, '/'))
         for p in system_package_paths

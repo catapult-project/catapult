@@ -20,6 +20,9 @@ perf_insights/perf_insights/download_traces.py
 # devil's binary dependency download folder.
 /devil/bin/deps/
 
+# devil test coverage data.
+/devil/.coverage
+
 # telemetry's binary dependency download folders.
 /telemetry/telemetry/internal/bin/
 /telemetry/telemetry/bin/
