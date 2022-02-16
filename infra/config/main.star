@@ -167,6 +167,7 @@ def try_builder(
         execution_timeout = 2 * time.hour,
         service_account = "catapult-try-builder@chops-service-accounts.iam.gserviceaccount.com",
         properties = props,
+        experiments = {"luci.recipes.use_python3": 20},
     )
 
     verifier_kwargs = {}
