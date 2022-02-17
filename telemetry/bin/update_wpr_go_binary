@@ -4,6 +4,7 @@
 # found in the LICENSE file.
 
 import os
+import re
 import shutil
 import sys
 import subprocess
@@ -18,21 +19,20 @@ from telemetry.internal.util import binary_manager
 
 import py_utils
 
-
+_MIN_GO_VERSION = [1, 12]
 _WPR_GO_DIR = os.path.join(util.GetCatapultDir(), 'web_page_replay_go', 'src')
-
-
-_SUPPORTED_GO_VERSIONS = ('go1.12', 'go1.13', 'go1.14', 'go1.15', 'go1.16', 'go1.17')
-
 
 def check_go_version():
   try:
     out = subprocess.check_output(['go', 'version'])
   except subprocess.CalledProcessError:
     out = 'no go binary found'
-  assert any(v in out for v in _SUPPORTED_GO_VERSIONS), (
-      'Require go version 1.8 or higher. Found: %s' % out)
-
+  match = re.findall(r'go(\d+).(\d+)', out)
+  assert len(match) > 0, ('Unable to parse go version from "%s"' % out)
+  version = [match[0][0], match[0][1]]
+  assert (version[0] > _MIN_GO_VERSION[0] or
+    (version[0] == _MIN_GO_VERSION[0] and version[1] == _MIN_GO_VERSION[1])), (
+    'Require go version %s or higher. Found: %s' % (_MIN_GO_VERSION, version))
 
 def build_go_binary(binary_name, os_name, os_arch):
   """ Build and return path to wpr go binary."""
