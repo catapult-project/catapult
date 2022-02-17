@@ -83,6 +83,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         self._managed_repo,
         '--web-engine-package-name=web_engine_with_webui',
         '--remote-debugging-port=0',
+        '--use-web-instance',
         'about:blank'
     ]
 
@@ -200,7 +201,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if self._symbolizer_proc:
       self._symbolizer_proc.kill()
     if self.browser_type == WEB_ENGINE_SHELL:
-      close_cmd = ['killall', 'context_provider.cmx']
+      close_cmd = ['killall', 'web_instance.cmx']
     else:
       close_cmd = ['killall', 'chrome_v1.cmx']
     self._command_runner.RunCommand(
