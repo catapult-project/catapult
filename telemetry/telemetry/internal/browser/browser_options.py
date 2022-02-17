@@ -265,6 +265,13 @@ class BrowserFinderOptions(optparse.Values):
     )
     parser.add_option_group(group)
 
+    # Cast browser options
+    group = optparse.OptionGroup(parser, 'Cast browser options')
+    group.add_option('--cast-output-dir',
+                     help='Output directory for Cast Core.')
+    group.add_option('--cast-runtime-exe',
+                     help='Path to Cast Web Runtime executable.')
+
     group = optparse.OptionGroup(parser, 'Fuchsia platform options')
     group.add_option(
         '--fuchsia-ssh-config',

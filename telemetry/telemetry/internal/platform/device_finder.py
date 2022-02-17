@@ -6,12 +6,14 @@
 
 from __future__ import absolute_import
 from telemetry.internal.platform import android_device
+from telemetry.internal.platform import cast_device
 from telemetry.internal.platform import cros_device
 from telemetry.internal.platform import desktop_device
 from telemetry.internal.platform import fuchsia_device
 
 DEVICES = [
     android_device,
+    cast_device,
     cros_device,
     desktop_device,
     fuchsia_device,
