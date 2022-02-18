@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -24,14 +24,14 @@ _WPR_GO_DIR = os.path.join(util.GetCatapultDir(), 'web_page_replay_go', 'src')
 
 def check_go_version():
   try:
-    out = subprocess.check_output(['go', 'version'])
+    out = subprocess.check_output(['go', 'version']).decode()
   except subprocess.CalledProcessError:
     out = 'no go binary found'
   match = re.findall(r'go(\d+).(\d+)', out)
   assert len(match) > 0, ('Unable to parse go version from "%s"' % out)
-  version = [match[0][0], match[0][1]]
+  version = [int(match[0][0]), int(match[0][1])]
   assert (version[0] > _MIN_GO_VERSION[0] or
-    (version[0] == _MIN_GO_VERSION[0] and version[1] == _MIN_GO_VERSION[1])), (
+    (version[0] == _MIN_GO_VERSION[0] and version[1] >= _MIN_GO_VERSION[1])), (
     'Require go version %s or higher. Found: %s' % (_MIN_GO_VERSION, version))
 
 def build_go_binary(binary_name, os_name, os_arch):
@@ -78,19 +78,19 @@ def build_go_binary(binary_name, os_name, os_arch):
     env['GOARCH'] = os_arch
     env['CGO_ENABLED'] = '0'
 
-    print 'GOPATH=%s' % go_path_dir
-    print 'CWD=%s' % _WPR_GO_DIR
+    print('GOPATH=%s' % go_path_dir)
+    print('CWD=%s' % _WPR_GO_DIR)
 
     get_cmd = ['go', 'get', '-d', './...']
-    print 'Running get command: %s' % ' '.join(get_cmd)
+    print('Running get command: %s' % ' '.join(get_cmd))
     subprocess.check_call(get_cmd, env=env, cwd=_WPR_GO_DIR)
 
     build_cmd = ['go', 'build', '-v', '%s.go' % binary_name]
-    print 'Running build command: %s' % ' '.join(build_cmd)
+    print('Running build command: %s' % ' '.join(build_cmd))
     subprocess.check_call(build_cmd, env=env, cwd=_WPR_GO_DIR)
 
     clean_cmd = ['go', 'clean', '-modcache']
-    print 'Running clean command: %s' % ' '.join(clean_cmd)
+    print('Running clean command: %s' % ' '.join(clean_cmd))
     subprocess.check_call(clean_cmd, env=env, cwd=_WPR_GO_DIR)
 
   finally:
@@ -124,11 +124,12 @@ def BuildAndUpdateGoBinary(binary_name, os_name, arch_name):
     raise NotImplementedError('OS = %s, ARCH = %s is not supported' %
         (os_name, arch_name))
 
-  print 'Build %s binary for OS %s, ARCH: %s' % (binary_name, os_name, arch_name)
+  print('Build %s binary for OS %s, ARCH: %s' % (
+      binary_name, os_name, arch_name))
   binary_file = build_go_binary(binary_name, os_name, arch_name)
 
-  print 'Update %s binary dependency for OS %s, ARCH: %s' % (
-      binary_name, os_name, arch_name)
+  print('Update %s binary dependency for OS %s, ARCH: %s' % (
+      binary_name, os_name, arch_name))
   binary_manager.UpdateDependency(
       '%s_go' % binary_name, binary_file,
        version=get_latest_wpr_go_commit_hash(),
