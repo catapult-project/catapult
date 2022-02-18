@@ -22,6 +22,7 @@ class JobsTest(test.TestCase):
 
   @mock.patch.object(utils,
                      'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)
+  @mock.patch.object(utils, 'IsStagingEnvironment', lambda: False)
   @mock.patch.object(results2_module, 'GetCachedResults2', return_value="")
   def testGet_NoUser(self, _):
     job = job_module.Job.New((), ())
@@ -36,8 +37,10 @@ class JobsTest(test.TestCase):
     self.assertTrue(data['next_cursor'])
     self.assertFalse(data['prev_cursor'])
 
+
   @mock.patch.object(utils,
                      'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)
+  @mock.patch.object(utils, 'IsStagingEnvironment', lambda: False)
   @mock.patch.object(results2_module, 'GetCachedResults2', return_value="")
   def testGet_WithUserFilter(self, _):
     job_module.Job.New((), ())
@@ -61,8 +64,10 @@ class JobsTest(test.TestCase):
     sorted_data = sorted(data['jobs'], key=lambda d: d['job_id'])
     self.assertEqual(job.AsDict([job_module.OPTION_STATE]), sorted_data[-1])
 
+
   @mock.patch.object(utils,
                      'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)
+  @mock.patch.object(utils, 'IsStagingEnvironment', lambda: False)
   @mock.patch.object(jobs.utils, 'GetEmail',
                      mock.MagicMock(return_value=_SERVICE_ACCOUNT_EMAIL))
   @mock.patch.object(results2_module, 'GetCachedResults2', return_value="")
@@ -90,8 +95,25 @@ class JobsTest(test.TestCase):
     expected_job_dict['user'] = 'chromeperf (automation)'
     self.assertEqual(expected_job_dict, sorted_data[-1])
 
+
   @mock.patch.object(utils,
                      'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)
+  @mock.patch.object(utils, 'IsStagingEnvironment', lambda: True)
+  @mock.patch.object(jobs.utils, 'GetEmail',
+                     mock.MagicMock(return_value=_SERVICE_ACCOUNT_EMAIL))
+  @mock.patch.object(results2_module, 'GetCachedResults2', return_value="")
+  def testGet_WithServiceAccountUserInStaging(self, _):
+    job_module.Job.New((), (), user=_SERVICE_ACCOUNT_EMAIL)
+
+    data = json.loads(self.testapp.get('/api/jobs?o=STATE').body)
+    self.assertEqual(1, data['count'])
+    self.assertEqual(1, len(data['jobs']))
+    self.assertEqual(data['jobs'][0]['user'], _SERVICE_ACCOUNT_EMAIL)
+
+
+  @mock.patch.object(utils,
+                     'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)
+  @mock.patch.object(utils, 'IsStagingEnvironment', lambda: False)
   @mock.patch.object(jobs.utils, 'GetEmail',
                      mock.MagicMock(return_value=_SERVICE_ACCOUNT_EMAIL))
   @mock.patch.object(results2_module, 'GetCachedResults2', return_value="")
@@ -158,8 +180,10 @@ class JobsTest(test.TestCase):
         'user': expected_automation_email,
     }])
 
+
   @mock.patch.object(utils,
                      'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)
+  @mock.patch.object(utils, 'IsStagingEnvironment', lambda: False)
   @mock.patch.object(jobs.utils, 'GetEmail',
                      mock.MagicMock(return_value=_SERVICE_ACCOUNT_EMAIL))
   @mock.patch.object(results2_module, 'GetCachedResults2', return_value="")
@@ -206,8 +230,10 @@ class JobsTest(test.TestCase):
     expected_job_dict['user'] = expected_automation_email
     self.assertEqual(expected_job_dict, sorted_data[-1])
 
+
   @mock.patch.object(utils,
                      'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)
+  @mock.patch.object(utils, 'IsStagingEnvironment', lambda: False)
   @mock.patch.object(jobs.utils, 'GetEmail',
                      mock.MagicMock(return_value=_SERVICE_ACCOUNT_EMAIL))
   @mock.patch.object(results2_module, 'GetCachedResults2', return_value="")
@@ -256,8 +282,10 @@ class JobsTest(test.TestCase):
     expected_job_dict['user'] = some_user
     self.assertEqual(expected_job_dict, sorted_data[-1])
 
+
   @mock.patch.object(utils,
                      'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)
+  @mock.patch.object(utils, 'IsStagingEnvironment', lambda: False)
   @mock.patch.object(jobs.utils, 'GetEmail',
                      mock.MagicMock(return_value=_SERVICE_ACCOUNT_EMAIL))
   @mock.patch.object(results2_module, 'GetCachedResults2', return_value="")

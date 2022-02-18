@@ -65,10 +65,16 @@ class _SimpleCache(
 
 _PINPOINT_REPO_EXCLUSION_TTL = 60  # seconds
 _PINPOINT_REPO_EXCLUSION_CACHED = _SimpleCache(0, None)
+_STAGING_APP_ID = 'chromeperf-stage'
 
 
 def IsDevAppserver():
   return app_identity.get_application_id() == 'None'
+
+
+def IsStagingEnvironment():
+  """ Check if running in staging environment """
+  return app_identity.get_application_id() == _STAGING_APP_ID
 
 
 def _GetNowRfc3339():

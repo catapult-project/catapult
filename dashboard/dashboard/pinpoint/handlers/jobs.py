@@ -136,10 +136,17 @@ def _GetJobs(options, query_filter, prev_cursor='', next_cursor=''):
       'next': next_,
   }
 
+  # Skip the email replacement workflow in staging environment.
+  if utils.IsStagingEnvironment():
+    for job in jobs:
+      result['jobs'].append(job.AsDict(options))
+    return result
+
   service_account_email = utils.ServiceAccountEmail()
   logging.debug('service account email = %s', service_account_email)
 
   def _FixupEmails(j):
+    """ Replace the service account used by monorail with a meaningful alias """
     user = j.get('user')
     if user and user == service_account_email:
       j['user'] = 'chromeperf (automation)'
