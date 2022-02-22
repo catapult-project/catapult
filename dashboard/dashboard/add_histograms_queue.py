@@ -419,7 +419,7 @@ def _MakeRowDict(revision, test_path, tracing_histogram, stat_name=None):
     bot_id_name = tracing_histogram.diagnostics.get(
         reserved_infos.BOT_ID.name)
     if bot_id_name:
-      d['supplemental_columns']['bot_id'] = list(bot_id_name)
+      d['supplemental_columns']['a_bot_id'] = list(bot_id_name)
   except Exception as e: # pylint: disable=broad-except
     logging.debug('crbug/1266965 - bot_id failed. Error: %s', e)
 
