@@ -5,6 +5,7 @@
 from __future__ import absolute_import
 import json
 import re
+import six
 
 
 RE_REPLACEMENT_FIELD = re.compile(r'{{(?P<field_spec>[^}]*)}}')
@@ -60,6 +61,8 @@ def Render(template, **kwargs):
       return value
     if field.group('modifier') == '*':
       return ', '.join(RenderValue(v) for v in value)
+    if isinstance(value, bytes):
+      return RenderValue(six.ensure_str(value))
     return RenderValue(value)
 
   result = RE_REPLACEMENT_FIELD.sub(interpolate, template)

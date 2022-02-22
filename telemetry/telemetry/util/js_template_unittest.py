@@ -30,6 +30,13 @@ class JavaScriptTemplateTest(unittest.TestCase):
                            x='bar',
                            y=None), 'var foo = "bar" + null;')
 
+  def testRenderWithBytesLiteralValues(self):
+    self.assertEqual(
+        js_template.Render('var {{ @var_name }} = {{ x }} + {{ y }};',
+                           var_name='foo',
+                           x=b'bar',
+                           y=None), 'var foo = "bar" + null;')
+
   def testRenderWithArgumentExpansion(self):
     self.assertEqual(
         js_template.Render('{{ @f }}({{ *args }})',
