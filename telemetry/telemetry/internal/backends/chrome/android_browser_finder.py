@@ -285,6 +285,10 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     startup_args.append('--enable-remote-debugging')
     startup_args.append('--disable-fre')
     startup_args.append('--disable-external-intent-requests')
+    # TODO(crbug.com/1296097): Remove
+    # --danger-disable-safebrowsing-for-benchmarking in M104 or earlier after
+    # achieving lower latency of SafeBrowsing on Stable.
+    startup_args.append('--danger-disable-safebrowsing-for-benchmarking')
 
     # Need to specify the user profile directory for
     # --ignore-certificate-errors-spki-list to work.
