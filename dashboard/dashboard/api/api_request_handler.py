@@ -22,6 +22,14 @@ _ALLOWED_ORIGINS = [
     'chromiumdash.appspot.com',
     'chromiumdash-staging.googleplex.com',
 ]
+try:
+  if utils.IsStagingEnvironment():
+    _ALLOWED_ORIGINS = [
+        'chromeperf-stage.uc.r.appspot.com',
+        'pinpoint-dot-chromeperf-stage.uc.r.appspot.com',
+    ]
+except AttributeError:
+  pass
 
 
 class BadRequestError(Exception):
