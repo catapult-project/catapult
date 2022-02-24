@@ -128,7 +128,7 @@ found in the LICENSE file.
         <iron-ajax method="post" headers="[[authHeaders]]" auto url="/api/config" loading="{{configLoading}}" last-response="{{config}}"></iron-ajax>
         <iron-ajax method="post" headers="[[authHeaders]]" auto url="{{generateChromeperfUrl('/api/test_suites')}}" loading="{{suitesLoading}}" last-response="{{testSuites}}"></iron-ajax>
         <template is="dom-if" if="{{validBenchmark(benchmark)}}">
-          <iron-ajax method="post" headers="[[authHeaders]]" auto url="https://chromeperf.appspot.com/api/describe" params="{{describeParams(benchmark)}}" loading="{{benchmarkConfigLoading}}" last-response="{{benchmarkConfig}}"></iron-ajax>
+          <iron-ajax method="post" headers="[[authHeaders]]" auto url="{{generateChromeperfUrl('/api/describe')}}" params="{{describeParams(benchmark)}}" loading="{{benchmarkConfigLoading}}" last-response="{{benchmarkConfig}}"></iron-ajax>
         </template>
         <template is="dom-if" if="[[hasJob(job)]]">
           <iron-ajax method="post" headers="[[authHeaders]]" auto url="/api/commits" params="{{commitsParams(job)}}" loading="{{commitRangeLoading}}" last-response="{{commitsList}}"></iron-ajax>
