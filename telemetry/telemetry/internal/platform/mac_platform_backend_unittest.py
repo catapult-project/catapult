@@ -35,6 +35,7 @@ class MacPlatformBackendTest(unittest.TestCase):
     platform = platform_module.GetHostPlatform()
     self.assertTrue(platform.GetSystemLog())
 
+  @decorators.Enabled('mac')
   def testTypExpectationsTagsIncludesMac10_11Tag(self):
     backend = mac_platform_backend.MacPlatformBackend()
     with mock.patch.object(
@@ -43,6 +44,7 @@ class MacPlatformBackendTest(unittest.TestCase):
           backend, 'GetOSVersionDetailString', return_value='10.11'):
         self.assertIn('mac-10.11', backend.GetTypExpectationsTags())
 
+  @decorators.Enabled('mac')
   def testTypExpectationsTagsIncludesMac10_12Tag(self):
     backend = mac_platform_backend.MacPlatformBackend()
     with mock.patch.object(

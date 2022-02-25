@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
+import sys
 import unittest
 import mock
 
@@ -13,11 +14,14 @@ from telemetry.internal.platform import mac_platform_backend
 
 class DesktopPlatformBackendTest(unittest.TestCase):
   def testDesktopTagInTypExpectationsTags(self):
-    desktop_backends = [
-        linux_platform_backend.LinuxPlatformBackend,
-        win_platform_backend.WinPlatformBackend,
-        cros_platform_backend.CrosPlatformBackend,
-        mac_platform_backend.MacPlatformBackend]
+    if sys.platform.startswith('win'):
+      desktop_backends = [win_platform_backend.WinPlatformBackend]
+    elif sys.platform.startswith('darwin'):
+      desktop_backends = [mac_platform_backend.MacPlatformBackend]
+    else:
+      desktop_backends = [
+          linux_platform_backend.LinuxPlatformBackend,
+          cros_platform_backend.CrosPlatformBackend]
     for db in desktop_backends:
       with mock.patch.object(db, 'GetOSVersionDetailString', return_value=''):
         with mock.patch.object(db, 'GetOSVersionName', return_value=''):
