@@ -9,6 +9,7 @@ import logging
 
 from telemetry import decorators
 from telemetry.internal.backends.chrome import android_browser_finder
+from telemetry.internal.backends.chrome import cast_browser_finder
 from telemetry.internal.backends.chrome import cros_browser_finder
 from telemetry.internal.backends.chrome import desktop_browser_finder
 from telemetry.internal.backends.chrome import fuchsia_browser_finder
@@ -16,6 +17,7 @@ from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.platform import device_finder
 
 BROWSER_FINDERS = [
+    cast_browser_finder,
     desktop_browser_finder,
     android_browser_finder,
     cros_browser_finder,

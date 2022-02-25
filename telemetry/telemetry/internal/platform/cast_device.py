@@ -19,6 +19,14 @@ class CastDevice(device.Device):
   def GetAllConnectedDevices(cls, denylist):
     return []
 
+  @property
+  def output_dir(self):
+    return self._output_dir
+
+  @property
+  def runtime_exe(self):
+    return self._runtime_exe
+
 
 def FindAllAvailableDevices(options):
   """Returns a list of available devices.

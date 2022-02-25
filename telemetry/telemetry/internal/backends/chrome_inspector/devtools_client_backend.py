@@ -66,7 +66,7 @@ def GetDevToolsBackEndIfReady(devtools_port,
   return client
 
 
-class FuchsiaBrowserTargetNotFoundException(Exception):
+class BrowserTargetNotFoundException(Exception):
   pass
 
 class _DevToolsClientBackend(object):
@@ -114,13 +114,13 @@ class _DevToolsClientBackend(object):
 
   @property
   def browser_target_url(self):
-    # For Fuchsia browsers, we get the browser_target through a JSON request
-    if self.platform_backend.GetOSName() == 'fuchsia':
+    # For Fuchsia and Cast browsers, get the browser_target through a JSON
+    # request
+    if self.platform_backend.GetOSName() in ['fuchsia', 'castos']:
       resp = self.GetVersion()
       if 'webSocketDebuggerUrl' in resp:
         return resp['webSocketDebuggerUrl']
-      raise FuchsiaBrowserTargetNotFoundException(
-          'Could not get the browser target.')
+      raise BrowserTargetNotFoundException('Could not get the browser target.')
     return 'ws://127.0.0.1:%i%s' % (self._local_port, self._browser_target)
 
   @property
@@ -203,7 +203,8 @@ class _DevToolsClientBackend(object):
     # this config to initialize itself correctly.
     if enable_tracing:
       trace_config = (
-          self.platform_backend.tracing_controller_backend.GetChromeTraceConfig())
+          self.platform_backend.tracing_controller_backend \
+              .GetChromeTraceConfig())
       self._tracing_backend = tracing_backend.TracingBackend(
           self._browser_websocket, trace_config)
 
