@@ -45,6 +45,10 @@ class WprArchiveInfo(object):
 
     self._story_name_to_wpr_file = data['archives']
 
+  @property
+  def data(self):
+    return self._data
+
   @classmethod
   def FromFile(cls, file_path, bucket):
     """ Generates an archive_info instance with the given json file. """

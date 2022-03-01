@@ -168,6 +168,10 @@ class WprRecorder(object):
   def options(self):
     return self._options
 
+  @property
+  def story_set(self):
+    return self._story_set
+
   def _CreateOptions(self):
     options = browser_options.BrowserFinderOptions()
     options.browser_options.wpr_mode = wpr_modes.WPR_RECORD
