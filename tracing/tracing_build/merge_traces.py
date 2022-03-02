@@ -644,7 +644,7 @@ def MergeGenericTraceComponents(component_name, components_by_filename):
   provided value (in some trace).
   """
   components = list(components_by_filename.values())
-  first_component = next(components)
+  first_component = next(iter(components))
   if not all(c == first_component for c in components):
     logging.warning(
         'Values of trace component %r differ across the provided traces. '
