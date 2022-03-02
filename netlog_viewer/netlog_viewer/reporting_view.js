@@ -111,6 +111,7 @@ var ReportingView = (function() {
       addTextNode(statusNode, ')');
 
       addNodeWithText(tr, 'td', report.type);
+      addNodeWithText(tr, 'td', report.network_isolation_key);
 
       var contentNode = addNode(tr, 'td');
       if (report.type == 'network-error')
@@ -204,15 +205,15 @@ var ReportingView = (function() {
       if (groups.length == 0)
         continue;
 
-      // Calculate the total number of endpoints for this origin, so that we can
-      // rowspan its origin cell.
-      var originHeight = 0;
+      // Calculate the total number of endpoints for this client, so that we can
+      // rowspan its origin and NIK cells.
+      var clientHeight = 0;
       for (var j = 0; j < groups.length; ++j) {
         var group = ensureObject_(groups[j]);
         var endpoints = ensureArray_(group.endpoints);
-        originHeight += group.endpoints.length;
+        clientHeight += group.endpoints.length;
       }
-      if (originHeight == 0)
+      if (clientHeight == 0)
         continue;
 
       for (var j = 0; j < groups.length; ++j) {
@@ -224,8 +225,11 @@ var ReportingView = (function() {
 
           if (j == 0 && k == 0) {
             var originNode = addNode(tr, 'td');
-            originNode.setAttribute('rowspan', originHeight);
+            originNode.setAttribute('rowspan', clientHeight);
             addTextNode(originNode, client.origin);
+            var nikNode = addNode(tr, 'td');
+            nikNode.setAttribute('rowspan', clientHeight);
+            addTextNode(nikNode, client.network_isolation_key);
           }
 
           if (k == 0) {
@@ -331,6 +335,7 @@ var ReportingView = (function() {
       }
 
       addNodeWithText(tr, 'td', policy.reportTo);
+      addNodeWithText(tr, 'td', policy.networkIsolationKey);
 
       var successFractionNode = addNode(tr, 'td');
       successFractionNode.classList.add('reporting-right-justified');
