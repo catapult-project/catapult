@@ -381,3 +381,32 @@ class WprArchiveInfoTest(unittest.TestCase):
         self.assertFalse(line.rstrip('\n').endswith(' '))
     self.assertWprFileDoesExist('story_name_abcdef0006.wprgo')
     self.assertWprFileDoesExist('story_name_abcdef0007.wprgo')
+
+  def testRemoveStory(self):
+    data = {
+        'platform_specific': True,
+        'archives': {
+            'http://www.page3.com/': {
+                _DEFAULT_PLATFORM: 'data_abcdef0001.wprgo',
+                'win': 'data_abcdef0002.wprgo',
+                'linux': 'data_abcdef0004.wprgo',
+                'mac': 'data_abcdef0003.wprgo',
+                'android': 'data_abcdef0005.wprgo'},
+            'Page1': {_DEFAULT_PLATFORM: 'data_abcdef0003.wprgo'},
+            'Page2': {_DEFAULT_PLATFORM: 'data_abcdef0002.wprgo'}
+        }
+    }
+
+    expected_data = _BASE_ARCHIVE.copy()
+    expected_data["archives"] = {
+        'Page1': {_DEFAULT_PLATFORM: 'data_abcdef0003.wprgo'},
+        'Page2': {_DEFAULT_PLATFORM: 'data_abcdef0002.wprgo'}
+    }
+
+    test_archive_info = self.createArchiveInfo(
+        archive_data=json.dumps(data, separators=(',', ': ')))
+    test_archive_info.RemoveStory('http://www.page3.com/')
+
+    with open(self.story_set_archive_info_file, 'r') as f:
+      archive_file_contents = json.load(f)
+      self.assertDictEqual(expected_data, archive_file_contents)

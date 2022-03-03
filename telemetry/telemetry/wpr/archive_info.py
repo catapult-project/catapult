@@ -179,6 +179,15 @@ class WprArchiveInfo(object):
         logging.warning('Failed to upload wpr file %s to cloud storage. '
                         'Error:%s' % target_wpr_file_path, e)
 
+  def RemoveStory(self, story):
+    story_archives = self._data['archives']
+    if story not in story_archives:
+      logging.error("Story does not exist in archive!")
+      return
+
+    del story_archives[story]
+    self._WriteToFile()
+
   def _WriteToFile(self):
     """Writes the metadata into the file passed as constructor parameter."""
     metadata = dict()
