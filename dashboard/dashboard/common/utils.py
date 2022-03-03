@@ -74,7 +74,10 @@ def IsDevAppserver():
 
 def IsStagingEnvironment():
   """ Check if running in staging environment """
-  return app_identity.get_application_id() == _STAGING_APP_ID
+  try:
+    return app_identity.get_application_id() == _STAGING_APP_ID
+  except AttributeError:
+    return False
 
 
 def _GetNowRfc3339():

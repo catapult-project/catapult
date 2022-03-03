@@ -39,6 +39,11 @@ OAUTH_CLIENT_ID_ALLOWLIST = [
     # luci-auth command.
     '446450136466-2hr92jrq8e6i4tnsa56b52vacp7t3936.apps.googleusercontent.com',
 ]
+if utils.IsStagingEnvironment():
+  OAUTH_CLIENT_ID_ALLOWLIST = [
+      # Staging oauth client id for Pinpoint.
+      '22573382977-u263jlijs2uiio0uq7qm7vso3vuh7ec5.apps.googleusercontent.com'
+  ]
 
 
 class ApiAuthException(Exception):
