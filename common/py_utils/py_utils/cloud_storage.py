@@ -144,13 +144,9 @@ def _RunCommand(args):
   elif _IsRunningOnSwarming():
     gsutil_env = os.environ.copy()
 
-  if os.name == 'nt':
-    # If Windows, prepend python. Python scripts aren't directly executable.
-    args = [sys.executable, _GSUTIL_PATH] + args
-  else:
-    # Don't do it on POSIX, in case someone is using a shell script to redirect.
-    args = [_GSUTIL_PATH] + args
-    _EnsureExecutable(_GSUTIL_PATH)
+  # Always prepend executable to take advantage of vpython following advice of:
+  # https://chromium.googlesource.com/infra/infra/+/main/doc/users/vpython.md
+  args = [sys.executable, _GSUTIL_PATH] + args
 
   if args[0] not in ('help', 'hash', 'version') and not IsNetworkIOEnabled():
     raise CloudStorageIODisabled(
