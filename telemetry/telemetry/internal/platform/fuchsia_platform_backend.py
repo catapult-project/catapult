@@ -24,7 +24,8 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
     self._command_runner = CommandRunner(
         self._ssh_config,
         device.host,
-        device.port)
+        device.port,
+        node_name=device.target_name)
     self._managed_repo = device.managed_repo
     self._detailed_os_version = None
     self._device_type = None

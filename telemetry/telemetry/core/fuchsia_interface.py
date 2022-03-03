@@ -26,17 +26,28 @@ class CommandRunner(object):
   """Helper class used to execute commands on Fuchsia devices on a remote host
   over SSH."""
 
-  def __init__(self, config_path, host, port):
+  def __init__(self, config_path, host, port, node_name=None):
     """Creates a CommandRunner that connects to the specified |host| and |port|
-    using the ssh config at the specified |config_path|.
+    using the ssh config at the specified |config_path|. Provides
+    optional |node_name| to indicate name of Fuchsia target.
 
     Args:
       config_path: Full path to SSH configuration.
       host: The hostname or IP address of the remote host.
-      port: The port to connect to."""
+      port: The port to connect to.
+      node_name: Optional node-name of fuchsia target."""
     self._config_path = config_path
     self._host = host
     self._port = port
+    self._node_name = node_name
+
+  @property
+  def node_name(self):
+    return self._node_name
+
+  @property
+  def host(self):
+    return self._host
 
   def _GetSshCommandLinePrefix(self):
     prefix_cmd = ['ssh', '-F', self._config_path, self._host]

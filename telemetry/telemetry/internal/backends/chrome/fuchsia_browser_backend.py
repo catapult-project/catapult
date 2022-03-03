@@ -107,8 +107,19 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _StartChrome(self, startup_args):
     ffx = os.path.join(fuchsia_interface.SDK_ROOT, 'tools',
                        fuchsia_interface.GetHostArchFromPlatform(), 'ffx')
-    browser_cmd = [
-        ffx,
+    browser_cmd = [ffx]
+
+    # Specify target command if possible.
+    target = self._command_runner.host
+    if (self._command_runner.node_name and
+        'fuchsia' in self._command_runner.node_name):
+      target = self._command_runner.node_name
+    if target:
+      browser_cmd.extend([
+          '--target',
+          target])
+
+    browser_cmd.extend([
         'session',
         'add',
         'fuchsia-pkg://%s/chrome#meta/chrome_v1.cmx' %
@@ -116,9 +127,8 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         '--',
         'about:blank',
         '--remote-debugging-port=0',
-        '--enable-logging',
-        '--v=3'
-    ]
+        '--enable-logging'
+    ])
     if startup_args:
       browser_cmd.extend(startup_args)
 
@@ -135,6 +145,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Need stderr to replicate stdout for symbolization.
     self._browser_log_proc.stderr = self._browser_log_proc.stdout
 
+    logging.debug('Browser command: %s', ' '.join(browser_cmd))
     self._browser_process = subprocess.Popen(
         browser_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
