@@ -61,8 +61,8 @@ def Render(template, **kwargs):
       return value
     if field.group('modifier') == '*':
       return ', '.join(RenderValue(v) for v in value)
-    if isinstance(value, bytes):
-      return RenderValue(six.ensure_str(value))
+    if isinstance(value, bytes) and six.PY3:
+      value = value.decode('utf-8')
     return RenderValue(value)
 
   result = RE_REPLACEMENT_FIELD.sub(interpolate, template)
