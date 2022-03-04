@@ -13,8 +13,14 @@
 # The properties below must be listed in this order. The "direction" only needs
 # to be specified for properties used for sort order.
 #
-# To update the indexes in production after editing them here, you must run
-# appcfg.py vacuum_indexes or appcfg.py update_indexes.
+# To update the indexes in production after editing them here, you need to run
+# the following commands:
+# Deploy the index configuration file:
+#   gcloud app deploy index.yaml
+# Delete unused indexes:
+#   gcloud datastore indexes cleanup index.yaml
+# More details:
+# https://cloud.google.com/appengine/docs/standard/python/config/indexref#deploying_the_index_configuration_file
 
 indexes:
 
