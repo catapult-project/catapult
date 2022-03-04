@@ -370,7 +370,7 @@ class AndroidPlatformBackend(
     return self._device.GetProp('ro.build.id')[0]
 
   def GetOSVersionDetailString(self):
-    return ''  # TODO(kbr): Implement this.
+    return self._device.GetProp('ro.build.id')
 
   def GetDeviceHostClockOffset(self):
     """Returns the difference between the device and host clocks."""
