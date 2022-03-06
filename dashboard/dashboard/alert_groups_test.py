@@ -561,22 +561,23 @@ class GroupReportTest(GroupReportTestBase):
   def testMultipleAltertsNonoverlapThreshold(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     self._CallHandler()
+    perf_test = 'ChromiumPerf/bot/test_suite/measurement/test_case'
 
     # Anomalies without range overlap.
-    a1 = self._AddAnomaly(start_revision=10, end_revision=40)
-    a2 = self._AddAnomaly(start_revision=50, end_revision=150)
-    a4 = self._AddAnomaly(start_revision=200, end_revision=300)
+    a1 = self._AddAnomaly(start_revision=10, end_revision=40, test=perf_test)
+    a2 = self._AddAnomaly(start_revision=50, end_revision=150, test=perf_test)
+    a4 = self._AddAnomaly(start_revision=200, end_revision=300, test=perf_test)
     self._CallHandler()
 
     # Anomaly that overlaps with first 2 alert groups.
-    a5 = self._AddAnomaly(start_revision=5, end_revision=100)
+    a5 = self._AddAnomaly(start_revision=5, end_revision=100, test=perf_test)
 
     # Anomaly that exceeds nonoverlap threshold of all existing alert groups.
-    a6 = self._AddAnomaly(start_revision=5, end_revision=305)
+    a6 = self._AddAnomaly(start_revision=5, end_revision=305, test=perf_test)
     self._CallHandler()
 
     # Anomaly that binds to a6's group.
-    a7 = self._AddAnomaly(start_revision=10, end_revision=300)
+    a7 = self._AddAnomaly(start_revision=10, end_revision=300, test=perf_test)
     self._CallHandler()
     self._CallHandler()
 

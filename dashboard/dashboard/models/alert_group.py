@@ -79,7 +79,8 @@ class AlertGroup(ndb.Model):
             and self.project_id == b.project_id
             and self.group_type == b.group_type
             and self.revision.IsOverlapping(b.revision)
-            and self.revision.HasSmallNonoverlap(b.revision))
+            and (self.revision.HasSmallNonoverlap(b.revision)
+                 if self.domain == 'ChromiumPerf' else True))
 
   @classmethod
   def GetType(cls, anomaly_entity):
