@@ -39,6 +39,8 @@ class MockPage(page_module.Page):
 
 class MockStorySet(story.StorySet):
   def __init__(self, url=''):
+    if url == '':
+      return
     super(MockStorySet, self).__init__(
         archive_data_file='data/archive_files/test.json')
     self.AddStory(MockPage(self, url))
@@ -82,7 +84,7 @@ class MockBenchmark(benchmark.Benchmark):
 
   def CreateStorySet(self, options):
     kwargs = {}
-    if options.mock_benchmark_url:
+    if hasattr(options, 'mock_benchmark_url') and options.mock_benchmark_url:
       kwargs['url'] = options.mock_benchmark_url
     self.mock_story_set = MockStorySet(**kwargs)
     return self.mock_story_set
@@ -235,6 +237,16 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
                       wpr_recorder.options.browser_options.extra_browser_args)
       # invalid command-line args
       self.assertFalse(hasattr(wpr_recorder.options, 'not_a_real_option'))
+
+  def testCommandLineFlagParsingSkipped(self):
+    flags = [
+        '--pageset-repeat', '2',
+        '--mock-benchmark-url', self._url,
+        '--upload',
+    ]
+    with record_wpr.WprRecorder(ProjectConfig(self._test_data_dir),
+                                MockBenchmark(), flags, False) as wpr_recorder:
+      self.assertFalse(hasattr(wpr_recorder.options, 'mock_benchmark_url'))
 
   def testRecordingEnabled(self):
     flags = ['--mock-benchmark-url', self._url]
