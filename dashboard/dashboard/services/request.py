@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from six.moves import http_client
 import httplib2
 import json
+import logging
 import socket
 import six.moves.urllib.parse
 
@@ -116,6 +117,7 @@ def _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs):
     http = utils.ServiceAccountHttp(timeout=60, scope=scope)
   else:
     http = httplib2.Http(timeout=60)
+  logging.info('url: %s; use_auth: %s; kwargs: %s', url, use_auth, kwargs)
 
   response, content = http.request(url, **kwargs)
 
