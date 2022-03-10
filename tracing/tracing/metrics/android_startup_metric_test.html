@@ -60,11 +60,6 @@ tr.b.unittest.testSuite(function() {
           duration: (incrementForMetrics + 2000.5)}));
     const rendererMainThread = createRendererThread(model);
     rendererMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-      cat: 'startup',
-      title: 'content::Start',
-      start: (offset + 9500.125 + incrementForMetrics),
-      duration: 10000.0}));
-    rendererMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'loading,rail,devtools.timeline',
       title: 'firstContentfulPaint',
       start: (offset + 8400.125 + incrementForMetrics),
@@ -136,7 +131,6 @@ tr.b.unittest.testSuite(function() {
     verifyHistogram(histograms, 'experimental_navigation_start_time', 1,
         2200.375);
     verifyHistogram(histograms, 'navigation_commit_time', 1, 4200.875);
-    verifyHistogram(histograms, 'experimental_content_start_time', 1, 2700);
     verifyHistogram(histograms, 'first_contentful_paint_time', 1, 1600);
     verifyHistogram(histograms, 'process_create_to_app_start_time', 1, 100);
   });
@@ -170,11 +164,6 @@ tr.b.unittest.testSuite(function() {
               start: (20.0 + 11.0),
               duration: 10.0}));
         const rendererMainThread = createRendererThread(model);
-        rendererMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'startup',
-          title: 'content::Start',
-          start: (20.0 + 1.75),
-          duration: 10.0}));
         rendererMainThread.sliceGroup.pushSlice(
             tr.c.TestUtils.newSliceEx({
               cat: 'loading,rail,devtools.timeline',
@@ -192,7 +181,6 @@ tr.b.unittest.testSuite(function() {
     verifyHistogram(histograms, 'experimental_navigation_start_time', 1,
         2200.375);
     verifyHistogram(histograms, 'navigation_commit_time', 1, 4200.875);
-    verifyHistogram(histograms, 'experimental_content_start_time', 1, 2700);
     verifyHistogram(histograms, 'first_contentful_paint_time', 1, 1600);
   });
 
@@ -226,8 +214,6 @@ tr.b.unittest.testSuite(function() {
     verifyHistogram(histograms, 'experimental_navigation_start_time', 0,
         undefined);
     verifyHistogram(histograms, 'navigation_commit_time', 0, undefined);
-    verifyHistogram(histograms, 'experimental_content_start_time', 0,
-        undefined);
     verifyHistogram(histograms, 'first_contentful_paint_time', 1, 2);
     verifyHistogram(histograms, 'process_create_to_app_start_time', 0,
         undefined);
@@ -242,7 +228,6 @@ tr.b.unittest.testSuite(function() {
     verifyHistogram(histograms, 'experimental_navigation_start_time', 1,
         2207.375);
     verifyHistogram(histograms, 'navigation_commit_time', 1, 4214.875);
-    verifyHistogram(histograms, 'experimental_content_start_time', 1, 2707);
     verifyHistogram(histograms, 'first_contentful_paint_time', 1, 1607);
     verifyHistogram(histograms, 'process_create_to_app_start_time', 1, 107);
   });
@@ -267,8 +252,6 @@ tr.b.unittest.testSuite(function() {
         2, 2200.375, 2200.375 + delta);
     verifyHistogramRange(histograms, 'navigation_commit_time',
         2, 4200.875, 4200.875 + delta * 2);
-    verifyHistogramRange(histograms, 'experimental_content_start_time',
-        2, 2700, 2700 + delta);
     verifyHistogramRange(histograms, 'first_contentful_paint_time',
         2, 1600, 1600 + delta);
     verifyHistogramRange(histograms, 'process_create_to_app_start_time', 2, 100,

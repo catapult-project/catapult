@@ -15,25 +15,28 @@ found in the LICENSE file.
 // earliest moment the Chrome code on Android is executed.
 // A few histograms are produced with the names as described below:
 //
-// 1. messageloop_start_time - time till the message loop of the browser main
-//    starts processing posted tasts (after having loaded the Profile)
-// 2. experimental_content_start_time - time when the renderer enters the main
-//    entrypoint.
-// 3. experimental_navigation_start_time - This roughly corresponds to the time
-//    the initial navigation network request is sent.
-// 4. navigation_commit_time - This is when the renderer has received the first
-//    part of the response from the network and started loading the page.
-// 5. first_contentful_paint_time - time to the first contentful paint of the
-//    page loaded at startup
-// 6. process_create_to_app_start_time - time from process creation until the
-//    application starts. The end time of this event will be the same as the
-//    start time of messageloop_start_time.
+// * messageloop_start_time - time till the message loop of the browser main
+//   starts processing posted tasts (after having loaded the Profile)
+//
+// * experimental_navigation_start_time - This roughly corresponds to the time
+//   the initial navigation network request is sent on the UI thread
+//
+// * navigation_commit_time - This is when the renderer has received the first
+//   part of the response from the network after all redirects and started
+//   loading the page. Recorded when the confirmation is received on the browser
+//   UI thread.
+//
+// * first_contentful_paint_time - time to the first contentful paint of the
+//   page loaded at startup
+//
+// * process_create_to_app_start_time - time from process creation until the
+//   application starts. The end time of this event will be the same as the
+//   start time of messageloop_start_time.
 //
 // The metric also supports multiple browser restarts, in this case multiple
 // samples would be added to the histograms above.
 tr.exportTo('tr.metrics.sh', function() {
   const MESSAGE_LOOP_EVENT_NAME = 'Startup.BrowserMessageLoopStartTime';
-  const CONTENT_START_EVENT_NAME = 'content::Start';
   const NAVIGATION_EVENT_NAME = 'Navigation StartToCommit';
   const FIRST_CONTENTFUL_PAINT_EVENT_NAME = 'firstContentfulPaint';
   const APPLICATION_START_EVENT_NAME =
@@ -61,7 +64,6 @@ tr.exportTo('tr.metrics.sh', function() {
 
     // Walk the renderer slices and extract the 'first contentful paint'
     // histogram samples.
-    let contentStartEvents = [];
     let firstContentfulPaintEvents = [];
     const rendererHelpers = chromeHelper.rendererHelpers;
     const pids = Object.keys(rendererHelpers);
@@ -73,25 +75,20 @@ tr.exportTo('tr.metrics.sh', function() {
           // There are usually several 'First Contentful Paint' events recorded
           // for each page load. Take only the first one per renderer.
           break;
-        } else if (ev.title === CONTENT_START_EVENT_NAME) {
-          contentStartEvents.push(ev);
         }
       }
     }
 
     // Fallback to scanning all processes if important events are not found.
     let totalBrowserStarts = messageLoopStartEvents.length;
-    let totalContentStartEvents = contentStartEvents.length;
     let totalFcpEvents = firstContentfulPaintEvents.length;
     let totalNavigations = navigationEvents.length;
     let totalApplicationStartEvents = applicationStartEvents.length;
     if (totalFcpEvents !== totalBrowserStarts ||
         totalNavigations !== totalBrowserStarts ||
-        totalContentStartEvents !== totalBrowserStarts ||
         totalApplicationStartEvents !== totalBrowserStarts ||
         totalBrowserStarts === 0) {
       messageLoopStartEvents = [];
-      contentStartEvents = [];
       navigationEvents = [];
       firstContentfulPaintEvents = [];
       applicationStartEvents = [];
@@ -107,8 +104,6 @@ tr.exportTo('tr.metrics.sh', function() {
             applicationStartEvents.push(ev);
           } else if (ev.title === NAVIGATION_EVENT_NAME) {
             navigationEvents.push(ev);
-          } else if (ev.title === CONTENT_START_EVENT_NAME) {
-            contentStartEvents.push(ev);
           }
         }
         for (const ev of proc.getDescendantEvents()) {
@@ -119,27 +114,23 @@ tr.exportTo('tr.metrics.sh', function() {
         }
       }
       totalBrowserStarts = messageLoopStartEvents.length;
-      totalContentStartEvents = contentStartEvents.length;
       totalNavigations = navigationEvents.length;
       totalFcpEvents = firstContentfulPaintEvents.length;
       totalApplicationStartEvents = applicationStartEvents.length;
     }
 
-    // Sometimes a number of early trace events are not recorded because tracing
-    // takes time to start. This leads to having more FCP events than
-    // messageloop_start events. As a workaround ignore the FCP events for which
-    // there are no browser starts. Navigation and content start events are
-    // recorded on a best effort basis if they are found in the trace; their
-    // absence doesn't cause FCP events to be dropped.
+    // Sort the events by start time.
     function orderEvents(event1, event2) {
       return event1.start - event2.start;
     }
     messageLoopStartEvents.sort(orderEvents);
     applicationStartEvents.sort(orderEvents);
-    contentStartEvents.sort(orderEvents);
     navigationEvents.sort(orderEvents);
     firstContentfulPaintEvents.sort(orderEvents);
 
+    // Verify the number of FCP events to avoid pairing them to browser starts
+    // incorrectly. Absence of navigation events does not cause FCP events to be
+    // dropped.
     if (totalFcpEvents < totalBrowserStarts) {
       throw new Error('Found fewer FCP events (' + totalFcpEvents +
           ') than browser starts (' + totalBrowserStarts + ')');
@@ -149,9 +140,6 @@ tr.exportTo('tr.metrics.sh', function() {
     // the metrics.
     const messageLoopStartHistogram = histograms.createHistogram(
         'messageloop_start_time',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
-    const contentStartHistogram = histograms.createHistogram(
-        'experimental_content_start_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
     const navigationStartHistogram = histograms.createHistogram(
         'experimental_navigation_start_time',
@@ -165,12 +153,8 @@ tr.exportTo('tr.metrics.sh', function() {
     const applicationStartHistogram = histograms.createHistogram(
         'process_create_to_app_start_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, []);
-    // The earliest browser start is skipped because it is affected by the state
-    // of the system coming from the time before the benchmark started. Removing
-    // these influencing factors allows reducing measurement noise.
-    // Note: Two early starts are ignored below, the reasons for spurious
-    // slowdowns of the 2nd run are not known yet, see http://crbug.com/891797.
-    let contentIndex = 0;
+    // The earliest 2 browser starts are skipped to reduce measurement noise.
+    // See http://crbug.com/891797.
     let navIndex = 0;
     let fcpIndex = 0;
     for (let loopStartIndex = 0; loopStartIndex < totalBrowserStarts;) {
@@ -183,12 +167,6 @@ tr.exportTo('tr.metrics.sh', function() {
       }
 
       // Skip all events that appear before the next browser start.
-      const contentStartEvent = contentIndex < contentStartEvents.length ?
-        contentStartEvents[contentIndex] : null;
-      if (contentStartEvent && contentStartEvent.start < loopStartEvent.start) {
-        contentIndex++;
-        continue;
-      }
       const navEvent = navIndex < navigationEvents.length ?
         navigationEvents[navIndex] : null;
       if (navEvent && navEvent.start < loopStartEvent.start) {
@@ -213,12 +191,6 @@ tr.exportTo('tr.metrics.sh', function() {
       // Record the histograms.
       messageLoopStartHistogram.addSample(loopStartEvent.duration,
           {events: new tr.v.d.RelatedEventSet([loopStartEvent])});
-      if (contentStartEvent) {
-        contentStartHistogram.addSample(
-            contentStartEvent.start - loopStartEvent.start,
-            {events: new tr.v.d.RelatedEventSet([loopStartEvent,
-              contentStartEvent])});
-      }
       if (navEvent) {
         navigationStartHistogram.addSample(
             navEvent.start - loopStartEvent.start,
