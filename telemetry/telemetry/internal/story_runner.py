@@ -458,6 +458,7 @@ def RunBenchmark(benchmark, finder_options):
         device_id=possible_browser.platform.GetDeviceId(),
         os_name=possible_browser.platform.GetOSName(),
         os_version=possible_browser.platform.GetOSVersionName(),
+        os_detail_vers=possible_browser.platform.GetOSVersionDetailString(),
         owners=benchmark.GetOwners(),
         bug_components=benchmark.GetBugComponents(),
         documentation_urls=benchmark.GetDocumentationLinks(),
