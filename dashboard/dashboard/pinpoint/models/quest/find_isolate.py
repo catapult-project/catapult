@@ -18,6 +18,7 @@ from dashboard.pinpoint.models.quest import execution
 from dashboard.pinpoint.models.quest import quest
 from dashboard.services import buildbucket_service
 from dashboard.services import gerrit_service
+from dashboard.common import utils
 
 BUCKET = 'master.tryserver.chromium.perf'
 
@@ -272,6 +273,7 @@ def RequestBuild(builder_name, change, bucket, build_tags, task=None):
           'clobber': False,
           'revision': change.base_commit.git_hash,
           'deps_revision_overrides': deps_overrides,
+          'staging': utils.IsStagingEnvironment(),
       },
   }
 
