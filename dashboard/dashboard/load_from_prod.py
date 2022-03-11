@@ -11,6 +11,7 @@ from __future__ import absolute_import
 
 import base64
 import json
+import logging
 import os
 import six.moves.urllib.request
 import six.moves.urllib.parse
@@ -104,6 +105,9 @@ class LoadFromProdHandler(request_handler.RequestHandler):
           ref = val.mutable_referencevalue()
           ref.set_app(_DEV_APP_ID)
       entity = ndb.ModelAdapter().pb_to_entity(pb)
+      if entity.key is None:
+        logging.warning('Entity without key: %s', entity)
+        continue
       entities[entity.key.kind()].append(entity)
 
     for kind in kinds:
