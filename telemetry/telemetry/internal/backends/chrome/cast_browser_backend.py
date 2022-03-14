@@ -2,10 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import logging
 import os
 import subprocess
 import tempfile
+import time
 
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.backends.chrome import minidump_finder
@@ -49,6 +51,12 @@ _RUNTIME_CONFIG_TEMPLATE = """
 }}
 """
 
+CAST_CORE_CONFIG_PATH = os.path.join(
+    os.getenv("HOME"), '.config', 'cast_shell', '.eureka.conf')
+
+class ReceiverNotFoundException(Exception):
+  pass
+
 class CastRuntime(object):
   def __init__(self, root_dir, runtime_dir):
     self._root_dir = root_dir
@@ -60,9 +68,10 @@ class CastRuntime(object):
     self._config_file = None
 
   def Start(self):
-    self._config_file = tempfile.NamedTemporaryFile()
+    self._config_file = tempfile.NamedTemporaryFile('w+')
     self._config_file.write(
         _RUNTIME_CONFIG_TEMPLATE.format(runtime_dir=self._runtime_dir))
+    self._config_file.flush()
 
     runtime_command = [
         self._app_exe,
@@ -85,7 +94,7 @@ class CastRuntime(object):
 
 class CastBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def __init__(self, cast_platform_backend, browser_options,
-               browser_directory, profile_directory):
+               browser_directory, profile_directory, casting_tab):
     super(CastBrowserBackend, self).__init__(
         cast_platform_backend,
         browser_options=browser_options,
@@ -95,14 +104,20 @@ class CastBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         supports_tab_control=False)
     self._browser_process = None
     self._cast_core_process = None
+    self._casting_tab = casting_tab
     self._devtools_port = None
     self._output_dir = cast_platform_backend.output_dir
+    self._receiver_name = None
     self._web_runtime = CastRuntime(cast_platform_backend.output_dir,
                                     cast_platform_backend.runtime_exe)
 
-
   def _FindDevToolsPortAndTarget(self):
     return self._devtools_port, None
+
+  def _ReadReceiverName(self):
+    if not self._receiver_name:
+      with open(CAST_CORE_CONFIG_PATH) as f:
+        self._receiver_name = json.load(f)['eureka-name']
 
   def Start(self, startup_args):
     # Cast Core needs to start with a fixed devtools port.
@@ -124,12 +139,33 @@ class CastBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                                                  stdin=open(os.devnull),
                                                  stdout=subprocess.PIPE,
                                                  stderr=subprocess.STDOUT)
-
       self._browser_process = self._web_runtime.Start()
+      self._ReadReceiverName()
+      self._WaitForSink()
+      self._casting_tab.action_runner.Navigate('about:blank')
+      self._casting_tab.action_runner.tab.StartTabMirroring(self._receiver_name)
+      self.BindDevToolsClient()
+
     finally:
       os.chdir(original_dir)
 
-    self.BindDevToolsClient()
+  def _WaitForSink(self, timeout=60):
+    sink_name_list = []
+    start_time = time.time()
+    while (self._receiver_name not in sink_name_list
+           and time.time() - start_time < timeout):
+      self._casting_tab.action_runner.tab.EnableCast()
+      sink_name_list = [
+          sink['name'] for sink in self._casting_tab\
+                                       .action_runner.tab.GetCastSinks()
+      ]
+      self._casting_tab.action_runner.Wait(1)
+    if self._receiver_name not in sink_name_list:
+      raise ReceiverNotFoundException(
+          'Could not find Cast Receiver {0}.'.format(self._receiver_name))
+
+  def GetReceiverName(self):
+    return self._receiver_name
 
   def GetPid(self):
     return self._browser_process.pid
@@ -143,7 +179,10 @@ class CastBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if self._browser_process:
       logging.info('Shutting down Cast browser.')
       self._web_runtime.Close()
-    self._browser_process = None
+      self._browser_process = None
+    if self._cast_core_process:
+      self._cast_core_process.kill()
+      self._cast_core_process = None
 
   def IsBrowserRunning(self):
     return bool(self._browser_process)

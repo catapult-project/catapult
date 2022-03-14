@@ -16,6 +16,7 @@ import sys
 from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry import compat_mode_options
+from telemetry.core import cast_interface
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.internal.browser import browser_finder
@@ -105,6 +106,13 @@ class BrowserFinderOptions(optparse.Values):
         help='Browser type to run, '
         'in order of priority. Supported values: list,%s' %
         ', '.join(browser_finder.FindAllBrowserTypes()))
+    group.add_option(
+        '--cast-receiver',
+        dest='cast_receiver_type',
+        default=None,
+        help='Cast Receiver type to run, '
+        'Supported values: list,%s' %
+        ', '.join(cast_interface.CAST_BROWSERS))
     group.add_option(
         '--browser-executable',
         dest='browser_executable',

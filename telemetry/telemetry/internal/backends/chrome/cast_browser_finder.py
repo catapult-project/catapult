@@ -26,6 +26,7 @@ class PossibleCastBrowser(possible_browser.PossibleBrowser):
     del finder_options
     super(PossibleCastBrowser, self).__init__(browser_type,
                                               sys.platform.lower(), True)
+    self._casting_tab = None
     self._platform = cast_platform
     self._platform_backend = (
         cast_platform._platform_backend) # pylint: disable=protected-access
@@ -48,6 +49,9 @@ class PossibleCastBrowser(possible_browser.PossibleBrowser):
     # Cast browsers don't have a need to flush.
     return []
 
+  def SetCastSender(self, casting_tab):
+    self._casting_tab = casting_tab
+
   def Create(self):
     """Start the browser process."""
     if local_first_binary_manager.LocalFirstBinaryManager.NeedsInit():
@@ -58,7 +62,8 @@ class PossibleCastBrowser(possible_browser.PossibleBrowser):
         self._browser_options)
     browser_backend = cast_browser_backend.CastBrowserBackend(
         self._platform_backend, self._browser_options,
-        self.browser_directory, self.profile_directory)
+        self.browser_directory, self.profile_directory,
+        self._casting_tab)
     try:
       return browser.Browser(
           browser_backend, self._platform_backend, startup_args,
@@ -112,6 +117,6 @@ def FindAllAvailableBrowsers(finder_options, device):
                                                           finder_options)
   browsers.extend([
       PossibleCastBrowser(
-          finder_options.browser_type, finder_options, cast_platform)
+          finder_options.cast_receiver_type, finder_options, cast_platform)
   ])
   return browsers
