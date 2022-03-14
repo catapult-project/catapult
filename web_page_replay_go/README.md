@@ -4,6 +4,8 @@ recording and replaying web pages. WprGo is currently used in Telemetry for
 Chrome benchmarking purposes. This requires go 1.8 and above. This has not been
 tested with earlier versions of go. It is supported on Windows, MacOS and Linux.
 
+For performance tests, this tool is generally not used directly. Instead, we use [these instructions](https://source.chromium.org/chromium/chromium/src/+/main:tools/perf/recording_benchmarks.md) to record, and [these instructions](https://chromium.googlesource.com/catapult.git/+/HEAD/telemetry/docs/run_benchmarks_locally.md) to replay.
+
 ## Set up GOPATH
 
 There are two ways to setup your GOPATH. The first is to use the `go get`
