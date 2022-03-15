@@ -11,6 +11,8 @@
  *   - Shows the parameters used to construct the host cache (capacity, ttl).
  */
 
+'use strict';
+
 // TODO(mmenke):  Add links for each address entry to the corresponding NetLog
 //                source.  This could either be done by adding NetLog source ids
 //                to cache entries, or tracking sources based on their type and
@@ -46,6 +48,8 @@ var DnsView = (function() {
   DnsView.INTERNAL_DNS_INVALID_CONFIG_SPAN_ID =
       'dns-view-internal-dns-invalid-config';
   DnsView.INTERNAL_DNS_CONFIG_TBODY_ID = 'dns-view-internal-dns-config-tbody';
+  DnsView.INTERNAL_DISABLED_DOH_PROVIDERS_UL_ID =
+      'dns-view-internal-disabled-doh-providers';
 
   DnsView.CAPACITY_SPAN_ID = 'dns-view-cache-capacity';
 
@@ -61,10 +65,12 @@ var DnsView = (function() {
     __proto__: superClass.prototype,
 
     onLoadLogFinish: function(data) {
-      return this.onHostResolverInfoChanged(data.hostResolverInfo);
+      return this.onHostResolverInfoChanged(
+          data.hostResolverInfo, data.dohProvidersDisabledDueToFeature);
     },
 
-    onHostResolverInfoChanged: function(hostResolverInfo) {
+    onHostResolverInfoChanged: function(
+        hostResolverInfo, dohProvidersDisabledDueToFeature) {
       // Clear the existing values.
       $(DnsView.CAPACITY_SPAN_ID).innerHTML = '';
       $(DnsView.CACHE_TBODY_ID).innerHTML = '';
@@ -73,7 +79,8 @@ var DnsView = (function() {
       $(DnsView.NETWORK_SPAN_ID).innerHTML = '0';
 
       // Update fields containing async DNS configuration information.
-      displayAsyncDnsConfig_(hostResolverInfo);
+      displayAsyncDnsConfig_(
+          hostResolverInfo, dohProvidersDisabledDueToFeature);
 
       // No info.
       if (!hostResolverInfo || !hostResolverInfo.cache)
@@ -118,7 +125,7 @@ var DnsView = (function() {
           var errorText = e.error + ' (' + netErrorToString(e.error) + ')';
           var errorNode = addTextNode(addressesCell, 'error: ' + errorText);
           addressesCell.classList.add('warning-text');
-        } else {
+        } else if (e.addresses != undefined) {
           addListToNode_(addNode(addressesCell, 'div'), e.addresses);
         }
 
@@ -168,7 +175,8 @@ var DnsView = (function() {
    * Displays information corresponding to the current async DNS configuration.
    * @param {Object} hostResolverInfo The host resolver information.
    */
-  function displayAsyncDnsConfig_(hostResolverInfo) {
+  function displayAsyncDnsConfig_(
+      hostResolverInfo, dohProvidersDisabledDueToFeature) {
     // Clear the table.
     $(DnsView.INTERNAL_DNS_CONFIG_TBODY_ID).innerHTML = '';
 
@@ -208,6 +216,15 @@ var DnsView = (function() {
       }
 
       addTextNode(td, dnsConfig[key]);
+    }
+
+    // Show the list of disabled DoH providers.
+    if (dohProvidersDisabledDueToFeature) {
+      for (let disabledProvider of dohProvidersDisabledDueToFeature) {
+        addNodeWithText(
+            $(DnsView.INTERNAL_DISABLED_DOH_PROVIDERS_UL_ID), 'li',
+            disabledProvider);
+      }
     }
   }
 

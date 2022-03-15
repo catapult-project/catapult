@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <dom-module id="dns-view">
   <template>
     <div id=dns-view-tab-content class=content-box>
@@ -17,6 +18,12 @@
         <table class="styled-table">
           <tbody id=dns-view-internal-dns-config-tbody></tbody>
         </table>
+        <ul>
+          <li>Disabled DoH providers:
+            <ul id=dns-view-internal-disabled-doh-providers>
+            </ul>
+          </li>
+        </ul>
       </div>
 
       <h4>
@@ -50,6 +57,7 @@
     </div>
   </template>
   <script>
+    'use strict';
     Polymer({
       is: 'dns-view',
     });
