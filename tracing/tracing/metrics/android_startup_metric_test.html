@@ -32,6 +32,25 @@ tr.b.unittest.testSuite(function() {
     return rendererMainThread;
   }
 
+  function addNetworkEvents(startTime, durationTime, process) {
+    const slice = tr.c.TestUtils.newAsyncSliceEx({
+          cat: 'netlog',
+          title: 'http://bbc.co.uk',
+          start: startTime,
+          args: { params: { method: 'GET' } },
+          duration: durationTime});
+    slice.args.params['method'] = 'GET';
+    const subSlice = tr.c.TestUtils.newAsyncSliceEx({
+      cat: 'netlog',
+      title: 'REQUEST_ALIVE',
+      start: startTime,
+      duration: durationTime});
+    slice.subSlices.push(subSlice);
+    const netThread = process.getOrCreateThread(tr.b.GUID.allocateSimple());
+    netThread.name = 'NetLog';
+    netThread.asyncSliceGroup.push(slice);
+  }
+
   // Adds a browser and renderer to the process, with a few key events necessary
   // to calculate the |androidStartupMetric|. An |offset| can be added to all
   // events and the length of a few events can be extended by
@@ -52,11 +71,12 @@ tr.b.unittest.testSuite(function() {
           title: 'Startup.BrowserMessageLoopStartTime',
           start: (offset + 6800.125),
           duration: (incrementForMetrics + 1700.0625)}));
+    const navigationStart = offset + 9000.5 + incrementForMetrics;
     browserMainThread.asyncSliceGroup.push(
         tr.c.TestUtils.newAsyncSliceEx({
           cat: 'navigation',
           title: 'Navigation StartToCommit',
-          start: (offset + 9000.5 + incrementForMetrics),
+          start: navigationStart,
           duration: (incrementForMetrics + 2000.5)}));
     const rendererMainThread = createRendererThread(model);
     rendererMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -74,6 +94,10 @@ tr.b.unittest.testSuite(function() {
       start: (offset + 8400.125 + incrementForMetrics + 0.125),
       duration: 0.0,
       args: {frame: '0x0'}}));
+
+    // The metrics rely on having network access in netlog soon after the
+    // navigation starts.
+    addNetworkEvents(navigationStart + 110, 2, browserMainThread.parent);
   }
 
   // Adds early messageloop and FCP events. The metric should ignore these very
@@ -130,6 +154,8 @@ tr.b.unittest.testSuite(function() {
     verifyHistogram(histograms, 'messageloop_start_time', 1, 1700.0625);
     verifyHistogram(histograms, 'experimental_navigation_start_time', 1,
         2200.375);
+    verifyHistogram(histograms, 'experimental_network_request_start_time', 1,
+        2200.375 + 110);
     verifyHistogram(histograms, 'navigation_commit_time', 1, 4200.875);
     verifyHistogram(histograms, 'first_contentful_paint_time', 1, 1600);
     verifyHistogram(histograms, 'process_create_to_app_start_time', 1, 100);
@@ -157,12 +183,14 @@ tr.b.unittest.testSuite(function() {
               title: 'Startup.BrowserMessageLoopStartTime',
               start: (20.0 + 1.0),
               duration: 10.0}));
+        const navigationStartTime = 20.0 + 11.0;
         browserMainThread.asyncSliceGroup.push(
             tr.c.TestUtils.newAsyncSliceEx({
               cat: 'navigation',
               title: 'Navigation StartToCommit',
-              start: (20.0 + 11.0),
+              start: navigationStartTime,
               duration: 10.0}));
+        addNetworkEvents(navigationStartTime + 2, 2, browserMainThread.parent);
         const rendererMainThread = createRendererThread(model);
         rendererMainThread.sliceGroup.pushSlice(
             tr.c.TestUtils.newSliceEx({
@@ -180,6 +208,8 @@ tr.b.unittest.testSuite(function() {
     verifyHistogram(histograms, 'messageloop_start_time', 1, 1700.0625);
     verifyHistogram(histograms, 'experimental_navigation_start_time', 1,
         2200.375);
+    verifyHistogram(histograms, 'experimental_network_request_start_time', 1,
+        2200.375 + 110);
     verifyHistogram(histograms, 'navigation_commit_time', 1, 4200.875);
     verifyHistogram(histograms, 'first_contentful_paint_time', 1, 1600);
   });
@@ -213,6 +243,8 @@ tr.b.unittest.testSuite(function() {
     verifyHistogram(histograms, 'messageloop_start_time', 1, 10);
     verifyHistogram(histograms, 'experimental_navigation_start_time', 0,
         undefined);
+    verifyHistogram(histograms, 'experimental_network_request_start_time', 0,
+        undefined);
     verifyHistogram(histograms, 'navigation_commit_time', 0, undefined);
     verifyHistogram(histograms, 'first_contentful_paint_time', 1, 2);
     verifyHistogram(histograms, 'process_create_to_app_start_time', 0,
@@ -227,6 +259,8 @@ tr.b.unittest.testSuite(function() {
     verifyHistogram(histograms, 'messageloop_start_time', 1, 1707.0625);
     verifyHistogram(histograms, 'experimental_navigation_start_time', 1,
         2207.375);
+    verifyHistogram(histograms, 'experimental_network_request_start_time', 1,
+        2207.375 + 110);
     verifyHistogram(histograms, 'navigation_commit_time', 1, 4214.875);
     verifyHistogram(histograms, 'first_contentful_paint_time', 1, 1607);
     verifyHistogram(histograms, 'process_create_to_app_start_time', 1, 107);
@@ -250,6 +284,8 @@ tr.b.unittest.testSuite(function() {
         2, 1700.0625, 1700.0625 + delta);
     verifyHistogramRange(histograms, 'experimental_navigation_start_time',
         2, 2200.375, 2200.375 + delta);
+    verifyHistogramRange(histograms, 'experimental_network_request_start_time',
+        2, 2200.375 + 110, 2200.375 + delta + 110);
     verifyHistogramRange(histograms, 'navigation_commit_time',
         2, 4200.875, 4200.875 + delta * 2);
     verifyHistogramRange(histograms, 'first_contentful_paint_time',
