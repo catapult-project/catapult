@@ -139,6 +139,7 @@ class WprRecorder(object):
         self._AddCommandLineArgs()
         self._ParseArgs(args)
         self._ProcessCommandLineArgs(environment)
+        self._SetExtraBrowserOptions()
       page_test = None
       if self._benchmark is not None:
         test = self._benchmark.CreatePageTest(self.options)
@@ -201,7 +202,6 @@ class WprRecorder(object):
     story_runner.AddCommandLineArgs(self._parser)
     if self._benchmark is not None:
       self._benchmark.AddCommandLineArgs(self._parser)
-      self._benchmark.SetExtraBrowserOptions(self._options)
       self._benchmark.SetArgumentDefaults(self._parser)
     self._parser.add_option('--upload', action='store_true')
     self._parser.add_option('--use-local-wpr', action='store_true',
@@ -225,6 +225,10 @@ class WprRecorder(object):
 
     if self._benchmark is not None:
       self._benchmark.ProcessCommandLineArgs(self._parser, self._options)
+
+  def _SetExtraBrowserOptions(self):
+    if self._benchmark is not None:
+      self._benchmark.SetExtraBrowserOptions(self._options)
 
   def _GetStorySet(self, target):
     if self._benchmark is not None:
