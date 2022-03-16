@@ -302,7 +302,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
       data_start = data_start.end(0)
     else:
       raise IOError('Unable to get atrace data. Did you forget adb root?')
-    output = re.sub(ADB_IGNORE_REGEXP, '', result[data_start:])
+    output = re.sub(ADB_IGNORE_REGEXP, b'', result[data_start:])
     return output
 
   def _preprocess_trace_data(self, trace_data):
