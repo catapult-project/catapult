@@ -19,8 +19,10 @@ THIRD_PARTY_LIBRARIES = [
     'cachetools',
     'certifi',
     'chardet',
+    'click',
     'cloudstorage',
     'depot_tools',
+    'flask',
     'flot',
     'gae_ts_mon',
     'google-auth',
@@ -28,8 +30,11 @@ THIRD_PARTY_LIBRARIES = [
     'html5lib-python',
     'idna',
     'ijson',
+    'itsdangerous',
+    'jinja2',
     'jquery',
     'mapreduce',
+    'markupsafe',
     'mock',
     'oauth2client',
     'pipeline',
@@ -49,6 +54,7 @@ THIRD_PARTY_LIBRARIES = [
     'urllib3',
     'webapp2',
     'webtest',
+    'werkzeug',
 ]
 
 THIRD_PARTY_LIBRARIES_PY2 = THIRD_PARTY_LIBRARIES + [

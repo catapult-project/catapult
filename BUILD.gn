@@ -60,10 +60,12 @@ group("telemetry_chrome_test_support") {
     "third_party/certifi/",
     "third_party/chai/",
     "third_party/chardet/",
+    "third_party/click/",
     "third_party/cloudstorage/",
     "third_party/coverage/",
     "third_party/d3/",
     "third_party/depot_tools/",
+    "third_party/flask/",
     "third_party/flot/",
     "third_party/gae_ts_mon/",
     "third_party/google-auth/",
@@ -74,9 +76,12 @@ group("telemetry_chrome_test_support") {
     "third_party/idb/",
     "third_party/idna/",
     "third_party/ijson/",
+    "third_party/itsdangerous/",
+    "third_party/jinja2/",
     "third_party/jquery/",
     "third_party/jszip/",
     "third_party/mapreduce/",
+    "third_party/markupsafe/",
     "third_party/mocha/",
     "third_party/mock/",
     "third_party/mox3/",
@@ -104,6 +109,7 @@ group("telemetry_chrome_test_support") {
     "third_party/webapp2/",
     "third_party/webencodings-0.5.1/",
     "third_party/webtest/",
+    "third_party/werkzeug/",
   ]
 
   data_deps += [
