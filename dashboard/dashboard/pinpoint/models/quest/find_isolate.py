@@ -125,8 +125,9 @@ class _FindIsolateExecution(execution.Execution):
           'value':
               self._result_arguments['isolate_hash'],
           'url':
-              self._result_arguments['isolate_server'] + '/browse?digest=' +
-              self._result_arguments['isolate_hash'],
+              'https://cas-viewer.appspot.com/{}/blobs/{}/tree'.format(
+                  self._result_arguments['isolate_server'],
+                  self._result_arguments['isolate_hash']),
       })
     return details
 

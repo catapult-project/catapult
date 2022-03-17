@@ -71,7 +71,7 @@ class _FindIsolateExecutionTest(test.TestCase):
 
     change = change_test.Change(123)
     isolate.Put((('Mac Builder', change, 'telemetry_perf_tests',
-                  'https://isolate.server', '7c7e90be'),))
+                  'isolate.server', '7c7e90be'),))
 
   def assertExecutionFailure(self, execution, exception_class):
     self.assertTrue(execution.completed)
@@ -102,9 +102,11 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
     execution.Poll()
 
     expected_result_arguments = {
-        'isolate_server': 'https://isolate.server',
+        'isolate_server': 'isolate.server',
         'isolate_hash': '7c7e90be',
     }
+    expected_url = 'https://cas-viewer.appspot.com/{}/blobs/{}/tree'.format(
+        'isolate.server', '7c7e90be')
     expected_as_dict = {
         'completed':
             True,
@@ -118,7 +120,7 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
             {
                 'key': 'isolate',
                 'value': '7c7e90be',
-                'url': 'https://isolate.server/browse?digest=7c7e90be',
+                'url': expected_url,
             },
         ],
     }
@@ -143,9 +145,11 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
     execution.Poll()
 
     expected_result_arguments = {
-        'isolate_server': 'https://isolate.server',
+        'isolate_server': 'isolate.server',
         'isolate_hash': '7c7e90be',
     }
+    expected_url = 'https://cas-viewer.appspot.com/{}/blobs/{}/tree'.format(
+        'isolate.server', '7c7e90be')
     expected_as_dict = {
         'completed':
             True,
@@ -159,7 +163,7 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
             {
                 'key': 'isolate',
                 'value': '7c7e90be',
-                'url': 'https://isolate.server/browse?digest=7c7e90be',
+                'url': expected_url,
             },
         ],
     }
@@ -333,7 +337,7 @@ class BuildTest(_FindIsolateExecutionTest):
                 """{
                 "properties": {
                     "got_revision_cp": "refs/heads/master@{#123}",
-                    "isolate_server": "https://isolate.server",
+                    "isolate_server": "isolate.server",
                     "swarm_hashes_refs/heads/master(at){#123}_without_patch":
                         {"telemetry_perf_tests": "isolate git hash"}
                 }
@@ -341,13 +345,15 @@ class BuildTest(_FindIsolateExecutionTest):
         }
     }
     isolate.Put((('Mac Builder', change, 'telemetry_perf_tests',
-                  'https://isolate.server', 'isolate git hash'),))
+                  'isolate.server', 'isolate git hash'),))
     execution.Poll()
 
     expected_result_arguments = {
-        'isolate_server': 'https://isolate.server',
+        'isolate_server': 'isolate.server',
         'isolate_hash': 'isolate git hash',
     }
+    expected_url = 'https://cas-viewer.appspot.com/{}/blobs/{}/tree'.format(
+        'isolate.server', 'isolate git hash')
     expected_as_dict = {
         'completed':
             True,
@@ -366,7 +372,7 @@ class BuildTest(_FindIsolateExecutionTest):
             {
                 'key': 'isolate',
                 'value': 'isolate git hash',
-                'url': 'https://isolate.server/browse?digest=isolate git hash',
+                'url': expected_url,
             },
         ],
     }
@@ -413,7 +419,7 @@ class BuildTest(_FindIsolateExecutionTest):
                 """{
                 "properties": {
                     "got_revision_cp": "refs/heads/master@{#123}",
-                    "isolate_server": "https://isolate.server",
+                    "isolate_server": "isolate.server",
                     "swarm_hashes_refs/heads/master(at){#123}_without_patch":
                         {"telemetry_perf_tests": "isolate git hash"}
                 }
@@ -421,7 +427,7 @@ class BuildTest(_FindIsolateExecutionTest):
         }
     }
     isolate.Put((('Mac Builder', change, 'telemetry_perf_tests',
-                  'https://isolate.server', 'isolate git hash'),))
+                  'isolate.server', 'isolate git hash'),))
     execution_1.Poll()
     execution_2.Poll()
 
@@ -490,7 +496,7 @@ class BuildTest(_FindIsolateExecutionTest):
                 """{
                 "properties": {
                     "got_revision_cp": "refs/heads/master@{#123}",
-                    "isolate_server": "https://isolate.server",
+                    "isolate_server": "isolate.server",
                     "swarm_hashes_refs/heads/master(at){#123}_without_patch": {}
                 }
             }""",
