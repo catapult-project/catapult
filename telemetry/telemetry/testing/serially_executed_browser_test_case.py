@@ -29,8 +29,6 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
   # from the typ.Runner instance running the test.
   _typ_runner = None
 
-  browser = None
-
   def __init__(self, methodName):
     super(SeriallyExecutedBrowserTestCase, self).__init__(methodName)
     self._private_methodname = methodName
@@ -44,18 +42,12 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
     artifact_logger.RegisterArtifactImplementation(artifacts)
 
   def setUp(self):
-    if self.browser and self.ShouldPerformMinidumpCleanupOnSetUp():
+    if hasattr(self, 'browser') and self.browser:
       self.browser.CleanupUnsymbolizedMinidumps()
 
   def tearDown(self):
-    if self.browser and self.ShouldPerformMinidumpCleanupOnTearDown():
+    if hasattr(self, 'browser') and self.browser:
       self.browser.CleanupUnsymbolizedMinidumps(fatal=True)
-
-  def ShouldPerformMinidumpCleanupOnSetUp(self):
-    return True
-
-  def ShouldPerformMinidumpCleanupOnTearDown(self):
-    return True
 
   @classmethod
   def Name(cls):
@@ -317,11 +309,10 @@ def _GenerateTestMethod(based_method, args):
 
 
 _TEST_GENERATOR_PREFIX = 'GenerateTestCases_'
-# Accept any test name as long as it does not have whitespace or * in it.
-_VALID_TEST_NAME_RE = re.compile(r'^[^*\s]*$')
+_INVALID_TEST_NAME_RE = re.compile(r'[^a-zA-Z0-9_\.\\\/-]')
 
 def _ValidateTestMethodname(test_name):
-  assert _VALID_TEST_NAME_RE.search(test_name)
+  assert not bool(_INVALID_TEST_NAME_RE.search(test_name))
 
 
 def GenerateTestCases(test_class, finder_options):

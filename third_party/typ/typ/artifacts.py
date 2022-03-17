@@ -12,34 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import hashlib
-import logging
 import os
 import sys
 
 if sys.version_info.major == 2:
   import urlparse
-  import urllib
-  url_quote = urllib.quote
 else:
   import urllib.parse as urlparse
-  url_quote = urlparse.quote
 
 from typ.host import Host
-
-WINDOWS_FORBIDDEN_PATH_CHARACTERS = [
-  '<',
-  '>',
-  ':',
-  '"',
-  '/',
-  '\\',
-  '|',
-  '?',
-  '*',
-]
-
-WINDOWS_MAX_PATH = 260
 
 class Artifacts(object):
   def __init__(self, output_dir, host, iteration=0, artifacts_base_dir='',
@@ -81,19 +62,9 @@ class Artifacts(object):
       file_manager: File manager object which is supplied by the test runner. The object needs to support
           the exists, open, maybe_make_directory, dirname and join member functions.
     """
-    # Make sure the output directory is an absolute path rather than a relative
-    # one, as that can later affect our ability to write to disk on Windows due
-    # to MAX_PATH.
     self._output_dir = output_dir
-    if self._output_dir is not None:
-      self._output_dir = host.realpath(self._output_dir)
     self._iteration = iteration
     self._artifacts_base_dir = artifacts_base_dir
-    # Replace invalid Windows path characters now with URL-encoded equivalents.
-    if sys.platform == 'win32':
-      for c in WINDOWS_FORBIDDEN_PATH_CHARACTERS:
-        self._artifacts_base_dir = self._artifacts_base_dir.replace(
-            c, url_quote(c))
     # A map of artifact names to their filepaths relative to the output
     # directory.
     self.artifacts = {}
@@ -129,12 +100,9 @@ class Artifacts(object):
           "reftest_mismatch_actual" or "screenshot".
     """
     self._AssertOutputDir()
-    try:
-      subdir_relative_path, abs_artifact_path = (
-          self._GetSubDirRelativeAndAbsolutePaths(file_relative_path))
-    except PathTooLongException as e:
-      logging.error(str(e))
-      return
+    file_relative_path = self._host.join(
+        self.ArtifactsSubDirectory(), file_relative_path)
+    abs_artifact_path = self._host.join(self._output_dir, file_relative_path)
 
     if (not self._repeat_tests and
             not force_overwrite and self._host.exists(abs_artifact_path)):
@@ -142,8 +110,8 @@ class Artifacts(object):
 
     self._host.maybe_make_directory(self._host.dirname(abs_artifact_path))
 
-    if subdir_relative_path not in self.artifacts.get(artifact_name, []):
-        self.AddArtifact(artifact_name, subdir_relative_path)
+    if file_relative_path not in self.artifacts.get(artifact_name, []):
+        self.AddArtifact(artifact_name, file_relative_path)
     if write_as_text:
         self._host.write_text_file(abs_artifact_path, data)
     else:
@@ -178,39 +146,3 @@ class Artifacts(object):
       raise ValueError(
           'CreateArtifact() called on an Artifacts instance without an output '
           'directory set. To fix, pass --write-full-results-to to the test.')
-
-  def _GetSubDirRelativeAndAbsolutePaths(self, file_relative_path):
-    """Generates the subdir-relative and absolute paths for a file.
-
-    Args:
-      file_relative_path: A string containing the path for an artifact for a
-          particular test.
-
-    Returns:
-      A tuple (subdir_relative_path, abs_path). |subdir_relative_path| is
-      |file_relative_path| preceeded by the relative artifact subdirectory,
-      which is typically the test name. |abs_path| is an absolute path version
-      of |subdir_relative_path|.
-    """
-    subdir_relative_path = self._host.join(
-        self.ArtifactsSubDirectory(), file_relative_path)
-    abs_path = self._host.join(self._output_dir, subdir_relative_path)
-    # Attempt to work around the 260 character path limit in Windows. This is
-    # not guaranteed to solve the issue, but should address the common case of
-    # test names being long.
-    if sys.platform == 'win32' and len(abs_path) >= WINDOWS_MAX_PATH:
-      m = hashlib.sha1()
-      m.update(self.ArtifactsSubDirectory().encode('utf-8'))
-      subdir_relative_path = self._host.join(m.hexdigest(), file_relative_path)
-      abs_path = self._host.join(self._output_dir, subdir_relative_path)
-      if len(abs_path) < WINDOWS_MAX_PATH:
-        return (subdir_relative_path, abs_path)
-      raise PathTooLongException(
-          'Path %s exceeds Windows MAX_PATH even when attempting to shorten.' %
-          (self._host.join(self._output_dir, self.ArtifactsSubDirectory(),
-                           file_relative_path)))
-    return (subdir_relative_path, abs_path)
-
-
-class PathTooLongException(Exception):
-  pass
