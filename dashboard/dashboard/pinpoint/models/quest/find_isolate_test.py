@@ -264,7 +264,7 @@ class BuildTest(_FindIsolateExecutionTest):
                 'patch_set': 5,
                 'patch_storage': 'gerrit',
             }
-        }, None)
+        })
 
   def testBuildLifecycle(self, put, get_job_status):
     change = change_test.Change(123, 456, patch=True)
@@ -306,10 +306,6 @@ class BuildTest(_FindIsolateExecutionTest):
                 'patch_set': 5,
                 'patch_storage': 'gerrit',
             },
-        }, {
-            'topic': 'projects/chromeperf/topics/pinpoint-swarming-updates',
-            'auth_token': 'UNUSED',
-            'user_data': mock.ANY,
         })
 
     # Check build status.

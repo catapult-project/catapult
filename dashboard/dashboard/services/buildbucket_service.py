@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import logging
 import json
 import re
 import uuid
@@ -19,14 +20,14 @@ _BUCKET_NAME = 'master.tryserver.chromium.perf'
 
 _BUCKET_RE = re.compile(r'luci\.([^.]+)\.([^.]+)')
 
-def Put(bucket, tags, parameters, pubsub_callback=None):
+def Put(bucket, tags, parameters):
   bucket_parts = _BUCKET_RE.split(bucket)
   if len(bucket_parts) != 4:
     raise ValueError('Could not parse bucket value: %s' % bucket)
   project = bucket_parts[1]
   bucket = bucket_parts[2]
   body = {
-      'request_id': uuid.uuid4(),
+      'request_id': str(uuid.uuid4()),
       'builder': {
           'project': project,
           'bucket': bucket,
@@ -39,8 +40,8 @@ def Put(bucket, tags, parameters, pubsub_callback=None):
       'properties': json.dumps(parameters.get('properties', {}),
                                separators=(',', ':')),
   }
-  if pubsub_callback:
-    body['pubsub_callback'] = pubsub_callback
+  logging.info("bbv2 Put body: \n%s\n", json.dumps(body))
+
   return request.RequestJson(API_BASE_URL + 'ScheduleBuild', method='POST',
                              body=body)
 

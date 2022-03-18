@@ -144,7 +144,6 @@ def _AllSdkThirdPartyLibraryPaths():
     appengine_path = os.path.join(sdk_bin_path, 'platform', 'google_appengine')
     paths.append(appengine_path)
     sys.path.insert(0, appengine_path)
-    break
 
   try:
     import dev_appserver
