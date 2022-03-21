@@ -929,7 +929,7 @@ class AdbWrapper(object):
       cmd.append('-d')
     if streaming in (True, False):
       if (du_version.LooseVersion(self.Version()) <
-        du_version.LooseVersion('1.0.40')):
+          du_version.LooseVersion('1.0.40')):
         logging.warning(
             'adb: streaming options not supported prior to version 1.0.40 '
             '(current: %s)', self.Version())
@@ -972,11 +972,12 @@ class AdbWrapper(object):
     for path in apk_paths:
       VerifyLocalFileExists(path)
     cmd = ['install-multiple']
-    if (du_version.LooseVersion(self.ReleaseVersion()) <=
-        du_version.LooseVersion('33.0.0')):
-      # Workaround for http://issuetracker.google.com/218716282. In these
-      # versions of adb, the first arg is ignored. Pass an extra arg in this
-      # case to avoid one of the other arguments being ignored.
+    if (du_version.LooseVersion(self.ReleaseVersion()) <
+        du_version.LooseVersion('33.0.1')):
+      # Workaround for http://issuetracker.google.com/218716282. In adb versions
+      # before the one in platform-tools 33.0.1, the first arg is ignored for
+      # install-multiple. Pass an extra arg in this case to avoid one of the
+      # other arguments being ignored.
       cmd.append('--unused-arg-workaround')
     if forward_lock:
       cmd.append('-l')
@@ -988,7 +989,7 @@ class AdbWrapper(object):
       cmd.append('-d')
     if streaming in (True, False):
       if (du_version.LooseVersion(self.Version()) <
-        du_version.LooseVersion('1.0.40')):
+          du_version.LooseVersion('1.0.40')):
         logging.warning(
             'adb: streaming options not supported prior to version 1.0.40 '
             '(current: %s)', self.Version())
