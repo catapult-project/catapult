@@ -1,113 +1,134 @@
-"""A WSGI and HTTP server for use **during development only**. This
-server is convenient to use, but is not designed to be particularly
-stable, secure, or efficient. Use a dedicate WSGI server and HTTP
-server when deploying to production.
+# -*- coding: utf-8 -*-
+"""
+    werkzeug.serving
+    ~~~~~~~~~~~~~~~~
 
-It provides features like interactive debugging and code reloading. Use
-``run_simple`` to start the server. Put this in a ``run.py`` script:
+    There are many ways to serve a WSGI application.  While you're developing
+    it you usually don't want a full blown webserver like Apache but a simple
+    standalone one.  From Python 2.5 onwards there is the `wsgiref`_ server in
+    the standard library.  If you're using older versions of Python you can
+    download the package from the cheeseshop.
 
-.. code-block:: python
+    However there are some caveats. Sourcecode won't reload itself when
+    changed and each time you kill the server using ``^C`` you get an
+    `KeyboardInterrupt` error.  While the latter is easy to solve the first
+    one can be a pain in the ass in some situations.
 
-    from myapp import create_app
-    from werkzeug import run_simple
+    The easiest way is creating a small ``start-myproject.py`` that runs the
+    application::
+
+        #!/usr/bin/env python
+        # -*- coding: utf-8 -*-
+        from myproject import make_app
+        from werkzeug.serving import run_simple
+
+        app = make_app(...)
+        run_simple('localhost', 8080, app, use_reloader=True)
+
+    You can also pass it a `extra_files` keyword argument with a list of
+    additional files (like configuration files) you want to observe.
+
+    For bigger applications you should consider using `click`
+    (http://click.pocoo.org) instead of a simple start file.
+
+
+    :copyright: 2007 Pallets
+    :license: BSD-3-Clause
 """
 import io
 import os
-import platform
 import signal
 import socket
-import socketserver
 import sys
-import typing as t
-import warnings
 from datetime import datetime as dt
 from datetime import timedelta
-from datetime import timezone
-from http.server import BaseHTTPRequestHandler
-from http.server import HTTPServer
 
+from ._compat import PY2
+from ._compat import reraise
+from ._compat import WIN
+from ._compat import wsgi_encoding_dance
 from ._internal import _log
-from ._internal import _wsgi_encoding_dance
 from .exceptions import InternalServerError
 from .urls import uri_to_iri
 from .urls import url_parse
 from .urls import url_unquote
 
 try:
+    import socketserver
+    from http.server import BaseHTTPRequestHandler
+    from http.server import HTTPServer
+except ImportError:
+    import SocketServer as socketserver
+    from BaseHTTPServer import HTTPServer
+    from BaseHTTPServer import BaseHTTPRequestHandler
+
+try:
     import ssl
 except ImportError:
 
-    class _SslDummy:
-        def __getattr__(self, name: str) -> t.Any:
-            raise RuntimeError(  # noqa: B904
-                "SSL is unavailable because this Python runtime was not"
-                " compiled with SSL/TLS support."
-            )
+    class _SslDummy(object):
+        def __getattr__(self, name):
+            raise RuntimeError("SSL support unavailable")
 
-    ssl = _SslDummy()  # type: ignore
+    ssl = _SslDummy()
 
-_log_add_style = True
+try:
+    import click
+except ImportError:
+    click = None
 
-if os.name == "nt":
-    try:
-        __import__("colorama")
-    except ImportError:
-        _log_add_style = False
 
+ThreadingMixIn = socketserver.ThreadingMixIn
 can_fork = hasattr(os, "fork")
 
 if can_fork:
     ForkingMixIn = socketserver.ForkingMixIn
 else:
 
-    class ForkingMixIn:  # type: ignore
+    class ForkingMixIn(object):
         pass
 
 
 try:
     af_unix = socket.AF_UNIX
 except AttributeError:
-    af_unix = None  # type: ignore
+    af_unix = None
+
 
 LISTEN_QUEUE = 128
-can_open_by_fd = not platform.system() == "Windows" and hasattr(socket, "fromfd")
+can_open_by_fd = not WIN and hasattr(socket, "fromfd")
 
-_TSSLContextArg = t.Optional[
-    t.Union["ssl.SSLContext", t.Tuple[str, t.Optional[str]], "te.Literal['adhoc']"]
-]
-
-if t.TYPE_CHECKING:
-    import typing_extensions as te  # noqa: F401
-    from _typeshed.wsgi import WSGIApplication
-    from _typeshed.wsgi import WSGIEnvironment
-    from cryptography.hazmat.primitives.asymmetric.rsa import (
-        RSAPrivateKeyWithSerialization,
-    )
-    from cryptography.x509 import Certificate
+# On Python 3, ConnectionError represents the same errnos as
+# socket.error from Python 2, while socket.error is an alias for the
+# more generic OSError.
+if PY2:
+    _ConnectionError = socket.error
+else:
+    _ConnectionError = ConnectionError
 
 
 class DechunkedInput(io.RawIOBase):
     """An input stream that handles Transfer-Encoding 'chunked'"""
 
-    def __init__(self, rfile: t.IO[bytes]) -> None:
+    def __init__(self, rfile):
         self._rfile = rfile
         self._done = False
         self._len = 0
 
-    def readable(self) -> bool:
+    def readable(self):
         return True
 
-    def read_chunk_len(self) -> int:
+    def read_chunk_len(self):
         try:
             line = self._rfile.readline().decode("latin1")
             _len = int(line.strip(), 16)
-        except ValueError as e:
-            raise OSError("Invalid chunk header") from e
+        except ValueError:
+            raise IOError("Invalid chunk header")
         if _len < 0:
-            raise OSError("Negative chunk length not allowed")
+            raise IOError("Negative chunk length not allowed")
         return _len
 
-    def readinto(self, buf: bytearray) -> int:  # type: ignore
+    def readinto(self, buf):
         read = 0
         while not self._done and read < len(buf):
             if self._len == 0:
@@ -125,69 +146,55 @@ class DechunkedInput(io.RawIOBase):
                 # buffer. If this operation fully consumes the chunk, this will
                 # reset self._len to 0.
                 n = min(len(buf), self._len)
-
-                # If (read + chunk size) becomes more than len(buf), buf will
-                # grow beyond the original size and read more data than
-                # required. So only read as much data as can fit in buf.
-                if read + n > len(buf):
-                    buf[read:] = self._rfile.read(len(buf) - read)
-                    self._len -= len(buf) - read
-                    read = len(buf)
-                else:
-                    buf[read : read + n] = self._rfile.read(n)
-                    self._len -= n
-                    read += n
+                buf[read : read + n] = self._rfile.read(n)
+                self._len -= n
+                read += n
 
             if self._len == 0:
                 # Skip the terminating newline of a chunk that has been fully
                 # consumed. This also applies to the 0-sized final chunk
                 terminator = self._rfile.readline()
                 if terminator not in (b"\n", b"\r\n", b"\r"):
-                    raise OSError("Missing chunk terminating newline")
+                    raise IOError("Missing chunk terminating newline")
 
         return read
 
 
-class WSGIRequestHandler(BaseHTTPRequestHandler):
+class WSGIRequestHandler(BaseHTTPRequestHandler, object):
+
     """A request handler that implements WSGI dispatching."""
 
-    server: "BaseWSGIServer"
-
     @property
-    def server_version(self) -> str:  # type: ignore
+    def server_version(self):
         from . import __version__
 
-        return f"Werkzeug/{__version__}"
+        return "Werkzeug/" + __version__
 
-    def make_environ(self) -> "WSGIEnvironment":
+    def make_environ(self):
         request_url = url_parse(self.path)
 
-        def shutdown_server() -> None:
-            warnings.warn(
-                "The 'environ['werkzeug.server.shutdown']' function is"
-                " deprecated and will be removed in Werkzeug 2.1.",
-                stacklevel=2,
-            )
+        def shutdown_server():
             self.server.shutdown_signal = True
 
         url_scheme = "http" if self.server.ssl_context is None else "https"
-
         if not self.client_address:
-            self.client_address = ("<local>", 0)
-        elif isinstance(self.client_address, str):
+            self.client_address = "<local>"
+        if isinstance(self.client_address, str):
             self.client_address = (self.client_address, 0)
+        else:
+            pass
 
         # If there was no scheme but the path started with two slashes,
         # the first segment may have been incorrectly parsed as the
         # netloc, prepend it to the path again.
         if not request_url.scheme and request_url.netloc:
-            path_info = f"/{request_url.netloc}{request_url.path}"
+            path_info = "/%s%s" % (request_url.netloc, request_url.path)
         else:
             path_info = request_url.path
 
         path_info = url_unquote(path_info)
 
-        environ: "WSGIEnvironment" = {
+        environ = {
             "wsgi.version": (1, 0),
             "wsgi.url_scheme": url_scheme,
             "wsgi.input": self.rfile,
@@ -196,16 +203,15 @@ class WSGIRequestHandler(BaseHTTPRequestHandler):
             "wsgi.multiprocess": self.server.multiprocess,
             "wsgi.run_once": False,
             "werkzeug.server.shutdown": shutdown_server,
-            "werkzeug.socket": self.connection,
             "SERVER_SOFTWARE": self.server_version,
             "REQUEST_METHOD": self.command,
             "SCRIPT_NAME": "",
-            "PATH_INFO": _wsgi_encoding_dance(path_info),
-            "QUERY_STRING": _wsgi_encoding_dance(request_url.query),
+            "PATH_INFO": wsgi_encoding_dance(path_info),
+            "QUERY_STRING": wsgi_encoding_dance(request_url.query),
             # Non-standard, added by mod_wsgi, uWSGI
-            "REQUEST_URI": _wsgi_encoding_dance(self.path),
+            "REQUEST_URI": wsgi_encoding_dance(self.path),
             # Non-standard, added by gunicorn
-            "RAW_URI": _wsgi_encoding_dance(self.path),
+            "RAW_URI": wsgi_encoding_dance(self.path),
             "REMOTE_ADDR": self.address_string(),
             "REMOTE_PORT": self.port_integer(),
             "SERVER_NAME": self.server.server_address[0],
@@ -213,13 +219,13 @@ class WSGIRequestHandler(BaseHTTPRequestHandler):
             "SERVER_PROTOCOL": self.request_version,
         }
 
-        for key, value in self.headers.items():
+        for key, value in self.get_header_items():
             key = key.upper().replace("-", "_")
             value = value.replace("\r\n", "")
             if key not in ("CONTENT_TYPE", "CONTENT_LENGTH"):
-                key = f"HTTP_{key}"
+                key = "HTTP_" + key
                 if key in environ:
-                    value = f"{environ[key]},{value}"
+                    value = "{},{}".format(environ[key], value)
             environ[key] = value
 
         if environ.get("HTTP_TRANSFER_ENCODING", "").strip().lower() == "chunked":
@@ -234,9 +240,7 @@ class WSGIRequestHandler(BaseHTTPRequestHandler):
         try:
             # binary_form=False gives nicer information, but wouldn't be compatible with
             # what Nginx or Apache could return.
-            peer_cert = self.connection.getpeercert(  # type: ignore[attr-defined]
-                binary_form=True
-            )
+            peer_cert = self.connection.getpeercert(binary_form=True)
             if peer_cert is not None:
                 # Nginx and Apache use PEM format.
                 environ["SSL_CLIENT_CERT"] = ssl.DER_cert_to_PEM_cert(peer_cert)
@@ -249,31 +253,26 @@ class WSGIRequestHandler(BaseHTTPRequestHandler):
 
         return environ
 
-    def run_wsgi(self) -> None:
+    def run_wsgi(self):
         if self.headers.get("Expect", "").lower().strip() == "100-continue":
             self.wfile.write(b"HTTP/1.1 100 Continue\r\n\r\n")
 
         self.environ = environ = self.make_environ()
-        status_set: t.Optional[str] = None
-        headers_set: t.Optional[t.List[t.Tuple[str, str]]] = None
-        status_sent: t.Optional[str] = None
-        headers_sent: t.Optional[t.List[t.Tuple[str, str]]] = None
+        headers_set = []
+        headers_sent = []
 
-        def write(data: bytes) -> None:
-            nonlocal status_sent, headers_sent
-            assert status_set is not None, "write() before start_response"
-            assert headers_set is not None, "write() before start_response"
-            if status_sent is None:
-                status_sent = status_set
-                headers_sent = headers_set
+        def write(data):
+            assert headers_set, "write() before start_response"
+            if not headers_sent:
+                status, response_headers = headers_sent[:] = headers_set
                 try:
-                    code_str, msg = status_sent.split(None, 1)
+                    code, msg = status.split(None, 1)
                 except ValueError:
-                    code_str, msg = status_sent, ""
-                code = int(code_str)
+                    code, msg = status, ""
+                code = int(code)
                 self.send_response(code, msg)
                 header_keys = set()
-                for key, value in headers_sent:
+                for key, value in response_headers:
                     self.send_header(key, value)
                     key = key.lower()
                     header_keys.add(key)
@@ -292,24 +291,24 @@ class WSGIRequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
 
             assert isinstance(data, bytes), "applications must write bytes"
-            self.wfile.write(data)
+            if data:
+                # Only write data if there is any to avoid Python 3.5 SSL bug
+                self.wfile.write(data)
             self.wfile.flush()
 
-        def start_response(status, headers, exc_info=None):  # type: ignore
-            nonlocal status_set, headers_set
+        def start_response(status, response_headers, exc_info=None):
             if exc_info:
                 try:
                     if headers_sent:
-                        raise exc_info[1].with_traceback(exc_info[2])
+                        reraise(*exc_info)
                 finally:
                     exc_info = None
             elif headers_set:
                 raise AssertionError("Headers already set")
-            status_set = status
-            headers_set = headers
+            headers_set[:] = [status, response_headers]
             return write
 
-        def execute(app: "WSGIApplication") -> None:
+        def execute(app):
             application_iter = app(environ, start_response)
             try:
                 for data in application_iter:
@@ -318,11 +317,11 @@ class WSGIRequestHandler(BaseHTTPRequestHandler):
                     write(b"")
             finally:
                 if hasattr(application_iter, "close"):
-                    application_iter.close()  # type: ignore
+                    application_iter.close()
 
         try:
             execute(self.server.app)
-        except (ConnectionError, socket.timeout) as e:
+        except (_ConnectionError, socket.timeout) as e:
             self.connection_dropped(e, environ)
         except Exception:
             if self.server.passthrough_errors:
@@ -333,138 +332,176 @@ class WSGIRequestHandler(BaseHTTPRequestHandler):
             try:
                 # if we haven't yet sent the headers but they are set
                 # we roll back to be able to set them again.
-                if status_sent is None:
-                    status_set = None
-                    headers_set = None
+                if not headers_sent:
+                    del headers_set[:]
                 execute(InternalServerError())
             except Exception:
                 pass
             self.server.log("error", "Error on request:\n%s", traceback.plaintext)
 
-    def handle(self) -> None:
+    def handle(self):
         """Handles a request ignoring dropped connections."""
         try:
             BaseHTTPRequestHandler.handle(self)
-        except (ConnectionError, socket.timeout) as e:
+        except (_ConnectionError, socket.timeout) as e:
             self.connection_dropped(e)
         except Exception as e:
-            if self.server.ssl_context is not None and is_ssl_error(e):
-                self.log_error("SSL error occurred: %s", e)
-            else:
+            if self.server.ssl_context is None or not is_ssl_error(e):
                 raise
         if self.server.shutdown_signal:
             self.initiate_shutdown()
 
-    def initiate_shutdown(self) -> None:
+    def initiate_shutdown(self):
+        """A horrible, horrible way to kill the server for Python 2.6 and
+        later.  It's the best we can do.
+        """
+        # Windows does not provide SIGKILL, go with SIGTERM then.
+        sig = getattr(signal, "SIGKILL", signal.SIGTERM)
+        # reloader active
         if is_running_from_reloader():
-            # Windows does not provide SIGKILL, go with SIGTERM then.
-            sig = getattr(signal, "SIGKILL", signal.SIGTERM)
             os.kill(os.getpid(), sig)
+        # python 2.7
+        self.server._BaseServer__shutdown_request = True
+        # python 2.6
+        self.server._BaseServer__serving = False
 
-        self.server._BaseServer__shutdown_request = True  # type: ignore
-
-    def connection_dropped(
-        self, error: BaseException, environ: t.Optional["WSGIEnvironment"] = None
-    ) -> None:
+    def connection_dropped(self, error, environ=None):
         """Called if the connection was closed by the client.  By default
         nothing happens.
         """
 
-    def handle_one_request(self) -> None:
+    def handle_one_request(self):
         """Handle a single HTTP request."""
         self.raw_requestline = self.rfile.readline()
         if not self.raw_requestline:
-            self.close_connection = True
+            self.close_connection = 1
         elif self.parse_request():
-            self.run_wsgi()
+            return self.run_wsgi()
 
-    def send_response(self, code: int, message: t.Optional[str] = None) -> None:
+    def send_response(self, code, message=None):
         """Send the response header and log the response code."""
         self.log_request(code)
         if message is None:
-            message = self.responses[code][0] if code in self.responses else ""
+            message = code in self.responses and self.responses[code][0] or ""
         if self.request_version != "HTTP/0.9":
-            hdr = f"{self.protocol_version} {code} {message}\r\n"
+            hdr = "%s %d %s\r\n" % (self.protocol_version, code, message)
             self.wfile.write(hdr.encode("ascii"))
 
-    def version_string(self) -> str:
-        return super().version_string().strip()
+    def version_string(self):
+        return BaseHTTPRequestHandler.version_string(self).strip()
 
-    def address_string(self) -> str:
+    def address_string(self):
         if getattr(self, "environ", None):
-            return self.environ["REMOTE_ADDR"]  # type: ignore
-
-        if not self.client_address:
+            return self.environ["REMOTE_ADDR"]
+        elif not self.client_address:
             return "<local>"
+        elif isinstance(self.client_address, str):
+            return self.client_address
+        else:
+            return self.client_address[0]
 
-        return self.client_address[0]
-
-    def port_integer(self) -> int:
+    def port_integer(self):
         return self.client_address[1]
 
-    def log_request(
-        self, code: t.Union[int, str] = "-", size: t.Union[int, str] = "-"
-    ) -> None:
+    def log_request(self, code="-", size="-"):
         try:
             path = uri_to_iri(self.path)
-            msg = f"{self.command} {path} {self.request_version}"
+            msg = "%s %s %s" % (self.command, path, self.request_version)
         except AttributeError:
             # path isn't set if the requestline was bad
             msg = self.requestline
 
         code = str(code)
 
-        if _log_add_style:
+        if click:
+            color = click.style
+
             if code[0] == "1":  # 1xx - Informational
-                msg = _ansi_style(msg, "bold")
-            elif code == "200":  # 2xx - Success
-                pass
+                msg = color(msg, bold=True)
+            elif code[0] == "2":  # 2xx - Success
+                msg = color(msg, fg="white")
             elif code == "304":  # 304 - Resource Not Modified
-                msg = _ansi_style(msg, "cyan")
+                msg = color(msg, fg="cyan")
             elif code[0] == "3":  # 3xx - Redirection
-                msg = _ansi_style(msg, "green")
+                msg = color(msg, fg="green")
             elif code == "404":  # 404 - Resource Not Found
-                msg = _ansi_style(msg, "yellow")
+                msg = color(msg, fg="yellow")
             elif code[0] == "4":  # 4xx - Client Error
-                msg = _ansi_style(msg, "bold", "red")
+                msg = color(msg, fg="red", bold=True)
             else:  # 5xx, or any other response
-                msg = _ansi_style(msg, "bold", "magenta")
+                msg = color(msg, fg="magenta", bold=True)
 
         self.log("info", '"%s" %s %s', msg, code, size)
 
-    def log_error(self, format: str, *args: t.Any) -> None:
-        self.log("error", format, *args)
+    def log_error(self, *args):
+        self.log("error", *args)
 
-    def log_message(self, format: str, *args: t.Any) -> None:
+    def log_message(self, format, *args):
         self.log("info", format, *args)
 
-    def log(self, type: str, message: str, *args: t.Any) -> None:
+    def log(self, type, message, *args):
         _log(
             type,
-            f"{self.address_string()} - - [{self.log_date_time_string()}] {message}\n",
-            *args,
+            "%s - - [%s] %s\n"
+            % (self.address_string(), self.log_date_time_string(), message % args),
         )
 
+    def get_header_items(self):
+        """
+        Get an iterable list of key/value pairs representing headers.
 
-def _ansi_style(value: str, *styles: str) -> str:
-    codes = {
-        "bold": 1,
-        "red": 31,
-        "green": 32,
-        "yellow": 33,
-        "magenta": 35,
-        "cyan": 36,
-    }
+        This function provides Python 2/3 compatibility as related to the
+        parsing of request headers. Python 2.7 is not compliant with
+        RFC 3875 Section 4.1.18 which requires multiple values for headers
+        to be provided or RFC 2616 which allows for folding of multi-line
+        headers. This function will return a matching list regardless
+        of Python version. It can be removed once Python 2.7 support
+        is dropped.
 
-    for style in styles:
-        value = f"\x1b[{codes[style]}m{value}"
+        :return: List of tuples containing header hey/value pairs
+        """
+        if PY2:
+            # For Python 2, process the headers manually according to
+            # W3C RFC 2616 Section 4.2.
+            items = []
+            for header in self.headers.headers:
+                # Remove "\r\n" from the header and split on ":" to get
+                # the field name and value.
+                try:
+                    key, value = header[0:-2].split(":", 1)
+                except ValueError:
+                    # If header could not be slit with : but starts with white
+                    # space and it follows an existing header, it's a folded
+                    # header.
+                    if header[0] in ("\t", " ") and items:
+                        # Pop off the last header
+                        key, value = items.pop()
+                        # Append the current header to the value of the last
+                        # header which will be placed back on the end of the
+                        # list
+                        value = value + header
+                    # Otherwise it's just a bad header and should error
+                    else:
+                        # Re-raise the value error
+                        raise
 
-    return f"{value}\x1b[0m"
+                # Add the key and the value once stripped of leading
+                # white space. The specification allows for stripping
+                # trailing white space but the Python 3 code does not
+                # strip trailing white space. Therefore, trailing space
+                # will be left as is to match the Python 3 behavior.
+                items.append((key, value.lstrip()))
+        else:
+            items = self.headers.items()
+
+        return items
 
 
-def generate_adhoc_ssl_pair(
-    cn: t.Optional[str] = None,
-) -> t.Tuple["Certificate", "RSAPrivateKeyWithSerialization"]:
+#: backwards compatible name if someone is subclassing it
+BaseRequestHandler = WSGIRequestHandler
+
+
+def generate_adhoc_ssl_pair(cn=None):
     try:
         from cryptography import x509
         from cryptography.x509.oid import NameOID
@@ -472,45 +509,40 @@ def generate_adhoc_ssl_pair(
         from cryptography.hazmat.primitives import hashes
         from cryptography.hazmat.primitives.asymmetric import rsa
     except ImportError:
-        raise TypeError(
-            "Using ad-hoc certificates requires the cryptography library."
-        ) from None
-
-    backend = default_backend()
+        raise TypeError("Using ad-hoc certificates requires the cryptography library.")
     pkey = rsa.generate_private_key(
-        public_exponent=65537, key_size=2048, backend=backend
+        public_exponent=65537, key_size=2048, backend=default_backend()
     )
 
     # pretty damn sure that this is not actually accepted by anyone
     if cn is None:
-        cn = "*"
+        cn = u"*"
 
     subject = x509.Name(
         [
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Dummy Certificate"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"Dummy Certificate"),
             x509.NameAttribute(NameOID.COMMON_NAME, cn),
         ]
     )
 
-    backend = default_backend()
     cert = (
         x509.CertificateBuilder()
         .subject_name(subject)
         .issuer_name(subject)
         .public_key(pkey.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(dt.now(timezone.utc))
-        .not_valid_after(dt.now(timezone.utc) + timedelta(days=365))
+        .not_valid_before(dt.utcnow())
+        .not_valid_after(dt.utcnow() + timedelta(days=365))
         .add_extension(x509.ExtendedKeyUsage([x509.OID_SERVER_AUTH]), critical=False)
-        .add_extension(x509.SubjectAlternativeName([x509.DNSName(cn)]), critical=False)
-        .sign(pkey, hashes.SHA256(), backend)
+        .add_extension(
+            x509.SubjectAlternativeName([x509.DNSName(u"*")]), critical=False
+        )
+        .sign(pkey, hashes.SHA256(), default_backend())
     )
     return cert, pkey
 
 
-def make_ssl_devcert(
-    base_path: str, host: t.Optional[str] = None, cn: t.Optional[str] = None
-) -> t.Tuple[str, str]:
+def make_ssl_devcert(base_path, host=None, cn=None):
     """Creates an SSL key for development.  This should be used instead of
     the ``'adhoc'`` key which generates a new cert on each server start.
     It accepts a path for where it should store the key and cert and
@@ -530,13 +562,13 @@ def make_ssl_devcert(
     """
 
     if host is not None:
-        cn = f"*.{host}/CN={host}"
+        cn = u"*.%s/CN=%s" % (host, host)
     cert, pkey = generate_adhoc_ssl_pair(cn=cn)
 
     from cryptography.hazmat.primitives import serialization
 
-    cert_file = f"{base_path}.crt"
-    pkey_file = f"{base_path}.key"
+    cert_file = base_path + ".crt"
+    pkey_file = base_path + ".key"
 
     with open(cert_file, "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
@@ -552,7 +584,7 @@ def make_ssl_devcert(
     return cert_file, pkey_file
 
 
-def generate_adhoc_ssl_context() -> "ssl.SSLContext":
+def generate_adhoc_ssl_context():
     """Generates an adhoc SSL context for the development server."""
     import tempfile
     import atexit
@@ -582,9 +614,7 @@ def generate_adhoc_ssl_context() -> "ssl.SSLContext":
     return ctx
 
 
-def load_ssl_context(
-    cert_file: str, pkey_file: t.Optional[str] = None, protocol: t.Optional[int] = None
-) -> "ssl.SSLContext":
+def load_ssl_context(cert_file, pkey_file=None, protocol=None):
     """Loads SSL context from cert/private key files and optional protocol.
     Many parameters are directly taken from the API of
     :py:class:`ssl.SSLContext`.
@@ -592,27 +622,68 @@ def load_ssl_context(
     :param cert_file: Path of the certificate to use.
     :param pkey_file: Path of the private key to use. If not given, the key
                       will be obtained from the certificate file.
-    :param protocol: A ``PROTOCOL`` constant from the :mod:`ssl` module.
-        Defaults to :data:`ssl.PROTOCOL_TLS_SERVER`.
+    :param protocol: One of the ``PROTOCOL_*`` constants in the stdlib ``ssl``
+                     module. Defaults to ``PROTOCOL_SSLv23``.
     """
     if protocol is None:
-        protocol = ssl.PROTOCOL_TLS_SERVER
-
-    ctx = ssl.SSLContext(protocol)
+        try:
+            protocol = ssl.PROTOCOL_TLS_SERVER
+        except AttributeError:
+            # Python <= 3.5 compat
+            protocol = ssl.PROTOCOL_SSLv23
+    ctx = _SSLContext(protocol)
     ctx.load_cert_chain(cert_file, pkey_file)
     return ctx
 
 
-def is_ssl_error(error: t.Optional[Exception] = None) -> bool:
+class _SSLContext(object):
+
+    """A dummy class with a small subset of Python3's ``ssl.SSLContext``, only
+    intended to be used with and by Werkzeug."""
+
+    def __init__(self, protocol):
+        self._protocol = protocol
+        self._certfile = None
+        self._keyfile = None
+        self._password = None
+
+    def load_cert_chain(self, certfile, keyfile=None, password=None):
+        self._certfile = certfile
+        self._keyfile = keyfile or certfile
+        self._password = password
+
+    def wrap_socket(self, sock, **kwargs):
+        return ssl.wrap_socket(
+            sock,
+            keyfile=self._keyfile,
+            certfile=self._certfile,
+            ssl_version=self._protocol,
+            **kwargs
+        )
+
+
+def is_ssl_error(error=None):
     """Checks if the given error (or the current one) is an SSL error."""
     if error is None:
-        error = t.cast(Exception, sys.exc_info()[1])
+        error = sys.exc_info()[1]
     return isinstance(error, ssl.SSLError)
 
 
-def select_address_family(host: str, port: int) -> socket.AddressFamily:
+def select_address_family(host, port):
     """Return ``AF_INET4``, ``AF_INET6``, or ``AF_UNIX`` depending on
     the host and port."""
+    # disabled due to problems with current ipv6 implementations
+    # and various operating systems.  Probably this code also is
+    # not supposed to work, but I can't come up with any other
+    # ways to implement this.
+    # try:
+    #     info = socket.getaddrinfo(host, port, socket.AF_UNSPEC,
+    #                               socket.SOCK_STREAM, 0,
+    #                               socket.AI_PASSIVE)
+    #     if info:
+    #         return info[0][0]
+    # except socket.gaierror:
+    #     pass
     if host.startswith("unix://"):
         return socket.AF_UNIX
     elif ":" in host and hasattr(socket, "AF_INET6"):
@@ -620,9 +691,7 @@ def select_address_family(host: str, port: int) -> socket.AddressFamily:
     return socket.AF_INET
 
 
-def get_sockaddr(
-    host: str, port: int, family: socket.AddressFamily
-) -> t.Union[t.Tuple[str, int], str]:
+def get_sockaddr(host, port, family):
     """Return a fully qualified socket address that can be passed to
     :func:`socket.bind`."""
     if family == af_unix:
@@ -633,28 +702,10 @@ def get_sockaddr(
         )
     except socket.gaierror:
         return host, port
-    return res[0][4]  # type: ignore
+    return res[0][4]
 
 
-def get_interface_ip(family: socket.AddressFamily) -> str:
-    """Get the IP address of an external interface. Used when binding to
-    0.0.0.0 or ::1 to show a more useful URL.
-
-    :meta private:
-    """
-    # arbitrary private address
-    host = "fd31:f903:5ab5:1::1" if family == socket.AF_INET6 else "10.253.155.219"
-
-    with socket.socket(family, socket.SOCK_DGRAM) as s:
-        try:
-            s.connect((host, 58162))
-        except OSError:
-            return "::1" if family == socket.AF_INET6 else "127.0.0.1"
-
-        return s.getsockname()[0]  # type: ignore
-
-
-class BaseWSGIServer(HTTPServer):
+class BaseWSGIServer(HTTPServer, object):
 
     """Simple single-threaded, single-process WSGI server."""
 
@@ -664,14 +715,14 @@ class BaseWSGIServer(HTTPServer):
 
     def __init__(
         self,
-        host: str,
-        port: int,
-        app: "WSGIApplication",
-        handler: t.Optional[t.Type[WSGIRequestHandler]] = None,
-        passthrough_errors: bool = False,
-        ssl_context: t.Optional[_TSSLContextArg] = None,
-        fd: t.Optional[int] = None,
-    ) -> None:
+        host,
+        port,
+        app,
+        handler=None,
+        passthrough_errors=False,
+        ssl_context=None,
+        fd=None,
+    ):
         if handler is None:
             handler = WSGIRequestHandler
 
@@ -684,13 +735,9 @@ class BaseWSGIServer(HTTPServer):
         server_address = get_sockaddr(host, int(port), self.address_family)
 
         # remove socket file if it already exists
-        if self.address_family == af_unix:
-            server_address = t.cast(str, server_address)
-
-            if os.path.exists(server_address):
-                os.unlink(server_address)
-
-        super().__init__(server_address, handler)  # type: ignore
+        if self.address_family == af_unix and os.path.exists(server_address):
+            os.unlink(server_address)
+        HTTPServer.__init__(self, server_address, handler)
 
         self.app = app
         self.passthrough_errors = passthrough_errors
@@ -710,33 +757,44 @@ class BaseWSGIServer(HTTPServer):
             if ssl_context == "adhoc":
                 ssl_context = generate_adhoc_ssl_context()
 
-            self.socket = ssl_context.wrap_socket(self.socket, server_side=True)
-            self.ssl_context: t.Optional["ssl.SSLContext"] = ssl_context
+            # If we are on Python 2 the return value from socket.fromfd
+            # is an internal socket object but what we need for ssl wrap
+            # is the wrapper around it :(
+            sock = self.socket
+            if PY2 and not isinstance(sock, socket.socket):
+                sock = socket.socket(sock.family, sock.type, sock.proto, sock)
+            self.socket = ssl_context.wrap_socket(sock, server_side=True)
+            self.ssl_context = ssl_context
         else:
             self.ssl_context = None
 
-    def log(self, type: str, message: str, *args: t.Any) -> None:
+    def log(self, type, message, *args):
         _log(type, message, *args)
 
-    def serve_forever(self, poll_interval: float = 0.5) -> None:
+    def serve_forever(self):
         self.shutdown_signal = False
         try:
-            super().serve_forever(poll_interval=poll_interval)
+            HTTPServer.serve_forever(self)
         except KeyboardInterrupt:
             pass
         finally:
             self.server_close()
 
-    def handle_error(
-        self, request: t.Any, client_address: t.Union[t.Tuple[str, int], str]
-    ) -> None:
+    def handle_error(self, request, client_address):
         if self.passthrough_errors:
             raise
+        # Python 2 still causes a socket.error after the earlier
+        # handling, so silence it here.
+        if isinstance(sys.exc_info()[1], _ConnectionError):
+            return
+        return HTTPServer.handle_error(self, request, client_address)
 
-        return super().handle_error(request, client_address)
+    def get_request(self):
+        con, info = self.socket.accept()
+        return con, info
 
 
-class ThreadedWSGIServer(socketserver.ThreadingMixIn, BaseWSGIServer):
+class ThreadedWSGIServer(ThreadingMixIn, BaseWSGIServer):
 
     """A WSGI server that does threading."""
 
@@ -752,15 +810,15 @@ class ForkingWSGIServer(ForkingMixIn, BaseWSGIServer):
 
     def __init__(
         self,
-        host: str,
-        port: int,
-        app: "WSGIApplication",
-        processes: int = 40,
-        handler: t.Optional[t.Type[WSGIRequestHandler]] = None,
-        passthrough_errors: bool = False,
-        ssl_context: t.Optional[_TSSLContextArg] = None,
-        fd: t.Optional[int] = None,
-    ) -> None:
+        host,
+        port,
+        app,
+        processes=40,
+        handler=None,
+        passthrough_errors=False,
+        ssl_context=None,
+        fd=None,
+    ):
         if not can_fork:
             raise ValueError("Your platform does not support forking.")
         BaseWSGIServer.__init__(
@@ -770,16 +828,16 @@ class ForkingWSGIServer(ForkingMixIn, BaseWSGIServer):
 
 
 def make_server(
-    host: str,
-    port: int,
-    app: "WSGIApplication",
-    threaded: bool = False,
-    processes: int = 1,
-    request_handler: t.Optional[t.Type[WSGIRequestHandler]] = None,
-    passthrough_errors: bool = False,
-    ssl_context: t.Optional[_TSSLContextArg] = None,
-    fd: t.Optional[int] = None,
-) -> BaseWSGIServer:
+    host=None,
+    port=None,
+    app=None,
+    threaded=False,
+    processes=1,
+    request_handler=None,
+    passthrough_errors=False,
+    ssl_context=None,
+    fd=None,
+):
     """Create a new server instance that is either threaded, or forks
     or just processes one request after another.
     """
@@ -806,7 +864,7 @@ def make_server(
         )
 
 
-def is_running_from_reloader() -> bool:
+def is_running_from_reloader():
     """Checks if the application is running from within the Werkzeug
     reloader subprocess.
 
@@ -816,32 +874,28 @@ def is_running_from_reloader() -> bool:
 
 
 def run_simple(
-    hostname: str,
-    port: int,
-    application: "WSGIApplication",
-    use_reloader: bool = False,
-    use_debugger: bool = False,
-    use_evalex: bool = True,
-    extra_files: t.Optional[t.Iterable[str]] = None,
-    exclude_patterns: t.Optional[t.Iterable[str]] = None,
-    reloader_interval: int = 1,
-    reloader_type: str = "auto",
-    threaded: bool = False,
-    processes: int = 1,
-    request_handler: t.Optional[t.Type[WSGIRequestHandler]] = None,
-    static_files: t.Optional[t.Dict[str, t.Union[str, t.Tuple[str, str]]]] = None,
-    passthrough_errors: bool = False,
-    ssl_context: t.Optional[_TSSLContextArg] = None,
-) -> None:
+    hostname,
+    port,
+    application,
+    use_reloader=False,
+    use_debugger=False,
+    use_evalex=True,
+    extra_files=None,
+    reloader_interval=1,
+    reloader_type="auto",
+    threaded=False,
+    processes=1,
+    request_handler=None,
+    static_files=None,
+    passthrough_errors=False,
+    ssl_context=None,
+):
     """Start a WSGI application. Optional features include a reloader,
     multithreading and fork support.
 
     This function has a command-line interface too::
 
         python -m werkzeug.serving --help
-
-    .. versionchanged:: 2.0
-        Added ``exclude_patterns`` parameter.
 
     .. versionadded:: 0.5
        `static_files` was added to simplify serving of static files as well
@@ -878,9 +932,6 @@ def run_simple(
     :param extra_files: a list of files the reloader should watch
                         additionally to the modules.  For example configuration
                         files.
-    :param exclude_patterns: List of :mod:`fnmatch` patterns to ignore
-        when running the reloader. For example, ignore cache files that
-        shouldn't reload when updated.
     :param reloader_interval: the interval for the reloader in seconds.
     :param reloader_type: the type of reloader to use.  The default is
                           auto detection.  Valid values are ``'stat'`` and
@@ -919,39 +970,27 @@ def run_simple(
 
         application = SharedDataMiddleware(application, static_files)
 
-    def log_startup(sock: socket.socket) -> None:
-        all_addresses_message = (
-            " * Running on all addresses.\n"
-            "   WARNING: This is a development server. Do not use it in"
-            " a production deployment."
-        )
-
+    def log_startup(sock):
+        display_hostname = hostname if hostname not in ("", "*") else "localhost"
+        quit_msg = "(Press CTRL+C to quit)"
         if sock.family == af_unix:
-            _log("info", " * Running on %s (Press CTRL+C to quit)", hostname)
+            _log("info", " * Running on %s %s", display_hostname, quit_msg)
         else:
-            if hostname == "0.0.0.0":
-                _log("warning", all_addresses_message)
-                display_hostname = get_interface_ip(socket.AF_INET)
-            elif hostname == "::":
-                _log("warning", all_addresses_message)
-                display_hostname = get_interface_ip(socket.AF_INET6)
-            else:
-                display_hostname = hostname
-
             if ":" in display_hostname:
-                display_hostname = f"[{display_hostname}]"
-
+                display_hostname = "[%s]" % display_hostname
+            port = sock.getsockname()[1]
             _log(
                 "info",
-                " * Running on %s://%s:%d/ (Press CTRL+C to quit)",
+                " * Running on %s://%s:%d/ %s",
                 "http" if ssl_context is None else "https",
                 display_hostname,
-                sock.getsockname()[1],
+                port,
+                quit_msg,
             )
 
-    def inner() -> None:
+    def inner():
         try:
-            fd: t.Optional[int] = int(os.environ["WERKZEUG_SERVER_FD"])
+            fd = int(os.environ["WERKZEUG_SERVER_FD"])
         except (LookupError, ValueError):
             fd = None
         srv = make_server(
@@ -989,7 +1028,8 @@ def run_simple(
             s = socket.socket(address_family, socket.SOCK_STREAM)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind(server_address)
-            s.set_inheritable(True)
+            if hasattr(s, "set_inheritable"):
+                s.set_inheritable(True)
 
             # If we can open the socket by file descriptor, then we can just
             # reuse this one and our socket will survive the restarts.
@@ -1000,87 +1040,76 @@ def run_simple(
             else:
                 s.close()
                 if address_family == af_unix:
-                    server_address = t.cast(str, server_address)
-                    _log("info", "Unlinking %s", server_address)
+                    _log("info", "Unlinking %s" % server_address)
                     os.unlink(server_address)
 
-        from ._reloader import run_with_reloader as _rwr
+        # Do not use relative imports, otherwise "python -m werkzeug.serving"
+        # breaks.
+        from ._reloader import run_with_reloader
 
-        _rwr(
-            inner,
-            extra_files=extra_files,
-            exclude_patterns=exclude_patterns,
-            interval=reloader_interval,
-            reloader_type=reloader_type,
-        )
+        run_with_reloader(inner, extra_files, reloader_interval, reloader_type)
     else:
         inner()
 
 
-def run_with_reloader(*args: t.Any, **kwargs: t.Any) -> None:
-    """Run a process with the reloader. This is not a public API, do
-    not use this function.
+def run_with_reloader(*args, **kwargs):
+    # People keep using undocumented APIs.  Do not use this function
+    # please, we do not guarantee that it continues working.
+    from ._reloader import run_with_reloader
 
-    .. deprecated:: 2.0
-        Will be removed in Werkzeug 2.1.
-    """
-    from ._reloader import run_with_reloader as _rwr
-
-    warnings.warn(
-        (
-            "'run_with_reloader' is a private API, it will no longer be"
-            " accessible in Werkzeug 2.1. Use 'run_simple' instead."
-        ),
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    _rwr(*args, **kwargs)
+    return run_with_reloader(*args, **kwargs)
 
 
-def main() -> None:
+def main():
     """A simple command-line interface for :py:func:`run_simple`."""
-    import argparse
+
+    # in contrast to argparse, this works at least under Python < 2.7
+    import optparse
     from .utils import import_string
 
-    _log("warning", "This CLI is deprecated and will be removed in version 2.1.")
-
-    parser = argparse.ArgumentParser(
-        description="Run the given WSGI application with the development server.",
-        allow_abbrev=False,
-    )
-    parser.add_argument(
+    parser = optparse.OptionParser(usage="Usage: %prog [options] app_module:app_object")
+    parser.add_option(
         "-b",
         "--bind",
         dest="address",
         help="The hostname:port the app should listen on.",
     )
-    parser.add_argument(
+    parser.add_option(
         "-d",
         "--debug",
+        dest="use_debugger",
         action="store_true",
-        help="Show the interactive debugger for unhandled exceptions.",
+        default=False,
+        help="Use Werkzeug's debugger.",
     )
-    parser.add_argument(
+    parser.add_option(
         "-r",
         "--reload",
+        dest="use_reloader",
         action="store_true",
-        help="Reload the process if modules change.",
+        default=False,
+        help="Reload Python process if modules change.",
     )
-    parser.add_argument(
-        "application", help="Application to import and serve, in the form module:app."
-    )
-    args = parser.parse_args()
-    hostname, port = None, None
+    options, args = parser.parse_args()
 
-    if args.address:
-        hostname, _, port = args.address.partition(":")
+    hostname, port = None, None
+    if options.address:
+        address = options.address.split(":")
+        hostname = address[0]
+        if len(address) > 1:
+            port = address[1]
+
+    if len(args) != 1:
+        sys.stdout.write("No application supplied, or too much. See --help\n")
+        sys.exit(1)
+    app = import_string(args[0])
 
     run_simple(
-        hostname=hostname or "127.0.0.1",
+        hostname=(hostname or "127.0.0.1"),
         port=int(port or 5000),
-        application=import_string(args.application),
-        use_reloader=args.reload,
-        use_debugger=args.debug,
+        application=app,
+        use_reloader=options.use_reloader,
+        use_debugger=options.use_debugger,
     )
 
 

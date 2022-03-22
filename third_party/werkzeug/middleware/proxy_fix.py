@@ -10,7 +10,7 @@ When an application is running behind a proxy server, WSGI may see the
 request as coming from that server rather than the real client. Proxies
 set various headers to track where the request actually came from.
 
-This middleware should only be used if the application is actually
+This middleware should only be applied if the application is actually
 behind such a proxy, and should be configured with the number of proxies
 that are chained in front of it. Not all proxies set all the headers.
 Since incoming headers can be faked, you must set how many proxies are
@@ -21,17 +21,10 @@ setting each header so the middleware knows what to trust.
 :copyright: 2007 Pallets
 :license: BSD-3-Clause
 """
-import typing as t
-
-from ..http import parse_list_header
-
-if t.TYPE_CHECKING:
-    from _typeshed.wsgi import StartResponse
-    from _typeshed.wsgi import WSGIApplication
-    from _typeshed.wsgi import WSGIEnvironment
+from werkzeug.http import parse_list_header
 
 
-class ProxyFix:
+class ProxyFix(object):
     """Adjust the WSGI environ based on ``X-Forwarded-`` that proxies in
     front of the application may set.
 
@@ -90,15 +83,7 @@ class ProxyFix:
         ``SERVER_NAME`` and ``SERVER_PORT``.
     """
 
-    def __init__(
-        self,
-        app: "WSGIApplication",
-        x_for: int = 1,
-        x_proto: int = 1,
-        x_host: int = 0,
-        x_port: int = 0,
-        x_prefix: int = 0,
-    ) -> None:
+    def __init__(self, app, x_for=1, x_proto=1, x_host=0, x_port=0, x_prefix=0):
         self.app = app
         self.x_for = x_for
         self.x_proto = x_proto
@@ -106,7 +91,7 @@ class ProxyFix:
         self.x_port = x_port
         self.x_prefix = x_prefix
 
-    def _get_real_value(self, trusted: int, value: t.Optional[str]) -> t.Optional[str]:
+    def _get_real_value(self, trusted, value):
         """Get the real value from a list header based on the configured
         number of trusted proxies.
 
@@ -121,15 +106,12 @@ class ProxyFix:
         .. versionadded:: 0.15
         """
         if not (trusted and value):
-            return None
+            return
         values = parse_list_header(value)
         if len(values) >= trusted:
             return values[-trusted]
-        return None
 
-    def __call__(
-        self, environ: "WSGIEnvironment", start_response: "StartResponse"
-    ) -> t.Iterable[bytes]:
+    def __call__(self, environ, start_response):
         """Modify the WSGI environ based on the various ``Forwarded``
         headers before calling the wrapped application. Store the
         original environ values in ``werkzeug.proxy_fix.orig_{key}``.
@@ -163,19 +145,19 @@ class ProxyFix:
 
         x_host = self._get_real_value(self.x_host, environ_get("HTTP_X_FORWARDED_HOST"))
         if x_host:
-            environ["HTTP_HOST"] = environ["SERVER_NAME"] = x_host
-            # "]" to check for IPv6 address without port
-            if ":" in x_host and not x_host.endswith("]"):
-                environ["SERVER_NAME"], environ["SERVER_PORT"] = x_host.rsplit(":", 1)
+            environ["HTTP_HOST"] = x_host
+            parts = x_host.split(":", 1)
+            environ["SERVER_NAME"] = parts[0]
+            if len(parts) == 2:
+                environ["SERVER_PORT"] = parts[1]
 
         x_port = self._get_real_value(self.x_port, environ_get("HTTP_X_FORWARDED_PORT"))
         if x_port:
             host = environ.get("HTTP_HOST")
             if host:
-                # "]" to check for IPv6 address without port
-                if ":" in host and not host.endswith("]"):
-                    host = host.rsplit(":", 1)[0]
-                environ["HTTP_HOST"] = f"{host}:{x_port}"
+                parts = host.split(":", 1)
+                host = parts[0] if len(parts) == 2 else host
+                environ["HTTP_HOST"] = "%s:%s" % (host, x_port)
             environ["SERVER_PORT"] = x_port
 
         x_prefix = self._get_real_value(

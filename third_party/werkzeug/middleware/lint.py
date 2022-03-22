@@ -12,19 +12,19 @@ common HTTP errors such as non-empty responses for 304 status codes.
 :copyright: 2007 Pallets
 :license: BSD-3-Clause
 """
-import typing as t
-from types import TracebackType
-from urllib.parse import urlparse
 from warnings import warn
 
+from .._compat import implements_iterator
+from .._compat import PY2
+from .._compat import string_types
 from ..datastructures import Headers
 from ..http import is_entity_header
 from ..wsgi import FileWrapper
 
-if t.TYPE_CHECKING:
-    from _typeshed.wsgi import StartResponse
-    from _typeshed.wsgi import WSGIApplication
-    from _typeshed.wsgi import WSGIEnvironment
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 
 class WSGIWarning(Warning):
@@ -35,20 +35,19 @@ class HTTPWarning(Warning):
     """Warning class for HTTP warnings."""
 
 
-def check_type(context: str, obj: object, need: t.Type = str) -> None:
-    if type(obj) is not need:
+def check_string(context, obj, stacklevel=3):
+    if type(obj) is not str:
         warn(
-            f"{context!r} requires {need.__name__!r}, got {type(obj).__name__!r}.",
+            "'%s' requires strings, got '%s'" % (context, type(obj).__name__),
             WSGIWarning,
-            stacklevel=3,
         )
 
 
-class InputStream:
-    def __init__(self, stream: t.IO[bytes]) -> None:
+class InputStream(object):
+    def __init__(self, stream):
         self._stream = stream
 
-    def read(self, *args: t.Any) -> bytes:
+    def read(self, *args):
         if len(args) == 0:
             warn(
                 "WSGI does not guarantee an EOF marker on the input stream, thus making"
@@ -65,7 +64,7 @@ class InputStream:
             )
         return self._stream.read(*args)
 
-    def readline(self, *args: t.Any) -> bytes:
+    def readline(self, *args):
         if len(args) == 0:
             warn(
                 "Calls to 'wsgi.input.readline()' without arguments are unsafe. Use"
@@ -84,66 +83,65 @@ class InputStream:
             raise TypeError("Too many arguments passed to 'wsgi.input.readline()'.")
         return self._stream.readline(*args)
 
-    def __iter__(self) -> t.Iterator[bytes]:
+    def __iter__(self):
         try:
             return iter(self._stream)
         except TypeError:
             warn("'wsgi.input' is not iterable.", WSGIWarning, stacklevel=2)
             return iter(())
 
-    def close(self) -> None:
+    def close(self):
         warn("The application closed the input stream!", WSGIWarning, stacklevel=2)
         self._stream.close()
 
 
-class ErrorStream:
-    def __init__(self, stream: t.IO[str]) -> None:
+class ErrorStream(object):
+    def __init__(self, stream):
         self._stream = stream
 
-    def write(self, s: str) -> None:
-        check_type("wsgi.error.write()", s, str)
+    def write(self, s):
+        check_string("wsgi.error.write()", s)
         self._stream.write(s)
 
-    def flush(self) -> None:
+    def flush(self):
         self._stream.flush()
 
-    def writelines(self, seq: t.Iterable[str]) -> None:
+    def writelines(self, seq):
         for line in seq:
             self.write(line)
 
-    def close(self) -> None:
+    def close(self):
         warn("The application closed the error stream!", WSGIWarning, stacklevel=2)
         self._stream.close()
 
 
-class GuardedWrite:
-    def __init__(self, write: t.Callable[[bytes], None], chunks: t.List[int]) -> None:
+class GuardedWrite(object):
+    def __init__(self, write, chunks):
         self._write = write
         self._chunks = chunks
 
-    def __call__(self, s: bytes) -> None:
-        check_type("write()", s, bytes)
-        self._write(s)
+    def __call__(self, s):
+        check_string("write()", s)
+        self._write.write(s)
         self._chunks.append(len(s))
 
 
-class GuardedIterator:
-    def __init__(
-        self,
-        iterator: t.Iterable[bytes],
-        headers_set: t.Tuple[int, Headers],
-        chunks: t.List[int],
-    ) -> None:
+@implements_iterator
+class GuardedIterator(object):
+    def __init__(self, iterator, headers_set, chunks):
         self._iterator = iterator
-        self._next = iter(iterator).__next__
+        if PY2:
+            self._next = iter(iterator).next
+        else:
+            self._next = iter(iterator).__next__
         self.closed = False
         self.headers_set = headers_set
         self.chunks = chunks
 
-    def __iter__(self) -> "GuardedIterator":
+    def __iter__(self):
         return self
 
-    def __next__(self) -> bytes:
+    def __next__(self):
         if self.closed:
             warn("Iterated over closed 'app_iter'.", WSGIWarning, stacklevel=2)
 
@@ -156,15 +154,15 @@ class GuardedIterator:
                 stacklevel=2,
             )
 
-        check_type("application iterator items", rv, bytes)
+        check_string("application iterator items", rv)
         self.chunks.append(len(rv))
         return rv
 
-    def close(self) -> None:
+    def close(self):
         self.closed = True
 
         if hasattr(self._iterator, "close"):
-            self._iterator.close()  # type: ignore
+            self._iterator.close()
 
         if self.headers_set:
             status_code, headers = self.headers_set
@@ -178,26 +176,28 @@ class GuardedIterator:
                         key
                     ):
                         warn(
-                            f"Entity header {key!r} found in 304 response.", HTTPWarning
+                            "Entity header %r found in 304 response." % key, HTTPWarning
                         )
                 if bytes_sent:
                     warn("304 responses must not have a body.", HTTPWarning)
             elif 100 <= status_code < 200 or status_code == 204:
                 if content_length != 0:
                     warn(
-                        f"{status_code} responses must have an empty content length.",
+                        "%r responses must have an empty content length." % status_code,
                         HTTPWarning,
                     )
                 if bytes_sent:
-                    warn(f"{status_code} responses must not have a body.", HTTPWarning)
+                    warn(
+                        "%r responses must not have a body." % status_code, HTTPWarning
+                    )
             elif content_length is not None and content_length != bytes_sent:
                 warn(
-                    "Content-Length and the number of bytes sent to the"
-                    " client do not match.",
+                    "Content-Length and the number of bytes sent to the client do not"
+                    " match.",
                     WSGIWarning,
                 )
 
-    def __del__(self) -> None:
+    def __del__(self):
         if not self.closed:
             try:
                 warn(
@@ -207,12 +207,12 @@ class GuardedIterator:
                 pass
 
 
-class LintMiddleware:
+class LintMiddleware(object):
     """Warns about common errors in the WSGI and HTTP behavior of the
-    server and wrapped application. Some of the issues it checks are:
+    server and wrapped application. Some of the issues it check are:
 
     -   invalid status codes
-    -   non-bytes sent to the WSGI server
+    -   non-bytestrings sent to the WSGI server
     -   strings returned from the WSGI application
     -   non-empty conditional responses
     -   unquoted etags
@@ -230,10 +230,10 @@ class LintMiddleware:
         app = LintMiddleware(app)
     """
 
-    def __init__(self, app: "WSGIApplication") -> None:
+    def __init__(self, app):
         self.app = app
 
-    def check_environ(self, environ: "WSGIEnvironment") -> None:
+    def check_environ(self, environ):
         if type(environ) is not dict:
             warn(
                 "WSGI environment is not a standard Python dict.",
@@ -253,7 +253,7 @@ class LintMiddleware:
         ):
             if key not in environ:
                 warn(
-                    f"Required environment key {key!r} not found",
+                    "Required environment key %r not found" % key,
                     WSGIWarning,
                     stacklevel=3,
                 )
@@ -265,110 +265,102 @@ class LintMiddleware:
 
         if script_name and script_name[0] != "/":
             warn(
-                f"'SCRIPT_NAME' does not start with a slash: {script_name!r}",
+                "'SCRIPT_NAME' does not start with a slash: %r" % script_name,
                 WSGIWarning,
                 stacklevel=3,
             )
 
         if path_info and path_info[0] != "/":
             warn(
-                f"'PATH_INFO' does not start with a slash: {path_info!r}",
+                "'PATH_INFO' does not start with a slash: %r" % path_info,
                 WSGIWarning,
                 stacklevel=3,
             )
 
-    def check_start_response(
-        self,
-        status: str,
-        headers: t.List[t.Tuple[str, str]],
-        exc_info: t.Optional[
-            t.Tuple[t.Type[BaseException], BaseException, TracebackType]
-        ],
-    ) -> t.Tuple[int, Headers]:
-        check_type("status", status, str)
-        status_code_str = status.split(None, 1)[0]
+    def check_start_response(self, status, headers, exc_info):
+        check_string("status", status)
+        status_code = status.split(None, 1)[0]
 
-        if len(status_code_str) != 3 or not status_code_str.isdigit():
-            warn("Status code must be three digits.", WSGIWarning, stacklevel=3)
+        if len(status_code) != 3 or not status_code.isdigit():
+            warn(WSGIWarning("Status code must be three digits"), stacklevel=3)
 
         if len(status) < 4 or status[3] != " ":
             warn(
-                f"Invalid value for status {status!r}. Valid status strings are three"
-                " digits, a space and a status explanation.",
-                WSGIWarning,
+                WSGIWarning(
+                    "Invalid value for status %r.  Valid "
+                    "status strings are three digits, a space "
+                    "and a status explanation"
+                ),
                 stacklevel=3,
             )
 
-        status_code = int(status_code_str)
+        status_code = int(status_code)
 
         if status_code < 100:
-            warn("Status code < 100 detected.", WSGIWarning, stacklevel=3)
+            warn(WSGIWarning("status code < 100 detected"), stacklevel=3)
 
         if type(headers) is not list:
-            warn("Header list is not a list.", WSGIWarning, stacklevel=3)
+            warn(WSGIWarning("header list is not a list"), stacklevel=3)
 
         for item in headers:
             if type(item) is not tuple or len(item) != 2:
-                warn("Header items must be 2-item tuples.", WSGIWarning, stacklevel=3)
+                warn(WSGIWarning("Headers must tuple 2-item tuples"), stacklevel=3)
             name, value = item
             if type(name) is not str or type(value) is not str:
-                warn(
-                    "Header keys and values must be strings.", WSGIWarning, stacklevel=3
-                )
+                warn(WSGIWarning("header items must be strings"), stacklevel=3)
             if name.lower() == "status":
                 warn(
-                    "The status header is not supported due to"
-                    " conflicts with the CGI spec.",
-                    WSGIWarning,
+                    WSGIWarning(
+                        "The status header is not supported due to "
+                        "conflicts with the CGI spec."
+                    ),
                     stacklevel=3,
                 )
 
         if exc_info is not None and not isinstance(exc_info, tuple):
-            warn("Invalid value for exc_info.", WSGIWarning, stacklevel=3)
+            warn(WSGIWarning("invalid value for exc_info"), stacklevel=3)
 
         headers = Headers(headers)
         self.check_headers(headers)
 
         return status_code, headers
 
-    def check_headers(self, headers: Headers) -> None:
+    def check_headers(self, headers):
         etag = headers.get("etag")
 
         if etag is not None:
             if etag.startswith(("W/", "w/")):
                 if etag.startswith("w/"):
                     warn(
-                        "Weak etag indicator should be upper case.",
-                        HTTPWarning,
+                        HTTPWarning("weak etag indicator should be upcase."),
                         stacklevel=4,
                     )
 
                 etag = etag[2:]
 
             if not (etag[:1] == etag[-1:] == '"'):
-                warn("Unquoted etag emitted.", HTTPWarning, stacklevel=4)
+                warn(HTTPWarning("unquoted etag emitted."), stacklevel=4)
 
         location = headers.get("location")
 
         if location is not None:
             if not urlparse(location).netloc:
                 warn(
-                    "Absolute URLs required for location header.",
-                    HTTPWarning,
+                    HTTPWarning("absolute URLs required for location header"),
                     stacklevel=4,
                 )
 
-    def check_iterator(self, app_iter: t.Iterable[bytes]) -> None:
-        if isinstance(app_iter, bytes):
+    def check_iterator(self, app_iter):
+        if isinstance(app_iter, string_types):
             warn(
-                "The application returned a bytestring. The response will send one"
-                " character at a time to the client, which will kill performance."
-                " Return a list or iterable instead.",
+                "The application returned astring. The response will send one character"
+                " at a time to the client, which will kill performance. Return a list"
+                " or iterable instead.",
                 WSGIWarning,
                 stacklevel=3,
             )
 
-    def __call__(self, *args: t.Any, **kwargs: t.Any) -> t.Iterable[bytes]:
+    def __call__(self, *args, **kwargs):
         if len(args) != 2:
             warn("A WSGI app takes two arguments.", WSGIWarning, stacklevel=2)
 
@@ -377,8 +369,7 @@ class LintMiddleware:
                 "A WSGI app does not take keyword arguments.", WSGIWarning, stacklevel=2
             )
 
-        environ: "WSGIEnvironment" = args[0]
-        start_response: "StartResponse" = args[1]
+        environ, start_response = args
 
         self.check_environ(environ)
         environ["wsgi.input"] = InputStream(environ["wsgi.input"])
@@ -388,15 +379,13 @@ class LintMiddleware:
         # iterate to the end and we can check the content length.
         environ["wsgi.file_wrapper"] = FileWrapper
 
-        headers_set: t.List[t.Any] = []
-        chunks: t.List[int] = []
+        headers_set = []
+        chunks = []
 
-        def checking_start_response(
-            *args: t.Any, **kwargs: t.Any
-        ) -> t.Callable[[bytes], None]:
-            if len(args) not in {2, 3}:
+        def checking_start_response(*args, **kwargs):
+            if len(args) not in (2, 3):
                 warn(
-                    f"Invalid number of arguments: {len(args)}, expected 2 or 3.",
+                    "Invalid number of arguments: %s, expected 2 or 3." % len(args),
                     WSGIWarning,
                     stacklevel=2,
                 )
@@ -404,17 +393,16 @@ class LintMiddleware:
             if kwargs:
                 warn("'start_response' does not take keyword arguments.", WSGIWarning)
 
-            status: str = args[0]
-            headers: t.List[t.Tuple[str, str]] = args[1]
-            exc_info: t.Optional[
-                t.Tuple[t.Type[BaseException], BaseException, TracebackType]
-            ] = (args[2] if len(args) == 3 else None)
+            status, headers = args[:2]
+
+            if len(args) == 3:
+                exc_info = args[2]
+            else:
+                exc_info = None
 
             headers_set[:] = self.check_start_response(status, headers, exc_info)
             return GuardedWrite(start_response(status, headers, exc_info), chunks)
 
-        app_iter = self.app(environ, t.cast("StartResponse", checking_start_response))
+        app_iter = self.app(environ, checking_start_response)
         self.check_iterator(app_iter)
-        return GuardedIterator(
-            app_iter, t.cast(t.Tuple[int, Headers], headers_set), chunks
-        )
+        return GuardedIterator(app_iter, headers_set, chunks)

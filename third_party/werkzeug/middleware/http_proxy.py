@@ -7,8 +7,7 @@ Basic HTTP Proxy
 :copyright: 2007 Pallets
 :license: BSD-3-Clause
 """
-import typing as t
-from http import client
+import socket
 
 from ..datastructures import EnvironHeaders
 from ..http import is_hop_by_hop_header
@@ -16,23 +15,23 @@ from ..urls import url_parse
 from ..urls import url_quote
 from ..wsgi import get_input_stream
 
-if t.TYPE_CHECKING:
-    from _typeshed.wsgi import StartResponse
-    from _typeshed.wsgi import WSGIApplication
-    from _typeshed.wsgi import WSGIEnvironment
+try:
+    from http import client
+except ImportError:
+    import httplib as client
 
 
-class ProxyMiddleware:
+class ProxyMiddleware(object):
     """Proxy requests under a path to an external server, routing other
     requests to the app.
 
-    This middleware can only proxy HTTP requests, as HTTP is the only
+    This middleware can only proxy HTTP requests, as that is the only
     protocol handled by the WSGI server. Other protocols, such as
-    WebSocket requests, cannot be proxied at this layer. This should
-    only be used for development, in production a real proxy server
+    websocket requests, cannot be proxied at this layer. This should
+    only be used for development, in production a real proxying server
     should be used.
 
-    The middleware takes a dict mapping a path prefix to a dict
+    The middleware takes a dict that maps a path prefix to a dict
     describing the host to be proxied to::
 
         app = ProxyMiddleware(app, {
@@ -76,14 +75,8 @@ class ProxyMiddleware:
     .. versionadded:: 0.14
     """
 
-    def __init__(
-        self,
-        app: "WSGIApplication",
-        targets: t.Mapping[str, t.Dict[str, t.Any]],
-        chunk_size: int = 2 << 13,
-        timeout: int = 10,
-    ) -> None:
-        def _set_defaults(opts: t.Dict[str, t.Any]) -> t.Dict[str, t.Any]:
+    def __init__(self, app, targets, chunk_size=2 << 13, timeout=10):
+        def _set_defaults(opts):
             opts.setdefault("remove_prefix", False)
             opts.setdefault("host", "<auto>")
             opts.setdefault("headers", {})
@@ -91,21 +84,16 @@ class ProxyMiddleware:
             return opts
 
         self.app = app
-        self.targets = {
-            f"/{k.strip('/')}/": _set_defaults(v) for k, v in targets.items()
-        }
+        self.targets = dict(
+            ("/%s/" % k.strip("/"), _set_defaults(v)) for k, v in targets.items()
+        )
         self.chunk_size = chunk_size
         self.timeout = timeout
 
-    def proxy_to(
-        self, opts: t.Dict[str, t.Any], path: str, prefix: str
-    ) -> "WSGIApplication":
+    def proxy_to(self, opts, path, prefix):
         target = url_parse(opts["target"])
-        host = t.cast(str, target.ascii_host)
 
-        def application(
-            environ: "WSGIEnvironment", start_response: "StartResponse"
-        ) -> t.Iterable[bytes]:
+        def application(environ, start_response):
             headers = list(EnvironHeaders(environ).items())
             headers[:] = [
                 (k, v)
@@ -116,7 +104,7 @@ class ProxyMiddleware:
             headers.append(("Connection", "close"))
 
             if opts["host"] == "<auto>":
-                headers.append(("Host", host))
+                headers.append(("Host", target.ascii_host))
             elif opts["host"] is None:
                 headers.append(("Host", environ["HTTP_HOST"]))
             else:
@@ -126,14 +114,16 @@ class ProxyMiddleware:
             remote_path = path
 
             if opts["remove_prefix"]:
-                remote_path = remote_path[len(prefix) :].lstrip("/")
-                remote_path = f"{target.path.rstrip('/')}/{remote_path}"
+                remote_path = "%s/%s" % (
+                    target.path.rstrip("/"),
+                    remote_path[len(prefix) :].lstrip("/"),
+                )
 
             content_length = environ.get("CONTENT_LENGTH")
             chunked = False
 
             if content_length not in ("", None):
-                headers.append(("Content-Length", content_length))  # type: ignore
+                headers.append(("Content-Length", content_length))
             elif content_length is not None:
                 headers.append(("Transfer-Encoding", "chunked"))
                 chunked = True
@@ -141,19 +131,20 @@ class ProxyMiddleware:
             try:
                 if target.scheme == "http":
                     con = client.HTTPConnection(
-                        host, target.port or 80, timeout=self.timeout
+                        target.ascii_host, target.port or 80, timeout=self.timeout
                     )
                 elif target.scheme == "https":
                     con = client.HTTPSConnection(
-                        host,
+                        target.ascii_host,
                         target.port or 443,
                         timeout=self.timeout,
                         context=opts["ssl_context"],
                     )
                 else:
                     raise RuntimeError(
-                        "Target scheme must be 'http' or 'https', got"
-                        f" {target.scheme!r}."
+                        "Target scheme must be 'http' or 'https', got '{}'.".format(
+                            target.scheme
+                        )
                     )
 
                 con.connect()
@@ -161,7 +152,7 @@ class ProxyMiddleware:
                 querystring = environ["QUERY_STRING"]
 
                 if querystring:
-                    remote_url = f"{remote_url}?{querystring}"
+                    remote_url = remote_url + "?" + querystring
 
                 con.putrequest(environ["REQUEST_METHOD"], remote_url, skip_host=True)
 
@@ -174,7 +165,7 @@ class ProxyMiddleware:
                 con.endheaders()
                 stream = get_input_stream(environ)
 
-                while True:
+                while 1:
                     data = stream.read(self.chunk_size)
 
                     if not data:
@@ -186,13 +177,13 @@ class ProxyMiddleware:
                         con.send(data)
 
                 resp = con.getresponse()
-            except OSError:
+            except socket.error:
                 from ..exceptions import BadGateway
 
                 return BadGateway()(environ, start_response)
 
             start_response(
-                f"{resp.status} {resp.reason}",
+                "%d %s" % (resp.status, resp.reason),
                 [
                     (k.title(), v)
                     for k, v in resp.getheaders()
@@ -200,11 +191,11 @@ class ProxyMiddleware:
                 ],
             )
 
-            def read() -> t.Iterator[bytes]:
-                while True:
+            def read():
+                while 1:
                     try:
                         data = resp.read(self.chunk_size)
-                    except OSError:
+                    except socket.error:
                         break
 
                     if not data:
@@ -216,9 +207,7 @@ class ProxyMiddleware:
 
         return application
 
-    def __call__(
-        self, environ: "WSGIEnvironment", start_response: "StartResponse"
-    ) -> t.Iterable[bytes]:
+    def __call__(self, environ, start_response):
         path = environ["PATH_INFO"]
         app = self.app
 

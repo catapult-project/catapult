@@ -1,30 +1,45 @@
+# -*- coding: utf-8 -*-
+"""
+    werkzeug.security
+    ~~~~~~~~~~~~~~~~~
+
+    Security related helpers such as secure password hashing tools.
+
+    :copyright: 2007 Pallets
+    :license: BSD-3-Clause
+"""
+import codecs
 import hashlib
 import hmac
 import os
 import posixpath
-import secrets
-import typing as t
-import warnings
+from random import SystemRandom
+from struct import Struct
 
-if t.TYPE_CHECKING:
-    pass
+from ._compat import izip
+from ._compat import PY2
+from ._compat import range_type
+from ._compat import text_type
+from ._compat import to_bytes
+from ._compat import to_native
 
 SALT_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-DEFAULT_PBKDF2_ITERATIONS = 260000
+DEFAULT_PBKDF2_ITERATIONS = 150000
 
-_os_alt_seps: t.List[str] = list(
-    sep for sep in [os.path.sep, os.path.altsep] if sep is not None and sep != "/"
+_pack_int = Struct(">I").pack
+_builtin_safe_str_cmp = getattr(hmac, "compare_digest", None)
+_sys_rng = SystemRandom()
+_os_alt_seps = list(
+    sep for sep in [os.path.sep, os.path.altsep] if sep not in (None, "/")
 )
 
 
 def pbkdf2_hex(
-    data: t.Union[str, bytes],
-    salt: t.Union[str, bytes],
-    iterations: int = DEFAULT_PBKDF2_ITERATIONS,
-    keylen: t.Optional[int] = None,
-    hashfunc: t.Optional[t.Union[str, t.Callable]] = None,
-) -> str:
+    data, salt, iterations=DEFAULT_PBKDF2_ITERATIONS, keylen=None, hashfunc=None
+):
     """Like :func:`pbkdf2_bin`, but returns a hex-encoded string.
+
+    .. versionadded:: 0.9
 
     :param data: the data to derive.
     :param salt: the salt for the derivation.
@@ -34,33 +49,20 @@ def pbkdf2_hex(
     :param hashfunc: the hash function to use.  This can either be the
                      string name of a known hash function, or a function
                      from the hashlib module.  Defaults to sha256.
-
-    .. deprecated:: 2.0
-        Will be removed in Werkzeug 2.1. Use :func:`hashlib.pbkdf2_hmac`
-        instead.
-
-    .. versionadded:: 0.9
     """
-    warnings.warn(
-        "'pbkdf2_hex' is deprecated and will be removed in Werkzeug"
-        " 2.1. Use 'hashlib.pbkdf2_hmac().hex()' instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return pbkdf2_bin(data, salt, iterations, keylen, hashfunc).hex()
+    rv = pbkdf2_bin(data, salt, iterations, keylen, hashfunc)
+    return to_native(codecs.encode(rv, "hex_codec"))
 
 
 def pbkdf2_bin(
-    data: t.Union[str, bytes],
-    salt: t.Union[str, bytes],
-    iterations: int = DEFAULT_PBKDF2_ITERATIONS,
-    keylen: t.Optional[int] = None,
-    hashfunc: t.Optional[t.Union[str, t.Callable]] = None,
-) -> bytes:
+    data, salt, iterations=DEFAULT_PBKDF2_ITERATIONS, keylen=None, hashfunc=None
+):
     """Returns a binary digest for the PBKDF2 hash algorithm of `data`
     with the given `salt`. It iterates `iterations` times and produces a
     key of `keylen` bytes. By default, SHA-256 is used as hash function;
     a different hashlib `hashfunc` can be provided.
+
+    .. versionadded:: 0.9
 
     :param data: the data to derive.
     :param salt: the salt for the derivation.
@@ -70,73 +72,59 @@ def pbkdf2_bin(
     :param hashfunc: the hash function to use.  This can either be the
                      string name of a known hash function or a function
                      from the hashlib module.  Defaults to sha256.
-
-    .. deprecated:: 2.0
-        Will be removed in Werkzeug 2.1. Use :func:`hashlib.pbkdf2_hmac`
-        instead.
-
-    .. versionadded:: 0.9
     """
-    warnings.warn(
-        "'pbkdf2_bin' is deprecated and will be removed in Werkzeug"
-        " 2.1. Use 'hashlib.pbkdf2_hmac()' instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    if isinstance(data, str):
-        data = data.encode("utf8")
-
-    if isinstance(salt, str):
-        salt = salt.encode("utf8")
-
     if not hashfunc:
-        hash_name = "sha256"
-    elif callable(hashfunc):
-        hash_name = hashfunc().name
+        hashfunc = "sha256"
+
+    data = to_bytes(data)
+    salt = to_bytes(salt)
+
+    if callable(hashfunc):
+        _test_hash = hashfunc()
+        hash_name = getattr(_test_hash, "name", None)
     else:
         hash_name = hashfunc
-
     return hashlib.pbkdf2_hmac(hash_name, data, salt, iterations, keylen)
 
 
-def safe_str_cmp(a: str, b: str) -> bool:
+def safe_str_cmp(a, b):
     """This function compares strings in somewhat constant time.  This
     requires that the length of at least one string is known in advance.
 
     Returns `True` if the two strings are equal, or `False` if they are not.
 
-    .. deprecated:: 2.0
-        Will be removed in Werkzeug 2.1. Use
-        :func:`hmac.compare_digest` instead.
-
     .. versionadded:: 0.7
     """
-    warnings.warn(
-        "'safe_str_cmp' is deprecated and will be removed in Werkzeug"
-        " 2.1. Use 'hmac.compare_digest' instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
+    if isinstance(a, text_type):
+        a = a.encode("utf-8")
+    if isinstance(b, text_type):
+        b = b.encode("utf-8")
 
-    if isinstance(a, str):
-        a = a.encode("utf-8")  # type: ignore
+    if _builtin_safe_str_cmp is not None:
+        return _builtin_safe_str_cmp(a, b)
 
-    if isinstance(b, str):
-        b = b.encode("utf-8")  # type: ignore
+    if len(a) != len(b):
+        return False
 
-    return hmac.compare_digest(a, b)
+    rv = 0
+    if PY2:
+        for x, y in izip(a, b):
+            rv |= ord(x) ^ ord(y)
+    else:
+        for x, y in izip(a, b):
+            rv |= x ^ y
+
+    return rv == 0
 
 
-def gen_salt(length: int) -> str:
+def gen_salt(length):
     """Generate a random string of SALT_CHARS with specified ``length``."""
     if length <= 0:
         raise ValueError("Salt length must be positive")
+    return "".join(_sys_rng.choice(SALT_CHARS) for _ in range_type(length))
 
-    return "".join(secrets.choice(SALT_CHARS) for _ in range(length))
 
-
-def _hash_internal(method: str, salt: str, password: str) -> t.Tuple[str, str]:
+def _hash_internal(method, salt, password):
     """Internal password hash helper.  Supports plaintext without salt,
     unsalted and salted passwords.  In case salted passwords are used
     hmac is used.
@@ -144,34 +132,49 @@ def _hash_internal(method: str, salt: str, password: str) -> t.Tuple[str, str]:
     if method == "plain":
         return password, method
 
-    salt = salt.encode("utf-8")
-    password = password.encode("utf-8")
+    if isinstance(password, text_type):
+        password = password.encode("utf-8")
 
     if method.startswith("pbkdf2:"):
-        if not salt:
-            raise ValueError("Salt is required for PBKDF2")
-
         args = method[7:].split(":")
-
         if len(args) not in (1, 2):
             raise ValueError("Invalid number of arguments for PBKDF2")
-
         method = args.pop(0)
-        iterations = int(args[0] or 0) if args else DEFAULT_PBKDF2_ITERATIONS
-        return (
-            hashlib.pbkdf2_hmac(method, password, salt, iterations).hex(),
-            f"pbkdf2:{method}:{iterations}",
-        )
+        iterations = args and int(args[0] or 0) or DEFAULT_PBKDF2_ITERATIONS
+        is_pbkdf2 = True
+        actual_method = "pbkdf2:%s:%d" % (method, iterations)
+    else:
+        is_pbkdf2 = False
+        actual_method = method
 
-    if salt:
-        return hmac.new(salt, password, method).hexdigest(), method
+    if is_pbkdf2:
+        if not salt:
+            raise ValueError("Salt is required for PBKDF2")
+        rv = pbkdf2_hex(password, salt, iterations, hashfunc=method)
+    elif salt:
+        if isinstance(salt, text_type):
+            salt = salt.encode("utf-8")
+        mac = _create_mac(salt, password, method)
+        rv = mac.hexdigest()
+    else:
+        rv = hashlib.new(method, password).hexdigest()
+    return rv, actual_method
 
-    return hashlib.new(method, password).hexdigest(), method
+
+def _create_mac(key, msg, method):
+    if callable(method):
+        return hmac.HMAC(key, msg, method)
+
+    def hashfunc(d=b""):
+        return hashlib.new(method, d)
+
+    # Python 2.7 used ``hasattr(digestmod, '__call__')``
+    # to detect if hashfunc is callable
+    hashfunc.__call__ = hashfunc
+    return hmac.HMAC(key, msg, hashfunc)
 
 
-def generate_password_hash(
-    password: str, method: str = "pbkdf2:sha256", salt_length: int = 16
-) -> str:
+def generate_password_hash(password, method="pbkdf2:sha256", salt_length=8):
     """Hash a password with the given method and salt with a string of
     the given length. The format of the string returned includes the method
     that was used so that :func:`check_password_hash` can check the hash.
@@ -192,17 +195,17 @@ def generate_password_hash(
 
     :param password: the password to hash.
     :param method: the hash method to use (one that hashlib supports). Can
-                   optionally be in the format ``pbkdf2:method:iterations``
+                   optionally be in the format ``pbkdf2:<method>[:iterations]``
                    to enable PBKDF2.
     :param salt_length: the length of the salt in letters.
     """
     salt = gen_salt(salt_length) if method != "plain" else ""
     h, actual_method = _hash_internal(method, salt, password)
-    return f"{actual_method}${salt}${h}"
+    return "%s$%s$%s" % (actual_method, salt, h)
 
 
-def check_password_hash(pwhash: str, password: str) -> bool:
-    """Check a password against a given salted and hashed password value.
+def check_password_hash(pwhash, password):
+    """check a password against a given salted and hashed password value.
     In order to support unsalted legacy passwords this method supports
     plain text passwords, md5 and sha1 hashes (both salted and unsalted).
 
@@ -214,12 +217,11 @@ def check_password_hash(pwhash: str, password: str) -> bool:
     """
     if pwhash.count("$") < 2:
         return False
-
     method, salt, hashval = pwhash.split("$", 2)
-    return hmac.compare_digest(_hash_internal(method, salt, password)[0], hashval)
+    return safe_str_cmp(_hash_internal(method, salt, password)[0], hashval)
 
 
-def safe_join(directory: str, *pathnames: str) -> t.Optional[str]:
+def safe_join(directory, *pathnames):
     """Safely join zero or more untrusted path components to a base
     directory to avoid escaping the base directory.
 

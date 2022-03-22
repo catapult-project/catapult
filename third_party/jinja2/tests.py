@@ -1,32 +1,36 @@
+# -*- coding: utf-8 -*-
 """Built-in template tests used with the ``is`` operator."""
+import decimal
 import operator
-import typing as t
-from collections import abc
-from numbers import Number
+import re
 
+from ._compat import abc
+from ._compat import integer_types
+from ._compat import string_types
+from ._compat import text_type
 from .runtime import Undefined
-from .utils import pass_environment
 
-if t.TYPE_CHECKING:
-    from .environment import Environment
+number_re = re.compile(r"^-?\d+(\.\d+)?$")
+regex_type = type(number_re)
+test_callable = callable
 
 
-def test_odd(value: int) -> bool:
+def test_odd(value):
     """Return true if the variable is odd."""
     return value % 2 == 1
 
 
-def test_even(value: int) -> bool:
+def test_even(value):
     """Return true if the variable is even."""
     return value % 2 == 0
 
 
-def test_divisibleby(value: int, num: int) -> bool:
+def test_divisibleby(value, num):
     """Check if a variable is divisible by a number."""
     return value % num == 0
 
 
-def test_defined(value: t.Any) -> bool:
+def test_defined(value):
     """Return true if the variable is defined:
 
     .. sourcecode:: jinja
@@ -43,57 +47,17 @@ def test_defined(value: t.Any) -> bool:
     return not isinstance(value, Undefined)
 
 
-def test_undefined(value: t.Any) -> bool:
+def test_undefined(value):
     """Like :func:`defined` but the other way round."""
     return isinstance(value, Undefined)
 
 
-@pass_environment
-def test_filter(env: "Environment", value: str) -> bool:
-    """Check if a filter exists by name. Useful if a filter may be
-    optionally available.
-
-    .. code-block:: jinja
-
-        {% if 'markdown' is filter %}
-            {{ value | markdown }}
-        {% else %}
-            {{ value }}
-        {% endif %}
-
-    .. versionadded:: 3.0
-    """
-    return value in env.filters
-
-
-@pass_environment
-def test_test(env: "Environment", value: str) -> bool:
-    """Check if a test exists by name. Useful if a test may be
-    optionally available.
-
-    .. code-block:: jinja
-
-        {% if 'loud' is test %}
-            {% if value is loud %}
-                {{ value|upper }}
-            {% else %}
-                {{ value|lower }}
-            {% endif %}
-        {% else %}
-            {{ value }}
-        {% endif %}
-
-    .. versionadded:: 3.0
-    """
-    return value in env.tests
-
-
-def test_none(value: t.Any) -> bool:
+def test_none(value):
     """Return true if the variable is none."""
     return value is None
 
 
-def test_boolean(value: t.Any) -> bool:
+def test_boolean(value):
     """Return true if the object is a boolean value.
 
     .. versionadded:: 2.11
@@ -101,7 +65,7 @@ def test_boolean(value: t.Any) -> bool:
     return value is True or value is False
 
 
-def test_false(value: t.Any) -> bool:
+def test_false(value):
     """Return true if the object is False.
 
     .. versionadded:: 2.11
@@ -109,7 +73,7 @@ def test_false(value: t.Any) -> bool:
     return value is False
 
 
-def test_true(value: t.Any) -> bool:
+def test_true(value):
     """Return true if the object is True.
 
     .. versionadded:: 2.11
@@ -118,16 +82,16 @@ def test_true(value: t.Any) -> bool:
 
 
 # NOTE: The existing 'number' test matches booleans and floats
-def test_integer(value: t.Any) -> bool:
+def test_integer(value):
     """Return true if the object is an integer.
 
     .. versionadded:: 2.11
     """
-    return isinstance(value, int) and value is not True and value is not False
+    return isinstance(value, integer_types) and value is not True and value is not False
 
 
 # NOTE: The existing 'number' test matches booleans and integers
-def test_float(value: t.Any) -> bool:
+def test_float(value):
     """Return true if the object is a float.
 
     .. versionadded:: 2.11
@@ -135,22 +99,22 @@ def test_float(value: t.Any) -> bool:
     return isinstance(value, float)
 
 
-def test_lower(value: str) -> bool:
+def test_lower(value):
     """Return true if the variable is lowercased."""
-    return str(value).islower()
+    return text_type(value).islower()
 
 
-def test_upper(value: str) -> bool:
+def test_upper(value):
     """Return true if the variable is uppercased."""
-    return str(value).isupper()
+    return text_type(value).isupper()
 
 
-def test_string(value: t.Any) -> bool:
+def test_string(value):
     """Return true if the object is a string."""
-    return isinstance(value, str)
+    return isinstance(value, string_types)
 
 
-def test_mapping(value: t.Any) -> bool:
+def test_mapping(value):
     """Return true if the object is a mapping (dict etc.).
 
     .. versionadded:: 2.6
@@ -158,12 +122,12 @@ def test_mapping(value: t.Any) -> bool:
     return isinstance(value, abc.Mapping)
 
 
-def test_number(value: t.Any) -> bool:
+def test_number(value):
     """Return true if the variable is a number."""
-    return isinstance(value, Number)
+    return isinstance(value, integer_types + (float, complex, decimal.Decimal))
 
 
-def test_sequence(value: t.Any) -> bool:
+def test_sequence(value):
     """Return true if the variable is a sequence. Sequences are variables
     that are iterable.
     """
@@ -172,11 +136,10 @@ def test_sequence(value: t.Any) -> bool:
         value.__getitem__
     except Exception:
         return False
-
     return True
 
 
-def test_sameas(value: t.Any, other: t.Any) -> bool:
+def test_sameas(value, other):
     """Check if an object points to the same memory address than another
     object:
 
@@ -189,22 +152,21 @@ def test_sameas(value: t.Any, other: t.Any) -> bool:
     return value is other
 
 
-def test_iterable(value: t.Any) -> bool:
+def test_iterable(value):
     """Check if it's possible to iterate over an object."""
     try:
         iter(value)
     except TypeError:
         return False
-
     return True
 
 
-def test_escaped(value: t.Any) -> bool:
+def test_escaped(value):
     """Check if the value is escaped."""
     return hasattr(value, "__html__")
 
 
-def test_in(value: t.Any, seq: t.Container) -> bool:
+def test_in(value, seq):
     """Check if value is in seq.
 
     .. versionadded:: 2.10
@@ -218,8 +180,6 @@ TESTS = {
     "divisibleby": test_divisibleby,
     "defined": test_defined,
     "undefined": test_undefined,
-    "filter": test_filter,
-    "test": test_test,
     "none": test_none,
     "boolean": test_boolean,
     "false": test_false,
@@ -233,7 +193,7 @@ TESTS = {
     "number": test_number,
     "sequence": test_sequence,
     "iterable": test_iterable,
-    "callable": callable,
+    "callable": test_callable,
     "sameas": test_sameas,
     "escaped": test_escaped,
     "in": test_in,

@@ -1,40 +1,45 @@
+# -*- coding: utf-8 -*-
+"""
+    werkzeug._internal
+    ~~~~~~~~~~~~~~~~~~
+
+    This module provides internally used helpers and constants.
+
+    :copyright: 2007 Pallets
+    :license: BSD-3-Clause
+"""
 import inspect
 import logging
-import operator
 import re
 import string
-import sys
-import typing
-import typing as t
 from datetime import date
 from datetime import datetime
-from datetime import timezone
 from itertools import chain
 from weakref import WeakKeyDictionary
 
-if t.TYPE_CHECKING:
-    from _typeshed.wsgi import StartResponse
-    from _typeshed.wsgi import WSGIApplication
-    from _typeshed.wsgi import WSGIEnvironment
-    from .wrappers.request import Request  # noqa: F401
+from ._compat import int_to_byte
+from ._compat import integer_types
+from ._compat import iter_bytes
+from ._compat import range_type
+from ._compat import text_type
 
-_logger: t.Optional[logging.Logger] = None
-_signature_cache = WeakKeyDictionary()  # type: ignore
+
+_logger = None
+_signature_cache = WeakKeyDictionary()
 _epoch_ord = date(1970, 1, 1).toordinal()
-_legal_cookie_chars = frozenset(
-    c.encode("ascii")
-    for c in f"{string.ascii_letters}{string.digits}/=!#$%&'*+-.^_`|~:"
-)
+_legal_cookie_chars = (
+    string.ascii_letters + string.digits + u"/=!#$%&'*+-.^_`|~:"
+).encode("ascii")
 
 _cookie_quoting_map = {b",": b"\\054", b";": b"\\073", b'"': b'\\"', b"\\": b"\\\\"}
-for _i in chain(range(32), range(127, 256)):
-    _cookie_quoting_map[_i.to_bytes(1, sys.byteorder)] = f"\\{_i:03o}".encode("latin1")
+for _i in chain(range_type(32), range_type(127, 256)):
+    _cookie_quoting_map[int_to_byte(_i)] = ("\\%03o" % _i).encode("latin1")
 
-_octal_re = re.compile(rb"\\[0-3][0-7][0-7]")
-_quote_re = re.compile(rb"[\\].")
-_legal_cookie_chars_re = rb"[\w\d!#%&\'~_`><@,:/\$\*\+\-\.\^\|\)\(\?\}\{\=]"
+_octal_re = re.compile(br"\\[0-3][0-7][0-7]")
+_quote_re = re.compile(br"[\\].")
+_legal_cookie_chars_re = br"[\w\d!#%&\'~_`><@,:/\$\*\+\-\.\^\|\)\(\?\}\{\=]"
 _cookie_re = re.compile(
-    rb"""
+    br"""
     (?P<key>[^=;]+)
     (?:\s*=\s*
         (?P<val>
@@ -48,129 +53,26 @@ _cookie_re = re.compile(
 )
 
 
-class _Missing:
-    def __repr__(self) -> str:
+class _Missing(object):
+    def __repr__(self):
         return "no value"
 
-    def __reduce__(self) -> str:
+    def __reduce__(self):
         return "_missing"
 
 
 _missing = _Missing()
 
 
-@typing.overload
-def _make_encode_wrapper(reference: str) -> t.Callable[[str], str]:
-    ...
-
-
-@typing.overload
-def _make_encode_wrapper(reference: bytes) -> t.Callable[[str], bytes]:
-    ...
-
-
-def _make_encode_wrapper(reference: t.AnyStr) -> t.Callable[[str], t.AnyStr]:
-    """Create a function that will be called with a string argument. If
-    the reference is bytes, values will be encoded to bytes.
-    """
-    if isinstance(reference, str):
-        return lambda x: x
-
-    return operator.methodcaller("encode", "latin1")
-
-
-def _check_str_tuple(value: t.Tuple[t.AnyStr, ...]) -> None:
-    """Ensure tuple items are all strings or all bytes."""
-    if not value:
-        return
-
-    item_type = str if isinstance(value[0], str) else bytes
-
-    if any(not isinstance(item, item_type) for item in value):
-        raise TypeError(f"Cannot mix str and bytes arguments (got {value!r})")
-
-
-_default_encoding = sys.getdefaultencoding()
-
-
-def _to_bytes(
-    x: t.Union[str, bytes], charset: str = _default_encoding, errors: str = "strict"
-) -> bytes:
-    if x is None or isinstance(x, bytes):
-        return x
-
-    if isinstance(x, (bytearray, memoryview)):
-        return bytes(x)
-
-    if isinstance(x, str):
-        return x.encode(charset, errors)
-
-    raise TypeError("Expected bytes")
-
-
-@typing.overload
-def _to_str(  # type: ignore
-    x: None,
-    charset: t.Optional[str] = ...,
-    errors: str = ...,
-    allow_none_charset: bool = ...,
-) -> None:
-    ...
-
-
-@typing.overload
-def _to_str(
-    x: t.Any,
-    charset: t.Optional[str] = ...,
-    errors: str = ...,
-    allow_none_charset: bool = ...,
-) -> str:
-    ...
-
-
-def _to_str(
-    x: t.Optional[t.Any],
-    charset: t.Optional[str] = _default_encoding,
-    errors: str = "strict",
-    allow_none_charset: bool = False,
-) -> t.Optional[t.Union[str, bytes]]:
-    if x is None or isinstance(x, str):
-        return x
-
-    if not isinstance(x, (bytes, bytearray)):
-        return str(x)
-
-    if charset is None:
-        if allow_none_charset:
-            return x
-
-    return x.decode(charset, errors)  # type: ignore
-
-
-def _wsgi_decoding_dance(
-    s: str, charset: str = "utf-8", errors: str = "replace"
-) -> str:
-    return s.encode("latin1").decode(charset, errors)
-
-
-def _wsgi_encoding_dance(
-    s: str, charset: str = "utf-8", errors: str = "replace"
-) -> str:
-    if isinstance(s, bytes):
-        return s.decode("latin1", errors)
-
-    return s.encode(charset).decode("latin1", errors)
-
-
-def _get_environ(obj: t.Union["WSGIEnvironment", "Request"]) -> "WSGIEnvironment":
+def _get_environ(obj):
     env = getattr(obj, "environ", obj)
-    assert isinstance(
-        env, dict
-    ), f"{type(obj).__name__!r} is not a WSGI environment (has to be a dict)"
+    assert isinstance(env, dict), (
+        "%r is not a WSGI environment (has to be a dict)" % type(obj).__name__
+    )
     return env
 
 
-def _has_level_handler(logger: logging.Logger) -> bool:
+def _has_level_handler(logger):
     """Check if there is a handler in the logging chain that will handle
     the given logger's effective level.
     """
@@ -184,26 +86,12 @@ def _has_level_handler(logger: logging.Logger) -> bool:
         if not current.propagate:
             break
 
-        current = current.parent  # type: ignore
+        current = current.parent
 
     return False
 
 
-class _ColorStreamHandler(logging.StreamHandler):
-    """On Windows, wrap stream with Colorama for ANSI style support."""
-
-    def __init__(self) -> None:
-        try:
-            import colorama
-        except ImportError:
-            stream = None
-        else:
-            stream = colorama.AnsiToWin32(sys.stderr)
-
-        super().__init__(stream)
-
-
-def _log(type: str, message: str, *args: t.Any, **kwargs: t.Any) -> None:
+def _log(type, message, *args, **kwargs):
     """Log a message to the 'werkzeug' logger.
 
     The logger is created the first time it is needed. If there is no
@@ -220,25 +108,26 @@ def _log(type: str, message: str, *args: t.Any, **kwargs: t.Any) -> None:
             _logger.setLevel(logging.INFO)
 
         if not _has_level_handler(_logger):
-            _logger.addHandler(_ColorStreamHandler())
+            _logger.addHandler(logging.StreamHandler())
 
     getattr(_logger, type)(message.rstrip(), *args, **kwargs)
 
 
-def _parse_signature(func):  # type: ignore
-    """Return a signature object for the function.
+def _parse_signature(func):
+    """Return a signature object for the function."""
+    if hasattr(func, "im_func"):
+        func = func.im_func
 
-    .. deprecated:: 2.0
-        Will be removed in Werkzeug 2.1 along with ``utils.bind`` and
-        ``validate_arguments``.
-    """
     # if we have a cached validator for this function, return it
     parse = _signature_cache.get(func)
     if parse is not None:
         return parse
 
     # inspect the function signature and collect all the information
-    tup = inspect.getfullargspec(func)
+    if hasattr(inspect, "getfullargspec"):
+        tup = inspect.getfullargspec(func)
+    else:
+        tup = inspect.getargspec(func)
     positional, vararg_var, kwarg_var, defaults = tup[:4]
     defaults = defaults or ()
     arg_count = len(positional)
@@ -257,7 +146,7 @@ def _parse_signature(func):  # type: ignore
         arguments.append(param)
     arguments = tuple(arguments)
 
-    def parse(args, kwargs):  # type: ignore
+    def parse(args, kwargs):
         new_args = []
         missing = []
         extra = {}
@@ -302,45 +191,36 @@ def _parse_signature(func):  # type: ignore
     return parse
 
 
-@typing.overload
-def _dt_as_utc(dt: None) -> None:
-    ...
+def _date_to_unix(arg):
+    """Converts a timetuple, integer or datetime object into the seconds from
+    epoch in utc.
+    """
+    if isinstance(arg, datetime):
+        arg = arg.utctimetuple()
+    elif isinstance(arg, integer_types + (float,)):
+        return int(arg)
+    year, month, day, hour, minute, second = arg[:6]
+    days = date(year, month, 1).toordinal() - _epoch_ord + day - 1
+    hours = days * 24 + hour
+    minutes = hours * 60 + minute
+    seconds = minutes * 60 + second
+    return seconds
 
 
-@typing.overload
-def _dt_as_utc(dt: datetime) -> datetime:
-    ...
-
-
-def _dt_as_utc(dt: t.Optional[datetime]) -> t.Optional[datetime]:
-    if dt is None:
-        return dt
-
-    if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
-    elif dt.tzinfo != timezone.utc:
-        return dt.astimezone(timezone.utc)
-
-    return dt
-
-
-_TAccessorValue = t.TypeVar("_TAccessorValue")
-
-
-class _DictAccessorProperty(t.Generic[_TAccessorValue]):
+class _DictAccessorProperty(object):
     """Baseclass for `environ_property` and `header_property`."""
 
     read_only = False
 
     def __init__(
         self,
-        name: str,
-        default: t.Optional[_TAccessorValue] = None,
-        load_func: t.Optional[t.Callable[[str], _TAccessorValue]] = None,
-        dump_func: t.Optional[t.Callable[[_TAccessorValue], str]] = None,
-        read_only: t.Optional[bool] = None,
-        doc: t.Optional[str] = None,
-    ) -> None:
+        name,
+        default=None,
+        load_func=None,
+        dump_func=None,
+        read_only=None,
+        doc=None,
+    ):
         self.name = name
         self.default = default
         self.load_func = load_func
@@ -349,67 +229,43 @@ class _DictAccessorProperty(t.Generic[_TAccessorValue]):
             self.read_only = read_only
         self.__doc__ = doc
 
-    def lookup(self, instance: t.Any) -> t.MutableMapping[str, t.Any]:
-        raise NotImplementedError
-
-    @typing.overload
-    def __get__(
-        self, instance: None, owner: type
-    ) -> "_DictAccessorProperty[_TAccessorValue]":
-        ...
-
-    @typing.overload
-    def __get__(self, instance: t.Any, owner: type) -> _TAccessorValue:
-        ...
-
-    def __get__(
-        self, instance: t.Optional[t.Any], owner: type
-    ) -> t.Union[_TAccessorValue, "_DictAccessorProperty[_TAccessorValue]"]:
-        if instance is None:
+    def __get__(self, obj, type=None):
+        if obj is None:
             return self
-
-        storage = self.lookup(instance)
-
+        storage = self.lookup(obj)
         if self.name not in storage:
-            return self.default  # type: ignore
-
-        value = storage[self.name]
-
+            return self.default
+        rv = storage[self.name]
         if self.load_func is not None:
             try:
-                return self.load_func(value)
+                rv = self.load_func(rv)
             except (ValueError, TypeError):
-                return self.default  # type: ignore
+                rv = self.default
+        return rv
 
-        return value  # type: ignore
-
-    def __set__(self, instance: t.Any, value: _TAccessorValue) -> None:
+    def __set__(self, obj, value):
         if self.read_only:
             raise AttributeError("read only property")
-
         if self.dump_func is not None:
-            self.lookup(instance)[self.name] = self.dump_func(value)
-        else:
-            self.lookup(instance)[self.name] = value
+            value = self.dump_func(value)
+        self.lookup(obj)[self.name] = value
 
-    def __delete__(self, instance: t.Any) -> None:
+    def __delete__(self, obj):
         if self.read_only:
             raise AttributeError("read only property")
+        self.lookup(obj).pop(self.name, None)
 
-        self.lookup(instance).pop(self.name, None)
-
-    def __repr__(self) -> str:
-        return f"<{type(self).__name__} {self.name}>"
+    def __repr__(self):
+        return "<%s %s>" % (self.__class__.__name__, self.name)
 
 
-def _cookie_quote(b: bytes) -> bytes:
+def _cookie_quote(b):
     buf = bytearray()
     all_legal = True
     _lookup = _cookie_quoting_map.get
     _push = buf.extend
 
-    for char_int in b:
-        char = char_int.to_bytes(1, sys.byteorder)
+    for char in iter_bytes(b):
         if char not in _legal_cookie_chars:
             all_legal = False
             char = _lookup(char, char)
@@ -420,7 +276,7 @@ def _cookie_quote(b: bytes) -> bytes:
     return bytes(b'"' + buf + b'"')
 
 
-def _cookie_unquote(b: bytes) -> bytes:
+def _cookie_unquote(b):
     if len(b) < 2:
         return b
     if b[:1] != b'"' or b[-1:] != b'"':
@@ -456,7 +312,7 @@ def _cookie_unquote(b: bytes) -> bytes:
     return bytes(rv)
 
 
-def _cookie_parse_impl(b: bytes) -> t.Iterator[t.Tuple[bytes, bytes]]:
+def _cookie_parse_impl(b):
     """Lowlevel cookie parsing facility that operates on bytes."""
     i = 0
     n = len(b)
@@ -470,12 +326,12 @@ def _cookie_parse_impl(b: bytes) -> t.Iterator[t.Tuple[bytes, bytes]]:
         value = match.group("val") or b""
         i = match.end(0)
 
-        yield key, _cookie_unquote(value)
+        yield _cookie_unquote(key), _cookie_unquote(value)
 
 
-def _encode_idna(domain: str) -> bytes:
+def _encode_idna(domain):
     # If we're given bytes, make sure they fit into ASCII
-    if isinstance(domain, bytes):
+    if not isinstance(domain, text_type):
         domain.decode("ascii")
         return domain
 
@@ -486,42 +342,36 @@ def _encode_idna(domain: str) -> bytes:
         pass
 
     # Otherwise encode each part separately
-    return b".".join(p.encode("idna") for p in domain.split("."))
+    parts = domain.split(".")
+    for idx, part in enumerate(parts):
+        parts[idx] = part.encode("idna")
+    return b".".join(parts)
 
 
-def _decode_idna(domain: t.Union[str, bytes]) -> str:
-    # If the input is a string try to encode it to ascii to do the idna
-    # decoding. If that fails because of a unicode error, then we
-    # already have a decoded idna domain.
-    if isinstance(domain, str):
+def _decode_idna(domain):
+    # If the input is a string try to encode it to ascii to
+    # do the idna decoding.  if that fails because of an
+    # unicode error, then we already have a decoded idna domain
+    if isinstance(domain, text_type):
         try:
             domain = domain.encode("ascii")
         except UnicodeError:
-            return domain  # type: ignore
+            return domain
 
-    # Decode each part separately. If a part fails, try to decode it
-    # with ascii and silently ignore errors. This makes sense because
-    # the idna codec does not have error handling.
-    def decode_part(part: bytes) -> str:
+    # Decode each part separately.  If a part fails, try to
+    # decode it with ascii and silently ignore errors.  This makes
+    # most sense because the idna codec does not have error handling
+    parts = domain.split(b".")
+    for idx, part in enumerate(parts):
         try:
-            return part.decode("idna")
+            parts[idx] = part.decode("idna")
         except UnicodeError:
-            return part.decode("ascii", "ignore")
+            parts[idx] = part.decode("ascii", "ignore")
 
-    return ".".join(decode_part(p) for p in domain.split(b"."))
-
-
-@typing.overload
-def _make_cookie_domain(domain: None) -> None:
-    ...
+    return ".".join(parts)
 
 
-@typing.overload
-def _make_cookie_domain(domain: str) -> bytes:
-    ...
-
-
-def _make_cookie_domain(domain: t.Optional[str]) -> t.Optional[bytes]:
+def _make_cookie_domain(domain):
     if domain is None:
         return None
     domain = _encode_idna(domain)
@@ -538,18 +388,18 @@ def _make_cookie_domain(domain: t.Optional[str]) -> t.Optional[bytes]:
     )
 
 
-def _easteregg(app: t.Optional["WSGIApplication"] = None) -> "WSGIApplication":
+def _easteregg(app=None):
     """Like the name says.  But who knows how it works?"""
 
-    def bzzzzzzz(gyver: bytes) -> str:
+    def bzzzzzzz(gyver):
         import base64
         import zlib
 
         return zlib.decompress(base64.b64decode(gyver)).decode("ascii")
 
-    gyver = "\n".join(
+    gyver = u"\n".join(
         [
-            x + (77 - len(x)) * " "
+            x + (77 - len(x)) * u" "
             for x in bzzzzzzz(
                 b"""
 eJyFlzuOJDkMRP06xRjymKgDJCDQStBYT8BCgK4gTwfQ2fcFs2a2FzvZk+hvlcRvRJD148efHt9m
@@ -587,12 +437,8 @@ mj2Z/FM1vQWgDynsRwNvrWnJHlespkrp8+vO1jNaibm+PhqXPPv30YwDZ6jApe3wUjFQobghvW9p
         ]
     )
 
-    def easteregged(
-        environ: "WSGIEnvironment", start_response: "StartResponse"
-    ) -> t.Iterable[bytes]:
-        def injecting_start_response(
-            status: str, headers: t.List[t.Tuple[str, str]], exc_info: t.Any = None
-        ) -> t.Callable[[bytes], t.Any]:
+    def easteregged(environ, start_response):
+        def injecting_start_response(status, headers, exc_info=None):
             headers.append(("X-Powered-By", "Werkzeug"))
             return start_response(status, headers, exc_info)
 
@@ -600,27 +446,28 @@ mj2Z/FM1vQWgDynsRwNvrWnJHlespkrp8+vO1jNaibm+PhqXPPv30YwDZ6jApe3wUjFQobghvW9p
             return app(environ, injecting_start_response)
         injecting_start_response("200 OK", [("Content-Type", "text/html")])
         return [
-            f"""\
+            (
+                u"""
 <!DOCTYPE html>
 <html>
 <head>
 <title>About Werkzeug</title>
 <style type="text/css">
-  body {{ font: 15px Georgia, serif; text-align: center; }}
-  a {{ color: #333; text-decoration: none; }}
-  h1 {{ font-size: 30px; margin: 20px 0 10px 0; }}
-  p {{ margin: 0 0 30px 0; }}
-  pre {{ font: 11px 'Consolas', 'Monaco', monospace; line-height: 0.95; }}
+  body { font: 15px Georgia, serif; text-align: center; }
+  a { color: #333; text-decoration: none; }
+  h1 { font-size: 30px; margin: 20px 0 10px 0; }
+  p { margin: 0 0 30px 0; }
+  pre { font: 11px 'Consolas', 'Monaco', monospace; line-height: 0.95; }
 </style>
 </head>
 <body>
 <h1><a href="http://werkzeug.pocoo.org/">Werkzeug</a></h1>
 <p>the Swiss Army knife of Python web development.</p>
-<pre>{gyver}\n\n\n</pre>
+<pre>%s\n\n\n</pre>
 </body>
-</html>""".encode(
-                "latin1"
-            )
+</html>"""
+                % gyver
+            ).encode("latin1")
         ]
 
     return easteregged

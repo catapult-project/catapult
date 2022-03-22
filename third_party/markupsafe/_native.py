@@ -1,9 +1,18 @@
-import typing as t
+# -*- coding: utf-8 -*-
+"""
+markupsafe._native
+~~~~~~~~~~~~~~~~~~
 
+Native Python implementation used when the C module is not compiled.
+
+:copyright: 2010 Pallets
+:license: BSD-3-Clause
+"""
 from . import Markup
+from ._compat import text_type
 
 
-def escape(s: t.Any) -> Markup:
+def escape(s):
     """Replace the characters ``&``, ``<``, ``>``, ``'``, and ``"`` in
     the string with HTML-safe sequences. Use this if you need to display
     text that might contain such characters in HTML.
@@ -16,9 +25,8 @@ def escape(s: t.Any) -> Markup:
     """
     if hasattr(s, "__html__"):
         return Markup(s.__html__())
-
     return Markup(
-        str(s)
+        text_type(s)
         .replace("&", "&amp;")
         .replace(">", "&gt;")
         .replace("<", "&lt;")
@@ -27,7 +35,7 @@ def escape(s: t.Any) -> Markup:
     )
 
 
-def escape_silent(s: t.Optional[t.Any]) -> Markup:
+def escape_silent(s):
     """Like :func:`escape` but treats ``None`` as the empty string.
     Useful with optional values, as otherwise you get the string
     ``'None'`` when the value is ``None``.
@@ -39,25 +47,23 @@ def escape_silent(s: t.Optional[t.Any]) -> Markup:
     """
     if s is None:
         return Markup()
-
     return escape(s)
 
 
-def soft_str(s: t.Any) -> str:
+def soft_unicode(s):
     """Convert an object to a string if it isn't already. This preserves
     a :class:`Markup` string rather than converting it back to a basic
     string, so it will still be marked as safe and won't be escaped
     again.
 
-    >>> value = escape("<User 1>")
+    >>> value = escape('<User 1>')
     >>> value
     Markup('&lt;User 1&gt;')
     >>> escape(str(value))
     Markup('&amp;lt;User 1&amp;gt;')
-    >>> escape(soft_str(value))
+    >>> escape(soft_unicode(value))
     Markup('&lt;User 1&gt;')
     """
-    if not isinstance(s, str):
-        return str(s)
-
+    if not isinstance(s, text_type):
+        s = text_type(s)
     return s

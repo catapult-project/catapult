@@ -1,19 +1,11 @@
+# -*- coding: utf-8 -*-
 """API for traversing the AST nodes. Implemented by the compiler and
 meta introspection.
 """
-import typing as t
-
 from .nodes import Node
 
-if t.TYPE_CHECKING:
-    import typing_extensions as te
 
-    class VisitCallable(te.Protocol):
-        def __call__(self, node: Node, *args: t.Any, **kwargs: t.Any) -> t.Any:
-            ...
-
-
-class NodeVisitor:
+class NodeVisitor(object):
     """Walks the abstract syntax tree and call visitor functions for every
     node found.  The visitor functions may return values which will be
     forwarded by the `visit` method.
@@ -25,23 +17,22 @@ class NodeVisitor:
     (return value `None`) the `generic_visit` visitor is used instead.
     """
 
-    def get_visitor(self, node: Node) -> "t.Optional[VisitCallable]":
+    def get_visitor(self, node):
         """Return the visitor function for this node or `None` if no visitor
         exists for this node.  In that case the generic visit function is
         used instead.
         """
-        return getattr(self, f"visit_{type(node).__name__}", None)  # type: ignore
+        method = "visit_" + node.__class__.__name__
+        return getattr(self, method, None)
 
-    def visit(self, node: Node, *args: t.Any, **kwargs: t.Any) -> t.Any:
+    def visit(self, node, *args, **kwargs):
         """Visit a node."""
         f = self.get_visitor(node)
-
         if f is not None:
             return f(node, *args, **kwargs)
-
         return self.generic_visit(node, *args, **kwargs)
 
-    def generic_visit(self, node: Node, *args: t.Any, **kwargs: t.Any) -> t.Any:
+    def generic_visit(self, node, *args, **kwargs):
         """Called if no explicit visitor function exists for a node."""
         for node in node.iter_child_nodes():
             self.visit(node, *args, **kwargs)
@@ -58,7 +49,7 @@ class NodeTransformer(NodeVisitor):
     replacement takes place.
     """
 
-    def generic_visit(self, node: Node, *args: t.Any, **kwargs: t.Any) -> Node:
+    def generic_visit(self, node, *args, **kwargs):
         for field, old_value in node.iter_fields():
             if isinstance(old_value, list):
                 new_values = []
@@ -80,13 +71,11 @@ class NodeTransformer(NodeVisitor):
                     setattr(node, field, new_node)
         return node
 
-    def visit_list(self, node: Node, *args: t.Any, **kwargs: t.Any) -> t.List[Node]:
+    def visit_list(self, node, *args, **kwargs):
         """As transformers may return lists in some places this method
         can be used to enforce a list as return value.
         """
         rv = self.visit(node, *args, **kwargs)
-
         if not isinstance(rv, list):
-            return [rv]
-
+            rv = [rv]
         return rv

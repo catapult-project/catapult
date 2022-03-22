@@ -1,128 +1,79 @@
+# -*- coding: utf-8 -*-
 """Built-in template filters used with the ``|`` operator."""
 import math
 import random
 import re
-import typing
-import typing as t
 import warnings
-from collections import abc
+from collections import namedtuple
 from itertools import chain
 from itertools import groupby
 
 from markupsafe import escape
 from markupsafe import Markup
-from markupsafe import soft_str
+from markupsafe import soft_unicode
 
-from .async_utils import async_variant
-from .async_utils import auto_aiter
-from .async_utils import auto_await
-from .async_utils import auto_to_list
+from ._compat import abc
+from ._compat import imap
+from ._compat import iteritems
+from ._compat import string_types
+from ._compat import text_type
 from .exceptions import FilterArgumentError
 from .runtime import Undefined
 from .utils import htmlsafe_json_dumps
-from .utils import pass_context
-from .utils import pass_environment
-from .utils import pass_eval_context
 from .utils import pformat
-from .utils import url_quote
+from .utils import unicode_urlencode
 from .utils import urlize
 
-if t.TYPE_CHECKING:
-    import typing_extensions as te
-    from .environment import Environment
-    from .nodes import EvalContext
-    from .runtime import Context
-    from .sandbox import SandboxedEnvironment  # noqa: F401
-
-    class HasHTML(te.Protocol):
-        def __html__(self) -> str:
-            pass
+_word_re = re.compile(r"\w+", re.UNICODE)
+_word_beginning_split_re = re.compile(r"([-\s\(\{\[\<]+)", re.UNICODE)
 
 
-F = t.TypeVar("F", bound=t.Callable[..., t.Any])
-K = t.TypeVar("K")
-V = t.TypeVar("V")
-
-
-def contextfilter(f: F) -> F:
-    """Pass the context as the first argument to the decorated function.
-
-    .. deprecated:: 3.0
-        Will be removed in Jinja 3.1. Use :func:`~jinja2.pass_context`
-        instead.
+def contextfilter(f):
+    """Decorator for marking context dependent filters. The current
+    :class:`Context` will be passed as first argument.
     """
-    warnings.warn(
-        "'contextfilter' is renamed to 'pass_context', the old name"
-        " will be removed in Jinja 3.1.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return pass_context(f)
+    f.contextfilter = True
+    return f
 
 
-def evalcontextfilter(f: F) -> F:
-    """Pass the eval context as the first argument to the decorated
-    function.
-
-    .. deprecated:: 3.0
-        Will be removed in Jinja 3.1. Use
-        :func:`~jinja2.pass_eval_context` instead.
+def evalcontextfilter(f):
+    """Decorator for marking eval-context dependent filters.  An eval
+    context object is passed as first argument.  For more information
+    about the eval context, see :ref:`eval-context`.
 
     .. versionadded:: 2.4
     """
-    warnings.warn(
-        "'evalcontextfilter' is renamed to 'pass_eval_context', the old"
-        " name will be removed in Jinja 3.1.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return pass_eval_context(f)
+    f.evalcontextfilter = True
+    return f
 
 
-def environmentfilter(f: F) -> F:
-    """Pass the environment as the first argument to the decorated
-    function.
-
-    .. deprecated:: 3.0
-        Will be removed in Jinja 3.1. Use
-        :func:`~jinja2.pass_environment` instead.
+def environmentfilter(f):
+    """Decorator for marking environment dependent filters.  The current
+    :class:`Environment` is passed to the filter as first argument.
     """
-    warnings.warn(
-        "'environmentfilter' is renamed to 'pass_environment', the old"
-        " name will be removed in Jinja 3.1.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return pass_environment(f)
+    f.environmentfilter = True
+    return f
 
 
-def ignore_case(value: V) -> V:
+def ignore_case(value):
     """For use as a postprocessor for :func:`make_attrgetter`. Converts strings
     to lowercase and returns other types as-is."""
-    if isinstance(value, str):
-        return t.cast(V, value.lower())
-
-    return value
+    return value.lower() if isinstance(value, string_types) else value
 
 
-def make_attrgetter(
-    environment: "Environment",
-    attribute: t.Optional[t.Union[str, int]],
-    postprocess: t.Optional[t.Callable[[t.Any], t.Any]] = None,
-    default: t.Optional[t.Any] = None,
-) -> t.Callable[[t.Any], t.Any]:
+def make_attrgetter(environment, attribute, postprocess=None, default=None):
     """Returns a callable that looks up the given attribute from a
     passed object with the rules of the environment.  Dots are allowed
     to access attributes of attributes.  Integer parts in paths are
     looked up as integers.
     """
-    parts = _prepare_attribute_parts(attribute)
+    attribute = _prepare_attribute_parts(attribute)
 
-    def attrgetter(item: t.Any) -> t.Any:
-        for part in parts:
+    def attrgetter(item):
+        for part in attribute:
             item = environment.getitem(item, part)
 
-            if default is not None and isinstance(item, Undefined):
+            if default and isinstance(item, Undefined):
                 item = default
 
         if postprocess is not None:
@@ -133,11 +84,7 @@ def make_attrgetter(
     return attrgetter
 
 
-def make_multi_attrgetter(
-    environment: "Environment",
-    attribute: t.Optional[t.Union[str, int]],
-    postprocess: t.Optional[t.Callable[[t.Any], t.Any]] = None,
-) -> t.Callable[[t.Any], t.List[t.Any]]:
+def make_multi_attrgetter(environment, attribute, postprocess=None):
     """Returns a callable that looks up the given comma separated
     attributes from a passed object with the rules of the environment.
     Dots are allowed to access attributes of each attribute.  Integer
@@ -148,19 +95,17 @@ def make_multi_attrgetter(
 
     Examples of attribute: "attr1,attr2", "attr1.inner1.0,attr2.inner2.0", etc.
     """
-    if isinstance(attribute, str):
-        split: t.Sequence[t.Union[str, int, None]] = attribute.split(",")
-    else:
-        split = [attribute]
+    attribute_parts = (
+        attribute.split(",") if isinstance(attribute, string_types) else [attribute]
+    )
+    attribute = [
+        _prepare_attribute_parts(attribute_part) for attribute_part in attribute_parts
+    ]
 
-    parts = [_prepare_attribute_parts(item) for item in split]
-
-    def attrgetter(item: t.Any) -> t.List[t.Any]:
-        items = [None] * len(parts)
-
-        for i, attribute_part in enumerate(parts):
+    def attrgetter(item):
+        items = [None] * len(attribute)
+        for i, attribute_part in enumerate(attribute):
             item_i = item
-
             for part in attribute_part:
                 item_i = environment.getitem(item_i, part)
 
@@ -168,35 +113,28 @@ def make_multi_attrgetter(
                 item_i = postprocess(item_i)
 
             items[i] = item_i
-
         return items
 
     return attrgetter
 
 
-def _prepare_attribute_parts(
-    attr: t.Optional[t.Union[str, int]]
-) -> t.List[t.Union[str, int]]:
+def _prepare_attribute_parts(attr):
     if attr is None:
         return []
-
-    if isinstance(attr, str):
+    elif isinstance(attr, string_types):
         return [int(x) if x.isdigit() else x for x in attr.split(".")]
+    else:
+        return [attr]
 
-    return [attr]
 
-
-def do_forceescape(value: "t.Union[str, HasHTML]") -> Markup:
+def do_forceescape(value):
     """Enforce HTML escaping.  This will probably double escape variables."""
     if hasattr(value, "__html__"):
-        value = t.cast("HasHTML", value).__html__()
+        value = value.__html__()
+    return escape(text_type(value))
 
-    return escape(str(value))
 
-
-def do_urlencode(
-    value: t.Union[str, t.Mapping[str, t.Any], t.Iterable[t.Tuple[str, t.Any]]]
-) -> str:
+def do_urlencode(value):
     """Quote data for use in a URL path or query using UTF-8.
 
     Basic wrapper around :func:`urllib.parse.quote` when given a
@@ -212,23 +150,22 @@ def do_urlencode(
 
     .. versionadded:: 2.7
     """
-    if isinstance(value, str) or not isinstance(value, abc.Iterable):
-        return url_quote(value)
+    if isinstance(value, string_types) or not isinstance(value, abc.Iterable):
+        return unicode_urlencode(value)
 
     if isinstance(value, dict):
-        items: t.Iterable[t.Tuple[str, t.Any]] = value.items()
+        items = iteritems(value)
     else:
-        items = value  # type: ignore
+        items = iter(value)
 
-    return "&".join(
-        f"{url_quote(k, for_qs=True)}={url_quote(v, for_qs=True)}" for k, v in items
+    return u"&".join(
+        "%s=%s" % (unicode_urlencode(k, for_qs=True), unicode_urlencode(v, for_qs=True))
+        for k, v in items
     )
 
 
-@pass_eval_context
-def do_replace(
-    eval_ctx: "EvalContext", s: str, old: str, new: str, count: t.Optional[int] = None
-) -> str:
+@evalcontextfilter
+def do_replace(eval_ctx, s, old, new, count=None):
     """Return a copy of the value with all occurrences of a substring
     replaced with a new one. The first argument is the substring
     that should be replaced, the second is the replacement string.
@@ -245,10 +182,8 @@ def do_replace(
     """
     if count is None:
         count = -1
-
     if not eval_ctx.autoescape:
-        return str(s).replace(str(old), str(new), count)
-
+        return text_type(s).replace(text_type(old), text_type(new), count)
     if (
         hasattr(old, "__html__")
         or hasattr(new, "__html__")
@@ -256,25 +191,22 @@ def do_replace(
     ):
         s = escape(s)
     else:
-        s = soft_str(s)
+        s = soft_unicode(s)
+    return s.replace(soft_unicode(old), soft_unicode(new), count)
 
-    return s.replace(soft_str(old), soft_str(new), count)
 
-
-def do_upper(s: str) -> str:
+def do_upper(s):
     """Convert a value to uppercase."""
-    return soft_str(s).upper()
+    return soft_unicode(s).upper()
 
 
-def do_lower(s: str) -> str:
+def do_lower(s):
     """Convert a value to lowercase."""
-    return soft_str(s).lower()
+    return soft_unicode(s).lower()
 
 
-@pass_eval_context
-def do_xmlattr(
-    eval_ctx: "EvalContext", d: t.Mapping[str, t.Any], autospace: bool = True
-) -> str:
+@evalcontextfilter
+def do_xmlattr(_eval_ctx, d, autospace=True):
     """Create an SGML/XML attribute string based on the items in a dict.
     All values that are neither `none` nor `undefined` are automatically
     escaped:
@@ -297,65 +229,55 @@ def do_xmlattr(
     As you can see it automatically prepends a space in front of the item
     if the filter returned something unless the second parameter is false.
     """
-    rv = " ".join(
-        f'{escape(key)}="{escape(value)}"'
-        for key, value in d.items()
+    rv = u" ".join(
+        u'%s="%s"' % (escape(key), escape(value))
+        for key, value in iteritems(d)
         if value is not None and not isinstance(value, Undefined)
     )
-
     if autospace and rv:
-        rv = " " + rv
-
-    if eval_ctx.autoescape:
+        rv = u" " + rv
+    if _eval_ctx.autoescape:
         rv = Markup(rv)
-
     return rv
 
 
-def do_capitalize(s: str) -> str:
+def do_capitalize(s):
     """Capitalize a value. The first character will be uppercase, all others
     lowercase.
     """
-    return soft_str(s).capitalize()
+    return soft_unicode(s).capitalize()
 
 
-_word_beginning_split_re = re.compile(r"([-\s({\[<]+)")
-
-
-def do_title(s: str) -> str:
+def do_title(s):
     """Return a titlecased version of the value. I.e. words will start with
     uppercase letters, all remaining characters are lowercase.
     """
     return "".join(
         [
             item[0].upper() + item[1:].lower()
-            for item in _word_beginning_split_re.split(soft_str(s))
+            for item in _word_beginning_split_re.split(soft_unicode(s))
             if item
         ]
     )
 
 
-def do_dictsort(
-    value: t.Mapping[K, V],
-    case_sensitive: bool = False,
-    by: 'te.Literal["key", "value"]' = "key",
-    reverse: bool = False,
-) -> t.List[t.Tuple[K, V]]:
-    """Sort a dict and yield (key, value) pairs. Python dicts may not
-    be in the order you want to display them in, so sort them first.
+def do_dictsort(value, case_sensitive=False, by="key", reverse=False):
+    """Sort a dict and yield (key, value) pairs. Because python dicts are
+    unsorted you may want to use this function to order them by either
+    key or value:
 
     .. sourcecode:: jinja
 
-        {% for key, value in mydict|dictsort %}
+        {% for item in mydict|dictsort %}
             sort the dict by key, case insensitive
 
-        {% for key, value in mydict|dictsort(reverse=true) %}
+        {% for item in mydict|dictsort(reverse=true) %}
             sort the dict by key, case insensitive, reverse order
 
-        {% for key, value in mydict|dictsort(true) %}
+        {% for item in mydict|dictsort(true) %}
             sort the dict by key, case sensitive
 
-        {% for key, value in mydict|dictsort(false, 'value') %}
+        {% for item in mydict|dictsort(false, 'value') %}
             sort the dict by value, case insensitive
     """
     if by == "key":
@@ -365,7 +287,7 @@ def do_dictsort(
     else:
         raise FilterArgumentError('You can only sort by either "key" or "value"')
 
-    def sort_func(item: t.Tuple[t.Any, t.Any]) -> t.Any:
+    def sort_func(item):
         value = item[pos]
 
         if not case_sensitive:
@@ -376,14 +298,8 @@ def do_dictsort(
     return sorted(value.items(), key=sort_func, reverse=reverse)
 
 
-@pass_environment
-def do_sort(
-    environment: "Environment",
-    value: "t.Iterable[V]",
-    reverse: bool = False,
-    case_sensitive: bool = False,
-    attribute: t.Optional[t.Union[str, int]] = None,
-) -> "t.List[V]":
+@environmentfilter
+def do_sort(environment, value, reverse=False, case_sensitive=False, attribute=None):
     """Sort an iterable using Python's :func:`sorted`.
 
     .. sourcecode:: jinja
@@ -432,13 +348,8 @@ def do_sort(
     return sorted(value, key=key_func, reverse=reverse)
 
 
-@pass_environment
-def do_unique(
-    environment: "Environment",
-    value: "t.Iterable[V]",
-    case_sensitive: bool = False,
-    attribute: t.Optional[t.Union[str, int]] = None,
-) -> "t.Iterator[V]":
+@environmentfilter
+def do_unique(environment, value, case_sensitive=False, attribute=None):
     """Returns a list of unique items from the given iterable.
 
     .. sourcecode:: jinja
@@ -465,13 +376,7 @@ def do_unique(
             yield item
 
 
-def _min_or_max(
-    environment: "Environment",
-    value: "t.Iterable[V]",
-    func: "t.Callable[..., V]",
-    case_sensitive: bool,
-    attribute: t.Optional[t.Union[str, int]],
-) -> "t.Union[V, Undefined]":
+def _min_or_max(environment, value, func, case_sensitive, attribute):
     it = iter(value)
 
     try:
@@ -485,13 +390,8 @@ def _min_or_max(
     return func(chain([first], it), key=key_func)
 
 
-@pass_environment
-def do_min(
-    environment: "Environment",
-    value: "t.Iterable[V]",
-    case_sensitive: bool = False,
-    attribute: t.Optional[t.Union[str, int]] = None,
-) -> "t.Union[V, Undefined]":
+@environmentfilter
+def do_min(environment, value, case_sensitive=False, attribute=None):
     """Return the smallest item from the sequence.
 
     .. sourcecode:: jinja
@@ -505,13 +405,8 @@ def do_min(
     return _min_or_max(environment, value, min, case_sensitive, attribute)
 
 
-@pass_environment
-def do_max(
-    environment: "Environment",
-    value: "t.Iterable[V]",
-    case_sensitive: bool = False,
-    attribute: t.Optional[t.Union[str, int]] = None,
-) -> "t.Union[V, Undefined]":
+@environmentfilter
+def do_max(environment, value, case_sensitive=False, attribute=None):
     """Return the largest item from the sequence.
 
     .. sourcecode:: jinja
@@ -525,11 +420,7 @@ def do_max(
     return _min_or_max(environment, value, max, case_sensitive, attribute)
 
 
-def do_default(
-    value: V,
-    default_value: V = "",  # type: ignore
-    boolean: bool = False,
-) -> V:
+def do_default(value, default_value=u"", boolean=False):
     """If the value is undefined it will return the passed default value,
     otherwise the value of the variable:
 
@@ -554,17 +445,11 @@ def do_default(
     """
     if isinstance(value, Undefined) or (boolean and not value):
         return default_value
-
     return value
 
 
-@pass_eval_context
-def sync_do_join(
-    eval_ctx: "EvalContext",
-    value: t.Iterable,
-    d: str = "",
-    attribute: t.Optional[t.Union[str, int]] = None,
-) -> str:
+@evalcontextfilter
+def do_join(eval_ctx, value, d=u"", attribute=None):
     """Return a string which is the concatenation of the strings in the
     sequence. The separator between elements is an empty string per
     default, you can define it with the optional parameter:
@@ -587,54 +472,39 @@ def sync_do_join(
        The `attribute` parameter was added.
     """
     if attribute is not None:
-        value = map(make_attrgetter(eval_ctx.environment, attribute), value)
+        value = imap(make_attrgetter(eval_ctx.environment, attribute), value)
 
     # no automatic escaping?  joining is a lot easier then
     if not eval_ctx.autoescape:
-        return str(d).join(map(str, value))
+        return text_type(d).join(imap(text_type, value))
 
     # if the delimiter doesn't have an html representation we check
     # if any of the items has.  If yes we do a coercion to Markup
     if not hasattr(d, "__html__"):
         value = list(value)
         do_escape = False
-
         for idx, item in enumerate(value):
             if hasattr(item, "__html__"):
                 do_escape = True
             else:
-                value[idx] = str(item)
-
+                value[idx] = text_type(item)
         if do_escape:
             d = escape(d)
         else:
-            d = str(d)
-
+            d = text_type(d)
         return d.join(value)
 
     # no html involved, to normal joining
-    return soft_str(d).join(map(soft_str, value))
+    return soft_unicode(d).join(imap(soft_unicode, value))
 
 
-@async_variant(sync_do_join)  # type: ignore
-async def do_join(
-    eval_ctx: "EvalContext",
-    value: t.Union[t.AsyncIterable, t.Iterable],
-    d: str = "",
-    attribute: t.Optional[t.Union[str, int]] = None,
-) -> str:
-    return sync_do_join(eval_ctx, await auto_to_list(value), d, attribute)
-
-
-def do_center(value: str, width: int = 80) -> str:
+def do_center(value, width=80):
     """Centers the value in a field of a given width."""
-    return soft_str(value).center(width)
+    return text_type(value).center(width)
 
 
-@pass_environment
-def sync_do_first(
-    environment: "Environment", seq: "t.Iterable[V]"
-) -> "t.Union[V, Undefined]":
+@environmentfilter
+def do_first(environment, seq):
     """Return the first item of a sequence."""
     try:
         return next(iter(seq))
@@ -642,21 +512,10 @@ def sync_do_first(
         return environment.undefined("No first item, sequence was empty.")
 
 
-@async_variant(sync_do_first)  # type: ignore
-async def do_first(
-    environment: "Environment", seq: "t.Union[t.AsyncIterable[V], t.Iterable[V]]"
-) -> "t.Union[V, Undefined]":
-    try:
-        return await auto_aiter(seq).__anext__()
-    except StopAsyncIteration:
-        return environment.undefined("No first item, sequence was empty.")
-
-
-@pass_environment
-def do_last(
-    environment: "Environment", seq: "t.Reversible[V]"
-) -> "t.Union[V, Undefined]":
-    """Return the last item of a sequence.
+@environmentfilter
+def do_last(environment, seq):
+    """
+    Return the last item of a sequence.
 
     Note: Does not work with generators. You may want to explicitly
     convert it to a list:
@@ -671,11 +530,8 @@ def do_last(
         return environment.undefined("No last item, sequence was empty.")
 
 
-# No async do_last, it may not be safe in async mode.
-
-
-@pass_context
-def do_random(context: "Context", seq: "t.Sequence[V]") -> "t.Union[V, Undefined]":
+@contextfilter
+def do_random(context, seq):
     """Return a random item from the sequence."""
     try:
         return random.choice(seq)
@@ -683,151 +539,108 @@ def do_random(context: "Context", seq: "t.Sequence[V]") -> "t.Union[V, Undefined
         return context.environment.undefined("No random item, sequence was empty.")
 
 
-def do_filesizeformat(value: t.Union[str, float, int], binary: bool = False) -> str:
+def do_filesizeformat(value, binary=False):
     """Format the value like a 'human-readable' file size (i.e. 13 kB,
     4.1 MB, 102 Bytes, etc).  Per default decimal prefixes are used (Mega,
     Giga, etc.), if the second parameter is set to `True` the binary
     prefixes are used (Mebi, Gibi).
     """
     bytes = float(value)
-    base = 1024 if binary else 1000
+    base = binary and 1024 or 1000
     prefixes = [
-        ("KiB" if binary else "kB"),
-        ("MiB" if binary else "MB"),
-        ("GiB" if binary else "GB"),
-        ("TiB" if binary else "TB"),
-        ("PiB" if binary else "PB"),
-        ("EiB" if binary else "EB"),
-        ("ZiB" if binary else "ZB"),
-        ("YiB" if binary else "YB"),
+        (binary and "KiB" or "kB"),
+        (binary and "MiB" or "MB"),
+        (binary and "GiB" or "GB"),
+        (binary and "TiB" or "TB"),
+        (binary and "PiB" or "PB"),
+        (binary and "EiB" or "EB"),
+        (binary and "ZiB" or "ZB"),
+        (binary and "YiB" or "YB"),
     ]
-
     if bytes == 1:
         return "1 Byte"
     elif bytes < base:
-        return f"{int(bytes)} Bytes"
+        return "%d Bytes" % bytes
     else:
         for i, prefix in enumerate(prefixes):
             unit = base ** (i + 2)
-
             if bytes < unit:
-                return f"{base * bytes / unit:.1f} {prefix}"
-
-        return f"{base * bytes / unit:.1f} {prefix}"
-
-
-def do_pprint(value: t.Any) -> str:
-    """Pretty print a variable. Useful for debugging."""
-    return pformat(value)
+                return "%.1f %s" % ((base * bytes / unit), prefix)
+        return "%.1f %s" % ((base * bytes / unit), prefix)
 
 
-_uri_scheme_re = re.compile(r"^([\w.+-]{2,}:(/){0,2})$")
+def do_pprint(value, verbose=False):
+    """Pretty print a variable. Useful for debugging.
+
+    With Jinja 1.2 onwards you can pass it a parameter.  If this parameter
+    is truthy the output will be more verbose (this requires `pretty`)
+    """
+    return pformat(value, verbose=verbose)
 
 
-@pass_eval_context
+@evalcontextfilter
 def do_urlize(
-    eval_ctx: "EvalContext",
-    value: str,
-    trim_url_limit: t.Optional[int] = None,
-    nofollow: bool = False,
-    target: t.Optional[str] = None,
-    rel: t.Optional[str] = None,
-    extra_schemes: t.Optional[t.Iterable[str]] = None,
-) -> str:
-    """Convert URLs in text into clickable links.
+    eval_ctx, value, trim_url_limit=None, nofollow=False, target=None, rel=None
+):
+    """Converts URLs in plain text into clickable links.
 
-    This may not recognize links in some situations. Usually, a more
-    comprehensive formatter, such as a Markdown library, is a better
-    choice.
+    If you pass the filter an additional integer it will shorten the urls
+    to that number. Also a third argument exists that makes the urls
+    "nofollow":
 
-    Works on ``http://``, ``https://``, ``www.``, ``mailto:``, and email
-    addresses. Links with trailing punctuation (periods, commas, closing
-    parentheses) and leading punctuation (opening parentheses) are
-    recognized excluding the punctuation. Email addresses that include
-    header fields are not recognized (for example,
-    ``mailto:address@example.com?cc=copy@example.com``).
+    .. sourcecode:: jinja
 
-    :param value: Original text containing URLs to link.
-    :param trim_url_limit: Shorten displayed URL values to this length.
-    :param nofollow: Add the ``rel=nofollow`` attribute to links.
-    :param target: Add the ``target`` attribute to links.
-    :param rel: Add the ``rel`` attribute to links.
-    :param extra_schemes: Recognize URLs that start with these schemes
-        in addition to the default behavior. Defaults to
-        ``env.policies["urlize.extra_schemes"]``, which defaults to no
-        extra schemes.
+        {{ mytext|urlize(40, true) }}
+            links are shortened to 40 chars and defined with rel="nofollow"
 
-    .. versionchanged:: 3.0
-        The ``extra_schemes`` parameter was added.
+    If *target* is specified, the ``target`` attribute will be added to the
+    ``<a>`` tag:
 
-    .. versionchanged:: 3.0
-        Generate ``https://`` links for URLs without a scheme.
+    .. sourcecode:: jinja
 
-    .. versionchanged:: 3.0
-        The parsing rules were updated. Recognize email addresses with
-        or without the ``mailto:`` scheme. Validate IP addresses. Ignore
-        parentheses and brackets in more cases.
+       {{ mytext|urlize(40, target='_blank') }}
 
-    .. versionchanged:: 2.8
-       The ``target`` parameter was added.
+    .. versionchanged:: 2.8+
+       The *target* parameter was added.
     """
     policies = eval_ctx.environment.policies
-    rel_parts = set((rel or "").split())
-
+    rel = set((rel or "").split() or [])
     if nofollow:
-        rel_parts.add("nofollow")
-
-    rel_parts.update((policies["urlize.rel"] or "").split())
-    rel = " ".join(sorted(rel_parts)) or None
-
+        rel.add("nofollow")
+    rel.update((policies["urlize.rel"] or "").split())
     if target is None:
         target = policies["urlize.target"]
-
-    if extra_schemes is None:
-        extra_schemes = policies["urlize.extra_schemes"] or ()
-
-    for scheme in extra_schemes:
-        if _uri_scheme_re.fullmatch(scheme) is None:
-            raise FilterArgumentError(f"{scheme!r} is not a valid URI scheme prefix.")
-
-    rv = urlize(
-        value,
-        trim_url_limit=trim_url_limit,
-        rel=rel,
-        target=target,
-        extra_schemes=extra_schemes,
-    )
-
+    rel = " ".join(sorted(rel)) or None
+    rv = urlize(value, trim_url_limit, rel=rel, target=target)
     if eval_ctx.autoescape:
         rv = Markup(rv)
-
     return rv
 
 
-def do_indent(
-    s: str, width: t.Union[int, str] = 4, first: bool = False, blank: bool = False
-) -> str:
+def do_indent(s, width=4, first=False, blank=False, indentfirst=None):
     """Return a copy of the string with each line indented by 4 spaces. The
     first line and blank lines are not indented by default.
 
-    :param width: Number of spaces, or a string, to indent by.
+    :param width: Number of spaces to indent by.
     :param first: Don't skip indenting the first line.
     :param blank: Don't skip indenting empty lines.
-
-    .. versionchanged:: 3.0
-        ``width`` can be a string.
 
     .. versionchanged:: 2.10
         Blank lines are not indented by default.
 
         Rename the ``indentfirst`` argument to ``first``.
     """
-    if isinstance(width, str):
-        indention = width
-    else:
-        indention = " " * width
+    if indentfirst is not None:
+        warnings.warn(
+            "The 'indentfirst' argument is renamed to 'first' and will"
+            " be removed in version 3.0.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        first = indentfirst
 
-    newline = "\n"
+    indention = u" " * width
+    newline = u"\n"
 
     if isinstance(s, Markup):
         indention = Markup(indention)
@@ -852,15 +665,8 @@ def do_indent(
     return rv
 
 
-@pass_environment
-def do_truncate(
-    env: "Environment",
-    s: str,
-    length: int = 255,
-    killwords: bool = False,
-    end: str = "...",
-    leeway: t.Optional[int] = None,
-) -> str:
+@environmentfilter
+def do_truncate(env, s, length=255, killwords=False, end="...", leeway=None):
     """Return a truncated copy of the string. The length is specified
     with the first parameter which defaults to ``255``. If the second
     parameter is ``true`` the filter will cut the text at length. Otherwise
@@ -886,29 +692,25 @@ def do_truncate(
     """
     if leeway is None:
         leeway = env.policies["truncate.leeway"]
-
-    assert length >= len(end), f"expected length >= {len(end)}, got {length}"
-    assert leeway >= 0, f"expected leeway >= 0, got {leeway}"
-
+    assert length >= len(end), "expected length >= %s, got %s" % (len(end), length)
+    assert leeway >= 0, "expected leeway >= 0, got %s" % leeway
     if len(s) <= length + leeway:
         return s
-
     if killwords:
         return s[: length - len(end)] + end
-
     result = s[: length - len(end)].rsplit(" ", 1)[0]
     return result + end
 
 
-@pass_environment
+@environmentfilter
 def do_wordwrap(
-    environment: "Environment",
-    s: str,
-    width: int = 79,
-    break_long_words: bool = True,
-    wrapstring: t.Optional[str] = None,
-    break_on_hyphens: bool = True,
-) -> str:
+    environment,
+    s,
+    width=79,
+    break_long_words=True,
+    wrapstring=None,
+    break_on_hyphens=True,
+):
     """Wrap a string to the given width. Existing newlines are treated
     as paragraphs to be wrapped separately.
 
@@ -930,9 +732,10 @@ def do_wordwrap(
     .. versionchanged:: 2.7
         Added the ``wrapstring`` parameter.
     """
+
     import textwrap
 
-    if wrapstring is None:
+    if not wrapstring:
         wrapstring = environment.newline_sequence
 
     # textwrap.wrap doesn't consider existing newlines when wrapping.
@@ -956,15 +759,12 @@ def do_wordwrap(
     )
 
 
-_word_re = re.compile(r"\w+")
-
-
-def do_wordcount(s: str) -> int:
+def do_wordcount(s):
     """Count the words in that string."""
-    return len(_word_re.findall(soft_str(s)))
+    return len(_word_re.findall(soft_unicode(s)))
 
 
-def do_int(value: t.Any, default: int = 0, base: int = 10) -> int:
+def do_int(value, default=0, base=10):
     """Convert the value into an integer. If the
     conversion doesn't work it will return ``0``. You can
     override this default using the first parameter. You
@@ -974,9 +774,8 @@ def do_int(value: t.Any, default: int = 0, base: int = 10) -> int:
     The base is ignored for decimal numbers and non-string values.
     """
     try:
-        if isinstance(value, str):
+        if isinstance(value, string_types):
             return int(value, base)
-
         return int(value)
     except (TypeError, ValueError):
         # this quirk is necessary so that "42.23"|int gives 42.
@@ -986,7 +785,7 @@ def do_int(value: t.Any, default: int = 0, base: int = 10) -> int:
             return default
 
 
-def do_float(value: t.Any, default: float = 0.0) -> float:
+def do_float(value, default=0.0):
     """Convert the value into a floating point number. If the
     conversion doesn't work it will return ``0.0``. You can
     override this default using the first parameter.
@@ -997,7 +796,7 @@ def do_float(value: t.Any, default: float = 0.0) -> float:
         return default
 
 
-def do_format(value: str, *args: t.Any, **kwargs: t.Any) -> str:
+def do_format(value, *args, **kwargs):
     """Apply the given values to a `printf-style`_ format string, like
     ``string % values``.
 
@@ -1021,26 +820,22 @@ def do_format(value: str, *args: t.Any, **kwargs: t.Any) -> str:
         raise FilterArgumentError(
             "can't handle positional and keyword arguments at the same time"
         )
+    return soft_unicode(value) % (kwargs or args)
 
-    return soft_str(value) % (kwargs or args)
 
-
-def do_trim(value: str, chars: t.Optional[str] = None) -> str:
+def do_trim(value, chars=None):
     """Strip leading and trailing characters, by default whitespace."""
-    return soft_str(value).strip(chars)
+    return soft_unicode(value).strip(chars)
 
 
-def do_striptags(value: "t.Union[str, HasHTML]") -> str:
+def do_striptags(value):
     """Strip SGML/XML tags and replace adjacent whitespace by one space."""
     if hasattr(value, "__html__"):
-        value = t.cast("HasHTML", value).__html__()
+        value = value.__html__()
+    return Markup(text_type(value)).striptags()
 
-    return Markup(str(value)).striptags()
 
-
-def sync_do_slice(
-    value: "t.Collection[V]", slices: int, fill_with: "t.Optional[V]" = None
-) -> "t.Iterator[t.List[V]]":
+def do_slice(value, slices, fill_with=None):
     """Slice an iterator and return a list of lists containing
     those items. Useful if you want to create a div containing
     three ul tags that represent columns:
@@ -1065,34 +860,18 @@ def sync_do_slice(
     items_per_slice = length // slices
     slices_with_extra = length % slices
     offset = 0
-
     for slice_number in range(slices):
         start = offset + slice_number * items_per_slice
-
         if slice_number < slices_with_extra:
             offset += 1
-
         end = offset + (slice_number + 1) * items_per_slice
         tmp = seq[start:end]
-
         if fill_with is not None and slice_number >= slices_with_extra:
             tmp.append(fill_with)
-
         yield tmp
 
 
-@async_variant(sync_do_slice)  # type: ignore
-async def do_slice(
-    value: "t.Union[t.AsyncIterable[V], t.Iterable[V]]",
-    slices: int,
-    fill_with: t.Optional[t.Any] = None,
-) -> "t.Iterator[t.List[V]]":
-    return sync_do_slice(await auto_to_list(value), slices, fill_with)
-
-
-def do_batch(
-    value: "t.Iterable[V]", linecount: int, fill_with: "t.Optional[V]" = None
-) -> "t.Iterator[t.List[V]]":
+def do_batch(value, linecount, fill_with=None):
     """
     A filter that batches items. It works pretty much like `slice`
     just the other way round. It returns a list of lists with the
@@ -1111,27 +890,19 @@ def do_batch(
         {%- endfor %}
         </table>
     """
-    tmp: "t.List[V]" = []
-
+    tmp = []
     for item in value:
         if len(tmp) == linecount:
             yield tmp
             tmp = []
-
         tmp.append(item)
-
     if tmp:
         if fill_with is not None and len(tmp) < linecount:
             tmp += [fill_with] * (linecount - len(tmp))
-
         yield tmp
 
 
-def do_round(
-    value: float,
-    precision: int = 0,
-    method: 'te.Literal["common", "ceil", "floor"]' = "common",
-) -> float:
+def do_round(value, precision=0, method="common"):
     """Round the number to a given precision. The first
     parameter specifies the precision (default is ``0``), the
     second the rounding method:
@@ -1159,34 +930,24 @@ def do_round(
     """
     if method not in {"common", "ceil", "floor"}:
         raise FilterArgumentError("method must be common, ceil or floor")
-
     if method == "common":
         return round(value, precision)
-
     func = getattr(math, method)
-    return t.cast(float, func(value * (10 ** precision)) / (10 ** precision))
+    return func(value * (10 ** precision)) / (10 ** precision)
 
 
-class _GroupTuple(t.NamedTuple):
-    grouper: t.Any
-    list: t.List
-
-    # Use the regular tuple repr to hide this subclass if users print
-    # out the value during debugging.
-    def __repr__(self) -> str:
-        return tuple.__repr__(self)
-
-    def __str__(self) -> str:
-        return tuple.__str__(self)
+# Use a regular tuple repr here.  This is what we did in the past and we
+# really want to hide this custom type as much as possible.  In particular
+# we do not want to accidentally expose an auto generated repr in case
+# people start to print this out in comments or something similar for
+# debugging.
+_GroupTuple = namedtuple("_GroupTuple", ["grouper", "list"])
+_GroupTuple.__repr__ = tuple.__repr__
+_GroupTuple.__str__ = tuple.__str__
 
 
-@pass_environment
-def sync_do_groupby(
-    environment: "Environment",
-    value: "t.Iterable[V]",
-    attribute: t.Union[str, int],
-    default: t.Optional[t.Any] = None,
-) -> "t.List[t.Tuple[t.Any, t.List[V]]]":
+@environmentfilter
+def do_groupby(environment, value, attribute):
     """Group a sequence of objects by an attribute using Python's
     :func:`itertools.groupby`. The attribute can use dot notation for
     nested access, like ``"address.city"``. Unlike Python's ``groupby``,
@@ -1217,49 +978,18 @@ def sync_do_groupby(
           <li>{{ group.grouper }}: {{ group.list|join(", ") }}
         {% endfor %}</ul>
 
-    You can specify a ``default`` value to use if an object in the list
-    does not have the given attribute.
-
-    .. sourcecode:: jinja
-
-        <ul>{% for city, items in users|groupby("city", default="NY") %}
-          <li>{{ city }}: {{ items|map(attribute="name")|join(", ") }}</li>
-        {% endfor %}</ul>
-
-    .. versionchanged:: 3.0
-        Added the ``default`` parameter.
-
     .. versionchanged:: 2.6
         The attribute supports dot notation for nested access.
     """
-    expr = make_attrgetter(environment, attribute, default=default)
+    expr = make_attrgetter(environment, attribute)
     return [
         _GroupTuple(key, list(values))
         for key, values in groupby(sorted(value, key=expr), expr)
     ]
 
 
-@async_variant(sync_do_groupby)  # type: ignore
-async def do_groupby(
-    environment: "Environment",
-    value: "t.Union[t.AsyncIterable[V], t.Iterable[V]]",
-    attribute: t.Union[str, int],
-    default: t.Optional[t.Any] = None,
-) -> "t.List[t.Tuple[t.Any, t.List[V]]]":
-    expr = make_attrgetter(environment, attribute, default=default)
-    return [
-        _GroupTuple(key, await auto_to_list(values))
-        for key, values in groupby(sorted(await auto_to_list(value), key=expr), expr)
-    ]
-
-
-@pass_environment
-def sync_do_sum(
-    environment: "Environment",
-    iterable: "t.Iterable[V]",
-    attribute: t.Optional[t.Union[str, int]] = None,
-    start: V = 0,  # type: ignore
-) -> V:
+@environmentfilter
+def do_sum(environment, iterable, attribute=None, start=0):
     """Returns the sum of a sequence of numbers plus the value of parameter
     'start' (which defaults to 0).  When the sequence is empty it returns
     start.
@@ -1275,89 +1005,48 @@ def sync_do_sum(
        attributes.  Also the `start` parameter was moved on to the right.
     """
     if attribute is not None:
-        iterable = map(make_attrgetter(environment, attribute), iterable)
-
+        iterable = imap(make_attrgetter(environment, attribute), iterable)
     return sum(iterable, start)
 
 
-@async_variant(sync_do_sum)  # type: ignore
-async def do_sum(
-    environment: "Environment",
-    iterable: "t.Union[t.AsyncIterable[V], t.Iterable[V]]",
-    attribute: t.Optional[t.Union[str, int]] = None,
-    start: V = 0,  # type: ignore
-) -> V:
-    rv = start
-
-    if attribute is not None:
-        func = make_attrgetter(environment, attribute)
-    else:
-
-        def func(x: V) -> V:
-            return x
-
-    async for item in auto_aiter(iterable):
-        rv += func(item)
-
-    return rv
-
-
-def sync_do_list(value: "t.Iterable[V]") -> "t.List[V]":
+def do_list(value):
     """Convert the value into a list.  If it was a string the returned list
     will be a list of characters.
     """
     return list(value)
 
 
-@async_variant(sync_do_list)  # type: ignore
-async def do_list(value: "t.Union[t.AsyncIterable[V], t.Iterable[V]]") -> "t.List[V]":
-    return await auto_to_list(value)
-
-
-def do_mark_safe(value: str) -> Markup:
+def do_mark_safe(value):
     """Mark the value as safe which means that in an environment with automatic
     escaping enabled this variable will not be escaped.
     """
     return Markup(value)
 
 
-def do_mark_unsafe(value: str) -> str:
+def do_mark_unsafe(value):
     """Mark a value as unsafe.  This is the reverse operation for :func:`safe`."""
-    return str(value)
+    return text_type(value)
 
 
-@typing.overload
-def do_reverse(value: str) -> str:
-    ...
-
-
-@typing.overload
-def do_reverse(value: "t.Iterable[V]") -> "t.Iterable[V]":
-    ...
-
-
-def do_reverse(value: t.Union[str, t.Iterable[V]]) -> t.Union[str, t.Iterable[V]]:
+def do_reverse(value):
     """Reverse the object or return an iterator that iterates over it the other
     way round.
     """
-    if isinstance(value, str):
+    if isinstance(value, string_types):
         return value[::-1]
-
     try:
-        return reversed(value)  # type: ignore
+        return reversed(value)
     except TypeError:
         try:
             rv = list(value)
             rv.reverse()
             return rv
-        except TypeError as e:
-            raise FilterArgumentError("argument must be iterable") from e
+        except TypeError:
+            raise FilterArgumentError("argument must be iterable")
 
 
-@pass_environment
-def do_attr(
-    environment: "Environment", obj: t.Any, name: str
-) -> t.Union[Undefined, t.Any]:
+@environmentfilter
+def do_attr(environment, obj, name):
     """Get an attribute of an object.  ``foo|attr("bar")`` works like
     ``foo.bar`` just that always an attribute is returned and items are not
     looked up.
@@ -1374,39 +1063,16 @@ def do_attr(
         except AttributeError:
             pass
         else:
-            if environment.sandboxed:
-                environment = t.cast("SandboxedEnvironment", environment)
-
-                if not environment.is_safe_attribute(obj, name, value):
-                    return environment.unsafe_undefined(obj, name)
-
+            if environment.sandboxed and not environment.is_safe_attribute(
+                obj, name, value
+            ):
+                return environment.unsafe_undefined(obj, name)
             return value
-
     return environment.undefined(obj=obj, name=name)
 
 
-@typing.overload
-def sync_do_map(
-    context: "Context", value: t.Iterable, name: str, *args: t.Any, **kwargs: t.Any
-) -> t.Iterable:
-    ...
-
-
-@typing.overload
-def sync_do_map(
-    context: "Context",
-    value: t.Iterable,
-    *,
-    attribute: str = ...,
-    default: t.Optional[t.Any] = None,
-) -> t.Iterable:
-    ...
-
-
-@pass_context
-def sync_do_map(
-    context: "Context", value: t.Iterable, *args: t.Any, **kwargs: t.Any
-) -> t.Iterable:
+@contextfilter
+def do_map(*args, **kwargs):
     """Applies a filter on a sequence of objects or looks up an attribute.
     This is useful when dealing with lists of objects but you are really
     only interested in a certain value of it.
@@ -1438,7 +1104,7 @@ def sync_do_map(
     .. code-block:: python
 
         (u.username for u in users)
-        (getattr(u, "username", "Anonymous") for u in users)
+        (u.username or "Anonymous" for u in users)
         (do_lower(x) for x in titles)
 
     .. versionchanged:: 2.11.0
@@ -1446,53 +1112,14 @@ def sync_do_map(
 
     .. versionadded:: 2.7
     """
-    if value:
-        func = prepare_map(context, args, kwargs)
-
-        for item in value:
+    seq, func = prepare_map(args, kwargs)
+    if seq:
+        for item in seq:
             yield func(item)
 
 
-@typing.overload
-def do_map(
-    context: "Context",
-    value: t.Union[t.AsyncIterable, t.Iterable],
-    name: str,
-    *args: t.Any,
-    **kwargs: t.Any,
-) -> t.Iterable:
-    ...
-
-
-@typing.overload
-def do_map(
-    context: "Context",
-    value: t.Union[t.AsyncIterable, t.Iterable],
-    *,
-    attribute: str = ...,
-    default: t.Optional[t.Any] = None,
-) -> t.Iterable:
-    ...
-
-
-@async_variant(sync_do_map)  # type: ignore
-async def do_map(
-    context: "Context",
-    value: t.Union[t.AsyncIterable, t.Iterable],
-    *args: t.Any,
-    **kwargs: t.Any,
-) -> t.AsyncIterable:
-    if value:
-        func = prepare_map(context, args, kwargs)
-
-        async for item in auto_aiter(value):
-            yield await auto_await(func(item))
-
-
-@pass_context
-def sync_do_select(
-    context: "Context", value: "t.Iterable[V]", *args: t.Any, **kwargs: t.Any
-) -> "t.Iterator[V]":
+@contextfilter
+def do_select(*args, **kwargs):
     """Filters a sequence of objects by applying a test to each object,
     and only selecting the objects with the test succeeding.
 
@@ -1517,23 +1144,11 @@ def sync_do_select(
 
     .. versionadded:: 2.7
     """
-    return select_or_reject(context, value, args, kwargs, lambda x: x, False)
+    return select_or_reject(args, kwargs, lambda x: x, False)
 
 
-@async_variant(sync_do_select)  # type: ignore
-async def do_select(
-    context: "Context",
-    value: "t.Union[t.AsyncIterable[V], t.Iterable[V]]",
-    *args: t.Any,
-    **kwargs: t.Any,
-) -> "t.AsyncIterator[V]":
-    return async_select_or_reject(context, value, args, kwargs, lambda x: x, False)
-
-
-@pass_context
-def sync_do_reject(
-    context: "Context", value: "t.Iterable[V]", *args: t.Any, **kwargs: t.Any
-) -> "t.Iterator[V]":
+@contextfilter
+def do_reject(*args, **kwargs):
     """Filters a sequence of objects by applying a test to each object,
     and rejecting the objects with the test succeeding.
 
@@ -1553,23 +1168,11 @@ def sync_do_reject(
 
     .. versionadded:: 2.7
     """
-    return select_or_reject(context, value, args, kwargs, lambda x: not x, False)
+    return select_or_reject(args, kwargs, lambda x: not x, False)
 
 
-@async_variant(sync_do_reject)  # type: ignore
-async def do_reject(
-    context: "Context",
-    value: "t.Union[t.AsyncIterable[V], t.Iterable[V]]",
-    *args: t.Any,
-    **kwargs: t.Any,
-) -> "t.AsyncIterator[V]":
-    return async_select_or_reject(context, value, args, kwargs, lambda x: not x, False)
-
-
-@pass_context
-def sync_do_selectattr(
-    context: "Context", value: "t.Iterable[V]", *args: t.Any, **kwargs: t.Any
-) -> "t.Iterator[V]":
+@contextfilter
+def do_selectattr(*args, **kwargs):
     """Filters a sequence of objects by applying a test to the specified
     attribute of each object, and only selecting the objects with the
     test succeeding.
@@ -1593,23 +1196,11 @@ def sync_do_selectattr(
 
     .. versionadded:: 2.7
     """
-    return select_or_reject(context, value, args, kwargs, lambda x: x, True)
+    return select_or_reject(args, kwargs, lambda x: x, True)
 
 
-@async_variant(sync_do_selectattr)  # type: ignore
-async def do_selectattr(
-    context: "Context",
-    value: "t.Union[t.AsyncIterable[V], t.Iterable[V]]",
-    *args: t.Any,
-    **kwargs: t.Any,
-) -> "t.AsyncIterator[V]":
-    return async_select_or_reject(context, value, args, kwargs, lambda x: x, True)
-
-
-@pass_context
-def sync_do_rejectattr(
-    context: "Context", value: "t.Iterable[V]", *args: t.Any, **kwargs: t.Any
-) -> "t.Iterator[V]":
+@contextfilter
+def do_rejectattr(*args, **kwargs):
     """Filters a sequence of objects by applying a test to the specified
     attribute of each object, and rejecting the objects with the test
     succeeding.
@@ -1631,138 +1222,105 @@ def sync_do_rejectattr(
 
     .. versionadded:: 2.7
     """
-    return select_or_reject(context, value, args, kwargs, lambda x: not x, True)
+    return select_or_reject(args, kwargs, lambda x: not x, True)
 
 
-@async_variant(sync_do_rejectattr)  # type: ignore
-async def do_rejectattr(
-    context: "Context",
-    value: "t.Union[t.AsyncIterable[V], t.Iterable[V]]",
-    *args: t.Any,
-    **kwargs: t.Any,
-) -> "t.AsyncIterator[V]":
-    return async_select_or_reject(context, value, args, kwargs, lambda x: not x, True)
+@evalcontextfilter
+def do_tojson(eval_ctx, value, indent=None):
+    """Dumps a structure to JSON so that it's safe to use in ``<script>``
+    tags.  It accepts the same arguments and returns a JSON string.  Note that
+    this is available in templates through the ``|tojson`` filter which will
+    also mark the result as safe.  Due to how this function escapes certain
+    characters this is safe even if used outside of ``<script>`` tags.
 
+    The following characters are escaped in strings:
 
-@pass_eval_context
-def do_tojson(
-    eval_ctx: "EvalContext", value: t.Any, indent: t.Optional[int] = None
-) -> Markup:
-    """Serialize an object to a string of JSON, and mark it safe to
-    render in HTML. This filter is only for use in HTML documents.
+    -   ``<``
+    -   ``>``
+    -   ``&``
+    -   ``'``
 
-    The returned string is safe to render in HTML documents and
-    ``<script>`` tags. The exception is in HTML attributes that are
-    double quoted; either use single quotes or the ``|forceescape``
-    filter.
+    This makes it safe to embed such strings in any place in HTML with the
+    notable exception of double quoted attributes.  In that case single
+    quote your attributes or HTML escape it in addition.
 
-    :param value: The object to serialize to JSON.
-    :param indent: The ``indent`` parameter passed to ``dumps``, for
-        pretty-printing the value.
+    The indent parameter can be used to enable pretty printing.  Set it to
+    the number of spaces that the structures should be indented with.
+
+    Note that this filter is for use in HTML contexts only.
 
     .. versionadded:: 2.9
     """
     policies = eval_ctx.environment.policies
-    dumps = policies["json.dumps_function"]
-    kwargs = policies["json.dumps_kwargs"]
-
+    dumper = policies["json.dumps_function"]
+    options = policies["json.dumps_kwargs"]
     if indent is not None:
-        kwargs = kwargs.copy()
-        kwargs["indent"] = indent
+        options = dict(options)
+        options["indent"] = indent
+    return htmlsafe_json_dumps(value, dumper=dumper, **options)
 
-    return htmlsafe_json_dumps(value, dumps=dumps, **kwargs)
 
+def prepare_map(args, kwargs):
+    context = args[0]
+    seq = args[1]
+    default = None
 
-def prepare_map(
-    context: "Context", args: t.Tuple, kwargs: t.Dict[str, t.Any]
-) -> t.Callable[[t.Any], t.Any]:
-    if not args and "attribute" in kwargs:
+    if len(args) == 2 and "attribute" in kwargs:
         attribute = kwargs.pop("attribute")
         default = kwargs.pop("default", None)
-
         if kwargs:
             raise FilterArgumentError(
-                f"Unexpected keyword argument {next(iter(kwargs))!r}"
+                "Unexpected keyword argument %r" % next(iter(kwargs))
             )
-
         func = make_attrgetter(context.environment, attribute, default=default)
     else:
         try:
-            name = args[0]
-            args = args[1:]
+            name = args[2]
+            args = args[3:]
         except LookupError:
-            raise FilterArgumentError("map requires a filter argument") from None
+            raise FilterArgumentError("map requires a filter argument")
 
-        def func(item: t.Any) -> t.Any:
+        def func(item):
             return context.environment.call_filter(
                 name, item, args, kwargs, context=context
             )
 
-    return func
+    return seq, func
 
 
-def prepare_select_or_reject(
-    context: "Context",
-    args: t.Tuple,
-    kwargs: t.Dict[str, t.Any],
-    modfunc: t.Callable[[t.Any], t.Any],
-    lookup_attr: bool,
-) -> t.Callable[[t.Any], t.Any]:
+def prepare_select_or_reject(args, kwargs, modfunc, lookup_attr):
+    context = args[0]
+    seq = args[1]
     if lookup_attr:
         try:
-            attr = args[0]
+            attr = args[2]
         except LookupError:
-            raise FilterArgumentError("Missing parameter for attribute name") from None
-
+            raise FilterArgumentError("Missing parameter for attribute name")
         transfunc = make_attrgetter(context.environment, attr)
         off = 1
     else:
         off = 0
 
-        def transfunc(x: V) -> V:
+        def transfunc(x):
             return x
 
     try:
-        name = args[off]
-        args = args[1 + off :]
+        name = args[2 + off]
+        args = args[3 + off :]
 
-        def func(item: t.Any) -> t.Any:
+        def func(item):
             return context.environment.call_test(name, item, args, kwargs)
 
     except LookupError:
-        func = bool  # type: ignore
+        func = bool
 
-    return lambda item: modfunc(func(transfunc(item)))
-
-
-def select_or_reject(
-    context: "Context",
-    value: "t.Iterable[V]",
-    args: t.Tuple,
-    kwargs: t.Dict[str, t.Any],
-    modfunc: t.Callable[[t.Any], t.Any],
-    lookup_attr: bool,
-) -> "t.Iterator[V]":
-    if value:
-        func = prepare_select_or_reject(context, args, kwargs, modfunc, lookup_attr)
-
-        for item in value:
-            if func(item):
-                yield item
+    return seq, lambda item: modfunc(func(transfunc(item)))
 
 
-async def async_select_or_reject(
-    context: "Context",
-    value: "t.Union[t.AsyncIterable[V], t.Iterable[V]]",
-    args: t.Tuple,
-    kwargs: t.Dict[str, t.Any],
-    modfunc: t.Callable[[t.Any], t.Any],
-    lookup_attr: bool,
-) -> "t.AsyncIterator[V]":
-    if value:
-        func = prepare_select_or_reject(context, args, kwargs, modfunc, lookup_attr)
-
-        async for item in auto_aiter(value):
+def select_or_reject(args, kwargs, modfunc, lookup_attr):
+    seq, func = prepare_select_or_reject(args, kwargs, modfunc, lookup_attr)
+    if seq:
+        for item in seq:
             if func(item):
                 yield item
 
@@ -1807,7 +1365,7 @@ FILTERS = {
     "selectattr": do_selectattr,
     "slice": do_slice,
     "sort": do_sort,
-    "string": soft_str,
+    "string": soft_unicode,
     "striptags": do_striptags,
     "sum": do_sum,
     "title": do_title,
