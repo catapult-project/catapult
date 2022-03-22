@@ -27,6 +27,22 @@ class ResultType(object):
 
     values = (Pass, Failure, Timeout, Crash, Skip)
 
+# Information about why a test failed.
+# Modelled after https://source.chromium.org/chromium/infra/infra/+/master:go/src/go.chromium.org/luci/resultdb/proto/v1/failure_reason.proto
+class FailureReason(object):
+    def __init__(self, primary_error_message):
+        """Initialises a new failure reason.
+
+        Args:
+            primary_error_message: The error message that ultimately caused
+                    the test to fail. This should/ only be the error message
+                    and should not include any stack traces. In the case that
+                    a test failed due to multiple expectation failures, any
+                    immediately fatal failure should be chosen, or otherwise
+                    the first expectation failure.
+        """
+        self.primary_error_message = primary_error_message
+
 
 class Result(object):
     # too many instance attributes  pylint: disable=R0902
@@ -36,7 +52,7 @@ class Result(object):
                  expected=None, unexpected=False,
                  flaky=False, code=0, out='', err='', pid=0,
                  file_path='', line_number=0,
-                 artifacts=None):
+                 artifacts=None, failure_reason=None):
         self.name = name
         self.actual = actual
         self.started = started
@@ -53,6 +69,7 @@ class Result(object):
         self.artifacts = artifacts
         self.file_path = file_path
         self.line_number = line_number
+        self.failure_reason = failure_reason
         self.result_sink_retcode = 0
 
 

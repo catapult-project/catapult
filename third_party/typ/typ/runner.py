@@ -18,6 +18,7 @@ import inspect
 import json
 import os
 import pdb
+import re
 import sys
 import unittest
 import traceback
@@ -55,6 +56,13 @@ from typ.version import VERSION
 Result = json_results.Result
 ResultSet = json_results.ResultSet
 ResultType = json_results.ResultType
+FailureReason = json_results.FailureReason
+
+# Matches the first line of stack entries in formatted Python tracebacks.
+# The first capture group is the name of the file, the second is the line.
+# The method name is not extracted.
+# See: https://github.com/python/cpython/blob/3.10/Lib/traceback.py#L440
+_TRACEBACK_FILE_RE = re.compile(r'^  File "[^"]*[/\\](.*)", line ([0-9]+), in ')
 
 
 def main(argv=None, host=None, win_multiprocessing=None, **defaults):
@@ -1158,16 +1166,23 @@ def _run_under_debugger(host, test_case, suite,
 def _result_from_test_result(test_result, test_name, started, took, out, err,
                              worker_num, pid, test_case, expected_results,
                              has_expectations, artifacts):
+    failure_reason = None
     if test_result.failures:
         actual = ResultType.Failure
         code = 1
         err = err + test_result.failures[0][1]
         unexpected = actual not in expected_results
+        for i, failure in enumerate(test_result.failures):
+            if failure_reason is None:
+                failure_reason = _failure_reason_from_traceback(failure[1])
     elif test_result.errors:
         actual = ResultType.Failure
         code = 1
         err = err + test_result.errors[0][1]
         unexpected = actual not in expected_results
+        for i, error in enumerate(test_result.errors):
+            if failure_reason is None:
+                failure_reason = _failure_reason_from_traceback(error[1])
     elif test_result.skipped:
         actual = ResultType.Skip
         err = err + test_result.skipped[0][1]
@@ -1198,7 +1213,84 @@ def _result_from_test_result(test_result, test_name, started, took, out, err,
     line_number = inspect.getsourcelines(test_func)[1]
     return Result(test_name, actual, started, took, worker_num,
                   expected_results, unexpected, flaky, code, out, err, pid,
-                  file_path, line_number, artifacts)
+                  file_path, line_number, artifacts, failure_reason)
+
+
+def _failure_reason_from_traceback(traceback):
+    """Attempts to extract a failure reason from formatted Traceback data.
+
+    The formatted traceback data handled by this method is that populated on
+    unittest.TestResult objects in the errors and/or failures attribute(s).
+
+    We reverse this formatting process to obtain the underlying failure
+    exception message or assertion failure, excluding stacktrace and other
+    data.
+
+    When reading this method, it is useful to read python unittest sources
+    at the same time, as this reverses some of the formatting defined there.
+    https://github.com/python/cpython/blob/3.10/Lib/unittest/result.py#L119
+    https://github.com/python/cpython/blob/3.10/Lib/unittest/result.py#L173
+    https://github.com/python/cpython/blob/3.10/Lib/traceback.py#L652
+
+    This method may not succeed in extracting a failure reason. In this case,
+    it returns None.
+    """
+    lines = traceback.splitlines()
+
+    # Start line index of the interesting region (the line(s) that has
+    # the assertion failure or exception emssage).
+    start_index = 0
+
+    # End index of the interesting region.
+    end_index = len(lines)
+
+    # The file name and line that raised the exception or assertion failure.
+    # Formatted as "filename.py(123)".
+    context_file_line = None
+
+    in_traceback = False
+    for i, line in enumerate(lines):
+        # Tracebacks precede the interesting message. It is possible
+        # for there to be multiple tracebacks blocks in case of chained
+        # exceptions. E.g. "While handling a XYZError, the following
+        # exception was also raised:". The interesting message is
+        # after all such chained stacks.
+        if line == 'Traceback (most recent call last):':
+            in_traceback = True
+            start_index = i + 1
+            context_file_line = None
+        elif line.startswith('  ') and in_traceback:
+            # Continuation of traceback.
+            start_index = i + 1
+
+            # Keep track of the last file in the traceback.
+            file_match = _TRACEBACK_FILE_RE.match(line)
+            if file_match:
+                context_file_line = '{}({})'.format(
+                    file_match.group(1),
+                    file_match.group(2))
+        else:
+            in_traceback = False
+
+        # The "Stdout:" or "Stderr:" blocks (if present) are after the
+        # interesting failure message.
+        if line == 'Stdout:' or line == 'Stderr:':
+            if i < end_index:
+                end_index = i
+
+    interesting_lines = lines[start_index:end_index]
+    if len(interesting_lines) > 0 and context_file_line is not None:
+        # Let the failure reason be look like:
+        # "my_unittest.py(123): AssertionError: unexpectedly None".
+        #
+        # We include the file and line of the original exception
+        # in failure reason, as basic assertion failures
+        # (true != false, None is not None, etc.) can be too generic
+        # to be clustered in a useful way without this.
+        message = '{}: {}'.format(context_file_line,
+            '\n'.join(interesting_lines).strip())
+        return FailureReason(message)
+    return None
 
 
 def _load_via_load_tests(child, test_name):

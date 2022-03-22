@@ -61,7 +61,8 @@ def CreateResult(input_dict):
                                expected=input_dict.get('expected'),
                                out=input_dict.get('out', 'stdout'),
                                err=input_dict.get('err', 'stderr'),
-                               artifacts=input_dict.get('artifacts'))
+                               artifacts=input_dict.get('artifacts'),
+                               failure_reason=input_dict.get('failure_reason'))
 
 
 def StubWithRetval(retval):
@@ -81,12 +82,13 @@ def GetTestResultFromPostedJson(json_string):
 
 def CreateExpectedTestResult(
         test_id=None, status=None, expected=None, duration=None,
-        summary_html=None, artifacts=None, tags=None, test_metadata=None):
+        summary_html=None, artifacts=None, tags=None, test_metadata=None,
+        primary_error_message=None):
     test_id = test_id or 'test_name_prefix.test_name'
-    return {
+    result = {
         'testId': test_id,
         'status': status or json_results.ResultType.Pass,
-        'expected': expected or True,
+        'expected': expected if expected is not None else True,
         'duration': duration or '1.000000000s',
         'summaryHtml': summary_html or HTML_SUMMARY,
         'artifacts': artifacts or STDOUT_STDERR_ARTIFACTS,
@@ -103,8 +105,13 @@ def CreateExpectedTestResult(
                 'fileName': '//some/test.py',
                 'line': FAKE_TEST_LINE,
             }
-        },
+        }
     }
+    if primary_error_message:
+        result['failureReason'] = {
+            'primaryErrorMessage': primary_error_message,
+        }
+    return result
 
 
 def CreateTestExpectations(expectation_definitions=None):
@@ -198,6 +205,27 @@ class ResultSinkReporterTest(unittest.TestCase):
                 CreateTestExpectations(), FAKE_TEST_PATH, FAKE_TEST_LINE)
         self.assertEqual(retval, 2)
         expected_result = CreateExpectedTestResult()
+        self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[1]),
+                         expected_result)
+
+    def testReportIndividualTestResultFailureReason(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
+        result = CreateResult({
+            'name': 'test_name',
+            'actual': json_results.ResultType.Failure,
+            'failure_reason': json_results.FailureReason(
+                    'Got "foo", want "bar"')
+        })
+        rsr._post = StubWithRetval(2)
+        retval = rsr.report_individual_test_result(
+                'test_name_prefix.', result, ARTIFACT_DIR,
+                CreateTestExpectations(), FAKE_TEST_PATH, FAKE_TEST_LINE)
+        self.assertEqual(retval, 2)
+        expected_result = CreateExpectedTestResult(
+                status=json_results.ResultType.Failure,
+                expected=False,
+                primary_error_message='Got "foo", want "bar"')
         self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[1]),
                          expected_result)
 
@@ -370,22 +398,23 @@ class ResultSinkReporterTest(unittest.TestCase):
         result_sink._create_json_test_result = lambda: 1/0
         self.assertEqual(rsr._report_result(
                 'test_id', json_results.ResultType.Pass, True, {}, {},
-                '<pre>summary</pre>', 1, {}), 0, {})
+                '<pre>summary</pre>', 1, {}, None), 0, {})
 
     def testCreateJsonTestResultInvalidStatus(self):
         with self.assertRaises(ValueError):
             result_sink._create_json_test_result(
-                'test_id', 'InvalidStatus', False, {}, {}, '', 1, {})
+                'test_id', 'InvalidStatus', False, {}, {}, '', 1, {}, None)
 
     def testCreateJsonTestResultBasic(self):
         retval = result_sink._create_json_test_result(
-            'test_id', json_results.ResultType.Pass, True,
+            'test_id', json_results.ResultType.Failure, True,
             {'artifact': {'filePath': 'somepath'}},
             [('tag_key', 'tag_value')], '<pre>summary</pre>', 1,
-            {'name': 'test_name', 'location': {'repo': 'a repo'}})
+            {'name': 'test_name', 'location': {'repo': 'a repo'}},
+            json_results.FailureReason('got "foo", want "bar"'))
         self.assertEqual(retval, {
             'testId': 'test_id',
-            'status': json_results.ResultType.Pass,
+            'status': json_results.ResultType.Failure,
             'expected': True,
             'duration': '1.000000000s',
             'summaryHtml': '<pre>summary</pre>',
@@ -406,21 +435,39 @@ class ResultSinkReporterTest(unittest.TestCase):
                     'repo': 'a repo',
                 },
             },
+            'failureReason': {
+                'primaryErrorMessage': 'got "foo", want "bar"',
+            },
         })
 
     def testCreateJsonWithVerySmallDuration(self):
         retval = result_sink._create_json_test_result(
             'test_id', json_results.ResultType.Pass, True,
             {'artifact': {'filePath': 'somepath'}},
-            [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e-10, {})
+            [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e-10, {}, None)
         self.assertEqual(retval['duration'], '0.000000000s')
 
     def testCreateJsonFormatsWithVeryLongDuration(self):
         retval = result_sink._create_json_test_result(
             'test_id', json_results.ResultType.Pass, True,
             {'artifact': {'filePath': 'somepath'}},
-            [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e+16, {})
+            [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e+16, {}, None)
         self.assertEqual(retval['duration'], '10000000000000000.000000000s')
+
+    def testTruncateBasicCase(self):
+        input = 'a' * 1050
+        actual = result_sink._truncate_to_utf8_bytes(input, 1024)
+        self.assertEqual(actual, ('a' * 1021) + '...')
+
+    def testTruncateUTF8(self):
+        # Swedish "Place of interest symbol", which encodes as 3 bytes.
+        poi = b'\xE2\x8C\x98'.decode('utf-8')
+        input = poi * 350
+        actual = result_sink._truncate_to_utf8_bytes(input, 1024)
+        # Output should be slightly less than 1024 as only whole
+        # UTF8 code points should have been removed.
+        self.assertEqual(len(actual.encode('utf-8')), 1023)
+        self.assertEqual(actual, (poi * 340) + '...')
 
     def testConvertPathToRepoPath(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)

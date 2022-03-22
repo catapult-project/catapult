@@ -98,7 +98,7 @@ class ResultSinkReporter(object):
     def report_individual_test_result(
             self, test_name_prefix, result, artifact_output_dir, expectations,
             test_file_location, test_file_line=None):
-        """Reports typ results for a single test to ResultSink.
+        """Reports a single test result to ResultSink.
 
         Inputs are typically similar to what is passed to
         json_results.make_full_results(), but for a single test/Result instead
@@ -107,7 +107,7 @@ class ResultSinkReporter(object):
         Args:
             test_name_prefix: A string containing the prefix that will be added
                     to the test name.
-            results: A json_results.Results instance containing the results to
+            result: A json_results.Result instance containing the result to
                     report.
             artifact_output_dir: The path to the directory where artifacts test
                     artifacts are saved on disk. If a relative path, will be
@@ -210,12 +210,13 @@ class ResultSinkReporter(object):
 
         return self._report_result(
                 test_id, result.actual, result_is_expected, artifacts,
-                tag_list, html_summary, result.took, test_metadata)
+                tag_list, html_summary, result.took, test_metadata,
+                result.failure_reason)
 
 
     def _report_result(
             self, test_id, status, expected, artifacts, tag_list, html_summary,
-            duration, test_metadata):
+            duration, test_metadata, failure_reason):
         """Reports a single test result to ResultSink.
 
         Args:
@@ -230,6 +231,8 @@ class ResultSinkReporter(object):
             html_summary: A string containing HTML summarizing the test run.
             duration: How long the test took in seconds.
             test_metadata: A dict containing additional test metadata to upload.
+            failure_reason: An optional FailureReason object describing the
+                    reason the test failed.
 
         Returns:
             0 if the result was reported successfully or ResultDB is not
@@ -242,7 +245,7 @@ class ResultSinkReporter(object):
         # look up the correct component for bug filing.
         test_result = _create_json_test_result(
                 test_id, status, expected, artifacts, tag_list, html_summary,
-                duration, test_metadata)
+                duration, test_metadata, failure_reason)
 
         return self._post(self._url, json.dumps({'testResults': [test_result]}))
 
@@ -292,7 +295,7 @@ class ResultSinkReporter(object):
 
 def _create_json_test_result(
         test_id, status, expected, artifacts, tag_list, html_summary,
-        duration, test_metadata):
+        duration, test_metadata, failure_reason):
     """Formats data to be suitable for sending to ResultSink.
 
     Args:
@@ -307,6 +310,8 @@ def _create_json_test_result(
         html_summary: A string containing HTML summarizing the test run.
         duration: How long the test took in seconds.
         test_metadata: A dict containing additional test metadata to upload.
+        failure_reason: An optional FailureReason object describing the
+                reason the test failed.
 
     Returns:
         A dict containing the provided data in a format that is ingestable by
@@ -316,7 +321,7 @@ def _create_json_test_result(
         raise ValueError('Status %r is not in the VALID_STATUSES list' % status)
 
     # This is based off the protobuf in
-    # https://source.chromium.org/chromium/infra/infra/+/master:go/src/go.chromium.org/luci/resultdb/sink/proto/v1/test_result.proto
+    # https://source.chromium.org/chromium/infra/infra/+/main:go/src/go.chromium.org/luci/resultdb/sink/proto/v1/test_result.proto
     test_result = {
             'testId': test_id,
             'status': status,
@@ -336,6 +341,15 @@ def _create_json_test_result(
     for (k, v) in tag_list:
         test_result['tags'].append({'key': k, 'value': v})
 
+    # This is based off the protobuf in
+    # https://source.chromium.org/chromium/infra/infra/+/main:go/src/go.chromium.org/luci/resultdb/proto/v1/failure_reason.proto
+    if failure_reason:
+        primary_error_message = _truncate_to_utf8_bytes(
+                failure_reason.primary_error_message, 1024)
+        test_result['failureReason'] = {
+                'primaryErrorMessage': primary_error_message,
+        }
+
     return test_result
 
 
@@ -350,3 +364,31 @@ def result_sink_retcode_from_result_set(result_set):
         ResultSink, otherwise 0.
     """
     return int(any(r.result_sink_retcode for r in result_set.results))
+
+
+def _truncate_to_utf8_bytes(s, length):
+    """ Truncates a string to a given number of bytes when encoded as UTF-8.
+
+    Ensures the given string does not take more than length bytes when encoded
+    as UTF-8. Adds trailing ellipsis (...) if truncation occurred. A truncated
+    string may end up encoding to a length slightly shorter than length
+    because only whole Unicode codepoints are dropped.
+
+    Args:
+        s: The string to truncate.
+        length: the length (in bytes) to truncate to.
+    """
+    try:
+        encoded = s.encode('utf-8')
+    # When encode throws UnicodeDecodeError in py2, it usually means the str is
+    # already encoded and has non-ascii chars. So skip re-encoding it.
+    except UnicodeDecodeError:
+        encoded = s
+    if len(encoded) > length:
+        # Truncate, leaving space for trailing ellipsis (...).
+        encoded = encoded[:length - 3]
+        # Truncating the string encoded as UTF-8 may have left the final codepoint
+        # only partially present. Pass 'ignore' to acknowledge and ensure this is
+        # dropped.
+        return encoded.decode('utf-8', 'ignore') + "..."
+    return s

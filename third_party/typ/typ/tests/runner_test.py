@@ -218,6 +218,73 @@ class RunnerTests(TestCase):
         os.remove(trace_filepath)
 
 
+class FailureReasonExtractionTests(TestCase):
+    def test_basecase(self):
+        input = """Traceback (most recent call last):
+  File "C:\somepath\my_test.py", line 45, in testSomething
+    self.assertGreater(samples[0], 0, 'Sample from %s was not > 0' % name)
+AssertionError: 0 not greater than 0 : Sample from rasterize_time was not > 0
+"""
+        fr = runner_module._failure_reason_from_traceback(input)
+        self.assertIsNotNone(fr)
+        self.assertEqual(fr.primary_error_message,
+            'my_test.py(45): AssertionError: 0 not greater than 0 : Sample from rasterize_time was not > 0')
+
+    def test_not_extractable(self):
+        input = """Traceback (most recent call last):"""
+        fr = runner_module._failure_reason_from_traceback(input)
+        self.assertIsNone(fr)
+
+    def test_trailing_stderr(self):
+        input = """Traceback (most recent call last):
+  File "C:\somepath\my_test.py", line 45, in testSomething
+    self.assertSomething(...)
+AssertionError: Wanted "foo", got "bar"
+Stderr:
+This output should be ignored."""
+        fr = runner_module._failure_reason_from_traceback(input)
+        self.assertIsNotNone(fr)
+        self.assertEqual(fr.primary_error_message,
+            'my_test.py(45): AssertionError: Wanted "foo", got "bar"')
+
+    def test_trailing_stdout(self):
+        input = """Traceback (most recent call last):
+  File "C:\somepath\my_test.py", line 45, in testSomething
+    self.assertSomething(...)
+AssertionError: Wanted "foo", got "bar"
+Stdout:
+This output should be ignored.
+"""
+        fr = runner_module._failure_reason_from_traceback(input)
+        self.assertIsNotNone(fr)
+        self.assertEqual(fr.primary_error_message,
+            'my_test.py(45): AssertionError: Wanted "foo", got "bar"')
+
+    def test_chained_traceback(self):
+        input = """
+Traceback (most recent call last):
+  File "/b/s/w/ir/third_party/catapult/telemetry/telemetry/internal/browser/browser.py", line 145, in Close
+    if self._browser_backend.IsBrowserRunning():
+  File "/b/s/w/ir/third_party/catapult/telemetry/telemetry/core/cros_interface.py", line 481, in ListProcesses
+    assert stderr == '', stderr
+AssertionError: this message should not be extracted.
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/b/s/w/ir/third_party/catapult/common/py_utils/py_utils/exc_util.py", line 79, in Wrapper
+    func(*args, **kwargs)
+  File "/b/s/w/ir/third_party/catapult/telemetry/telemetry/core/cros_interface.py", line 481, in ListProcesses
+    assert stderr == '', stderr
+AssertionError: ssh: connect to host 127.0.0.1 port 9222: Connection timed out
+"""
+        fr = runner_module._failure_reason_from_traceback(input)
+        self.assertIsNotNone(fr)
+        self.assertEqual(fr.primary_error_message,
+            'cros_interface.py(481): AssertionError: ssh: connect to host 127.0.0.1 port 9222: Connection timed out')
+
+
 class TestSetTests(TestCase):
     # This class exists to test the failures that can come up if you
     # create your own test sets and bypass find_tests(); failures that
