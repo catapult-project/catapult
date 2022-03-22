@@ -105,6 +105,8 @@ class NewTest(_NewTest):
     response = self.Post('/api/new', request, status=200)
     result = json.loads(response.body)
     self.assertIn('jobId', result)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    self.assertIsNotNone(job.batch_id)
     self.assertEqual(result['jobUrl'],
                      'https://testbed.example.com/job/%s' % result['jobId'])
 
