@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -67,10 +67,5 @@ def InstallHooks():
     os.remove(old_precommit)
 
   # The pre-push hook prevents forced pushes; see ./pre_push.
-  links = [
-      Link(os.path.join('.git', 'hooks', 'pre-push'),
-           os.path.join('hooks', 'pre_push'))
-  ]
-
-  for l in links:
-    l.Update()
+  Link(os.path.join('.git', 'hooks', 'pre-push'),
+           os.path.join('hooks', 'pre_push')).Update()
