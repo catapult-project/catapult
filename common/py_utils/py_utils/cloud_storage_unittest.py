@@ -200,6 +200,48 @@ class CloudStorageFakeFsUnitTest(BaseFakeFsUnitTest):
     self.assertEqual(cloud_storage.ListDirs('bucket', 'foo*'),
                      ['/foo1/', '/foo2/'])
 
+  @mock.patch('py_utils.cloud_storage._RunCommand')
+  def testListFilesSortByName(self, mock_run_command):
+    mock_run_command.return_value = '\n'.join([
+        '  11  2022-01-01T16:05:16Z  gs://bucket/foo/c.txt',
+        '   5  2022-03-03T16:05:16Z  gs://bucket/foo/a.txt',
+        '',
+        '                            gs://bucket/foo/bar/',
+        '   1  2022-02-02T16:05:16Z  gs://bucket/foo/bar/b.txt',
+        'TOTAL: 3 objects, 17 bytes (17 B)',
+    ])
+
+    self.assertEqual(cloud_storage.ListFiles('bucket', 'foo/*', sort_by='name'),
+                     ['/foo/a.txt', '/foo/bar/b.txt', '/foo/c.txt'])
+
+  @mock.patch('py_utils.cloud_storage._RunCommand')
+  def testListFilesSortByTime(self, mock_run_command):
+    mock_run_command.return_value = '\n'.join([
+        '  11  2022-01-01T16:05:16Z  gs://bucket/foo/c.txt',
+        '   5  2022-03-03T16:05:16Z  gs://bucket/foo/a.txt',
+        '',
+        '                            gs://bucket/foo/bar/',
+        '   1  2022-02-02T16:05:16Z  gs://bucket/foo/bar/b.txt',
+        'TOTAL: 3 objects, 17 bytes (17 B)',
+    ])
+
+    self.assertEqual(cloud_storage.ListFiles('bucket', 'foo/*', sort_by='time'),
+                     ['/foo/c.txt', '/foo/bar/b.txt', '/foo/a.txt'])
+
+  @mock.patch('py_utils.cloud_storage._RunCommand')
+  def testListFilesSortBySize(self, mock_run_command):
+    mock_run_command.return_value = '\n'.join([
+        '  11  2022-01-01T16:05:16Z  gs://bucket/foo/c.txt',
+        '   5  2022-03-03T16:05:16Z  gs://bucket/foo/a.txt',
+        '',
+        '                            gs://bucket/foo/bar/',
+        '   1  2022-02-02T16:05:16Z  gs://bucket/foo/bar/b.txt',
+        'TOTAL: 3 objects, 17 bytes (17 B)',
+    ])
+
+    self.assertEqual(cloud_storage.ListFiles('bucket', 'foo/*', sort_by='size'),
+                     ['/foo/bar/b.txt', '/foo/a.txt', '/foo/c.txt'])
+
   @mock.patch('py_utils.cloud_storage.subprocess.Popen')
   def testSwarmingUsesExistingEnv(self, mock_popen):
     os.environ['SWARMING_HEADLESS'] = '1'

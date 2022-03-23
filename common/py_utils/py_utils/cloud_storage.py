@@ -223,6 +223,39 @@ def List(bucket, prefix=None):
   return [url[len(bucket_prefix):] for url in stdout.splitlines()]
 
 
+def ListFiles(bucket, path='', sort_by='name'):
+  """Returns files matching the given path in bucket.
+
+  Args:
+    bucket: Name of cloud storage bucket to look at.
+    path: Path within the bucket to filter to. Path can include wildcards.
+    sort_by: 'name' (default), 'time' or 'size'.
+
+  Returns:
+    A sorted list of files.
+  """
+  bucket_prefix = 'gs://%s' % bucket
+  full_path = '%s/%s' % (bucket_prefix, path)
+  stdout = _RunCommand(['ls', '-l', '-d', full_path])
+
+  # Filter out directories and the summary line.
+  file_infos = [line.split(None, 2) for line in stdout.splitlines()
+                if len(line) > 0 and not line.startswith("TOTAL")
+                and not line.endswith('/')]
+
+  # The first field in the info is size, the second is time, the third is name.
+  if sort_by == 'size':
+    file_infos.sort(key=lambda info: int(info[0]))
+  elif sort_by == 'time':
+    file_infos.sort(key=lambda info: info[1])
+  elif sort_by == 'name':
+    file_infos.sort(key=lambda info: info[2])
+  else:
+    raise ValueError("Wrong sort_by value: %s" % sort_by)
+
+  return [url[len(bucket_prefix):] for _, _, url in file_infos]
+
+
 def ListDirs(bucket, path=''):
   """Returns only directories matching the given path in bucket.
 
@@ -253,6 +286,7 @@ def ListDirs(bucket, path=''):
     if url[-1] == '/':
       dirs.append(url[len(bucket_prefix):])
   return dirs
+
 
 def Exists(bucket, remote_path):
   try:
