@@ -29,7 +29,6 @@ group("telemetry_chrome_test_support") {
     "catapult_build/",
     "dashboard/",
     "dependency_manager/",
-    "firefighter/",
     "hooks/",
     "infra/",
     "netlog_viewer/",
