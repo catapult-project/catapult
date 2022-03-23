@@ -275,6 +275,7 @@ def RunTests(args):
   typ_runner.args.retry_limit = options.retry_limit
   typ_runner.args.retry_only_retry_on_failure_tests = (
       options.retry_only_retry_on_failure_tests)
+  typ_runner.args.typ_max_failures = options.typ_max_failures
   typ_runner.args.skip = options.skip
   typ_runner.args.suffixes = TEST_SUFFIXES
   typ_runner.args.tags = options.tags
