@@ -16,6 +16,7 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from apiclient.discovery import build
+from dashboard.common import utils
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models.quest import read_value
 from dashboard.pinpoint.models.quest import run_test
@@ -104,6 +105,8 @@ class _GcsFileStream(object):
 
 
 def _GetCloudStorageName(job_id):
+  if utils.IsStagingEnvironment():
+    return '/chromeperf-staging-results2-public/%s.html' % job_id
   return '/results2-public/%s.html' % job_id
 
 

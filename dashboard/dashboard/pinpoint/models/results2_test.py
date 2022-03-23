@@ -16,6 +16,7 @@ import unittest
 from google.appengine.api import taskqueue
 
 from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models import results2
 from dashboard.pinpoint.models.change import change
@@ -150,6 +151,17 @@ class GetCachedResults2Test(unittest.TestCase):
 
     self.assertEqual(
         'https://storage.cloud.google.com/results2-public/'
+        '%s.html' % job.job_id, url)
+
+  @mock.patch.object(utils, 'IsStagingEnvironment', lambda: True)
+  def testGetCachedResults2_Cached_ReturnsResult_stage(self, mock_cloudstorage):
+    mock_cloudstorage.return_value = ['foo']
+
+    job = _JobStub(_JOB_WITH_DIFFERENCES, '123', job_state.PERFORMANCE)
+    url = results2.GetCachedResults2(job)
+
+    self.assertEqual(
+        'https://storage.cloud.google.com/chromeperf-staging-results2-public/'
         '%s.html' % job.job_id, url)
 
   @mock.patch.object(results2, 'ScheduleResults2Generation', mock.MagicMock())
