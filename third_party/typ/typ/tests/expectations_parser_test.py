@@ -186,6 +186,11 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
         with self.assertRaises(expectations_parser.ParseError):
             expectations_parser.TaggedTestListParser(raw_data)
 
+    def testParseExpectationLineLeadingSpace(self):
+        raw_data = '# tags: [ Mac ]\n# results: [ Skip ]\n crbug.com/2345 [ Mac ] b1/s1 [ Skip ]'
+        with self.assertRaises(expectations_parser.ParseError):
+            expectations_parser.TaggedTestListParser(raw_data)
+
     def testParseExpectationLineNoClosingTagBracket(self):
         raw_data = '# tags: [ Mac ]\n# results: [ Skip ]\ncrbug.com/2345 [ Mac b1/s1 [ Skip ]'
         with self.assertRaises(expectations_parser.ParseError):
@@ -692,11 +697,11 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
 
     def testUseIncorrectvalueForConflictsAllowedDescriptor(self):
         test_expectations = '''# tags: [ mac win linux ]
-        # tags: [ intel amd nvidia ]
-        # tags: [ debug release ]
-        # results: [ Failure Skip ]
-        # conflicts_allowed: Unknown
-        '''
+# tags: [ intel amd nvidia ]
+# tags: [ debug release ]
+# results: [ Failure Skip ]
+# conflicts_allowed: Unknown
+'''
         expectations = expectations_parser.TestExpectations()
         _, msg = expectations.parse_tagged_list(test_expectations, 'test.txt')
         self.assertEqual("5: Unrecognized value 'unknown' "
@@ -729,21 +734,21 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
 
     def testFileNameExcludedFromErrorMessageForExpectationConflicts(self):
         test_expectations = '''# tags: [ mac ]
-        # tags: [ intel ]
-        # results: [ Failure ]
-        [ intel ] a/b/c/d [ Failure ]
-        [ mac ] a/b/c/d [ Failure ]
-        '''
+# tags: [ intel ]
+# results: [ Failure ]
+[ intel ] a/b/c/d [ Failure ]
+[ mac ] a/b/c/d [ Failure ]
+'''
         expectations = expectations_parser.TestExpectations()
         _, errors = expectations.parse_tagged_list(test_expectations)
         self.assertIn("Found conflicts for pattern a/b/c/d:", errors)
 
     def testConflictsUsingUserDefinedTagsConflictFunction(self):
         test_expectations = '''# tags: [ win win7  ]
-        # results: [ Failure ]
-        [ win ] a/b/c/d [ Failure ]
-        [ win7 ] a/b/c/d [ Failure ]
-        '''
+# results: [ Failure ]
+[ win ] a/b/c/d [ Failure ]
+[ win7 ] a/b/c/d [ Failure ]
+'''
         map_child_tag_to_parent_tag = {'win7': 'win'}
         tags_conflict = lambda t1, t2: (
             t1 != t2 and t1 != map_child_tag_to_parent_tag.get(t2,t2) and
@@ -755,13 +760,13 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
 
     def testNoCollisionInTestExpectations(self):
         test_expectations = '''# tags: [ mac win linux ]
-        # tags: [ intel amd nvidia ]
-        # tags: [ debug release ]
-        # results: [ Failure ]
-        # conflicts_allowed: False
-        [ intel debug ] a/b/c/d [ Failure ]
-        [ nvidia debug ] a/b/c/d [ Failure ]
-        '''
+# tags: [ intel amd nvidia ]
+# tags: [ debug release ]
+# results: [ Failure ]
+# conflicts_allowed: False
+[ intel debug ] a/b/c/d [ Failure ]
+[ nvidia debug ] a/b/c/d [ Failure ]
+'''
         expectations = expectations_parser.TestExpectations()
         _, errors = expectations.parse_tagged_list(
             test_expectations, 'test.txt')
@@ -769,13 +774,13 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
 
     def testConflictsAllowedIsSetToTrue(self):
         test_expectations = '''# tags: [ mac win linux ]
-        # tags: [ intel amd nvidia ]
-        # tags: [ debug release ]
-        # results: [ Failure ]
-        # conflicts_allowed: True
-        [ intel debug ] a/b/c/d [ Failure ]
-        [ intel ] a/b/c/d [ Failure ]
-        '''
+# tags: [ intel amd nvidia ]
+# tags: [ debug release ]
+# results: [ Failure ]
+# conflicts_allowed: True
+[ intel debug ] a/b/c/d [ Failure ]
+[ intel ] a/b/c/d [ Failure ]
+'''
         expectations = expectations_parser.TestExpectations()
         _, msg = expectations.parse_tagged_list(
             test_expectations, 'test.txt')
@@ -783,10 +788,10 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
 
     def testConflictFoundRegardlessOfTagCase(self):
         test_expectations = '''# tags: [ InTel AMD nvidia ]
-        # results: [ Failure ]
-        [ intel ] a/b/c/d [ Failure ]
-        [ Intel ] a/b/c/d [ Failure ]
-        '''
+# results: [ Failure ]
+[ intel ] a/b/c/d [ Failure ]
+[ Intel ] a/b/c/d [ Failure ]
+'''
         expectations = expectations_parser.TestExpectations()
         ret, msg = expectations.parse_tagged_list(
             test_expectations, 'test.txt')
@@ -795,10 +800,10 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
 
     def testConflictNotFoundRegardlessOfTagCase(self):
         test_expectations = '''# tags: [ InTel AMD nvidia ]
-        # results: [ Failure ]
-        [ intel ] a/b/c/d [ Failure ]
-        [ amd ] a/b/c/d [ Failure ]
-        '''
+# results: [ Failure ]
+[ intel ] a/b/c/d [ Failure ]
+[ amd ] a/b/c/d [ Failure ]
+'''
         expectations = expectations_parser.TestExpectations()
         _, msg = expectations.parse_tagged_list(
             test_expectations, 'test.txt')
@@ -884,9 +889,9 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
 
     def testDeclaredSystemConditionTagsDontRaiseAnException(self):
         test_expectations = '''# tags: [ InTel AMD nvidia nvidia-0x1010 ]
-        # tags: [ win ]
-        # results: [ Failure ]
-        '''
+# tags: [ win ]
+# results: [ Failure ]
+'''
         expectations = expectations_parser.TestExpectations()
         _, msg = expectations.parse_tagged_list(
             test_expectations, 'test.txt')
@@ -896,8 +901,8 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
 
     def testMultipleReasonsForExpectation(self):
         test_expectations = '''# results: [ Failure ]
-        skbug.com/111 crbug.com/wpt/222 skbug.com/hello/333 crbug.com/444 test [ Failure ]
-        '''
+skbug.com/111 crbug.com/wpt/222 skbug.com/hello/333 crbug.com/444 test [ Failure ]
+'''
         expectations = expectations_parser.TestExpectations()
         _, msg = expectations.parse_tagged_list(
             test_expectations, 'test.txt')

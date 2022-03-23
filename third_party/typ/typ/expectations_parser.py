@@ -258,7 +258,7 @@ class TaggedTestListParser(object):
         tag_sets_intersection = set()
         first_tag_line = None
         while lineno <= num_lines:
-            line = lines[lineno - 1].strip()
+            line = lines[lineno - 1].rstrip()
             if (line.startswith(self.TAG_TOKEN) or
                 line.startswith(self.RESULT_TOKEN)):
                 if line.startswith(self.TAG_TOKEN):
@@ -277,7 +277,7 @@ class TaggedTestListParser(object):
                     tag_set = set([t for t in line[len(token):].split()])
                     lineno += 1
                     while lineno <= num_lines and right_bracket == -1:
-                        line = lines[lineno - 1].strip()
+                        line = lines[lineno - 1].rstrip()
                         if line[0] != '#':
                             raise ParseError(
                                 lineno,
@@ -340,7 +340,7 @@ class TaggedTestListParser(object):
                          "descriptor" %
                          bool_value))
                 self.conflicts_allowed = bool_value == 'true'
-            elif line.startswith('#') or not line:
+            elif line.strip().startswith('#') or not line.strip():
                 # Ignore, it is just a comment or empty.
                 lineno += 1
                 continue
