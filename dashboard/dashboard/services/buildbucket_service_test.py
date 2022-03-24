@@ -54,8 +54,7 @@ class BuildbucketServiceTest(unittest.TestCase):
             'builder': _BUILD_PARAMETERS['builder_name'],
         },
         'tags': [{'key': 'buildset', 'value': 'foo'}],
-        'properties': json.dumps(_BUILD_PARAMETERS.get('properties', {}),
-                                 separators=(',', ':')),
+        'properties': _BUILD_PARAMETERS.get('properties', {}),
     }
     response = buildbucket_service.Put('luci.chrome.bucket_name',
                                        ['buildset:foo'],

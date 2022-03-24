@@ -37,8 +37,7 @@ def Put(bucket, tags, parameters):
       # [{'key': key, 'value'; value}]
       'tags':  [{'key': v[0], 'value': v[1]} for v in [
           e.split(':') for e in tags]],
-      'properties': json.dumps(parameters.get('properties', {}),
-                               separators=(',', ':')),
+      'properties': parameters.get('properties', {}),
   }
   logging.info("bbv2 Put body: \n%s\n", json.dumps(body))
 
