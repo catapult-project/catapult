@@ -151,15 +151,61 @@ def exit_code_from_full_results(full_results):
 
 
 def num_failures(full_results):
-    return full_results['num_failures_by_type']['FAIL']
+    return full_results['num_failures_by_type'][ResultType.Failure]
 
 
 def num_passes(full_results):
-    return full_results['num_failures_by_type']['PASS']
+    return full_results['num_failures_by_type'][ResultType.Pass]
 
 
 def num_skips(full_results):
-    return full_results['num_failures_by_type']['SKIP']
+    return full_results['num_failures_by_type'][ResultType.Skip]
+
+
+def num_regressions(full_results):
+    return full_results['num_regressions']
+
+
+def passing_tests_names(full_results):
+    return _get_test_names_for_result_type(full_results, ResultType.Pass)
+
+
+def skipped_tests_names(full_results):
+    return _get_test_names_for_result_type(full_results, ResultType.Skip)
+
+
+def failed_tests_names(full_results):
+    return _get_test_names_for_result_type(full_results, ResultType.Failure)
+
+
+def crashed_tests_names(full_results):
+    return _get_test_names_for_result_type(full_results, ResultType.Crash)
+
+
+def timed_out_tests_names(full_results):
+    return _get_test_names_for_result_type(full_results, ResultType.Timeout)
+
+
+def regressed_tests_names(full_results):
+    return set(tn for tn, r in iterate_over_trie(
+        full_results['tests'], full_results['path_delimiter'], '')
+               if r.get('is_regression', False))
+
+
+def _get_test_names_for_result_type(full_results, result_type):
+    return set(tn for tn, r in iterate_over_trie(
+        full_results['tests'], full_results['path_delimiter'], '')
+               if result_type in r['actual'])
+
+
+def iterate_over_trie(trie, test_separator, path):
+    if 'actual' in trie and 'times' in trie:
+        yield path, trie
+    else:
+        for k, v in trie.items():
+            p = path + test_separator + k if path else k
+            for tn, r in iterate_over_trie(v, test_separator, p):
+                yield tn, r
 
 
 def regressions(results):

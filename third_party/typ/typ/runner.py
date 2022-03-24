@@ -37,8 +37,8 @@ if path_to_file.endswith('.pyc'):  # pragma: no cover
 dir_above_typ = os.path.dirname(os.path.dirname(path_to_file))
 dir_cov = os.path.join(os.path.dirname(dir_above_typ), 'coverage')
 for path in (dir_above_typ, dir_cov):
-  if path not in sys.path:  # pragma: no cover
-    sys.path.append(path)
+    if path not in sys.path:  # pragma: no cover
+        sys.path.append(path)
 
 from typ import artifacts
 from typ import json_results
@@ -769,6 +769,7 @@ class Runner(object):
         num_passes = json_results.num_passes(full_results)
         num_failures = json_results.num_failures(full_results)
         num_skips = json_results.num_skips(full_results)
+        num_regressions = json_results.num_regressions(full_results)
 
         if self.args.quiet and num_failures == 0:
             return
@@ -786,6 +787,20 @@ class Runner(object):
                      num_failures,
                      '' if num_failures == 1 else 's'), elide=False)
         self.print_()
+        if num_failures or num_regressions:
+            regressed_tests = json_results.regressed_tests_names(full_results)
+            failed_tests = json_results.failed_tests_names(full_results)
+            expected_failed_tests = failed_tests - regressed_tests
+            regressed_tests = sorted(list(regressed_tests))
+            expected_failed_tests = sorted(list(expected_failed_tests))
+            if expected_failed_tests:
+                self.update('Tests that failed as expected:\n', elide=False)
+                for t in expected_failed_tests:
+                    self.print_('  %s' % t)
+            if regressed_tests:
+                self.update('Tests that regressed (failed unexpectedly)\n', elide=False)
+                for t in regressed_tests:
+                    self.print_('  %s' % t)
 
     def _read_and_delete(self, path, delete):
         h = self.host
@@ -876,11 +891,11 @@ class Runner(object):
         return trace
 
     def expectations_for(self, test_case):
-      test_name = test_case.id()[len(self.args.test_name_prefix):]
-      if self.has_expectations:
-          return self.expectations.expectations_for(test_name)
-      else:
-          return Expectation(test=test_name)
+        test_name = test_case.id()[len(self.args.test_name_prefix):]
+        if self.has_expectations:
+            return self.expectations.expectations_for(test_name)
+        else:
+            return Expectation(test=test_name)
 
     def default_classifier(self, test_set, test):
         if self.matches_filter(test):
@@ -916,7 +931,7 @@ class Runner(object):
         _validate_test_starts_with_prefix(
             self.args.test_name_prefix, test_case.id())
         if self.args.all:
-          return False
+            return False
         test_name = test_case.id()[len(self.args.test_name_prefix):]
         if self.has_expectations:
             expected_results = self.expectations.expectations_for(test_name).results
@@ -928,27 +943,27 @@ class Runner(object):
 
 
 def _test_adder(test_set, classifier):
-        def add_tests(obj):
-            if isinstance(obj, unittest.suite.TestSuite):
-                for el in obj:
-                    add_tests(el)
-            elif (obj.id().startswith('unittest.loader.LoadTestsFailure') or
-                  obj.id().startswith('unittest.loader.ModuleImportFailure')):
-                # Access to protected member pylint: disable=W0212
-                module_name = obj._testMethodName
-                try:
-                    method = getattr(obj, obj._testMethodName)
-                    method()
-                except Exception as e:
-                    if 'LoadTests' in obj.id():
-                        raise _AddTestsError('%s.load_tests() failed: %s'
-                                             % (module_name, str(e)))
-                    else:
-                        raise _AddTestsError(str(e))
-            else:
-                assert isinstance(obj, unittest.TestCase)
-                classifier(test_set, obj)
-        return add_tests
+    def add_tests(obj):
+        if isinstance(obj, unittest.suite.TestSuite):
+            for el in obj:
+                add_tests(el)
+        elif (obj.id().startswith('unittest.loader.LoadTestsFailure') or
+              obj.id().startswith('unittest.loader.ModuleImportFailure')):
+            # Access to protected member pylint: disable=W0212
+            module_name = obj._testMethodName
+            try:
+                method = getattr(obj, obj._testMethodName)
+                method()
+            except Exception as e:
+                if 'LoadTests' in obj.id():
+                    raise _AddTestsError('%s.load_tests() failed: %s'
+                                         % (module_name, str(e)))
+                else:
+                    raise _AddTestsError(str(e))
+        else:
+            assert isinstance(obj, unittest.TestCase)
+            classifier(test_set, obj)
+    return add_tests
 
 
 class _Child(object):
@@ -1033,11 +1048,11 @@ def _run_one_test(child, test_input):
     # but could come up when testing non-typ code as well.
     h.capture_output(divert=not child.passthrough)
     if child.has_expectations:
-      expectation = child.expectations.expectations_for(test_name)
-      expected_results, should_retry_on_failure = (
-          expectation.results, expectation.should_retry_on_failure)
+        expectation = child.expectations.expectations_for(test_name)
+        expected_results, should_retry_on_failure = (
+            expectation.results, expectation.should_retry_on_failure)
     else:
-      expected_results, should_retry_on_failure = {ResultType.Pass}, False
+        expected_results, should_retry_on_failure = {ResultType.Pass}, False
     ex_str = ''
     try:
         orig_skip = unittest.skip
@@ -1116,7 +1131,7 @@ def _run_one_test(child, test_input):
         # Clear the artifact implementation so that later tests don't try to
         # use a stale instance.
         if isinstance(test_case, TypTestCase):
-          test_case.set_artifacts(None)
+            test_case.set_artifacts(None)
 
     took = h.time() - started
     # If the test signaled that it should be retried on failure, do so.
@@ -1138,13 +1153,13 @@ def _run_one_test(child, test_input):
     # Test methods are often wrapped by decorators such as @mock. Try to get to
     # the actual test method instead of the wrapper.
     if hasattr(test_method, '__wrapped__'):
-      test_method = test_method.__wrapped__
+        test_method = test_method.__wrapped__
     # Some tests are generated and don't have valid line numbers. Such test
     # methods also have a source location different from module location.
     if inspect.getsourcefile(test_method) == test_location:
-      test_line = inspect.getsourcelines(test_method)[1]
+        test_line = inspect.getsourcelines(test_method)[1]
     else:
-      test_line = None
+        test_line = None
     result.result_sink_retcode =\
             child.result_sink_reporter.report_individual_test_result(
                 child.test_name_prefix, result, child.artifact_output_dir,
