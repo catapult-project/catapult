@@ -55,3 +55,35 @@ class FromDictTest(unittest.TestCase):
         'server', run_test_test.DIMENSIONS, _BASE_EXTRA_ARGS,
         _BASE_SWARMING_TAGS, _TELEMETRY_COMMAND, 'out/Release')
     self.assertEqual(quest, expected)
+
+  def testSettingDeviceTypeCorrectlySetsImageDir(self):
+    platforms = run_web_engine_telemetry_test.IMAGE_MAP.keys()
+    for platform in platforms:
+      # Set up new dimensions.
+      new_args = dict(_BASE_ARGUMENTS)
+      dimensions = run_test_test.DIMENSIONS[:]
+      dimensions.append({'key': 'device_type', 'value': platform})
+      new_args['dimensions'] = dimensions
+
+      quest = run_web_engine_telemetry_test.RunWebEngineTelemetryTest.FromDict(
+          new_args)
+
+      # Asserts image dir is found.
+      system_image_flag = [
+          arg for arg in quest._extra_args if 'system-image-dir' in arg
+      ]
+      self.assertTrue(system_image_flag)
+
+      # Assert components from IMAGE_MAP are found in the path.
+      path_parts = run_web_engine_telemetry_test.IMAGE_MAP[platform]
+      for path_part in path_parts:
+        self.assertIn(path_part, system_image_flag[0])
+
+      extra_args = _BASE_EXTRA_ARGS[:]
+      extra_args.append(run_web_engine_telemetry_test.DEFAULT_IMAGE_PATH %
+                        path_parts)
+
+      expected = run_web_engine_telemetry_test.RunWebEngineTelemetryTest(
+          'server', dimensions, extra_args, _BASE_SWARMING_TAGS,
+          _TELEMETRY_COMMAND, 'out/Release')
+      self.assertEqual(quest, expected)
