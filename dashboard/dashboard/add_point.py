@@ -783,6 +783,9 @@ def _GetSupplementalColumns(row):
   """
   columns = {}
   for (name, value) in row.get('supplemental_columns', {}).items():
+    if name == 'a_os_detail_vers':
+      logging.info('crbug/1302160 - a_os_detail_vers in add_point %r',
+                   value)
     # Don't allow too many columns
     if len(columns) == _MAX_NUM_COLUMNS:
       logging.warning('Too many columns, some being dropped.')
@@ -790,6 +793,9 @@ def _GetSupplementalColumns(row):
     value = _CheckSupplementalColumn(name, value)
     if value:
       columns[name] = value
+    if name == 'a_os_detail_vers':
+      logging.info('crbug/1302160 - after _CheckSupplementalColumn %r',
+                   value)
   return columns
 
 
