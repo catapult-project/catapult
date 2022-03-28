@@ -45,6 +45,19 @@ _WATERFALL_ENABLED_GTEST_NAMES = {
     'views_perftests': ['--xvfb']
 }
 
+# _GTEST_EXECUTABLE_NAME is based on the following link:
+# https://source.chromium.org/chromium/chromium/src/+/main:tools/perf/core/bot_platforms.py;l=282
+_GTEST_EXECUTABLE_NAME = {
+    'base_perftests': 'base_perftests',
+    'components_perftests': 'components_perftests',
+    'dawn_perf_tests': 'dawn_perf_tests',
+    'gpu_perftests': 'gpu_perftests',
+    'load_library_perf_tests': 'load_library_perf_tests',
+    'performance_browser_tests': 'browser_tests',
+    'tracing_perftests': 'tracing_perftests',
+    'views_perftests': 'views_perftests'
+}
+
 
 def _StoryToRegex(story_name):
   # Telemetry's --story-filter argument takes in a regex, not a
@@ -75,11 +88,19 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
     # relying on what's in the isolate because the 'command' feature is
     # deprecated and will be removed soon (EOY 2020).
     # TODO(dberris): Move this out to a configuration elsewhere.
-    command = [
-        'luci-auth', 'context', '--', 'vpython3', '../../testing/test_env.py',
-        '../../testing/scripts/run_performance_tests.py',
-        '../../tools/perf/run_benchmark'
-    ]
+    benchmark = arguments.get('benchmark')
+    if benchmark in _WATERFALL_ENABLED_GTEST_NAMES:
+      command = [
+          'luci-auth', 'context', '--', 'vpython3', '../../testing/test_env.py',
+          '../../testing/scripts/run_performance_tests.py',
+          _GTEST_EXECUTABLE_NAME[benchmark]
+      ]
+    else:
+      command = [
+          'luci-auth', 'context', '--', 'vpython3', '../../testing/test_env.py',
+          '../../testing/scripts/run_performance_tests.py',
+          '../../tools/perf/run_benchmark'
+      ]
     relative_cwd = arguments.get('relative_cwd', 'out/Release')
     return relative_cwd, command
 
@@ -111,12 +132,9 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
       # Pass the correct arguments to run gtests on pinpoint.
       # As we don't want to add dependency to chromium, the names of gtests are
       # hard coded here, instead of loading from bot_platforms.py.
-      # Also, the list of pass_through_args is not handled correctly on swarming
-      # so we disassemble here and reassemable the list on server.
       extra_test_args += ('--gtest-benchmark-name', benchmark)
       extra_test_args += ('--non-telemetry', 'true')
-      pass_through_args = list(_WATERFALL_ENABLED_GTEST_NAMES[benchmark])
-      extra_test_args += ('--passthrough-arg', ','.join(pass_through_args))
+      extra_test_args.extend(_WATERFALL_ENABLED_GTEST_NAMES[benchmark])
     else:
       extra_test_args += ('--benchmarks', benchmark)
 
