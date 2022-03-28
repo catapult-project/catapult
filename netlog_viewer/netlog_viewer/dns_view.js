@@ -211,7 +211,8 @@ var DnsView = (function() {
       // For lists, display each list entry on a separate line.
       if (typeof dnsConfig[key] == 'object' &&
           dnsConfig[key].constructor == Array) {
-        addListToNode_(td, dnsConfig[key]);
+        const strings = dnsConfig[key].map(JSON.stringify);
+        addListToNode_(td, strings);
         continue;
       }
 
