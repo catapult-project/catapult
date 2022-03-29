@@ -2271,6 +2271,9 @@ triaging functionality in the chart.
         }
         this.$.tooltip.botId = botId
       }
+      if ('a_os_detail_vers' in annotation) {
+        this.$.tooltip.osDetailVers = annotation.a_os_detail_vers
+      }
       this.$.tooltip.links = this.getTooltipLinks(annotation, series.path,
           pointId);
       if (annotation.timestamp) {
@@ -2344,6 +2347,7 @@ triaging functionality in the chart.
       this.$.tooltip.triagedAlerts = null;
       this.$.tooltip.bugId = null;
       this.$.tooltip.botId = null;
+      this.$.tooltip.osDetailVers = null;
       this.$.tooltip.projectId = null;
       this.$.tooltip.alertKey = null;
       this.$.tooltip.recovered = null;
