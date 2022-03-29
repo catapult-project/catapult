@@ -51,7 +51,7 @@ Old test path patterns
 # The mailing list to which config change notifications are sent,
 # so that the team can keep an audit record of these changes.
 # The "gasper-alerts" address is a historic legacy and not important.
-_NOTIFICATION_ADDRESS = 'chrome-performance-monitoring-alerts@google.com'
+_NOTIFICATION_ADDRESS = 'browser-perf-engprod@google.com'
 _SENDER_ADDRESS = 'gasper-alerts@google.com'
 
 
