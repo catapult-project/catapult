@@ -18,6 +18,7 @@ Here's the exception hierarchy:
    +-- InformationalError
    |    +-- BuildFailed
    |    +-- BuildCancelled
+   |    +-- BuildNumberExceeded
    |    +-- BuildGerritUrlNotFound
    |    +-- BuildGerritURLInvalid
    |    +-- CancelError
@@ -108,6 +109,15 @@ class BuildCancelled(InformationalError):
           self).__init__('The build was cancelled with reason: %s. "\
         "Pinpoint will be unable to run any tests against this "\
         "revision.' % reason)
+
+
+class BuildNumberExceeded(InformationalError):
+
+  def __init__(self, reason):
+    # pylint: disable=line-too-long
+    super(BuildNumberExceeded,
+          self).__init__('Bisected max number of times: %d. To bisect further, consult '\
+            'https://chromium.googlesource.com/catapult/+/HEAD/dashboard/dashboard/pinpoint/docs/abort_error.md' % reason)
 
 
 class BuildGerritUrlNotFound(InformationalError):

@@ -202,7 +202,8 @@ class ScheduleWorkTest(unittest.TestCase):
     for i in range(n):
       state.AddChange(change_test.Change(i))
     self.assertEqual(len(state._changes), n)
-    with self.assertRaisesRegexp(Exception, '(.+)The number of builds exceeded %d.(.+)' % n):
+    expected_regexp = ('Bisected max number of times: %d.+' % n)
+    with self.assertRaisesRegexp(Exception, expected_regexp):
       state.AddChange(change_test.Change(123))
 
 
