@@ -403,7 +403,11 @@ class Job(ndb.Model):
     host = os.environ['HTTP_HOST']
     # TODO(crbug.com/939723): Remove this workaround when not needed.
     if host == 'pinpoint.chromeperf.appspot.com':
+      logging.info('Workaround branch for crbug/939723')
       host = 'pinpoint-dot-chromeperf.appspot.com'
+    if host == 'pinpoint.chromeperf-stage.uc.r.appspot.com':
+      logging.info('Workaround branch for crbug/939723 (staging)')
+      host = 'pinpoint-dot-chromeperf-stage.uc.r.appspot.com'
     return 'https://%s/job/%s' % (host, self.job_id)
 
   @property
