@@ -25,7 +25,7 @@ const usage = "%s [ls|cat|edit|merge|add|addAll] [options] archive_file [output_
 
 type Config struct {
 	method, host, fullPath                              string
-	decodeResponseBody, skipExisting, overwriteExisting bool
+	decodeResponseBody, skipExisting, overwriteExisting, invertMatch bool
 }
 
 func (cfg *Config) DefaultFlags() []cli.Flag {
@@ -71,6 +71,16 @@ func (cfg *Config) AddFlags() []cli.Flag {
 	}
 }
 
+func (cfg *Config) TrimFlags() []cli.Flag {
+	return append([]cli.Flag{
+		&cli.BoolFlag{
+			Name:        "invert-match",
+			Usage:       "Trim away any urls that DON'T match in the archive",
+			Destination: &cfg.invertMatch,
+		},
+	}, cfg.DefaultFlags()...)
+}
+
 func (cfg *Config) requestEnabled(req *http.Request) bool {
 	if cfg.method != "" && strings.ToUpper(cfg.method) != req.Method {
 		return false
@@ -108,7 +118,10 @@ func list(cfg *Config, a *webpagereplay.Archive, printFull bool) error {
 
 func trim(cfg *Config, a *webpagereplay.Archive, outfile string) error {
 	newA, err := a.Trim(func(req *http.Request) (bool, error) {
-		if !cfg.requestEnabled(req) {
+		// If req matches and invertMatch -> keep match
+		// If req doesn't match and !invertMatch -> keep match
+		// Otherwise, trim match
+		if cfg.requestEnabled(req) == cfg.invertMatch {
 			fmt.Printf("Keeping request: host=%s uri=%s\n", req.Host, req.URL.String())
 			return false, nil
 		} else {
@@ -410,7 +423,7 @@ func main() {
 			Name:      "trim",
 			Usage:     "Trim the requests/responses in an archive",
 			ArgsUsage: "input_archive output_archive",
-			Flags:     cfg.DefaultFlags(),
+			Flags:     cfg.TrimFlags(),
 			Before:    checkArgs("trim", 2),
 			Action:    func(c *cli.Context) error {
 				return trim(cfg, loadArchiveOrDie(c, 0), c.Args().Get(1))
