@@ -3,6 +3,15 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
+import logging
+import platform
+
+try:
+  from pexpect import pxssh # pylint: disable=import-error
+except ImportError as e:
+  if platform.system() == 'Windows':
+    logging.info('pxssh not supported on Windows')
+  pxssh = None
 
 from telemetry.core import platform as telemetry_platform
 from telemetry.internal.platform import cast_device
@@ -12,8 +21,11 @@ from telemetry.internal.platform import platform_backend
 class CastPlatformBackend(platform_backend.PlatformBackend):
   def __init__(self, device):
     super(CastPlatformBackend, self).__init__(device)
+    self._ip_addr = None
     self._output_dir = device.output_dir
     self._runtime_exe = device.runtime_exe
+    if device.ip_addr:
+      self._ip_addr = device.ip_addr
 
   @classmethod
   def SupportsDevice(cls, device):
@@ -31,6 +43,15 @@ class CastPlatformBackend(platform_backend.PlatformBackend):
   @property
   def runtime_exe(self):
     return self._runtime_exe
+
+  @property
+  def ip_addr(self):
+    return self._ip_addr
+
+  def GetSSHSession(self):
+    ssh = pxssh.pxssh()
+    ssh.login(self._ip_addr, username='root', password='root')
+    return ssh
 
   def IsRemoteDevice(self):
     return False

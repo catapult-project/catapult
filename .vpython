@@ -183,3 +183,10 @@ wheel: <
     platform: "win_amd64"
   >
 >
+
+# Used by:
+# telemetry/telemetry/internal/backends/chrome/remote_cast_browser_backend.py
+wheel: <
+  name: "infra/python/wheels/pexpect/${vpython_platform}"
+  version: "version:4.8.0.chromium.1"
+>

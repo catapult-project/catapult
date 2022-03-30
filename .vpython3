@@ -65,6 +65,13 @@ wheel: <
   version: "version:3.6.1"
 >
 
+# Used by:
+# //third_party/catapult/telemetry/telemetry/internal/backends/chrome/remote_cast_browser_backend.py
+wheel: <
+  name: "infra/python/wheels/pexpect/${vpython_platform}"
+  version: "version:4.8.0.chromium.1"
+>
+
 # TODO(https://crbug.com/898348): Add in necessary wheels as Python3 versions
 # become available.
 wheel: <

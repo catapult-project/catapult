@@ -11,7 +11,8 @@ from telemetry.core import cast_interface
 from telemetry.core import platform as telemetry_platform
 from telemetry.internal.browser import browser
 from telemetry.internal.browser import possible_browser
-from telemetry.internal.backends.chrome import cast_browser_backend
+from telemetry.internal.backends.chrome import local_cast_browser_backend
+from telemetry.internal.backends.chrome import remote_cast_browser_backend
 from telemetry.internal.backends.chrome import chrome_startup_args
 from telemetry.internal.platform import cast_device
 from telemetry.internal.util import local_first_binary_manager
@@ -60,10 +61,18 @@ class PossibleCastBrowser(possible_browser.PossibleBrowser):
 
     startup_args = chrome_startup_args.GetFromBrowserOptions(
         self._browser_options)
-    browser_backend = cast_browser_backend.CastBrowserBackend(
-        self._platform_backend, self._browser_options,
-        self.browser_directory, self.profile_directory,
-        self._casting_tab)
+    # pylint: disable=redefined-variable-type
+    if self._platform_backend.ip_address:
+      browser_backend = remote_cast_browser_backend.RemoteCastBrowserBackend(
+          self._platform_backend, self._browser_options,
+          self.browser_directory, self.profile_directory,
+          self._casting_tab)
+    else:
+      browser_backend = local_cast_browser_backend.LocalCastBrowserBackend(
+          self._platform_backend, self._browser_options,
+          self.browser_directory, self.profile_directory,
+          self._casting_tab)
+    # pylint: enable=redefined-variable-type
     try:
       return browser.Browser(
           browser_backend, self._platform_backend, startup_args,
