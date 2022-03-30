@@ -260,7 +260,6 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
   rows = CreateRowEntities(data_dict, test_key, stat_names_to_test_keys,
                            revision)
   if not rows:
-    logging.debug('crbug/1302160 - no rows after CreateRowEntities')
     raise ndb.Return()
 
   yield ndb.put_multi_async(rows) + [r.UpdateParentAsync() for r in rows]
@@ -430,8 +429,6 @@ def _MakeRowDict(revision, test_path, tracing_histogram, stat_name=None):
         reserved_infos.OS_DETAILED_VERSIONS.name)
     if os_detail_vers:
       d['supplemental_columns']['a_os_detail_vers'] = list(os_detail_vers)
-      logging.debug('crbug/1302160 - a_os_detail_vers type %s and val %r',
-                    type(os_detail_vers), os_detail_vers)
   except Exception as e: # pylint: disable=broad-except
     logging.warning('crbug/1302160 - os_detail_vers failed. Error: %s', e)
 
