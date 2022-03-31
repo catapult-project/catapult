@@ -4,7 +4,6 @@
 
 from __future__ import absolute_import
 import logging
-import os
 import shlex
 
 from telemetry import decorators
@@ -102,7 +101,7 @@ class CrosPlatformBackend(
     return 'chromeos'
 
   def _ReadReleaseFile(self, file_path):
-    if not os.path.exists(file_path):
+    if not self.PathExists(file_path):
       return None
 
     release_data = {}
