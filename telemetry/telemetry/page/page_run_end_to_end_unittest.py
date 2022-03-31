@@ -74,12 +74,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     results = self.RunStorySet(test, story_set)
     self.assertFalse(results.benchmark_interrupted)
     self.assertEqual(len(story_set), results.num_successful)
-    # Browser is started once per story run, except in ChromeOS where a single
-    # instance is reused for all stories.
-    if test.platform_name == 'chromeos':
-      self.assertEqual(1, test.browser_starts)
-    else:
-      self.assertEqual(len(story_set), test.browser_starts)
+    self.assertEqual(len(story_set), test.browser_starts)
 
   @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUserAgent(self):
