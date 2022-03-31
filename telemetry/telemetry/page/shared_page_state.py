@@ -147,11 +147,10 @@ class SharedPageState(story_module.SharedState):
     This should return False in most situations in order to help maitain
     independence between measurements taken on different story runs.
 
-    Previously, we only reused the browser for ChromeOS,
+    The default implementation only allows reusing the browser in ChromeOs,
     where bringing up the browser for each story is expensive.
-    However, this is causing some tests to break.
     """
-    return False
+    return self.platform.GetOSName() == 'chromeos'
 
   @property
   def platform(self):
