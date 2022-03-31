@@ -12,6 +12,7 @@ import unittest
 import mock
 
 from dashboard.services import buildbucket_service
+from dashboard.common import utils
 
 _BUILD_PARAMETERS = {
     'builder_name': 'dummy_builder',
@@ -40,12 +41,30 @@ class BuildbucketServiceTest(unittest.TestCase):
     self._request_json.assert_called_once_with(
         buildbucket_service.API_BASE_URL + path, *args, **kwargs)
 
-  def testPut_badBucketName(self):
+  def _AssertRequestV2MadeOnce(self, path, *args, **kwargs):
+    self._request_json.assert_called_once_with(
+        buildbucket_service.API_BASE_URL2 + path, *args, **kwargs)
+
+  def testPut(self):
+    expected_body = {
+        'bucket': 'bucket_name',
+        'tags': ['buildset:foo'],
+        'parameters_json': json.dumps(_BUILD_PARAMETERS, separators=(',', ':')),
+    }
+    response = buildbucket_service.Put('bucket_name', ['buildset:foo'],
+                                       _BUILD_PARAMETERS)
+    self._AssertCorrectResponse(response)
+    self._AssertRequestMadeOnce('builds', method='PUT', body=expected_body)
+
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: True)
+  def testPutV2_badBucketName(self):
     self.assertRaises(ValueError, buildbucket_service.Put,
                       'invalid bucket string', [''], _BUILD_PARAMETERS)
 
+
   @mock.patch('uuid.uuid4', _mock_uuid)
-  def testPut(self):
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: True)
+  def testPutV2(self):
     expected_body = {
         'request_id': 'mock uuid',
         'builder': {
@@ -60,16 +79,23 @@ class BuildbucketServiceTest(unittest.TestCase):
                                        ['buildset:foo'],
                                        _BUILD_PARAMETERS)
     self._AssertCorrectResponse(response)
-    self._AssertRequestMadeOnce('ScheduleBuild', method='POST',
-                                body=expected_body)
+    self._AssertRequestV2MadeOnce(
+        'ScheduleBuild', method='POST', body=expected_body)
+
 
   def testGetJobStatus(self):
+    response = buildbucket_service.GetJobStatus('job_id')
+    self._AssertCorrectResponse(response)
+    self._AssertRequestMadeOnce('builds/job_id')
+
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: True)
+  def testGetJobStatusV2(self):
     response = buildbucket_service.GetJobStatus('job_id')
     self._AssertCorrectResponse(response)
     expected_body = json.dumps({
         'id': 'job_id',
     })
-    self._AssertRequestMadeOnce('GetBuild', method='POST', body=expected_body)
+    self._AssertRequestV2MadeOnce('GetBuild', method='POST', body=expected_body)
 
 
 class FakeJob(object):

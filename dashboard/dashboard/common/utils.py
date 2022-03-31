@@ -845,3 +845,8 @@ def IsMonitored(sheriff_client, test_path):
   if subscriptions:
     return True
   return False
+
+
+# temp helper during migration to bbv2
+def IsRunningBuildBucketV2():
+  return False
