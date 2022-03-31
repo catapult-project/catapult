@@ -597,40 +597,6 @@ tr.exportTo('tr.metrics.sh', function() {
   function addSamplesToHistogram(samples, histogram, histograms) {
     for (const sample of samples) {
       histogram.addSample(sample.value, sample.diagnostics);
-
-      // Only add breakdown histograms for FCP.
-      // http://crbug.com/771610
-      if (histogram.name !== 'timeToFirstContentfulPaint') continue;
-
-      if (!sample.breakdownTree) continue;
-      for (const [category, breakdown] of Object.entries(
-          sample.breakdownTree)) {
-        const relatedName = `${histogram.name}:${category}`;
-        let relatedHist = histograms.getHistogramsNamed(relatedName)[0];
-        if (!relatedHist) {
-          relatedHist = histograms.createHistogram(
-              relatedName, histogram.unit, [], {
-                binBoundaries: LOADING_METRIC_BOUNDARIES,
-                summaryOptions: {
-                  count: false,
-                  max: false,
-                  min: false,
-                  sum: false,
-                },
-              });
-
-          let relatedNames = histogram.diagnostics.get('breakdown');
-          if (!relatedNames) {
-            relatedNames = new tr.v.d.RelatedNameMap();
-            histogram.diagnostics.set('breakdown', relatedNames);
-          }
-          relatedNames.set(category, relatedName);
-        }
-        relatedHist.addSample(breakdown.total, {
-          breakdown: tr.v.d.Breakdown.fromEntries(
-              Object.entries(breakdown.events)),
-        });
-      }
     }
   }
 

@@ -88,15 +88,6 @@ tr.b.unittest.testSuite(function() {
     const hist = histograms.getHistogramNamed('timeToFirstContentfulPaint');
     assert.strictEqual(1, hist.running.count);
     assert.strictEqual(800, hist.running.mean);
-    const fcpResourceLoading = histograms.getHistogramNamed(
-        'timeToFirstContentfulPaint:resource_loading');
-    assert.strictEqual(
-        hist.diagnostics.get('breakdown').get(
-            'resource_loading'),
-        'timeToFirstContentfulPaint:resource_loading');
-    assert.strictEqual(fcpResourceLoading.sum, 100);
-    assert.strictEqual(tr.b.getOnlyElement(hist.getBinForValue(
-        800).diagnosticMaps).get('breakdown').get('resource_loading'), 100);
   });
 
   test('timeToLargestImagePaint', function() {
@@ -807,15 +798,6 @@ tr.b.unittest.testSuite(function() {
     const hist = histograms.getHistogramNamed('timeToFirstContentfulPaint');
     assert.strictEqual(1, hist.running.count);
     assert.strictEqual(800, hist.running.mean);
-    const fcpResourceLoading = histograms.getHistogramNamed(
-        'timeToFirstContentfulPaint:resource_loading');
-    assert.strictEqual(
-        hist.diagnostics.get('breakdown').get(
-            'resource_loading'),
-        'timeToFirstContentfulPaint:resource_loading');
-    assert.strictEqual(fcpResourceLoading.sum, 100);
-    assert.strictEqual(tr.b.getOnlyElement(hist.getBinForValue(
-        800).diagnosticMaps).get('breakdown').get('resource_loading'), 100);
   });
 
   test('timeToFirstMeaningfulPaint', function() {
