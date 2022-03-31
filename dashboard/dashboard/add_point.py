@@ -830,10 +830,19 @@ def _CheckSupplementalColumn(name, value):
     value = str(value)
 
   if name.startswith('a_'):
-    # Annotation column, should be a short string.
+    # Annotation column, is typically a short string.
+    # Bot_ID lists can be long, truncate if exceed max length
     if len(str(value)) > _STRING_COLUMN_MAX_LENGTH:
-      logging.warning('Value for "%s" too long, max length is %d.', name,
+      logging.warning('Value for "%s" too long, truncated to max length %d.',
+                      name,
                       _STRING_COLUMN_MAX_LENGTH)
-      return None
+      if isinstance(value, list):
+        while len(str(value)) > _STRING_COLUMN_MAX_LENGTH:
+          value.pop()
+      elif isinstance(value, str):
+        value = value[:_STRING_COLUMN_MAX_LENGTH]
+      else:
+        logging.warning('Value for "%s" is not truncatable', name)
+        return None
 
   return value

@@ -419,18 +419,16 @@ def _MakeRowDict(revision, test_path, tracing_histogram, stat_name=None):
     bot_id_name = tracing_histogram.diagnostics.get(
         reserved_infos.BOT_ID.name)
     if bot_id_name:
-      # TODO: Truncate the bot_id_name if the list of names
-      # is greater than add_point._STRING_COLUMN_MAX_LENGTH
       d['supplemental_columns']['a_bot_id'] = list(bot_id_name)
   except Exception as e: # pylint: disable=broad-except
-    logging.warning('crbug/1266965 - bot_id failed. Error: %s', e)
+    logging.warning('bot_id failed. Error: %s', e)
   try:
     os_detail_vers = tracing_histogram.diagnostics.get(
         reserved_infos.OS_DETAILED_VERSIONS.name)
     if os_detail_vers:
       d['supplemental_columns']['a_os_detail_vers'] = list(os_detail_vers)
   except Exception as e: # pylint: disable=broad-except
-    logging.warning('crbug/1302160 - os_detail_vers failed. Error: %s', e)
+    logging.warning('os_detail_vers failed. Error: %s', e)
 
   for diag_name, annotation in DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES.items():
     revision_info = tracing_histogram.diagnostics.get(diag_name)
