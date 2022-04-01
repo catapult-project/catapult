@@ -125,8 +125,15 @@ var DnsView = (function() {
           var errorText = e.error + ' (' + netErrorToString(e.error) + ')';
           var errorNode = addTextNode(addressesCell, 'error: ' + errorText);
           addressesCell.classList.add('warning-text');
-        } else if (e.addresses != undefined) {
-          addListToNode_(addNode(addressesCell, 'div'), e.addresses);
+        } else {
+          // Concatenate the legacy `addresses` and `ip_endpoints`.
+          let addresses = [];
+          if ('addresses' in e)
+            addresses = addresses.concat(e.addresses);
+          if ('ip_endpoints' in e)
+            addresses = addresses.concat(e.ip_endpoints.map(JSON.stringify));
+          if (addresses.length > 0)
+            addListToNode_(addNode(addressesCell, 'div'), addresses);
         }
 
         var ttlCell = addNode(tr, 'td');
