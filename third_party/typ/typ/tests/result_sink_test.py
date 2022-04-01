@@ -175,6 +175,12 @@ class ResultSinkReporterTest(unittest.TestCase):
         rsr = result_sink.ResultSinkReporter(self._host)
         self.assertTrue(rsr.resultdb_supported)
 
+    def testReportInvocationLevelArtifactsEarlyReturnIfNotSupported(self):
+        self.setLuciContextWithContent({})
+        rsr = result_sink.ResultSinkReporter(self._host)
+        rsr._post = lambda: 1/0  # Shouldn't be called.
+        self.assertEqual(rsr.report_invocation_level_artifacts({}), 0)
+
     def testReportInvocationLevelArtifacts(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
         rsr = ResultSinkReporterWithFakeSrc(self._host)

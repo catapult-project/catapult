@@ -90,7 +90,14 @@ class ResultSinkReporter(object):
 
         Args:
           artifacts: A dict of artifacts to attach to the invocation.
+
+        Returns:
+          0 if the result was reported successfully or ResultDB is not
+          supported, otherwise 1.
         """
+        if not self.resultdb_supported:
+            return 0
+
         req = {'artifacts': artifacts}
         res = self._post(self._invocation_level_url, json.dumps(req))
         return res
