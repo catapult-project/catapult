@@ -62,7 +62,7 @@ class PossibleCastBrowser(possible_browser.PossibleBrowser):
     startup_args = chrome_startup_args.GetFromBrowserOptions(
         self._browser_options)
     # pylint: disable=redefined-variable-type
-    if self._platform_backend.ip_address:
+    if self._platform_backend.ip_addr:
       browser_backend = remote_cast_browser_backend.RemoteCastBrowserBackend(
           self._platform_backend, self._browser_options,
           self.browser_directory, self.profile_directory,
