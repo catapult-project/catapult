@@ -594,6 +594,9 @@ found in the LICENSE file.
         if (configuration.toLowerCase().includes('webview')) {
           return 'performance_webview_test_suite';
         }
+        if (configuration.toLowerCase().includes('fuchsia')) {
+          return 'performance_web_engine_test_suite';
+        }
         if (configuration.toLowerCase().includes('eve')) {
           return 'performance_test_suite_eve';
         }
@@ -629,8 +632,6 @@ found in the LICENSE file.
           throw Error(
               'Given Android configuration ' + configuration + ' does not ' +
               'have an isolate mapped to it');
-        } else if (configuration === 'fuchsia-perf-fyi') {
-          return 'performance_web_engine_test_suite';
         }
 
         return 'performance_test_suite';
