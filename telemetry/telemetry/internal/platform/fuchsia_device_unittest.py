@@ -18,16 +18,10 @@ _FUCHSIA_DEVICE_IMPORT_PATH = 'telemetry.internal.platform.fuchsia_device'
 
 class FuchsiaDeviceTest(unittest.TestCase):
 
-  def testFindFuchsiaDeviceFailsEmulator(self):
-    is_emulator = True
-    self.assertEqual(fuchsia_device._FindFuchsiaDevice('', is_emulator), None)
-
   def testFindFuchsiaDevice(self):
-    is_emulator = False
     with mock.patch('telemetry.util.cmd_util.GetAllCmdOutput',
-                    return_value=['device list', None]):
-      self.assertEqual(fuchsia_device._FindFuchsiaDevice('', is_emulator),
-                       'device list')
+                    return_value=['{"device":"list"}', None]):
+      self.assertEqual(fuchsia_device._FindFuchsiaDevice(), {"device":"list"})
 
   def testFindAllAvailableDevicesFailsNonFuchsiaBrowser(self):
     options = browser_options.BrowserFinderOptions('not_fuchsia_browser')
@@ -88,59 +82,40 @@ class FuchsiaSDKUsageTest(unittest.TestCase):
           self.assertEqual(find_mock.call_count, 1)
 
   def testDecompressSDK(self):
+    test_file = 'testfile'
     def side_effect(cmd, stderr):
-      del stderr
-      tar_file = cmd[-1]
-      with tarfile.open(tar_file, 'w') as tar:
-        temp_dir = tempfile.mkdtemp()
-        try:
-          os.makedirs(os.path.join(temp_dir, 'tools'))
-          for f in fuchsia_device._SDK_TOOLS:
-            temp_file = os.path.join(temp_dir, f)
+      if 'cp' in cmd:
+        del stderr
+        tar_file = cmd[-1]
+        with tarfile.open(tar_file, 'w') as tar:
+          temp_dir = tempfile.mkdtemp()
+          try:
+            os.makedirs(os.path.join(temp_dir, 'tools'))
+            temp_file = os.path.join(temp_dir, test_file)
             with open(temp_file, 'w'):
-              pass
-            tar.add(temp_file, arcname=f)
-        finally:
-          shutil.rmtree(temp_dir)
+              tar.add(temp_file, arcname=test_file)
+          finally:
+            shutil.rmtree(temp_dir)
 
     temp_dir = tempfile.mkdtemp()
     try:
       test_tar = os.path.join(temp_dir, 'test.tar')
       with mock.patch('subprocess.check_output') as cmd_mock:
-        cmd_mock.side_effect = side_effect
-        fuchsia_device._DownloadFuchsiaSDK(test_tar, temp_dir)
-        for f in fuchsia_device._SDK_TOOLS:
-          self.assertTrue(os.path.isfile(os.path.join(temp_dir, f)))
-      self.assertFalse(os.path.isfile(os.path.join(
-          temp_dir, test_tar)))
+        with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH +
+                        '._GetLatestSDKHash', return_value='hash'):
+          cmd_mock.side_effect = side_effect
+          fuchsia_device._DownloadFuchsiaSDK(test_tar, temp_dir)
+          self.assertTrue(os.path.isfile(os.path.join(temp_dir, test_file)))
+      self.assertFalse(os.path.isfile(os.path.join(temp_dir, test_tar)))
     finally:
       shutil.rmtree(temp_dir)
 
-  def testSkipDownloadSDKIfExistsInChromium(self):
+  def testSkipDownloadSDKIfExists(self):
     with mock.patch('os.path.exists', return_value=True):
       with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH +
                       '._DownloadFuchsiaSDK') as get_mock:
         with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH + '._FindFuchsiaDevice',
                         return_value=None) as find_mock:
-          self.assertEqual(
-              fuchsia_device.FindAllAvailableDevices(self._options), [])
-          get_mock.assert_not_called()
-          self.assertEqual(find_mock.call_count, 1)
-
-  def testSkipDownloadSDKIfExistsInCatapult(self):
-    def side_effect(path):
-      if path == fuchsia_device._SDK_ROOT_IN_CHROMIUM:
-        return True
-      if path == fuchsia_device._SDK_ROOT_IN_CATAPULT:
-        return False
-      raise RuntimeError('Invalid path to Fuchsia SDK')
-
-    with mock.patch('os.path.exists') as path_mock:
-      with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH +
-                      '._DownloadFuchsiaSDK') as get_mock:
-        with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH + '._FindFuchsiaDevice',
-                        return_value=None) as find_mock:
-          path_mock.side_effect = side_effect
           self.assertEqual(
               fuchsia_device.FindAllAvailableDevices(self._options), [])
           get_mock.assert_not_called()
@@ -156,22 +131,24 @@ class FuchsiaSDKUsageTest(unittest.TestCase):
   def testFoundOneFuchsiaDevice(self):
     with mock.patch('os.path.exists', return_value=True):
       with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH + '._FindFuchsiaDevice',
-                      return_value='host0 target0'):
+                      return_value=[{"addresses":["a0"], "nodename":"n0"}]):
         found_devices = fuchsia_device.FindAllAvailableDevices(self._options)
         self.assertEqual(len(found_devices), 1)
         device = found_devices[0]
-        self.assertEqual(device.host, 'host0')
-        self.assertEqual(device.target_name, 'target0')
+        self.assertEqual(device.host, 'a0')
+        self.assertEqual(device.target_name, 'n0')
 
   def testFoundMultipleFuchsiaDevices(self):
     with mock.patch('os.path.exists', return_value=True):
       with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH + '._FindFuchsiaDevice',
-                      return_value='host0 target0\nhost1 target1'):
+                      return_value=[
+                          {"addresses":["a0"], "nodename":"n0"},
+                          {"addresses":["a1"], "nodename":"n1"}]):
         found_devices = fuchsia_device.FindAllAvailableDevices(self._options)
         self.assertEqual(len(found_devices), 1)
         device = found_devices[0]
-        self.assertEqual(device.host, 'host0')
-        self.assertEqual(device.target_name, 'target0')
+        self.assertEqual(device.host, 'a0')
+        self.assertEqual(device.target_name, 'n0')
 
   def testSkipUsingSDKIfFuchsiaSshPortFlagUsed(self):
 

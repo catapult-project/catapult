@@ -5,9 +5,11 @@
 """A Fuchsia device instance"""
 
 from __future__ import absolute_import
+import json
 import logging
 import os
 import platform
+import posixpath
 import subprocess
 import tarfile
 
@@ -17,15 +19,9 @@ from telemetry.internal.platform import device
 from telemetry.util import cmd_util
 
 _LIST_DEVICES_TIMEOUT_SECS = 5
-_SDK_SHA1 = '8894838554076535504'
-_SDK_ROOT_IN_CATAPULT = os.path.join(util.GetCatapultDir(), 'third_party',
-                                     'fuchsia-sdk', 'sdk')
-_SDK_ROOT_IN_CHROMIUM = os.path.join(util.GetCatapultDir(), '..',
-                                     'fuchsia-sdk', 'sdk')
-_SDK_TOOLS = [
-    os.path.join('tools', 'device-finder'),
-    os.path.join('tools', 'symbolize')
-]
+_GCS_PREFIX = 'gs://fuchsia/sdk/core/linux-amd64'
+_GSUTIL_PATH = os.path.join(
+    util.GetCatapultDir(), 'third_party', 'gsutil', 'gsutil')
 
 
 class FuchsiaDevice(device.Device):
@@ -71,34 +67,35 @@ class FuchsiaDevice(device.Device):
     return self._port
 
 
-def _DownloadFuchsiaSDK(tar_file, dest=_SDK_ROOT_IN_CATAPULT):
+def _GetLatestSDKHash():
+  gcs_archive = posixpath.join(_GCS_PREFIX, 'LATEST_ARCHIVE')
+  archive_cmd = [_GSUTIL_PATH, 'cat', gcs_archive]
+  return subprocess.check_output(archive_cmd,
+                                 stderr=subprocess.STDOUT).decode('utf-8')
+
+
+def _DownloadFuchsiaSDK(tar_file, dest=fuchsia_interface.SDK_ROOT):
   if not os.path.isdir(dest):
     os.makedirs(dest)
-  gsutil_path = os.path.join(util.GetCatapultDir(), 'third_party', 'gsutil',
-                             'gsutil')
-  sdk_pkg = 'gs://fuchsia/sdk/core/linux-amd64/' + _SDK_SHA1
-  download_cmd = [gsutil_path, 'cp', sdk_pkg, tar_file]
+  gcs_sdk = posixpath.join(_GCS_PREFIX, _GetLatestSDKHash())
+  download_cmd = [_GSUTIL_PATH, 'cp', gcs_sdk, tar_file]
   subprocess.check_output(download_cmd, stderr=subprocess.STDOUT)
 
   with tarfile.open(tar_file, 'r') as tar:
-    for f in _SDK_TOOLS:
-      # tarfile only accepts POSIX paths.
-      tar.extract(f.replace(os.path.sep, '/'), dest)
+    # tarfile only accepts POSIX paths.
+    tar.extractall(dest)
   os.remove(tar_file)
 
 
-def _FindFuchsiaDevice(sdk_root, is_emulator):
-  dev_finder_path = os.path.join(sdk_root, 'tools', 'device-finder')
-  if is_emulator:
-    logging.warning('Fuchsia emulators not supported at this time.')
-    return None
-  finder_cmd = [dev_finder_path, 'list', '-full', '-netboot',
-                '-timeout', str(_LIST_DEVICES_TIMEOUT_SECS) + 's']
-  device_list, _ = cmd_util.GetAllCmdOutput(finder_cmd)
-  if not device_list:
-    logging.warning('No Fuchsia device found. Ensure your device is set up '
-                    'and can be connected to.')
-  return device_list
+def _FindFuchsiaDevice():
+  """Returns the (possibly empty) list of targets known to ffx."""
+  ffx = os.path.join(fuchsia_interface.SDK_ROOT, 'tools',
+                     fuchsia_interface.GetHostArchFromPlatform(), 'ffx')
+  finder_cmd = [ffx, 'target', 'list', '-f', 'json']
+  json_targets, _ = cmd_util.GetAllCmdOutput(finder_cmd)
+  if not json_targets:
+    return []
+  return json.loads(json_targets)
 
 
 def _DownloadFuchsiaSDKIfNecessary():
@@ -107,13 +104,9 @@ def _DownloadFuchsiaSDKIfNecessary():
   Returns:
     The path to the Fuchsia SDK directory
   """
-  if os.path.exists(_SDK_ROOT_IN_CHROMIUM):
-    return _SDK_ROOT_IN_CHROMIUM
-  if not os.path.exists(_SDK_ROOT_IN_CATAPULT):
-    tar_file = os.path.join(_SDK_ROOT_IN_CATAPULT,
-                            'fuchsia-sdk-%s.tar' % _SDK_SHA1)
+  if not os.path.exists(fuchsia_interface.SDK_ROOT):
+    tar_file = os.path.join(fuchsia_interface.SDK_ROOT, 'fuchsia-sdk.tar')
     _DownloadFuchsiaSDK(tar_file)
-  return _SDK_ROOT_IN_CATAPULT
 
 
 def FindAllAvailableDevices(options):
@@ -128,7 +121,7 @@ def FindAllAvailableDevices(options):
   if (platform.system() != 'Linux' or (
       platform.machine() != 'x86_64' and platform.machine() != 'aarch64')):
     logging.warning(
-        'Fuchsia in Telemetry only supports Linux x64 or arm64hosts.')
+        'Fuchsia in Telemetry only supports Linux x64 or arm64 hosts.')
     return []
 
   # If the ssh port of the device has been forwarded to a port on the host,
@@ -153,20 +146,18 @@ def FindAllAvailableDevices(options):
   # Download the Fuchsia SDK if it doesn't exist.
   # TODO(https://crbug.com/1031763): Figure out how to use the dependency
   # manager.
-  sdk_root = _DownloadFuchsiaSDKIfNecessary()
+  _DownloadFuchsiaSDKIfNecessary()
 
   try:
-    device_list = _FindFuchsiaDevice(sdk_root, False)
+    device_list = _FindFuchsiaDevice()
   except OSError:
     logging.error('Fuchsia SDK Download failed. Please remove '
-                  '%s and try again.', sdk_root)
+                  '%s and try again.', fuchsia_interface.SDK_ROOT)
     raise
   if not device_list:
     return []
-  # Expected output will look something like
-  # 'host0 target0\nhost1 target1\nhost2 target2'.
-  first_device = device_list.splitlines()[0]
-  host, target_name = first_device.split(' ')
+  host = device_list[0].get('addresses')[0]
+  target_name = device_list[0].get('nodename')
   logging.info('Using Fuchsia device with address %s and name %s'
                % (host, target_name))
   return [FuchsiaDevice(target_name=target_name,

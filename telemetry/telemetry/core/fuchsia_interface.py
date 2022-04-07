@@ -19,7 +19,14 @@ FUCHSIA_BROWSERS = [
     'web-engine-shell'
 ]
 
-SDK_ROOT = os.path.join(util.GetCatapultDir(), '..', 'fuchsia-sdk', 'sdk')
+_SDK_ROOT_IN_CATAPULT = os.path.join(util.GetCatapultDir(), 'third_party',
+                                     'fuchsia-sdk', 'sdk')
+_SDK_ROOT_IN_CHROMIUM = os.path.join(util.GetCatapultDir(), '..',
+                                     'fuchsia-sdk', 'sdk')
+if os.path.exists(_SDK_ROOT_IN_CHROMIUM):
+  SDK_ROOT = _SDK_ROOT_IN_CHROMIUM
+else:
+  SDK_ROOT = _SDK_ROOT_IN_CATAPULT
 
 
 class CommandRunner(object):
@@ -90,11 +97,9 @@ class CommandRunner(object):
 
 def GetHostArchFromPlatform():
   host_arch = platform.machine()
-  if host_arch == 'x86_64':
+  if host_arch in ['x86_64', 'AMD64']:
     return 'x64'
-  if host_arch == 'arm64':
-    return 'arm64'
-  if host_arch == 'aarch64':
+  if host_arch in ['arm64', 'aarch64']:
     return 'arm64'
   raise Exception('Unsupported host architecture: %s' % host_arch)
 
