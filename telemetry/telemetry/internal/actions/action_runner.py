@@ -197,7 +197,14 @@ class ActionRunner(ActionRunnerBase):
 
   def NavigateBack(self):
     """ Navigate back to the previous page."""
-    self.ExecuteJavaScript('window.history.back()')
+    try:
+      self.ExecuteJavaScript('window.history.back()')
+    except exceptions.DevtoolsTargetClosedException:
+      # Navigating back may immediately destroy the renderer, which devtools
+      # communicates via a message that results in a
+      # DevtoolsTargetClosedException. Continue on as this likely means the
+      # navigation was successful.
+      logging.warning('devtools closed navigating back, continuing')
 
   def WaitForNavigate(
       self, timeout_in_seconds_seconds=page_action.DEFAULT_TIMEOUT):
