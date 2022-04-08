@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import base64
+import hashlib
 import json
 import os
 import unittest
@@ -282,31 +283,33 @@ class ResultSinkReporterTest(unittest.TestCase):
         self.assertEqual(test_result, expected_result)
 
     def testReportIndividualTestResultConflictingOutputKeys(self):
-      self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
-      rsr = ResultSinkReporterWithFakeSrc(self._host)
-      rsr._post = lambda: 1/0
-      result = CreateResult({
-          'name': 'test_name',
-          'actual': 'json_results.ResultType.Pass',
-          'artifacts': {
-              'typ_stdout': [''],
-          },
-      })
-      with self.assertRaises(AssertionError):
-        rsr.report_individual_test_result(
-                'test_name_name_prefix', result, ARTIFACT_DIR,
-                CreateTestExpectations(), FAKE_TEST_PATH, FAKE_TEST_LINE)
-      result = CreateResult({
-          'name': 'test_name',
-          'actual': 'json_results.ResultType.Pass',
-          'artifacts': {
-              'typ_stderr': [''],
-          },
-      })
-      with self.assertRaises(AssertionError):
-        rsr.report_individual_test_result(
-                'test_name_name_prefix', result, ARTIFACT_DIR,
-                CreateTestExpectations(), FAKE_TEST_PATH, FAKE_TEST_LINE)
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
+        rsr._post = lambda: 1 / 0
+        result = CreateResult({
+            'name': 'test_name',
+            'actual': 'json_results.ResultType.Pass',
+            'artifacts': {
+                'typ_stdout': [''],
+            },
+        })
+        with self.assertRaises(AssertionError):
+            rsr.report_individual_test_result('test_name_name_prefix', result,
+                                              ARTIFACT_DIR,
+                                              CreateTestExpectations(),
+                                              FAKE_TEST_PATH, FAKE_TEST_LINE)
+        result = CreateResult({
+            'name': 'test_name',
+            'actual': 'json_results.ResultType.Pass',
+            'artifacts': {
+                'typ_stderr': [''],
+            },
+        })
+        with self.assertRaises(AssertionError):
+            rsr.report_individual_test_result('test_name_name_prefix', result,
+                                              ARTIFACT_DIR,
+                                              CreateTestExpectations(),
+                                              FAKE_TEST_PATH, FAKE_TEST_LINE)
 
     def testReportIndividualTestResultSingleArtifact(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
@@ -397,6 +400,55 @@ class ResultSinkReporterTest(unittest.TestCase):
                 artifacts=expected_artifacts,
                 summary_html=expected_html_summary)
         self.assertEqual(test_result, expected_result)
+
+    def testReportIndividualTestResultLongTestName(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
+        test_name = 'a' * (result_sink.MAX_TAG_LENGTH + 1)
+        result = CreateResult({
+            'name': test_name,
+            'actual': json_results.ResultType.Pass,
+        })
+        rsr._post = StubWithRetval(0)
+        _ = rsr.report_individual_test_result('test_name_prefix.', result,
+                                              ARTIFACT_DIR,
+                                              CreateTestExpectations(),
+                                              FAKE_TEST_PATH, FAKE_TEST_LINE)
+        expected_results = CreateExpectedTestResult(
+            test_id=('test_name_prefix.' + test_name))
+        index = -1
+        for i, tag_dict in enumerate(expected_results['tags']):
+            if tag_dict['key'] == 'test_name':
+                index = i
+                break
+        self.assertGreater(index, -1)
+        m = hashlib.sha1()
+        m.update(test_name.encode('utf-8'))
+        expected_name = ('a' * 216) + m.hexdigest()
+        expected_results['tags'][index] = {
+            'key': 'test_name',
+            'value': expected_name
+        }
+        self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[1]),
+                         expected_results)
+
+    def testReportIndividualTestResultTestNameAtLengthLimit(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
+        test_name = 'a' * result_sink.MAX_TAG_LENGTH
+        result = CreateResult({
+            'name': test_name,
+            'actual': json_results.ResultType.Pass,
+        })
+        rsr._post = StubWithRetval(0)
+        _ = rsr.report_individual_test_result('test_name_prefix.', result,
+                                              ARTIFACT_DIR,
+                                              CreateTestExpectations(),
+                                              FAKE_TEST_PATH, FAKE_TEST_LINE)
+        expected_results = CreateExpectedTestResult(
+            test_id=('test_name_prefix.' + test_name))
+        self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[1]),
+                         expected_results)
 
     def testReportResultEarlyReturnIfNotSupported(self):
         self.setLuciContextWithContent({})

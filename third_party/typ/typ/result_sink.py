@@ -21,6 +21,7 @@ See go/resultdb and go/resultsink for more details.
 """
 
 import base64
+import hashlib
 import json
 import os
 import sys
@@ -42,6 +43,9 @@ VALID_STATUSES = {
 }
 STDOUT_KEY = 'typ_stdout'
 STDERR_KEY = 'typ_stderr'
+# From https://source.chromium.org/chromium/infra/infra/+/main:go/src/go.chromium.org/luci/resultdb/pbutil/strpair.go;l=28
+MAX_TAG_LENGTH = 256
+SHA1_HEX_HASH_LENGTH = 40
 
 
 class ResultSinkReporter(object):
@@ -144,8 +148,19 @@ class ResultSinkReporter(object):
                       for t in result.expected])
         result_is_expected = result.actual in result.expected
 
+        # ResultDB has a 256 character limit for arbitrary key/value pairs. The
+        # non-arbitrary fields such as test ID have a longer limit, so those
+        # should be used if the actual name of the test is needed.
+        truncated_name = result.name
+        if len(truncated_name) > MAX_TAG_LENGTH:
+            m = hashlib.sha1()
+            m.update(truncated_name.encode('utf-8'))
+            truncated_name = truncated_name[:(MAX_TAG_LENGTH -
+                                              SHA1_HEX_HASH_LENGTH)]
+            truncated_name += m.hexdigest()
+
         tag_list = [
-            ('test_name', result.name),
+            ('test_name', truncated_name),
         ]
         for expectation in result.expected:
             tag_list.append(('typ_expectation', expectation))
@@ -173,8 +188,8 @@ class ResultSinkReporter(object):
             # HTTPS, so we can use that to identify links.
             if (len(artifact_filepaths) == 1
                 and artifact_filepaths[0].startswith('https://')):
-              https_artifacts += '<a href=%s>%s</a>' % (artifact_filepaths[0],
-                                                        artifact_name)
+                https_artifacts += '<a href=%s>%s</a>' % (
+                    artifact_filepaths[0], artifact_name)
             # The typ artifact implementation supports multiple artifacts for
             # a single artifact name due to retries, but ResultDB does not.
             elif len(artifact_filepaths) > 1:
@@ -291,12 +306,12 @@ class ResultSinkReporter(object):
 
     def _get_chromium_src_dir(self):
         if not self._chromium_src_dir:
-          src_dir = self.host.abspath(
-                  self.host.join(self.host.dirname(__file__),
-                                  '..', '..', '..', '..', '..'))
-          if not src_dir.endswith(self.host.sep):
-              src_dir += self.host.sep
-          self._chromium_src_dir = src_dir
+            src_dir = self.host.abspath(
+                self.host.join(self.host.dirname(__file__), '..', '..', '..',
+                               '..', '..'))
+            if not src_dir.endswith(self.host.sep):
+                src_dir += self.host.sep
+            self._chromium_src_dir = src_dir
         return self._chromium_src_dir
 
 
