@@ -132,7 +132,7 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
 
   def _InstallCastWebRuntime(self):
     ssh = self._platform_backend.GetSSHSession()
-    deploy_path = os.join(_CAST_ROOT, _CAST_DEPLOY_PATH)
+    deploy_path = os.path.join(_CAST_ROOT, _CAST_DEPLOY_PATH)
     self._SendCommand(ssh, 'cd %s && umask 0022' % deploy_path)
     if self._CheckExistenceOnDevice(ssh, 'cast_runtime'):
       self._SendCommand(ssh, 'rm -rf cast_runtime')

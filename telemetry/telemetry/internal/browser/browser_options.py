@@ -279,9 +279,9 @@ class BrowserFinderOptions(optparse.Values):
                      help='Output directory for Cast Core.')
     group.add_option('--cast-runtime-exe',
                      help='Path to Cast Web Runtime executable.')
-    group.add_option('--remote-cast',
+    group.add_option('--local-cast',
                      action="store_true", default=False,
-                     help='Use a remote casting receiver.')
+                     help='Use a local casting receiver on the host.')
     group.add_option('--cast-device-ip',
                      help='IP address of the Cast device.')
 
