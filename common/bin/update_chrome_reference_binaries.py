@@ -45,7 +45,8 @@ _CHROMIUM_SNAPSHOT_SEARCH_WINDOW = 10
 
 # Remove a platform name from this list to disable updating it.
 # Add one to enable updating it. (Must also update _PLATFORM_MAP.)
-_PLATFORMS_TO_UPDATE = ['mac_x86_64', 'win_x86', 'win_AMD64', 'linux_x86_64',
+_PLATFORMS_TO_UPDATE = ['mac_arm64', 'mac_x86_64', 'win_x86',
+                        'win_AMD64', 'linux_x86_64',
                         'android_k_armeabi-v7a', 'android_l_arm64-v8a',
                         'android_l_armeabi-v7a', 'android_n_armeabi-v7a',
                         'android_n_arm64-v8a', 'android_n_bundle_armeabi-v7a',
@@ -53,7 +54,8 @@ _PLATFORMS_TO_UPDATE = ['mac_x86_64', 'win_x86', 'win_AMD64', 'linux_x86_64',
 
 # Add platforms here if you also want to update chromium binary for it.
 # Must add chromium_info for it in _PLATFORM_MAP.
-_CHROMIUM_PLATFORMS = ['mac_x86_64', 'win_x86', 'win_AMD64', 'linux_x86_64']
+_CHROMIUM_PLATFORMS = ['mac_arm64', 'mac_x86_64', 'win_x86', 'win_AMD64',
+                       'linux_x86_64']
 
 # Remove a channel name from this list to disable updating it.
 # Add one to enable updating it.
@@ -62,7 +64,8 @@ _CHANNELS_TO_UPDATE = ['stable', 'canary', 'dev']
 
 # Omaha is Chrome's autoupdate server. It reports the current versions used
 # by each platform on each channel.
-_OMAHA_PLATFORMS = { 'stable':  ['mac', 'linux', 'win', 'android'],
+_OMAHA_PLATFORMS = { 'stable':  ['mac_arm64', 'mac', 'linux', 'win',
+                                 'win64', 'android'],
                     'dev':  ['linux'], 'canary': ['mac', 'win']}
 
 
@@ -84,6 +87,15 @@ _PLATFORM_MAP = {'mac_x86_64': UpdateInfo(
                      chromium_info=ChromiumInfo(
                          build_dir='Mac',
                          zip_name='chrome-mac.zip'),
+                     zip_name='chrome-mac.zip'),
+                 'mac_arm64': UpdateInfo(
+                     omaha='mac_arm64',
+                     gs_folder='desktop-*',
+                     gs_build='mac-arm64',
+                     chromium_info=ChromiumInfo(
+                         build_dir='Mac_Arm',
+                         zip_name='chrome-mac.zip',
+                     ),
                      zip_name='chrome-mac.zip'),
                  'win_x86': UpdateInfo(
                      omaha='win',
@@ -151,9 +163,7 @@ _PLATFORM_MAP = {'mac_x86_64': UpdateInfo(
                      gs_build='arm_64',
                      chromium_info=None,
                      zip_name='Monochrome.apks')
-
 }
-
 
 VersionInfo = collections.namedtuple('VersionInfo',
                                      'version, branch_base_position')
@@ -173,7 +183,7 @@ def _ChannelVersionsMap(channel):
 def _OmahaReportVersionInfo(channel):
   url ='https://omahaproxy.appspot.com/all?channel=%s' % channel
   lines = six.moves.urllib.request.urlopen(url).readlines()
-  return [l.split(',') for l in lines]
+  return [six.ensure_str(l).split(',') for l in lines]
 
 
 def _OmahaVersionsMap(rows, channel):
@@ -229,8 +239,8 @@ def _FindClosestChromiumSnapshot(base_position, build_dir):
   # positions between 123446 an 123466. We do this by getting all snapshots
   # with prefix 12344*, 12345*, and 12346*. This may get a few more snapshots
   # that we intended, but that's fine since we take the min distance anyways.
-  min_position_prefix = min_position / 10;
-  max_position_prefix = max_position / 10;
+  min_position_prefix = min_position // 10;
+  max_position_prefix = max_position // 10;
 
   available_positions = []
   for position_prefix in range(min_position_prefix, max_position_prefix + 1):
@@ -318,7 +328,7 @@ def _ModifyBuildIfNeeded(binary, location, platform):
   if binary != 'chrome':
     return
 
-  if platform == 'mac_x86_64':
+  if platform in ['mac_x86_64', 'mac_arm64']:
     _RemoveKeystoneFromBuild(location)
     return
 

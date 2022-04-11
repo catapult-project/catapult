@@ -88,6 +88,12 @@
           "path_within_archive": "chrome-mac/Google Chrome.app/Contents/MacOS/Google Chrome",
           "version_in_cs": "83.0.4103.97"
         },
+        "mac_arm64": {
+          "cloud_storage_hash": "8e5715ab04cdf366a20038b6d6aac2f41e12bbf0",
+          "download_path": "bin/reference_build/chrome-mac-arm64.zip",
+          "path_within_archive": "chrome-mac/Google Chrome.app/Contents/MacOS/Google Chrome",
+          "version_in_cs": "100.0.4896.75"
+        },
         "win_AMD64": {
           "cloud_storage_hash": "e6515496ebab0d02a5294a008fe8bbf9dd3dbc0c",
           "download_path": "bin\\reference_build\\chrome-win64-clang.zip",
@@ -153,6 +159,12 @@
           "download_path": "bin/reference_builds/chrome-mac.zip",
           "path_within_archive": "chrome-mac/Chromium.app/Contents/MacOS/Chromium",
           "version_in_cs": "83.0.4103.97"
+        },
+        "mac_arm64": {
+          "cloud_storage_hash": "5fd942947943278bcf91b6f7ef85485ebfef3092",
+          "download_path": "bin/reference_build/chrome-mac-arm64.zip",
+          "path_within_archive": "chrome-mac/Chromium.app/Contents/MacOS/Chromium",
+          "version_in_cs": "100.0.4896.75"
         },
         "win_AMD64": {
           "cloud_storage_hash": "5e503f1bfeae37061ddc80ae1660a1c41594b188",

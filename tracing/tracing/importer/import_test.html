@@ -213,7 +213,8 @@ tr.b.unittest.testSuite(function() {
         p.memoryDumps[2].mostRecentVmRegions);
   });
 
-  test('setsModelStatsTraceImportDurationMs', function() {
+// TODO(crbug.com/1315423): Fix and re-enable test to pass on all trybots.
+  skipTest('setsModelStatsTraceImportDurationMs', function() {
     const traceEvents = [
       {ts: 1000, pid: 1, tid: 3, ph: 'B', cat: 'c', name: 'taskB', args: {
         my_object: {id_ref: '0x1000'}

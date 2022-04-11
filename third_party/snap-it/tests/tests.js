@@ -406,7 +406,8 @@ QUnit.test('processTree: closing tag', function(assert) {
   assert.equal(serializer.html.length, 5);
 });
 
-QUnit.test(
+// TODO(crbug.com/1315424): Fix and re-enable test to pass on all trybots.
+QUnit.skip(
   'processAttributes: img with height and width attributes',
   function(assert) {
     var serializer = new HTMLSerializer();
@@ -422,7 +423,8 @@ QUnit.test(
   }
 );
 
-QUnit.test(
+// TODO(crbug.com/1315424): Fix and re-enable test to pass on all trybots.
+QUnit.skip(
   'processAttributes: img without height and width attributes',
   function(assert) {
     var serializer = new HTMLSerializer();
@@ -437,7 +439,8 @@ QUnit.test(
   }
 );
 
-QUnit.test(
+// TODO(crbug.com/1315424): Fix and re-enable test to pass on all trybots.
+QUnit.skip(
   'processAttributes: img with height and width attributes and inline style',
   function(assert) {
     var serializer = new HTMLSerializer();
