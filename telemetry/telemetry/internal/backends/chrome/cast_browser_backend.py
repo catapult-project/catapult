@@ -28,6 +28,7 @@ class CastBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._casting_tab = casting_tab
     self._output_dir = cast_platform_backend.output_dir
     self._receiver_name = None
+    self._runtime_exe = cast_platform_backend.runtime_exe
 
   @property
   def log_file_path(self):

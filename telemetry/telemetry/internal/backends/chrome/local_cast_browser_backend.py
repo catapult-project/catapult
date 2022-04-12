@@ -97,8 +97,8 @@ class LocalCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
         browser_directory=browser_directory,
         profile_directory=profile_directory,
         casting_tab=casting_tab)
-    self._web_runtime = CastRuntime(cast_platform_backend.output_dir,
-                                    cast_platform_backend.runtime_exe)
+    self._web_runtime = CastRuntime(self._output_dir,
+                                    self._runtime_exe)
 
   def _ReadReceiverName(self):
     if not self._receiver_name:

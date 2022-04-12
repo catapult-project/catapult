@@ -15,18 +15,19 @@ from telemetry.internal.forwarders import cast_forwarder
 # _CAST_DEPLOY_PATH is relative to _CAST_ROOT
 _CAST_DEPLOY_PATH = 'data/debug/google'
 _CAST_ROOT = '/apps/castshell'
+_CWR_ZIP = 'core_runtime_package.zip'
 
 
 class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
   def __init__(self, cast_platform_backend, browser_options,
                browser_directory, profile_directory, casting_tab):
-    self._ip_addr = cast_platform_backend.ip_addr
     super(RemoteCastBrowserBackend, self).__init__(
         cast_platform_backend,
         browser_options=browser_options,
         browser_directory=browser_directory,
         profile_directory=profile_directory,
         casting_tab=casting_tab)
+    self._ip_addr = cast_platform_backend.ip_addr
 
   def _CreateForwarderFactory(self):
     return cast_forwarder.CastForwarderFactory(self._ip_addr)
@@ -79,13 +80,20 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
     self._StopSDKCast()
     self._StopConjure()
 
-  def _GetCastDirSSHSession(self):
-    """Get ssh session with _CAST_ROOT as root and _CAST_DEPLOY_PATH as cwd."""
+  def _GetCastDirSSHSession(self, overwrite=False):
+    """
+    Get ssh session with _CAST_ROOT as root and _CAST_DEPLOY_PATH as cwd.
+
+    Args:
+      overwrite: if set to True, remove and recreate _CAST_DEPLOY_PATH.
+    """
     ssh = self._platform_backend.GetSSHSession()
     self._SendCommand(ssh, 'su', ['Password:'])
     self._SendCommand(ssh, 'root')
     self._SendCommand(ssh, 'setenforce 0')
     self._SendCommand(ssh, 'chroot %s' % _CAST_ROOT)
+    if overwrite:
+      self._SendCommand(ssh, 'rm -rf %s' % _CAST_DEPLOY_PATH)
     self._SendCommand(ssh, 'mkdir -p %s' % _CAST_DEPLOY_PATH)
     self._SendCommand(ssh, 'cd %s' % _CAST_DEPLOY_PATH)
     return ssh
@@ -108,13 +116,17 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
         logfile=sys.stdout.buffer)
 
   def _InstallCastCore(self):
-    ssh = self._GetCastDirSSHSession()
+    ssh = self._GetCastDirSSHSession(overwrite=True)
     cast_core_tgz = 'sdk_runtime_vizio_castos_armv7a.tgz'
     self._ScpToDevice(os.path.join(self._output_dir, cast_core_tgz),
                       os.path.join(_CAST_ROOT, _CAST_DEPLOY_PATH))
-    if self._CheckExistenceOnDevice(ssh, 'cast_core'):
-      self._SendCommand(ssh, 'rm -rf cast_core')
-    self._SendCommand(ssh, 'gzip -d %s' % cast_core_tgz)
+
+    # gzip command requires a separate ssh session.
+    gz_ssh = self._platform_backend.GetSSHSession()
+    self._SendCommand(gz_ssh, 'cd %s' % os.path.join(_CAST_ROOT,
+                                                     _CAST_DEPLOY_PATH))
+    self._SendCommand(gz_ssh, 'gzip -d %s' % cast_core_tgz)
+
     cast_core_tar = cast_core_tgz.replace('tgz', 'tar')
     self._SendCommand(ssh, 'tar xf %s' % cast_core_tar)
     self._SendCommand(ssh, 'rm -rf %s' % cast_core_tar)
@@ -138,23 +150,24 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
       self._SendCommand(ssh, 'rm -rf cast_runtime')
     self._SendCommand(ssh, 'mkdir cast_runtime && chmod 0755 cast_runtime')
     self._ScpToDevice(
-        self._runtime_exe,
+        os.path.join(self._runtime_exe, _CWR_ZIP),
         os.path.join(deploy_path, 'cast_runtime'))
     self._SendCommand(
         ssh,
         'cd cast_runtime && unzip %(cwr)s && rm %(cwr)s' %
-        {'cwr': os.path.basename(self._runtime_exe)})
+        {'cwr': _CWR_ZIP})
     self._SendCommand(
         ssh,
         'find . -type f | xargs chmod 0644 && ' \
         'chmod 0755 core_runtime dumpstate lib/*')
 
   @retry_util.RetryOnException(pexpect.exceptions.TIMEOUT, retries=3)
-  def _SetReceiverName(self, env_var):
+  def _SetReceiverName(self, env_var, retries=None):
     """Sets the receiver name to Cast[self._ip_addr]"""
+    del retries # Handled by decorator.
     rename_ssh = self._GetCastDirSSHSession()
     rename_command = env_var + ['./cast_core/bin/cast_control_cli']
-    self._SendCommand(rename_ssh, rename_command,
+    self._SendCommand(rename_ssh, ' '.join(rename_command),
                       ['.*Cast control is connected.*'])
     rename_ssh.sendline('n Cast%s' % self._ip_addr)
 
@@ -167,11 +180,10 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
         self.browser.platform.GetOSName(),
         self.browser.platform.GetArchName())
     self._cast_core_process = self._GetCastDirSSHSession()
-    self._SendCommand(self._cast_core_process, 'cd cast_core')
     env_var = [
         'LD_LIBRARY_PATH=/system/lib:/lib',
         'CAST_OEM_ROOT=__empty__'
-        'HOME=%s' % os.path.join('/', _CAST_DEPLOY_PATH),
+        'CAST_HOME=%s' % os.path.join('/', _CAST_DEPLOY_PATH, 'cast_home'),
     ]
     cast_core_command = env_var + [
         './run_cast.sh', 'core',
@@ -179,11 +191,10 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
     ]
     self._cast_core_process.sendline(' '.join(cast_core_command))
 
-    self._SetReceiverName(env_var)
-
     self._browser_process = self._GetCastDirSSHSession()
     runtime_command = env_var + ['./run_cast.sh', 'rt']
     self._browser_process.sendline(' '.join(runtime_command))
+    self._SetReceiverName(env_var)
     self._ReadReceiverName()
     self._WaitForSink()
     self._casting_tab.action_runner.Navigate('about:blank')
