@@ -138,6 +138,7 @@ class _FindIsolateExecution(execution.Execution):
       return
 
     if self._build:
+      logging.debug('Checking build status for: %s', self._build)
       self._CheckBuildStatus()
       return
 
@@ -231,7 +232,10 @@ class _FindIsolateExecution(execution.Execution):
       # Request a build!
       buildbucket_info = RequestBuild(self._builder_name, self._change,
                                       self.bucket, self.build_tags)
-      self._build = buildbucket_info['build']['id']
+      if utils.IsRunningBuildBucketV2():
+        self._build = buildbucket_info['id']
+      else:
+        self._build = buildbucket_info['build']['id']
       self._previous_builds[self._change] = self._build
 
 

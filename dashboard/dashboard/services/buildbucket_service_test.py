@@ -17,7 +17,8 @@ from dashboard.common import utils
 _BUILD_PARAMETERS = {
     'builder_name': 'dummy_builder',
     'properties': {
-        'bisect_config': {}
+        'bisect_config': {},
+        'patch_project': 'patch_project_x'
     }
 }
 
@@ -65,18 +66,42 @@ class BuildbucketServiceTest(unittest.TestCase):
   @mock.patch('uuid.uuid4', _mock_uuid)
   @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: True)
   def testPutV2(self):
+    mock_hash = '1234567890123456789012345678901234567890'
+    gitile_buildset = 'buildset:commit/gitiles/host/project/name/+/' + mock_hash
+    patch_buildset = 'buildset:patch/gerrit/host/7654321/8'
+    patch_buildset_2 = 'buildset:patch/gerrit/host/8765432/9'
     expected_body = {
-        'request_id': 'mock uuid',
+        'requestId': 'mock uuid',
         'builder': {
             'project': 'chrome',
             'bucket': 'bucket_name',
             'builder': _BUILD_PARAMETERS['builder_name'],
         },
-        'tags': [{'key': 'buildset', 'value': 'foo'}],
+        'tags': [{
+            'key': 'foo',
+            'value': 'bar'
+        }],
         'properties': _BUILD_PARAMETERS.get('properties', {}),
+        'gerritChanges': [{
+            "host": 'host',
+            "change": '7654321',
+            "patchset": '8',
+            "project": 'patch_project_x'
+        }, {
+            "host": 'host',
+            "change": '8765432',
+            "patchset": '9',
+            "project": 'patch_project_x'
+        }],
+        'gitilesCommit': {
+            "host": 'host',
+            "project": 'project/name',
+            "id": mock_hash,
+            "ref": "refs/heads/main"
+        }
     }
-    response = buildbucket_service.Put('luci.chrome.bucket_name',
-                                       ['buildset:foo'],
+    tags = [gitile_buildset, patch_buildset, patch_buildset_2, 'foo:bar']
+    response = buildbucket_service.Put('luci.chrome.bucket_name', tags,
                                        _BUILD_PARAMETERS)
     self._AssertCorrectResponse(response)
     self._AssertRequestV2MadeOnce(

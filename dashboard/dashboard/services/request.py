@@ -85,7 +85,10 @@ def Request(url,
   if body:
     # JSON-encode the body.
     kwargs['body'] = json.dumps(body)
-    kwargs['headers'] = {'Content-Type': 'application/json'}
+    kwargs['headers'] = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    }
 
   if use_cache:
     content = memcache.get(key=url)

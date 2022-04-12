@@ -69,7 +69,10 @@ class SuccessTest(_RequestTest):
         'https://example.com?url_param_1=value_1&url_param_2=value_2',
         method='POST',
         body='"a string"',
-        headers={'Content-Type': 'application/json'})
+        headers={
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        })
     self.assertEqual(response, 'response')
 
 
