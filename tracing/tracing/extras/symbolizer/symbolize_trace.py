@@ -969,6 +969,7 @@ class Trace(NodeWrapper):
     self._version = None
     self._is_chromium = True
     self._is_64bit = False
+    self._os_arch = None
     self._is_win = False
     self._is_mac = False
     self._is_linux = False
@@ -1004,6 +1005,7 @@ class Trace(NodeWrapper):
       self._is_64bit = (
           re.search('x86_64', metadata['os-arch'], re.IGNORECASE) and
           not re.search('WOW64', metadata['user-agent'], re.IGNORECASE))
+      self._os_arch = metadata['os-arch']
 
     # Android traces produced via 'chrome://inspect/?tracing#devices' are
     # just list of events.
@@ -1112,6 +1114,10 @@ class Trace(NodeWrapper):
   @property
   def os(self):
     return self._os
+
+  @property
+  def os_arch(self):
+    return self._os_arch
 
   @property
   def is_chromium(self):
@@ -1298,7 +1304,8 @@ class BreakpadSymbolsModule(object):
 class Symbolizer(object):
   """Encapsulates platform-specific symbolization logic."""
 
-  def __init__(self, addr2line_executable):
+  def __init__(self, addr2line_executable, os_arch):
+    self._os_arch = os_arch
     self.is_mac = sys.platform == 'darwin'
     self.is_win = sys.platform == 'win32'
     if self.is_mac:
@@ -1352,7 +1359,8 @@ class Symbolizer(object):
         for address in symfile.frames_by_address.keys():
           address_file.write('{:x} '.format(address + load_address))
 
-      cmd = [self.symbolizer_path, '-arch', 'x86_64', '-l',
+      architecture = 'arm64e' if self._os_arch == 'arm64' else 'x86_64'
+      cmd = [self.symbolizer_path, '-arch', architecture, '-l',
              '0x%x' % load_address, '-o', symfile.symbolizable_path,
              '-f', address_file_path]
       output_array = six.ensure_str(subprocess.check_output(cmd)).split('\n')
@@ -1835,17 +1843,17 @@ def main(args):
   if options.frame_as_object_type and not options.is_cast:
     sys.exit("Frame-as-object-type is only supported for cast.")
 
-  symbolizer = Symbolizer(options.addr2line_executable)
-  if (symbolizer.symbolizer_path is None and
-      not options.use_breakpad_symbols):
-    sys.exit("Can't symbolize - no %s in PATH." % symbolizer.binary)
-
   trace_file_path = options.file
 
   print('Reading trace file...')
   with OpenTraceFile(trace_file_path, 'r') as trace_file:
     trace = Trace(json.load(trace_file), options.frame_as_object_type)
   print('Trace loaded for %s/%s' % (trace.os, trace.version))
+
+  symbolizer = Symbolizer(options.addr2line_executable, trace.os_arch)
+  if (symbolizer.symbolizer_path is None and
+      not options.use_breakpad_symbols):
+    sys.exit("Can't symbolize - no %s in PATH." % symbolizer.binary)
 
   trace.is_chromium = options.is_local_build
 
