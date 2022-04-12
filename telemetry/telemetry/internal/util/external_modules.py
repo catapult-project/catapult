@@ -60,5 +60,5 @@ def ImportOptionalModule(module):
     if 'cannot import name' in str(e):
       print('Possible circular dependency!')
       raise
-    logging.warning('Unable to import %s due to: %s', module, e)
+    logging.info('Unable to import %s due to: %s', module, e)
     return None
