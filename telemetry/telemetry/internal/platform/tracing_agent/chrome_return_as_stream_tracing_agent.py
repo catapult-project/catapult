@@ -38,9 +38,7 @@ class ChromeReturnAsStreamTracingAgent(chrome_tracing_agent.ChromeTracingAgent):
   def IsSupported(cls, platform_backend):
     # TODO(crbug.com/1279968): Workaround to enable streaming for some fuchsia
     # platforms while progress is made on others.
-    return (platform_backend.GetOSName() != 'fuchsia' or
-            platform_backend.GetDeviceTypeName() not in
-            chrome_tracing_agent.NON_STREAM_FUCHSIA_BOARDS)
+    return True
 
   def _GetTransferMode(self):
     return 'ReturnAsStream'
