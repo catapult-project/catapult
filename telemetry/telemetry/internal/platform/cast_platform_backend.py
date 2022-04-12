@@ -49,7 +49,9 @@ class CastPlatformBackend(platform_backend.PlatformBackend):
     return self._ip_addr
 
   def GetSSHSession(self):
-    ssh = pxssh.pxssh()
+    ssh = pxssh.pxssh(options={
+        'StrictHostKeyChecking': 'no',
+        'UserKnownHostsFile': '/dev/null',})
     ssh.login(self._ip_addr, username='root', password='root')
     return ssh
 

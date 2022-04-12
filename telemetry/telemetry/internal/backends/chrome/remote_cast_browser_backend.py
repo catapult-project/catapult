@@ -32,11 +32,6 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
   def _CreateForwarderFactory(self):
     return cast_forwarder.CastForwarderFactory(self._ip_addr)
 
-  def _ReadReceiverName(self):
-    if not self._cast_core_process:
-      return None
-    return 'Cast%s' % self._ip_addr
-
   def _SendCommand(self, ssh, command, prompt=None):
     """Uses ssh session to send command.
 
@@ -169,7 +164,8 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
     rename_command = env_var + ['./cast_core/bin/cast_control_cli']
     self._SendCommand(rename_ssh, ' '.join(rename_command),
                       ['.*Cast control is connected.*'])
-    rename_ssh.sendline('n Cast%s' % self._ip_addr)
+    self._receiver_name = 'Cast%s' % self._ip_addr
+    rename_ssh.sendline('n %s' % self._receiver_name)
 
   def Start(self, startup_args):
     self._StopCast()
@@ -195,7 +191,6 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
     runtime_command = env_var + ['./run_cast.sh', 'rt']
     self._browser_process.sendline(' '.join(runtime_command))
     self._SetReceiverName(env_var)
-    self._ReadReceiverName()
     self._WaitForSink()
     self._casting_tab.action_runner.Navigate('about:blank')
     self._casting_tab.action_runner.tab.StartTabMirroring(self._receiver_name)
