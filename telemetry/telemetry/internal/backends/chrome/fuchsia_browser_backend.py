@@ -202,6 +202,14 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def Background(self):
     raise NotImplementedError
 
+  def _CloseOnDeviceBrowsers(self):
+    if self.browser_type == WEB_ENGINE_SHELL:
+      close_cmd = ['killall', 'web_instance.cmx']
+    else:
+      close_cmd = ['killall', 'chrome_v1.cmx']
+    self._command_runner.RunCommand(
+        close_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
   def Close(self):
     super(FuchsiaBrowserBackend, self).Close()
 
@@ -212,12 +220,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._browser_log_proc.kill()
     if self._symbolizer_proc:
       self._symbolizer_proc.kill()
-    if self.browser_type == WEB_ENGINE_SHELL:
-      close_cmd = ['killall', 'web_instance.cmx']
-    else:
-      close_cmd = ['killall', 'chrome_v1.cmx']
-    self._command_runner.RunCommand(
-        close_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    self._CloseOnDeviceBrowsers()
     self._browser_process = None
     self._browser_log_proc = None
 
@@ -228,8 +231,10 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def GetStandardOutput(self):
     if self._browser_log_proc:
-      # Make sure there is something to read.
       self._browser_log_proc.terminate()
+      self._CloseOnDeviceBrowsers()
+
+      # Make sure there is something to read.
       if select.select([self._browser_log_proc.stderr], [], [], 0.0)[0]:
         self._browser_log += self._browser_log_proc.stderr.read()
     return self._browser_log
