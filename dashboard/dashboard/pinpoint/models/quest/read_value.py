@@ -24,6 +24,7 @@ from dashboard.services import isolate
 from tracing.value import histogram_set
 from tracing.value.diagnostics import diagnostic_ref
 from tracing.value.diagnostics import reserved_infos
+import six
 
 
 class ReadValue(quest.Quest):
@@ -305,7 +306,7 @@ def _GetValuesOrStatistic(statistic, hist):
 
 def IsWindows(arguments):
   dimensions = arguments.get('dimensions', ())
-  if isinstance(dimensions, basestring):
+  if isinstance(dimensions, six.string_types):
     dimensions = json.loads(dimensions)
   for dimension in dimensions:
     if dimension['key'] == 'os' and dimension['value'].startswith('Win'):

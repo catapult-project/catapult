@@ -10,6 +10,7 @@ import copy
 import json
 
 from dashboard.pinpoint.models.quest import run_telemetry_test
+import six
 
 _DEFAULT_EXTRA_ARGS = [
     '-d',
@@ -32,7 +33,7 @@ class RunWebEngineTelemetryTest(run_telemetry_test.RunTelemetryTest):
                             cls)._ExtraTestArgs(arguments)
     image_path = (None, None)
     dimensions = arguments.get('dimensions')
-    if isinstance(dimensions, basestring):
+    if isinstance(dimensions, six.string_types):
       dimensions = json.loads(dimensions)
     for key_value in dimensions:
       if key_value['key'] == 'device_type':

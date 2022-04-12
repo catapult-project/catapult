@@ -20,6 +20,7 @@ from tracing.value import histogram_set
 from tracing.value import histogram as histogram_module
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
+import six
 
 _BASE_ARGUMENTS_HISTOGRAMS = {'benchmark': 'speedometer'}
 _BASE_ARGUMENTS_GRAPH_JSON = {
@@ -209,7 +210,7 @@ class _ReadValueExecutionTest(unittest.TestCase):
   def assertReadValueError(self, execution, exception):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
-    self.assertIsInstance(execution.exception['traceback'], basestring)
+    self.assertIsInstance(execution.exception['traceback'], six.string_types)
     self.assertIn(exception, execution.exception['traceback'])
 
   def assertReadValueSuccess(self, execution):

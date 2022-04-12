@@ -18,6 +18,7 @@ from dashboard.pinpoint.models.change import repository as repository_module
 from dashboard.services import gitiles_service
 
 from dashboard.common import utils
+import six
 
 _REPO_EXCLUSION_KEY = 'pinpoint_repo_exclusion_map'
 
@@ -191,7 +192,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
                 or the git hash is not valid.
       ValueError: The URL has an unrecognized format.
     """
-    if isinstance(data, basestring):
+    if isinstance(data, six.string_types):
       return cls.FromUrl(data)
     else:
       return cls.FromDict(data)

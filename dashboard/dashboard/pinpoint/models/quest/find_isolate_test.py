@@ -17,6 +17,7 @@ from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint.models.change import change_test
 from dashboard.pinpoint.models.quest import find_isolate
 from dashboard.common import utils
+import six
 
 FakeJob = collections.namedtuple('Job',
                                  ['job_id', 'url', 'comparison_mode', 'user'])
@@ -77,7 +78,7 @@ class _FindIsolateExecutionTest(test.TestCase):
   def assertExecutionFailure(self, execution, exception_class):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
-    self.assertIsInstance(execution.exception['traceback'], basestring)
+    self.assertIsInstance(execution.exception['traceback'], six.string_types)
     last_exception_line = execution.exception['traceback'].splitlines()[-1]
     self.assertTrue(last_exception_line.startswith(exception_class.__name__))
     self.assertEqual(execution.result_arguments, {})

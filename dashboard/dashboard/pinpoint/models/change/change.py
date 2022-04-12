@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import collections
 import json
+import six
 
 try:
   from itertools import zip_longest
@@ -164,7 +165,7 @@ class Change(
 
   @classmethod
   def FromData(cls, data):
-    if isinstance(data, basestring):
+    if isinstance(data, six.string_types):
       return cls.FromUrl(data)
     else:
       return cls.FromDict(data)

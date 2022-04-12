@@ -11,6 +11,7 @@ import traceback
 from oauth2client import client
 
 from dashboard.pinpoint.models import errors
+import six
 
 
 class Execution(object):
@@ -81,7 +82,7 @@ class Execution(object):
   # crbug.com/971370
   def __setstate__(self, state):
     self.__dict__ = state  # pylint: disable=attribute-defined-outside-init
-    if isinstance(self._exception, basestring):
+    if isinstance(self._exception, six.string_types):
       self._exception = {
           'message': self._exception.splitlines()[-1],
           'traceback': self._exception
@@ -94,7 +95,7 @@ class Execution(object):
         'details': self._AsDict(),
     }
 
-    if isinstance(self._exception, basestring):
+    if isinstance(self._exception, six.string_types):
       d['exception'] = {
           'message': self._exception.splitlines()[-1],
           'traceback': self._exception

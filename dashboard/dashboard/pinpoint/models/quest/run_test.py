@@ -22,6 +22,7 @@ from dashboard.pinpoint.models.quest import quest
 from dashboard.services import swarming
 from dashboard.services import crrev_service
 from dashboard.services.request import NotFoundError
+import six
 
 _TESTER_SERVICE_ACCOUNT = (
     'chrome-tester@chops-service-accounts.iam.gserviceaccount.com')
@@ -219,7 +220,7 @@ class RunTest(quest.Quest):
     dimensions = arguments.get('dimensions')
     if not dimensions:
       raise TypeError('Missing a "dimensions" argument.')
-    if isinstance(dimensions, basestring):
+    if isinstance(dimensions, six.string_types):
       dimensions = json.loads(dimensions)
     if not any(dimension['key'] == 'pool' for dimension in dimensions):
       raise ValueError('Missing a "pool" dimension.')
