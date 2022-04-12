@@ -38,6 +38,7 @@ _PROJECT_ID_KEY = 'project_id'
 _DEFAULT_CUSTOM_METRIC_VAL = 1
 OAUTH_SCOPES = ('https://www.googleapis.com/auth/userinfo.email',)
 OAUTH_ENDPOINTS = ['/api/', '/add_histograms', '/add_point', '/uploads']
+_CACHE_TIME = 60*60*2 # 2 hours
 
 _AUTOROLL_DOMAINS = (
     'chops-service-accounts.iam.gserviceaccount.com',
@@ -530,7 +531,7 @@ def GetCachedIsInternalUser(email):
 
 
 def SetCachedIsInternalUser(email, value):
-  memcache.set(_IsInternalUserCacheKey(email), value, time=60 * 60 * 24)
+  memcache.set(_IsInternalUserCacheKey(email), value, time=_CACHE_TIME)
 
 
 def GetCachedIsAdministrator(email):
@@ -538,7 +539,7 @@ def GetCachedIsAdministrator(email):
 
 
 def SetCachedIsAdministrator(email, value):
-  memcache.set(_IsAdministratorUserCacheKey(email), value, time=60 * 60 * 24)
+  memcache.set(_IsAdministratorUserCacheKey(email), value, time=_CACHE_TIME)
 
 
 def _IsInternalUserCacheKey(email):
@@ -614,7 +615,7 @@ def GetCachedIsGroupMember(identity, group):
 
 def SetCachedIsGroupMember(identity, group, value):
   memcache.set(
-      _IsGroupMemberCacheKey(identity, group), value, time=60 * 60 * 24)
+      _IsGroupMemberCacheKey(identity, group), value, time=_CACHE_TIME)
 
 
 def _IsGroupMemberCacheKey(identity, group):
