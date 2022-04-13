@@ -309,6 +309,7 @@ class VinnUnittest(unittest.TestCase):
         vinn.ExecuteJsString('console.time("AA")').decode('utf-8'),
         '')
 
+  @unittest.skip('crbug.com/1315752')
   def testConsoleTimeEndOutput(self):
     output = vinn.ExecuteJsString(
         'console.time("AA");console.timeEnd("AA")').decode('utf-8')

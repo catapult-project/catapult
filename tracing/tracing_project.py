@@ -25,7 +25,7 @@ def GetDependencyPaths():
       p.catapult_path,
       p.py_vulcanize_path,
       p.vinn_path,
-      p.protobuf_path,
+      p.protobuf_py3_path if sys.version_info[0] >= 3 else p.protobuf_path,
       os.path.join(p.catapult_third_party_path, 'WebOb'),
       os.path.join(p.catapult_third_party_path, 'Paste'),
       os.path.join(p.catapult_third_party_path, 'six'),
@@ -82,6 +82,8 @@ class TracingProject(object):
   # the gae_ts_mon protobuf lib for its tests, so let's do the same for tracing.
   protobuf_path = os.path.join(
       catapult_third_party_path, 'gae_ts_mon', 'gae_ts_mon', 'protobuf')
+  protobuf_py3_path = os.path.join(
+      catapult_third_party_path, 'gae_ts_mon', 'gae_ts_mon', 'protobuf-3.20.0')
 
   tracing_third_party_path = os.path.join(tracing_root_path, 'third_party')
   py_vulcanize_path = os.path.join(common_root_path, 'py_vulcanize')
