@@ -225,25 +225,6 @@ class FromDictTest(unittest.TestCase):
     with self.assertRaises(TypeError):
       run_telemetry_test.RunTelemetryTest.FromDict(arguments)
 
-  def testStartupBenchmarkRepeatCount(self):
-    arguments = dict(_BASE_ARGUMENTS)
-    arguments['benchmark'] = 'start_with_url.warm.startup_pages'
-    quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
-
-    extra_args = [
-        '-d',
-        '--benchmarks',
-        'start_with_url.warm.startup_pages',
-        '--pageset-repeat',
-        '2',
-        '--browser',
-        'release',
-    ] + _COMBINED_DEFAULT_EXTRA_ARGS
-    expected = run_telemetry_test.RunTelemetryTest(
-        'server', run_test_test.DIMENSIONS, extra_args, _BASE_SWARMING_TAGS,
-        _TELEMETRY_COMMAND, 'out/Release')
-    self.assertEqual(quest, expected)
-
   def testWebview(self):
     arguments = dict(_BASE_ARGUMENTS)
     arguments['browser'] = 'android-webview'
