@@ -55,7 +55,10 @@ def CopyTraceDataFromHTMLFilePath(html_file_handle, trace_path,
     saved_path = trace_path if i == 0 else '%s.%d' % (trace_path, i)
     saved_paths.append(saved_path)
     with open(saved_path, 'wb' if gzipped_output else 'w') as trace_file:
-      trace_file.write(trace_data.read())
+      if gzipped_output:
+        trace_file.write(trace_data.read())
+      else:
+        trace_file.write(trace_data.read().decode("utf-8"))
   return saved_paths
 
 
