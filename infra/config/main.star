@@ -198,7 +198,7 @@ try_builder("Catapult Mac Tryserver", "Mac", dimensions = {"cpu": "x86-64"}, pro
 
 # TODO(crbug/1271700): Testing if dependency issues are resolved. Disable if that's not the case.
 try_builder("Catapult Mac M1 Tryserver Py2", "Mac", dimensions = {"cpu": "arm"}, experiment = 100)
-try_builder("Catapult Mac M1 Tryserver", "Mac", dimensions = {"cpu": "arm"}, properties = {"use_python3": True}, experiment = 100)
+try_builder("Catapult Mac M1 Tryserver", "Mac", dimensions = {"cpu": "arm"}, properties = {"use_python3": True})
 
 try_builder("Catapult Android Tryserver", "Android", dimensions = {"device_type": "bullhead"}, properties = {"platform": "android", "use_python3": True})
 try_builder("Catapult Android Tryserver Py2", "Android", dimensions = {"device_type": "bullhead"}, properties = {"platform": "android"})
