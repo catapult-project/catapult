@@ -174,7 +174,14 @@ class _FindIsolateExecution(execution.Execution):
     self._Complete(result_arguments=result_arguments)
     return True
 
+
   def _CheckBuildStatus(self):
+    if utils.IsRunningBuildBucketV2():
+      self._CheckBuildStatusV2()
+    else:
+      self._CheckBuildStatusV1()
+
+  def _CheckBuildStatusV1(self):
     """Checks on the status of a previously requested build.
 
     Raises:
@@ -191,6 +198,36 @@ class _FindIsolateExecution(execution.Execution):
       raise errors.BuildFailed(build['failure_reason'])
     if build['result'] == 'CANCELED':
       raise errors.BuildCancelled(build['cancelation_reason'])
+
+    # The build succeeded, and should now be in the isolate cache.
+    # If it is, this will call self._Complete()
+    if not self._CheckIsolateCache():
+      raise errors.BuildIsolateNotFound()
+
+  def _CheckBuildStatusV2(self):
+    """Checks on the status of a previously requested build.
+
+    Raises:
+      BuildError: The build failed, was canceled, or didn't produce an isolate.
+    """
+    job_status = buildbucket_service.GetJobStatus(self._build)
+    logging.debug('buildbucket response V2: %s', job_status)
+
+    build_id = job_status.get('id', '')
+    self._build_url = utils.GetBuildbucketUrl(build_id)
+
+    build_status = job_status.get('status', '')
+    if build_status in ('SCHEDULED', 'STARTED'):
+      return
+    if build_status == 'FAILURE':
+      raise errors.BuildFailed('BUILD_FAILURE')
+    if build_status == 'INFRA_FAILURE':
+      if 'timeout' in job_status.get('statusDetails', {}):
+        raise errors.BuildCancelled('TIMEOUT')
+      else:
+        raise errors.BuildFailed('INFRA_FAILURE')
+    if build_status == 'CANCELED':
+      raise errors.BuildCancelled('CANCELED_EXPLICITLY')
 
     # The build succeeded, and should now be in the isolate cache.
     # If it is, this will call self._Complete()

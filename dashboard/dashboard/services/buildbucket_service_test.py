@@ -117,9 +117,9 @@ class BuildbucketServiceTest(unittest.TestCase):
   def testGetJobStatusV2(self):
     response = buildbucket_service.GetJobStatus('job_id')
     self._AssertCorrectResponse(response)
-    expected_body = json.dumps({
+    expected_body = {
         'id': 'job_id',
-    })
+    }
     self._AssertRequestV2MadeOnce('GetBuild', method='POST', body=expected_body)
 
 

@@ -14,6 +14,10 @@ import uuid
 from dashboard.services import request
 from dashboard.common import utils
 
+# If we need to use the dev environment of buildbucket, the host will be:
+#    https://cr-buildbucket-dev.appspot.com
+# and the url for the build is:
+#    https://luci-milo-dev.appspot.com/b/<build_id>
 API_BASE_URL = 'https://cr-buildbucket.appspot.com/api/buildbucket/v1/'
 API_BASE_URL2 = 'https://cr-buildbucket.appspot.com/prpc/buildbucket.v2.Builds/'
 
@@ -112,9 +116,8 @@ def GetJobStatusV1(job_id):
 # TODO: Rename to Get().
 def GetJobStatusV2(job_id):
   """Gets the details of a job via buildbucket's API."""
-  body = json.dumps({
-      'id': job_id
-  })
+  body = {'id': job_id}
+  logging.info("bbv2 GetJobStatus body: \n%s\n", json.dumps(body))
   return request.RequestJson(
       API_BASE_URL2 + 'GetBuild', method='POST', body=body)
 

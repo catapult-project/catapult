@@ -428,10 +428,8 @@ class BuildTest(_FindIsolateExecutionTest):
 
     # Check build status.
     get_job_status.return_value = {
-        'build': {
-            'status': 'STARTED',
-            'url': 'build_url',
-        }
+        'id': 'build_id_2',
+        'status': 'STARTED',
     }
     execution.Poll()
 
@@ -440,23 +438,8 @@ class BuildTest(_FindIsolateExecutionTest):
 
     # Look up isolate hash.
     get_job_status.return_value = {
-        'build': {
-            'status':
-                'COMPLETED',
-            'result':
-                'SUCCESS',
-            'url':
-                'build_url',
-            'result_details_json':
-                """{
-                  "properties": {
-                      "got_revision_cp": "refs/heads/master@{#123}",
-                      "isolate_server": "isolate.server",
-                      "swarm_hashes_refs/heads/master(at){#123}_without_patch":
-                          {"telemetry_perf_tests": "isolate git hash"}
-                  }
-              }""",
-        }
+        'id': 'build_id_2',
+        'status': 'SUCCESS',
     }
     isolate.Put((('Mac Builder', change, 'telemetry_perf_tests',
                   'isolate.server', 'isolate git hash'),))
@@ -481,7 +464,7 @@ class BuildTest(_FindIsolateExecutionTest):
             {
                 'key': 'build',
                 'value': 'build_id_2',
-                'url': 'build_url',
+                'url': 'https://ci.chromium.org/b/build_id_2',
             },
             {
                 'key': 'isolate',
@@ -548,6 +531,44 @@ class BuildTest(_FindIsolateExecutionTest):
     self.assertExecutionSuccess(execution_1)
     self.assertExecutionSuccess(execution_2)
 
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: True)
+  def testSimultaneousBuildsV2(self, put, get_job_status):
+    # Two builds started at the same time on the same Change should reuse the
+    # same build request.
+    change = change_test.Change(0)
+    quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
+                                     'luci.bucket')
+    execution_1 = quest.Start(change)
+    execution_2 = quest.Start(change)
+
+    # Request a build.
+    put.return_value = self.FakePutReturn()
+    execution_1.Poll()
+    execution_2.Poll()
+
+    self.assertFalse(execution_1.completed)
+    self.assertFalse(execution_2.completed)
+    self.assertEqual(put.call_count, 1)
+
+    # Check build status.
+    get_job_status.return_value = {'status': 'STARTED'}
+    execution_1.Poll()
+    execution_2.Poll()
+
+    self.assertFalse(execution_1.completed)
+    self.assertFalse(execution_2.completed)
+    self.assertEqual(get_job_status.call_count, 2)
+
+    # Look up isolate hash.
+    get_job_status.return_value = {'status': 'SUCCESS'}
+    isolate.Put((('Mac Builder', change, 'telemetry_perf_tests',
+                  'isolate.server', 'isolate git hash'),))
+    execution_1.Poll()
+    execution_2.Poll()
+
+    self.assertExecutionSuccess(execution_1)
+    self.assertExecutionSuccess(execution_2)
+
   def testBuildFailure(self, put, get_job_status):
     quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
                                      'luci.bucket')
@@ -564,6 +585,24 @@ class BuildTest(_FindIsolateExecutionTest):
             'result': 'FAILURE',
             'failure_reason': 'BUILD_FAILURE',
         }
+    }
+    execution.Poll()
+
+    self.assertExecutionFailure(execution, errors.BuildFailed)
+
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: True)
+  def testBuildFailureV2(self, put, get_job_status):
+    quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
+                                     'luci.bucket')
+    execution = quest.Start(change_test.Change(0))
+
+    # Request a build.
+    put.return_value = self.FakePutReturn()
+    execution.Poll()
+
+    # Check build status.
+    get_job_status.return_value = {
+        'status': 'FAILURE',
     }
     execution.Poll()
 
@@ -586,6 +625,28 @@ class BuildTest(_FindIsolateExecutionTest):
             'cancelation_reason': 'TIMEOUT',
         }
     }
+    execution.Poll()
+
+    self.assertExecutionFailure(execution, errors.BuildCancelled)
+
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: True)
+  def testBuildCanceledV2(self, put, get_job_status):
+    quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
+                                     'luci.bucket')
+    execution = quest.Start(change_test.Change(0))
+
+    # Request a build.
+    put.return_value = self.FakePutReturn()
+    execution.Poll()
+
+    # Check build status.
+    get_job_status.return_value = {
+        'status': 'CANCELED',
+        "statusDetails": {
+            "timeout": {}
+        },
+    }
+
     execution.Poll()
 
     self.assertExecutionFailure(execution, errors.BuildCancelled)
