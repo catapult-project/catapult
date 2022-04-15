@@ -119,7 +119,7 @@ class GerritPatchTest(test.TestCase):
   def testAsDict_MissingPatch(self):
     p = Patch('unknown revision')
     self.get_change.side_effect = gerrit_service.NotFoundError(
-        msg='Change ID not found', content=None)
+        msg='Change ID not found', headers=None, content=None)
     self.assertEqual(
         p.AsDict(), {
             'server': 'https://codereview.com',

@@ -24,8 +24,9 @@ _VULNERABILITY_PREFIX = ")]}'\n"
 
 class RequestError(http_client.HTTPException):
 
-  def __init__(self, msg, content):
+  def __init__(self, msg, headers, content):
     super(RequestError, self).__init__(msg)
+    self.headers = headers
     self.content = content
 
 
@@ -125,12 +126,13 @@ def _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs):
   response, content = http.request(url, **kwargs)
 
   if response['status'] == '404':
+    logging.debug('Response headers: %s, body: %s', response, content)
     raise NotFoundError(
         'HTTP status code %s: %s' % (response['status'], repr(content[0:200])),
-        content)
+        response, content)
   if not response['status'].startswith('2'):
+    logging.debug('Response headers: %s, body: %s', response, content)
     raise RequestError(
         'Failure in request for `%s`; HTTP status code %s: %s' %
-        (url, response['status'], repr(content[0:200])), content)
-
+        (url, response['status'], repr(content[0:200])), response, content)
   return content

@@ -43,7 +43,9 @@ class CommitsHandlerTest(test.TestCase):
     self.assertEqual('abc', data[1]['git_hash'])
 
   @mock.patch.object(
-      commit.Commit, 'CommitRange', side_effect=request.RequestError('abc', ''))
+      commit.Commit,
+      'CommitRange',
+      side_effect=request.RequestError('abc', '', ''))
   @mock.patch.object(commit.Commit, 'FromDict', mock.MagicMock())
   def testPost_Fail(self, _):
     self.testapp.post('/api/commits', status=400)
