@@ -13,6 +13,7 @@ from __future__ import absolute_import
 import collections
 import json
 import logging
+import random
 import shlex
 
 from dashboard.pinpoint.models import errors
@@ -65,6 +66,10 @@ class RunTest(quest.Quest):
     self._canonical_executions = []
     self._execution_counts = collections.defaultdict(int)
 
+    self._bots = None
+    self._assigned_bots = {}
+    self._comparison_mode = None
+
   def __eq__(self, other):
     return (isinstance(other, type(self))
             and self._swarming_server == other._swarming_server
@@ -73,7 +78,10 @@ class RunTest(quest.Quest):
             and self._canonical_executions == other._canonical_executions
             and self._execution_counts == other._execution_counts
             and self._command == other._command
-            and self._relative_cwd == other._relative_cwd)
+            and self._relative_cwd == other._relative_cwd
+            and self._bots == other._bots
+            and self._assigned_bots == other._assigned_bots
+            and self._comparison_mode == other._comparison_mode)
 
   def __str__(self):
     return 'Test'
@@ -99,6 +107,7 @@ class RunTest(quest.Quest):
     if not hasattr(self, '_swarming_tags'):
       self._swarming_tags = {}
     self._swarming_tags.update(SwarmingTagsFromJob(job))
+    self._comparison_mode = job.comparison_mode
 
   def Start(self, change, isolate_server, isolate_hash):
     return self._Start(change, isolate_server, isolate_hash, self._extra_args,
@@ -136,32 +145,56 @@ class RunTest(quest.Quest):
         logging.info('Failed to request commit position with hash: %s',
                      commit_hash)
 
-    if len(self._canonical_executions) <= index:
-      execution = _RunTestExecution(
-          self._swarming_server,
-          self._dimensions,
-          extra_args,
-          isolate_server,
-          isolate_hash,
-          swarming_tags,
-          command=self.command,
-          relative_cwd=self.relative_cwd,
-          execution_timeout_secs=execution_timeout_secs)
-      self._canonical_executions.append(execution)
-    else:
-      execution = _RunTestExecution(
-          self._swarming_server,
-          self._dimensions,
-          extra_args,
-          isolate_server,
-          isolate_hash,
-          swarming_tags,
-          previous_execution=self._canonical_executions[index],
-          command=self.command,
-          relative_cwd=self.relative_cwd,
-          execution_timeout_secs=execution_timeout_secs)
+    dimensions = self._GetDimensions(index)
 
-    return execution
+    return _RunTestExecution(
+        self._swarming_server,
+        dimensions,
+        extra_args,
+        isolate_server,
+        isolate_hash,
+        swarming_tags,
+        command=self.command,
+        relative_cwd=self.relative_cwd,
+        execution_timeout_secs=execution_timeout_secs)
+
+  def _QueryBots(self):
+    # Queries Swarming for the set of bots we can use for this test.
+    if self._bots:
+      return
+
+    dimensions = {p['key']: p['value'] for p in self._dimensions}
+    results = swarming.Swarming(self._swarming_server).Bots().List(
+        dimensions=dimensions, is_dead='FALSE', quarantined='FALSE')
+    if 'items' in results:
+      self._bots = [i['bot_id'] for i in results['items']]
+
+  def _GetBot(self, index):
+    # Returns the same bot for each index,
+    # a random bot matching _dimensions if index doesn't have an entry yet,
+    # or None if something goes wrong
+
+    if index in self._assigned_bots:
+      return self._assigned_bots[index]
+
+    self._QueryBots()
+
+    if self._bots and len(self._bots) > 0:
+      self._assigned_bots[index] = random.choice(self._bots)
+      return self._assigned_bots[index]
+    else:
+      raise errors.SwarmingNoBots()
+
+  def _GetDimensions(self, index):
+    # Adds a bot_id to dimensions
+    if not hasattr(self, '_comparison_mode') or self._comparison_mode != 'try':
+      return self._dimensions
+    dimensions = list(self._dimensions)
+
+    bot_id = self._GetBot(index)
+    if bot_id:
+      dimensions.append({'key': 'id', 'value': bot_id})
+    return dimensions
 
   @classmethod
   def _ComputeCommand(cls, arguments):
@@ -226,7 +259,6 @@ class _RunTestExecution(execution_module.Execution):
                isolate_server,
                isolate_hash,
                swarming_tags,
-               previous_execution=None,
                command=None,
                relative_cwd='out/Release',
                execution_timeout_secs=None):
@@ -237,7 +269,6 @@ class _RunTestExecution(execution_module.Execution):
     self._extra_args = extra_args
     self._isolate_hash = isolate_hash
     self._isolate_server = isolate_server
-    self._previous_execution = previous_execution
     self._relative_cwd = relative_cwd
     self._swarming_server = swarming_server
     self._swarming_tags = swarming_tags
@@ -355,10 +386,6 @@ class _RunTestExecution(execution_module.Execution):
 
   def _StartTask(self):
     """Kick off a Swarming task to run a test."""
-    if (self._previous_execution and not self._previous_execution.bot_id
-        and self._previous_execution.failed):
-      raise errors.SwarmingNoBots()
-
     # TODO(fancl): Seperate cas input from isolate (including endpoint and
     # datastore module)
     if self._IsCasDigest(self._isolate_hash):
