@@ -119,7 +119,7 @@ class UpdateBuildStatusAction(
             payload=self.task.payload)
         return None
 
-    logging.debug('buildbucket response: %s', build)
+    logging.debug('buildbucket task response: %s', build)
 
     # Update the buildbucket result.
     self.task.payload.update({
@@ -212,6 +212,8 @@ class UpdateBuildStatusAction(
     required_keys = {'isolate_server', 'got_revision_cp'}
     missing_keys = required_keys - set(properties)
     if missing_keys:
+      logging.warning('Missing expected keys: %s. Property keys: %s',
+                      missing_keys, set(properties))
       self.task.payload.update({
           'errors': [{
               'reason':
