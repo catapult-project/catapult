@@ -180,7 +180,7 @@ def _ReadVulcanizedHistogramsViewer():
   viewer_path = os.path.join(
       os.path.dirname(__file__), '..', '..', '..',
       'vulcanized_histograms_viewer', 'vulcanized_histograms_viewer.html')
-  with open(viewer_path, 'r') as f:
+  with open(viewer_path, 'rb') as f:
     return f.read()
 
 HistogramMetadata = collections.namedtuple(
