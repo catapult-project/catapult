@@ -19,6 +19,7 @@ from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import compare
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import exploration
+from six.moves import map # pylint: disable=redefined-builtin
 
 # We start with 10 attempts at a given change and double until we reach 160
 # attempts max (that's 4 iterations).

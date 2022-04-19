@@ -21,6 +21,7 @@ from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import job
 from dashboard.pinpoint.models import scheduler
 from dashboard.pinpoint import test
+from six.moves import zip # pylint: disable=redefined-builtin
 
 # This is a very long file.
 # pylint: disable=too-many-lines
@@ -737,7 +738,7 @@ class BugCommentTest(test.TestCase):
         for i in range(1, number_culprits + 1)
     ]
     # Return [(None,c1), (c1,c2), (c2,c3), ...]
-    differences.return_value = zip([None] + changes, changes)
+    differences.return_value = list(zip([None] + changes, changes))
 
     # Ensure culprits are ordered by deriving change results values from commit
     # names.  E.g.:
