@@ -978,7 +978,7 @@ class AdbWrapper(object):
       # before the one in platform-tools 33.0.1, the first arg is ignored for
       # install-multiple. Pass an extra arg in this case to avoid one of the
       # other arguments being ignored.
-      cmd.append('--unused-arg-workaround')
+      cmd.append('unused-arg-workaround')
     if forward_lock:
       cmd.append('-l')
     if reinstall:
