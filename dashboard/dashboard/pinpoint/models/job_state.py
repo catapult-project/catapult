@@ -46,7 +46,8 @@ class JobState(object):
                quests,
                comparison_mode=None,
                comparison_magnitude=None,
-               pin=None):
+               pin=None,
+               initial_attempt_count=None):
     """Create a JobState.
 
     Args:
@@ -57,6 +58,7 @@ class JobState(object):
           to look for. Smaller magnitudes require more repeats.
       quests: A sequence of quests to run on each Change.
       pin: A Change (Commits + Patch) to apply to every Change in this Job.
+      initial_attempt_count: The number of attempts (iterations) to try first.
     """
     # _quests is mutable. Any modification should mutate the existing list
     # in-place rather than assign a new list, because every Attempt references
@@ -74,6 +76,7 @@ class JobState(object):
 
     # A mapping from a Change to a list of Attempts on that Change.
     self._attempts = {}
+    self._initial_attempt_count = initial_attempt_count if initial_attempt_count else MIN_ATTEMPTS
 
   def PropagateJob(self, job):
     """Propagate a Job to every Quest.
@@ -103,7 +106,10 @@ class JobState(object):
     # This algorithm will double the number of attempts, to allow us to get
     # more attempts sooner and getting to better statistical decisions with
     # less iterations.
-    current_attempt_count = max(len(self._attempts[change]), MIN_ATTEMPTS)
+    initial_attempt_count = self._initial_attempt_count if hasattr(
+        self, '_initial_attempt_count') else MIN_ATTEMPTS
+    current_attempt_count = max(
+        len(self._attempts[change]), initial_attempt_count)
     it = 0
     while it != current_attempt_count:
       attempt = attempt_module.Attempt(self._quests, change_with_pin)

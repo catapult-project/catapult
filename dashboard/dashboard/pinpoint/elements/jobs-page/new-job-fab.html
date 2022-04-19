@@ -214,6 +214,12 @@ found in the LICENSE file.
               </div>
             </div>
 
+            <div class="horizontal" hidden="[[isBisectJob(comparisonMode)]]">
+              <paper-input name="initial_attempt_count"
+                           value="{{initial_attempt_count}}"
+                           label="Attempt Count"></paper-input>
+            </div>
+
             <div class="horizontal" hidden="[[!isBisectJob(comparisonMode)]]">
               <div class="column rightPad">
                 <div class="horizontal">
@@ -338,6 +344,10 @@ found in the LICENSE file.
         },
         comparison_magnitude: Number,
         extra_test_args: String,
+        initial_attempt_count: {
+          type: Number,
+          value: 10
+        },
         patch: String,
         statistic: String,
         base_git_hash: {
@@ -462,6 +472,7 @@ found in the LICENSE file.
         this.comparisonMode = job.arguments.comparison_mode;
         this.comparison_magnitude = job.arguments.comparison_magnitude;
         this.extra_test_args = job.arguments.extra_test_args;
+        this.initial_attempt_count = job.arguments.initial_attempt_count;
         this.$.botDropdown.query = job.arguments.configuration;
         this.$.benchmarkDropdown.query = job.arguments.benchmark;
         this.$.storyCasesDropdown.query = job.arguments.story;

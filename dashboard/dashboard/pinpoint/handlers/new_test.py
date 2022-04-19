@@ -164,6 +164,14 @@ class NewTest(_NewTest):
     self.assertEqual(job.state._changes[0].id_string, 'chromium@3')
     self.assertEqual(job.state._changes[1].id_string, 'chromium@3')
 
+  def testDifferentAttemptCount(self):
+    request = dict(_BASE_REQUEST)
+    request['comparison_mode'] = 'try'
+    request['initial_attempt_count'] = '2'
+    response = self.Post('/api/new', request, status=200)
+    job = job_module.JobFromId(json.loads(response.body)['jobId'])
+    self.assertEqual(job.state._initial_attempt_count, 2)
+
   def testComparisonModeTry_ApplyPatch(self):
     request = dict(_BASE_REQUEST)
     request['comparison_mode'] = 'try'

@@ -283,7 +283,8 @@ class Job(ndb.Model):
           priority=None,
           use_execution_engine=False,
           project='chromium',
-          batch_id=None):
+          batch_id=None,
+          initial_attempt_count=None):
     """Creates a new Job, adds Changes to it, and puts it in the Datstore.
 
     Args:
@@ -318,7 +319,8 @@ class Job(ndb.Model):
         quests,
         comparison_mode=comparison_mode,
         comparison_magnitude=comparison_magnitude,
-        pin=pin)
+        pin=pin,
+        initial_attempt_count=initial_attempt_count)
     args = arguments or {}
     job = cls(
         state=state,
@@ -335,8 +337,7 @@ class Job(ndb.Model):
         use_execution_engine=use_execution_engine,
         priority=priority,
         project=project,
-        batch_id=batch_id,
-    )
+        batch_id=batch_id)
 
     # Pull out the benchmark arguments to the top-level.
     job.benchmark_arguments = BenchmarkArguments.FromArgs(args)
