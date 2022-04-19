@@ -15,10 +15,10 @@ class KolmogorovSmirnovTest(unittest.TestCase):
 
   def testBasic(self):
     self.assertAlmostEqual(
-        kolmogorov_smirnov.KolmogorovSmirnov(range(10), range(20, 30)),
+        kolmogorov_smirnov.KolmogorovSmirnov(list(range(10)), list(range(20, 30))),
         1.8879793657162556e-05)
     self.assertAlmostEqual(
-        kolmogorov_smirnov.KolmogorovSmirnov(range(5), range(10)),
+        kolmogorov_smirnov.KolmogorovSmirnov(list(range(5)), list(range(10))),
         0.26680230985258474)
 
   def testDuplicateValues(self):

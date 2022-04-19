@@ -15,10 +15,10 @@ class MannWhitneyUTest(unittest.TestCase):
 
   def testBasic(self):
     self.assertAlmostEqual(
-        mann_whitney_u.MannWhitneyU(range(10), range(20, 30)),
+        mann_whitney_u.MannWhitneyU(list(range(10)), list(range(20, 30))),
         0.00018267179110955002)
     self.assertAlmostEqual(
-        mann_whitney_u.MannWhitneyU(range(5), range(10)), 0.13986357686781267)
+        mann_whitney_u.MannWhitneyU(list(range(5)), list(range(10))), 0.13986357686781267)
 
   def testDuplicateValues(self):
     self.assertAlmostEqual(

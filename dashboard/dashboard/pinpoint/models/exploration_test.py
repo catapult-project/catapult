@@ -111,7 +111,7 @@ class ExplorationTest(unittest.TestCase):
         levels=2)
     for index, change in results:
       changes.insert(index, change)
-    self.assertEqual(changes, range(11))
+    self.assertEqual(changes, list(range(11)))
 
   def testSpeculateHandleUnknown(self):
     on_unknown_mock = mock.MagicMock()
