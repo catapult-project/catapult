@@ -30,7 +30,8 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
     self._ip_addr = cast_platform_backend.ip_addr
 
   def _CreateForwarderFactory(self):
-    return cast_forwarder.CastForwarderFactory(self._ip_addr)
+    addr = "{user}@{addr}".format(user="root", addr=self._ip_addr)
+    return cast_forwarder.CastForwarderFactory(addr)
 
   def _SendCommand(self, ssh, command, prompt=None):
     """Uses ssh session to send command.
