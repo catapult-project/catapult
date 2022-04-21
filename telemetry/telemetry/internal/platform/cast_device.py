@@ -46,8 +46,8 @@ def FindAllAvailableDevices(options):
     if not options.cast_device_ip:
       options.cast_device_ip = os.environ.get('CAST_DEVICE_IP')
     if not options.cast_output_dir:
-      options.cast_output_dir = cast_interface._DEFAULT_CAST_CORE_DIR
+      options.cast_output_dir = cast_interface.DEFAULT_CAST_CORE_DIR
     if not options.cast_runtime_exe:
-      options.cast_runtime_exe = cast_interface._DEFAULT_CWR_EXE
+      options.cast_runtime_exe = cast_interface.DEFAULT_CWR_EXE
   return [CastDevice(options.cast_output_dir, options.cast_runtime_exe,
                      options.cast_device_ip)]

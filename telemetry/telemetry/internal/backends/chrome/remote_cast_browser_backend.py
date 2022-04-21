@@ -8,9 +8,9 @@ import sys
 import pexpect # pylint: disable=import-error
 
 from py_utils import retry_util
+from telemetry.core import cast_interface
 from telemetry.internal.backends.chrome import cast_browser_backend
 from telemetry.internal.backends.chrome import minidump_finder
-from telemetry.internal.forwarders import cast_forwarder
 
 # _CAST_DEPLOY_PATH is relative to _CAST_ROOT
 _CAST_DEPLOY_PATH = 'data/debug/google'
@@ -28,10 +28,6 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
         profile_directory=profile_directory,
         casting_tab=casting_tab)
     self._ip_addr = cast_platform_backend.ip_addr
-
-  def _CreateForwarderFactory(self):
-    addr = "{user}@{addr}".format(user="root", addr=self._ip_addr)
-    return cast_forwarder.CastForwarderFactory(addr)
 
   def _SendCommand(self, ssh, command, prompt=None):
     """Uses ssh session to send command.
@@ -85,7 +81,7 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
     """
     ssh = self._platform_backend.GetSSHSession()
     self._SendCommand(ssh, 'su', ['Password:'])
-    self._SendCommand(ssh, 'root')
+    self._SendCommand(ssh, cast_interface.SSH_PWD)
     self._SendCommand(ssh, 'setenforce 0')
     self._SendCommand(ssh, 'chroot %s' % _CAST_ROOT)
     if overwrite:
@@ -103,11 +99,11 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
     scp_cmd = 'scp %s %s %s' % (
         ' '.join(scp_opts),
         source,
-        'root@%s:%s' % (self._ip_addr, dest),
+        '%s@%s:%s' % (cast_interface.SSH_USER, self._ip_addr, dest),
     )
     pexpect.run(
         scp_cmd,
-        events={'(?i)password:': 'root\n'},
+        events={'(?i)password:': '%s\n' % cast_interface.SSH_PWD},
         timeout=300,
         logfile=sys.stdout.buffer)
 

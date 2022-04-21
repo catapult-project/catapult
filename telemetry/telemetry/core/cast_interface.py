@@ -10,7 +10,8 @@ from telemetry.core import util
 CAST_BROWSERS = [
     'platform_app'
 ]
-
-_DEFAULT_CAST_CORE_DIR = os.path.join(util.GetCatapultDir(), '..', 'cast_core',
-                                      'prebuilts')
-_DEFAULT_CWR_EXE = os.path.join(util.GetCatapultDir(), '..', 'cast_web_runtime')
+SSH_PWD = "user"
+SSH_USER = "user"
+DEFAULT_CAST_CORE_DIR = os.path.join(util.GetCatapultDir(), '..', 'cast_core',
+                                     'prebuilts')
+DEFAULT_CWR_EXE = os.path.join(util.GetCatapultDir(), '..', 'cast_web_runtime')

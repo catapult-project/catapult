@@ -13,7 +13,9 @@ except ImportError as e:
     logging.info('pxssh not supported on Windows')
   pxssh = None
 
+from telemetry.core import cast_interface
 from telemetry.core import platform as telemetry_platform
+from telemetry.internal.forwarders import cast_forwarder
 from telemetry.internal.platform import cast_device
 from telemetry.internal.platform import platform_backend
 
@@ -48,11 +50,17 @@ class CastPlatformBackend(platform_backend.PlatformBackend):
   def ip_addr(self):
     return self._ip_addr
 
+  def _CreateForwarderFactory(self):
+    return cast_forwarder.CastForwarderFactory(self._ip_addr)
+
   def GetSSHSession(self):
     ssh = pxssh.pxssh(options={
         'StrictHostKeyChecking': 'no',
         'UserKnownHostsFile': '/dev/null',})
-    ssh.login(self._ip_addr, username='root', password='root')
+    ssh.login(
+        self._ip_addr,
+        username=cast_interface.SSH_USER,
+        password=cast_interface.SSH_PWD)
     return ssh
 
   def IsRemoteDevice(self):

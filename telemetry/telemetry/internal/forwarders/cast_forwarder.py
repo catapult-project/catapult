@@ -7,6 +7,7 @@ import tempfile
 
 import pexpect # pylint: disable=import-error
 
+from telemetry.core import cast_interface
 from telemetry.core import util
 from telemetry.internal import forwarders
 from telemetry.internal.forwarders import forwarder_utils
@@ -48,7 +49,8 @@ class CastSshForwarder(forwarders.Forwarder):
         '-N',  # Don't execute command
         '-T',  # Don't allocate terminal.
         # Ensure SSH is at least verbose enough to print the allocated port
-        '-o', 'LogLevel=VERBOSE'
+        '-o', 'LogLevel=VERBOSE',
+        '-l', cast_interface.SSH_USER
     ]
     ssh_args.extend(forwarder_utils.GetForwardingArgs(
         local_port, remote_port, self.host_ip,
@@ -58,8 +60,9 @@ class CastSshForwarder(forwarders.Forwarder):
       self._proc = pexpect.spawn(
           'ssh %s %s' % (' '.join(ssh_args), ip_addr), logfile=stderr_file.name)
       self._proc.expect('.*password:')
-      self._proc.sendline('root')
+      self._proc.sendline(cast_interface.SSH_PWD)
       if not remote_port:
+        self._proc.expect('\\d')
         remote_port = forwarder_utils.ReadRemotePort(stderr_file.name)
 
     self._StartedForwarding(local_port, remote_port)
