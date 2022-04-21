@@ -857,3 +857,7 @@ def GetBuildbucketUrl(build_id):
   if build_id:
     return 'https://ci.chromium.org/b/%s' % build_id
   return ''
+
+
+def IsRunningFlask():
+  return False

@@ -6,6 +6,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from dashboard.common import utils
+
 from dashboard.pinpoint.handlers.cancel import Cancel
 from dashboard.pinpoint.handlers.config import Config
 from dashboard.pinpoint.handlers.commit import Commit
@@ -15,7 +17,6 @@ from dashboard.pinpoint.handlers.isolate import Isolate
 from dashboard.pinpoint.handlers.isolate import IsolateCleanup
 from dashboard.pinpoint.handlers.cas import CASReference
 from dashboard.pinpoint.handlers.job import Job
-from dashboard.pinpoint.handlers.jobs import Jobs
 from dashboard.pinpoint.handlers.migrate import Migrate
 from dashboard.pinpoint.handlers.new import New
 from dashboard.pinpoint.handlers.queue_stats import QueueStats
@@ -25,3 +26,8 @@ from dashboard.pinpoint.handlers.results2 import Results2Generator
 from dashboard.pinpoint.handlers.run import Run
 from dashboard.pinpoint.handlers.stats import Stats
 from dashboard.pinpoint.handlers.task_updates import TaskUpdates
+
+if utils.IsRunningFlask():
+  import dashboard.pinpoint.handlers.jobs
+else:
+  from dashboard.pinpoint.handlers.jobs import Jobs

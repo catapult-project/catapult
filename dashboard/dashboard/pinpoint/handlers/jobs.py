@@ -8,12 +8,16 @@ from __future__ import absolute_import
 
 import logging
 import json
-import webapp2
 
 from dashboard.pinpoint.models import job as job_module
 from dashboard.common import utils
 
 from google.appengine.datastore import datastore_query
+
+if utils.IsRunningFlask():
+  from flask import make_response, request
+else:
+  import webapp2
 
 _BATCH_FETCH_TIMEOUT = 200
 _MAX_JOBS_TO_FETCH = 100
@@ -29,23 +33,36 @@ class InvalidInput(Error):
   pass
 
 
-class Jobs(webapp2.RequestHandler):
-  """Shows an overview of recent anomalies for perf sheriffing."""
-
-  def get(self):
+if utils.IsRunningFlask():
+  def JobsHandlerGet():
     try:
-      self.response.out.write(
+      return make_response(
           json.dumps(
               _GetJobs(
-                  self.request.get_all('o'),
-                  self.request.get_all('filter'),
-                  self.request.get('prev_cursor', ''),
-                  self.request.get('next_cursor', ''),
+                  request.args.getlist('o'),
+                  request.args.getlist('filter'),
+                  request.args.get('prev_cursor', ''),
+                  request.args.get('next_cursor', ''),
               )))
     except InvalidInput as e:
-      self.response.set_status(400)
       logging.exception(e)
-      self.response.out.write(json.dumps({'error': str(e)}))
+      return make_response(json.dumps({'error': str(e)}), 400)
+else:
+  class Jobs(webapp2.RequestHandler):
+    def get(self):
+      try:
+        self.response.out.write(
+            json.dumps(
+                _GetJobs(
+                    self.request.get_all('o'),
+                    self.request.get_all('filter'),
+                    self.request.get('prev_cursor', ''),
+                    self.request.get('next_cursor', ''),
+                )))
+      except InvalidInput as e:
+        self.response.set_status(400)
+        logging.exception(e)
+        self.response.out.write(json.dumps({'error': str(e)}))
 
 
 def _GetJobs(options, query_filter, prev_cursor='', next_cursor=''):
