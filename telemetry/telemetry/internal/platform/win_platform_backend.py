@@ -249,8 +249,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       handle = win32api.OpenProcess(mask, False, pid)
       return func(handle)
     except pywintypes.error as e:
-      errcode = e[0]
-      if errcode == 87:
+      if e.winerror == winerror.ERROR_INVALID_PARAMETER:
         raise exceptions.ProcessGoneException()
       raise
     finally:
@@ -354,10 +353,9 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
             win32gui.GetClassName(hwnd).lower().startswith(app_name)):
           hwnds.append(hwnd)
       except pywintypes.error as e:
-        error_code = e[0]
         # Some windows may close after enumeration and before the calls above,
         # so ignore those.
-        if error_code != winerror.ERROR_INVALID_WINDOW_HANDLE:
+        if e.winerror != winerror.ERROR_INVALID_WINDOW_HANDLE:
           raise
       return True
     hwnds = []
