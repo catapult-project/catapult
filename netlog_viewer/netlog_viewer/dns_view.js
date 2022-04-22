@@ -90,8 +90,7 @@ var DnsView = (function() {
       // Fill in the basic cache information.
       var hostResolverCache = hostResolverInfo.cache;
       $(DnsView.CAPACITY_SPAN_ID).innerText = hostResolverCache.capacity;
-      $(DnsView.NETWORK_SPAN_ID).innerText =
-          valueOrDefault(hostResolverCache.network_changes, '');
+      $(DnsView.NETWORK_SPAN_ID).innerText = hostResolverCache.network_changes;
 
       var expiredEntries = 0;
       // Date the cache was logged.  This will be either now, when actively
@@ -104,8 +103,7 @@ var DnsView = (function() {
       }
 
       // Fill in the cache contents table.
-      for (var i = 0; i < hostResolverCache.entries.length; ++i) {
-        var e = hostResolverCache.entries[i];
+      for (const e of hostResolverCache.entries) {
         var tr = addNode($(DnsView.CACHE_TBODY_ID), 'tr');
         var expired = false;
 
@@ -116,11 +114,6 @@ var DnsView = (function() {
         addTextNode(familyCell, addressFamilyToString(e.address_family));
 
         var addressesCell = addNode(tr, 'td');
-
-        // In M87, "error" was replaced with "net_error".
-        // TODO(https://crbug.com/1122054): Remove this once M87 hits stable.
-        if (e.error != undefined)
-          e.net_error = e.error;
 
         if (e.net_error != undefined) {
           var errorText = e.error + ' (' + netErrorToString(e.error) + ')';
@@ -138,7 +131,7 @@ var DnsView = (function() {
         }
 
         var ttlCell = addNode(tr, 'td');
-        addTextNode(ttlCell, valueOrDefault(e.ttl, ''));
+        addTextNode(ttlCell, e.ttl);
 
         var expiresDate = timeutil.convertTimeTicksToDate(e.expiration);
         var expiresCell = addNode(tr, 'td');
@@ -159,7 +152,7 @@ var DnsView = (function() {
         // they were created. If more network changes have happened since an
         // entry was created, the entry is expired.
         var networkChangesCell = addNode(tr, 'td');
-        addTextNode(networkChangesCell, valueOrDefault(e.network_changes, ''));
+        addTextNode(networkChangesCell, e.network_changes);
         if (e.network_changes < hostResolverCache.network_changes) {
           expired = true;
           var expiredSpan = addNode(networkChangesCell, 'span');
@@ -230,8 +223,7 @@ var DnsView = (function() {
       const td = addNode(tr, 'td');
 
       // For lists, display each list entry on a separate line.
-      if (typeof dnsConfig[key] == 'object' &&
-          dnsConfig[key].constructor == Array) {
+      if (Array.isArray(dnsConfig[key])) {
         const strings = dnsConfig[key].map(JSON.stringify);
         addListToNode_(td, strings);
         continue;
@@ -250,14 +242,6 @@ var DnsView = (function() {
   function addListToNode_(node, list) {
     for (var i = 0; i < list.length; ++i)
       addNodeWithText(node, 'div', list[i]);
-  }
-
-  // TODO(mgersh): The |ttl| and |network_changes| properties were introduced in
-  // M59 and may not exist when loading older logs. This can be removed in M62.
-  function valueOrDefault(value, defaultValue) {
-    if (value != undefined)
-      return value;
-    return defaultValue;
   }
 
   return DnsView;
