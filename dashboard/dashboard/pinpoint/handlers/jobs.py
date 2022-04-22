@@ -34,6 +34,7 @@ class InvalidInput(Error):
 
 
 if utils.IsRunningFlask():
+
   def JobsHandlerGet():
     try:
       return make_response(
@@ -48,7 +49,9 @@ if utils.IsRunningFlask():
       logging.exception(e)
       return make_response(json.dumps({'error': str(e)}), 400)
 else:
+
   class Jobs(webapp2.RequestHandler):
+
     def get(self):
       try:
         self.response.out.write(

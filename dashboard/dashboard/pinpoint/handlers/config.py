@@ -8,15 +8,25 @@ from __future__ import absolute_import
 
 from dashboard.api import api_request_handler
 from dashboard.common import bot_configurations
+from dashboard.common import utils
 
+if utils.IsRunningFlask():
 
-# pylint: disable=abstract-method
-class Config(api_request_handler.ApiRequestHandler):
-  """Handler returning site configuration details."""
-
-  def _CheckUser(self):
+  def _CheckUser():
     pass
 
-  def Post(self, *args, **kwargs):
-    del args, kwargs  # Unused.
+  @api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
+  def ConfigHandlerPost():
     return {'configurations': bot_configurations.List()}
+
+else:
+  # pylint: disable=abstract-method
+  class Config(api_request_handler.ApiRequestHandler):
+    """Handler returning site configuration details."""
+
+    def _CheckUser(self):
+      pass
+
+    def Post(self, *args, **kwargs):
+      del args, kwargs  # Unused.
+      return {'configurations': bot_configurations.List()}

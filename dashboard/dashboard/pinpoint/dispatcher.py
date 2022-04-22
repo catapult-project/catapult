@@ -18,6 +18,14 @@ if utils.IsRunningFlask():
   def JobsHandlerGet():
     return handlers.jobs.JobsHandlerGet()
 
+  @APP.route('/api/config', methods=['POST'])
+  def ConfigHandlerPost():
+    return handlers.config.ConfigHandlerPost()
+
+  @APP.route('/api/commit', methods=['POST'])
+  def CommitHandlerPost():
+    return handlers.commit.CommitHandlerPost()
+
 else:
   import webapp2
 

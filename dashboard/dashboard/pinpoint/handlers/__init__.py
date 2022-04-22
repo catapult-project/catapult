@@ -9,8 +9,6 @@ from __future__ import absolute_import
 from dashboard.common import utils
 
 from dashboard.pinpoint.handlers.cancel import Cancel
-from dashboard.pinpoint.handlers.config import Config
-from dashboard.pinpoint.handlers.commit import Commit
 from dashboard.pinpoint.handlers.commits import Commits
 from dashboard.pinpoint.handlers.fifo_scheduler import FifoScheduler
 from dashboard.pinpoint.handlers.isolate import Isolate
@@ -29,5 +27,9 @@ from dashboard.pinpoint.handlers.task_updates import TaskUpdates
 
 if utils.IsRunningFlask():
   import dashboard.pinpoint.handlers.jobs
+  import dashboard.pinpoint.handlers.commit
+  import dashboard.pinpoint.handlers.config
 else:
   from dashboard.pinpoint.handlers.jobs import Jobs
+  from dashboard.pinpoint.handlers.commit import Commit
+  from dashboard.pinpoint.handlers.config import Config
