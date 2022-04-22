@@ -44,9 +44,10 @@ var DnsView = (function() {
   // IDs for special HTML elements in dns_view.html
   DnsView.MAIN_BOX_ID = 'dns-view-tab-content';
 
-  DnsView.INTERNAL_DNS_ENABLED_SPAN_ID = 'dns-view-internal-dns-enabled';
-  DnsView.INTERNAL_DNS_INVALID_CONFIG_SPAN_ID =
-      'dns-view-internal-dns-invalid-config';
+  DnsView.INTERNAL_DNS_ENABLED_FOR_INSECURE_SPAN_ID =
+      'dns-view-internal-dns-enabled-for-insecure';
+  DnsView.INTERNAL_DNS_ENABLED_FOR_SECURE_SPAN_ID =
+      'dns-view-internal-dns-enabled-for-secure';
   DnsView.INTERNAL_DNS_CONFIG_TBODY_ID = 'dns-view-internal-dns-config-tbody';
   DnsView.INTERNAL_DISABLED_DOH_PROVIDERS_UL_ID =
       'dns-view-internal-disabled-doh-providers';
@@ -184,36 +185,49 @@ var DnsView = (function() {
    */
   function displayAsyncDnsConfig_(
       hostResolverInfo, dohProvidersDisabledDueToFeature) {
-    // Clear the table.
+    // Clear the existing values.
+    $(DnsView.INTERNAL_DISABLED_DOH_PROVIDERS_UL_ID).innerHTML = '';
     $(DnsView.INTERNAL_DNS_CONFIG_TBODY_ID).innerHTML = '';
 
-    // Figure out if the internal DNS resolver is disabled or has no valid
-    // configuration information, and update display accordingly.
-    var enabled = hostResolverInfo && hostResolverInfo.dns_config !== undefined;
-    var noConfig =
-        enabled && hostResolverInfo.dns_config.nameservers === undefined;
-    $(DnsView.INTERNAL_DNS_ENABLED_SPAN_ID).innerText = enabled;
-    setNodeDisplay($(DnsView.INTERNAL_DNS_INVALID_CONFIG_SPAN_ID), noConfig);
+    // Determine whether the async resolver is enabled for both Do53 and DoH.
+    // Update the display accordingly.
+    $(DnsView.INTERNAL_DNS_ENABLED_FOR_INSECURE_SPAN_ID).innerText =
+        !!hostResolverInfo?.dns_config?.can_use_insecure_dns_transactions;
+    $(DnsView.INTERNAL_DNS_ENABLED_FOR_SECURE_SPAN_ID).innerText =
+        !!hostResolverInfo?.dns_config?.can_use_secure_dns_transactions;
 
-    // If the internal DNS resolver is disabled or has no valid configuration,
-    // we're done.
-    if (!enabled || noConfig)
+    // Show the list of disabled DoH providers.
+    if (dohProvidersDisabledDueToFeature) {
+      for (let disabledProvider of dohProvidersDisabledDueToFeature) {
+        addNodeWithText(
+            $(DnsView.INTERNAL_DISABLED_DOH_PROVIDERS_UL_ID), 'li',
+            disabledProvider);
+      }
+    }
+
+    // Attempt to display the async resolver's DNS configuration. It may be
+    // relevant if there were any DoH queries.
+    const dnsConfig = hostResolverInfo?.dns_config;
+    if (!dnsConfig)
       return;
 
-    var dnsConfig = hostResolverInfo.dns_config;
+    // Decide the display order for the keys of `dnsConfig`.
+    let keys = Object.keys(dnsConfig).sort();
+    const keysToDrop = [
+      // Nameservers will be re-added at the front later.
+      'nameservers',
+      // These keys have already been rendered outside of the table.
+      'can_use_insecure_dns_transactions',
+      'can_use_secure_dns_transactions',
+    ];
+    keys = keys.filter((k) => !keysToDrop.includes(k));
+    keys.unshift('nameservers');  // Push 'nameservers' to the front.
 
-    // Display nameservers first.
-    var nameserverRow = addNode($(DnsView.INTERNAL_DNS_CONFIG_TBODY_ID), 'tr');
-    addNodeWithText(nameserverRow, 'th', 'nameservers');
-    addListToNode_(addNode(nameserverRow, 'td'), dnsConfig.nameservers);
-
-    // Add everything else in |dnsConfig| to the table.
-    for (var key in dnsConfig) {
-      if (key == 'nameservers')
-        continue;
-      var tr = addNode($(DnsView.INTERNAL_DNS_CONFIG_TBODY_ID), 'tr');
+    // Add selected keys from `dnsConfig` to the table.
+    for (const key of keys) {
+      const tr = addNode($(DnsView.INTERNAL_DNS_CONFIG_TBODY_ID), 'tr');
       addNodeWithText(tr, 'th', key);
-      var td = addNode(tr, 'td');
+      const td = addNode(tr, 'td');
 
       // For lists, display each list entry on a separate line.
       if (typeof dnsConfig[key] == 'object' &&
@@ -224,15 +238,6 @@ var DnsView = (function() {
       }
 
       addTextNode(td, dnsConfig[key]);
-    }
-
-    // Show the list of disabled DoH providers.
-    if (dohProvidersDisabledDueToFeature) {
-      for (let disabledProvider of dohProvidersDisabledDueToFeature) {
-        addNodeWithText(
-            $(DnsView.INTERNAL_DISABLED_DOH_PROVIDERS_UL_ID), 'li',
-            disabledProvider);
-      }
     }
   }
 

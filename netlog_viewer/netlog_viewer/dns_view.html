@@ -7,23 +7,30 @@
       </ul>
 
       <div>
-        <h4>Async DNS Configuration</h4>
+        <h4>
+          Async DNS Configuration
+          <small>
+            [<a href="https://chromium.googlesource.com/chromium/src/+/main/net/dns/README.md#dns"
+                target="blank">//net/dns/README.md#dns</a>]
+          </small>
+        </h4>
         <ul>
-          <li>Internal DNS client enabled:
-            <span id=dns-view-internal-dns-enabled></span>
-            <span id=dns-view-internal-dns-invalid-config class=warning-text style="display: none;">
-              (No valid configuration found)</span>
+          <li>
+            Internal DNS client enabled for insecure queries (Do53):
+            <span id=dns-view-internal-dns-enabled-for-insecure></span>
+          </li>
+          <li>
+            Internal DNS client enabled for secure queries (DoH):
+            <span id=dns-view-internal-dns-enabled-for-secure></span>
+          </li>
+          <li>
+            Disabled DoH providers:
+            <ul id=dns-view-internal-disabled-doh-providers></ul>
           </li>
         </ul>
         <table class="styled-table">
           <tbody id=dns-view-internal-dns-config-tbody></tbody>
         </table>
-        <ul>
-          <li>Disabled DoH providers:
-            <ul id=dns-view-internal-disabled-doh-providers>
-            </ul>
-          </li>
-        </ul>
       </div>
 
       <h4>
