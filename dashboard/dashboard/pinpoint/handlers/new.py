@@ -68,17 +68,11 @@ for test in SUFFIXED_REGULAR_TELEMETRY_TESTS:
 if utils.IsRunningFlask():
 
   def _CheckUser():
-    logging.info('DDEBUG: checking user..')
     if utils.IsDevAppserver():
-      logging.info('DDEBUG: checking user --- 1')
       return
-    logging.info('DDEBUG: checking user --- 2')
-    api_auth.Authorize()  # Here we need to update.
-    logging.info('DDEBUG: checking user --- 3')
+    api_auth.Authorize()
     if not utils.IsTryjobUser():
-      logging.info('DDEBUG: checking user --- 4')
       raise api_request_handler.ForbiddenError()
-    logging.info('DDEBUG: done checking user..')
 
   @api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
   def NewHandlerPost():
@@ -122,34 +116,10 @@ else:
       }
 
 
-def RequestParamsMixed(req):
-  """
-  Returns a dictionary where the values are either single
-  values, or a list of values when a key/value appears more than
-  once in this dictionary.  This is similar to the kind of
-  dictionary often used to represent the variables in a web
-  request.
-  """
-  result = {}
-  multi = {}
-  for key, value in req.form.items(True):
-    if key in result:
-      # We do this to not clobber any lists that are
-      # *actual* values in this dictionary:
-      if key in multi:
-        result[key].append(value)
-      else:
-        result[key] = [result[key], value]
-        multi[key] = None
-    else:
-      result[key] = value
-  return result
-
-
 def _CreateJob(req):
   """Creates a new Pinpoint job from WebOb request arguments."""
   if utils.IsRunningFlask():
-    original_arguments = RequestParamsMixed(req)
+    original_arguments = utils.RequestParamsMixed(req)
   else:
     original_arguments = req.params.mixed()
   logging.debug('Received Params: %s', original_arguments)

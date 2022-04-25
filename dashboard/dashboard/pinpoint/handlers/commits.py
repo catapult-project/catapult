@@ -9,25 +9,25 @@ from __future__ import absolute_import
 from dashboard.api import api_request_handler
 from dashboard.pinpoint.models import change
 from dashboard.services import request
+from dashboard.common import utils
 
+if utils.IsRunningFlask():
+  from flask import flask_request
 
-# pylint: disable=abstract-method
-class Commits(api_request_handler.ApiRequestHandler):
-
-  def _CheckUser(self):
+  def _CheckUser():
     pass
 
-  def Post(self, *args, **kwargs):
-    del args, kwargs  # Unused.
+  @api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
+  def CommitsHandlerPost():
     try:
-      repository = self.request.get('repository', 'chromium')
+      repository = flask_request.args.get('repository', 'chromium')
       c1 = change.Commit.FromDict({
           'repository': repository,
-          'git_hash': self.request.get('start_git_hash'),
+          'git_hash': flask_request.args.get('start_git_hash'),
       })
       c2 = change.Commit.FromDict({
           'repository': repository,
-          'git_hash': self.request.get('end_git_hash'),
+          'git_hash': flask_request.args.get('end_git_hash'),
       })
       commits = change.Commit.CommitRange(c1, c2)
       commits = [
@@ -36,3 +36,29 @@ class Commits(api_request_handler.ApiRequestHandler):
       return [c1.AsDict()] + commits
     except request.RequestError as e:
       raise api_request_handler.BadRequestError(str(e))
+else:
+  # pylint: disable=abstract-method
+  class Commits(api_request_handler.ApiRequestHandler):
+
+    def _CheckUser(self):
+      pass
+
+    def Post(self, *args, **kwargs):
+      del args, kwargs  # Unused.
+      try:
+        repository = self.request.get('repository', 'chromium')
+        c1 = change.Commit.FromDict({
+            'repository': repository,
+            'git_hash': self.request.get('start_git_hash'),
+        })
+        c2 = change.Commit.FromDict({
+            'repository': repository,
+            'git_hash': self.request.get('end_git_hash'),
+        })
+        commits = change.Commit.CommitRange(c1, c2)
+        commits = [
+            change.Commit(repository, c['commit']).AsDict() for c in commits
+        ]
+        return [c1.AsDict()] + commits
+      except request.RequestError as e:
+        raise api_request_handler.BadRequestError(str(e))

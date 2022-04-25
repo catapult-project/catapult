@@ -859,5 +859,29 @@ def GetBuildbucketUrl(build_id):
   return ''
 
 
+def RequestParamsMixed(req):
+  """
+  Returns a dictionary where the values are either single
+  values, or a list of values when a key/value appears more than
+  once in this dictionary.  This is similar to the kind of
+  dictionary often used to represent the variables in a web
+  request.
+  """
+  result = {}
+  multi = {}
+  for key, value in req.form.items(True):
+    if key in result:
+      # We do this to not clobber any lists that are
+      # *actual* values in this dictionary:
+      if key in multi:
+        result[key].append(value)
+      else:
+        result[key] = [result[key], value]
+        multi[key] = None
+    else:
+      result[key] = value
+  return result
+
+
 def IsRunningFlask():
   return False

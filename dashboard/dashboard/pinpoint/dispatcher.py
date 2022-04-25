@@ -38,6 +38,18 @@ if utils.IsRunningFlask():
   def QueueStatsHandlerGet(configuration):
     return handlers.queue_stats.QueueStatsHandlerGet(configuration)
 
+  @APP.route('/api/job/cancel', methods=['POST'])
+  def CancelHandlerPost():
+    return handlers.cancel.CancelHandlerPost()
+
+  @APP.route('/api/commits', methods=['POST'])
+  def CommitsHandlerPost():
+    return handlers.commits.CommitsHandlerPost()
+
+  @APP.route('/api/migrate', methods=['GET', 'POST'])
+  def MigrateHandler():
+    return handlers.migrate.MigrateHandler()
+
 else:
   import webapp2
 
