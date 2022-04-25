@@ -850,7 +850,7 @@ def IsMonitored(sheriff_client, test_path):
 
 # temp helper during migration to bbv2
 def IsRunningBuildBucketV2():
-  return IsStagingEnvironment()
+  return True
 
 
 def GetBuildbucketUrl(build_id):

@@ -273,6 +273,7 @@ class BuildTest(_FindIsolateExecutionTest):
             }
         })
 
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: False)
   def testBuildLifecycle(self, put, get_job_status):
     change = change_test.Change(123, 456, patch=True)
     quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
@@ -479,6 +480,7 @@ class BuildTest(_FindIsolateExecutionTest):
     self.assertEqual(execution.result_arguments, expected_result_arguments)
     self.assertEqual(execution.AsDict(), expected_as_dict)
 
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: False)
   def testSimultaneousBuilds(self, put, get_job_status):
     # Two builds started at the same time on the same Change should reuse the
     # same build request.
@@ -570,6 +572,7 @@ class BuildTest(_FindIsolateExecutionTest):
     self.assertExecutionSuccess(execution_1)
     self.assertExecutionSuccess(execution_2)
 
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: False)
   def testBuildFailure(self, put, get_job_status):
     quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
                                      'luci.bucket')
@@ -609,6 +612,7 @@ class BuildTest(_FindIsolateExecutionTest):
 
     self.assertExecutionFailure(execution, errors.BuildFailed)
 
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: False)
   def testBuildCanceled(self, put, get_job_status):
     quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
                                      'luci.bucket')

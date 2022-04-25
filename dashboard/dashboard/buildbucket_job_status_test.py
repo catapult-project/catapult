@@ -115,6 +115,7 @@ class BuildbucketJobStatusTest(testing_common.TestCase):
 
   @mock.patch.object(buildbucket_job_status.buildbucket_service, 'GetJobStatus',
                      mock.MagicMock(return_value=json.loads(SAMPLE_RESPONSE)))
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: False)
   def testGet_ExistingJob(self):
     response = self.testapp.get('/buildbucket_job_status/9046721402459257808')
     # Verify that a human-readable creation time is presented. We check for the
@@ -131,6 +132,7 @@ class BuildbucketJobStatusTest(testing_common.TestCase):
   @mock.patch.object(
       buildbucket_job_status.buildbucket_service, 'GetJobStatus',
       mock.MagicMock(return_value=json.loads(SAMPLE_RESPONSE_NOT_FOUND)))
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: False)
   def testGet_JobNotFound(self):
     response = self.testapp.get('/buildbucket_job_status/9046721402459257808')
     # If the error code is shown somewhere in the page and no exception is

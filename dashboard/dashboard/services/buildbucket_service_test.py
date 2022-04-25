@@ -46,6 +46,7 @@ class BuildbucketServiceTest(unittest.TestCase):
     self._request_json.assert_called_once_with(
         buildbucket_service.API_BASE_URL2 + path, *args, **kwargs)
 
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: False)
   def testPut(self):
     expected_body = {
         'bucket': 'bucket_name',
@@ -107,7 +108,7 @@ class BuildbucketServiceTest(unittest.TestCase):
     self._AssertRequestV2MadeOnce(
         'ScheduleBuild', method='POST', body=expected_body)
 
-
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: False)
   def testGetJobStatus(self):
     response = buildbucket_service.GetJobStatus('job_id')
     self._AssertCorrectResponse(response)
