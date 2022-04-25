@@ -7,19 +7,34 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
-import webapp2
 
 from dashboard.pinpoint.models import scheduler
+from dashboard.common import utils
 
+if utils.IsRunningFlask():
+  from flask import make_response
+else:
+  import webapp2
 
-class QueueStats(webapp2.RequestHandler):
+if utils.IsRunningFlask():
 
-  def get(self, configuration):
+  def QueueStatsHandlerGet(configuration):
     if not configuration:
-      self.response.set_status(400)
-      self.response.write(
-          json.dumps({'error': 'Missing configuration in request.'}))
-      return
+      return make_response(
+          json.dumps({'error': 'Missing configuration in request.'}), 400)
 
     queue_stats = scheduler.QueueStats(configuration)
-    self.response.write(json.dumps(queue_stats))
+    return make_response(json.dumps(queue_stats))
+else:
+
+  class QueueStats(webapp2.RequestHandler):
+
+    def get(self, configuration):
+      if not configuration:
+        self.response.set_status(400)
+        self.response.write(
+            json.dumps({'error': 'Missing configuration in request.'}))
+        return
+
+      queue_stats = scheduler.QueueStats(configuration)
+      self.response.write(json.dumps(queue_stats))

@@ -30,6 +30,14 @@ if utils.IsRunningFlask():
   def NewHandlerPost():
     return handlers.new.NewHandlerPost()
 
+  @APP.route('/api/job/<job_id>')
+  def JobHandlerGet(job_id):
+    return handlers.job.JobHandlerGet(job_id)
+
+  @APP.route('/api/queue-stats/<configuration>')
+  def QueueStatsHandlerGet(configuration):
+    return handlers.queue_stats.QueueStatsHandlerGet(configuration)
+
 else:
   import webapp2
 
