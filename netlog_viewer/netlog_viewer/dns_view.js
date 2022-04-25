@@ -184,10 +184,16 @@ var DnsView = (function() {
 
     // Determine whether the async resolver is enabled for both Do53 and DoH.
     // Update the display accordingly.
+    const enabled_for_insecure =
+        hostResolverInfo && hostResolverInfo.dns_config &&
+        hostResolverInfo.dns_config.can_use_insecure_dns_transactions;
+    const enabled_for_secure =
+        hostResolverInfo && hostResolverInfo.dns_config &&
+        hostResolverInfo.dns_config.can_use_secure_dns_transactions;
     $(DnsView.INTERNAL_DNS_ENABLED_FOR_INSECURE_SPAN_ID).innerText =
-        !!hostResolverInfo?.dns_config?.can_use_insecure_dns_transactions;
+        enabled_for_insecure;
     $(DnsView.INTERNAL_DNS_ENABLED_FOR_SECURE_SPAN_ID).innerText =
-        !!hostResolverInfo?.dns_config?.can_use_secure_dns_transactions;
+        enabled_for_secure;
 
     // Show the list of disabled DoH providers.
     if (dohProvidersDisabledDueToFeature) {
@@ -200,7 +206,7 @@ var DnsView = (function() {
 
     // Attempt to display the async resolver's DNS configuration. It may be
     // relevant if there were any DoH queries.
-    const dnsConfig = hostResolverInfo?.dns_config;
+    const dnsConfig = hostResolverInfo && hostResolverInfo.dns_config;
     if (!dnsConfig)
       return;
 
