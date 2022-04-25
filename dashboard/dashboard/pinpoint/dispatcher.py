@@ -26,6 +26,10 @@ if utils.IsRunningFlask():
   def CommitHandlerPost():
     return handlers.commit.CommitHandlerPost()
 
+  @APP.route('/api/new', methods=['POST'])
+  def NewHandlerPost():
+    return handlers.new.NewHandlerPost()
+
 else:
   import webapp2
 

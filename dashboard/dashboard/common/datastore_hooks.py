@@ -10,13 +10,17 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import webapp2
-
 from google.appengine.api import apiproxy_stub_map
 from google.appengine.api import users
 from google.appengine.datastore import datastore_pb
 
 from dashboard.common import utils
+
+if utils.IsRunningFlask():
+  from flask import g as flask_global
+  from flask import request as flask_request
+else:
+  import webapp2
 
 # The list below contains all kinds that have an internal_only property.
 # IMPORTANT: any new data types with internal_only properties must be added
@@ -57,8 +61,11 @@ def SetPrivilegedRequest():
 
   This should be set once per request, before accessing the data store.
   """
-  request = webapp2.get_request()
-  request.registry['privileged'] = True
+  if utils.IsRunningFlask():
+    flask_global.privilege = True
+  else:
+    request = webapp2.get_request()
+    request.registry['privileged'] = True
 
 
 def SetSinglePrivilegedRequest():
@@ -68,39 +75,63 @@ def SetSinglePrivilegedRequest():
   before making a query. It will be automatically unset when the next query is
   made.
   """
-  request = webapp2.get_request()
-  request.registry['single_privileged'] = True
+  if utils.IsRunningFlask():
+    flask_global.single_privileged = True
+  else:
+    request = webapp2.get_request()
+    request.registry['single_privileged'] = True
 
 
 def CancelSinglePrivilegedRequest():
   """Disallows the current request to act as a privileged user only."""
-  request = webapp2.get_request()
-  request.registry['single_privileged'] = False
+  if utils.IsRunningFlask():
+    flask_global.single_privileged = False
+  else:
+    request = webapp2.get_request()
+    request.registry['single_privileged'] = False
 
 
 def _IsServicingPrivilegedRequest():
   """Checks whether the request is considered privileged."""
-  try:
-    request = webapp2.get_request()
-  except AssertionError:
-    # This happens in unit tests, when code gets called outside of a request.
+  if utils.IsRunningFlask():
+    path = flask_request.path
+    if path.startswith('/mapreduce'):
+      return True
+    if path.startswith('/_ah/queue/deferred'):
+      return True
+    if path.startswith('/_ah/pipeline/'):
+      return True
+    if 'privileged' in flask_global and flask_global.privilege:
+      return True
+    if 'single_privileged' in flask_global and flask_global.single_privileged:
+      flask_global.pop('single_privileged')
+      return True
+    allowlist = utils.GetIpAllowlist()
+    if allowlist and hasattr(flask_request, 'remote_addr'):
+      return flask_request.remote_addr in allowlist
     return False
-  path = getattr(request, 'path', '')
-  if path.startswith('/mapreduce'):
-    return True
-  if path.startswith('/_ah/queue/deferred'):
-    return True
-  if path.startswith('/_ah/pipeline/'):
-    return True
-  if request.registry.get('privileged', False):
-    return True
-  if request.registry.get('single_privileged', False):
-    request.registry['single_privileged'] = False
-    return True
-  allowlist = utils.GetIpAllowlist()
-  if allowlist and hasattr(request, 'remote_addr'):
-    return request.remote_addr in allowlist
-  return False
+  else:
+    try:
+      request = webapp2.get_request()
+    except AssertionError:
+      # This happens in unit tests, when code gets called outside of a request.
+      return False
+    path = getattr(request, 'path', '')
+    if path.startswith('/mapreduce'):
+      return True
+    if path.startswith('/_ah/queue/deferred'):
+      return True
+    if path.startswith('/_ah/pipeline/'):
+      return True
+    if request.registry.get('privileged', False):
+      return True
+    if request.registry.get('single_privileged', False):
+      request.registry['single_privileged'] = False
+      return True
+    allowlist = utils.GetIpAllowlist()
+    if allowlist and hasattr(request, 'remote_addr'):
+      return request.remote_addr in allowlist
+    return False
 
 
 def IsUnalteredQueryPermitted():

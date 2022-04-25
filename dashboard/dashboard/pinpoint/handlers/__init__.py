@@ -16,7 +16,6 @@ from dashboard.pinpoint.handlers.isolate import IsolateCleanup
 from dashboard.pinpoint.handlers.cas import CASReference
 from dashboard.pinpoint.handlers.job import Job
 from dashboard.pinpoint.handlers.migrate import Migrate
-from dashboard.pinpoint.handlers.new import New
 from dashboard.pinpoint.handlers.queue_stats import QueueStats
 from dashboard.pinpoint.handlers.refresh_jobs import RefreshJobs
 from dashboard.pinpoint.handlers.results2 import Results2
@@ -29,7 +28,9 @@ if utils.IsRunningFlask():
   import dashboard.pinpoint.handlers.jobs
   import dashboard.pinpoint.handlers.commit
   import dashboard.pinpoint.handlers.config
+  import dashboard.pinpoint.handlers.new
 else:
   from dashboard.pinpoint.handlers.jobs import Jobs
   from dashboard.pinpoint.handlers.commit import Commit
   from dashboard.pinpoint.handlers.config import Config
+  from dashboard.pinpoint.handlers.new import New

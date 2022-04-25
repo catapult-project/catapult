@@ -11,7 +11,6 @@ from dashboard.common import bot_configurations
 from dashboard.common import utils
 
 if utils.IsRunningFlask():
-
   def _CheckUser():
     pass
 
