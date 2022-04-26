@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
-import tempfile
+import re
 
 import pexpect # pylint: disable=import-error
 
@@ -50,25 +50,27 @@ class CastSshForwarder(forwarders.Forwarder):
         '-T',  # Don't allocate terminal.
         # Ensure SSH is at least verbose enough to print the allocated port
         '-o', 'LogLevel=VERBOSE',
+        '-o', 'StrictHostKeyChecking=no',
+        '-o', 'UserKnownHostsFile=/dev/null',
         '-l', cast_interface.SSH_USER
     ]
     ssh_args.extend(forwarder_utils.GetForwardingArgs(
         local_port, remote_port, self.host_ip,
         port_forward))
 
-    with tempfile.NamedTemporaryFile() as stderr_file:
-      self._proc = pexpect.spawn(
-          'ssh %s %s' % (' '.join(ssh_args), ip_addr), logfile=stderr_file.name)
-      self._proc.expect('.*password:')
-      self._proc.sendline(cast_interface.SSH_PWD)
-      if not remote_port:
-        self._proc.expect('\\d')
-        remote_port = forwarder_utils.ReadRemotePort(stderr_file.name)
+    self._proc = pexpect.spawn('ssh %s %s' % (' '.join(ssh_args), ip_addr))
+    self._proc.expect('.*password:')
+    self._proc.sendline(cast_interface.SSH_PWD)
+    if not remote_port:
+      self._proc.expect('Allocated port [0-9]+ for.*')
+      line = self._proc.match.group(0).decode('utf-8')
+      tokens = re.search(r'Allocated port (\d+) for', line)
+      remote_port = int(tokens.group(1))
 
     self._StartedForwarding(local_port, remote_port)
 
   def Close(self):
     if self._proc:
-      self._proc.kill()
+      self._proc.close(force=True)
       self._proc = None
     super(CastSshForwarder, self).Close()
