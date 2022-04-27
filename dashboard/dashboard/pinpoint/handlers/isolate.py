@@ -13,12 +13,16 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
-import webapp2
 
 from dashboard.api import api_request_handler
 from dashboard.common import utils
 from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import isolate
+
+if utils.IsRunningFlask():
+  from flask import make_response
+else:
+  import webapp2
 
 
 # pylint: disable=abstract-method
@@ -143,7 +147,14 @@ class Isolate(api_request_handler.ApiRequestHandler):
     return parameter_values
 
 
-class IsolateCleanup(webapp2.RequestHandler):
+if utils.IsRunningFlask():
 
-  def get(self):
+  def IsolateCleanupHandler():
     isolate.DeleteExpiredIsolates()
+    return make_response('', 200)
+else:
+
+  class IsolateCleanup(webapp2.RequestHandler):
+
+    def get(self):
+      isolate.DeleteExpiredIsolates()

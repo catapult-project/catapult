@@ -50,6 +50,30 @@ if utils.IsRunningFlask():
   def MigrateHandler():
     return handlers.migrate.MigrateHandler()
 
+  # Used internally by Pinpoint. Not accessible from the public API
+  @APP.route('/cron/fifo-scheduler')
+  def FifoSchedulerHandler():
+    return handlers.fifo_scheduler.FifoSchedulerHandler()
+
+  @APP.route('/cron/refresh-jobs')
+  def RefreshJobsHandler():
+    return handlers.refresh_jobs.RefreshJobsHandler()
+
+  @APP.route('/cron/isolate-cleanup')
+  def IsolateCleanupHandler():
+    return handlers.isolate.IsolateCleanupHandler()
+
+  @APP.route('/api/results2/<job_id>')
+  def Results2Handler(job_id):
+    return handlers.results2.Results2Handler(job_id)
+
+  @APP.route('/api/generate-results2/<job_id>', methods=['POST'])
+  def Results2GeneratorHandler(job_id):
+    return handlers.results2.Results2GeneratorHandler(job_id)
+
+  @APP.route('/api/run/<job_id>', methods=['POST'])
+  def RunHandler(job_id):
+    return handlers.run.RunHandler(job_id)
 else:
   import webapp2
 

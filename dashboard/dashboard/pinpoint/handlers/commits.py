@@ -12,7 +12,7 @@ from dashboard.services import request
 from dashboard.common import utils
 
 if utils.IsRunningFlask():
-  from flask import flask_request
+  from flask import request as flask_request
 
   def _CheckUser():
     pass

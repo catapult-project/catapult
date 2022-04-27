@@ -8,18 +8,32 @@ from __future__ import absolute_import
 
 import datetime
 import logging
-import webapp2
 
 from google.appengine.api.taskqueue import TaskRetryOptions
 from google.appengine.ext import deferred
 
 from dashboard.common import layered_cache
+from dashboard.common import utils
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import job as job_module
 
 _JOB_CACHE_KEY = 'pinpoint_refresh_jobs_%s'
 _JOB_MAX_RETRIES = 5
 _JOB_FROZEN_THRESHOLD = datetime.timedelta(hours=1)
+
+if utils.IsRunningFlask():
+  from flask import make_response
+
+  def RefreshJobsHandler():
+    _FindAndRestartJobs()
+    return make_response('', 200)
+else:
+  import webapp2
+
+  class RefreshJobs(webapp2.RequestHandler):
+
+    def get(self):
+      _FindAndRestartJobs()
 
 
 def _FindFrozenJobs():
@@ -62,9 +76,3 @@ def _ProcessFrozenJob(job_id):
   logging.info('Restarting job %s', job_id)
   job._Schedule()
   job.put()
-
-
-class RefreshJobs(webapp2.RequestHandler):
-
-  def get(self):
-    _FindAndRestartJobs()

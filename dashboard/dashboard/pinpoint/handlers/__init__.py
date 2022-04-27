@@ -8,14 +8,8 @@ from __future__ import absolute_import
 
 from dashboard.common import utils
 
-from dashboard.pinpoint.handlers.fifo_scheduler import FifoScheduler
 from dashboard.pinpoint.handlers.isolate import Isolate
-from dashboard.pinpoint.handlers.isolate import IsolateCleanup
 from dashboard.pinpoint.handlers.cas import CASReference
-from dashboard.pinpoint.handlers.refresh_jobs import RefreshJobs
-from dashboard.pinpoint.handlers.results2 import Results2
-from dashboard.pinpoint.handlers.results2 import Results2Generator
-from dashboard.pinpoint.handlers.run import Run
 from dashboard.pinpoint.handlers.stats import Stats
 from dashboard.pinpoint.handlers.task_updates import TaskUpdates
 
@@ -29,6 +23,11 @@ if utils.IsRunningFlask():
   import dashboard.pinpoint.handlers.cancel
   import dashboard.pinpoint.handlers.commits
   import dashboard.pinpoint.handlers.migrate
+  import dashboard.pinpoint.handlers.fifo_scheduler
+  import dashboard.pinpoint.handlers.refresh_jobs
+  import dashboard.pinpoint.handlers.isolate
+  import dashboard.pinpoint.handlers.results2
+  import dashboard.pinpoint.handlers.run
 else:
   from dashboard.pinpoint.handlers.jobs import Jobs
   from dashboard.pinpoint.handlers.commit import Commit
@@ -39,3 +38,9 @@ else:
   from dashboard.pinpoint.handlers.cancel import Cancel
   from dashboard.pinpoint.handlers.commits import Commits
   from dashboard.pinpoint.handlers.migrate import Migrate
+  from dashboard.pinpoint.handlers.fifo_scheduler import FifoScheduler
+  from dashboard.pinpoint.handlers.refresh_jobs import RefreshJobs
+  from dashboard.pinpoint.handlers.isolate import IsolateCleanup
+  from dashboard.pinpoint.handlers.results2 import Results2
+  from dashboard.pinpoint.handlers.results2 import Results2Generator
+  from dashboard.pinpoint.handlers.run import Run
