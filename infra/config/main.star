@@ -191,7 +191,6 @@ try_builder("Catapult Linux Tryserver Py2", "Ubuntu")
 
 try_builder("Catapult Windows Tryserver Py2", "Windows-10")
 try_builder("Catapult Windows Tryserver", "Windows-10", properties = {"use_python3": True})
-try_builder("Catapult Win 7 Tryserver", "Windows-7", experiment = 100, properties = {"use_python3": True})
 
 try_builder("Catapult Mac Tryserver Py2", "Mac", dimensions = {"cpu": "x86-64"})
 try_builder("Catapult Mac Tryserver", "Mac", dimensions = {"cpu": "x86-64"}, properties = {"use_python3": True})
