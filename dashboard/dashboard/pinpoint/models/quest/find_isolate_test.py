@@ -75,6 +75,10 @@ class _FindIsolateExecutionTest(test.TestCase):
     isolate.Put((('Mac Builder', change, 'telemetry_perf_tests',
                   'isolate.server', '7c7e90be'),))
 
+    change2 = change_test.Change(999)
+    isolate.Put((('linux-builder-perf', change2, 'telemetry_perf_tests',
+                  'isolate.server', '1212abcd'),))
+
   def assertExecutionFailure(self, execution, exception_class):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
@@ -130,6 +134,47 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
     self.assertEqual(execution.result_values, ())
     self.assertEqual(execution.result_arguments, expected_result_arguments)
     self.assertEqual(execution.AsDict(), expected_as_dict)
+
+  def testIsolateLookupWaterfallAlias(self):
+    quest = find_isolate.FindIsolate('Linux Builder Perf', 'telemetry_perf_tests',
+                                     'luci.bucket')
+
+    # Propagate a thing that looks like a job.
+    quest.PropagateJob(
+        FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
+                'user@example.com'))
+
+    execution = quest.Start(change_test.Change(999))
+    execution.Poll()
+
+    expected_result_arguments = {
+        'isolate_server': 'isolate.server',
+        'isolate_hash': '1212abcd',
+    }
+    expected_url = 'https://cas-viewer.appspot.com/{}/blobs/{}/tree'.format(
+        'isolate.server', '1212abcd')
+    expected_as_dict = {
+        'completed':
+            True,
+        'exception':
+            None,
+        'details': [
+            {
+                'key': 'builder',
+                'value': 'Linux Builder Perf',
+            },
+            {
+                'key': 'isolate',
+                'value': '1212abcd',
+                'url': expected_url,
+            },
+        ],
+    }
+    self.assertExecutionSuccess(execution)
+    self.assertEqual(execution.result_values, ())
+    self.assertEqual(execution.result_arguments, expected_result_arguments)
+    self.assertEqual(execution.AsDict(), expected_as_dict)
+
 
   def testIsolateLookupFallbackSuccess(self):
     quest = find_isolate.FindIsolate(

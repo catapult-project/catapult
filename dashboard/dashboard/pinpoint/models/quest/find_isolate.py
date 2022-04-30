@@ -22,6 +22,23 @@ from dashboard.common import utils
 
 BUCKET = 'master.tryserver.chromium.perf'
 
+_PP_TO_PERF_BUILDER_MAP = {
+    'Linux Builder Perf':
+        'linux-builder-perf',
+    'Android Compile Perf':
+        'android-builder-perf',
+    'Android arm64 Compile Perf':
+        'android_arm64-builder-perf',
+    'Mac Builder Perf':
+        'mac-builder-perf',
+    'Mac arm Builder Perf':
+        'mac-arm-builder-perf',
+    'Win x64 Builder Perf':
+        'win64-builder-perf',
+    'Chromeos Amd64 Generic Lacros Builder Perf ':
+        'chromeos-amd64-generic-lacros-builder-perf'
+}
+
 
 class FindIsolate(quest.Quest):
 
@@ -134,6 +151,10 @@ class _FindIsolateExecution(execution.Execution):
   def _Poll(self):
     logging.debug('_FindIsolateExecution Polling: %s', self._AsDict())
 
+    if self._CheckIsolateCache(
+        _PP_TO_PERF_BUILDER_MAP.get(self._builder_name, '')):
+      return
+
     if self._CheckIsolateCache():
       return
 
@@ -144,24 +165,25 @@ class _FindIsolateExecution(execution.Execution):
 
     self._RequestBuild()
 
-  def _CheckIsolateCache(self):
+  def _CheckIsolateCache(self, builder_name_override=''):
     """Checks the isolate cache to see if a build is already available.
 
     Returns:
       True iff the isolate was found, meaning the execution is completed.
     """
     try:
-      isolate_server, isolate_hash = isolate.Get(self._builder_name,
-                                                 self._change, self._target)
-    except KeyError:
-      logging.debug('NOT found in isolate cache')
+      builder_name = builder_name_override if builder_name_override else self._builder_name
+      isolate_server, isolate_hash = isolate.Get(builder_name, self._change,
+                                                 self._target)
+    except KeyError as e:
+      logging.debug('NOT found in isolate cache: %s', str(e))
       if self._fallback_target:
         try:
           isolate_server, isolate_hash = isolate.Get(self._builder_name,
                                                      self._change,
                                                      self._fallback_target)
-        except KeyError:
-          logging.debug('fallback NOT found in isolate cache')
+        except KeyError as e:
+          logging.debug('fallback NOT found in isolate cache %s', str(e))
           return False
       else:
         return False
