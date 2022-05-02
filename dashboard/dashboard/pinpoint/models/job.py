@@ -34,6 +34,8 @@ from dashboard.pinpoint.models.evaluators import job_serializer
 from dashboard.pinpoint.models.tasks import evaluator as task_evaluator
 from dashboard.services import gerrit_service
 from dashboard.services import issue_tracker_service
+from dashboard.services import swarming
+
 
 # We want this to be fast to minimize overhead while waiting for tasks to
 # finish, but don't want to consume too many resources.
@@ -165,6 +167,30 @@ def IsRunning(job):
   return job.started and not job.completed
 
 
+def QueryBots(dimensions, swarming_server):
+  # Queries Swarming for the set of bots we can use for this test.
+  query_dimensions = {p['key']: p['value'] for p in dimensions}
+  results = swarming.Swarming(swarming_server).Bots().List(
+      dimensions=query_dimensions, is_dead='FALSE', quarantined='FALSE')
+  if 'items' in results:
+    return [i['bot_id'] for i in results['items']]
+  else:
+    raise errors.SwarmingNoBots()
+
+
+def GetIterationCount(initial_attempt_count, bot_count):
+  # We want to run at least initial_attempt_count iterations.
+  # In addition, attempts should be evenly distributed between all bots.
+  # bot_count will never be 0 (we'll exception out if that happens).
+  if bot_count >= initial_attempt_count:
+    return initial_attempt_count
+  else:
+    repeats = initial_attempt_count // bot_count
+    if repeats * bot_count < initial_attempt_count:
+      repeats += 1
+    return repeats * bot_count
+
+
 class Job(ndb.Model):
   """A Pinpoint job."""
 
@@ -244,6 +270,9 @@ class Job(ndb.Model):
   # Jobs can be part of batches, which have an id provided by the creator.
   batch_id = ndb.StringProperty()
 
+  # Bots we can use to run tests
+  bots = ndb.StringProperty(repeated=True)
+
   @classmethod
   def _post_get_hook(cls, key, future):  # pylint: disable=unused-argument
     e = future.get_result()
@@ -284,7 +313,9 @@ class Job(ndb.Model):
           use_execution_engine=False,
           project='chromium',
           batch_id=None,
-          initial_attempt_count=None):
+          initial_attempt_count=None,
+          dimensions=None,
+          swarming_server=None):
     """Creates a new Job, adds Changes to it, and puts it in the Datstore.
 
     Args:
@@ -315,12 +346,14 @@ class Job(ndb.Model):
     Returns:
       A Job object.
     """
+    bots = QueryBots(dimensions, swarming_server)
     state = job_state.JobState(
         quests,
         comparison_mode=comparison_mode,
         comparison_magnitude=comparison_magnitude,
         pin=pin,
-        initial_attempt_count=initial_attempt_count)
+        initial_attempt_count=GetIterationCount(initial_attempt_count,
+                                                len(bots)))
     args = arguments or {}
     job = cls(
         state=state,
@@ -337,7 +370,8 @@ class Job(ndb.Model):
         use_execution_engine=use_execution_engine,
         priority=priority,
         project=project,
-        batch_id=batch_id)
+        batch_id=batch_id,
+        bots=bots)
 
     # Pull out the benchmark arguments to the top-level.
     job.benchmark_arguments = BenchmarkArguments.FromArgs(args)
@@ -812,6 +846,7 @@ class Job(ndb.Model):
         'status': self.status,
         'cancel_reason': self.cancel_reason,
         'batch_id': self.batch_id,
+        'bots': self.bots
     }
 
     if not options:

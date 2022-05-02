@@ -92,16 +92,18 @@ class UpdateDashboardStatsTest(test.TestCase):
     old_commit = commit.Commit('chromium', hash2)
     change_b = change_module.Change((old_commit,))
 
-    job = job_module.Job.New((_QuestStub(),), (change_a, change_b),
-                             comparison_mode=comparison_mode,
-                             bug_id=bug_id,
-                             arguments=arguments)
-    job.created = created
-    job.exception = exception
-    job.state.ScheduleWork()
-    job.state.Explore()
-    job.put()
-    return job
+    with mock.patch('dashboard.pinpoint.models.job.QueryBots',
+                    mock.MagicMock(return_value=["a"])):
+      job = job_module.Job.New((_QuestStub(),), (change_a, change_b),
+                               comparison_mode=comparison_mode,
+                               bug_id=bug_id,
+                               arguments=arguments)
+      job.created = created
+      job.exception = exception
+      job.state.ScheduleWork()
+      job.state.Explore()
+      job.put()
+      return job
 
   @mock.patch.object(update_dashboard_stats, '_ProcessPinpointJobs',
                      mock.MagicMock(side_effect=_FakeTasklet))

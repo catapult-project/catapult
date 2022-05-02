@@ -22,7 +22,9 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
   def setUp(self):
     super(EvaluatorTest, self).setUp()
     self.maxDiff = None
-    self.job = job_module.Job.New((), ())
+    with mock.patch('dashboard.pinpoint.models.job.QueryBots',
+                    mock.MagicMock(return_value=["a"])):
+      self.job = job_module.Job.New((), ())
 
   def testPopulateWorks(self):
     self.PopulateSimpleBisectionGraph(self.job)

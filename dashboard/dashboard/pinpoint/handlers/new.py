@@ -202,7 +202,9 @@ def _CreateJob(req):
       use_execution_engine=use_execution_engine,
       project=project,
       batch_id=batch_id,
-      initial_attempt_count=initial_attempt_count)
+      initial_attempt_count=initial_attempt_count,
+      dimensions=arguments.get('dimensions'),
+      swarming_server=arguments.get('swarming_server'))
 
   if use_execution_engine:
     # TODO(dberris): We need to figure out a way to get the arguments to be more

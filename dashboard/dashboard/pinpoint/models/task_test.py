@@ -31,6 +31,8 @@ def UpdateTask(job, task_id, new_state, _):
   task_module.UpdateTask(job, task_id, new_state=new_state)
 
 
+@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+            mock.MagicMock(return_value=["a"]))
 class PopulateTests(test.TestCase):
 
   def setUp(self):
@@ -66,7 +68,9 @@ class PopulateTests(test.TestCase):
     self.assertEqual(1, accumulator.get('plus'))
 
   def testPouplateAndEvaluateGrowingGraph(self):
-    job = job_module.Job.New((), ())
+    with mock.patch('dashboard.pinpoint.models.job.QueryBots',
+                    mock.MagicMock(return_value=["a"])):
+      job = job_module.Job.New((), ())
     task_module.PopulateTaskGraph(
         job,
         task_module.TaskGraph(
@@ -242,7 +246,9 @@ class EvaluateTest(test.TestCase):
   def setUp(self):
     super(EvaluateTest, self).setUp()
     self.maxDiff = None
-    self.job = job_module.Job.New((), ())
+    with mock.patch('dashboard.pinpoint.models.job.QueryBots',
+                    mock.MagicMock(return_value=["a"])):
+      self.job = job_module.Job.New((), ())
     task_module.PopulateTaskGraph(
         self.job,
         task_module.TaskGraph(

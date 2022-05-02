@@ -7,11 +7,14 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import mock
 
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint import test
 
 
+@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+            mock.MagicMock(return_value=["a"]))
 class StatsTest(test.TestCase):
 
   def testPost_ValidRequest(self):

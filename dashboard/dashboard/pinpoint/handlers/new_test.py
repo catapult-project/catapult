@@ -63,6 +63,8 @@ class _NewTest(test.TestCase):
         })
 
 
+@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+            mock.MagicMock(return_value=["a"]))
 class NewAuthTest(_NewTest):
 
   @mock.patch.object(api_auth, 'Authorize',
@@ -89,6 +91,8 @@ class NewAuthTest(_NewTest):
 @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
 @mock.patch.object(api_auth, 'Authorize', mock.MagicMock())
 @mock.patch.object(utils, 'IsTryjobUser', mock.MagicMock())
+@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+            mock.MagicMock(return_value=["a"]))
 class NewTest(_NewTest):
 
   def testPost(self):

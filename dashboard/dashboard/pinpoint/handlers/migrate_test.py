@@ -28,8 +28,10 @@ class MigrateAuthTest(test.TestCase):
     self.addCleanup(patcher.stop)
     patcher.start()
 
-    for _ in range(100):
-      job.Job.New((), ())
+    with mock.patch('dashboard.pinpoint.models.job.QueryBots',
+                    mock.MagicMock(return_value=["a"])):
+      for _ in range(100):
+        job.Job.New((), ())
 
   def _SetupCredentials(self, user, client_id, is_internal, is_admin):
     email = user.email()

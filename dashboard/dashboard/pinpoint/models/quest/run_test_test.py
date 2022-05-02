@@ -33,39 +33,21 @@ _BASE_ARGUMENTS = {
 
 _BASE_SWARMING_TAGS = {}
 
-_BOT_QUERY_0_BOTS = {"success": "false"}
-
-_BOT_QUERY_1_BOT = {"items": [{"bot_id": "a"}]}
-
-_BOT_QUERY_4_BOTS = {
-    "items": [{
-        "bot_id": "a"
-    }, {
-        "bot_id": "b"
-    }, {
-        "bot_id": "c"
-    }, {
-        "bot_id": "d"
-    }]
-}
-
 FakeJob = collections.namedtuple(
-    'Job', ['job_id', 'url', 'comparison_mode', 'user', 'state'])
+    'Job', ['job_id', 'url', 'comparison_mode', 'user', 'state', 'bots'])
 State = collections.namedtuple('State', ['attempt_count'])
 
 
-@mock.patch('dashboard.services.swarming.Bots.List')
 @mock.patch('dashboard.services.crrev_service.GetCommit')
 class StartTest(unittest.TestCase):
 
-  def testStart(self, get_commit, swarming_bots_list):
-    swarming_bots_list.return_value = _BOT_QUERY_1_BOT
+  def testStart(self, get_commit):
     get_commit.return_value = {'number': 999999}
     quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS,
                              None, None)
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
-                'user@example.com', State(1)))
+                'user@example.com', State(1), ['a']))
     execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
     self.assertEqual(execution._extra_args, ['arg'])
 
@@ -196,15 +178,12 @@ class _RunTestExecutionTest(unittest.TestCase):
       body.update(patch)
     swarming_tasks_new.assert_called_with(body)
 
-@mock.patch('dashboard.services.swarming.Bots.List')
 @mock.patch('dashboard.services.swarming.Tasks.New')
 @mock.patch('dashboard.services.swarming.Task.Result')
 @mock.patch('dashboard.services.crrev_service.GetCommit')
 class RunTestFullTest(_RunTestExecutionTest):
 
-  def testSuccess(self, get_commit, swarming_task_result, swarming_tasks_new,
-                  swarming_bots_list):
-    swarming_bots_list.return_value = _BOT_QUERY_1_BOT
+  def testSuccess(self, get_commit, swarming_task_result, swarming_tasks_new):
     get_commit.return_value = {'number': 675460}
     # Goes through a full run of two Executions.
 
@@ -215,7 +194,7 @@ class RunTestFullTest(_RunTestExecutionTest):
     # Propagate a thing that looks like a job.
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(1)))
+                'user@example.com', State(1), ['a']))
 
     execution = quest.Start(
         change.Change("a", variant=0), 'isolate server', 'input isolate hash')
@@ -308,17 +287,10 @@ class RunTestFullTest(_RunTestExecutionTest):
 
   @mock.patch('dashboard.pinpoint.models.quest.run_test.RunTest._GetABOrderings'
              )
-  @mock.patch('random.choice')
-  def testBotAllocationAndScheduling(self, random_choice, get_ab_orderings,
-                                     get_commit, swarming_task_result,
-                                     swarming_tasks_new, swarming_bots_list):
-    # Same iteration on different changes should use the same bot
-    # Different iterations should use different bots
-    # Ordering of A and B should be "random"
-    random_choice.side_effect = ["b", "a", "No more bots"]
+  def testBotAllocationAndScheduling(self, get_ab_orderings, get_commit,
+                                     swarming_task_result, swarming_tasks_new):
     # List of lists because side_effects returns one list element per call
     get_ab_orderings.side_effect = [[1, 0]]
-    swarming_bots_list.return_value = _BOT_QUERY_4_BOTS
     get_commit.return_value = {'number': 675460}
     # Goes through a full run of two Executions.
 
@@ -329,7 +301,7 @@ class RunTestFullTest(_RunTestExecutionTest):
     # Propagate a thing that looks like a job.
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(2)))
+                'user@example.com', State(2), ['b', 'a']))
 
     change_a = change.Change("a", variant=0)
     change_b = change.Change("b", variant=1)
@@ -379,17 +351,12 @@ class RunTestFullTest(_RunTestExecutionTest):
 
   @mock.patch('dashboard.pinpoint.models.quest.run_test.RunTest._GetABOrderings'
              )
-  @mock.patch('random.choice')
-  def testBotAllocationAndSchedulingNotAllSpawned(self, random_choice,
-                                                  get_ab_orderings, get_commit,
+  def testBotAllocationAndSchedulingNotAllSpawned(self, get_ab_orderings,
+                                                  get_commit,
                                                   swarming_task_result,
-                                                  swarming_tasks_new,
-                                                  swarming_bots_list):
-    # Test tasks shouldn't be kicked off if all tasks haven't been spawned
-    random_choice.side_effect = ["b", "a", "No more bots"]
+                                                  swarming_tasks_new):
     # List of lists because side_effects returns one list element per call
     get_ab_orderings.side_effect = [[1, 0]]
-    swarming_bots_list.return_value = _BOT_QUERY_4_BOTS
     get_commit.return_value = {'number': 675460}
     # Goes through a full run of two Executions.
 
@@ -400,7 +367,7 @@ class RunTestFullTest(_RunTestExecutionTest):
     # Propagate a thing that looks like a job.
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(2)))
+                'user@example.com', State(2), ['b', 'a']))
 
     change_a = change.Change("a", variant=0)
     change_b = change.Change("b", variant=1)
@@ -419,8 +386,7 @@ class RunTestFullTest(_RunTestExecutionTest):
 
 
   def testSuccess_Cas(self, get_commit, swarming_task_result,
-                      swarming_tasks_new, swarming_bots_list):
-    swarming_bots_list.return_value = _BOT_QUERY_1_BOT
+                      swarming_tasks_new):
     get_commit.return_value = {'number': 675460}
     # Goes through a full run of two Executions.
 
@@ -431,7 +397,7 @@ class RunTestFullTest(_RunTestExecutionTest):
     # Propagate a thing that looks like a job.
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(1)))
+                'user@example.com', State(1), ['a']))
 
     execution_a = quest.Start(
         change.Change("a", variant=0), 'cas_instance', 'xxxxxxxx/111')
@@ -536,8 +502,7 @@ class RunTestFullTest(_RunTestExecutionTest):
         })
 
   def testStart_NoSwarmingTags(self, get_commit, swarming_task_result,
-                               swarming_tasks_new, swarming_bots_list):
-    swarming_bots_list.return_value = _BOT_QUERY_1_BOT
+                               swarming_tasks_new):
     get_commit.return_value = {'number': 675460}
     del swarming_task_result
     del swarming_tasks_new
@@ -545,19 +510,17 @@ class RunTestFullTest(_RunTestExecutionTest):
     quest = run_test.RunTest('server', DIMENSIONS, ['arg'], None, None, None)
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
-                'user@example.com', State(1)))
+                'user@example.com', State(1), ['a']))
     quest.Start('change_1', 'isolate server', 'input isolate hash')
 
 
-@mock.patch('dashboard.services.swarming.Bots.List')
 @mock.patch('dashboard.services.swarming.Tasks.New')
 @mock.patch('dashboard.services.swarming.Task.Result')
 @mock.patch('dashboard.services.crrev_service.GetCommit')
 class SwarmingTaskStatusTest(_RunTestExecutionTest):
 
   def testSwarmingError(self, get_commit, swarming_task_result,
-                        swarming_tasks_new, swarming_bots_list):
-    swarming_bots_list.return_value = _BOT_QUERY_1_BOT
+                        swarming_tasks_new):
     get_commit.return_value = {'number': 675460}
     swarming_task_result.return_value = {'state': 'BOT_DIED'}
     swarming_tasks_new.return_value = {'task_id': 'task id'}
@@ -566,7 +529,7 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
                              None, None)
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(1)))
+                'user@example.com', State(1), ['a']))
     execution = quest.Start(
         change.Change("a", variant=0), 'isolate server', 'input isolate hash')
     quest.Start(
@@ -581,9 +544,7 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
 
   @mock.patch('dashboard.services.swarming.Task.Stdout')
   def testTestError(self, swarming_task_stdout, get_commit,
-                    swarming_task_result, swarming_tasks_new,
-                    swarming_bots_list):
-    swarming_bots_list.return_value = _BOT_QUERY_1_BOT
+                    swarming_task_result, swarming_tasks_new):
     get_commit.return_value = {'number': 675460}
     swarming_task_stdout.return_value = {'output': ''}
     swarming_task_result.return_value = {
@@ -602,7 +563,7 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
                              None, None)
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(1)))
+                'user@example.com', State(1), ['a']))
     execution = quest.Start(
         change.Change("a", variant=0), 'isolate server', 'input isolate hash')
     quest.Start(
@@ -617,17 +578,15 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
                   execution.exception['traceback'])
 
 
-@mock.patch('dashboard.services.swarming.Bots.List')
 @mock.patch('dashboard.services.swarming.Tasks.New')
 @mock.patch('dashboard.services.swarming.Task.Result')
 @mock.patch('dashboard.services.crrev_service.GetCommit')
 class BotIdHandlingTest(_RunTestExecutionTest):
 
   def testExecutionExpired(self, get_commit, swarming_task_result,
-                           swarming_tasks_new, swarming_bots_list):
+                           swarming_tasks_new):
     # If the Swarming task expires, the bots are overloaded or the dimensions
     # don't correspond to any bot. Raise an error that's fatal to the Job.
-    swarming_bots_list.return_value = _BOT_QUERY_1_BOT
     get_commit.return_value = {'number': 675460}
     swarming_tasks_new.return_value = {'task_id': 'task id'}
     swarming_task_result.return_value = {'state': 'EXPIRED'}
@@ -636,7 +595,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
                              None, None)
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(1)))
+                'user@example.com', State(1), ['a']))
     execution_a = quest.Start(
         change.Change("a", variant=0), 'isolate server', 'input isolate hash')
     quest.Start(
@@ -645,24 +604,8 @@ class BotIdHandlingTest(_RunTestExecutionTest):
     with self.assertRaises(errors.SwarmingExpired):
       execution_a.Poll()
 
-  def testNoBotsAvailable(self, get_commit, swarming_task_result,
-                          swarming_tasks_new, swarming_bots_list):
-    swarming_bots_list.return_value = _BOT_QUERY_0_BOTS
-    get_commit.return_value = {'number': 675460}
-    swarming_tasks_new.return_value = {'task_id': 'task id'}
-    swarming_task_result.return_value = {'state': 'CANCELED'}
-
-    quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS,
-                             None, None)
-    quest.PropagateJob(
-        FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(1)))
-    with self.assertRaises(errors.SwarmingNoBots):
-      quest.Start('change_1', 'isolate server', 'input isolate hash')
-
   def testBisectsDontUsePairing(self, get_commit, swarming_task_result,
-                                swarming_tasks_new, swarming_bots_list):
-    swarming_bots_list.return_value = _BOT_QUERY_1_BOT
+                                swarming_tasks_new):
     get_commit.return_value = {'number': 675460}
     swarming_tasks_new.return_value = {'task_id': 'task id'}
     swarming_task_result.return_value = {'state': 'CANCELED'}
@@ -671,19 +614,17 @@ class BotIdHandlingTest(_RunTestExecutionTest):
                              None, None)
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
-                'user@example.com', State(1)))
+                'user@example.com', State(1), ['a']))
     quest.Start('change_1', 'isolate server', 'input isolate hash')
-    self.assertEqual(swarming_bots_list.call_count, 0)
 
   def testSimultaneousExecutions(self, get_commit, swarming_task_result,
-                                 swarming_tasks_new, swarming_bots_list):
-    swarming_bots_list.return_value = _BOT_QUERY_1_BOT
+                                 swarming_tasks_new):
     get_commit.return_value = {'number': 675460}
     quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS,
                              None, None)
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(1)))
+                'user@example.com', State(1), ['a']))
     execution_1 = quest.Start(
         change.Change("a", variant=0), 'input isolate server',
         'input isolate hash')

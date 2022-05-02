@@ -15,6 +15,8 @@ from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import results2 as results2_module
 
 
+@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+            mock.MagicMock(return_value=["a"]))
 class JobTest(test.TestCase):
 
   @mock.patch.object(results2_module, 'GetCachedResults2', return_value="")

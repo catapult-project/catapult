@@ -24,17 +24,19 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
   def setUp(self):
     super(EvaluatorTest, self).setUp()
     self.maxDiff = None
-    self.job = job_module.Job.New(
-        (), (),
-        arguments={
-            'configuration': 'some_configuration',
-            'target': 'performance_telemetry_test',
-            'browser': 'some_browser',
-            'bucket': 'some_bucket',
-            'builder': 'some_builder',
-        },
-        comparison_mode=job_module.job_state.PERFORMANCE,
-        use_execution_engine=True)
+    with mock.patch('dashboard.pinpoint.models.job.QueryBots',
+                    mock.MagicMock(return_value=["a"])):
+      self.job = job_module.Job.New(
+          (), (),
+          arguments={
+              'configuration': 'some_configuration',
+              'target': 'performance_telemetry_test',
+              'browser': 'some_browser',
+              'bucket': 'some_bucket',
+              'builder': 'some_builder',
+          },
+          comparison_mode=job_module.job_state.PERFORMANCE,
+          use_execution_engine=True)
 
   def testSerializeEmptyJob(self):
     self.PopulateSimpleBisectionGraph(self.job)
@@ -42,6 +44,7 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
         {
             'arguments': mock.ANY,
             'batch_id': None,
+            'bots': ['a'],
             'bug_id': None,
             'project': 'chromium',
             'cancel_reason': None,
@@ -58,7 +61,7 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
             'state': [mock.ANY, mock.ANY],
             'status': 'Queued',
             'updated': mock.ANY,
-            'user': None,
+            'user': None
         },
         self.job.AsDict(
             options=[job_module.OPTION_STATE, job_module.OPTION_ESTIMATE]))
@@ -90,6 +93,7 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
                 mock.ANY,
             'batch_id':
                 None,
+            'bots': ['a'],
             'bug_id':
                 None,
             'project':

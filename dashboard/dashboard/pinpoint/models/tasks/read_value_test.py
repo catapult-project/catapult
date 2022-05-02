@@ -26,14 +26,15 @@ from tracing.value import histogram_set
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
-
 @mock.patch('dashboard.services.isolate.Retrieve')
 class EvaluatorTest(test.TestCase):
 
   def setUp(self):
     super(EvaluatorTest, self).setUp()
     self.maxDiff = None
-    self.job = job_module.Job.New((), ())
+    with mock.patch('dashboard.pinpoint.models.job.QueryBots',
+                    mock.MagicMock(return_value=["a"])):
+      self.job = job_module.Job.New((), ())
     # Set up a common evaluator for all the test cases.
     self.evaluator = evaluators.SequenceEvaluator(
         evaluators=(

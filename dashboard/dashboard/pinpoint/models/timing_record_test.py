@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import datetime
+import mock
 
 from dashboard.common import math_utils
 from dashboard.pinpoint.models import job
@@ -15,6 +16,8 @@ from dashboard.pinpoint.models import timing_record
 from dashboard.pinpoint import test
 
 
+@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+            mock.MagicMock(return_value=["a"]))
 class RecordTimingTest(test.TestCase):
 
   def assertClose(self, a, b):

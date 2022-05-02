@@ -84,6 +84,8 @@ def FakeCommitAsDict(commit_self):
 
 @mock.patch.object(job.results2, 'GetCachedResults2',
                    mock.MagicMock(return_value='http://foo'))
+@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+            mock.MagicMock(return_value=["a"]))
 class JobTest(test.TestCase):
 
   @mock.patch.object(
@@ -122,6 +124,8 @@ class JobTest(test.TestCase):
     self.assertFalse('estimate' in d)
 
 
+@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+            mock.MagicMock(return_value=["a"]))
 class RetryTest(test.TestCase):
 
   def setUp(self):
@@ -174,6 +178,8 @@ class RetryTest(test.TestCase):
 @mock.patch('dashboard.pinpoint.models.job_state.JobState.ChangesExamined',
             lambda _: 10)
 @mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())
+@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+            mock.MagicMock(return_value=["a"]))
 class BugCommentTest(test.TestCase):
 
   def setUp(self):
@@ -993,3 +999,43 @@ class BugCommentTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
     post_change_comment.assert_called_once_with('https://review.com', '123456',
                                                 _COMMENT_CODE_REVIEW)
+
+
+@mock.patch('dashboard.services.swarming.Bots.List')
+class QueryBotsTest(test.TestCase):
+
+  def testSingleBotReturned(self, swarming_bots_list):
+    swarming_bots_list.return_value = {'items': [{'bot_id': 'a'}]}
+    self.assertEqual(
+        job.QueryBots([{
+            'key': 'k',
+            'value': 'val'
+        }], 'server'), ['a'])
+    swarming_bots_list.assert_called_with(
+        dimensions={'k': 'val'}, is_dead='FALSE', quarantined='FALSE')
+
+  def testNoBotsReturned(self, swarming_bots_list):
+    swarming_bots_list.return_value = {"success": "false"}
+    with self.assertRaises(errors.SwarmingNoBots):
+      self.assertEqual(
+          job.QueryBots([{
+              'key': 'k',
+              'value': 'val'
+          }], 'server'), ['a'])
+
+
+class GetIterationCountTest(test.TestCase):
+
+  def testEvenlyDivisibleBots(self):
+    self.assertEqual(
+        job.GetIterationCount(initial_attempt_count=5, bot_count=5), 5)
+    self.assertEqual(
+        job.GetIterationCount(initial_attempt_count=10, bot_count=5), 10)
+
+  def testMoreBots(self):
+    self.assertEqual(
+        job.GetIterationCount(initial_attempt_count=5, bot_count=17), 5)
+
+  def testLessBots(self):
+    self.assertEqual(
+        job.GetIterationCount(initial_attempt_count=10, bot_count=7), 14)
