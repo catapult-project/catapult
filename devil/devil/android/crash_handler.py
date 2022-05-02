@@ -29,7 +29,8 @@ def RetryOnSystemCrash(f, device, retries=3):
   while True:
     try:
       return f(device)
-    except device_errors.DeviceUnreachableError:
+    except (device_errors.DeviceUnreachableError,
+            device_errors.AdbCommandFailedError):
       if num_try > retries:
         logger.error('%d consecutive device crashes. No longer retrying.',
                      num_try)
