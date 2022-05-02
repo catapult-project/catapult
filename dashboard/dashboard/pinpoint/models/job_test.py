@@ -1004,13 +1004,15 @@ class BugCommentTest(test.TestCase):
 @mock.patch('dashboard.services.swarming.Bots.List')
 class QueryBotsTest(test.TestCase):
 
-  def testSingleBotReturned(self, swarming_bots_list):
+  @mock.patch('random.shuffle')
+  def testSingleBotReturned(self, random_shuffle, swarming_bots_list):
     swarming_bots_list.return_value = {'items': [{'bot_id': 'a'}]}
     self.assertEqual(
         job.QueryBots([{
             'key': 'k',
             'value': 'val'
         }], 'server'), ['a'])
+    random_shuffle.assert_called_with(['a'])
     swarming_bots_list.assert_called_with(
         dimensions={'k': 'val'}, is_dead='FALSE', quarantined='FALSE')
 

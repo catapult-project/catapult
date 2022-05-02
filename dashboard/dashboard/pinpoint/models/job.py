@@ -9,6 +9,7 @@ from __future__ import absolute_import
 import datetime
 import logging
 import os
+import random
 import sys
 import traceback
 import uuid
@@ -173,7 +174,9 @@ def QueryBots(dimensions, swarming_server):
   results = swarming.Swarming(swarming_server).Bots().List(
       dimensions=query_dimensions, is_dead='FALSE', quarantined='FALSE')
   if 'items' in results:
-    return [i['bot_id'] for i in results['items']]
+    bots = [i['bot_id'] for i in results['items']]
+    random.shuffle(bots)
+    return bots
   else:
     raise errors.SwarmingNoBots()
 
