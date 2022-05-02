@@ -35,7 +35,7 @@ _PP_TO_PERF_BUILDER_MAP = {
         'mac-arm-builder-perf',
     'Win x64 Builder Perf':
         'win64-builder-perf',
-    'Chromeos Amd64 Generic Lacros Builder Perf ':
+    'Chromeos Amd64 Generic Lacros Builder Perf':
         'chromeos-amd64-generic-lacros-builder-perf'
 }
 
