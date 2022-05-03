@@ -19,8 +19,6 @@ from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models.quest import execution as execution_module
 from dashboard.pinpoint.models.quest import quest
 from dashboard.services import swarming
-from dashboard.services import crrev_service
-from dashboard.services.request import NotFoundError
 import six
 
 _TESTER_SERVICE_ACCOUNT = (
@@ -126,30 +124,6 @@ class RunTest(quest.Quest):
 
     if self._swarming_tags:
       swarming_tags.update(self._swarming_tags)
-
-    # Pinpoint started to run on Python 3 on 11/23/2021. However, if user tries
-    # to launch try job or bisect on old commits where scripts are not python3
-    # compatible, it fails. E.g.: crbug/1278382
-    # Here is a workaround to handle such cases. When the commit position is
-    # prior than X, we run the test in python 2.
-    # A more complete fix will be checking the whole series of commits and run
-    # all in python 2 if any of the commit is prior than X.
-    # Here we picked X as 926914 where the print issue in the bug was fixed.
-    if self.command and 'vpython3' in self.command:
-      try:
-        commit_hash = change.commits[0].git_hash
-        commit_result = crrev_service.GetCommit(commit_hash)
-        if 'number' in commit_result:
-          commit_position = int(commit_result['number'])
-          if commit_position < 926914:
-            logging.info(
-                'Running test on python 2. Hash: %s, Commit position: %s ',
-                commit_hash, commit_position)
-            vpython3_pos = self.command.index('vpython3')
-            self.command[vpython3_pos] = 'vpython'
-      except NotFoundError:
-        logging.info('Failed to request commit position with hash: %s',
-                     commit_hash)
 
     dimensions = self._GetDimensions(index)
 
