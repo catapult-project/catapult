@@ -54,7 +54,8 @@ class ArgumentParser(argparse.ArgumentParser):
                               help='Print the typ version and exit.')
 
         if discovery:
-            self.add_argument('-f', '--file-list', metavar='FILENAME',
+            self.add_argument('-f', '--file-list', '--test-list',
+                              metavar='FILENAME',
                               action='store',
                               help=('Takes the list of tests from the file '
                                     '(use "-" for stdin).'))
