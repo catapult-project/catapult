@@ -30,6 +30,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'
@@ -63,6 +64,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'
@@ -103,6 +105,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'
@@ -138,6 +141,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'
@@ -181,6 +185,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'
@@ -223,6 +228,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'
@@ -286,14 +292,16 @@ tr.b.unittest.testSuite(function() {
       const rendererProcess1 = model.rendererProcess;
       const mainThread1 = model.rendererMain;
       addNavigationStart_(mainThread1, 50,
-          {isLoadingMainFrame: true, documentLoaderURL: 'http://example.com'});
+          { isOutermostMainFrame: true, isLoadingMainFrame: true,
+            documentLoaderURL: 'http://example.com'});
 
       const rendererProcess2 = model.getOrCreateProcess(10);
       const mainThread2 = rendererProcess2.getOrCreateThread(10);
       mainThread2.name = 'CrRendererMain';
 
       addNavigationStart_(mainThread2, 100,
-          {isLoadingMainFrame: true, documentLoaderURL: 'http://example.com'});
+          { isOutermostMainFrame: true, isLoadingMainFrame: true,
+            documentLoaderURL: 'http://example.com'});
     });
 
     const histograms = new tr.v.HistogramSet();
@@ -480,6 +488,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'
@@ -532,6 +541,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: 'firstframeid'},
             documentLoaderURL: 'http://example.com'
@@ -554,6 +564,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 2300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: 'secondframeid'},
             documentLoaderURL: 'http://example.com'
@@ -664,6 +675,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'
@@ -692,6 +704,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 2100,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'
@@ -724,6 +737,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'
@@ -773,6 +787,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'
@@ -813,6 +828,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'
@@ -861,6 +877,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'
@@ -923,6 +940,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'
@@ -992,6 +1010,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess1.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'
@@ -1028,6 +1047,7 @@ tr.b.unittest.testSuite(function() {
       }));
       rendererProcess2.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'
@@ -1065,6 +1085,7 @@ tr.b.unittest.testSuite(function() {
   function addFrameLoaderObject_(rendererProcess, timestamp) {
     rendererProcess.objects.addSnapshot(
         'ptr', 'loading', 'FrameLoader', timestamp, {
+          isOutermostMainFrame: true,
           isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
           documentLoaderURL: 'http://example.com',
         });
@@ -1138,13 +1159,15 @@ tr.b.unittest.testSuite(function() {
       const mainThread = model.rendererMain;
 
       addNavigationStart_(mainThread, 200,
-          {isLoadingMainFrame: true, documentLoaderURL: 'http://example.com'});
+          { isOutermostMainFrame: true, isLoadingMainFrame: true,
+            documentLoaderURL: 'http://example.com'});
       addNetworkRequest_(mainThread, 200, 250);
       // FrameLoader creation time after navigation start.
       rendererProcess.objects.idWasCreated(
           'ptr', 'loading', 'FrameLoader', 250);
       rendererProcess.objects.addSnapshot(
           'ptr', 'loading', 'FrameLoader', 300, {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com',
           });
@@ -1155,7 +1178,8 @@ tr.b.unittest.testSuite(function() {
 
       // New navigation to close the search window.
       addNavigationStart_(mainThread, 7000,
-          {isLoadingMainFrame: true, documentLoaderURL: 'http://example.com'});
+          { isOutermostMainFrame: true, isLoadingMainFrame: true,
+            documentLoaderURL: 'http://example.com'});
     });
 
     const histograms = new tr.v.HistogramSet();
@@ -1420,6 +1444,7 @@ tr.b.unittest.testSuite(function() {
       // DomContentLoadedEnd and NavigationStart for a different frame.
       rendererProcess.objects.addSnapshot(
           'ptr', 'loading', 'FrameLoader', 4000, {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true, frame: {id_ref: '0xffffffff'},
             documentLoaderURL: 'http://example.com'
           });
@@ -1493,6 +1518,7 @@ tr.b.unittest.testSuite(function() {
       }));
       process.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {
+            isOutermostMainFrame: true,
             isLoadingMainFrame: true,
             frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'

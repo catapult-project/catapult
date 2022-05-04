@@ -44,6 +44,7 @@ tr.b.unittest.testSuite(function() {
   function addTestFrame(rendererProcess) {
     rendererProcess.objects.addSnapshot(
         'ptr', 'loading', 'FrameLoader', 300, {
+          isOutermostMainFrame: true,
           isLoadingMainFrame: true,
           frame: {id_ref: '0xdeadbeef'},
           documentLoaderURL: 'http://example.com'

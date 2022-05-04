@@ -187,7 +187,14 @@ tr.exportTo('tr.metrics.sh', function() {
       const frameIdRef = targetEvent.args.frame;
       const snapshot = findFrameLoaderSnapshotAt(
           rendererHelper, frameIdRef, targetEvent.start);
-      if (snapshot === undefined || !snapshot.args.isLoadingMainFrame) continue;
+      if (snapshot === undefined) continue;
+      // If isOutermostMainFrame is available, use it, if not use
+      // isLoadingMainFrame.
+      const isOutermostMainFrame =
+            (snapshot.args.isOutermostMainFrame !== undefined) ?
+              snapshot.args.isOutermostMainFrame :
+              snapshot.args.isLoadingMainFrame;
+      if (!isOutermostMainFrame) continue;
       const url = snapshot.args.documentLoaderURL;
       if (tr.e.chrome.CHROME_INTERNAL_URLS.includes(url)) continue;
       let navigationStartEvent;

@@ -278,8 +278,9 @@ tr.b.unittest.testSuite(function() {
     const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       model.rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader',
-          25, {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'});
+        25, { isOutermostMainFrame: true, isLoadingMainFrame: true,
+              frame: {id_ref: '0xdeadbeef'},
+              documentLoaderURL: 'http://example.com'});
       ChromeTestUtils.addFrameEvent(model, {start: 0, end: 10});
       model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
@@ -321,8 +322,9 @@ tr.b.unittest.testSuite(function() {
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addFrameEvent(model, {start: 0, end: 10});
       model.rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader',
-          15, {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'});
+        15, { isOutermostMainFrame: true, isLoadingMainFrame: true,
+              frame: {id_ref: '0xdeadbeef'},
+              documentLoaderURL: 'http://example.com'});
       ChromeTestUtils.addFrameEvent(model, {start: 20, end: 40});
       model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
@@ -1111,8 +1113,9 @@ tr.b.unittest.testSuite(function() {
     const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       model.rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader',
-          25, {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'});
+        25, { isOutermostMainFrame: true, isLoadingMainFrame: true,
+              frame: {id_ref: '0xdeadbeef'},
+              documentLoaderURL: 'http://example.com'});
       model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'navigationStart',
@@ -1207,8 +1210,9 @@ tr.b.unittest.testSuite(function() {
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addFrameEvent(model, {start: 0, end: 10});
       model.rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader',
-          25, {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'});
+        25, { isOutermostMainFrame: true, isLoadingMainFrame: true,
+              frame: {id_ref: '0xdeadbeef'},
+              documentLoaderURL: 'http://example.com'});
       ChromeTestUtils.addFrameEvent(model, {start: 10, end: 20});
       model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
