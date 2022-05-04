@@ -74,6 +74,11 @@ if utils.IsRunningFlask():
   @APP.route('/api/run/<job_id>', methods=['POST'])
   def RunHandler(job_id):
     return handlers.run.RunHandler(job_id)
+
+  @APP.route('/api/isolate', methods=['GET', 'POST'])
+  def IsolateHandler():
+    return handlers.isolate.IsolateHandler()
+
 else:
   import webapp2
 
