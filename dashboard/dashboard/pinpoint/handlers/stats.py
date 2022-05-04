@@ -9,21 +9,27 @@ from __future__ import absolute_import
 import datetime
 import json
 
-import webapp2
-
 from dashboard.pinpoint.models import job
+from dashboard.common import utils
 
 _MAX_JOBS_TO_FETCH = 10000
 
 # TODO: Generalize the Jobs handler to allow the user to choose what fields to
 # include and how many Jobs to fertch.
 
+if utils.IsRunningFlask():
+  from flask import make_response
 
-class Stats(webapp2.RequestHandler):
-  """Shows an overview of recent anomalies for perf sheriffing."""
+  def StatsHandler():
+    return make_response(json.dumps(_GetJobs()))
+else:
+  import webapp2
 
-  def get(self):
-    self.response.out.write(json.dumps(_GetJobs()))
+  class Stats(webapp2.RequestHandler):
+    """Shows an overview of recent anomalies for perf sheriffing."""
+
+    def get(self):
+      self.response.out.write(json.dumps(_GetJobs()))
 
 
 def _GetJobs():

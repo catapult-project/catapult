@@ -79,6 +79,10 @@ if utils.IsRunningFlask():
   def IsolateHandler():
     return handlers.isolate.IsolateHandler()
 
+  @APP.route('/api/stats')
+  def StatsHandler():
+    return handlers.stats.StatsHandler()
+
 else:
   import webapp2
 

@@ -9,7 +9,6 @@ from __future__ import absolute_import
 from dashboard.common import utils
 
 from dashboard.pinpoint.handlers.cas import CASReference
-from dashboard.pinpoint.handlers.stats import Stats
 from dashboard.pinpoint.handlers.task_updates import TaskUpdates
 
 if utils.IsRunningFlask():
@@ -28,6 +27,7 @@ if utils.IsRunningFlask():
   import dashboard.pinpoint.handlers.results2
   import dashboard.pinpoint.handlers.run
   import dashboard.pinpoint.handlers.isolate
+  import dashboard.pinpoint.handlers.stats
 else:
   from dashboard.pinpoint.handlers.jobs import Jobs
   from dashboard.pinpoint.handlers.commit import Commit
@@ -45,3 +45,4 @@ else:
   from dashboard.pinpoint.handlers.results2 import Results2Generator
   from dashboard.pinpoint.handlers.run import Run
   from dashboard.pinpoint.handlers.isolate import Isolate
+  from dashboard.pinpoint.handlers.stats import Stats
