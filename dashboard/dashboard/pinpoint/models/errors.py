@@ -11,10 +11,12 @@ Here's the exception hierarchy:
 
   JobError
    +-- FatalError
-   |    +-- BuildIsolateNotFound
-   |    +-- SwarmingExpired
    |    +-- AllRunsFailed
+   |    +-- BuildCancelledFatal
+   |    +-- BuildFailedFatal
+   |    +-- BuildIsolateNotFound
    |    +-- ExecutionEngineErrors
+   |    +-- SwarmingExpired
    +-- InformationalError
    |    +-- BuildFailed
    |    +-- BuildCancelled
@@ -102,6 +104,12 @@ class BuildFailed(InformationalError):
         'revision.' % reason)
 
 
+class BuildFailedFatal(BuildFailed, FatalError):
+
+  def __init__(self, reason):
+    super(BuildFailedFatal, self).__init__(reason)
+
+
 class BuildCancelled(InformationalError):
 
   def __init__(self, reason):
@@ -109,6 +117,12 @@ class BuildCancelled(InformationalError):
           self).__init__('The build was cancelled with reason: %s. "\
         "Pinpoint will be unable to run any tests against this "\
         "revision.' % reason)
+
+
+class BuildCancelledFatal(BuildCancelled, FatalError):
+
+  def __init__(self, reason):
+    super(BuildCancelledFatal, self).__init__(reason)
 
 
 class BuildNumberExceeded(InformationalError):
@@ -127,7 +141,6 @@ class BuildGerritUrlNotFound(InformationalError):
         'Unable to find gerrit url for commit %s. Pinpoint will be unable '\
         'to run any tests against this revision.' % reason)
 
-
 class BuildGerritURLInvalid(InformationalError):
   category = 'request'
 
@@ -137,13 +150,11 @@ class BuildGerritURLInvalid(InformationalError):
         'redirected patch URL, ie. https://chromium-review.googlesource.com/'\
         'c/chromium/src/+/12345' % reason)
 
-
 class CancelError(InformationalError):
 
   def __init__(self, reason):
     super(CancelError,
           self).__init__('Cancellation request failed: {}'.format(reason))
-
 
 class SwarmingExpired(FatalError):
 

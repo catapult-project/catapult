@@ -29,7 +29,8 @@ class FindIsolateQuestTest(unittest.TestCase):
     arguments = {
         'builder': 'Mac Builder',
         'target': 'telemetry_perf_tests',
-        'bucket': 'luci.bucket'
+        'bucket': 'luci.bucket',
+        'comparison_mode': 'try'
     }
     del arguments['builder']
     with self.assertRaises(TypeError):
@@ -39,7 +40,8 @@ class FindIsolateQuestTest(unittest.TestCase):
     arguments = {
         'builder': 'Mac Builder',
         'target': 'telemetry_perf_tests',
-        'bucket': 'luci.bucket'
+        'bucket': 'luci.bucket',
+        'comparison_mode': 'try'
     }
     del arguments['target']
     with self.assertRaises(TypeError):
@@ -49,7 +51,8 @@ class FindIsolateQuestTest(unittest.TestCase):
     arguments = {
         'builder': 'Mac Builder',
         'target': 'telemetry_perf_tests',
-        'bucket': 'luci.bucket'
+        'bucket': 'luci.bucket',
+        'comparison_mode': 'try'
     }
     del arguments['bucket']
     with self.assertRaises(TypeError):
@@ -59,10 +62,14 @@ class FindIsolateQuestTest(unittest.TestCase):
     arguments = {
         'builder': 'Mac Builder',
         'target': 'telemetry_perf_tests',
-        'bucket': 'luci.bucket'
+        'bucket': 'luci.bucket',
+        'comparison_mode': 'try'
     }
-    expected = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
-                                        'luci.bucket')
+    expected = find_isolate.FindIsolate(
+        'Mac Builder',
+        'telemetry_perf_tests',
+        'luci.bucket',
+        comparison_mode='try')
     self.assertEqual(find_isolate.FindIsolate.FromDict(arguments), expected)
 
 
@@ -639,6 +646,30 @@ class BuildTest(_FindIsolateExecutionTest):
 
     self.assertExecutionFailure(execution, errors.BuildFailed)
 
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: False)
+  def testBuildFailureFatal(self, put, get_job_status):
+    quest = find_isolate.FindIsolate(
+        'Mac Builder',
+        'telemetry_perf_tests',
+        'luci.bucket',
+        comparison_mode='try')
+    execution = quest.Start(change_test.Change(0))
+
+    # Request a build.
+    put.return_value = self.FakePutReturn()
+    execution.Poll()
+
+    # Check build status.
+    get_job_status.return_value = {
+        'build': {
+            'status': 'COMPLETED',
+            'result': 'FAILURE',
+            'failure_reason': 'BUILD_FAILURE',
+        }
+    }
+    with self.assertRaises(errors.BuildFailedFatal):
+      execution.Poll()
+
   @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: True)
   def testBuildFailureV2(self, put, get_job_status):
     quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
@@ -656,6 +687,27 @@ class BuildTest(_FindIsolateExecutionTest):
     execution.Poll()
 
     self.assertExecutionFailure(execution, errors.BuildFailed)
+
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: True)
+  def testBuildFailureV2Fatal(self, put, get_job_status):
+    quest = find_isolate.FindIsolate(
+        'Mac Builder',
+        'telemetry_perf_tests',
+        'luci.bucket',
+        comparison_mode='try')
+    execution = quest.Start(change_test.Change(0))
+
+    # Request a build.
+    put.return_value = self.FakePutReturn()
+    execution.Poll()
+
+    # Check build status.
+    get_job_status.return_value = {
+        'status': 'FAILURE',
+    }
+
+    with self.assertRaises(errors.BuildFailedFatal):
+      execution.Poll()
 
   @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: False)
   def testBuildCanceled(self, put, get_job_status):
@@ -679,6 +731,31 @@ class BuildTest(_FindIsolateExecutionTest):
 
     self.assertExecutionFailure(execution, errors.BuildCancelled)
 
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: False)
+  def testBuildCanceledFatal(self, put, get_job_status):
+    quest = find_isolate.FindIsolate(
+        'Mac Builder',
+        'telemetry_perf_tests',
+        'luci.bucket',
+        comparison_mode='try')
+    execution = quest.Start(change_test.Change(0))
+
+    # Request a build.
+    put.return_value = self.FakePutReturn()
+    execution.Poll()
+
+    # Check build status.
+    get_job_status.return_value = {
+        'build': {
+            'status': 'COMPLETED',
+            'result': 'CANCELED',
+            'cancelation_reason': 'TIMEOUT',
+        }
+    }
+
+    with self.assertRaises(errors.BuildCancelledFatal):
+      execution.Poll()
+
   @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: True)
   def testBuildCanceledV2(self, put, get_job_status):
     quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',
@@ -700,6 +777,30 @@ class BuildTest(_FindIsolateExecutionTest):
     execution.Poll()
 
     self.assertExecutionFailure(execution, errors.BuildCancelled)
+
+  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: True)
+  def testBuildCanceledV2Fatal(self, put, get_job_status):
+    quest = find_isolate.FindIsolate(
+        'Mac Builder',
+        'telemetry_perf_tests',
+        'luci.bucket',
+        comparison_mode='try')
+    execution = quest.Start(change_test.Change(0))
+
+    # Request a build.
+    put.return_value = self.FakePutReturn()
+    execution.Poll()
+
+    # Check build status.
+    get_job_status.return_value = {
+        'status': 'CANCELED',
+        "statusDetails": {
+            "timeout": {}
+        },
+    }
+
+    with self.assertRaises(errors.BuildCancelledFatal):
+      execution.Poll()
 
   def testBuildSucceededButIsolateIsMissing(self, put, get_job_status):
     quest = find_isolate.FindIsolate('Mac Builder', 'telemetry_perf_tests',

@@ -42,11 +42,17 @@ _PP_TO_PERF_BUILDER_MAP = {
 
 class FindIsolate(quest.Quest):
 
-  def __init__(self, builder, target, bucket, fallback_target=None):
+  def __init__(self,
+               builder,
+               target,
+               bucket,
+               fallback_target=None,
+               comparison_mode='performance'):
     self._builder_name = builder
     self._target = target
     self._bucket = bucket
     self._fallback_target = fallback_target
+    self._comparison_mode = comparison_mode
 
     self._previous_builds = {}
     self._build_tags = collections.OrderedDict()
@@ -79,22 +85,20 @@ class FindIsolate(quest.Quest):
         change,
         self._previous_builds,
         self.build_tags,
-        fallback_target=self._fallback_target)
+        fallback_target=self._fallback_target,
+        comparison_mode=self._comparison_mode)
 
   def PropagateJob(self, job):
     self._build_tags = BuildTagsFromJob(job)
 
   @classmethod
   def FromDict(cls, arguments):
-    for arg in ('builder', 'target', 'bucket'):
+    for arg in ('builder', 'target', 'bucket', 'comparison_mode'):
       if arg not in arguments:
         raise TypeError('Missing "{0}" argument'.format(arg))
 
-    return cls(
-        arguments['builder'],
-        arguments['target'],
-        arguments['bucket'],
-        fallback_target=arguments.get('fallback_target'))
+    return cls(arguments['builder'], arguments['target'], arguments['bucket'],
+               arguments.get('fallback_target'), arguments['comparison_mode'])
 
 
 class _FindIsolateExecution(execution.Execution):
@@ -106,13 +110,15 @@ class _FindIsolateExecution(execution.Execution):
                change,
                previous_builds,
                build_tags,
-               fallback_target=None):
+               fallback_target,
+               comparison_mode='performance'):
     super(_FindIsolateExecution, self).__init__()
     self._builder_name = builder_name
     self._target = target
     self._bucket = bucket
     self._change = change
     self._fallback_target = fallback_target
+    self._comparison_mode = comparison_mode
 
     # previous_builds is shared among all Executions of the same Quest.
     self._previous_builds = previous_builds
@@ -196,6 +202,8 @@ class _FindIsolateExecution(execution.Execution):
     self._Complete(result_arguments=result_arguments)
     return True
 
+  def _IsTryJob(self):
+    return self._comparison_mode == 'try'
 
   def _CheckBuildStatus(self):
     if utils.IsRunningBuildBucketV2():
@@ -217,9 +225,16 @@ class _FindIsolateExecution(execution.Execution):
     if build['status'] != 'COMPLETED':
       return
     if build['result'] == 'FAILURE':
-      raise errors.BuildFailed(build['failure_reason'])
+      reason = build['failure_reason']
+      if self._IsTryJob():
+        raise errors.BuildFailedFatal(reason)
+      else:
+        raise errors.BuildFailed(reason)
     if build['result'] == 'CANCELED':
-      raise errors.BuildCancelled(build['cancelation_reason'])
+      if self._IsTryJob():
+        raise errors.BuildCancelledFatal(build['cancelation_reason'])
+      else:
+        raise errors.BuildCancelled(build['cancelation_reason'])
 
     # The build succeeded, and should now be in the isolate cache.
     # If it is, this will call self._Complete()
@@ -242,14 +257,22 @@ class _FindIsolateExecution(execution.Execution):
     if build_status in ('SCHEDULED', 'STARTED'):
       return
     if build_status == 'FAILURE':
-      raise errors.BuildFailed('BUILD_FAILURE')
-    if build_status == 'INFRA_FAILURE':
-      if 'timeout' in job_status.get('statusDetails', {}):
-        raise errors.BuildCancelled('TIMEOUT')
+      if self._IsTryJob():
+        raise errors.BuildFailedFatal('BUILD_FAILURE')
       else:
-        raise errors.BuildFailed('INFRA_FAILURE')
+        raise errors.BuildFailed('BUILD_FAILURE')
+    if build_status == 'INFRA_FAILURE':
+      reason = 'TIMEOUT' if 'timeout' in job_status.get('statusDetails',
+                                                        {}) else 'INFRA_FAILURE'
+      if self._IsTryJob():
+        raise errors.BuildFailedFatal(reason)
+      else:
+        raise errors.BuildFailed(reason)
     if build_status == 'CANCELED':
-      raise errors.BuildCancelled('CANCELED_EXPLICITLY')
+      if self._IsTryJob():
+        raise errors.BuildCancelledFatal('CANCELED_EXPLICITLY')
+      else:
+        raise errors.BuildCancelled('CANCELED_EXPLICITLY')
 
     # The build succeeded, and should now be in the isolate cache.
     # If it is, this will call self._Complete()

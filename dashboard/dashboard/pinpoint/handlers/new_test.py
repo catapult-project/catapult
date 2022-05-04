@@ -31,6 +31,7 @@ _BASE_REQUEST = {
     'start_git_hash': '1',
     'end_git_hash': '3',
     'story': 'speedometer',
+    'comparison_mode': 'performance'
 }
 
 # TODO: Make this agnostic to the parameters the Quests take.
@@ -303,13 +304,6 @@ class NewTest(_NewTest):
     self.assertEqual(
         job.state._changes[1].id_string,
         'chromium@f00d + %s' % ('https://lalala/repo~branch~id/abc123',))
-
-  def testComparisonModeOmitted(self):
-    request = dict(_BASE_REQUEST)
-    self.assertFalse('comparison_mode' in request)
-    response = self.Post('/api/new', request, status=200)
-    job = job_module.JobFromId(json.loads(response.body)['jobId'])
-    self.assertEqual(job.comparison_mode, 'try')
 
   def testComparisonModeUnknown(self):
     request = dict(_BASE_REQUEST)
