@@ -83,6 +83,10 @@ if utils.IsRunningFlask():
   def StatsHandler():
     return handlers.stats.StatsHandler()
 
+  @APP.route('/_ah/push-handlers/task-updates', methods=['POST'])
+  def TaskUpdatesHandler():
+    return handlers.task_updates.TaskUpdatesHandler()
+
 else:
   import webapp2
 
