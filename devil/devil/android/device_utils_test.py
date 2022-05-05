@@ -3774,14 +3774,9 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
 
 class DeviceUtilsRestartAdbdTest(DeviceUtilsTest):
   def testAdbdRestart(self):
-    mock_temp_file = '/sdcard/temp-123.sh'
-    with self.assertCalls(
-        (mock.call.devil.android.device_temp_file.DeviceTempFile(
-            self.adb, suffix='.sh'), MockTempFile(mock_temp_file)),
-        self.call.device.WriteFile(mock.ANY, mock.ANY),
-        (self.call.device.RunShellCommand(
-            ['source', mock_temp_file], check_return=True, as_root=True)),
-        self.call.adb.WaitForDevice()):
+    with self.assertCalls((self.call.device.RunShellCommand(
+        ['setprop', 'ctl.restart', 'adbd'], check_return=False, as_root=True)),
+                          self.call.adb.WaitForDevice()):
       self.device.RestartAdbd()
 
 

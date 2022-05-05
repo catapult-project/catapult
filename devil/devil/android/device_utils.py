@@ -101,17 +101,6 @@ _FILE_LIST_SCRIPT = """
   done
 """
 
-_RESTART_ADBD_SCRIPT = """
-  trap '' HUP
-  trap '' TERM
-  trap '' PIPE
-  function restart() {
-    stop adbd
-    start adbd
-  }
-  restart &
-"""
-
 _UNZIP_AND_CHMOD_SCRIPT = """
   {bin_dir}/unzip {zip_file} && (for dir in {dirs}
   do
@@ -3886,12 +3875,10 @@ class DeviceUtils(object):
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RestartAdbd(self, timeout=None, retries=None):
     logger.info('Restarting adbd on device.')
-    with device_temp_file.DeviceTempFile(self.adb, suffix='.sh') as script:
-      self.WriteFile(script.name, _RESTART_ADBD_SCRIPT)
-      self.RunShellCommand(['source', script.name],
-                           check_return=True,
-                           as_root=True)
-      self.adb.WaitForDevice()
+    self.RunShellCommand(['setprop', 'ctl.restart', 'adbd'],
+                         check_return=False,
+                         as_root=True)
+    self.adb.WaitForDevice()
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GrantPermissions(self, package, permissions, timeout=None, retries=None):
