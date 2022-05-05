@@ -884,4 +884,4 @@ def RequestParamsMixed(req):
 
 
 def IsRunningFlask():
-  return False
+  return IsStagingEnvironment()
