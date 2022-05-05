@@ -23,8 +23,9 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import urllib2
 import distutils.spawn
+
+from urllib.request import urlopen
 
 OMAHAPROXY_VERSION_MAP_URL = 'https://omahaproxy.appspot.com/all.json'
 
@@ -92,19 +93,19 @@ def Main(args):
   target_arch = platform.machine()
 
   if target_channel not in VALID_CHANNEL_LIST:
-    print 'Invalid target channel %s. Valid: %s' % (
-        target_channel, VALID_CHANNEL_LIST)
+    print('Invalid target channel %s. Valid: %s' % (
+        target_channel, VALID_CHANNEL_LIST))
     return 1
 
   if platform.system() not in PYTHON_SYSTEM_TO_CHROME_OS:
-    print 'System not supported %s. Valid: %s' % (
-        platform.system(), PYTHON_SYSTEM_TO_CHROME_OS)
+    print('System not supported %s. Valid: %s' % (
+        platform.system(), PYTHON_SYSTEM_TO_CHROME_OS))
     return 1
   target_os = PYTHON_SYSTEM_TO_CHROME_OS[platform.system()]
 
   if target_arch not in PYTHON_MACHINE_TO_NINJA_ARCH:
-    print 'Invalid target architecture %s. Valid: %s' % (
-        target_arch, PYTHON_MACHINE_TO_NINJA_ARCH)
+    print('Invalid target architecture %s. Valid: %s' % (
+        target_arch, PYTHON_MACHINE_TO_NINJA_ARCH))
     return 1
 
   v8_version = GetV8Version(target_os, target_channel)
@@ -116,7 +117,7 @@ def Main(args):
 def GetV8Version(target_os, target_channel):
   """Returns the v8 version that corresponds to the specified OS and channel."""
   # Fetch the current version map from omahaproxy.
-  response = urllib2.urlopen(OMAHAPROXY_VERSION_MAP_URL)
+  response = urlopen(OMAHAPROXY_VERSION_MAP_URL)
   versions = json.loads(response.read())
 
   # Return the v8 version that corresponds to the target OS and channel in the
@@ -129,7 +130,7 @@ def GetV8Version(target_os, target_channel):
         return curr_version['v8_version']
 
 def _RunCommand(command):
-  print 'Run: %s' % command
+  print('Run: %s' % command)
   subprocess.check_call(command, shell=True, stderr=sys.stderr,
                         stdout=sys.stdout)
 
@@ -273,13 +274,13 @@ class TempDir:
   """A context manager that creates a temporary directory while in scope."""
   def __enter__(self):
     self.path = tempfile.mkdtemp()
-    print "creating {0}".format(self.path)
+    print("creating {0}".format(self.path))
     return self.path
 
   def __exit__(self, etype, value, traceback):
     shutil.rmtree(self.path, ignore_errors=True)
     if os.path.isdir(self.path):
-      print '%s still exists. You may want to delete it' % self.path
+      print('%s still exists. You may want to delete it' % self.path)
 
 if __name__ == '__main__':
   sys.exit(Main(sys.argv[1:]))
