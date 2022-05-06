@@ -31,7 +31,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def __init__(self, android_platform_backend, finder_options,
                browser_directory, profile_directory, backend_settings,
-               build_dir=None):
+               build_dir=None, local_apk_path=None):
     """
     Args:
       android_platform_backend: The
@@ -48,6 +48,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           the browser was built in, for finding debug artifacts. Can be None if
           the browser was not locally built, or the directory otherwise cannot
           be determined.
+      local_apk_path: A string containing a path to the APK for the browser. Can
+          be None if the browser was not locally built.
     """
     assert isinstance(android_platform_backend,
                       android_platform_backend_module.AndroidPlatformBackend)
@@ -66,6 +68,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._app_ui = None
     self._browser_package = None
     self._finder_options = finder_options
+    self._local_apk_path = local_apk_path
 
     # Set the debug app if needed.
     self.platform_backend.SetDebugApp(self.browser_package)
@@ -259,12 +262,16 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def SymbolizeMinidump(self, minidump_path):
     dump_symbolizer = android_minidump_symbolizer.AndroidMinidumpSymbolizer(
-        self._dump_finder, self.build_dir)
+        self._dump_finder, self.build_dir,
+        symbols_dir=self._CreateExecutableUniqueDirectory('chrome_symbols_'))
     stack = dump_symbolizer.SymbolizeMinidump(minidump_path)
     if not stack:
       return (False, 'Failed to symbolize minidump.')
     self._symbolized_minidump_paths.add(minidump_path)
     return (True, stack)
+
+  def _GetBrowserExecutablePath(self):
+    return self._local_apk_path
 
   def _PullMinidumpsAndAdjustMtimes(self):
     """Pulls any minidumps from the device to the host.

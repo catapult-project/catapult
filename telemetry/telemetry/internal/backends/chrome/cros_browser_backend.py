@@ -4,6 +4,7 @@
 
 from __future__ import absolute_import
 import logging
+import os
 import posixpath
 import shutil
 import time
@@ -391,5 +392,13 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       string containing the stack trace.
     """
     dump_symbolizer = cros_minidump_symbolizer.CrOSMinidumpSymbolizer(
-        self._dump_finder, self.build_dir)
+        self._dump_finder, self.build_dir,
+        symbols_dir=self._CreateExecutableUniqueDirectory('chrome_symbols_'))
     return dump_symbolizer.SymbolizeMinidump(minidump)
+
+  def _GetBrowserExecutablePath(self):
+    if self.build_dir:
+      possible_path = os.path.join(self.build_dir, 'chrome')
+      if os.path.isfile(possible_path):
+        return possible_path
+    return None

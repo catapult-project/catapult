@@ -263,7 +263,8 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     browser_backend = android_browser_backend.AndroidBrowserBackend(
         self._platform_backend, self._finder_options,
         self.browser_directory, self.profile_directory,
-        self._backend_settings, build_dir=self._build_dir)
+        self._backend_settings, build_dir=self._build_dir,
+        local_apk_path=self._local_apk)
     try:
       return browser.Browser(
           browser_backend, self._platform_backend, startup_args=(),

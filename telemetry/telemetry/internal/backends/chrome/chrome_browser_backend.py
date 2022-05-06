@@ -3,11 +3,14 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
+import hashlib
 import logging
 import os
 import pprint
 import shlex
+import shutil
 import socket
+import tempfile
 
 from telemetry.core import exceptions
 from telemetry import decorators
@@ -343,3 +346,45 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
   def SetWindowBounds(self, window_id, bounds):
     self.devtools_client.SetWindowBounds(window_id, bounds)
+
+  def _CreateExecutableUniqueDirectory(self, prefix):
+    """Creates a semi-permanent directory unique to the browser executable.
+
+    This directory will persist between different tests, and potentially
+    be available between different test suites, but is liable to be cleaned
+    up by the OS at any point outside of a test suite's run.
+
+    Args:
+      prefix: A string to include before the unique identifier in the
+          directory name.
+
+    Returns:
+      A string containing an absolute path to the created directory, or None if
+      no such directory can be created due to the browser executable being
+      unknown.
+    """
+    executable = self._GetBrowserExecutablePath()
+    if not executable:
+      return None
+    hashfunc = hashlib.sha1()
+    with open(executable, 'rb') as infile:
+      hashfunc.update(infile.read())
+    symbols_dirname = prefix + hashfunc.hexdigest()
+    # We can't use mkdtemp() directly since that will result in the directory
+    # being different, and thus not shared. So, create an unused directory
+    # and use the same parent directory.
+    unused_dir = tempfile.mkdtemp().rstrip(os.path.sep)
+    symbols_dir = os.path.join(os.path.dirname(unused_dir), symbols_dirname)
+    if not os.path.exists(symbols_dir) or not os.path.isdir(symbols_dir):
+      os.makedirs(symbols_dir)
+    shutil.rmtree(unused_dir)
+    return symbols_dir
+
+  def _GetBrowserExecutablePath(self):
+    """Gets the path to the browser executable used for testing.
+
+    Returns:
+      A string containing the path to the executable being used for testing, or
+      None if it cannot be determined.
+    """
+    raise NotImplementedError()
