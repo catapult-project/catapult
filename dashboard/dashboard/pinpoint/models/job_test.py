@@ -84,7 +84,7 @@ def FakeCommitAsDict(commit_self):
 
 @mock.patch.object(job.results2, 'GetCachedResults2',
                    mock.MagicMock(return_value='http://foo'))
-@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+@mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 class JobTest(test.TestCase):
 
@@ -124,7 +124,16 @@ class JobTest(test.TestCase):
     self.assertFalse('estimate' in d)
 
 
-@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+@mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
+            mock.MagicMock(return_value=[]))
+class JobTestNoBots(test.TestCase):
+
+  def testNoBots(self):
+    with self.assertRaises(errors.SwarmingNoBots):
+      job.Job.New((), (), bug_id=123456)
+
+
+@mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 class RetryTest(test.TestCase):
 
@@ -178,7 +187,7 @@ class RetryTest(test.TestCase):
 @mock.patch('dashboard.pinpoint.models.job_state.JobState.ChangesExamined',
             lambda _: 10)
 @mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())
-@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+@mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 class BugCommentTest(test.TestCase):
 
@@ -999,32 +1008,6 @@ class BugCommentTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
     post_change_comment.assert_called_once_with('https://review.com', '123456',
                                                 _COMMENT_CODE_REVIEW)
-
-
-@mock.patch('dashboard.services.swarming.Bots.List')
-class QueryBotsTest(test.TestCase):
-
-  @mock.patch('random.shuffle')
-  def testSingleBotReturned(self, random_shuffle, swarming_bots_list):
-    swarming_bots_list.return_value = {'items': [{'bot_id': 'a'}]}
-    self.assertEqual(
-        job.QueryBots([{
-            'key': 'k',
-            'value': 'val'
-        }], 'server'), ['a'])
-    random_shuffle.assert_called_with(['a'])
-    swarming_bots_list.assert_called_with(
-        dimensions={'k': 'val'}, is_dead='FALSE', quarantined='FALSE')
-
-  def testNoBotsReturned(self, swarming_bots_list):
-    swarming_bots_list.return_value = {"success": "false"}
-    with self.assertRaises(errors.SwarmingNoBots):
-      self.assertEqual(
-          job.QueryBots([{
-              'key': 'k',
-              'value': 'val'
-          }], 'server'), ['a'])
-
 
 class GetIterationCountTest(test.TestCase):
 

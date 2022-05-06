@@ -180,6 +180,8 @@ class _RunTestExecutionTest(unittest.TestCase):
 @mock.patch('dashboard.services.swarming.Task.Result')
 class RunTestFullTest(_RunTestExecutionTest):
 
+  @mock.patch('dashboard.services.swarming.IsBotAlive',
+              mock.MagicMock(return_value=True))
   def testSuccess(self, swarming_task_result, swarming_tasks_new):
     # Goes through a full run of two Executions.
 
@@ -378,6 +380,8 @@ class RunTestFullTest(_RunTestExecutionTest):
     self.assertEqual(swarming_tasks_new.call_count, 0)
 
 
+  @mock.patch('dashboard.services.swarming.IsBotAlive',
+              mock.MagicMock(return_value=True))
   def testSuccess_Cas(self, swarming_task_result, swarming_tasks_new):
     # Goes through a full run of two Executions.
 
@@ -492,6 +496,73 @@ class RunTestFullTest(_RunTestExecutionTest):
             ],
         })
 
+  @mock.patch('dashboard.services.swarming.IsBotAlive',
+              mock.MagicMock(return_value=False))
+  def testDeadBot(self, swarming_task_result, swarming_tasks_new):
+    quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS,
+                             None, None)
+
+    # Propagate a thing that looks like a job.
+    quest.PropagateJob(
+        FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
+                'user@example.com', State(1), ['a']))
+
+    execution_a = quest.Start(
+        change.Change("a", variant=0), 'cas_instance', 'xxxxxxxx/111')
+    execution_b = quest.Start(
+        change.Change("b", variant=1), 'cas_instance', 'xxxxxxxx/111')
+
+    swarming_task_result.assert_not_called()
+    swarming_tasks_new.assert_not_called()
+
+    # Call the first Poll() to start the swarming task.
+    swarming_tasks_new.return_value = {'task_id': 'task id'}
+    execution_b.Poll()
+    execution_a.Poll()
+
+    swarming_task_result.assert_not_called()
+    self.assertEqual(swarming_tasks_new.call_count, 2)
+    self.assertNewTaskHasDimensions(
+        swarming_tasks_new, {
+            'task_slices': [{
+                'expiration_secs': '86400',
+                'properties': {
+                    'cas_input_root': {
+                        'cas_instance': 'cas_instance',
+                        'digest': {
+                            'hash': 'xxxxxxxx',
+                            'size_bytes': 111,
+                        },
+                    },
+                    'extra_args': ['arg'],
+                    'dimensions': DIMENSIONS + [{
+                        "key": "id",
+                        "value": "a"
+                    }],
+                    'execution_timeout_secs': mock.ANY,
+                    'io_timeout_secs': mock.ANY,
+                }
+            }]
+        })
+    self.assertFalse(execution_b.completed)
+    self.assertFalse(execution_b.failed)
+
+    swarming_task_result.return_value = {
+        'bot_id': 'a',
+        'cas_output_root': {
+            'cas_instance': 'projects/x/instances/default_instance',
+            'digest': {
+                'hash': 'e3b0c44298fc1c149afbf4c8996fb',
+                'size_bytes': 1,
+            },
+        },
+        'state': 'PENDING',
+    }
+    execution_b.Poll()
+
+    self.assertTrue(execution_b.completed)
+    self.assertTrue(execution_b.failed)
+
   def testStart_NoSwarmingTags(self, swarming_task_result, swarming_tasks_new):
     del swarming_task_result
     del swarming_tasks_new
@@ -528,6 +599,8 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
     last_exception_line = execution.exception['traceback'].splitlines()[-1]
     self.assertTrue(last_exception_line.startswith('SwarmingTaskError'))
 
+  @mock.patch('dashboard.services.swarming.IsBotAlive',
+              mock.MagicMock(return_value=True))
   @mock.patch('dashboard.services.swarming.Task.Stdout')
   def testTestError(self, swarming_task_stdout, swarming_task_result,
                     swarming_tasks_new):

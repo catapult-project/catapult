@@ -17,7 +17,7 @@ from dashboard.pinpoint.models import scheduler
 from dashboard.pinpoint.models.tasks import bisection_test_util
 
 
-@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+@mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 class FifoSchedulerTest(test.TestCase):
 
@@ -241,7 +241,7 @@ class FifoSchedulerTest(test.TestCase):
 
 # TODO(dberris): Need to mock *all* of the back-end services that the various
 # "live" bisection operations will be looking into.
-@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+@mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 class FifoSchedulerExecutionEngineTest(bisection_test_util.BisectionTestBase):
 
@@ -268,7 +268,7 @@ class FifoSchedulerExecutionEngineTest(bisection_test_util.BisectionTestBase):
     self.assertIsNone(job_id)
 
 
-@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+@mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 class FifoSchedulerCostModelTest(test.TestCase):
 

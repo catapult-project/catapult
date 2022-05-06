@@ -18,7 +18,7 @@ from dashboard.pinpoint.models import results2 as results2_module
 _SERVICE_ACCOUNT_EMAIL = 'some-service-account@example.com'
 
 
-@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+@mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 class JobsTest(test.TestCase):
 

@@ -16,7 +16,7 @@ from dashboard.pinpoint.models import scheduler
 
 
 @mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())
-@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+@mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 class CancelJobTest(test.TestCase):
 

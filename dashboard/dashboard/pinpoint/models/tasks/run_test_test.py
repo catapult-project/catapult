@@ -38,7 +38,7 @@ class EvaluatorTest(test.TestCase):
   def setUp(self):
     super(EvaluatorTest, self).setUp()
     self.maxDiff = None
-    with mock.patch('dashboard.pinpoint.models.job.QueryBots',
+    with mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
                     mock.MagicMock(return_value=["a"])):
       self.job = job_module.Job.New((), ())
     task_module.PopulateTaskGraph(
@@ -520,7 +520,7 @@ AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
     self.skipTest('Deferring implementation pending design.')
 
 
-@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+@mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 class ValidatorTest(test.TestCase):
 

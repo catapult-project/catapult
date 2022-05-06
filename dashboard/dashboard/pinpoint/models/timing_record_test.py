@@ -16,7 +16,7 @@ from dashboard.pinpoint.models import timing_record
 from dashboard.pinpoint import test
 
 
-@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+@mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 class RecordTimingTest(test.TestCase):
 

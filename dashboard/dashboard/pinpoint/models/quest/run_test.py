@@ -343,6 +343,8 @@ class _RunTestExecution(execution_module.Execution):
     if 'bot_id' in result:
       # Set bot_id to pass the info back to the Quest.
       self._bot_id = result['bot_id']
+      if not swarming.IsBotAlive(self._bot_id, self._swarming_server):
+        raise errors.SwarmingTaskError('Bot is dead.')
 
     if result['state'] == 'PENDING' or result['state'] == 'RUNNING':
       return

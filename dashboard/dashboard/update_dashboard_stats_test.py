@@ -92,7 +92,7 @@ class UpdateDashboardStatsTest(test.TestCase):
     old_commit = commit.Commit('chromium', hash2)
     change_b = change_module.Change((old_commit,))
 
-    with mock.patch('dashboard.pinpoint.models.job.QueryBots',
+    with mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
                     mock.MagicMock(return_value=["a"])):
       job = job_module.Job.New((_QuestStub(),), (change_a, change_b),
                                comparison_mode=comparison_mode,

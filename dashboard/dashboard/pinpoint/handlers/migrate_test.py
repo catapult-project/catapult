@@ -28,7 +28,7 @@ class MigrateAuthTest(test.TestCase):
     self.addCleanup(patcher.stop)
     patcher.start()
 
-    with mock.patch('dashboard.pinpoint.models.job.QueryBots',
+    with mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
                     mock.MagicMock(return_value=["a"])):
       for _ in range(100):
         job.Job.New((), ())

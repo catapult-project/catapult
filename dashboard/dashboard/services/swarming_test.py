@@ -63,6 +63,82 @@ class BotsTest(_SwarmingTest):
         quarantined=True)
 
 
+@mock.patch('dashboard.services.swarming.Bots.List')
+class QueryBotsTest(unittest.TestCase):
+
+  @mock.patch('random.shuffle')
+  def testSingleBotReturned(self, random_shuffle, swarming_bots_list):
+    swarming_bots_list.return_value = {'items': [{'bot_id': 'a'}]}
+    self.assertEqual(
+        swarming.GetAliveBotsByDimensions([{
+            'key': 'k',
+            'value': 'val'
+        }], 'server'), ['a'])
+    random_shuffle.assert_called_with(['a'])
+    swarming_bots_list.assert_called_with(
+        dimensions={'k': 'val'}, is_dead='FALSE', quarantined='FALSE')
+
+  def testNoBotsReturned(self, swarming_bots_list):
+    swarming_bots_list.return_value = {"success": "false"}
+    self.assertEqual(
+        swarming.GetAliveBotsByDimensions([{
+            'key': 'k',
+            'value': 'val'
+        }], 'server'), [])
+
+
+class IsBotAliveTest(unittest.TestCase):
+
+  @mock.patch('dashboard.services.swarming.Bot.Get',
+              mock.MagicMock(return_value={
+                  'is_dead': False,
+                  'deleted': False,
+                  'quarantined': False
+              }))
+  def testAlive(self):
+    self.assertTrue(swarming.IsBotAlive('a', 'server'))
+
+  @mock.patch('dashboard.services.swarming.Bot.Get',
+              mock.MagicMock(return_value={
+                  'is_dead': True,
+                  'deleted': False,
+                  'quarantined': False
+              }))
+  def testDead(self):
+    self.assertFalse(swarming.IsBotAlive('a', 'server'))
+
+  @mock.patch('dashboard.services.swarming.Bot.Get',
+              mock.MagicMock(return_value={
+                  'is_dead': False,
+                  'deleted': True,
+                  'quarantined': False
+              }))
+  def testDeleted(self):
+    self.assertFalse(swarming.IsBotAlive('a', 'server'))
+
+  @mock.patch('dashboard.services.swarming.Bot.Get',
+              mock.MagicMock(
+                  return_value={
+                      'is_dead': False,
+                      'deleted': False,
+                      'quarantined': True,
+                      'state': 'device hot'
+                  }))
+  def testQuarantinedTemp(self):
+    self.assertTrue(swarming.IsBotAlive('a', 'server'))
+
+  @mock.patch('dashboard.services.swarming.Bot.Get',
+              mock.MagicMock(
+                  return_value={
+                      'is_dead': False,
+                      'deleted': False,
+                      'quarantined': True,
+                      'state': '"quarantined":"No available devices."'
+                  }))
+  def testQuarantinedNotAvailable(self):
+    self.assertFalse(swarming.IsBotAlive('a', 'server'))
+
+
 class TaskTest(_SwarmingTest):
 
   def testCancel(self):

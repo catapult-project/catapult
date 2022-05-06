@@ -15,7 +15,7 @@ from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import results2 as results2_module
 
 
-@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+@mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 class JobTest(test.TestCase):
 

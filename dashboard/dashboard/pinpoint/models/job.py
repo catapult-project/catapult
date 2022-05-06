@@ -9,7 +9,6 @@ from __future__ import absolute_import
 import datetime
 import logging
 import os
-import random
 import sys
 import traceback
 import uuid
@@ -167,18 +166,6 @@ def IsRunning(job):
     return job.started and not job.cancelled and job.task and len(job.task) > 0
   return job.started and not job.completed
 
-
-def QueryBots(dimensions, swarming_server):
-  # Queries Swarming for the set of bots we can use for this test.
-  query_dimensions = {p['key']: p['value'] for p in dimensions}
-  results = swarming.Swarming(swarming_server).Bots().List(
-      dimensions=query_dimensions, is_dead='FALSE', quarantined='FALSE')
-  if 'items' in results:
-    bots = [i['bot_id'] for i in results['items']]
-    random.shuffle(bots)
-    return bots
-  else:
-    raise errors.SwarmingNoBots()
 
 
 def GetIterationCount(initial_attempt_count, bot_count):
@@ -349,7 +336,9 @@ class Job(ndb.Model):
     Returns:
       A Job object.
     """
-    bots = QueryBots(dimensions, swarming_server)
+    bots = swarming.GetAliveBotsByDimensions(dimensions, swarming_server)
+    if not len(bots):
+      raise errors.SwarmingNoBots()
     state = job_state.JobState(
         quests,
         comparison_mode=comparison_mode,

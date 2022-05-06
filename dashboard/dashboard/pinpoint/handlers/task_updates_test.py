@@ -79,7 +79,7 @@ def CreateTestUpdate(job, commit_id, attempt):
   })
 
 
-@mock.patch('dashboard.pinpoint.models.job.QueryBots',
+@mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 @mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())
 @mock.patch('dashboard.services.buildbucket_service.Put')

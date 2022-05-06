@@ -12,6 +12,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import random
+
 from dashboard.services import request
 
 _API_PATH = '_ah/api/swarming/v1'
@@ -132,3 +134,29 @@ class Tasks(object):
     """
     url = '%s/%s/tasks/new' % (self._server, _API_PATH)
     return request.RequestJson(url, method='POST', body=body)
+
+
+def _IsAlive(response):
+  if response['is_dead'] or response['deleted']:
+    return False
+  if not response['quarantined']:
+    return True
+  return 'No available devices' not in response['state']
+
+
+def GetAliveBotsByDimensions(dimensions, swarming_server):
+  # Queries Swarming for the set of bots we can use for this test.
+  query_dimensions = {p['key']: p['value'] for p in dimensions}
+  results = Swarming(swarming_server).Bots().List(
+      dimensions=query_dimensions, is_dead='FALSE', quarantined='FALSE')
+  if 'items' in results:
+    bots = [i['bot_id'] for i in results['items']]
+    random.shuffle(bots)
+    return bots
+  else:
+    return []
+
+
+def IsBotAlive(bot_id, swarming_server):
+  result = Swarming(swarming_server).Bot(bot_id).Get()
+  return _IsAlive(result)
