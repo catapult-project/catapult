@@ -778,9 +778,15 @@ class AlertGroupWorkflow(object):
 
   def _NewPinpointRequest(self, alert):
     start_git_hash = pinpoint_request.ResolveToGitHash(
-        alert.start_revision, alert.benchmark_name, crrev=self._crrev)
+        alert.start_revision - 1, alert.benchmark_name, crrev=self._crrev)
     end_git_hash = pinpoint_request.ResolveToGitHash(
         alert.end_revision, alert.benchmark_name, crrev=self._crrev)
+    logging.info(
+        """
+        Making new pinpoint request. Alert start revision: %s; end revision: %s.
+         Pinpoint start hash (one position back): %s, end hash: %s'
+         """, alert.start_revision, alert.end_revision, start_git_hash,
+        end_git_hash)
 
     # Pinpoint also requires you specify which isolate target to run the
     # test, so we derive that from the suite name. Eventually, this would
