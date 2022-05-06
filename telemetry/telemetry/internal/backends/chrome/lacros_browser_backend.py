@@ -106,8 +106,8 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         startup_args[i] = new_arg
 
   def _LaunchLacrosChromeHelper(self, startup_args):
-    self._cri.RunCmdOnDevice(['cp', '../usr/local/lacros-chrome/chrome',
-                              '../usr/local/lacros-chrome/lacros-chrome'])
+    self._cri.RunCmdOnDevice(['cp', '/usr/local/lacros-chrome/chrome',
+                              '/usr/local/lacros-chrome/lacros-chrome'])
 
     # Some args need escaping, etc.
     self._ReformatArg(startup_args, 'enable-features')
@@ -125,7 +125,7 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
            'python',
            '/usr/local/bin/mojo_connection_lacros_launcher.py',
            '-s', '/tmp/lacros.sock',
-           './../usr/local/lacros-chrome/lacros-chrome',
+           '/usr/local/lacros-chrome/lacros-chrome',
            '--ozone-platform=wayland',
            '--user-data-dir=/usr/local/lacros-chrome/user_data',
            '--enable-gpu-rasterization',
