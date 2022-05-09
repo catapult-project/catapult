@@ -10,7 +10,7 @@ import sys
 import threading
 import tokenize
 
-from third_party import schema
+from .third_party import schema
 
 if six.PY2:
   # We use cStringIO.StringIO because it is equivalent to Py3's io.StringIO.
