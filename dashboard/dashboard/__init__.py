@@ -57,13 +57,9 @@ THIRD_PARTY_LIBRARIES = [
     'werkzeug',
 ]
 
-THIRD_PARTY_LIBRARIES_PY2 = THIRD_PARTY_LIBRARIES + [
-    'httplib2/python2/httplib2'
-]
+THIRD_PARTY_LIBRARIES_PY2 = THIRD_PARTY_LIBRARIES + ['httplib2/python2']
 
-THIRD_PARTY_LIBRARIES_PY3 = THIRD_PARTY_LIBRARIES + [
-    'httplib2/python3/httplib2'
-]
+THIRD_PARTY_LIBRARIES_PY3 = THIRD_PARTY_LIBRARIES + ['httplib2/python3']
 
 # Files and directories in catapult/dashboard.
 DASHBOARD_FILES = [
