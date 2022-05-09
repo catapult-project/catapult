@@ -80,7 +80,8 @@ class Task(ndb.Model):
   and need to be.
   """
   task_type = ndb.StringProperty(required=True)
-  status = ndb.StringProperty(required=True, choices=VALID_TRANSITIONS.keys())
+  status = ndb.StringProperty(
+      required=True, choices=list(VALID_TRANSITIONS.keys()))
   payload = ndb.JsonProperty(compressed=True, indexed=False)
   dependencies = ndb.KeyProperty(repeated=True, kind='Task')
   created = ndb.DateTimeProperty(required=True, auto_now_add=True)
@@ -135,7 +136,7 @@ def PopulateTaskGraph(job, graph):
       tasks[dependency.from_].dependencies.append(dependency_key)
       dependencies.add(dependency)
 
-  ndb.put_multi(tasks.values(), use_cache=True)
+  ndb.put_multi(list(tasks.values()), use_cache=True)
 
 
 @ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, retries=0)
@@ -191,7 +192,7 @@ def ExtendTaskGraph(job, vertices, dependencies):
 
   ndb.put_multi(
       itertools.chain(
-          amendment_task_graph.values(),
+          list(amendment_task_graph.values()),
           [t for id_, t in current_task_graph.items() if id_ in update_filter]),
       use_cache=True)
 
@@ -351,7 +352,7 @@ def Evaluate(job, event, evaluator):
 
     # If the stack is empty, we should start at an arbitrary point.
     if not task_stack:
-      task_stack = [graph.tasks.values()[0]]
+      task_stack = [list(graph.tasks.values())[0]]
     vertex_states = {}
     while task_stack:
       task = task_stack[-1]

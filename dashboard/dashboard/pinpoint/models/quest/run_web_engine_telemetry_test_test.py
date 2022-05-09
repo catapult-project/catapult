@@ -57,7 +57,7 @@ class FromDictTest(unittest.TestCase):
     self.assertEqual(quest, expected)
 
   def testSettingDeviceTypeCorrectlySetsImageDir(self):
-    platforms = run_web_engine_telemetry_test.IMAGE_MAP.keys()
+    platforms = list(run_web_engine_telemetry_test.IMAGE_MAP.keys())
     for platform in platforms:
       # Set up new dimensions.
       new_args = dict(_BASE_ARGUMENTS)

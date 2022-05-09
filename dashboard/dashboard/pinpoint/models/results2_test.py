@@ -956,7 +956,7 @@ class _JobStateFake(object):
       next(b, None)
       return itertools.izip(a, b)
 
-    return [(a, b) for a, b in Pairwise(self._attempts.keys())]
+    return [(a, b) for a, b in Pairwise(list(self._attempts.keys()))]
 
 
 class _JobStub(object):

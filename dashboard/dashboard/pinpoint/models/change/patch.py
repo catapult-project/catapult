@@ -10,7 +10,7 @@ import collections
 import datetime
 import logging
 import re
-import urlparse
+import six.moves.urllib.parse as urlparse
 
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models.change import commit_cache
