@@ -1172,7 +1172,8 @@ class DeviceUtils(object):
               retries=None,
               modules=None,
               fake_modules=None,
-              additional_locales=None):
+              additional_locales=None,
+              instant_app=False):
     """Install an APK or app bundle.
 
     Noop if an identical APK is already installed. If installing a bundle, the
@@ -1181,10 +1182,10 @@ class DeviceUtils(object):
 
     Args:
       apk: An ApkHelper instance or string containing the path to the APK or
-        bundle.
+          bundle.
       allow_downgrade: A boolean indicating if we should allow downgrades.
       reinstall: A boolean indicating if we should keep any existing app data.
-        Ignored if |apk| is a bundle.
+          Ignored if |apk| is a bundle.
       permissions: Set of permissions to set. If not set, finds permissions with
           apk helper. To set no permissions, pass [].
       timeout: timeout in seconds
@@ -1196,12 +1197,17 @@ class DeviceUtils(object):
           rather than installed. Thus the app can emulate SplitCompat while
           running. This should not have any overlap with |modules|.
       additional_locales: An iterable with additional locales to install for a
-        bundle.
+          bundle.
+      instant_app: A boolean that selects if the APK should be installed as an
+          instant app or not. Instant apps are installed in a more
+          restrictive execution environment.
 
     Raises:
       CommandFailedError if the installation fails.
       CommandTimeoutError if the installation times out.
       DeviceUnreachableError on missing device.
+      AdbCommandFailedError if the device SDK level does not support instant
+        apps
     """
     apk = apk_helper.ToHelper(apk)
     modules_set = set(modules or [])
@@ -1220,12 +1226,12 @@ class DeviceUtils(object):
         apk_paths_to_install = [p for p in apk_paths if p not in fake_apk_paths]
       else:
         apk_paths_to_install = apk_paths
-      self._InstallInternal(
-          apk,
-          apk_paths_to_install,
-          allow_downgrade=allow_downgrade,
-          reinstall=reinstall,
-          permissions=permissions)
+      self._InstallInternal(apk,
+                            apk_paths_to_install,
+                            allow_downgrade=allow_downgrade,
+                            reinstall=reinstall,
+                            permissions=permissions,
+                            instant_app=instant_app)
 
   @staticmethod
   def _GetFakeInstallPaths(apk_paths, fake_modules):
@@ -1287,7 +1293,8 @@ class DeviceUtils(object):
                       allow_cached_props=False,
                       permissions=None,
                       timeout=None,
-                      retries=None):
+                      retries=None,
+                      instant_app=False):
     """Install a split APK.
 
     Noop if all of the APK splits are already installed.
@@ -1303,29 +1310,35 @@ class DeviceUtils(object):
           apk helper. To set no permissions, pass [].
       timeout: timeout in seconds
       retries: number of retries
+      instant_app: A boolean that selects if the APK should be installed as an
+          instant app or not. Instant apps are installed in a more
+          restrictive execution environment.
 
     Raises:
       CommandFailedError if the installation fails.
       CommandTimeoutError if the installation times out.
       DeviceUnreachableError on missing device.
       DeviceVersionError if device SDK is less than Android L.
+      AdbCommandFailedError if the device SDK level does not support instant
+        apps
     """
     apk = apk_helper.ToSplitHelper(base_apk, split_apks)
     with apk.GetApkPaths(
         self, allow_cached_props=allow_cached_props) as apk_paths:
-      self._InstallInternal(
-          apk,
-          apk_paths,
-          reinstall=reinstall,
-          permissions=permissions,
-          allow_downgrade=allow_downgrade)
+      self._InstallInternal(apk,
+                            apk_paths,
+                            reinstall=reinstall,
+                            permissions=permissions,
+                            allow_downgrade=allow_downgrade,
+                            instant_app=instant_app)
 
   def _InstallInternal(self,
                        apk,
                        apk_paths,
                        allow_downgrade=False,
                        reinstall=False,
-                       permissions=None):
+                       permissions=None,
+                       instant_app=False):
     if not apk_paths:
       raise device_errors.CommandFailedError('Did not get any APKs to install')
 
@@ -1382,18 +1395,18 @@ class DeviceUtils(object):
       logger.info('Installing package %s using APKs %s',
                   package_name, apks_to_install)
       if len(apks_to_install) > 1 or partial:
-        self.adb.InstallMultiple(
-            apks_to_install,
-            partial=partial,
-            reinstall=reinstall,
-            streaming=streaming,
-            allow_downgrade=allow_downgrade)
+        self.adb.InstallMultiple(apks_to_install,
+                                 partial=partial,
+                                 reinstall=reinstall,
+                                 streaming=streaming,
+                                 allow_downgrade=allow_downgrade,
+                                 instant_app=instant_app)
       else:
-        self.adb.Install(
-            apks_to_install[0],
-            reinstall=reinstall,
-            streaming=streaming,
-            allow_downgrade=allow_downgrade)
+        self.adb.Install(apks_to_install[0],
+                         reinstall=reinstall,
+                         streaming=streaming,
+                         allow_downgrade=allow_downgrade,
+                         instant_app=instant_app)
     else:
       logger.info('Skipping installation of package %s', package_name)
       # Running adb install terminates running instances of the app, so to be

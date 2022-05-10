@@ -901,7 +901,8 @@ class AdbWrapper(object):
               sd_card=False,
               streaming=None,
               timeout=DEFAULT_LONG_TIMEOUT,
-              retries=DEFAULT_RETRIES):
+              retries=DEFAULT_RETRIES,
+              instant_app=False):
     """Install an apk on the device.
 
     Args:
@@ -916,6 +917,7 @@ class AdbWrapper(object):
         Note this option is not supported prior to adb version 1.0.40
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
+      instant_app (optional): Install the APK as an instant app
     """
     VerifyLocalFileExists(apk_path)
     cmd = ['install']
@@ -927,6 +929,8 @@ class AdbWrapper(object):
       cmd.append('-s')
     if allow_downgrade:
       cmd.append('-d')
+    if instant_app:
+      cmd.append('--instant')
     if streaming in (True, False):
       if (du_version.LooseVersion(self.Version()) <
           du_version.LooseVersion('1.0.40')):
@@ -952,7 +956,8 @@ class AdbWrapper(object):
                       partial=False,
                       streaming=None,
                       timeout=DEFAULT_LONG_TIMEOUT,
-                      retries=DEFAULT_RETRIES):
+                      retries=DEFAULT_RETRIES,
+                      instant_app=False):
     """Install an apk with splits on the device.
 
     Args:
@@ -968,6 +973,7 @@ class AdbWrapper(object):
         Note this option is not supported prior to adb version 1.0.40
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
+      instant_app (optional): Install the APK as an instant app
     """
     for path in apk_paths:
       VerifyLocalFileExists(path)
@@ -987,6 +993,8 @@ class AdbWrapper(object):
       cmd.append('-s')
     if allow_downgrade:
       cmd.append('-d')
+    if instant_app:
+      cmd.append('--instant')
     if streaming in (True, False):
       if (du_version.LooseVersion(self.Version()) <
           du_version.LooseVersion('1.0.40')):
