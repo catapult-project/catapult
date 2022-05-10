@@ -344,7 +344,14 @@ def RetrieveCASOutput(cas_root_ref, path, client=None):
     cas_client = cas_service.GetRBECASService()
 
   def _GetTree(cas_ref):
-    return cas_client.GetTree(cas_ref)[0]['directories'][0]
+    for i in range(3):
+      try:
+        return cas_client.GetTree(cas_ref)[0]['directories'][0]
+      except Exception as e:  # pylint: disable=broad-except
+        logging.debug('_GetTree iteration %s raised %s', i, str(e))
+        exc = e
+        continue
+    raise exc
 
   def _GetNodeByName(name, nodes):
     for node in nodes:
