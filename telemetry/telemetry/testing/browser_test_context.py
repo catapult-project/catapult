@@ -23,6 +23,8 @@ class TypTestContext(object):
      _ test_class: the name of the test class to be run.
      _ test_case_ids_to_run: the ids of the test cases to be run. e.g:
         foo.bar.Test1, foo.bar.Test2,..
+     _ disable_cloud_storage_io: whether the subprocess is allowed to use
+        cloud_storage I/O
 
 
   This object is designed to be pickle-able so that it can be easily pass from
@@ -35,6 +37,7 @@ class TypTestContext(object):
     self._finder_options = None
     self._test_class = None
     self._test_cases_ids_to_run = set()
+    self._disable_cloud_storage_io = None
     self._frozen = False
 
   def Freeze(self):
@@ -42,8 +45,9 @@ class TypTestContext(object):
 
     Calling setter on |self|'s property will throw exception.
     """
-    assert self._finder_options
-    assert self._test_class
+    assert self._finder_options is not None
+    assert self._test_class is not None
+    assert self._disable_cloud_storage_io is not None
     self._frozen = True
     self._test_cases_ids_to_run = frozenset(self._test_cases_ids_to_run)
     self._client_configs = tuple(self._client_configs)
@@ -69,6 +73,10 @@ class TypTestContext(object):
   def expectations_files(self):
     return self._expectations_files
 
+  @property
+  def disable_cloud_storage_io(self):
+    return self._disable_cloud_storage_io
+
   @expectations_files.setter
   def expectations_files(self, value):
     assert not self._frozen
@@ -83,3 +91,8 @@ class TypTestContext(object):
   def test_class(self, value):
     assert not self._test_class
     self._test_class = value
+
+  @disable_cloud_storage_io.setter
+  def disable_cloud_storage_io(self, value):
+    assert not self._frozen
+    self._disable_cloud_storage_io = value

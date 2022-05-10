@@ -679,6 +679,7 @@ class TestLoadAllTestModules(unittest.TestCase):
         'telemetry.testing.browser_test_runner_unittest.Algebra.TestNumber')
     context.test_case_ids_to_run.add(
         'telemetry.testing.browser_test_runner_unittest.Algebra.testOne')
+    context.disable_cloud_storage_io = True
     context.Freeze()
     browser_test_context._global_test_context = context
     try:

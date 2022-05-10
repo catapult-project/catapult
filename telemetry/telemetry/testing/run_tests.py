@@ -56,9 +56,10 @@ class RunTestsCommand(command_line.OptparseCommand):
   def AddCommandLineArgs(cls, parser, _):
     parser.add_option('--start-xvfb', action='store_true',
                       default=False, help='Start Xvfb display if needed.')
-    parser.add_option('--disable-cloud-storage-io', action='store_true',
-                      default=False, help=('Disable cloud storage IO when '
-                                           'tests are run in parallel.'))
+    parser.add_option(
+        '--disable-cloud-storage-io',
+        action='store_true', default=False,
+        help=('Disable cloud storage IO.'))
     parser.add_option('--no-browser', action='store_true', default=False,
                       help='Don\'t require an actual browser to run the tests.')
     parser.add_option('-d', '--also-run-disabled-tests',
@@ -269,11 +270,8 @@ def GetClassifier(typ_runner, possible_browser):
 
 def _SetUpProcess(child, context): # pylint: disable=unused-argument
   ps_util.EnableListingStrayProcessesUponExitHook()
-  # Make sure that we don't invokes cloud storage I/Os when we run the tests in
-  # parallel.
-  # TODO(https://github.com/catapult-project/catapult/issues/2192): always do
-  # this once telemetry tests in Chromium is updated to prefetch files.
   args = context
+  # Make sure that we don't invoke cloud storage I/Os
   if args.disable_cloud_storage_io:
     os.environ[cloud_storage.DISABLE_CLOUD_STORAGE_IO] = '1'
   if binary_manager.NeedsInit():

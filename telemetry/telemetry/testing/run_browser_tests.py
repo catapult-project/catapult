@@ -15,7 +15,9 @@ from telemetry.internal.util import binary_manager
 from telemetry.testing import browser_test_context
 from telemetry.testing import serially_executed_browser_test_case
 
+from py_utils import cloud_storage
 from py_utils import discover
+
 import typ
 from typ import arg_parser
 
@@ -189,6 +191,10 @@ def _CreateTestArgParsers():
       '--debug-shard-distributions',
       action='store_true', default=False,
       help='Print debugging information about the shards\' test distributions')
+  parser.add_argument(
+      '--disable-cloud-storage-io',
+      action='store_true', default=False,
+      help=('Disable cloud storage IO.'))
 
   parser.add_argument('--default-chrome-root', type=str, default=None)
   parser.add_argument(
@@ -255,6 +261,7 @@ def RunTests(args):
       test_class, options, extra_args)
   typ_runner.context.test_class = test_class
   typ_runner.context.expectations_files = options.expectations_files
+  typ_runner.context.disable_cloud_storage_io = options.disable_cloud_storage_io
   test_times = None
   if options.read_abbreviated_json_results_from:
     with open(options.read_abbreviated_json_results_from, 'r') as f:
@@ -337,6 +344,9 @@ def RunTests(args):
 
 def _SetUpProcess(child, context):
   args = context.finder_options
+  # Make sure that we don't invoke cloud storage I/Os
+  if context.disable_cloud_storage_io:
+    os.environ[cloud_storage.DISABLE_CLOUD_STORAGE_IO] = '1'
   if binary_manager.NeedsInit():
     # On windows, typ doesn't keep the DependencyManager initialization in the
     # child processes.
