@@ -38,6 +38,9 @@ _PROJECT_ID_KEY = 'project_id'
 _DEFAULT_CUSTOM_METRIC_VAL = 1
 OAUTH_SCOPES = ('https://www.googleapis.com/auth/userinfo.email',)
 OAUTH_ENDPOINTS = ['/api/', '/add_histograms', '/add_point', '/uploads']
+LEGACY_SERVICE_ACCOUNT = (
+    '425761728072-pa1bs18esuhp2cp2qfa1u9vb6p1v6kfu@developer.gserviceaccount.com'
+)
 _CACHE_TIME = 60*60*2 # 2 hours
 
 _AUTOROLL_DOMAINS = (

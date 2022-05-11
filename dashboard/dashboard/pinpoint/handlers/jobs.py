@@ -167,8 +167,11 @@ def _GetJobs(options, query_filter, prev_cursor='', next_cursor=''):
 
   def _FixupEmails(j):
     """ Replace the service account used by monorail with a meaningful alias """
+    service_account_emails = [
+        utils.ServiceAccountEmail(), utils.LEGACY_SERVICE_ACCOUNT
+    ]
     user = j.get('user')
-    if user and user == service_account_email:
+    if user and user in service_account_emails:
       j['user'] = 'chromeperf (automation)'
     return j
 

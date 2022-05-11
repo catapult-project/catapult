@@ -97,6 +97,36 @@ class JobsTest(test.TestCase):
     expected_job_dict['user'] = 'chromeperf (automation)'
     self.assertEqual(expected_job_dict, sorted_data[-1])
 
+  @mock.patch.object(utils,
+                     'ServiceAccountEmail', lambda: utils.LEGACY_SERVICE_ACCOUNT
+                    )
+  @mock.patch.object(utils, 'IsStagingEnvironment', lambda: False)
+  @mock.patch.object(jobs.utils, 'GetEmail',
+                     mock.MagicMock(return_value=utils.LEGACY_SERVICE_ACCOUNT))
+  @mock.patch.object(results2_module, 'GetCachedResults2', return_value="")
+  def testGet_WithServiceAccountUser_Legacy(self, _):
+    job_module.Job.New((), ())
+    job_module.Job.New((), (), user=utils.LEGACY_SERVICE_ACCOUNT)
+    job = job_module.Job.New((), (), user=utils.LEGACY_SERVICE_ACCOUNT)
+
+    data = json.loads(
+        self.testapp.get('/api/jobs?o=STATE&filter=user=%s' %
+                         (utils.LEGACY_SERVICE_ACCOUNT,)).body)
+
+    self.assertEqual(2, data['count'])
+    self.assertEqual(2, len(data['jobs']))
+    self.assertEqual(data['jobs'][0]['user'], 'chromeperf (automation)')
+    self.assertEqual(data['jobs'][1]['user'], 'chromeperf (automation)')
+
+    self.assertFalse(data['prev'])
+    self.assertFalse(data['next'])
+    self.assertTrue(data['next_cursor'])
+    self.assertFalse(data['prev_cursor'])
+
+    sorted_data = sorted(data['jobs'], key=lambda d: d['job_id'])
+    expected_job_dict = job.AsDict([job_module.OPTION_STATE])
+    expected_job_dict['user'] = 'chromeperf (automation)'
+    self.assertEqual(expected_job_dict, sorted_data[-1])
 
   @mock.patch.object(utils,
                      'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)

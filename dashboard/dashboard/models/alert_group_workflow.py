@@ -399,7 +399,10 @@ class AlertGroupWorkflow(object):
         issue.get('comments') or [], key=lambda c: c["id"], reverse=True):
       if c.get('updates', {}).get('status') in ('WontFix', 'Fixed', 'Verified',
                                                 'Invalid', 'Duplicate', 'Done'):
-        closed_by_pinpoint = (c.get('author') == self._service_account())
+        closed_by_pinpoint = (
+            c.get('author') in [
+                self._service_account(), utils.LEGACY_SERVICE_ACCOUNT
+            ])
         break
 
     has_new_regression = any(a.auto_bisect_enable
