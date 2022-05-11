@@ -33,7 +33,7 @@ found in the LICENSE file.
     <app-location route="{{route}}"></app-location>
     <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
 
-    <navigation-bar auth-headers="{{authHeaders}}"></navigation-bar>
+    <navigation-bar auth-headers="{{authHeaders}}" user={{user}}></navigation-bar>
 
     <!--
     The <iron-pages> element can be used as a simple content switcher. We have a
@@ -44,7 +44,7 @@ found in the LICENSE file.
       <iron-pages selected="[[page]]" attr-for-selected="name" fallback-selection="error" on-iron-select="onSelectedPage" on-iron-deselect="onDeselectedPage">
         <error-page name="error"></error-page>
         <job-page name="job" route="{{subroute}}" auth-headers="[[authHeaders]]"></job-page>
-        <jobs-page name="jobs" route="{{subroute}}" auth-headers="[[authHeaders]]"></jobs-page>
+        <jobs-page name="jobs" route="{{subroute}}" auth-headers="[[authHeaders]]" user="[[user]]"></jobs-page>
         <migrate-page name="migrate" auth-headers="[[authHeaders]]"></migrate-page>
         <stats-page name="stats"></stats-page>
         <queue-stats-page name="queue-stats" route="{{subroute}}"></queue-stats-page>

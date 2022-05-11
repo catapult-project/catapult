@@ -146,6 +146,13 @@ indexes:
   - name: created
     direction: desc
 
+# Used for pagination.
+- kind: Job
+  properties:
+  - name: user
+  - name: created
+    direction: asc
+
 # Used to query for jobs with filters on configuration and user.
 - kind: Job
   properties:

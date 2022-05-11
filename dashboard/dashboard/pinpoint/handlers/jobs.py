@@ -86,10 +86,11 @@ def _GetJobs(options, query_filter, prev_cursor='', next_cursor=''):
         yield p
 
   has_filter = False
+  has_user_filter = False
   has_batch_filter = False
   for f in _ParseExpressions():
     if f.startswith('user='):
-      has_filter = True
+      has_user_filter = True
       query = query.filter(job_module.Job.user == f[len('user='):])
     elif f.startswith('configuration='):
       has_filter = True
@@ -107,9 +108,9 @@ def _GetJobs(options, query_filter, prev_cursor='', next_cursor=''):
       query = query.filter(job_module.Job.batch_id == batch_id)
 
   if (has_filter or has_batch_filter) and (prev_cursor or next_cursor):
-    raise InvalidInput('pagination not supported for filtered queries')
+    raise InvalidInput('pagination not supported for non-user filtered queries')
 
-  if has_filter and has_batch_filter:
+  if (has_filter or has_user_filter) and has_batch_filter:
     raise InvalidInput('batch ids are mutually exclusive with job filters')
 
   page_size = _MAX_JOBS_TO_FETCH

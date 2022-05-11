@@ -70,6 +70,12 @@ found in the LICENSE file.
           type: Object,
           notify: true,
           readonly: true
+        },
+        user: {
+          type: String,
+          value: '',
+          notify: true,
+          readonly: true
         }
       },
 
@@ -90,10 +96,12 @@ found in the LICENSE file.
         this.authHeaders = {
           Authorization: tokenType + ' ' + accessToken
         };
+        this.user = user.getBasicProfile().getEmail();
       },
 
       handleSignOut() {
         this.authHeaders = null;
+        this.user = '';
       },
     });
   </script>

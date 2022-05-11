@@ -50,12 +50,19 @@ found in the LICENSE file.
         background-color: #ddd;
         cursor: pointer;
       }
+
+      .jobs-display {
+        cursor: pointer;
+      }
     </style>
 
     <app-route route="{{route}}" pattern="/:sortBy:sortDescending" query-params="{{queryParams}}"></app-route>
 
-    <h1>
-      Jobs
+    <h1 authHeaders=[[authHeaders]]>
+      [[jobTitle(user, user_view)]]
+      <span hidden$=[[!user]]>
+        (<a class="jobs-display" on-click="toggleJobsView">[[toggleJobsLink(user_view)]]</a>)
+      </span>
       <span id="job-count" class="badge">
         [[jobCount(jobs)]]
       </span>
@@ -63,7 +70,7 @@ found in the LICENSE file.
     </h1>
     <loading-wrapper
       auto
-      params="{{params}}"
+      params="[[computeParams(prev_cursor, next_cursor, user, user_view)]]"
       url="/api/jobs"
       headers="[[authHeaders]]"
       response="{{jobs}}">
@@ -102,9 +109,30 @@ found in the LICENSE file.
           value: '',
           notify: true
         },
-        params: {
-          computed: 'computeParams(prev_cursor, next_cursor)'
+        user_view: {
+          value: true,
+          notify: true
         },
+        user: {
+          type: String,
+          notify: true,
+          readonly: true,
+          observer: 'userChanged'
+        }
+      },
+
+      userChanged() {
+        this.set('prev_cursor', '');
+        this.set('next_cursor', '');
+        this.set('user_view', true);
+      },
+
+      jobTitle(user, user_view) {
+        if (user && user_view) {
+          return 'Jobs - ' + user;
+        } else {
+          return 'Jobs - All';
+        }
       },
 
       jobCount(jobs) {
@@ -124,8 +152,31 @@ found in the LICENSE file.
         this.set('next_cursor', this.jobs.next_cursor);
       },
 
-      computeParams(prev_cursor, next_cursor) {
-        return {prev_cursor: prev_cursor, next_cursor: next_cursor};
+      toggleJobsView(event) {
+        this.set('prev_cursor', '');
+        this.set('next_cursor', '');
+        this.set('user_view', !this.user_view);
+      },
+
+      toggleJobsLink(user_view) {
+        if (user_view) {
+          return 'List All';
+        } else {
+          return 'List Own';
+        }
+      },
+
+      computeParams(prev_cursor, next_cursor, user, user_view) {
+        let filter = '';
+        if (user && user_view) {
+          filter = 'user=' + user;
+        }
+        let params = {
+            prev_cursor: prev_cursor,
+            next_cursor: next_cursor,
+            filter: filter
+        };
+        return params;
       },
 
       selected() {

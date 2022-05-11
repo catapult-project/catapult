@@ -391,3 +391,83 @@ class JobsTest(test.TestCase):
     jobs_ = data['jobs']
     self.assertEqual(jobs_[0]['user'], '2')
     self.assertEqual(jobs_[1]['user'], '1')
+
+  @mock.patch.object(utils,
+                     'ServiceAccountEmail', lambda: _SERVICE_ACCOUNT_EMAIL)
+  @mock.patch.object(utils, 'IsStagingEnvironment', lambda: False)
+  @mock.patch.object(jobs.utils, 'GetEmail',
+                     mock.MagicMock(return_value=_SERVICE_ACCOUNT_EMAIL))
+  @mock.patch.object(results2_module, 'GetCachedResults2', return_value="")
+  @mock.patch.object(jobs, '_MAX_JOBS_TO_FETCH', 2)
+  def testGet_MultiplePagesWithFilter(self, _):
+
+    for i in range(20):
+      job_module.Job.New((), (), user=str(i % 4), name=str(i // 4))
+
+    data = json.loads(self.testapp.get('/api/jobs?filter=user=2').body)
+    self.assertEqual(5, data['count'])
+    self.assertEqual(2, len(data['jobs']))
+    self.assertTrue(data['next'])
+    self.assertFalse(data['prev'])
+
+    next_cursor = data['next_cursor']
+    prev_cursor = data['prev_cursor']
+    self.assertTrue(next_cursor)
+    self.assertFalse(prev_cursor)
+
+    jobs_ = data['jobs']
+    self.assertEqual(jobs_[0]['name'], '4')
+    self.assertEqual(jobs_[1]['name'], '3')
+
+    data = json.loads(
+        self.testapp.get('/api/jobs?next_cursor=%s&filter=user=2' %
+                         next_cursor).body)
+
+    self.assertEqual(5, data['count'])
+    self.assertEqual(2, len(data['jobs']))
+
+    self.assertTrue(data['next'])
+    self.assertTrue(data['prev'])
+    next_cursor = data['next_cursor']
+    prev_cursor = data['prev_cursor']
+    self.assertTrue(next_cursor)
+    self.assertTrue(prev_cursor)
+
+    jobs_ = data['jobs']
+    self.assertEqual(jobs_[0]['name'], '2')
+    self.assertEqual(jobs_[1]['name'], '1')
+
+    data = json.loads(
+        self.testapp.get('/api/jobs?next_cursor=%s&filter=user=2' %
+                         next_cursor).body)
+
+    self.assertEqual(5, data['count'])
+    self.assertEqual(1, len(data['jobs']))
+
+    self.assertFalse(data['next'])
+    self.assertTrue(data['prev'])
+    next_cursor = data['next_cursor']
+    prev_cursor = data['prev_cursor']
+    self.assertTrue(next_cursor)
+    self.assertTrue(prev_cursor)
+
+    jobs_ = data['jobs']
+    self.assertEqual(jobs_[0]['name'], '0')
+
+    data = json.loads(
+        self.testapp.get('/api/jobs?prev_cursor=%s&filter=user=2' %
+                         prev_cursor).body)
+
+    self.assertEqual(5, data['count'])
+    self.assertEqual(2, len(data['jobs']))
+
+    self.assertTrue(data['next'])
+    self.assertTrue(data['prev'])
+    next_cursor = data['next_cursor']
+    prev_cursor = data['prev_cursor']
+    self.assertTrue(next_cursor)
+    self.assertTrue(prev_cursor)
+
+    jobs_ = data['jobs']
+    self.assertEqual(jobs_[0]['name'], '2')
+    self.assertEqual(jobs_[1]['name'], '1')
