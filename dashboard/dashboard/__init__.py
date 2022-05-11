@@ -150,9 +150,10 @@ def _AllSdkThirdPartyLibraryPaths():
   except ImportError:
     # TODO: Put the Cloud SDK in the path with the binary dependency manager.
     # https://github.com/catapult-project/catapult/issues/2135
-    print('This script requires the Google Cloud SDK to be in PATH.')
-    print('Install at https://cloud.google.com/sdk and then run')
-    print('`gcloud components install app-engine-python`')
+    print('This script requires the Google Cloud SDK to be in PYTHONPATH.')
+    print(
+        'See https://chromium.googlesource.com/catapult/+/HEAD/dashboard/README.md'
+    )
     sys.exit(1)
 
   paths.extend(dev_appserver.EXTRA_PATHS)
