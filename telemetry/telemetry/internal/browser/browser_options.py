@@ -826,7 +826,7 @@ class CrosBrowserOptions(ChromeBrowserOptions):
     self.auto_login = True
     self.gaia_login = False
     self.username = 'test@test.test'
-    self.password = 'pwd'
+    self.password = ''
     self.gaia_id = '12345'
     # For non-accelerated QEMU VMs.
     self.browser_startup_timeout = 240
