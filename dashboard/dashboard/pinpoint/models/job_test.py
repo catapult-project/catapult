@@ -134,6 +134,15 @@ class JobTestNoBots(test.TestCase):
 
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
+            mock.MagicMock(return_value=['a', 'b', 'c', 'd', 'e']))
+class JobTestOddBots(test.TestCase):
+
+  def testOddBots(self):
+    j = job.Job.New((), (), bug_id=123456)
+    self.assertEquals(len(j.bots), 4)
+
+
+@mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 class RetryTest(test.TestCase):
 
@@ -1013,13 +1022,17 @@ class GetIterationCountTest(test.TestCase):
 
   def testEvenlyDivisibleBots(self):
     self.assertEqual(
-        job.GetIterationCount(initial_attempt_count=5, bot_count=5), 5)
+        job.GetIterationCount(initial_attempt_count=6, bot_count=6), 6)
     self.assertEqual(
-        job.GetIterationCount(initial_attempt_count=10, bot_count=5), 10)
+        job.GetIterationCount(initial_attempt_count=12, bot_count=6), 12)
+
+  def testOddAttemptCount(self):
+    self.assertEqual(
+        job.GetIterationCount(initial_attempt_count=5, bot_count=6), 6)
 
   def testMoreBots(self):
     self.assertEqual(
-        job.GetIterationCount(initial_attempt_count=5, bot_count=17), 5)
+        job.GetIterationCount(initial_attempt_count=5, bot_count=17), 6)
 
   def testLessBots(self):
     self.assertEqual(
