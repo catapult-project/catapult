@@ -399,6 +399,7 @@ class JobsTest(test.TestCase):
                      mock.MagicMock(return_value=_SERVICE_ACCOUNT_EMAIL))
   @mock.patch.object(results2_module, 'GetCachedResults2', return_value="")
   @mock.patch.object(jobs, '_MAX_JOBS_TO_FETCH', 2)
+  @mock.patch.object(jobs, '_DEFAULT_FILTERED_JOBS', 2)
   def testGet_MultiplePagesWithFilter(self, _):
 
     for i in range(20):
