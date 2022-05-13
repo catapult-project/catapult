@@ -100,12 +100,12 @@ def main():
   else:
     path = args.output_path or args.input_path
     if len(json_batches) == 1:
-      with open(path, 'w') as f:
+      with open(path, 'wb') as f:
         f.write(json_batches[0])
     else:
       base, ext = os.path.splitext(path)
       for i, hs in enumerate(json_batches):
-        with open('%s.%04d%s' % (base, i, ext), 'w') as f:
+        with open('%s.%04d%s' % (base, i, ext), 'wb') as f:
           f.write(hs)
 
   return 0
