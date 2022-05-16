@@ -31,8 +31,7 @@ _BASE_REQUEST = {
     'start_git_hash': '1',
     'end_git_hash': '3',
     'story': 'speedometer',
-    'comparison_mode': 'performance',
-    'initial_attempt_count': '10'
+    'comparison_mode': 'performance'
 }
 
 # TODO: Make this agnostic to the parameters the Quests take.
