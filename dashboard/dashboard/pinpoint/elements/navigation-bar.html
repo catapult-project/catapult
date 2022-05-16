@@ -47,7 +47,7 @@ found in the LICENSE file.
         <paper-icon-button icon="help"></paper-icon-button>
         <paper-tooltip>Documentation</paper-tooltip>
       </a>
-      <a href="https://bugs.chromium.org/p/chromium/issues/entry?summary=[%F0%9F%93%8D]%20&comment=&components=Speed%3EBisection" target="_blank">
+      <a id="buglink" on-tap="handleBugClick" href="https://bugs.chromium.org/p/chromium/issues/entry?summary=[%F0%9F%93%8D]%20&comment=&components=Speed%3EBisection&description=[[bugDescription]]" target="_blank">
         <paper-icon-button icon="feedback"></paper-icon-button>
         <paper-tooltip>File a bug</paper-tooltip>
       </a>
@@ -66,6 +66,10 @@ found in the LICENSE file.
       is: 'navigation-bar',
 
       properties: {
+        bugDescription: {
+          type: String,
+          value: ''
+        },
         authHeaders: {
           type: Object,
           notify: true,
@@ -77,6 +81,25 @@ found in the LICENSE file.
           notify: true,
           readonly: true
         }
+      },
+
+      handleBugClick() {
+        this.updateBugDescription();
+      },
+
+      updateBugDescription() {
+        let jobEl = document.querySelector('job-page');
+        let description = [`Filed via: ${window.location.href}\n`];
+        if (jobEl && jobEl.job) {
+          let job = Object.assign({}, jobEl.job);
+          // These fields are certainly potentially useful in debugging
+          // but they are quite large, so we remove them before setting
+          // the issue description.
+          delete job.state;
+          delete job.bots;
+          description.push(JSON.stringify(job, null, 1));
+        }
+        this.bugDescription = encodeURIComponent(description.join('\n'));
       },
 
       ready() {
