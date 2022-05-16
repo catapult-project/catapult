@@ -50,10 +50,13 @@ def _AddTempDirToYamlPathArgs(temp_dir, args):
   """Join `temp_dir` to the positional args, preserving the other args."""
   parser = argparse.ArgumentParser()
   parser.add_argument('yaml_path', nargs='*')
+  parser.add_argument('--run_pinpoint', default=False, action='store_true')
   options, remaining_args = parser.parse_known_args(args)
   yaml_path_args = [
       os.path.join(temp_dir, yaml_path) for yaml_path in options.yaml_path
   ]
   if not yaml_path_args:
+    if options.run_pinpoint:
+      temp_dir += '/pinpoint.yaml'
     yaml_path_args = [temp_dir]
   return yaml_path_args + remaining_args
