@@ -626,8 +626,8 @@ class ScreenFinder(object):
       # width/height of the cropped corner image may be 2 or 4. This is fine
       # though, as long as the width and height of the cropped corner are not
       # hard-coded anywhere.
-      corner_image = self._frame_edges[corner[1] - 1:corner[1] + 2,
-                                       corner[0] - 1:corner[0] + 2]
+      corner_image = self._frame_edges[int(corner[1]) - 1:int(corner[1]) + 2,
+                                       int(corner[0]) - 1:int(corner[0]) + 2]
       ret, p = self._FindExactCorner(i <= 1, i in (1, 2), corner_image)
       if ret:
         if self.DEBUG:
@@ -818,7 +818,7 @@ class ScreenFinder(object):
       if not np.isnan(corner[0]):
         cv2.putText(
             self._frame_debug, str(i), (int(corner[0]), int(corner[1])),
-            cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (255, 255, 0), 1, cv2.CV_AA)
+            cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (255, 255, 0), 1, cv2.LINE_AA)
         i += 1
     if final_corners is not None:
       for corner in final_corners:

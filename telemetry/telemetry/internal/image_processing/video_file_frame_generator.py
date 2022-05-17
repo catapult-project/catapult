@@ -34,11 +34,11 @@ class VideoFileFrameGenerator(frame_generator.FrameGenerator):
     Raises:
       FrameReadError: A read error occurred during initialization."""
     self._capture = cv2.VideoCapture(video_filename)
-    self._frame_count = int(self._capture.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT))
+    self._frame_count = int(self._capture.get(cv2.CV_CAP_PROP_FRAME_COUNT))
     self._frame_index = -1
     self._timestamp = 0
-    width = self._capture.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
-    height = self._capture.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
+    width = self._capture.get(cv2.CV_CAP_PROP_FRAME_WIDTH)
+    height = self._capture.get(cv2.CV_CAP_PROP_FRAME_HEIGHT)
     self._dimensions = (int(width), int(height))
     if self._frame_count <= start_frame_index:
       raise frame_generator.FrameReadError('Not enough frames in capture.')
@@ -60,7 +60,7 @@ class VideoFileFrameGenerator(frame_generator.FrameGenerator):
       FrameReadError: Unexpectedly failed to read a frame from the capture."""
     if self._frame_index >= self._frame_count - 1:
       return None
-    self._timestamp = self._capture.get(cv2.cv.CV_CAP_PROP_POS_MSEC)
+    self._timestamp = self._capture.get(cv2.CV_CAP_PROP_POS_MSEC)
     if skip_decode:
       ret = self._capture.grab()
       frame = None

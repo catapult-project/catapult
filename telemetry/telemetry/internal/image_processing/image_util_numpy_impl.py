@@ -54,7 +54,7 @@ def FromRGBPixels(width, height, pixels, bpp):
 
 def FromPngFile(path):
   if cv2 is not None:
-    img = cv2.imread(path, cv2.CV_LOAD_IMAGE_COLOR)
+    img = cv2.imread(path, cv2.IMREAD_COLOR)
     if img is None:
       raise ValueError('Image at path {0} could not be read'.format(path))
     return img
@@ -65,7 +65,7 @@ def FromPngFile(path):
 def FromPng(png_data):
   if cv2 is not None:
     file_bytes = np.asarray(bytearray(png_data), dtype=np.uint8)
-    image = cv2.imdecode(file_bytes, cv2.CV_LOAD_IMAGE_UNCHANGED)
+    image = cv2.imdecode(file_bytes, cv2.IMREAD_UNCHANGED)
 
     # Some platforms set a transparent background. For consistency, we override
     # transparency to white and drop the alpha channel here.

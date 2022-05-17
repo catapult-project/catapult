@@ -31,17 +31,14 @@ python_version: "3.8"
 # //telemetry/telemetry/internal/util/external_modules.py
 wheel: <
   name: "infra/python/wheels/numpy/${vpython_platform}"
-  version: "version:1.20.3"
-  # A newer version of numpy is required on ARM64, but it breaks older OS versions.
-  not_match_tag <
-    platform: "macosx_11_0_arm64"
-  >
+  version: "version:1.2x.supported.1"
 >
 wheel: <
-  name: "infra/python/wheels/numpy/mac-arm64_cp38_cp38"
-  version: "version:1.21.1"
-  match_tag <
-    platform: "macosx_11_0_arm64"
+  name: "infra/python/wheels/opencv_python/${vpython_platform}"
+  version: "version:4.5.3.56.chromium.4"
+  # There is currently no Linux arm/arm64 version in CIPD.
+  not_match_tag <
+    platform: "linux_aarch64"
   >
 >
 
