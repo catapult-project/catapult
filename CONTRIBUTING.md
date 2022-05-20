@@ -5,7 +5,7 @@
 # Code of Conduct
 
 We follow the [Chromium code of conduct](
-https://chromium.googlesource.com/chromium/src/+/master/CODE_OF_CONDUCT.md) in
+https://chromium.googlesource.com/chromium/src/+/main/CODE_OF_CONDUCT.md) in
 our our repos and organizations, mailing lists, and other communications.
 
 # Issues
@@ -34,7 +34,7 @@ You can then create a local branch, make and commit your change.
 
 ```
 cd catapult
-git checkout -t -b foo origin/master
+git checkout -t -b foo origin/main
 ... edit files ...
 git commit -a -m "New files"
 ```
@@ -57,7 +57,7 @@ Then, submit your changes through the commit queue by checking the "Commit" box.
 Once everything is landed, you can cleanup your branch.
 
 ```
-git checkout master
+git checkout main
 git branch -D foo
 ```
 
