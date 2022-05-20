@@ -162,7 +162,16 @@ class TracingControllerBackend(object):
 
   def FlushTracing(self, discard_current=False):
     assert self.is_tracing_running, 'Can only flush tracing when tracing is on.'
-    self._IssueClockSyncMarker()
+    # Similar to what we do in StopTracing, but if we fail to flush, then we
+    # should turn off tracing since we're in a bad state.
+    try:
+      self._IssueClockSyncMarker()
+    except exceptions.Error as e:
+      logging.error(
+          'Failed to issue clock sync marker during tracing flush: %s', e)
+      logging.error('Forcibly stopping tracing due to above error.')
+      self.StopTracing()
+      return
 
     # pylint: disable=redefined-variable-type
     # See: https://github.com/PyCQA/pylint/issues/710
