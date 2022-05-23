@@ -111,6 +111,13 @@ def _GetReleaseVersion():
   return None
 
 
+def _GetSdkVersion():
+  # pylint: disable=protected-access
+  raw_version = AdbWrapper._RunAdbCmd(
+      ['shell', 'getprop', 'ro.build.version.sdk'], timeout=2, retries=0)
+  return int(raw_version.rstrip())
+
+
 def _ShouldRetryAdbCmd(exc):
   # Errors are potentially transient and should be retried, with the exception
   # of NoAdbError. Exceptions [e.g. generated from SIGTERM handler] should be
@@ -173,6 +180,7 @@ class AdbWrapper(object):
   _adb_path = lazy.WeakConstant(_FindAdb)
   _adb_protocol_version = lazy.WeakConstant(_GetProtocolVersion)
   _adb_release_version = lazy.WeakConstant(_GetReleaseVersion)
+  _adb_sdk_version = lazy.WeakConstant(_GetSdkVersion)
 
   def __init__(self, device_serial):
     """Initializes the AdbWrapper.
@@ -314,6 +322,15 @@ class AdbWrapper(object):
     http://issuetracker.google.com/218716282#comment8
     """
     return cls._adb_release_version.read()
+
+  @classmethod
+  def SdkVersion(cls):
+    """Returns the adb "shell getprop ro.build.version.sdk"
+
+    Used for when using arguments that are only supported on later
+    Android versions
+    """
+    return cls._adb_sdk_version.read()
 
   @classmethod
   def _BuildAdbCmd(cls, args, device_serial, cpu_affinity=None):
@@ -527,6 +544,18 @@ class AdbWrapper(object):
       cmd.append('-l')
     output = cls._RunAdbCmd(cmd, timeout=timeout, retries=retries)
     return [line.split() for line in output.splitlines()[1:]]
+
+  def _CheckSdkVersion(self, expected_sdk, error_message):
+    """Checks the SDK version reported by the device and throws an error if
+    it is too low
+
+    Throws: device_errors.DeviceVersionError
+    """
+    device_version = self.SdkVersion()
+    if device_version < expected_sdk:
+      raise device_errors.DeviceVersionError(
+          '%s: SDK version %d expected but %d reported' %
+          (error_message, expected_sdk, device_version))
 
   def GetDeviceSerial(self):
     """Gets the device serial number associated with this object.
@@ -902,7 +931,8 @@ class AdbWrapper(object):
               streaming=None,
               timeout=DEFAULT_LONG_TIMEOUT,
               retries=DEFAULT_RETRIES,
-              instant_app=False):
+              instant_app=False,
+              force_queryable=False):
     """Install an apk on the device.
 
     Args:
@@ -918,6 +948,9 @@ class AdbWrapper(object):
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
       instant_app (optional): Install the APK as an instant app
+      force_queryable (optional): Allows the installed application to
+        be queryable by all other applications regardless of if they
+        have declared the package as queryable in their manifests
     """
     VerifyLocalFileExists(apk_path)
     cmd = ['install']
@@ -930,7 +963,11 @@ class AdbWrapper(object):
     if allow_downgrade:
       cmd.append('-d')
     if instant_app:
+      self._CheckSdkVersion(29, error_message='Instant apps not supported')
       cmd.append('--instant')
+    if force_queryable:
+      self._CheckSdkVersion(30, error_message='Force queryable not supported')
+      cmd.append('--force-queryable')
     if streaming in (True, False):
       if (du_version.LooseVersion(self.Version()) <
           du_version.LooseVersion('1.0.40')):
@@ -957,7 +994,8 @@ class AdbWrapper(object):
                       streaming=None,
                       timeout=DEFAULT_LONG_TIMEOUT,
                       retries=DEFAULT_RETRIES,
-                      instant_app=False):
+                      instant_app=False,
+                      force_queryable=False):
     """Install an apk with splits on the device.
 
     Args:
@@ -974,6 +1012,9 @@ class AdbWrapper(object):
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
       instant_app (optional): Install the APK as an instant app
+      force_queryable (optional): Allows the installed application to
+        be queryable by all other applications regardless of if they
+        have declared the package as queryable in their manifests
     """
     for path in apk_paths:
       VerifyLocalFileExists(path)
@@ -994,7 +1035,11 @@ class AdbWrapper(object):
     if allow_downgrade:
       cmd.append('-d')
     if instant_app:
+      self._CheckSdkVersion(29, error_message='Instant apps not supported')
       cmd.append('--instant')
+    if force_queryable:
+      self._CheckSdkVersion(30, error_message='Force queryable not supported')
+      cmd.append('--force-queryable')
     if streaming in (True, False):
       if (du_version.LooseVersion(self.Version()) <
           du_version.LooseVersion('1.0.40')):

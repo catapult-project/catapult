@@ -977,7 +977,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=False,
                                 streaming=None,
                                 allow_downgrade=False,
-                                instant_app=False),
+                                instant_app=False,
+                                force_queryable=False),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
@@ -995,7 +996,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=False,
                                 streaming=False,
                                 allow_downgrade=False,
-                                instant_app=False),
+                                instant_app=False,
+                                force_queryable=False),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
@@ -1013,7 +1015,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                  reinstall=False,
                                  streaming=None,
                                  allow_downgrade=False,
-                                 instant_app=False)),
+                                 instant_app=False,
+                                 force_queryable=False)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
@@ -1030,7 +1033,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                  reinstall=False,
                                  streaming=None,
                                  allow_downgrade=False,
-                                 instant_app=False)),
+                                 instant_app=False,
+                                 force_queryable=False)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
@@ -1046,7 +1050,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                  reinstall=False,
                                  streaming=None,
                                  allow_downgrade=False,
-                                 instant_app=False)),
+                                 instant_app=False,
+                                 force_queryable=False)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1', 'p2']), [])):
         self.device.Install(
@@ -1081,7 +1086,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=False,
                                 streaming=None,
                                 allow_downgrade=False,
-                                instant_app=False),
+                                instant_app=False,
+                                force_queryable=False),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk, retries=0, permissions=[])
@@ -1100,7 +1106,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=False,
                                 streaming=None,
                                 allow_downgrade=False,
-                                instant_app=False),
+                                instant_app=False,
+                                force_queryable=False),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk, retries=0, permissions=[])
@@ -1119,7 +1126,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=True,
                                 streaming=None,
                                 allow_downgrade=False,
-                                instant_app=False),
+                                instant_app=False,
+                                force_queryable=False),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk,
@@ -1161,7 +1169,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
               reinstall=False,
               streaming=None,
               allow_downgrade=False,
-              instant_app=False), self.CommandError('Failure\r\n'))):
+              instant_app=False,
+              force_queryable=False), self.CommandError('Failure\r\n'))):
         with self.assertRaises(device_errors.CommandFailedError):
           self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
@@ -1179,7 +1188,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=True,
                                 streaming=None,
                                 allow_downgrade=True,
-                                instant_app=False),
+                                instant_app=False,
+                                force_queryable=False),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk,
@@ -1227,7 +1237,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=False,
                                 streaming=None,
                                 allow_downgrade=False,
-                                instant_app=False),
+                                instant_app=False,
+                                force_queryable=False),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
           (self.call.device.GrantPermissions(TEST_PACKAGE, None), [])):
         self.device.Install(
@@ -1248,7 +1259,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=False,
                                 streaming=None,
                                 allow_downgrade=False,
-                                instant_app=False)):
+                                instant_app=False,
+                                force_queryable=False)):
         with six.assertRaisesRegex(
             self, device_errors.CommandFailedError,
             'not installed on device after explicit install attempt'):
@@ -1268,10 +1280,31 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 reinstall=False,
                                 streaming=None,
                                 allow_downgrade=False,
-                                instant_app=True),
+                                instant_app=True,
+                                force_queryable=False),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, instant_app=True)
+
+  def testInstall_forceQueryable(self):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), (self.patch_call(
+                             self.call.device.build_version_sdk,
+                             return_value=23)):
+      with self.assertCalls(
+          (self.call.device._FakeInstall(set(), None, 'test.package')),
+          (mock.call.os.path.exists(TEST_APK_PATH), True),
+          (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE), []),
+          self.call.adb.Install(TEST_APK_PATH,
+                                reinstall=False,
+                                streaming=None,
+                                allow_downgrade=False,
+                                instant_app=False,
+                                force_queryable=True),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
+          (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
+        self.device.Install(DeviceUtilsInstallTest.mock_apk,
+                            force_queryable=True)
 
 
 class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
@@ -1297,7 +1330,8 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
               reinstall=False,
               streaming=None,
               allow_downgrade=False,
-              instant_app=False)),
+              instant_app=False,
+              force_queryable=False)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.InstallSplitApk(
             'base.apk', ['split1.apk', 'split2.apk'], permissions=[], retries=0)
@@ -1320,7 +1354,8 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
               reinstall=False,
               streaming=False,
               allow_downgrade=False,
-              instant_app=False)),
+              instant_app=False,
+              force_queryable=False)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.InstallSplitApk(
             'base.apk', ['split1.apk', 'split2.apk'], permissions=[], retries=0)
@@ -1347,7 +1382,8 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
                                          reinstall=True,
                                          streaming=None,
                                          allow_downgrade=False,
-                                         instant_app=False)),
+                                         instant_app=False,
+                                         force_queryable=False)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.InstallSplitApk(
             DeviceUtilsInstallSplitApkTest.mock_apk,
@@ -1378,7 +1414,8 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
                                          reinstall=True,
                                          streaming=None,
                                          allow_downgrade=True,
-                                         instant_app=False)),
+                                         instant_app=False,
+                                         force_queryable=False)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.InstallSplitApk(
             DeviceUtilsInstallSplitApkTest.mock_apk,
@@ -1425,7 +1462,8 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
               reinstall=False,
               streaming=None,
               allow_downgrade=False,
-              instant_app=False)),
+              instant_app=False,
+              force_queryable=False)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.InstallSplitApk(
             DeviceUtilsInstallSplitApkTest.mock_apk,
@@ -1451,12 +1489,39 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
               reinstall=False,
               streaming=None,
               allow_downgrade=False,
-              instant_app=True)),
+              instant_app=True,
+              force_queryable=False)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.InstallSplitApk('base.apk', ['split1.apk', 'split2.apk'],
                                     permissions=[],
                                     retries=0,
                                     instant_app=True)
+
+  def testInstallSplitApk_forceQueryable(self):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'):
+      with self.assertCalls(
+          (mock.call.devil.android.apk_helper.ToSplitHelper(
+              'base.apk', ['split1.apk', 'split2.apk']),
+           DeviceUtilsInstallSplitApkTest.mock_apk),
+          (self.call.device._CheckSdkLevel(21)),
+          (mock.call.os.path.exists('base.apk'), True),
+          (mock.call.os.path.exists('split1.apk'), True),
+          (mock.call.os.path.exists('split2.apk'), True),
+          (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE), []),
+          (self.call.adb.InstallMultiple(
+              ['base.apk', 'split1.apk', 'split2.apk'],
+              partial=None,
+              reinstall=False,
+              streaming=None,
+              allow_downgrade=False,
+              instant_app=False,
+              force_queryable=True)),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
+        self.device.InstallSplitApk('base.apk', ['split1.apk', 'split2.apk'],
+                                    permissions=[],
+                                    retries=0,
+                                    force_queryable=True)
 
 
 class DeviceUtilsUninstallTest(DeviceUtilsTest):

@@ -1173,7 +1173,8 @@ class DeviceUtils(object):
               modules=None,
               fake_modules=None,
               additional_locales=None,
-              instant_app=False):
+              instant_app=False,
+              force_queryable=False):
     """Install an APK or app bundle.
 
     Noop if an identical APK is already installed. If installing a bundle, the
@@ -1200,14 +1201,17 @@ class DeviceUtils(object):
           bundle.
       instant_app: A boolean that selects if the APK should be installed as an
           instant app or not. Instant apps are installed in a more
-          restrictive execution environment.
+          restrictive execution environment. - Supported from SDK 29
+      force_queryable: A boolean that allows the installed application to be
+        queryable by all other applications regardless of if they have declared
+        the package as queryable in their manifests - Supported from SDK 30
 
     Raises:
       CommandFailedError if the installation fails.
       CommandTimeoutError if the installation times out.
       DeviceUnreachableError on missing device.
-      AdbCommandFailedError if the device SDK level does not support instant
-        apps
+      DeviceVersionError if the device SDK level does not support instant
+        apps or forcing queryable
     """
     apk = apk_helper.ToHelper(apk)
     modules_set = set(modules or [])
@@ -1231,7 +1235,8 @@ class DeviceUtils(object):
                             allow_downgrade=allow_downgrade,
                             reinstall=reinstall,
                             permissions=permissions,
-                            instant_app=instant_app)
+                            instant_app=instant_app,
+                            force_queryable=force_queryable)
 
   @staticmethod
   def _GetFakeInstallPaths(apk_paths, fake_modules):
@@ -1294,7 +1299,8 @@ class DeviceUtils(object):
                       permissions=None,
                       timeout=None,
                       retries=None,
-                      instant_app=False):
+                      instant_app=False,
+                      force_queryable=False):
     """Install a split APK.
 
     Noop if all of the APK splits are already installed.
@@ -1312,15 +1318,18 @@ class DeviceUtils(object):
       retries: number of retries
       instant_app: A boolean that selects if the APK should be installed as an
           instant app or not. Instant apps are installed in a more
-          restrictive execution environment.
+          restrictive execution environment. - Supported from SDK 29
+      force_queryable: A boolean that allows the installed application to be
+        queryable by all other applications regardless of if they have declared
+        the package as queryable in their manifests - Supported from SDK 30
 
     Raises:
       CommandFailedError if the installation fails.
       CommandTimeoutError if the installation times out.
       DeviceUnreachableError on missing device.
       DeviceVersionError if device SDK is less than Android L.
-      AdbCommandFailedError if the device SDK level does not support instant
-        apps
+      DeviceVersionError if the device SDK level does not support instant
+        apps or forcing queryable
     """
     apk = apk_helper.ToSplitHelper(base_apk, split_apks)
     with apk.GetApkPaths(
@@ -1330,7 +1339,8 @@ class DeviceUtils(object):
                             reinstall=reinstall,
                             permissions=permissions,
                             allow_downgrade=allow_downgrade,
-                            instant_app=instant_app)
+                            instant_app=instant_app,
+                            force_queryable=force_queryable)
 
   def _InstallInternal(self,
                        apk,
@@ -1338,7 +1348,8 @@ class DeviceUtils(object):
                        allow_downgrade=False,
                        reinstall=False,
                        permissions=None,
-                       instant_app=False):
+                       instant_app=False,
+                       force_queryable=False):
     if not apk_paths:
       raise device_errors.CommandFailedError('Did not get any APKs to install')
 
@@ -1400,13 +1411,15 @@ class DeviceUtils(object):
                                  reinstall=reinstall,
                                  streaming=streaming,
                                  allow_downgrade=allow_downgrade,
-                                 instant_app=instant_app)
+                                 instant_app=instant_app,
+                                 force_queryable=force_queryable)
       else:
         self.adb.Install(apks_to_install[0],
                          reinstall=reinstall,
                          streaming=streaming,
                          allow_downgrade=allow_downgrade,
-                         instant_app=instant_app)
+                         instant_app=instant_app,
+                         force_queryable=force_queryable)
     else:
       logger.info('Skipping installation of package %s', package_name)
       # Running adb install terminates running instances of the app, so to be
