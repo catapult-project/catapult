@@ -73,10 +73,7 @@ _STAGING_APP_ID = 'chromeperf-stage'
 
 
 def IsDevAppserver():
-  try:
-    return app_identity.get_application_id() == 'None'
-  except AttributeError:
-    return False
+  return app_identity.get_application_id() == 'None'
 
 
 def IsStagingEnvironment():
@@ -890,4 +887,4 @@ def RequestParamsMixed(req):
 
 
 def IsRunningFlask():
-  return IsStagingEnvironment() or IsDevAppserver()
+  return IsStagingEnvironment()

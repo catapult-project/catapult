@@ -8,6 +8,8 @@ from __future__ import absolute_import
 
 from dashboard.common import utils
 
+from dashboard.pinpoint.handlers.cas import CASReference
+
 if utils.IsRunningFlask():
   import dashboard.pinpoint.handlers.jobs
   import dashboard.pinpoint.handlers.commit
@@ -45,5 +47,3 @@ else:
   from dashboard.pinpoint.handlers.isolate import Isolate
   from dashboard.pinpoint.handlers.stats import Stats
   from dashboard.pinpoint.handlers.task_updates import TaskUpdates
-  # This handler is not seen in used production.
-  from dashboard.pinpoint.handlers.cas import CASReference
