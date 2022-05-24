@@ -341,8 +341,11 @@ class _RunTestExecution(execution_module.Execution):
     logging.debug('swarming response: %s', result)
 
     if 'bot_id' in result:
-      # Set bot_id to pass the info back to the Quest.
+      # For bisects, this will be set after the task is allocated to a bot.
+      # A/Bs will set this elsewhere.
       self._bot_id = result['bot_id']
+
+    if self._bot_id:
       if not swarming.IsBotAlive(self._bot_id, self._swarming_server):
         raise errors.SwarmingTaskError('Bot is dead.')
 
@@ -479,6 +482,10 @@ class _RunTestExecution(execution_module.Execution):
                   },
               }),
       })
+
+    for d in self._dimensions:
+      if d['key'] == 'id':
+        self._bot_id = d['value']
 
     logging.debug('Requesting swarming task with parameters: %s', body)
     response = swarming.Swarming(self._swarming_server).Tasks().New(body)
