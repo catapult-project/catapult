@@ -187,11 +187,9 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
     self._browser_process = self._GetCastDirSSHSession()
     runtime_command = env_var + ['./run_cast.sh', 'rt']
     self._browser_process.sendline(' '.join(runtime_command))
+    self._discovery_mode = True
     self._SetReceiverName(env_var)
     self._WaitForSink()
-    self._casting_tab.action_runner.Navigate('about:blank')
-    self._casting_tab.action_runner.tab.StartTabMirroring(self._receiver_name)
-    self.BindDevToolsClient()
 
   def GetPid(self):
     return self._browser_process.pid
@@ -201,3 +199,4 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
 
   def Close(self):
     self._StopSDKCast()
+    super(RemoteCastBrowserBackend, self).Close()

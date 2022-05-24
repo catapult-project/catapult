@@ -53,9 +53,10 @@ CAST_CORE_CONFIG_PATH = os.path.join(
     os.getenv("HOME"), '.config', 'cast_shell', '.eureka.conf')
 
 class CastRuntime(object):
-  def __init__(self, root_dir, runtime_dir):
+  def __init__(self, root_dir, runtime_dir, log_file):
     self._root_dir = root_dir
     self._runtime_dir = runtime_dir
+    self._log_file = log_file
     self._runtime_process = None
     self._app_exe = os.path.join(root_dir, 'blaze-bin', 'third_party',
                                  'castlite', 'public', 'sdk', 'samples',
@@ -72,10 +73,10 @@ class CastRuntime(object):
         self._app_exe,
         '--config', self._config_file.name
     ]
-    with open(os.devnull) as devnull:
+    with open(os.devnull) as devnull, open(self._log_file, 'w') as log_file:
       self._runtime_process = subprocess.Popen(runtime_command,
                                                stdin=devnull,
-                                               stdout=subprocess.PIPE,
+                                               stdout=log_file,
                                                stderr=subprocess.STDOUT)
     return self._runtime_process
 
@@ -98,7 +99,8 @@ class LocalCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
         profile_directory=profile_directory,
         casting_tab=casting_tab)
     self._web_runtime = CastRuntime(self._output_dir,
-                                    self._runtime_exe)
+                                    self._runtime_exe,
+                                    self._runtime_log_file)
 
   def _ReadReceiverName(self):
     if not self._receiver_name:
@@ -118,24 +120,25 @@ class LocalCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
     original_dir = os.getcwd()
     try:
       os.chdir(self._output_dir)
-      with open(os.devnull) as devnull:
+      with open(os.devnull) as devnull, \
+        open(self._cast_core_log_file, 'w') as log_file:
         self._cast_core_process = subprocess.Popen(cast_core_command,
                                                    stdin=devnull,
-                                                   stdout=subprocess.PIPE,
+                                                   stdout=log_file,
                                                    stderr=subprocess.STDOUT)
       self._browser_process = self._web_runtime.Start()
-      self._ReadReceiverName()
-      self._WaitForSink()
-      self._casting_tab.action_runner.Navigate('about:blank')
-      self._casting_tab.action_runner.tab.StartTabMirroring(self._receiver_name)
-      self.BindDevToolsClient()
-
     finally:
       os.chdir(original_dir)
+    self._discovery_mode = True
+    self._ReadReceiverName()
+    self._WaitForSink()
 
   def Background(self):
     raise NotImplementedError
 
   def Close(self):
     self._web_runtime.Close()
+    if self._cast_core_process:
+      self._cast_core_process.kill()
+      self._cast_core_process = None
     super(LocalCastBrowserBackend, self).Close()

@@ -51,7 +51,9 @@ class CastPlatformBackend(platform_backend.PlatformBackend):
     return self._ip_addr
 
   def _CreateForwarderFactory(self):
-    return cast_forwarder.CastForwarderFactory(self._ip_addr)
+    if self._ip_addr:
+      return cast_forwarder.CastForwarderFactory(self._ip_addr)
+    return super(CastPlatformBackend, self)._CreateForwarderFactory()
 
   def GetSSHSession(self):
     ssh = pxssh.pxssh(options={
