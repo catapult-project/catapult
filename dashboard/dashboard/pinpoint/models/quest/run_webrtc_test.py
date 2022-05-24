@@ -62,6 +62,7 @@ class RunWebRtcTest(run_test.RunTest):
     # This is the command used to run webrtc_perf_tests.
     if 'android' in arguments.get('configuration'):
       default_command = [
+          'vpython3',
           '../../build/android/test_wrapper/logdog_wrapper.py',
           '--target',
           arguments.get('target'),
@@ -72,6 +73,7 @@ class RunWebRtcTest(run_test.RunTest):
       ]
     else:
       default_command = [
+          'vpython3',
           '../../tools_webrtc/flags_compatibility.py',
           '../../testing/test_env.py',
           os.path.join('.', arguments.get('target')),
