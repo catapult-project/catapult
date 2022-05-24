@@ -19,7 +19,10 @@ from google.appengine.ext import deferred
 from google.appengine.ext import ndb
 from google.appengine.runtime import apiproxy_errors
 
+from dashboard.common import datastore_hooks
 from dashboard.common import utils
+from dashboard.models import anomaly
+from dashboard.models import graph_data
 from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import evaluators
@@ -545,6 +548,15 @@ class Job(ndb.Model):
     self._UpdateGerritIfNeeded()
     scheduler.Complete(self)
 
+  def _GetImprovementDirection(self):
+    # returns the improvement direction
+    if self.tags is not None and "test_path" in self.tags:
+      datastore_hooks.SetSinglePrivilegedRequest()
+      t = graph_data.TestMetadata.get_by_id(self.tags["test_path"])
+      if t is not None:
+        return t.improvement_direction
+    return anomaly.UNKNOWN
+
   def _FormatAndPostBugCommentOnComplete(self):
     logging.debug('Processing outputs.')
     if self._IsTryJob():
@@ -620,9 +632,12 @@ class Job(ndb.Model):
           _retry_options=RETRY_OPTIONS)
       return
 
+    # Determine direction of improvement
+    improvement_dir = self._GetImprovementDirection()
+
     # Collect the result values for each of the differences
     bug_update_builder = job_bug_update.DifferencesFoundBugUpdateBuilder(
-        self.state.metric)
+        self.state.metric, improvement_dir)
     bug_update_builder.SetExaminedCount(changes_examined)
     for change_a, change_b in differences:
       values_a = result_values[change_a]

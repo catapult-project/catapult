@@ -13,9 +13,12 @@ import sys
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
+from dashboard.common import testing_common
 from dashboard.common import layered_cache
 from dashboard.common import utils
 from dashboard.models import histogram
+from dashboard.models import anomaly
+from dashboard.models import graph_data
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import job
@@ -210,6 +213,7 @@ class BugCommentTest(test.TestCase):
     issue_tracker_service.return_value = mock.MagicMock(
         AddBugComment=self.add_bug_comment, GetIssue=self.get_issue)
     self.addCleanup(patcher.stop)
+    self.PatchDatastoreHooksRequest()
 
   def testNoBug(self):
     j = job.Job.New((), ())
@@ -1017,6 +1021,33 @@ class BugCommentTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
     post_change_comment.assert_called_once_with('https://review.com', '123456',
                                                 _COMMENT_CODE_REVIEW)
+
+@mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
+            mock.MagicMock(return_value=["a"]))
+class GetImprovementDirectionTest(testing_common.TestCase):
+
+  def testGetImprovementDirection(self):
+    # create metric and improvement directions
+    t = graph_data.TestMetadata(id='ChromiumPerf/win7/dromaeo/down',)
+    t.improvement_direction = anomaly.DOWN
+    t.put()
+    t = graph_data.TestMetadata(id='ChromiumPerf/win7/dromaeo/up',)
+    t.improvement_direction = anomaly.UP
+    t.put()
+    t = graph_data.TestMetadata(id='ChromiumPerf/win7/dromaeo/unknown',)
+    t.put()
+
+    # test _getImprovementDirection
+    self.PatchDatastoreHooksRequest()
+    j = job.Job.New((), (),
+                    tags={'test_path': "ChromiumPerf/win7/dromaeo/down"})
+    self.assertEqual(j._GetImprovementDirection(), anomaly.DOWN)
+    j = job.Job.New((), (), tags={'test_path': "ChromiumPerf/win7/dromaeo/up"})
+    self.assertEqual(j._GetImprovementDirection(), anomaly.UP)
+    j = job.Job.New((), (),
+                    tags={'test_path': "ChromiumPerf/win7/dromaeo/unknown"})
+    self.assertEqual(j._GetImprovementDirection(), anomaly.UNKNOWN)
+
 
 class GetIterationCountTest(test.TestCase):
 
