@@ -141,7 +141,7 @@ def _IsAlive(response):
     return False
   if not response['quarantined']:
     return True
-  return 'No available devices' not in response['state']
+  return 'No available devices' not in str(response)
 
 
 def GetAliveBotsByDimensions(dimensions, swarming_server):
