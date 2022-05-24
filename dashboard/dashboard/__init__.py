@@ -75,7 +75,9 @@ DASHBOARD_FILES = [
     'dispatch.yaml',
     'index.yaml',
     'pinpoint.yaml',
+    'pinpoint-py3.yaml',  # remove after py3 migration is finalized.
     'queue.yaml',
+    'requirements.txt',
     'scripts.yaml',
     'upload-processing.yaml',
     'upload.yaml',

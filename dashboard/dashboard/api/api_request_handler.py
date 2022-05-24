@@ -11,8 +11,6 @@ import logging
 import re
 import traceback
 
-import webapp2
-
 from dashboard.api import api_auth
 from dashboard.common import utils
 if utils.IsRunningFlask():
@@ -104,107 +102,110 @@ if utils.IsRunningFlask():
     logging.error(traceback.format_exc())
     return make_response(json.dumps({'error': message}), status)
 
+else:
+  import webapp2
 
-class ApiRequestHandler(webapp2.RequestHandler):
-  """API handler for api requests.
+  class ApiRequestHandler(webapp2.RequestHandler):
+    """API handler for api requests.
 
-  Convenience methods handling authentication errors and surfacing them.
-  """
-
-  def _CheckUser(self):
-    """Checks whether the user has permission to make requests.
-
-    This method must be overridden by subclasses to perform access control.
-
-    Raises:
-      api_auth.NotLoggedInError: The user was not logged in,
-          and must be to be to make this request.
-      api_auth.OAuthError: The request was not a valid OAuth request,
-          or the client ID was not in the allowlist.
-      ForbiddenError: The user does not have permission to make this request.
+    Convenience methods handling authentication errors and surfacing them.
     """
-    raise NotImplementedError()
 
-  def _CheckIsInternalUser(self):
-    if utils.IsDevAppserver():
-      return
-    self._CheckIsLoggedIn()
-    if not utils.IsInternalUser():
-      raise ForbiddenError()
+    def _CheckUser(self):
+      """Checks whether the user has permission to make requests.
 
-  def _CheckIsLoggedIn(self):
-    if utils.IsDevAppserver():
-      return
-    api_auth.Authorize()
+      This method must be overridden by subclasses to perform access control.
 
-  def post(self, *args):
-    """Returns alert data in response to API requests.
+      Raises:
+        api_auth.NotLoggedInError: The user was not logged in,
+            and must be to be to make this request.
+        api_auth.OAuthError: The request was not a valid OAuth request,
+            or the client ID was not in the allowlist.
+        ForbiddenError: The user does not have permission to make this request.
+      """
+      raise NotImplementedError()
 
-    Outputs:
-      JSON results.
-    """
-    self._Respond(self.Post, *args)
+    def _CheckIsInternalUser(self):
+      if utils.IsDevAppserver():
+        return
+      self._CheckIsLoggedIn()
+      if not utils.IsInternalUser():
+        raise ForbiddenError()
 
-  def get(self, *args):
-    self._Respond(self.Get, *args)
+    def _CheckIsLoggedIn(self):
+      if utils.IsDevAppserver():
+        return
+      api_auth.Authorize()
 
-  def _Respond(self, cb, *args):
-    self._SetCorsHeadersIfAppropriate()
+    def post(self, *args):
+      """Returns alert data in response to API requests.
 
-    try:
-      self._CheckUser()
-    except api_auth.NotLoggedInError as e:
-      self.WriteErrorMessage(str(e), 401)
-      return
-    except api_auth.OAuthError as e:
-      self.WriteErrorMessage(str(e), 403)
-      return
-    except ForbiddenError as e:
-      self.WriteErrorMessage(str(e), 403)
-      return
-    # Allow oauth.Error to manifest as HTTP 500.
+      Outputs:
+        JSON results.
+      """
+      self._Respond(self.Post, *args)
 
-    try:
-      results = cb(*args)
-      self.response.out.write(json.dumps(results))
-    except NotFoundError as e:
-      self.WriteErrorMessage(str(e), 404)
-    except (BadRequestError, KeyError, TypeError, ValueError) as e:
-      self.WriteErrorMessage(str(e), 400)
-    except ForbiddenError as e:
-      self.WriteErrorMessage(str(e), 403)
+    def get(self, *args):
+      self._Respond(self.Get, *args)
 
-  def options(self, *_):  # pylint: disable=invalid-name
-    self._SetCorsHeadersIfAppropriate()
+    def _Respond(self, cb, *args):
+      self._SetCorsHeadersIfAppropriate()
 
-  def Get(self, *_):
-    raise NotImplementedError()
+      try:
+        self._CheckUser()
+      except api_auth.NotLoggedInError as e:
+        self.WriteErrorMessage(str(e), 401)
+        return
+      except api_auth.OAuthError as e:
+        self.WriteErrorMessage(str(e), 403)
+        return
+      except ForbiddenError as e:
+        self.WriteErrorMessage(str(e), 403)
+        return
+      # Allow oauth.Error to manifest as HTTP 500.
 
-  def Post(self, *args, **kwargs):
-    del args, kwargs  # Unused.
-    raise NotImplementedError()
+      try:
+        results = cb(*args)
+        self.response.out.write(json.dumps(results))
+      except NotFoundError as e:
+        self.WriteErrorMessage(str(e), 404)
+      except (BadRequestError, KeyError, TypeError, ValueError) as e:
+        self.WriteErrorMessage(str(e), 400)
+      except ForbiddenError as e:
+        self.WriteErrorMessage(str(e), 403)
 
-  def _SetCorsHeadersIfAppropriate(self):
-    self.response.headers['Content-Type'] = 'application/json; charset=utf-8'
-    set_cors_headers = False
-    origin = self.request.headers.get('Origin', '')
-    for allowed in _ALLOWED_ORIGINS:
-      dev_pattern = re.compile(r'https://[A-Za-z0-9-]+-dot-' +
-                               re.escape(allowed))
-      prod_pattern = re.compile(r'https://' + re.escape(allowed))
-      if dev_pattern.match(origin) or prod_pattern.match(origin):
-        set_cors_headers = True
-    if not set_cors_headers:
-      return
-    self.response.headers.add_header('Access-Control-Allow-Origin', origin)
-    self.response.headers.add_header('Access-Control-Allow-Credentials', 'true')
-    self.response.headers.add_header('Access-Control-Allow-Methods',
-                                     'GET,OPTIONS,POST')
-    self.response.headers.add_header('Access-Control-Allow-Headers',
-                                     'Accept,Authorization,Content-Type')
-    self.response.headers.add_header('Access-Control-Max-Age', '3600')
+    def options(self, *_):  # pylint: disable=invalid-name
+      self._SetCorsHeadersIfAppropriate()
 
-  def WriteErrorMessage(self, message, status):
-    logging.error(traceback.format_exc())
-    self.response.set_status(status)
-    self.response.out.write(json.dumps({'error': message}))
+    def Get(self, *_):
+      raise NotImplementedError()
+
+    def Post(self, *args, **kwargs):
+      del args, kwargs  # Unused.
+      raise NotImplementedError()
+
+    def _SetCorsHeadersIfAppropriate(self):
+      self.response.headers['Content-Type'] = 'application/json; charset=utf-8'
+      set_cors_headers = False
+      origin = self.request.headers.get('Origin', '')
+      for allowed in _ALLOWED_ORIGINS:
+        dev_pattern = re.compile(r'https://[A-Za-z0-9-]+-dot-' +
+                                 re.escape(allowed))
+        prod_pattern = re.compile(r'https://' + re.escape(allowed))
+        if dev_pattern.match(origin) or prod_pattern.match(origin):
+          set_cors_headers = True
+      if not set_cors_headers:
+        return
+      self.response.headers.add_header('Access-Control-Allow-Origin', origin)
+      self.response.headers.add_header('Access-Control-Allow-Credentials',
+                                       'true')
+      self.response.headers.add_header('Access-Control-Allow-Methods',
+                                       'GET,OPTIONS,POST')
+      self.response.headers.add_header('Access-Control-Allow-Headers',
+                                       'Accept,Authorization,Content-Type')
+      self.response.headers.add_header('Access-Control-Max-Age', '3600')
+
+    def WriteErrorMessage(self, message, status):
+      logging.error(traceback.format_exc())
+      self.response.set_status(status)
+      self.response.out.write(json.dumps({'error': message}))

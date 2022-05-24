@@ -1778,6 +1778,10 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     self.assertEqual(len(measurements), 1)
     self.assertEqual(measurements[0].monitored, True)
 
+  # (crbug/1298177) The setup for Flask is not ready yet. We will force the test
+  # to run in the old setup for now.
+  @mock.patch.object(utils, 'IsRunningFlask',
+                     mock.MagicMock(return_value=False))
   @mock.patch.object(utils, 'IsDevAppserver', mock.MagicMock(return_value=True))
   def testPost_DevAppserverSucceeds(self):
     token_info = self.PostAddHistogram(self.histogram_data)

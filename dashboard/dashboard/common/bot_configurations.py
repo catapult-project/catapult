@@ -45,6 +45,8 @@ def GetAliasesAsync(bot):
 
 def List():
   bot_configurations = namespaced_stored_object.Get(BOT_CONFIGURATIONS_KEY)
+  if not bot_configurations:
+    return []
   canonical_names = [
       name for name, value in bot_configurations.items() if 'alias' not in value
   ]
