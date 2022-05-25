@@ -72,24 +72,26 @@ class CastBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         self._ReadReceiverName())
     self.BindDevToolsClient()
 
+  def StopCasting(self):
+    """Stop casting to the Cast receiver."""
+    self._casting_tab.action_runner.tab.StopCasting(self._ReadReceiverName())
+
   def _WaitForSink(self, timeout=60):
     sink_name_list = []
     start_time = time.time()
     while (self._receiver_name not in sink_name_list
            and time.time() - start_time < timeout):
       self._casting_tab.action_runner.tab.EnableCast()
-      self._casting_tab.action_runner.tab.SetCastSinkToUse(self._receiver_name)
+      self._casting_tab.action_runner.tab.SetCastSinkToUse(
+          self._ReadReceiverName())
       sink_name_list = [
           sink['name'] for sink in self._casting_tab\
                                        .action_runner.tab.GetCastSinks()
       ]
       self._casting_tab.action_runner.Wait(1)
-    if self._receiver_name not in sink_name_list:
+    if self._ReadReceiverName() not in sink_name_list:
       raise ReceiverNotFoundException(
-          'Could not find Cast Receiver {0}.'.format(self._receiver_name))
-
-  def GetReceiverName(self):
-    return self._receiver_name
+          'Could not find Cast Receiver {0}.'.format(self._ReadReceiverName()))
 
   def BindDevToolsClient(self):
     super(CastBrowserBackend, self).BindDevToolsClient()

@@ -106,6 +106,7 @@ class LocalCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
     if not self._receiver_name:
       with open(CAST_CORE_CONFIG_PATH) as f:
         self._receiver_name = json.load(f)['eureka-name']
+    return self._receiver_name
 
   def Start(self, startup_args):
     self._dump_finder = minidump_finder.MinidumpFinder(
@@ -130,7 +131,6 @@ class LocalCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
     finally:
       os.chdir(original_dir)
     self._discovery_mode = True
-    self._ReadReceiverName()
     self._WaitForSink()
 
   def Background(self):

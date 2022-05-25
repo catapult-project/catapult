@@ -29,6 +29,9 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
         casting_tab=casting_tab)
     self._ip_addr = cast_platform_backend.ip_addr
 
+  def _ReadReceiverName(self):
+    return self._receiver_name
+
   def _SendCommand(self, ssh, command, prompt=None):
     """Uses ssh session to send command.
 
