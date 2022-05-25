@@ -390,7 +390,7 @@ class CrOSInterface(object):
     """
     with tempfile.NamedTemporaryFile(mode='w') as t:
       self.GetFile(filename, t.name)
-      with open(t.name, 'r') as f2:
+      with open(t.name, 'r', encoding='UTF-8') as f2:
         res = f2.read()
         logging.debug("GetFileContents(%s)->%s" % (filename, res))
         return res
