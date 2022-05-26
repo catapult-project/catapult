@@ -702,7 +702,9 @@ class AdbWrapper(object):
     if expect_status is None:
       args = ['shell', command]
     else:
-      args = ['shell', '( %s );echo %%$?' % command.rstrip()]
+      # Pipe stderr->stdout to ensure the echo'ed exit code is not interleaved
+      # with the command's stderr (as seen in https://crbug.com/1314912).
+      args = ['shell', '( %s ) 2>&1;echo %%$?' % command.rstrip()]
     output = self._RunDeviceAdbCmd(args, timeout, retries, check_error=False)
     if expect_status is not None:
       output_end = output.rfind('%')
