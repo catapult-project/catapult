@@ -18,6 +18,7 @@
 
 
 
+from __future__ import absolute_import
 __all__ = ['AuthorizationError',
            'check_status',
            'Error',
@@ -31,7 +32,7 @@ __all__ = ['AuthorizationError',
            'TransientError',
           ]
 
-import httplib
+import six.moves.http_client
 
 
 class Error(Exception):
@@ -124,18 +125,18 @@ def check_status(status, expected, path, headers=None,
          'Extra info: %r.\n' %
          (expected, status, path, headers, resp_headers, body, extras))
 
-  if status == httplib.UNAUTHORIZED:
+  if status == six.moves.http_client.UNAUTHORIZED:
     raise AuthorizationError(msg)
-  elif status == httplib.FORBIDDEN:
+  elif status == six.moves.http_client.FORBIDDEN:
     raise ForbiddenError(msg)
-  elif status == httplib.NOT_FOUND:
+  elif status == six.moves.http_client.NOT_FOUND:
     raise NotFoundError(msg)
-  elif status == httplib.REQUEST_TIMEOUT:
+  elif status == six.moves.http_client.REQUEST_TIMEOUT:
     raise TimeoutError(msg)
-  elif status == httplib.REQUESTED_RANGE_NOT_SATISFIABLE:
+  elif status == six.moves.http_client.REQUESTED_RANGE_NOT_SATISFIABLE:
     raise InvalidRange(msg)
-  elif (status == httplib.OK and 308 in expected and
-        httplib.OK not in expected):
+  elif (status == six.moves.http_client.OK and 308 in expected and
+        six.moves.http_client.OK not in expected):
     raise FileClosedError(msg)
   elif status >= 500:
     raise ServerError(msg)

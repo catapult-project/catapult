@@ -18,6 +18,8 @@
 
 
 
+from __future__ import absolute_import
+import six
 __all__ = ['CS_XML_NS',
            'CSFileStat',
            'dt_str_to_posix',
@@ -131,7 +133,7 @@ class GCSFileStat(object):
     self.metadata = metadata
 
     if not is_dir:
-      self.st_size = long(st_size)
+      self.st_size = int(st_size)
       self.st_ctime = float(st_ctime)
       if etag[0] == '"' and etag[-1] == '"':
         etag = etag[1:-1]
@@ -194,7 +196,7 @@ def get_stored_content_length(headers):
 
 def get_metadata(headers):
   """Get user defined options from HTTP response headers."""
-  return dict((k, v) for k, v in headers.iteritems()
+  return dict((k, v) for k, v in headers.items()
               if any(k.lower().startswith(valid) for valid in _GCS_METADATA))
 
 
@@ -282,7 +284,7 @@ def _validate_path(path):
   """
   if not path:
     raise ValueError('Path is empty')
-  if not isinstance(path, basestring):
+  if not isinstance(path, six.string_types):
     raise TypeError('Path should be a string but is %s (%s).' %
                     (path.__class__, path))
 
@@ -301,12 +303,12 @@ def validate_options(options):
   if not options:
     return
 
-  for k, v in options.iteritems():
+  for k, v in options.items():
     if not isinstance(k, str):
       raise TypeError('option %r should be a str.' % k)
     if not any(k.lower().startswith(valid) for valid in _GCS_OPTIONS):
       raise ValueError('option %s is not supported.' % k)
-    if not isinstance(v, basestring):
+    if not isinstance(v, six.string_types):
       raise TypeError('value %r for option %s should be of type basestring.' %
                       (v, k))
 

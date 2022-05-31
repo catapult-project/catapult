@@ -16,18 +16,19 @@
 
 
 
+from __future__ import absolute_import
 __all__ = ['set_default_retry_params',
            'RetryParams',
           ]
 
 import copy
-import httplib
+import six.moves.http_client
 import logging
 import math
 import os
 import threading
 import time
-import urllib
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 
 
 try:
@@ -91,7 +92,7 @@ def _quote_filename(filename):
   Returns:
     The filename properly quoted to use as URI's path component.
   """
-  return urllib.quote(filename)
+  return six.moves.urllib.parse.quote(filename)
 
 
 def _unquote_filename(filename):
@@ -105,12 +106,12 @@ def _unquote_filename(filename):
   Returns:
     The filename unquoted.
   """
-  return urllib.unquote(filename)
+  return six.moves.urllib.parse.unquote(filename)
 
 
 def _should_retry(resp):
   """Given a urlfetch response, decide whether to retry that request."""
-  return (resp.status_code == httplib.REQUEST_TIMEOUT or
+  return (resp.status_code == six.moves.http_client.REQUEST_TIMEOUT or
           (resp.status_code >= 500 and
            resp.status_code < 600))
 
@@ -170,7 +171,7 @@ class _RetryWrapper(object):
             'Tasklet has exceeded request deadline after %s seconds total',
             time.time() - start_time)
         raise
-      except self.retriable_exceptions, e:
+      except self.retriable_exceptions as e:
         pass
 
       if n == 1:

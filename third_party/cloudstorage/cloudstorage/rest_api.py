@@ -18,6 +18,8 @@
 
 
 
+from __future__ import absolute_import
+import six
 __all__ = ['add_sync_methods']
 
 import logging
@@ -137,7 +139,7 @@ class _RestApi(object):
         default for current thread will be used.
     """
 
-    if isinstance(scopes, basestring):
+    if isinstance(scopes, six.string_types):
       scopes = [scopes]
     self.scopes = scopes
     self.service_account_id = service_account_id
@@ -256,7 +258,7 @@ class _RestApi(object):
     headers.update(self.user_agent)
     try:
       self.token = yield self.get_token_async()
-    except app_identity.InternalError, e:
+    except app_identity.InternalError as e:
       if os.environ.get('DATACENTER', '').endswith('sandman'):
         self.token = None
         logging.warning('Could not fetch an authentication token in sandman '
