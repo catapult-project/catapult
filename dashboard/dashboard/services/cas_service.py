@@ -6,6 +6,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import logging
+
 from apiclient import discovery
 from dashboard.common import utils
 
@@ -52,20 +54,32 @@ class RBECASService(object):
     if 'cas_instance' not in cas_ref:
       raise ValueError('cas_instance is required for RBE-CAS')
     digest = self._NormalizeDigest(cas_ref['digest'])
-    return self._service.blobs().getTree(
-        instanceName=cas_ref['cas_instance'],
-        hash=digest['hash'],
-        sizeBytes=digest['sizeBytes'],
-        pageSize=page_size,
-        pageToken=page_token
-    ).execute()
+
+    for i in range(3):
+      try:
+        return self._service.blobs().getTree(
+            instanceName=cas_ref['cas_instance'],
+            hash=digest['hash'],
+            sizeBytes=digest['sizeBytes'],
+            pageSize=page_size,
+            pageToken=page_token).execute()
+      except Exception as e:  # pylint: disable=broad-except
+        logging.debug('GetTree iteration %s raised %s', i, str(e))
+        exc = e
+        continue
+    raise exc
 
   def BatchRead(self, cas_instance, digests):
-    return self._service.blobs().batchRead(
-        instanceName=cas_instance,
-        body={
-            'digests': [
-                self._NormalizeDigest(d) for d in digests
-            ],
-        },
-    ).execute()
+    for i in range(3):
+      try:
+        return self._service.blobs().batchRead(
+            instanceName=cas_instance,
+            body={
+                'digests': [self._NormalizeDigest(d) for d in digests],
+            },
+        ).execute()
+      except Exception as e:  # pylint: disable=broad-except
+        logging.debug('BatchRead iteration %s raised %s', i, str(e))
+        exc = e
+        continue
+    raise exc
