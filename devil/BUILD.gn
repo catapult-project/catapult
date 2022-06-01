@@ -6,7 +6,10 @@ group("devil") {
   testonly = true
   deps = []
   data_deps = [ "../third_party/gsutil" ]
-  data = [ "devil/" ]
+  data = [
+    "devil/",
+    "bin/deps/",
+  ]
 
   if (is_android) {
     deps += [
