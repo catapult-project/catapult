@@ -92,7 +92,7 @@ class TestCase(unittest.TestCase):
     self.testapp = webtest.TestApp(webapp2.WSGIApplication(handlers))
 
   def PatchEnviron(self, path):
-    environ_patch = {'REQUEST_URI': path}
+    environ_patch = {'PATH_INFO': path}
     try:
       if oauth.get_current_user(utils.OAUTH_SCOPES):
         # SetCurrentUserOAuth mocks oauth.get_current_user() directly. That

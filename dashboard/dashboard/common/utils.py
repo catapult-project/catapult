@@ -104,7 +104,7 @@ def GetEmail():
     OAuthRequestError: The request was not a valid OAuth request.
     OAuthServiceFailureError: An unknown error occurred.
   """
-  request_uri = os.environ.get('REQUEST_URI', '')
+  request_uri = os.environ.get('PATH_INFO', '')
   if any(request_uri.startswith(e) for e in OAUTH_ENDPOINTS):
     # Prevent a CSRF whereby a malicious site posts an api request without an
     # Authorization header (so oauth.get_current_user() is None), but while the
