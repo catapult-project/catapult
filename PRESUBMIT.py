@@ -48,7 +48,8 @@ _EXCLUDED_PATHS = (
 
 _GITHUB_BUG_ID_RE = re.compile(r'#[1-9]\d*')
 _MONORAIL_BUG_ID_RE = re.compile(r'[1-9]\d*')
-_MONORAIL_PROJECT_NAMES = frozenset({'chromium', 'v8', 'angleproject', 'skia'})
+_MONORAIL_PROJECT_NAMES = frozenset(
+    {'chromium', 'v8', 'angleproject', 'skia', 'dawn'})
 
 def CheckChangeLogBug(input_api, output_api):
   # Show a presubmit message if there is no Bug line or an empty Bug line.
