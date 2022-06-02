@@ -544,7 +544,6 @@ class Job(ndb.Model):
     except taskqueue.Error as e:
       logging.debug('Failed ScheduleResults2Generation: %s', str(e))
 
-    logging.debug('crbug/1215127 - format and post bug comment')
     self._FormatAndPostBugCommentOnComplete()
     self._UpdateGerritIfNeeded()
     scheduler.Complete(self)
@@ -553,15 +552,9 @@ class Job(ndb.Model):
     # returns the improvement direction
     if self.tags is not None and "test_path" in self.tags:
       datastore_hooks.SetSinglePrivilegedRequest()
-      logging.debug('crbug/1215127 - self.tags test_path = %s',
-                    self.tags["test_path"])
       t = graph_data.TestMetadata.get_by_id(self.tags["test_path"])
       if t is not None:
-        logging.debug('crbug/1215127 - improvement direction = %s',
-                      t.improvement_direction)
         return t.improvement_direction
-      else:
-        logging.debug('crbug/1215127 - t is None')
     return anomaly.UNKNOWN
 
   def _FormatAndPostBugCommentOnComplete(self):
@@ -640,7 +633,6 @@ class Job(ndb.Model):
       return
 
     # Determine direction of improvement
-    logging.debug('crbug/1215127 - get improvement direction')
     improvement_dir = self._GetImprovementDirection()
 
     # Collect the result values for each of the differences
@@ -652,8 +644,6 @@ class Job(ndb.Model):
       values_b = result_values[change_b]
       bug_update_builder.AddDifference(change_b, values_a, values_b)
 
-    logging.debug('crbug/1215127 - defer block called, improve_dir %s',
-                  improvement_dir)
     deferred.defer(
         job_bug_update.UpdatePostAndMergeDeferred,
         bug_update_builder,
