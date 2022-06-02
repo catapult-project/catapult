@@ -163,6 +163,7 @@ class DifferencesFoundBugUpdateBuilder(object):
     """Return _BugUpdateInfo for the differences."""
     if len(self._differences) == 0:
       raise ValueError("BuildUpdate called with 0 differences")
+    logging.debug('crbug/1215127 build update + order differences called')
     differences = self._OrderedDifferencesByDelta()
     missing_values = self._DifferencesWithNoValues()
     owner, cc_list, notify_why_text = self._PeopleToNotify()
@@ -217,6 +218,8 @@ class DifferencesFoundBugUpdateBuilder(object):
     diffs_with_deltas = [(diff.MeanDelta(), diff)
                          for diff in self._differences
                          if diff.values_a and diff.values_b]
+    logging.debug('crbug/1215127 - improve dir during sorting = %s',
+                  self._improvement_direction)
     if self._improvement_direction == anomaly.UP:
       # improvement is positive, regression is negative
       ordered_diffs = [
