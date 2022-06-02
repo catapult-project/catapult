@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-class DependencyInfo(object):
+class DependencyInfo():
   def __init__(self, dependency, platform, config_path, local_path_info=None,
                cloud_storage_info=None):
     """ Container for the information needed for each dependency/platform pair
@@ -51,8 +51,7 @@ class DependencyInfo(object):
             'DependencyInfo. Conflict in dependency %s on platform %s in '
             'config_paths: %s.' % (self.dependency, self.platform,
                                    self.config_paths))
-      else:
-        self._cloud_storage_info = new_dep_info._cloud_storage_info
+      self._cloud_storage_info = new_dep_info._cloud_storage_info
     if not self._local_path_info:
       self._local_path_info = new_dep_info._local_path_info
     else:

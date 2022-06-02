@@ -43,7 +43,6 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
                          'download_path': '../../relative/dep2/path2'}}}}
 
     self.expected_file_lines = [
-      # pylint: disable=bad-continuation
       '{', '"config_type": "BaseConfig",', '"dependencies": {',
         '"dep1": {', '"cloud_storage_base_folder": "dependencies_folder",',
           '"cloud_storage_bucket": "bucket1",', '"file_info": {',
@@ -88,7 +87,6 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
         self.new_bucket, self.new_remote_path, self.new_dep_path)
     self.expected_new_backup_path = '.'.join([self.new_remote_path, 'old'])
     self.new_expected_file_lines = [
-      # pylint: disable=bad-continuation
       '{', '"config_type": "BaseConfig",', '"dependencies": {',
         '"dep1": {', '"cloud_storage_base_folder": "dependencies_folder",',
           '"cloud_storage_bucket": "bucket1",', '"file_info": {',
@@ -131,7 +129,6 @@ class BaseConfigCreationAndUpdateUnittests(fake_filesystem_unittest.TestCase):
                          'cloud_storage_hash': 'hash22',
                          'download_path': '../../relative/dep2/path2'}}}}
     self.final_expected_file_lines = [
-      # pylint: disable=bad-continuation
       '{', '"config_type": "BaseConfig",', '"dependencies": {',
         '"dep1": {', '"cloud_storage_base_folder": "dependencies_folder",',
           '"cloud_storage_bucket": "bucket1",', '"file_info": {',
@@ -1120,7 +1117,6 @@ class BaseConfigDataManipulationUnittests(fake_filesystem_unittest.TestCase):
 
 
     self.expected_file_lines = [
-      # pylint: disable=bad-continuation
       '{', '"config_type": "BaseConfig",', '"dependencies": {',
         '"dep1": {', '"cloud_storage_base_folder": "dependencies_folder",',
           '"cloud_storage_bucket": "bucket1",', '"file_info": {',

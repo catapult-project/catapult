@@ -13,15 +13,16 @@ from dependency_manager import exceptions
 BACKUP_PATH_EXTENSION = 'old'
 
 
-class CloudStorageUploader(object):
+class CloudStorageUploader():
   def __init__(self, bucket, remote_path, local_path, cs_backup_path=None):
     if not bucket or not remote_path or not local_path:
       raise ValueError(
           'Attempted to partially initialize upload data with bucket %s, '
-          'remote_path %s, and local_path %s', bucket, remote_path, local_path)
+          'remote_path %s, and local_path %s' %
+          (bucket, remote_path, local_path))
     if not os.path.exists(local_path):
       raise ValueError('Attempting to initilize UploadInfo with missing '
-                       'local path %s', local_path)
+                       'local path %s' % local_path)
 
     self._cs_bucket = bucket
     self._cs_remote_path = remote_path
@@ -50,10 +51,8 @@ class CloudStorageUploader(object):
     """
     if cloud_storage.Exists(self._cs_bucket, self._cs_remote_path):
       if not force:
-        #pylint: disable=nonstandard-exception
         raise exceptions.CloudStorageUploadConflictError(self._cs_bucket,
                                                          self._cs_remote_path)
-        #pylint: enable=nonstandard-exception
       logging.debug('A file already exists at upload path %s in self.cs_bucket'
                     ' %s', self._cs_remote_path, self._cs_bucket)
       try:
@@ -105,4 +104,3 @@ class CloudStorageUploader(object):
     return (self._local_path == other._local_path and
             self._cs_remote_path == other._cs_remote_path and
             self._cs_bucket == other._cs_bucket)
-

@@ -231,4 +231,3 @@ class DependencyInfoTest(unittest.TestCase):
     self.assertFalse(dep_info1._local_path_info.IsPathInLocalPaths('path4'))
 
     self.assertRaises(ValueError, dep_info1.Update, dep_info4)
-

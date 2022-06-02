@@ -525,4 +525,3 @@ class DependencyManagerTest(fake_filesystem_unittest.TestCase):
                                 'dep2': mock.MagicMock()}
     self.assertRaises(exceptions.NoPathFoundError,
                       dep_manager.LocalPath, 'dependency', 'platform')
-

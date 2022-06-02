@@ -193,4 +193,3 @@ class DependencyManagerUtilTest(unittest.TestCase):
       self.assertRaises(
           exceptions.ArchiveError, dependency_manager_util.VerifySafeArchive,
           archive)
-

@@ -6,7 +6,7 @@ import os
 
 import six
 
-class LocalPathInfo(object):
+class LocalPathInfo():
 
   def __init__(self, path_priority_groups):
     """Container for a set of local file paths where a given dependency

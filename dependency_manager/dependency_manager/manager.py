@@ -12,7 +12,7 @@ from dependency_manager import exceptions
 DEFAULT_TYPE = 'default'
 
 
-class DependencyManager(object):
+class DependencyManager():
   def __init__(self, configs, supported_config_types=None):
     """Manages file dependencies found locally or in cloud_storage.
 
@@ -243,4 +243,3 @@ class DependencyManager(object):
     if not device_type in dependency_dict:
       device_type = DEFAULT_TYPE
     return dependency_dict.get(device_type)
-

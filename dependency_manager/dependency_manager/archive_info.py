@@ -10,7 +10,7 @@ from dependency_manager import exceptions
 from dependency_manager import dependency_manager_util
 
 
-class ArchiveInfo(object):
+class ArchiveInfo():
 
   def __init__(self, archive_file, unzip_path, path_within_archive,
                stale_unzip_path_glob=None):
@@ -76,4 +76,3 @@ class ArchiveInfo(object):
         'dependency_path =%s)' % (
             self._archive_file, self._unzip_path, self._path_within_archive,
             self._dependency_path))
-

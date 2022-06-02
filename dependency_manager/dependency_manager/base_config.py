@@ -15,7 +15,7 @@ from dependency_manager import local_path_info
 from dependency_manager import uploader
 
 
-class BaseConfig(object):
+class BaseConfig():
   """A basic config class for use with the DependencyManager.
 
   Initiated with a json file in the following format:
@@ -154,7 +154,7 @@ class BaseConfig(object):
           if not cs_hash:
             raise exceptions.ConfigError(
                 'Dependency %s has cloud storage info on platform %s, but is '
-                'missing a cloud storage hash.', dependency, platform)
+                'missing a cloud storage hash.' % (dependency, platform))
           cs_remote_path = self._CloudStorageRemotePath(
               dependency, cs_hash, cs_base_folder)
           version_in_cs = platform_info.get('version_in_cs')
@@ -334,8 +334,7 @@ class BaseConfig(object):
     if not platform_dict:
       raise ValueError('No platform data for platform %s on dependency %s' %
                        (platform, dependency))
-    if (data_type == 'cloud_storage_bucket' or
-        data_type == 'cloud_storage_base_folder'):
+    if (data_type in ['cloud_storage_bucket', 'cloud_storage_base_folder']):
       self._config_data[dependency][data_type] = data
     else:
       self._config_data[dependency]['file_info'][platform][data_type] = data
@@ -349,8 +348,7 @@ class BaseConfig(object):
       raise ValueError('No platform data for platform %s on dependency %s' %
                        (platform, dependency))
     if data_type:
-      if (data_type == 'cloud_storage_bucket' or
-          data_type == 'cloud_storage_base_folder'):
+      if (data_type in ['cloud_storage_bucket', 'cloud_storage_base_folder']):
         return dependency_dict.get(data_type)
       return platform_dict.get(data_type)
     return platform_dict
@@ -393,7 +391,7 @@ class BaseConfig(object):
       return file_path
     if os.path.sep != '\\':
       return file_path.replace('\\', os.path.sep)
-    elif os.path.sep != '/':
+    if os.path.sep != '/':
       return file_path.replace('/', os.path.sep)
     return file_path
 

@@ -13,6 +13,7 @@ DEPENDENCY_MANAGER_PATH = os.path.join(CATAPULT_PATH, 'dependency_manager')
 
 
 def _AddDirToPythonPath(*path_parts):
+  # pylint: disable=no-value-for-parameter
   path = os.path.abspath(os.path.join(*path_parts))
   if os.path.isdir(path) and path not in sys.path:
     sys.path.insert(0, path)
@@ -33,6 +34,8 @@ from .dependency_info import DependencyInfo
 from .exceptions import CloudStorageError
 from .exceptions import CloudStorageUploadConflictError
 from .exceptions import EmptyConfigError
+# TODO(https://crbug.com/1262289): Rename this after Python2 trybots retire.
+# pylint: disable=redefined-builtin
 from .exceptions import FileNotFoundError
 from .exceptions import NoPathFoundError
 from .exceptions import ReadWriteError
@@ -40,4 +43,3 @@ from .exceptions import UnsupportedConfigFormatError
 from .local_path_info import LocalPathInfo
 from .manager import DependencyManager
 # pylint: enable=unused-import
-

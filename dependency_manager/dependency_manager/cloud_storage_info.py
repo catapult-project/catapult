@@ -10,7 +10,7 @@ from py_utils import cloud_storage
 
 from dependency_manager import exceptions
 
-class CloudStorageInfo(object):
+class CloudStorageInfo():
   def __init__(self, cs_bucket, cs_hash, download_path, cs_remote_path,
                version_in_cs=None, archive_info=None):
     """ Container for the information needed to download a dependency from
