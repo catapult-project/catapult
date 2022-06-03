@@ -40,7 +40,6 @@ WINDOWS_FORBIDDEN_PATH_CHARACTERS = [
 ]
 
 WINDOWS_MAX_PATH = 260
-MAC_MAX_FILE_NAME = 255
 
 class Artifacts(object):
   def __init__(self, output_dir, host, iteration=0, artifacts_base_dir='',
@@ -91,7 +90,7 @@ class Artifacts(object):
     self._iteration = iteration
     self._artifacts_base_dir = artifacts_base_dir
     # Replace invalid Windows path characters now with URL-encoded equivalents.
-    if host.platform == 'win32':
+    if sys.platform == 'win32':
       for c in WINDOWS_FORBIDDEN_PATH_CHARACTERS:
         self._artifacts_base_dir = self._artifacts_base_dir.replace(
             c, url_quote(c))
@@ -195,23 +194,11 @@ class Artifacts(object):
     """
     subdir_relative_path = self._host.join(
         self.ArtifactsSubDirectory(), file_relative_path)
-    # Mac has a 255 character limit for any one directory or file name, so if we
-    # detect any cases of those, replace that section of the path with a hash of
-    # that section.
-    if self._host.platform == 'darwin':
-      path_pieces = subdir_relative_path.split(self._host.sep)
-      for i, piece in enumerate(path_pieces):
-        if len(piece) <= MAC_MAX_FILE_NAME:
-          continue
-        m = hashlib.sha1()
-        m.update(piece.encode('utf-8'))
-        path_pieces[i] = m.hexdigest()
-      subdir_relative_path = self._host.join(*path_pieces)
     abs_path = self._host.join(self._output_dir, subdir_relative_path)
     # Attempt to work around the 260 character path limit in Windows. This is
     # not guaranteed to solve the issue, but should address the common case of
     # test names being long.
-    if self._host.platform == 'win32' and len(abs_path) >= WINDOWS_MAX_PATH:
+    if sys.platform == 'win32' and len(abs_path) >= WINDOWS_MAX_PATH:
       m = hashlib.sha1()
       m.update(self.ArtifactsSubDirectory().encode('utf-8'))
       subdir_relative_path = self._host.join(m.hexdigest(), file_relative_path)

@@ -12,11 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import hashlib
-import logging
 import os
 import shutil
-import sys
 import tempfile
 import unittest
 
@@ -130,61 +127,6 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
     ar.AddArtifact('artifact_name', 'foo.txt',
                     raise_exception_for_duplicates=False)
     self.assertEqual(ar.artifacts['artifact_name'], ['foo.txt'])
-
-  def test_windows_path_limit_workaround(self):
-    host = FakeHost()
-    host.platform = 'win32'
-    output_dir = '%stmp' % host.sep
-    artifacts_base_dir = 'a' * artifacts.WINDOWS_MAX_PATH
-    ar = artifacts.Artifacts(output_dir, host, iteration=0,
-                             artifacts_base_dir=artifacts_base_dir)
-    file_path = host.join('failures', 'stderr.txt')
-    ar.CreateArtifact('artifact_name', file_path, 'exception raised',
-                      write_as_text=True)
-    m = hashlib.sha1()
-    m.update(artifacts_base_dir.encode('utf-8'))
-    expected_dir = m.hexdigest()
-    expected_path = host.join(output_dir, expected_dir, file_path)
-    self.assertEqual(host.read_text_file(expected_path), 'exception raised')
-
-  def test_windows_path_limit_workaround_too_long(self):
-    host = FakeHost()
-    host.platform = 'win32'
-    output_dir = '%stmp' % host.sep
-    ar = artifacts.Artifacts(output_dir, host, iteration=0)
-    file_rel_path = 'a' * (artifacts.WINDOWS_MAX_PATH)
-    if host.is_python3:
-      with self.assertLogs(logging.getLogger(), logging.ERROR) as output:
-        ar.CreateArtifact('artifact_name', file_rel_path, b'contents')
-      for log_line in output.output:
-        if 'exceeds Windows MAX_PATH' in log_line:
-          break
-      else:
-        self.fail('Did not get expected log line')
-    else:
-      ar.CreateArtifact('artifact_name', file_rel_path, b'contents')
-    self.assertEqual(ar.artifacts, {})
-
-  def test_mac_path_limit_workaround(self):
-    host = FakeHost()
-    host.platform = 'darwin'
-    output_dir = '%stmp' % host.sep
-    long_artifact_piece = 'a' * (artifacts.MAC_MAX_FILE_NAME + 1)
-    long_relative_piece = 'b' * (artifacts.MAC_MAX_FILE_NAME + 1)
-    artifacts_base_dir = host.join(long_artifact_piece, 'short')
-    ar = artifacts.Artifacts(output_dir, host, iteration=0,
-                             artifacts_base_dir=artifacts_base_dir)
-    file_rel_path = host.join(long_relative_piece, 'output.txt')
-    ar.CreateArtifact('artifact_name', file_rel_path, b'content')
-    m = hashlib.sha1()
-    m.update(long_artifact_piece.encode('utf-8'))
-    artifact_hash = m.hexdigest()
-    m = hashlib.sha1()
-    m.update(long_relative_piece.encode('utf-8'))
-    relative_hash = m.hexdigest()
-    expected_path = host.join(
-        output_dir, artifact_hash, 'short', relative_hash, 'output.txt')
-    self.assertEqual(host.read_binary_file(expected_path), b'content')
 
 
 class ArtifactsLinkCreationTests(unittest.TestCase):
