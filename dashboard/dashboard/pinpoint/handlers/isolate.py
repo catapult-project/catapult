@@ -52,8 +52,8 @@ if utils.IsRunningFlask():
       TypeError: The wrong parameters are present.
       ValueError: The parameters have invalid values.
     """
-    given_parameters = parameters.keys()
-    expected_parameters = validators.keys()
+    given_parameters = set(parameters.keys())
+    expected_parameters = set(validators.keys())
 
     if given_parameters != expected_parameters:
       logging.info('Unexpected request parameters. Given: %s. Expected: %s',
