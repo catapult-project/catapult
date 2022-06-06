@@ -288,7 +288,7 @@ class BrowserFinderOptions(optparse.Values):
     group = optparse.OptionGroup(parser, 'Fuchsia platform options')
     group.add_option(
         '--fuchsia-ssh-config',
-        default='out/Release',
+        default=os.path.expanduser('~/.fuchsia/sshconfig'),
         help='Specify the ssh_config file used to connect to the Fuchsia OS.')
     group.add_option(
         '--fuchsia-device-address',
@@ -304,7 +304,7 @@ class BrowserFinderOptions(optparse.Values):
         help='The file where Fuchsia system logs will be stored.')
     group.add_option(
         '--fuchsia-repo',
-        default="fuchsia.com",
+        default='fuchsia.com',
         help='The name of the Fuchsia repo used to serve required packages.')
     parser.add_option_group(group)
 
