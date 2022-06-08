@@ -632,18 +632,16 @@ class Job(ndb.Model):
           _retry_options=RETRY_OPTIONS)
       return
 
-    # Determine direction of improvement
-    improvement_dir = self._GetImprovementDirection()
-
     # Collect the result values for each of the differences
     bug_update_builder = job_bug_update.DifferencesFoundBugUpdateBuilder(
-        self.state.metric, improvement_dir)
+        self.state.metric)
     bug_update_builder.SetExaminedCount(changes_examined)
     for change_a, change_b in differences:
       values_a = result_values[change_a]
       values_b = result_values[change_b]
       bug_update_builder.AddDifference(change_b, values_a, values_b)
 
+    improvement_dir = self._GetImprovementDirection()
     deferred.defer(
         job_bug_update.UpdatePostAndMergeDeferred,
         bug_update_builder,
@@ -651,6 +649,7 @@ class Job(ndb.Model):
         self.tags,
         self.url,
         self.project,
+        improvement_dir,
         _retry_options=RETRY_OPTIONS)
 
   def _UpdateGerritIfNeeded(self, success=True):

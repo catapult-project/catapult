@@ -33,26 +33,21 @@ class OrderedDifferenceTest(test.TestCase):
         job_bug_update._Difference(kind, commit_dict, values_a, values_b))
 
     # check improvement direction UP
-    d._improvement_direction = anomaly.UP
-    ordered_diff = d._OrderedDifferencesByDelta()
+    ordered_diff = d._OrderedDifferencesByDelta(anomaly.UP)
     self.assertEqual(ordered_diff[0].MeanDelta(), -2)
     self.assertEqual(ordered_diff[1].MeanDelta(), 1)
     self.assertEqual(ordered_diff[2].MeanDelta(), 3)
 
     # check improvement direction DOWN
-    d._improvement_direction = anomaly.DOWN
-    # reset cache
-    d._cached_ordered_diffs_by_delta = None
-    ordered_diff = d._OrderedDifferencesByDelta()
+    d._cached_ordered_diffs_by_delta = None  # reset cache
+    ordered_diff = d._OrderedDifferencesByDelta(anomaly.DOWN)
     self.assertEqual(ordered_diff[0].MeanDelta(), 3)
     self.assertEqual(ordered_diff[1].MeanDelta(), 1)
     self.assertEqual(ordered_diff[2].MeanDelta(), -2)
 
     # check improvement direction UNKNOWN
-    d._improvement_direction = anomaly.UNKNOWN
-    # reset cache
-    d._cached_ordered_diffs_by_delta = None
-    ordered_diff = d._OrderedDifferencesByDelta()
+    d._cached_ordered_diffs_by_delta = None  # reset cache
+    ordered_diff = d._OrderedDifferencesByDelta(anomaly.UNKNOWN)
     self.assertEqual(ordered_diff[0].MeanDelta(), 3)
     self.assertEqual(ordered_diff[1].MeanDelta(), -2)
     self.assertEqual(ordered_diff[2].MeanDelta(), 1)
