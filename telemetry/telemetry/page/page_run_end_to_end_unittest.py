@@ -122,7 +122,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     test = TestOneTab()
     self.RunStorySet(test, story_set)
 
-  @decorators.Disabled('linux', 'mac')  # crbug.com/1042080
+  # Flaky crbug.com/1042080, crbug.com/1334472
+  @decorators.Disabled('linux', 'mac', 'chromeos')
   def testTrafficSettings(self):
     story_set = story.StorySet()
     slow_page = page_module.Page(
