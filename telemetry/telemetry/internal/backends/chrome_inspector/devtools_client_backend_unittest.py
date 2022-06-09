@@ -16,10 +16,10 @@ class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):
   def _devtools_client(self):
     return self._browser_backend.devtools_client
 
-  def testGetChromeBranchNumber(self):
-    branch_num = self._devtools_client.GetChromeBranchNumber()
-    self.assertIsInstance(branch_num, int)
-    self.assertGreater(branch_num, 0)
+  def testGetChromeMajorNumber(self):
+    major_num = self._devtools_client.GetChromeMajorNumber()
+    self.assertIsInstance(major_num, int)
+    self.assertGreater(major_num, 0)
 
   def testIsAlive(self):
     self.assertTrue(self._devtools_client.IsAlive())

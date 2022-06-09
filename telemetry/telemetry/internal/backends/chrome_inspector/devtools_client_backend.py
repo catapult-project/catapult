@@ -36,7 +36,7 @@ class UnsupportedVersionError(exceptions.Error):
 
 # Only versions of Chrome from M58 and above are supported. Older versions
 # did not support many of the modern features currently in use by Telemetry.
-MIN_SUPPORTED_BRANCH_NUMBER = 3029
+MIN_SUPPORTED_MAJOR_NUMBER = 58
 
 # The first WebSocket connections or calls against a newly-started
 # browser, specifically in Debug builds, can take a long time. Give
@@ -184,12 +184,12 @@ class _DevToolsClientBackend(object):
     self._browser_target = browser_target or '/devtools/browser'
     self._SetUpPortForwarding(devtools_port)
 
-    # If the agent is not alive and ready, trying to get the branch number will
+    # If the agent is not alive and ready, trying to get the major number will
     # raise a devtools_http.DevToolsClientConnectionError.
-    branch_number = self.GetChromeBranchNumber()
-    if branch_number < MIN_SUPPORTED_BRANCH_NUMBER:
+    major_number = self.GetChromeMajorNumber()
+    if major_number < MIN_SUPPORTED_MAJOR_NUMBER:
       raise UnsupportedVersionError(
-          'Chrome branch number %d is no longer supported' % branch_number)
+          'Chrome major number %d is no longer supported' % major_number)
 
     # Ensure that the inspector websocket is ready. This may raise a
     # inspector_websocket.WebSocketException or socket.error if not ready.
@@ -265,24 +265,24 @@ class _DevToolsClientBackend(object):
     """Return the version dict as provided by the DevTools agent."""
     return self._devtools_http.RequestJson('version')
 
-  def GetChromeBranchNumber(self):
+  def GetChromeMajorNumber(self):
     # Detect version information.
     resp = self.GetVersion()
     if 'Protocol-Version' in resp:
       if 'Browser' in resp:
-        branch_number_match = re.search(r'.+/\d+\.\d+\.(\d+)\.\d+',
-                                        resp['Browser'])
-      if not branch_number_match and 'User-Agent' in resp:
-        branch_number_match = re.search(
-            r'Chrome/\d+\.\d+\.(\d+)\.\d+ (Mobile )?Safari',
+        major_number_match = re.search(r'.+/(\d+)\.\d+\.\d+\.\d+',
+                                       resp['Browser'])
+      if not major_number_match and 'User-Agent' in resp:
+        major_number_match = re.search(
+            r'Chrome/(\d+)\.\d+\.\d+\.\d+ (Mobile )?Safari',
             resp['User-Agent'])
 
-      if branch_number_match:
-        branch_number = int(branch_number_match.group(1))
-        if branch_number:
-          return branch_number
+      if major_number_match:
+        major_number = int(major_number_match.group(1))
+        if major_number:
+          return major_number
 
-    # Branch number can't be determined, so fail any branch number checks.
+    # Major number can't be determined, so fail any major number checks.
     return 0
 
   def _ListInspectableContexts(self):
