@@ -11,6 +11,7 @@ import cloudstorage
 import logging
 import os
 import uuid
+import six
 
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
@@ -98,7 +99,7 @@ class _GcsFileStream(object):
     pass
 
   def write(self, data):
-    self._gcs_file.write(data)
+    self._gcs_file.write(six.ensure_binary(data))
 
   def close(self):
     self._gcs_file.close()

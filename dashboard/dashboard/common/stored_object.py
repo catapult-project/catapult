@@ -118,7 +118,7 @@ class MultipartEntity(ndb.Model):
         for i in range(self.size)
     ]
     part_entities = yield ndb.get_multi_async(part_keys)
-    serialized = ''.join(p.value for p in part_entities if p is not None)
+    serialized = b''.join(p.value for p in part_entities if p is not None)
     self.SetData(cPickle.loads(serialized))
 
   @classmethod

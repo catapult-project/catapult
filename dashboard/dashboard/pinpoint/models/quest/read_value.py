@@ -364,7 +364,7 @@ def RetrieveCASOutput(cas_root_ref, path, client=None):
   response = cas_client.BatchRead(
       cas_root_ref['cas_instance'], [node['digest']])
   data = response['responses'][0].get('data', '')
-  return base64.decodestring(data)
+  return base64.b64decode(data)
 
 
 def RetrieveOutputJsonFromCAS(cas_root_ref, path):

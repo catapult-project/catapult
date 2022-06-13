@@ -14,6 +14,8 @@ from dashboard.common import utils
 
 from google.appengine.datastore import datastore_query
 
+import six
+
 if utils.IsRunningFlask():
   from flask import make_response, request
 else:
@@ -151,8 +153,8 @@ def _GetJobs(options, query_filter, prev_cursor='', next_cursor=''):
       'jobs': [],
       'count': count_future.get_result(),
       'max_count': _MAX_JOBS_TO_COUNT,
-      'prev_cursor': prev_cursor,
-      'next_cursor': next_cursor,
+      'prev_cursor': six.ensure_str(prev_cursor),
+      'next_cursor': six.ensure_str(next_cursor),
       'prev': prev_,
       'next': next_,
   }

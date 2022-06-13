@@ -30,7 +30,7 @@ __all__ = ['copy2',
           ]
 
 import logging
-import StringIO
+from six import BytesIO
 import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 import os
 import itertools
@@ -574,7 +574,7 @@ class _Bucket(object):
       A dict from element tag to element value.
     """
     element_mapping = {}
-    result = StringIO.StringIO(result)
+    result = BytesIO(result)
     for _, e in ET.iterparse(result, events=('end',)):
       if not elements:
         break
