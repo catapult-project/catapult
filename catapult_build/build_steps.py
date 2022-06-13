@@ -238,13 +238,6 @@ def main(args=None):
 
   protoc_path = 'protoc'
 
-  # TODO(crbug.com/1271700): Remove this condition once protoc mac-arm build is
-  # released.
-  if args.platform == 'mac' and args.platform_arch == 'arm':
-    protoc_path = os.path.join(args.api_path_checkout, 'catapult_build', 'bin',
-                               'mac-arm64', 'protoc')
-
-
   steps = [
       {
           # Always remove stale files first. Not listed as a test above

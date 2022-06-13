@@ -195,7 +195,6 @@ try_builder("Catapult Windows Tryserver", "Windows-10", properties = {"use_pytho
 try_builder("Catapult Mac Tryserver Py2", "Mac", dimensions = {"cpu": "x86-64"})
 try_builder("Catapult Mac Tryserver", "Mac", dimensions = {"cpu": "x86-64"}, properties = {"use_python3": True})
 
-# TODO(crbug/1271700): Testing if dependency issues are resolved. Disable if that's not the case.
 try_builder("Catapult Mac M1 Tryserver Py2", "Mac", dimensions = {"cpu": "arm"}, experiment = 100)
 try_builder("Catapult Mac M1 Tryserver", "Mac", dimensions = {"cpu": "arm"}, properties = {"use_python3": True})
 
