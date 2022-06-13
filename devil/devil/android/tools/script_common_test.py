@@ -22,7 +22,9 @@ with devil_env.SysPath(devil_env.DEPENDENCY_MANAGER_PATH):
 
 
 class GetDevicesTest(unittest.TestCase):
-  def testNoSpecs(self):
+  @mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.is_ready',
+              return_value=True)
+  def testNoSpecs(self, _mock_get_state):
     devices = [
         device_utils.DeviceUtils('123'),
         device_utils.DeviceUtils('456'),
@@ -32,7 +34,9 @@ class GetDevicesTest(unittest.TestCase):
         return_value=devices):
       self.assertEqual(devices, script_common.GetDevices(None, None))
 
-  def testWithDevices(self):
+  @mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.is_ready',
+              return_value=True)
+  def testWithDevices(self, _mock_get_state):
     devices = [
         device_utils.DeviceUtils('123'),
         device_utils.DeviceUtils('456'),
@@ -43,7 +47,9 @@ class GetDevicesTest(unittest.TestCase):
       self.assertEqual([device_utils.DeviceUtils('456')],
                        script_common.GetDevices(['456'], None))
 
-  def testMissingDevice(self):
+  @mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.is_ready',
+              return_value=True)
+  def testMissingDevice(self, _mock_get_state):
     with mock.patch(
         'devil.android.device_utils.DeviceUtils.HealthyDevices',
         return_value=[device_utils.DeviceUtils('123')]):
