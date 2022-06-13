@@ -325,8 +325,8 @@ class JobState(object):
 
     any_unknowns = False
     for quest in self._quests:
-      executions_a = executions_by_quest_a[quest]
-      executions_b = executions_by_quest_b[quest]
+      executions_a = executions_by_quest_a[str(quest)]
+      executions_b = executions_by_quest_b[str(quest)]
 
       # Compare exceptions.
       exceptions_a = tuple(
@@ -434,7 +434,7 @@ def _ExecutionsPerQuest(attempts):
   executions = collections.defaultdict(list)
   for attempt in attempts:
     for quest, execution in zip(attempt.quests, attempt.executions):
-      executions[quest].append(execution)
+      executions[str(quest)].append(execution)
   return executions
 
 

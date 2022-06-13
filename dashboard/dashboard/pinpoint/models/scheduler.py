@@ -203,7 +203,7 @@ def PickJobs(configuration, budget=1.0):
   # Sort the jobs in priority and submission time. Note that we can starve lower
   # priority (those whose priority is higher than 0) jobs by design, since we'll
   # assume those are batch jobs.
-  queue.jobs.sort(key=lambda j: (j.priority, j.timestamp))
+  queue.jobs.sort(key=lambda j: (j.priority or 0, j.timestamp))
   for job in queue.jobs:
     # Short-circuit out if the budget is not exhausted.
     if budget <= 0.0:

@@ -133,7 +133,7 @@ class Execution(object):
       tb = traceback.format_exc()
       if hasattr(e, 'task_output'):
         tb += '\n%s' % getattr(e, 'task_output')
-      self._exception = {'message': e.message, 'traceback': tb}
+      self._exception = {'message': str(e), 'traceback': tb}
     except:
       # All other exceptions must be propagated.
       raise

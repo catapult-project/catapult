@@ -59,9 +59,10 @@ def ParseDateWithUTCOffset(date_string):
 class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
   """A git repository pinned to a particular commit."""
 
-  def __init__(self, *args, **kwargs):
-    super(Commit, self).__init__(*args, **kwargs)
+  def __new__(cls, *args, **kwargs):
+    self = super(Commit, cls).__new__(cls, *args, **kwargs)
     self._repository_url = None
+    return self
 
   def __str__(self):
     """Returns an informal short string representation of this Commit."""
