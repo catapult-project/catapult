@@ -35,6 +35,8 @@ class TestCase(unittest.TestCase):
     # Allows a test to mark a programmatic skip (through calling self.skipTest)
     # as expected.
     programmaticSkipIsExpected = False
+    # Any additional key/value pairs to report through ResultDB.
+    additionalTags = {}
 
     def set_artifacts(self, artifacts):
         # We need this setter instead of setting artifacts directly so that

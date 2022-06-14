@@ -256,6 +256,44 @@ class ResultSinkReporterTest(unittest.TestCase):
         self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[1]),
                          expected_result)
 
+    def testReportIndividualTestResultAdditionalTags(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
+        result = CreateResult({
+            'name': 'test_name',
+            'actual': json_results.ResultType.Pass,
+        })
+        rsr._post = StubWithRetval(2)
+        retval = rsr.report_individual_test_result(
+                'test_name_prefix.', result, ARTIFACT_DIR, None, FAKE_TEST_PATH,
+                FAKE_TEST_LINE, {'additional_tag_key': 'additional_tag_value'})
+        self.assertEqual(retval, 2)
+        expected_result = CreateExpectedTestResult(tags=[
+            {'key': 'test_name', 'value': 'test_name'},
+            {'key': 'typ_expectation', 'value': json_results.ResultType.Pass},
+            {'key': 'raw_typ_expectation', 'value': 'Pass'},
+            {'key': 'additional_tag_key', 'value': 'additional_tag_value'},
+        ])
+        self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[1]),
+                         expected_result)
+
+    def testReportIndividualTestResultAdditionalTagsNoStrings(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
+        rsr._post = StubWithRetval(0)
+        result = CreateResult({
+            'name': 'test_name',
+            'actual': json_results.ResultType.Pass,
+        })
+        with self.assertRaises(AssertionError):
+            rsr.report_individual_test_result(
+                    'test_name_prefix.', result, ARTIFACT_DIR, None,
+                    FAKE_TEST_PATH, FAKE_TEST_LINE, {1: 'str'})
+        with self.assertRaises(AssertionError):
+            rsr.report_individual_test_result(
+                    'test_name_prefix.', result, ARTIFACT_DIR, None,
+                    FAKE_TEST_PATH, FAKE_TEST_LINE, {'str': 1})
+
     def testReportIndividualTestResultHtmlSummaryUnicode(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
         rsr = ResultSinkReporterWithFakeSrc(self._host)
