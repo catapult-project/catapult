@@ -17,7 +17,6 @@ import os
 import posixpath
 import re
 import subprocess
-import time
 
 import six
 
@@ -192,16 +191,6 @@ class AdbWrapper(object):
     if not device_serial:
       raise ValueError('A device serial must be specified')
     self._device_serial = str(device_serial)
-
-    for _ in range(5):
-      if self.is_ready:
-        return
-      else:
-        # Local testing shows it takes 8-9 seconds for device to become active
-        # from an --avd-config emulator.
-        time.sleep(3)
-
-    # TODO(crbug/1330756): Raise an exception if device fails.
 
   class PersistentShell(object):
     '''Class to use persistent shell for ADB.
