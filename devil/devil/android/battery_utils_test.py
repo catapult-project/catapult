@@ -105,7 +105,9 @@ class BatteryUtilsTest(mock_calls.TestCase):
 
 
 class BatteryUtilsInitTest(unittest.TestCase):
-  def testInitWithDeviceUtil(self):
+  @mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.is_ready',
+              return_value=True)
+  def testInitWithDeviceUtil(self, _mock_get_state):
     serial = '0fedcba987654321'
     d = device_utils.DeviceUtils(serial)
     b = battery_utils.BatteryUtils(d)

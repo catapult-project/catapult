@@ -30,7 +30,9 @@ class AdbWrapperTest(unittest.TestCase):
     with self._MockRunDeviceAdbCmd('Verity already disabled on /system'):
       self.adb.DisableVerity()
 
-  def testDisableVerityWhenEnabled(self):
+  @mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.is_ready',
+              return_value=True)
+  def testDisableVerityWhenEnabled(self, _mock_state_state):
     with self._MockRunDeviceAdbCmd(
         'Verity disabled on /system\nNow reboot your device for settings to '
         'take effect'):

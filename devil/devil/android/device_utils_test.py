@@ -114,18 +114,24 @@ class _MockMultipleDevicesError(Exception):
 
 
 class DeviceUtilsInitTest(unittest.TestCase):
-  def testInitWithStr(self):
+  @mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.is_ready',
+              return_value=True)
+  def testInitWithStr(self, _mock_get_state):
     serial_as_str = str('0123456789abcdef')
     d = device_utils.DeviceUtils('0123456789abcdef')
     self.assertEqual(serial_as_str, d.adb.GetDeviceSerial())
 
-  def testInitWithUnicode(self):
+  @mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.is_ready',
+              return_value=True)
+  def testInitWithUnicode(self, _mock_get_state):
     if six.PY2:
       serial_as_unicode = unicode('fedcba9876543210')
       d = device_utils.DeviceUtils(serial_as_unicode)
       self.assertEqual(serial_as_unicode, d.adb.GetDeviceSerial())
 
-  def testInitWithAdbWrapper(self):
+  @mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.is_ready',
+              return_value=True)
+  def testInitWithAdbWrapper(self, _mock_get_state):
     serial = '123456789abcdef0'
     a = adb_wrapper.AdbWrapper(serial)
     d = device_utils.DeviceUtils(a)
@@ -271,7 +277,9 @@ class DeviceUtilsEqTest(DeviceUtilsTest):
     self.assertTrue(self.device == other)
     self.assertTrue(other == self.device)
 
-  def testEq_equal_adbWrapper(self):
+  @mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.is_ready',
+              return_value=True)
+  def testEq_equal_adbWrapper(self, _mock_get_state):
     other = adb_wrapper.AdbWrapper('0123456789abcdef')
     self.assertTrue(self.device == other)
     self.assertTrue(other == self.device)
@@ -3675,7 +3683,9 @@ class DeviceUtilsClientCache(DeviceUtilsTest):
 
 
 class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
-  def testHealthyDevices_emptyDenylist_defaultDeviceArg(self):
+  @mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.is_ready',
+              return_value=True)
+  def testHealthyDevices_emptyDenylist_defaultDeviceArg(self, _mock_get_state):
     test_serials = ['0123456789abcdef', 'fedcba9876543210']
     with self.assertCalls(
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
@@ -3690,7 +3700,9 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
       self.assertTrue(isinstance(device, device_utils.DeviceUtils))
       self.assertEqual(serial, device.adb.GetDeviceSerial())
 
-  def testHealthyDevices_denylist_defaultDeviceArg(self):
+  @mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.is_ready',
+              return_value=True)
+  def testHealthyDevices_denylist_defaultDeviceArg(self, _mock_get_state):
     test_serials = ['0123456789abcdef', 'fedcba9876543210']
     with self.assertCalls(
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
@@ -3704,7 +3716,9 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
     self.assertTrue(isinstance(devices[0], device_utils.DeviceUtils))
     self.assertEqual('0123456789abcdef', devices[0].adb.GetDeviceSerial())
 
-  def testHealthyDevices_noneDeviceArg_multiple_attached(self):
+  @mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.is_ready',
+              return_value=True)
+  def testHealthyDevices_noneDeviceArg_multiple_attached(self, _mock_get_state):
     test_serials = ['0123456789abcdef', 'fedcba9876543210']
     with self.assertCalls(
         (mock.call.devil.android.sdk.adb_wrapper.AdbWrapper.Devices(),
@@ -3759,7 +3773,10 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
       with self.assertRaises(device_errors.NoDevicesError):
         device_utils.DeviceUtils.HealthyDevices(device_arg=None, retries=0)
 
-  def testHealthyDevices_noneDeviceArg_multiple_attached_ANDROID_SERIAL(self):
+  @mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.is_ready',
+              return_value=True)
+  def testHealthyDevices_noneDeviceArg_multiple_attached_ANDROID_SERIAL(
+      self, _mock_get_state):
     try:
       os.environ['ANDROID_SERIAL'] = '0123456789abcdef'
       with self.assertCalls():  # Should skip adb devices when device is known.
@@ -3767,7 +3784,9 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
     finally:
       del os.environ['ANDROID_SERIAL']
 
-  def testHealthyDevices_stringDeviceArg(self):
+  @mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.is_ready',
+              return_value=True)
+  def testHealthyDevices_stringDeviceArg(self, _mock_get_state):
     with self.assertCalls():  # Should skip adb devices when device is known.
       devices = device_utils.DeviceUtils.HealthyDevices(
           device_arg='0123456789abcdef')
@@ -3798,7 +3817,10 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
                                                         abis=[abis.X86])
     self.assertEqual(2, len(devices))
 
-  def testHealthyDevices_EmptyListDeviceArg_ANDROID_SERIAL(self):
+  @mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.is_ready',
+              return_value=True)
+  def testHealthyDevices_EmptyListDeviceArg_ANDROID_SERIAL(
+      self, _mock_get_state):
     try:
       os.environ['ANDROID_SERIAL'] = '0123456789abcdef'
       with self.assertCalls():  # Should skip adb devices when device is known.
@@ -3859,7 +3881,9 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
         [mock.call(2), mock.call(4),
          mock.call(8), mock.call(16)])
 
-  def testHealthyDevices_ListDeviceArg(self):
+  @mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.is_ready',
+              return_value=True)
+  def testHealthyDevices_ListDeviceArg(self, _mock_get_state):
     device_arg = ['0123456789abcdef', 'fedcba9876543210']
     try:
       os.environ['ANDROID_SERIAL'] = 'should-not-apply'
