@@ -11,5 +11,5 @@ google-cloud-datastore==2.1.3
 google-cloud-logging==2.4.0
 oauth2client==4.1.3
 gunicorn==20.1.0
-protobuf>=3.4.0
+protobuf==3.20.1
 google-python-cloud-debugger
