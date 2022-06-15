@@ -216,8 +216,12 @@ def _GetClassifier(typ_runner):
     if typ_runner.should_skip(test):
       test_set.add_test_to_skip(test, 'skipped because matched --skip')
       return
-    # For now, only support running these tests serially.
-    test_set.add_test_to_run_isolated(test)
+    # Default to running the test in isolation unless it has specifically opted
+    # in to parallel execution.
+    if test.CanRunInParallel():
+      test_set.add_test_to_run_in_parallel(test)
+    else:
+      test_set.add_test_to_run_isolated(test)
   return _SeriallyExecutedBrowserTestCaseClassifer
 
 

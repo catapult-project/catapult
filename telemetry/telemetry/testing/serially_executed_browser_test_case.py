@@ -61,6 +61,10 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
     return cls.__name__
 
   @classmethod
+  def CanRunInParallel(cls):
+    return False
+
+  @classmethod
   def AddCommandlineArgs(cls, parser):
     pass
 
