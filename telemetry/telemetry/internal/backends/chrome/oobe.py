@@ -98,7 +98,7 @@ class Oobe(web_contents.WebContents):
     enrollment. |for_user_triggered_enrollment| should be False for remora
     enrollment."""
     # TODO(achuith): Get rid of this call. crbug.com/804216.
-    self._ExecuteOobeApi('Oobe.skipToLoginForTesting')
+    self._ExecuteOobeApi('OobeAPI.skipToLoginForTesting')
     if for_user_triggered_enrollment:
       self._ExecuteOobeApi('Oobe.switchToEnterpriseEnrollmentForTesting')
 
@@ -134,7 +134,7 @@ class Oobe(web_contents.WebContents):
                            parent_user, parent_pass):
     """Logs into a unicorn account."""
 
-    self._ExecuteOobeApi('Oobe.skipToLoginForTesting')
+    self._ExecuteOobeApi('OobeAPI.skipToLoginForTesting')
     py_utils.WaitFor(self._GaiaWebviewContext, 20)
     logging.info('Entering child credentials')
     self._NavigateWebviewLogin(child_user, child_pass, False)
