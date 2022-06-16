@@ -415,6 +415,8 @@ class GenerateResults2Test(testing_common.TestCase):
         'job_start_time': _TEST_START_TIME_STR,
         'batch_id': 'fake_batch_id',
         'dims': {
+            'start_time': '2022-06-09 20:21:22.123456',
+            'swarming_task_id': 'a4b',
             'device': {
                 'cfg': 'fake_configuration',
                 'swarming_bot_id': 'fake_id',
@@ -451,6 +453,8 @@ class GenerateResults2Test(testing_common.TestCase):
         'job_start_time': _TEST_START_TIME_STR,
         'batch_id': 'fake_batch_id',
         'dims': {
+            'start_time': '2022-06-09 20:21:22.123456',
+            'swarming_task_id': 'a4b',
             'device': {
                 'cfg': 'fake_configuration',
                 'swarming_bot_id': 'fake_id',
@@ -527,6 +531,8 @@ class GenerateResults2Test(testing_common.TestCase):
         'job_start_time': _TEST_START_TIME_STR,
         'batch_id': 'fake_batch_id',
         'dims': {
+            'start_time': '2022-06-09 20:21:22.123456',
+            'swarming_task_id': 'a4b',
             'device': {
                 'cfg': 'fake_configuration',
                 'swarming_bot_id': 'fake_id',
@@ -576,6 +582,8 @@ class GenerateResults2Test(testing_common.TestCase):
         'job_start_time': _TEST_START_TIME_STR,
         'batch_id': 'fake_batch_id',
         'dims': {
+            'start_time': '2022-06-09 20:21:22.123456',
+            'swarming_task_id': 'a4b',
             'device': {
                 'cfg': 'fake_configuration',
                 'swarming_bot_id': 'fake_id',
@@ -649,6 +657,8 @@ class GenerateResults2Test(testing_common.TestCase):
         'job_start_time': _TEST_START_TIME_STR,
         'batch_id': 'fake_batch_id',
         'dims': {
+            'start_time': '2022-06-09 20:21:22.123456',
+            'swarming_task_id': 'a4b',
             'device': {
                 'cfg': 'fake_configuration',
                 'swarming_bot_id': 'fake_id',
@@ -682,6 +692,8 @@ class GenerateResults2Test(testing_common.TestCase):
         'job_start_time': _TEST_START_TIME_STR,
         'batch_id': 'fake_batch_id',
         'dims': {
+            'start_time': '2022-06-09 20:21:22.123456',
+            'swarming_task_id': 'a4b',
             'device': {
                 'cfg': 'fake_configuration',
                 'swarming_bot_id': 'fake_id',
@@ -787,6 +799,8 @@ def _CreateGeneralRow(checkout, variant, metric, values):
       'job_start_time': _TEST_START_TIME_STR,
       'batch_id': 'fake_batch_id',
       'dims': {
+          'start_time': '2022-06-09 20:21:22.123456',
+          'swarming_task_id': 'a4b',
           'device': {
               'cfg': 'fake_configuration',
               'swarming_bot_id': 'fake_id',
@@ -900,7 +914,9 @@ def _SetupBQTest(mock_commit_info, mock_swarming, mock_render, mock_json,
         "value": ["os1", "os2"]
         })
   task_mock.Result.return_value = {
-      "bot_dimensions": bot_dimensions
+      "bot_dimensions": bot_dimensions,
+      "started_ts": u"2022-06-09T20:21:22.123456",
+      "run_id": "a4b"
   }
   mock_swarming.return_value.Task.return_value = task_mock
   mock_render.side_effect = TraverseHistograms

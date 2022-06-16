@@ -336,7 +336,10 @@ def _PopulateMetadata(job, h):
   md["dims"] = {}
   md["dims"]["device"] = {}
   md["dims"]["device"]["cfg"] = job.configuration
-  if h.metadata.swarming_result and "bot_dimensions" in h.metadata.swarming_result:
+  if h.metadata.swarming_result:
+    md["dims"]["start_time"] = _ConvertTsToBQ(
+        h.metadata.swarming_result["started_ts"])
+    md["dims"]["swarming_task_id"] = h.metadata.swarming_result["run_id"]
     # bot_dimensions is a list of dicts with "key" and "value" entries.
     for kv in h.metadata.swarming_result["bot_dimensions"]:
       if kv["key"] == "device_os":
@@ -374,6 +377,11 @@ def _PopulateMetadata(job, h):
 
 def _ConvertIsotimeToBQ(it):
   return it.replace('T', ' ') + ".000000"
+
+
+def _ConvertTsToBQ(it):
+  return it.replace('T', ' ')
+
 
 def _ConvertDatetimeToBQ(dt):
   return dt.strftime('%Y-%m-%d %H:%M:%S.%f')
