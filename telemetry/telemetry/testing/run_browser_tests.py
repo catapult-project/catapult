@@ -363,10 +363,10 @@ def _SetUpProcess(child, context):
     args.remote_platform_options.device = (
         android_devices[child.worker_num-1].guid)
   browser_test_context._global_test_context = context
+  # typ will set this later as well, but set it earlier so that it's available
+  # in the test class process setup.
+  context.test_class.child = child
   context.test_class.SetUpProcess()
-  if child.has_expectations:
-    child.expectations.set_tags(
-        context.test_class._typ_runner.expectations.tags)
 
 
 def _TearDownProcess(child, context):

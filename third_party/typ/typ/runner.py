@@ -891,11 +891,9 @@ class Runner(object):
         return trace
 
     def expectations_for(self, test_case):
-        test_name = test_case.id()[len(self.args.test_name_prefix):]
-        if self.has_expectations:
-            return self.expectations.expectations_for(test_name)
-        else:
-            return Expectation(test=test_name)
+        expectations = self.expectations if self.has_expectations else None
+        return _expectations_for(
+            test_case, expectations, self.args.test_name_prefix)
 
     def default_classifier(self, test_set, test):
         if self.matches_filter(test):
@@ -992,6 +990,10 @@ class _Child(object):
         self.artifact_output_dir = parent.artifact_output_dir
         self.result_sink_reporter = None
         self.disable_resultsink = parent.args.disable_resultsink
+
+    def expectations_for(self, test_case):
+        expectations = self.expectations if self.has_expectations else None
+        return _expectations_for(test_case, expectations, self.test_name_prefix)
 
 
 def _setup_process(host, worker_num, child):
@@ -1350,6 +1352,14 @@ def _load_via_load_tests(child, test_name):
 
 def _sort_inputs(inps):
     return sorted(inps, key=lambda inp: inp.name)
+
+
+def _expectations_for(test_case, expectations, test_name_prefix):
+    test_name = test_case.id()[len(test_name_prefix):]
+    if expectations:
+        return expectations.expectations_for(test_name)
+    else:
+        return Expectation(test=test_name)
 
 
 if __name__ == '__main__':  # pragma: no cover
