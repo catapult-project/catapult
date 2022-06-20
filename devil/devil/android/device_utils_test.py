@@ -565,6 +565,14 @@ class DeviceUtils_GetApplicationVersionTest(DeviceUtilsTest):
       self.assertEqual(None,
                        self.device.GetApplicationVersion('com.android.chrome'))
 
+  def test_GetApplicationVersion_notExists_android_n(self):
+    with self.assertCalls(
+        (self.call.adb.Shell('dumpsys package com.android.chrome'),
+         'Dexopt state:'
+         '  Unable to find package: com.android.chrome\n')):
+      self.assertEqual(None,
+                       self.device.GetApplicationVersion('com.android.chrome'))
+
   def test_GetApplicationVersion_fails(self):
     with self.assertCalls(
         (self.call.adb.Shell('dumpsys package com.android.chrome'),

@@ -876,6 +876,11 @@ class DeviceUtils(object):
       line = line.strip()
       if line.startswith('versionName='):
         return line[len('versionName='):]
+      # From Android N onwards, we will still get a response back and have to
+      # search through it to confirm that the package didn't
+      # exist
+      elif 'Unable to find package: %s' % package in line:
+        return None
     raise device_errors.CommandFailedError(
         'Version name for %s not found on dumpsys output' % package, str(self))
 
