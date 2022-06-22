@@ -47,7 +47,7 @@ def _AddThirdPartyLibraries():
   # The deploy script is expected to add links to third party libraries
   # before deploying. If the directories aren't there (e.g. when running tests)
   # then just ignore it.
-  for library_dir in dashboard.THIRD_PARTY_LIBRARIES:
+  for library_dir in dashboard.THIRD_PARTY_LIBRARIES_PY2:
     if os.path.exists(library_dir):
       vendor.add(os.path.join(os.path.dirname(__file__), library_dir))
 

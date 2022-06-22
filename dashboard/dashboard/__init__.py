@@ -14,7 +14,6 @@ _CATAPULT_PATH = os.path.abspath(
 
 # Directories in catapult/third_party required by dashboard.
 THIRD_PARTY_LIBRARIES = [
-    'apiclient',
     'beautifulsoup4',
     'cachetools',
     'certifi',
@@ -36,7 +35,6 @@ THIRD_PARTY_LIBRARIES = [
     'mapreduce',
     'markupsafe',
     'mock',
-    'oauth2client',
     'pipeline',
     'polymer',
     'polymer-svg-template',
@@ -44,7 +42,6 @@ THIRD_PARTY_LIBRARIES = [
     'polymer2/bower_components/chopsui',
     'pyasn1',
     'pyasn1_modules',
-    'pyparsing',
     'redux/redux.min.js',
     'requests',
     'requests_toolbelt',
@@ -58,12 +55,10 @@ THIRD_PARTY_LIBRARIES = [
 ]
 
 THIRD_PARTY_LIBRARIES_PY2 = THIRD_PARTY_LIBRARIES + [
-    'httplib2/python2/httplib2'
+    'apiclient', 'httplib2/python2/httplib2', 'oauth2client', 'pyparsing'
 ]
 
-THIRD_PARTY_LIBRARIES_PY3 = THIRD_PARTY_LIBRARIES + [
-    'httplib2/python3/httplib2'
-]
+THIRD_PARTY_LIBRARIES_PY3 = THIRD_PARTY_LIBRARIES
 
 # Files and directories in catapult/dashboard.
 DASHBOARD_FILES = [
