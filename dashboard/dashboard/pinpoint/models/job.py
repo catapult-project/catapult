@@ -452,6 +452,13 @@ class Job(ndb.Model):
     if host == 'pinpoint.chromeperf-stage.uc.r.appspot.com':
       logging.info('Workaround branch for crbug/939723 (staging)')
       host = 'pinpoint-dot-chromeperf-stage.uc.r.appspot.com'
+    # TODO(crbug.com/1338045): Remove this when 1338045 is properly fixed.
+    if host == 'chromeperf.appspot.com':
+      logging.info('Workaround branch for crbug/1338045')
+      host = 'pinpoint-dot-chromeperf.appspot.com'
+    if host == 'chromeperf-stage.uc.r.appspot.com':
+      logging.info('Workaround branch for crbug/1338045 (staging)')
+      host = 'pinpoint-dot-chromeperf-stage.uc.r.appspot.com'
     return 'https://%s/job/%s' % (host, self.job_id)
 
   @property
