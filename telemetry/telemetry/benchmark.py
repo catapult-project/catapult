@@ -19,7 +19,7 @@ Info = decorators.Info
 
 # TODO(crbug.com/859524): remove this once we update all the benchmarks in
 # tools/perf to use Info decorator.
-Owner = decorators.Info # pylint: disable=invalid-name
+Owner = decorators.Info  # pylint: disable=invalid-name
 
 
 class InvalidOptionsError(Exception):
@@ -45,8 +45,8 @@ class Benchmark(command_line.Command):
     """Creates a new Benchmark.
 
     Args:
-      max_failures: The number of story run's failures before bailing
-          from executing subsequent page runs. If None, we never bail.
+      max_failures: The number of story run's failures before bailing from
+        executing subsequent page runs. If None, we never bail.
     """
     self._max_failures = max_failures
     # TODO: There should be an assertion here that checks that only one of
@@ -85,6 +85,7 @@ class Benchmark(command_line.Command):
 
     Args:
       args: a browser_options.BrowserFinderOptions instance.
+
     Returns:
       An exit code from exit_codes module describing what happened.
     """
@@ -129,8 +130,8 @@ class Benchmark(command_line.Command):
     default_values = parser.get_default_values()
     invalid_options = [o for o in cls.options if not hasattr(default_values, o)]
     if invalid_options:
-      raise InvalidOptionsError(
-          'Invalid benchmark options: %s' % ', '.join(invalid_options))
+      raise InvalidOptionsError('Invalid benchmark options: %s' %
+                                ', '.join(invalid_options))
     parser.set_defaults(**cls.options)
 
   @classmethod
@@ -240,8 +241,11 @@ class Benchmark(command_line.Command):
 
     # TODO(crbug.com/1012687): Remove or adjust the following warnings as the
     # development of TBMv3 progresses.
-    tbmv3_metrics = [m[6:] for m in tbm_options.GetTimelineBasedMetrics()
-                     if m.startswith('tbmv3:')]
+    tbmv3_metrics = [
+        m[6:]
+        for m in tbm_options.GetTimelineBasedMetrics()
+        if m.startswith('tbmv3:')
+    ]
     if tbmv3_metrics:
       if legacy_json_format:
         logging.warning(
@@ -266,6 +270,7 @@ class Benchmark(command_line.Command):
 
     Args:
       options: a browser_options.BrowserFinderOptions instance
+
     Returns:
       |test()| if |test| is a PageTest class.
       Otherwise, a TimelineBasedMeasurement instance.

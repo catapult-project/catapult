@@ -7,8 +7,7 @@ import json
 
 
 class SystemTraceConfig(object):
-  """Stores configuration options for Perfetto tracing agent.
-  """
+  """Stores configuration options for Perfetto tracing agent."""
 
   def __init__(self):
     self._enable_chrome = False
@@ -107,7 +106,7 @@ class SystemTraceConfig(object):
                     ftrace_events: "task/task_rename"
         """
 
-      text_config += "}}}\n"
+      text_config += '}}}\n'
 
     return text_config
 
