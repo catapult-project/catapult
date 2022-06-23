@@ -51,7 +51,8 @@ with devil_env.SysPath(devil_env.PY_UTILS_PATH):
   from py_utils import tempfile_ext
 
 try:
-  from devil.utils import reset_usb
+  # We can't group this import because we want to treat it as optional
+  from devil.utils import reset_usb  # pylint: disable=ungrouped-imports
 except ImportError:
   # Fail silently if we can't import reset_usb. We're likely on windows.
   reset_usb = None
@@ -333,7 +334,7 @@ def _ParseModeString(mode_str):
   https://github.com/landley/toybox/blob/master/lib/lib.c#L896
   """
   if not _FILE_MODE_RE.match(mode_str):
-    raise ValueError('Unexpected file mode %r', mode_str)
+    raise ValueError('Unexpected file mode %r' % mode_str)
   mode = _FILE_MODE_KIND[mode_str[0]]
   for c, flag in zip(mode_str[1:], _FILE_MODE_PERMS):
     if c != '-' and c.islower():
@@ -359,8 +360,7 @@ def _JoinLines(lines):
 def _CreateAdbWrapper(device):
   if isinstance(device, adb_wrapper.AdbWrapper):
     return device
-  else:
-    return adb_wrapper.AdbWrapper(device)
+  return adb_wrapper.AdbWrapper(device)
 
 
 def _FormatPartialOutputError(output):
@@ -632,7 +632,7 @@ class DeviceUtils(object):
     except device_errors.AdbCommandFailedError as e:
       if self.IsUserBuild():
         raise device_errors.RootUserBuildError(device_serial=str(self))
-      elif e.output and _WAIT_FOR_DEVICE_TIMEOUT_STR in e.output:
+      if e.output and _WAIT_FOR_DEVICE_TIMEOUT_STR in e.output:
         # adb 1.0.41 added a call to wait-for-device *inside* root
         # with a timeout that can be too short in some cases.
         # If we hit that timeout, ignore it & do our own wait below.
@@ -850,10 +850,9 @@ class DeviceUtils(object):
       if bad_output:
         raise device_errors.CommandFailedError(
             'Unexpected pm path output: %r' % '\n'.join(output), str(self))
-      else:
-        logger.warning('pm returned no paths but the following warnings:')
-        for line in output:
-          logger.warning('- %s', line)
+      logger.warning('pm returned no paths but the following warnings:')
+      for line in output:
+        logger.warning('- %s', line)
     self._cache['package_apk_paths'][package] = list(apks)
     return apks
 
@@ -879,7 +878,7 @@ class DeviceUtils(object):
       # From Android N onwards, we will still get a response back and have to
       # search through it to confirm that the package didn't
       # exist
-      elif 'Unable to find package: %s' % package in line:
+      if 'Unable to find package: %s' % package in line:
         return None
     raise device_errors.CommandFailedError(
         'Version name for %s not found on dumpsys output' % package, str(self))
@@ -907,8 +906,7 @@ class DeviceUtils(object):
         # 10000 is the code used by Android for a pre-finalized SDK.
         if value == '10000':
           return self.GetProp('ro.build.version.codename', cache=True)
-        else:
-          return value
+        return value
     raise device_errors.CommandFailedError(
         'targetSdkVersion for %s not found on dumpsys output' % package,
         str(self))
@@ -1043,19 +1041,20 @@ class DeviceUtils(object):
         if self.GetProp('ro.product.model') not in ROCK960_DEVICE_LIST:
           return True
       except device_errors.CommandFailedError as e:
-        logging.warn('Failed to get product_model: %s', e)
+        logging.warning('Failed to get product_model: %s', e)
         return False
       except device_errors.DeviceUnreachableError:
-        logging.warn('Failed to get product_model: device unreachable')
+        logging.warning('Failed to get product_model: device unreachable')
         return False
 
       try:
         return self.GetProp('sys.usb.config') == 'adb'
       except device_errors.CommandFailedError as e:
-        logging.warn('Failed to get prop "sys.usb.config": %s', e)
+        logging.warning('Failed to get prop "sys.usb.config": %s', e)
         return False
       except device_errors.DeviceUnreachableError:
-        logging.warn('Failed to get prop "sys.usb.config": device unreachable')
+        logging.warning(
+            'Failed to get prop "sys.usb.config": device unreachable')
         return False
 
     def sd_card_ready():
@@ -1064,7 +1063,7 @@ class DeviceUtils(object):
             ['test', '-d', self.GetExternalStoragePath()], check_return=True)
         return True
       except device_errors.DeviceUnreachableError:
-        logging.warn('Failed to check sd_card_ready: device unreachable')
+        logging.warning('Failed to check sd_card_ready: device unreachable')
         return False
       except device_errors.AdbCommandFailedError:
         return False
@@ -1073,7 +1072,7 @@ class DeviceUtils(object):
       try:
         return self._GetApplicationPathsInternal('android', skip_cache=True)
       except device_errors.DeviceUnreachableError:
-        logging.warn('Failed to check pm_ready: device unreachable')
+        logging.warning('Failed to check pm_ready: device unreachable')
         return False
       except device_errors.CommandFailedError:
         return False
@@ -1082,7 +1081,7 @@ class DeviceUtils(object):
       try:
         return self.GetProp('sys.boot_completed', cache=False) == '1'
       except device_errors.DeviceUnreachableError:
-        logging.warn('Failed to check boot_completed: device unreachable')
+        logging.warning('Failed to check boot_completed: device unreachable')
         return False
       except device_errors.CommandFailedError:
         return False
@@ -1101,7 +1100,7 @@ class DeviceUtils(object):
         #    file-based encryption (FBE).
         #  - or the prop has value "trigger_restart_framework", which means
         #    the decription is finished.
-        return decrypt == '' or decrypt == 'trigger_restart_framework'
+        return decrypt in ('', 'trigger_restart_framework')
       except device_errors.CommandFailedError:
         return False
 
@@ -1575,18 +1574,16 @@ class DeviceUtils(object):
       except device_errors.AdbCommandFailedError as exc:
         if check_return:
           raise
-        else:
-          return exc.output
+        return exc.output
 
     def handle_large_command(cmd):
       if len(cmd) < self._MAX_ADB_COMMAND_LENGTH:
         return handle_check_return(cmd)
-      else:
-        with device_temp_file.DeviceTempFile(self.adb, suffix='.sh') as script:
-          self._WriteFileWithPush(script.name, cmd)
-          logger.debug('Large shell command will be run from file: %s ...',
-                       cmd[:self._MAX_ADB_COMMAND_LENGTH])
-          return handle_check_return('sh %s' % script.name_quoted)
+      with device_temp_file.DeviceTempFile(self.adb, suffix='.sh') as script:
+        self._WriteFileWithPush(script.name, cmd)
+        logger.debug('Large shell command will be run from file: %s ...',
+                     cmd[:self._MAX_ADB_COMMAND_LENGTH])
+        return handle_check_return('sh %s' % script.name_quoted)
 
     def handle_large_output(cmd, large_output_mode):
       if large_output_mode:
@@ -1615,8 +1612,7 @@ class DeviceUtils(object):
             logger.warning('Use RunShellCommand(..., large_output=True) for '
                            'shell commands that expect a lot of output.')
             return handle_large_output(cmd, True)
-          else:
-            raise
+          raise
 
     if isinstance(cmd, six.string_types):
       if not shell:
@@ -1648,13 +1644,11 @@ class DeviceUtils(object):
     if single_line:
       if not output:
         return ''
-      elif len(output) == 1:
+      if len(output) == 1:
         return output[0]
-      else:
-        msg = 'one line of output was expected, but got: %s'
-        raise device_errors.CommandFailedError(msg % output, str(self))
-    else:
-      return output
+      msg = 'one line of output was expected, but got: %s'
+      raise device_errors.CommandFailedError(msg % output, str(self))
+    return output
 
   def _RunPipedShellCommand(self, script, **kwargs):
     PIPESTATUS_LEADER = 'PIPESTATUS: '
@@ -1720,10 +1714,9 @@ class DeviceUtils(object):
     if not processes:
       if quiet:
         return 0
-      else:
-        raise device_errors.CommandFailedError(
-            'No processes matching %r (exact=%r)' % (process_name, exact),
-            str(self))
+      raise device_errors.CommandFailedError(
+          'No processes matching %r (exact=%r)' % (process_name, exact),
+          str(self))
 
     logger.info('KillAll(%r, ...) attempting to kill the following:',
                 process_name)
@@ -2122,12 +2115,10 @@ class DeviceUtils(object):
       # Need to compute all checksums when caching.
       if self._enable_device_files_cache:
         return md5sum.CalculateHostMd5Sums([t[0] for t in file_tuples])
-      else:
-        return md5sum.CalculateHostMd5Sums(
-            [t[0] for t in possibly_stale_tuples])
+      return md5sum.CalculateHostMd5Sums([t[0] for t in possibly_stale_tuples])
 
     def calculate_device_checksums():
-      paths = set([t[1] for t in possibly_stale_tuples])
+      paths = {t[1] for t in possibly_stale_tuples}
       if not paths:
         return dict()
       sums = dict()
@@ -2226,10 +2217,12 @@ class DeviceUtils(object):
         len(host_device_tuples), dir_file_count, dir_size, False)
     zip_duration = self._ApproximateDuration(1, 1, size, True)
 
+    # TODO(https://crbug.com/1338098): Resume directory pushing once
+    # clients have switched to 1.0.36-compatible syntax.
+    # pylint: disable=condition-evals-to-constant
     if (dir_push_duration < push_duration and dir_push_duration < zip_duration
-        # TODO(jbudorick): Resume directory pushing once clients have switched
-        # to 1.0.36-compatible syntax.
         and False):
+      # pylint: enable=condition-evals-to-constant
       self._PushChangedFilesIndividually(host_device_tuples)
     elif push_duration < zip_duration:
       self._PushChangedFilesIndividually(files)
@@ -2540,12 +2533,9 @@ class DeviceUtils(object):
             self.RunShellCommand(['cat', device_path],
                                  as_root=as_root,
                                  check_return=True))
-      else:
-        with self._CopyToReadableLocation(device_path) as readable_temp_file:
-          return self._ReadFileWithPull(readable_temp_file.name,
-                                        encoding, errors)
-    else:
-      return self._ReadFileWithPull(device_path, encoding, errors)
+      with self._CopyToReadableLocation(device_path) as readable_temp_file:
+        return self._ReadFileWithPull(readable_temp_file.name, encoding, errors)
+    return self._ReadFileWithPull(device_path, encoding, errors)
 
   def _WriteFileWithPush(self, device_path, contents):
     with tempfile.NamedTemporaryFile(mode='w+') as host_temp:
@@ -2824,8 +2814,7 @@ class DeviceUtils(object):
     if new_value != value:
       self.SetProp(self.JAVA_ASSERT_PROPERTY, new_value)
       return True
-    else:
-      return False
+    return False
 
   def GetLocale(self, cache=False):
     """Returns the locale setting on the device.
@@ -3182,16 +3171,15 @@ class DeviceUtils(object):
       if pattern:
         return self._RunPipedShellCommand(
             '%s | grep -F %s' % (ps_cmd, cmd_helper.SingleQuote(pattern)))
-      else:
-        return self.RunShellCommand(
-            ps_cmd.split(), check_return=True, large_output=True)
+      return self.RunShellCommand(ps_cmd.split(),
+                                  check_return=True,
+                                  large_output=True)
     except device_errors.AdbShellCommandFailedError as e:
       if e.status and isinstance(e.status, list) and not e.status[0]:
         # If ps succeeded but grep failed, there were no processes with the
         # given name.
         return []
-      else:
-        raise
+      raise
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def ListProcesses(self, process_name=None, timeout=None, retries=None):
@@ -3240,16 +3228,14 @@ class DeviceUtils(object):
         cmd = ' '.join(cmd_helper.SingleQuote(s) for s in cmd)
         return self._RunPipedShellCommand(
             '%s | grep -F %s' % (cmd, cmd_helper.SingleQuote(pattern)))
-      else:
-        cmd = ['dumpsys'] + extra_args
-        return self.RunShellCommand(cmd, check_return=True, large_output=True)
+      cmd = ['dumpsys'] + extra_args
+      return self.RunShellCommand(cmd, check_return=True, large_output=True)
     except device_errors.AdbShellCommandFailedError as e:
       if e.status and isinstance(e.status, list) and not e.status[0]:
         # If dumpsys succeeded but grep failed, there were no lines matching
         # the given pattern.
         return []
-      else:
-        raise
+      raise
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetUidForPackage(self, package_name, timeout=None, retries=None):
@@ -3275,6 +3261,7 @@ class DeviceUtils(object):
     user_id = _USER_ID_RE.sub('', dumpsys_output[0])
     if user_id:
       return user_id
+    return None
 
   # TODO(#4103): Remove after migrating clients to ListProcesses.
   @decorators.WithTimeoutAndRetriesFromInstance()
@@ -3342,8 +3329,7 @@ class DeviceUtils(object):
                                                              pids),
             device_serial=str(self))
       return pids[0] if pids else None
-    else:
-      return pids
+    return pids
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetEnforce(self, timeout=None, retries=None):
@@ -3427,8 +3413,7 @@ class DeviceUtils(object):
         result['CurrentWebViewPackage'] = None
       match = re.search(_WEBVIEW_SYSUPDATE_FALLBACK_LOGIC_RE, line)
       if match:
-        result['FallbackLogicEnabled'] = \
-            True if match.group(1) == 'true' else False
+        result['FallbackLogicEnabled'] = match.group(1) == 'true'
       match = re.search(_WEBVIEW_SYSUPDATE_PACKAGE_INSTALLED_RE, line)
       if match:
         package_name = match.group(1)
@@ -3497,12 +3482,11 @@ class DeviceUtils(object):
                 '%s targets a finalized SDK (%r), but valid WebView providers '
                 'must target a pre-finalized SDK (%r) on this device' %
                 (package_name, app_target_sdk_version, codename), str(self))
-          else:
-            raise device_errors.CommandFailedError(
-                '%s has targetSdkVersion %r, but valid WebView providers must '
-                'target >= %r on this device' %
-                (package_name, app_target_sdk_version, self.build_version_sdk),
-                str(self))
+          raise device_errors.CommandFailedError(
+              '%s has targetSdkVersion %r, but valid WebView providers must '
+              'target >= %r on this device' %
+              (package_name, app_target_sdk_version, self.build_version_sdk),
+              str(self))
         if re.search(r'Version code too low', reason):
           raise device_errors.CommandFailedError(
               '%s needs a higher versionCode (must be >= %d)' %
@@ -3763,8 +3747,7 @@ class DeviceUtils(object):
     devices = [d if isinstance(d, cls) else cls(d) for d in devices]
     if asyn:
       return parallelizer.Parallelizer(devices)
-    else:
-      return parallelizer.SyncParallelizer(devices)
+    return parallelizer.SyncParallelizer(devices)
 
   @classmethod
   def HealthyDevices(cls,
@@ -3820,7 +3803,7 @@ class DeviceUtils(object):
       device_arg = ()
 
     select_multiple = True
-    if not (isinstance(device_arg, tuple) or isinstance(device_arg, list)):
+    if not isinstance(device_arg, (list, tuple)):
       select_multiple = False
       if device_arg:
         device_arg = (device_arg, )
@@ -3890,7 +3873,7 @@ class DeviceUtils(object):
         if attempt == retries:
           logging.error('No devices found after exhausting all retries.')
           raise
-        elif attempt == retries - 1 and enable_usb_resets:
+        if attempt == retries - 1 and enable_usb_resets:
           logging.warning(
               'Attempting to reset relevant USB devices prior to the last '
               'attempt.')

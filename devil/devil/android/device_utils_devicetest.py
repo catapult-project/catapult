@@ -256,6 +256,10 @@ class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
         return next(p.pid for p in self.device.ListProcesses('adbd'))
       except StopIteration:
         self.fail('Unable to find adbd')
+        # Pylint isn't able to tell that self.fail effectively returns this test
+        # Adding an unreachable None to make sure there is a return for every
+        # control flow in this method
+        return None
 
     old_adbd_pid = get_adbd_pid()
     self.device.RestartAdbd()

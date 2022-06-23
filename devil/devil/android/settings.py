@@ -150,7 +150,7 @@ class ContentSettings(dict):
     if six.PY2:
       if isinstance(value, int):
         return 'i'
-      if isinstance(value, long):
+      if isinstance(value, long):  # pylint: disable=undefined-variable
         return 'l'
     else:
       if isinstance(value, int):

@@ -78,7 +78,7 @@ def GetDevices(requested_devices, denylist_file):
   devices = device_utils.DeviceUtils.HealthyDevices(denylist_file)
   if not devices:
     raise device_errors.NoDevicesError()
-  elif requested_devices:
+  if requested_devices:
     requested = set(requested_devices)
     available = set(str(d) for d in devices)
     missing = requested.difference(available)
@@ -86,5 +86,4 @@ def GetDevices(requested_devices, denylist_file):
       raise device_errors.DeviceUnreachableError(next(iter(missing)))
     return sorted(
         device_utils.DeviceUtils(d) for d in available.intersection(requested))
-  else:
-    return devices
+  return devices

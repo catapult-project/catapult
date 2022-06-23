@@ -271,7 +271,7 @@ def _ParseFlags(line):
 
   if current_flag is not None:
     if current_quote is not None:
-      logger.warning('Unterminated quoted argument: ' + current_flag)
+      logger.warning('Unterminated quoted argument: %s', current_flag)
     flags.append(current_flag)
 
   # Return everything but the program name.
@@ -294,8 +294,8 @@ def _SerializeFlags(flags):
     args = ['_']
     args.extend(_QuoteFlag(f) for f in flags)
     return ' '.join(args)
-  else:
-    return None
+
+  return None
 
 
 def _QuoteFlag(flag):

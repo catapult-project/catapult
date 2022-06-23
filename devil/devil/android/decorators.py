@@ -57,16 +57,19 @@ def _TimeoutRetryWrapper(f,
       if timeout_retry.CurrentTimeoutThreadGroup():
         # Don't wrap if there's already an outer timeout thread.
         return impl()
+
+      if logger.isEnabledFor(logging.DEBUG):
+        desc = '%s(%s)' % (f.__name__, ', '.join(
+            itertools.chain(
+                (str(a) for a in args),
+                ('%s=%s' % (k, str(v)) for k, v in six.iteritems(kwargs)))))
       else:
-        if logger.isEnabledFor(logging.DEBUG):
-          desc = '%s(%s)' % (f.__name__, ', '.join(
-              itertools.chain(
-                  (str(a) for a in args),
-                  ('%s=%s' % (k, str(v)) for k, v in six.iteritems(kwargs)))))
-        else:
-          desc = '%s(...)' % (f.__name__)
-        return timeout_retry.Run(
-            impl, timeout, retries, desc=desc, retry_if_func=retry_if_func)
+        desc = '%s(...)' % (f.__name__)
+      return timeout_retry.Run(impl,
+                               timeout,
+                               retries,
+                               desc=desc,
+                               retry_if_func=retry_if_func)
     except reraiser_thread.TimeoutError as e:
       six.reraise(
           device_errors.CommandTimeoutError,

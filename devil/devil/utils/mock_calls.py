@@ -21,8 +21,7 @@ class TestCase(unittest.TestCase):
       def call_action(pair):
         if isinstance(pair, type(mock.call)):
           return (pair, None)
-        else:
-          return pair
+        return pair
 
       def do_check(call):
         def side_effect(*args, **kwargs):
@@ -39,8 +38,8 @@ class TestCase(unittest.TestCase):
                                          str(received_call))))
           if callable(action):
             return action(*args, **kwargs)
-          else:
-            return action
+
+          return action
 
         return side_effect
 
@@ -113,10 +112,10 @@ class TestCase(unittest.TestCase):
           and isinstance(getattr(type(target), attribute), property)):
         return mock.patch.object(
             type(target), attribute, new_callable=mock.PropertyMock, **kwargs)
-      else:
-        return mock.patch.object(target, attribute, **kwargs)
-    else:
-      return mock.patch(call.name, **kwargs)
+
+      return mock.patch.object(target, attribute, **kwargs)
+
+    return mock.patch(call.name, **kwargs)
 
   def watchCalls(self, calls):
     """Add calls to the set of watched calls.

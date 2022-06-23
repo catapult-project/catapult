@@ -75,10 +75,9 @@ def DoubleQuote(s):
   """
   if not s:
     return '""'
-  elif all(c in _SafeShellChars for c in s):
+  if all(c in _SafeShellChars for c in s):
     return s
-  else:
-    return '"' + s.replace('"', '\\"') + '"'
+  return '"' + s.replace('"', '\\"') + '"'
 
 
 def ShrinkToSnippet(cmd_parts, var_name, var_value):
@@ -120,25 +119,24 @@ def Popen(args,
     preexec_fn = lambda: signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
   if six.PY2:
-    return subprocess.Popen(
-      args=args,
-      cwd=cwd,
-      stdin=stdin,
-      stdout=stdout,
-      stderr=stderr,
-      shell=shell,
-      close_fds=close_fds,
-      env=env,
-      preexec_fn=preexec_fn
-    )
-  else:
-    # opens stdout in text mode, so that caller side always get 'str',
-    # and there will be no type mismatch error.
-    # Ignore any decoding error, so that caller will not crash due to
-    # uncaught exception. Decoding errors are unavoidable, as we
-    # do not know the encoding of the output, and in some output there
-    # will be multiple encodings (e.g. adb logcat)
-    return subprocess.Popen(
+    return subprocess.Popen(  # pylint: disable=subprocess-popen-preexec-fn
+        args=args,
+        cwd=cwd,
+        stdin=stdin,
+        stdout=stdout,
+        stderr=stderr,
+        shell=shell,
+        close_fds=close_fds,
+        env=env,
+        preexec_fn=preexec_fn)
+
+  # opens stdout in text mode, so that caller side always get 'str',
+  # and there will be no type mismatch error.
+  # Ignore any decoding error, so that caller will not crash due to
+  # uncaught exception. Decoding errors are unavoidable, as we
+  # do not know the encoding of the output, and in some output there
+  # will be multiple encodings (e.g. adb logcat)
+  return subprocess.Popen(  # pylint: disable=subprocess-popen-preexec-fn
       args=args,
       cwd=cwd,
       stdin=stdin,
@@ -150,8 +148,8 @@ def Popen(args,
       preexec_fn=preexec_fn,
       universal_newlines=True,
       encoding='utf-8',
-      errors='ignore'
-    )
+      errors='ignore')
+
 
 def Call(args, stdout=None, stderr=None, shell=None, cwd=None, env=None):
   pipe = Popen(
@@ -172,7 +170,7 @@ def RunCmd(args, cwd=None):
   Returns:
     Return code from the command execution.
   """
-  logger.debug(str(args) + ' ' + (cwd or ''))
+  logger.debug("%s %s", str(args), cwd or '')
   return Call(args, cwd=cwd)
 
 
@@ -303,7 +301,8 @@ def GetCmdStatusOutputAndError(args,
   return (pipe.returncode, stdout, stderr)
 
 
-class TimeoutError(base_error.BaseError):
+# TODO (https://crbug.com/1338100): Verify if we can change this type
+class TimeoutError(base_error.BaseError):  # pylint: disable=redefined-builtin
   """Module-specific timeout exception."""
 
   def __init__(self, output=None):

@@ -8,9 +8,10 @@ import fcntl
 import inspect
 import logging
 import os
-import psutil
 import re
 import textwrap
+
+import psutil
 
 from devil import base_error
 from devil import devil_env
@@ -34,8 +35,8 @@ def _GetProcessStartTime(pid):
   p = psutil.Process(pid)
   if inspect.ismethod(p.create_time):
     return p.create_time()
-  else:  # Process.create_time is a property in old versions of psutil.
-    return p.create_time
+  # Process.create_time is a property in old versions of psutil.
+  return p.create_time
 
 
 def _DumpHostLog():
@@ -164,8 +165,7 @@ class Forwarder(object):
           if e.errno == 2:
             raise HostForwarderError('Unable to start host forwarder. '
                                      'Make sure you have built host_forwarder.')
-          else:
-            raise
+          raise
         if exit_code != 0:
           try:
             instance._KillDeviceLocked(device, tool)

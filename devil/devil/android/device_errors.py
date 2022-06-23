@@ -130,8 +130,6 @@ class FastbootCommandFailedError(_BaseCommandFailedError):
 class DeviceVersionError(CommandFailedError):
   """Exception for device version failures."""
 
-  def __init__(self, message, device_serial=None):
-    super(DeviceVersionError, self).__init__(message, device_serial)
 
 
 class AdbVersionError(CommandFailedError):
@@ -192,7 +190,6 @@ class CommandTimeoutError(base_error.BaseError):
 
 class DeviceUnreachableError(base_error.BaseError):
   """Exception for device unreachable failures."""
-  pass
 
 
 class NoDevicesError(base_error.BaseError):
@@ -228,10 +225,6 @@ class NoAdbError(base_error.BaseError):
 
 class DeviceChargingError(CommandFailedError):
   """Exception for device charging errors."""
-
-  def __init__(self, message, device_serial=None):
-    super(DeviceChargingError, self).__init__(message, device_serial)
-
 
 class RootUserBuildError(CommandFailedError):
   """Exception for being unable to root a device with "user" build."""

@@ -52,11 +52,10 @@ def _FindBuildTools():
 
   if not build_tools_contents:
     return None
-  else:
-    if len(build_tools_contents) > 1:
-      build_tools_contents.sort()
-    return os.path.join(android_sdk_path, 'build-tools',
-                        build_tools_contents[-1])
+
+  if len(build_tools_contents) > 1:
+    build_tools_contents.sort()
+  return os.path.join(android_sdk_path, 'build-tools', build_tools_contents[-1])
 
 
 _build_tools_path = lazy.WeakConstant(_FindBuildTools)

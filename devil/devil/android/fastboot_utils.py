@@ -243,9 +243,9 @@ class FastbootUtils(object):
           m = board_regex.match(line)
           if m and m.group(1):
             return self._board in m.group(1).split('|')
-          else:
-            logger.warning('No board type found in %s.',
-                           self._BOARD_VERIFICATION_FILE)
+
+          logger.warning('No board type found in %s.',
+                         self._BOARD_VERIFICATION_FILE)
     else:
       logger.warning('%s not found. Unable to use it to verify device.',
                      self._BOARD_VERIFICATION_FILE)

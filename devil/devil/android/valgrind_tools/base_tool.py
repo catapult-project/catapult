@@ -10,7 +10,6 @@ class BaseTool(object):
 
   def __init__(self):
     """Does nothing."""
-    pass
 
   def GetTestWrapper(self):
     """Returns a string that is to be prepended to the test command line."""
@@ -28,18 +27,15 @@ class BaseTool(object):
   @classmethod
   def CopyFiles(cls, device):
     """Copies tool-specific files to the device, create directories, etc."""
-    pass
 
   def SetupEnvironment(self):
     """Sets up the system environment for a test.
 
     This is a good place to set system properties.
     """
-    pass
 
   def CleanUpEnvironment(self):
     """Cleans up environment."""
-    pass
 
   def GetTimeoutScale(self):
     """Returns a multiplier that should be applied to timeout values."""

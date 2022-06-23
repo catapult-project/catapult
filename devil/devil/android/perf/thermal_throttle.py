@@ -33,6 +33,7 @@ class OmapThrottlingDetector(object):
   def GetThrottlingTemperature(log_line):
     if 'throttle_delayed_work_fn' in log_line:
       return float([s for s in log_line.split() if s.isdigit()][0]) / 1000.0
+    return None
 
   def GetCurrentTemperature(self):
     tempdata = self._device.ReadFile(OmapThrottlingDetector.OMAP_TEMP_FILE)
@@ -79,7 +80,6 @@ class ThermalThrottle(object):
     self._device = device
     self._throttled = False
     self._detector = None
-    # pylint: disable=redefined-variable-type
     if OmapThrottlingDetector.IsSupported(device):
       self._detector = OmapThrottlingDetector(device)
     elif ExynosThrottlingDetector.IsSupported(device):

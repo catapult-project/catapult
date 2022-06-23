@@ -47,8 +47,8 @@ class BasePref(object):
     """Get the underlying xml element as a string."""
     if six.PY2:
       return ElementTree.tostring(self._elem)
-    else:
-      return ElementTree.tostring(self._elem, encoding="unicode")
+
+    return ElementTree.tostring(self._elem, encoding='unicode')
 
   def get(self):
     """Get the value of this preference."""
@@ -238,9 +238,9 @@ class SharedPrefs(object):
     """Get the underlying xml document as a string."""
     if six.PY2:
       return _XML_DECLARATION + ElementTree.tostring(self.xml)
-    else:
-      return _XML_DECLARATION + \
-          ElementTree.tostring(self.xml, encoding="unicode")
+
+    return _XML_DECLARATION + \
+        ElementTree.tostring(self.xml, encoding='unicode')
 
   @property
   def package(self):

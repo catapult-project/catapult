@@ -49,7 +49,7 @@ def reboot_into_bootloader(filter_devices):
     start = time.time()
     while True:
       time.sleep(5)
-      fastbooted_devices = set([str(d) for d in fastboot.Fastboot.Devices()])
+      fastbooted_devices = {str(d) for d in fastboot.Fastboot.Devices()}
       if rebooted_devices <= set(fastbooted_devices):
         logging.info('All devices in fastboot.')
         break
@@ -88,7 +88,7 @@ def unlock_bootloader(d):
     # have to wait for EOF to be written.
     out = os.read(p.stderr.fileno(), 1024).strip().lower()
     if not rc:
-      if out == '...' or out == '< waiting for device >':
+      if out in ('...', '< waiting for device >'):
         logging.info('Device %s is waiting for confirmation.', d)
       else:
         logging.error(
@@ -99,7 +99,7 @@ def unlock_bootloader(d):
       if 'unknown command' in out:
         # Of the two unlocking commands, this was likely the wrong one.
         continue
-      elif 'already unlocked' in out:
+      if 'already unlocked' in out:
         logging.info('Device %s already unlocked.', d)
       elif 'unlock is not allowed' in out:
         logging.error("Device %s is oem locked. Can't unlock bootloader.", d)

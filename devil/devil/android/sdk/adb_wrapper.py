@@ -202,10 +202,9 @@ class AdbWrapper(object):
     for _ in range(5):
       if self.is_ready:
         return
-      else:
-        # Local testing shows it takes 8-9 seconds for device to become active
-        # from an --avd-config emulator.
-        time.sleep(3)
+      # Local testing shows it takes 8-9 seconds for device to become active
+      # from an --avd-config emulator.
+      time.sleep(3)
 
     # TODO(crbug/1330756): Raise an exception if device fails.
 
@@ -391,8 +390,7 @@ class AdbWrapper(object):
     except OSError as e:
       if e.errno in (errno.ENOENT, errno.ENOEXEC):
         raise device_errors.NoAdbError(msg=str(e))
-      else:
-        raise
+      raise
     except cmd_helper.TimeoutError:
       logger.exception('Timeout on adb command: %r', adb_cmd)
       raise
@@ -407,9 +405,8 @@ class AdbWrapper(object):
           or (not_found_m is not None
               and not_found_m.group('serial') == device_serial)):
         raise device_errors.DeviceUnreachableError(device_serial)
-      else:
-        raise device_errors.AdbCommandFailedError(args, output, status,
-                                                  device_serial)
+      raise device_errors.AdbCommandFailedError(args, output, status,
+                                                device_serial)
 
     return output
 
@@ -544,12 +541,10 @@ class AdbWrapper(object):
     if long_list:
       return [[AdbWrapper(line[0])] + line[1:] for line in lines if (
           len(line) >= 2 and (not desired_state or line[1] == desired_state))]
-    else:
-      return [
-          AdbWrapper(line[0]) for line in lines
-          if (len(line) == 2 and (not desired_state or line[1] == desired_state)
-              )
-      ]
+    return [
+        AdbWrapper(line[0]) for line in lines
+        if (len(line) == 2 and (not desired_state or line[1] == desired_state))
+    ]
 
   @classmethod
   def _RawDevices(cls,
@@ -793,11 +788,10 @@ class AdbWrapper(object):
         cmd, timeout=timeout, retries=retries).splitlines()
     if lines:
       return [ParseLine(line, cmd) for line in lines]
-    else:
-      raise device_errors.AdbCommandFailedError(
-          cmd,
-          'path does not specify an accessible directory in the device',
-          device_serial=self._device_serial)
+    raise device_errors.AdbCommandFailedError(
+        cmd,
+        'path does not specify an accessible directory in the device',
+        device_serial=self._device_serial)
 
   def Logcat(self,
              clear=False,
@@ -852,11 +846,12 @@ class AdbWrapper(object):
     if use_iter:
       return self._IterRunDeviceAdbCmd(
           cmd, iter_timeout, timeout, check_error=check_error)
-    else:
-      timeout = timeout if timeout is not None else DEFAULT_TIMEOUT
-      output = self._RunDeviceAdbCmd(
-          cmd, timeout, retries, check_error=check_error)
-      return output.splitlines()
+    timeout = timeout if timeout is not None else DEFAULT_TIMEOUT
+    output = self._RunDeviceAdbCmd(cmd,
+                                   timeout,
+                                   retries,
+                                   check_error=check_error)
+    return output.splitlines()
 
   def Forward(self,
               local,

@@ -169,12 +169,12 @@ ALL_HUBS = [
 def GetHubType(type_name):
   if type_name == 'plugable_7port':
     return PLUGABLE_7PORT
-  elif type_name == 'plugable_7port_usb3_part2':
+  if type_name == 'plugable_7port_usb3_part2':
     return PLUGABLE_7PORT_USB3_PART2
-  elif type_name == 'plugable_7port_usb3_part3':
+  if type_name == 'plugable_7port_usb3_part3':
     return PLUGABLE_7PORT_USB3_PART3
-  elif type_name == 'keedox':
+  if type_name == 'keedox':
     return KEEDOX
-  elif type_name == 'via':
+  if type_name == 'via':
     return VIA
   raise ValueError('Invalid hub type')

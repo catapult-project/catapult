@@ -116,7 +116,7 @@ class SurfaceStatsCollector(object):
     results = self._device.RunShellCommand(
         ['dumpsys', 'SurfaceFlinger', '--latency-clear', 'SurfaceView'],
         check_return=True)
-    return not len(results)
+    return not results
 
   def GetSurfaceFlingerPid(self):
     try:
@@ -156,7 +156,10 @@ class SurfaceStatsCollector(object):
 
 def to_long_int(val):
   """Cast val to a long int type."""
+  # pylint: disable=undefined-variable
   return long(val) if six.PY2 else int(val)
+  # pylint: enable=undefined-variable
+
 
 def ParseFrameData(lines, parse_timestamps):
   # adb shell dumpsys SurfaceFlinger --latency <window name>
@@ -184,7 +187,6 @@ def ParseFrameData(lines, parse_timestamps):
   # (each time the number above changes, we have a "jank").
   # If this happens a lot during an animation, the animation appears
   # janky, even if it runs at 60 fps in average.
-  # pylint: disable=redefined-variable-type
   results = []
   for line in lines:
     # Skip over lines with anything other than digits and whitespace.

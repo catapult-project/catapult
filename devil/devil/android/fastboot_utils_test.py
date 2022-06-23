@@ -43,22 +43,6 @@ _VALID_FILES = [_BOARD + '.zip', 'android-info.txt']
 _INVALID_FILES = ['test.zip', 'android-info.txt']
 
 
-class MockFile(object):
-  def __init__(self, name='/tmp/some/file'):
-    self.file = mock.MagicMock(spec=file)
-    self.file.name = name
-
-  def __enter__(self):
-    return self.file
-
-  def __exit__(self, exc_type, exc_val, exc_tb):
-    pass
-
-  @property
-  def name(self):
-    return self.file.name
-
-
 def _FastbootWrapperMock(test_serial):
   fastbooter = mock.Mock(spec=fastboot.Fastboot)
   fastbooter.__str__ = mock.Mock(return_value=test_serial)

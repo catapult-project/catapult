@@ -214,8 +214,8 @@ class BatteryUtils(object):
       False otherwise.
     """
     self._DiscoverDeviceProfile()
-    return (self._cache['profile']['enable_command'] != None
-            and self._cache['profile']['charge_counter'] != None)
+    return (self._cache['profile']['enable_command'] is not None
+            and self._cache['profile']['charge_counter'] is not None)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetFuelGaugeChargeCounter(self, timeout=None, retries=None):
@@ -521,10 +521,10 @@ class BatteryUtils(object):
         logger.info('Current battery temperature: %s', temp)
       if int(temp) <= target_temp:
         return True
-      else:
-        if 'Nexus 5' in self._cache['profile']['name']:
-          self._DischargeDevice(1)
-        return False
+
+      if 'Nexus 5' in self._cache['profile']['name']:
+        self._DischargeDevice(1)
+      return False
 
     self._DiscoverDeviceProfile()
     self.EnableBatteryUpdates()

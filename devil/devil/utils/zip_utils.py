@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 
 class ZipFailedError(base_error.BaseError):
   """Raised on a failure to perform a zip operation."""
-  pass
 
 
 def _WriteToZipFile(zip_file, path, arc_path):

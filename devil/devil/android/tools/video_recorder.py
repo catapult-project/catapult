@@ -8,9 +8,10 @@ from __future__ import print_function
 import argparse
 import logging
 import os
+import sys
 import threading
 import time
-import sys
+import six
 
 if __name__ == '__main__':
   sys.path.append(
@@ -170,7 +171,7 @@ def main():
   running_recording = parallel_devices.pMap(record_video, stop_recording)
   print('Recording. Press Enter to stop.', end=' ')
   sys.stdout.flush()
-  raw_input()
+  six.moves.input()
   stop_recording.set()
 
   running_recording.pGet(None)

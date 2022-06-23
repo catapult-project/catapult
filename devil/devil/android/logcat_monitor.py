@@ -288,4 +288,3 @@ class LogcatMonitor(object):
 
 class LogcatMonitorCommandError(device_errors.CommandFailedError):
   """Exception for errors with logcat monitor commands."""
-  pass

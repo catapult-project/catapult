@@ -493,10 +493,9 @@ def SetDate(device):
     if tdelta <= 1:
       logger.info('Date/time successfully set on %s', device)
       return True
-    else:
-      logger.error('Date mismatch. Device: %s Correct: %s',
-                   device_time.isoformat(), correct_time.isoformat())
-      return False
+    logger.error('Date mismatch. Device: %s Correct: %s',
+                 device_time.isoformat(), correct_time.isoformat())
+    return False
 
   # Sometimes the date is not set correctly on the devices. Retry on failure.
   if device.IsUserBuild():

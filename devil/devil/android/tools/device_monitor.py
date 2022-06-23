@@ -84,7 +84,7 @@ def get_device_status_unsafe(device):
     level = int(battery_info.get('level'))
   except (KeyError, TypeError, ValueError):
     level = None
-  if level and level >= 0 and level <= 100:
+  if level and 0 <= level <= 100:
     status['battery']['level'] = level
   try:
     temperature = int(battery_info.get('temperature'))

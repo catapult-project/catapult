@@ -33,8 +33,7 @@ class WatchdogTimer(object):
     """Returns the remaining time of the watchdog."""
     if self._timeout:
       return self._timeout - self.GetElapsed()
-    else:
-      return None
+    return None
 
   def GetTimeout(self):
     """Returns the timout of the watchdog."""

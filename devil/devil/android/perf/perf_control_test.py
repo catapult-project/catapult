@@ -13,19 +13,19 @@ with devil_env.SysPath(devil_env.PYMOCK_PATH):
   import mock
 
 
-# pylint: disable=unused-argument
-def _ShellCommandHandler(cmd,
-                         shell=False,
-                         check_return=False,
-                         cwd=None,
-                         env=None,
-                         run_as=None,
-                         as_root=False,
-                         single_line=False,
-                         large_output=False,
-                         raw_output=False,
-                         timeout=None,
-                         retries=None):
+def _ShellCommandHandler(  # pylint: disable=unused-argument
+    cmd,
+    shell=False,
+    check_return=False,
+    cwd=None,
+    env=None,
+    run_as=None,
+    as_root=False,
+    single_line=False,
+    large_output=False,
+    raw_output=False,
+    timeout=None,
+    retries=None):
   if cmd.startswith('for CPU in '):
     if 'scaling_available_governors' in cmd:
       contents = 'interactive ondemand userspace powersave performance'
@@ -33,6 +33,9 @@ def _ShellCommandHandler(cmd,
     if 'cat "$CPU/online"' in cmd:
       return ['1\n%~%0%~%'] * 4
   assert False, 'Should not be called with cmd: {}'.format(cmd)
+  # This is unreachable
+  # we are just adding this return to quiet pylint
+  return None
 
 
 class PerfControlTest(unittest.TestCase):

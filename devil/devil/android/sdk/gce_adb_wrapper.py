@@ -38,12 +38,19 @@ class GceAdbWrapper(adb_wrapper.AdbWrapper):
     self.WaitForDevice()
 
   # override
-  def Root(self, **kwargs):
+  def Root(self,
+           _timeout=adb_wrapper.DEFAULT_TIMEOUT,
+           _retries=adb_wrapper.DEFAULT_RETRIES):
     super(GceAdbWrapper, self).Root()
     self._Connect()
 
   # override
-  def Push(self, local, remote, **kwargs):
+  def Push(self,
+           local,
+           remote,
+           _sync=False,
+           _timeout=adb_wrapper.DEFAULT_TIMEOUT,
+           _retries=adb_wrapper.DEFAULT_RETRIES):
     """Pushes an object from the host to the gce instance.
 
     Args:
@@ -87,7 +94,11 @@ class GceAdbWrapper(adb_wrapper.AdbWrapper):
           device_serial=str(self))
 
   # override
-  def Pull(self, remote, local, **kwargs):
+  def Pull(self,
+           remote,
+           local,
+           _timeout=adb_wrapper.DEFAULT_LONG_TIMEOUT,
+           _retries=adb_wrapper.DEFAULT_RETRIES):
     """Pulls a file from the gce instance to the host.
 
     Args:
@@ -122,12 +133,15 @@ class GceAdbWrapper(adb_wrapper.AdbWrapper):
           device_serial=str(self))
 
   # override
-  def Install(self,
-              apk_path,
-              forward_lock=False,
-              reinstall=False,
-              sd_card=False,
-              **kwargs):
+  # TODO (https://crbug.com/1338103): Match parent parameters
+  # of adb_wrapper.AdbWrapper.Install
+  def Install(  # pylint: disable=arguments-differ
+      self,
+      apk_path,
+      forward_lock=False,
+      reinstall=False,
+      sd_card=False,
+      **kwargs):
     """Installs an apk on the gce instance
 
     Args:

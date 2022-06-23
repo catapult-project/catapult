@@ -30,8 +30,8 @@ def zip_longest(expected, actual):
   # pylint: disable=no-member
   if six.PY2:
     return itertools.izip_longest(expected, actual)
-  else:
-    return itertools.zip_longest(expected, actual)
+  return itertools.zip_longest(expected, actual)
+
 
 class LogcatMonitorTest(unittest.TestCase):
 

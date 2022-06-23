@@ -12,8 +12,10 @@ USE_PYTHON3 = True
 
 def _RunPylint(input_api, output_api):
   return input_api.RunTests(
-      input_api.canned_checks.RunPylint(
-          input_api, output_api, pylintrc='pylintrc'))
+      input_api.canned_checks.RunPylint(input_api,
+                                        output_api,
+                                        pylintrc='pylintrc',
+                                        version="2.7"))
 
 
 def _RunUnitTests(input_api, output_api):

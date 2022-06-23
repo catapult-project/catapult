@@ -22,8 +22,7 @@ class Point(collections.namedtuple('Point', ['x', 'y'])):
     """Sum of two points, e.g. p + q."""
     if isinstance(other, Point):
       return Point(self.x + other.x, self.y + other.y)
-    else:
-      return NotImplemented
+    return NotImplemented
 
   def __mul__(self, factor):
     """Multiplication on the right is not implemented."""
