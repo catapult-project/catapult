@@ -217,7 +217,7 @@ class PrepareCommits(collections.namedtuple('PrepareCommits', ('job', 'task'))):
           'errors':
               self.task.payload.get('errors', []) + [{
                   'reason': 'GitilesFetchError',
-                  'message': e.message
+                  'message': str(e)
               }]
       })
       task_module.UpdateTask(

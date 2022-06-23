@@ -700,7 +700,7 @@ class Job(ndb.Model):
           exception.category = 'pinpoint'
         else:
           exception = exc_info[1]
-      exc_message = exception.message
+      exc_message = str(exception)
       category = None
       if isinstance(exception, errors.JobError):
         category = exception.category

@@ -52,7 +52,7 @@ def Main(args, extra_args):
         os.mkdir(viewer_dir_path)
       except OSError:
         pass
-      with open(viewer_html_path, 'w') as f:
+      with open(viewer_html_path, 'wb') as f:
         from tracing_build import vulcanize_histograms_viewer
         s = vulcanize_histograms_viewer.VulcanizeHistogramsViewer()
         f.write(s.encode('utf-8'))

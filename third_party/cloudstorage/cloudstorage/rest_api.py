@@ -52,10 +52,14 @@ def _make_token_async(scopes, service_account_id):
     An ndb.Return with a tuple (token, expiration_time) where expiration_time is
     seconds since the epoch.
   """
-  rpc = app_identity.create_rpc()
-  app_identity.make_get_access_token_call(rpc, scopes, service_account_id)
-  token, expires_at = yield rpc
-  raise ndb.Return((token, expires_at))
+  if six.PY2:
+    rpc = app_identity.create_rpc()
+    app_identity.make_get_access_token_call(rpc, scopes, service_account_id)
+    token, expires_at = yield rpc
+    raise ndb.Return((token, expires_at))
+  else:
+    # make_get_access_token_call is removed in Python 3.
+    raise ndb.Return(app_identity.get_access_token(scopes, service_account_id))
 
 
 class _ConfigDefaults(object):

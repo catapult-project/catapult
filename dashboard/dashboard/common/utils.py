@@ -112,10 +112,11 @@ def GetEmail():
     # return a non-None user.
     if 'HTTP_AUTHORIZATION' not in os.environ:
       # The user is not signed in. Avoid raising OAuthRequestError.
+      logging.info('Cannot get user email as the user is not signed in')
       return None
     user = oauth.get_current_user(OAUTH_SCOPES)
   else:
-    user = users.get_current_user()
+    user = users.GetCurrentUser() if six.PY3 else users.get_current_user()
   return user.email() if user else None
 
 
@@ -678,6 +679,7 @@ def IsTryjobUser():
     return bool(email) and IsGroupMember(
         identity=email, group='project-pinpoint-tryjob-access')
   except GroupMemberAuthFailed:
+    logging.info('User is not a member of project-pinpoint-tryjob-access.')
     return False
 
 

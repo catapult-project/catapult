@@ -15,6 +15,8 @@ from dashboard.api import api_auth
 from dashboard.common import utils
 if utils.IsRunningFlask():
   from flask import make_response, request
+else:
+  import webapp2
 
 _ALLOWED_ORIGINS = [
     'chromeperf.appspot.com',
@@ -103,7 +105,6 @@ if utils.IsRunningFlask():
     return make_response(json.dumps({'error': message}), status)
 
 else:
-  import webapp2
 
   class ApiRequestHandler(webapp2.RequestHandler):
     """API handler for api requests.

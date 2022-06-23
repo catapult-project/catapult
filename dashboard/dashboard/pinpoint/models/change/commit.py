@@ -9,8 +9,12 @@ from __future__ import absolute_import
 import collections
 import datetime
 import re
+import six
 
-from depot_tools import gclient_eval
+if six.PY2:
+  from depot_tools import gclient_eval
+else:
+  from depot_tools.depot_tools import gclient_eval
 from google.appengine.ext import deferred
 
 from dashboard.pinpoint.models.change import commit_cache
@@ -18,7 +22,6 @@ from dashboard.pinpoint.models.change import repository as repository_module
 from dashboard.services import gitiles_service
 
 from dashboard.common import utils
-import six
 
 _REPO_EXCLUSION_KEY = 'pinpoint_repo_exclusion_map'
 

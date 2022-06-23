@@ -502,7 +502,7 @@ class _Bucket(object):
     """
     for e in root.iter(common._T_CONTENTS):
       st_ctime, size, etag, key = None, None, None, None
-      for child in e.getiterator('*'):
+      for child in e.iter('*'):
         if child.tag == common._T_LAST_MODIFIED:
           st_ctime = common.dt_str_to_posix(child.text)
         elif child.tag == common._T_ETAG:

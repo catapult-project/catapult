@@ -84,10 +84,7 @@ if utils.IsRunningFlask():
           'isolate_server': str,
           'isolate_map': json.loads
       }
-      try:
-        validated_parameters = _ValidateParameters(request.form, validators)
-      except (KeyError, TypeError, ValueError) as e:
-        return make_response(json.dumps({'error': str(e)}), 400)
+      validated_parameters = _ValidateParameters(request.form, validators)
 
       # Put information into the datastore.
       isolate_infos = [
