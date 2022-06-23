@@ -1,7 +1,7 @@
 service: pinpoint
 
 runtime: python39
-entrypoint: gunicorn -b:$PORT dashboard.pinpoint.dispatcher:APP
+entrypoint: gunicorn -b:$PORT dashboard.pinpoint.dispatcher:APP --worker-class gthread --threads 10 --timeout 60
 app_engine_apis: true
 instance_class: F4_1G
 
