@@ -9,7 +9,7 @@ After modifying this file execute it ('./main.star') to regenerate the configs.
 This is also enforced by PRESUBMIT.py script.
 """
 
-lucicfg.check_version("1.30.9", "Please update depot_tools")
+lucicfg.check_version("1.31.1", "Please update depot_tools")
 
 # Use LUCI Scheduler BBv2 names and add Scheduler realms configs.
 lucicfg.enable_experiment("crbug.com/1182002")
