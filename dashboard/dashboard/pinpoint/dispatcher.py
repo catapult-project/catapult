@@ -6,14 +6,21 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import sys
+
+if sys.version_info.major == 3:
+  import logging
+  import google.cloud.logging
+  google.cloud.logging.Client().setup_logging(log_level=logging.DEBUG)
+
 from dashboard.common import utils
 from dashboard.pinpoint import handlers
 
 if utils.IsRunningFlask():
+
   from flask import Flask
   APP = Flask(__name__)
 
-  import sys
   if sys.version_info.major == 3:
     from google.appengine.api import wrap_wsgi_app
     APP.wsgi_app = wrap_wsgi_app(APP.wsgi_app)
