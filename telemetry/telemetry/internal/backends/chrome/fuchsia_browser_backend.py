@@ -156,8 +156,9 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     try:
       if self.browser_type == WEB_ENGINE_SHELL:
         self._StartWebEngineShell(startup_args)
-        browser_id_file = os.path.join(self._output_dir, 'gen', 'fuchsia',
-                                       'engine', 'web_engine_shell', 'ids.txt')
+        browser_id_file = os.path.join(self._output_dir, 'gen', 'fuchsia_web',
+                                       'webengine', 'web_engine_shell',
+                                       'ids.txt')
       else:
         self._StartChrome(startup_args)
         browser_id_file = os.path.join(self._output_dir, 'gen', 'chrome', 'app',
@@ -189,8 +190,8 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     except Exception as e:
       logging.exception(e)
-      logging.info('The browser failed to start. Output of the browser: \n%s' %
-                   self.GetStandardOutput())
+      logging.error('The browser failed to start. Output of the browser: \n%s' %
+                    self.GetStandardOutput())
       self.Close()
       raise
 
