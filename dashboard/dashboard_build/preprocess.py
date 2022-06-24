@@ -12,6 +12,7 @@ import os
 import subprocess
 import sys
 import time
+import shutil
 
 
 def _AddToPathIfNeeded(path):
@@ -42,13 +43,13 @@ def PackPinpoint(catapult_path, temp_dir, deployment_paths):
     # directory, so we can find the correct elements at bundle time. This is
     # simulating the paths we would be serving as defined in the pinpoint.yaml
     # file.
-    os.symlink(
+    shutil.copytree(
         os.path.join(catapult_path, 'dashboard', 'dashboard', 'pinpoint',
                      'elements'), os.path.join(temp_dir, 'elements'))
-    os.symlink(
+    shutil.copytree(
         os.path.join(catapult_path, 'third_party', 'polymer', 'components'),
         os.path.join(temp_dir, 'components'))
-    os.symlink(
+    shutil.copytree(
         os.path.join(catapult_path, 'third_party', 'd3'),
         os.path.join(temp_dir, 'd3'))
 
