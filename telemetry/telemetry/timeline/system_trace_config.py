@@ -4,10 +4,41 @@
 
 from __future__ import absolute_import
 import json
+import re
 
 
 class SystemTraceConfig(object):
   """Stores configuration options for Perfetto tracing agent."""
+
+  class ProfilingArgs(object):
+
+    def __init__(self, target_cmdlines, sampling_frequency_hz):
+      """Arguments for Perfetto profiling (callstack sampling).
+
+      Args:
+        target_cmdlines: A list of processes/apps that should be profiled for
+          callstack sampling.
+        sampling_frequency_hz: Frequency for sampling callstacks.
+      """
+      self.target_cmdlines = target_cmdlines \
+        if target_cmdlines is not None else []
+      self.sampling_frequency_hz = sampling_frequency_hz \
+        if sampling_frequency_hz is not None else 100
+
+    # Ideally, we'd create a config by setting fiels in a proto message. Since
+    # we don't currently do that, this makes the config a bit more robust to
+    # invalid user input.
+    def _ProcessCmdlineForConfig(self, target_cmdline):
+      target_cmdline = target_cmdline.replace("\"", "").replace("'", "")
+      return re.sub(r"\s+", "", target_cmdline, flags=re.UNICODE)
+
+    def GenerateTextConfigForCmdlines(self):
+      text_config = ""
+      for target_cmdline in self.target_cmdlines:
+        processed_cmdline = self._ProcessCmdlineForConfig(target_cmdline)
+        if processed_cmdline:
+          text_config += "target_cmdline: \"{}\"\n".format(processed_cmdline)
+      return text_config.strip()
 
   def __init__(self):
     self._enable_chrome = False
@@ -16,6 +47,8 @@ class SystemTraceConfig(object):
     self._enable_ftrace_cpu = False
     self._enable_ftrace_sched = False
     self._chrome_config = None
+    # Not None iff profiling (callstack sampling) is enabled.
+    self._profiling_args = None
 
   def GetTextConfig(self):
     text_config = """
@@ -23,6 +56,49 @@ class SystemTraceConfig(object):
             size_kb: 200000
             fill_policy: DISCARD
         }
+    """
+
+    if self._profiling_args is not None:
+      # Use separate buffers for data related to callstack sampling to avoid
+      # interference with other data being collected in the trace. To allow us
+      # to associate callstack samples with a particular process, we also need
+      # to ensure that "linux.process_stats" is not overwritten.
+      text_config += """
+          buffers {
+              size_kb: 2048
+          }
+
+          buffers {
+              size_kb: 190464
+          }
+      """
+      text_config += """
+          data_sources {{
+              config {{
+                  name: "linux.process_stats"
+                  target_buffer: 1
+                  process_stats_config {{
+                      proc_stats_poll_ms: 100
+                  }}
+              }}
+          }}
+
+          data_sources {{
+              config {{
+                  name: "linux.perf"
+                  target_buffer: 2
+                  perf_event_config {{
+                      all_cpus: true
+                      sampling_frequency: {frequency}
+                      {target_cmdlines}
+                  }}
+              }}
+          }}
+      """.format(
+          frequency=self._profiling_args.sampling_frequency_hz,
+          target_cmdlines=self._profiling_args.GenerateTextConfigForCmdlines())
+
+    text_config += """
         duration_ms: 1800000
     """
 
@@ -32,7 +108,7 @@ class SystemTraceConfig(object):
       # into a json string. The second outer json.dumps is to convert that to
       # a string literal to paste into the text proto config.
       json_config = json.dumps(
-          json.dumps(json_config, sort_keys=True, separators=(',', ':')))
+          json.dumps(json_config, sort_keys=True, separators=(",", ":")))
       text_config += """
           data_sources: {
               config {
@@ -106,7 +182,7 @@ class SystemTraceConfig(object):
                     ftrace_events: "task/task_rename"
         """
 
-      text_config += '}}}\n'
+      text_config += "}}}\n"
 
     return text_config
 
@@ -125,3 +201,17 @@ class SystemTraceConfig(object):
 
   def EnableFtraceSched(self):
     self._enable_ftrace_sched = True
+
+  def EnableProfiling(self, target_cmdlines, sampling_frequency_hz):
+    """Enables Perfetto CPU profiling (callstack sampling).
+
+    Please see https://perfetto.dev/docs/quickstart/callstack-sampling for more
+    details.
+
+    Args:
+      target_cmdlines: A comma-separated list indicating processes/apps that
+        should be profiled for callstack sampling.
+      sampling_frequency_hz: Frequency for sampling callstacks.
+    """
+    self._profiling_args = self.ProfilingArgs(
+        target_cmdlines.split(","), sampling_frequency_hz)
