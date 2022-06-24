@@ -159,10 +159,17 @@ def _loop(requests, responses, host, worker_num,
         context_after_pre = pre_fn(host, worker_num, context)
         keep_looping = True
         while keep_looping:
-            message_type, args = requests.get(block=True)
+            message_type, args = requests.get()
             if message_type == _MessageType.Close:
                 responses.put((_MessageType.Done,
                                (worker_num, post_fn(context_after_pre))))
+                # crbug.com/1298810: Need to give the queue's I/O thread time
+                # to put the done message into the underlying OS pipe. Without
+                # this, the parent process's end of the queue may have the
+                # updated `qsize` but will never receive the message. See also:
+                # https://docs.python.org/3/library/multiprocessing.html#multiprocessing.Queue.join_thread
+                responses.close()
+                responses.join_thread()
                 break
             assert message_type == _MessageType.Request
             resp = callback(context_after_pre, args)
