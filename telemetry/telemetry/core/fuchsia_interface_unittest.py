@@ -24,7 +24,7 @@ class FuchsiaInterfaceTests(unittest.TestCase):
         isfile_mock.side_effect = side_effect
         self.assertEqual(
             fuchsia_interface.StartSymbolizerForProcessIfPossible(
-                None, None, test_build_id_file), None)
+                None, None, [test_build_id_file]), None)
         self.assertEqual(popen_mock.call_count, 0)
 
   @decorators.Disabled('win')
@@ -38,5 +38,5 @@ class FuchsiaInterfaceTests(unittest.TestCase):
         isfile_mock.side_effect = side_effect
         self.assertEqual(
             fuchsia_interface.StartSymbolizerForProcessIfPossible(
-                None, None, test_build_id_file), 'Not None')
+                None, None, [test_build_id_file]), 'Not None')
         self.assertEqual(popen_mock.call_count, 1)

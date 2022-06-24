@@ -156,18 +156,23 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     try:
       if self.browser_type == WEB_ENGINE_SHELL:
         self._StartWebEngineShell(startup_args)
-        browser_id_file = os.path.join(self._output_dir, 'gen', 'fuchsia_web',
-                                       'webengine', 'web_engine_shell',
-                                       'ids.txt')
+        browser_id_files = [
+            os.path.join(self._output_dir, 'gen', 'fuchsia_web', 'webengine',
+                         'web_engine_shell', 'ids.txt'),
+            os.path.join(self._output_dir, 'gen', 'fuchsia_web', 'webengine',
+                         'web_engine', 'ids.txt'),
+        ]
       else:
         self._StartChrome(startup_args)
-        browser_id_file = os.path.join(self._output_dir, 'gen', 'chrome', 'app',
-                                       'chrome', 'ids.txt')
+        browser_id_files = [
+            os.path.join(self._output_dir, 'gen', 'chrome', 'app', 'chrome',
+                         'ids.txt'),
+        ]
 
       # Symbolize stderr of browser process if possible
       self._symbolizer_proc = (
           fuchsia_interface.StartSymbolizerForProcessIfPossible(
-              self._browser_log_proc.stderr, subprocess.PIPE, browser_id_file))
+              self._browser_log_proc.stderr, subprocess.PIPE, browser_id_files))
       if self._symbolizer_proc:
         self._browser_log_proc.stderr = self._symbolizer_proc.stdout
 

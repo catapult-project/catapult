@@ -104,25 +104,31 @@ def GetHostArchFromPlatform():
   raise Exception('Unsupported host architecture: %s' % host_arch)
 
 
-def StartSymbolizerForProcessIfPossible(input_file, output_file, build_id_file):
+def StartSymbolizerForProcessIfPossible(input_file, output_file, build_id_files):
   """Starts a symbolizer process if possible.
 
     Args:
       input_file: Input file to be symbolized.
       output_file: Output file for symbolizer stdout and stderr.
-      build_id_file: Path to the ids.txt file which maps build IDs to
+      build_id_files: Path to the ids.txt files which maps build IDs to
           unstripped binaries on the filesystem.
 
     Returns:
       A subprocess.Popen object for the started process, None if symbolizer
       fails to start."""
-  if os.path.isfile(build_id_file):
+  if build_id_files:
     symbolizer = os.path.join(SDK_ROOT, 'tools', GetHostArchFromPlatform(),
                               'symbolizer')
     symbolizer_cmd = [
-        symbolizer, '--build-id-dir', os.path.join(SDK_ROOT, '.build-id'),
-        '--ids-txt', build_id_file
+        symbolizer, '--build-id-dir', os.path.join(SDK_ROOT, '.build-id')
     ]
+
+    for build_id_file in build_id_files:
+      if not os.path.isfile(build_id_file):
+        logging.error(
+            'Symbolizer cannot be started. %s is not a file' % build_id_file)
+        return None
+      symbolizer_cmd.extend(['--ids-txt', build_id_file])
 
     logging.debug('Running "%s".' % ' '.join(symbolizer_cmd))
     kwargs = {
@@ -134,5 +140,5 @@ def StartSymbolizerForProcessIfPossible(input_file, output_file, build_id_file):
     if six.PY3:
       kwargs['text'] = True
     return subprocess.Popen(symbolizer_cmd, **kwargs)
-  logging.info('Symbolizer cannot be started.')
+  logging.error('Symbolizer cannot be started.')
   return None
