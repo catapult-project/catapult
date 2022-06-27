@@ -14,6 +14,7 @@ import py_utils
 from py_utils import exc_util
 
 from telemetry import decorators
+from telemetry.core import debug_data
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.backends.chrome import minidump_finder
 
@@ -214,7 +215,7 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       A debug_data.DebugData object containing the collected data.
     """
     # TODO(crbug.com/1148528): Pull Lacros data.
-    self._cros_browser_backend.CollectDebugData(log_level)
+    return debug_data.DebugData()
 
   @property
   def screenshot_timeout(self):
