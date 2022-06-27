@@ -990,6 +990,7 @@ class _Child(object):
         self.artifact_output_dir = parent.artifact_output_dir
         self.result_sink_reporter = None
         self.disable_resultsink = parent.args.disable_resultsink
+        self.jobs = parent.args.jobs
 
     def expectations_for(self, test_case):
         expectations = self.expectations if self.has_expectations else None
