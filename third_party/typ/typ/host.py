@@ -131,8 +131,12 @@ class Host(object):
 
     def maybe_make_directory(self, *comps):
         path = self.abspath(self.join(*comps))
-        if not self.exists(path):
+        try:
+            # Once `typ` drops python2 support, use the `exist_ok=True` keyword
+            # argument instead of catching the exception.
             os.makedirs(path)
+        except OSError:
+            pass
 
     def mktempfile(self, delete=True):
         return tempfile.NamedTemporaryFile(delete=delete)
