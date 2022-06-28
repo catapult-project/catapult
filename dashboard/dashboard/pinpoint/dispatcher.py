@@ -6,6 +6,17 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+# crbug/1339701
+# This is a hack to force ndb to use a lower version of pickle protocol when
+# creating job state data, which be loaded in both Python 2 and 3 runtime.
+# This workaround assumes ndb will not set HIGHEST_PROTOCOL at any point.
+# Otherwise, it will break that the pinpoint service running in Python 2 runtime
+# can no longer load the jobs created in Python 3.
+# This hack will be relied on only during the transition time to Python 3. It
+# will allow fallback to Python 2 if needed.
+import pickle
+pickle.HIGHEST_PROTOCOL = 2
+
 import sys
 
 if sys.version_info.major == 3:
