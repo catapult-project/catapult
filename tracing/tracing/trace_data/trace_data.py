@@ -11,7 +11,6 @@ import gzip
 import json
 import logging
 import os
-import platform
 import shutil
 import subprocess
 import tempfile
@@ -335,14 +334,7 @@ def SerializeAsHtml(trace_files, html_file, trace_title=None):
 
   input_size = sum(os.path.getsize(trace_file) for trace_file in trace_files)
 
-  cmd = []
-  if platform.system() == 'Windows':
-    version_cmd = ['python', '-c',
-                   'import sys\nprint(sys.version_info.major)']
-    version = subprocess.check_output(version_cmd)
-    if version.strip() == '3':
-      raise RuntimeError('trace2html cannot run with python 3.')
-    cmd.append('python')
+  cmd = [sys.executable]
   cmd.append(_TRACE2HTML_PATH)
   cmd.extend(trace_files)
   cmd.extend(['--output', html_file])
