@@ -46,7 +46,8 @@ class SharedPageState(story_module.SharedState):
         platform_module.GetHostPlatform().GetOSName() == 'chromeos'):
       self._device_type = 'chromeos'
     if (possible_browser.browser_type == 'web-engine-shell' or
-        possible_browser.browser_type == 'fuchsia-chrome'):
+        possible_browser.browser_type == 'fuchsia-chrome' or
+        possible_browser.browser_type == 'cast-streaming-shell'):
       self._device_type = None
 
     browser_options = finder_options.browser_options

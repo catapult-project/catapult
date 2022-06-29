@@ -143,6 +143,16 @@ class _TestConditionFuchsiaWebEngineShell(_TestCondition):
   def GetSupportedPlatformNames(self):
     return {'fuchsia', 'fuchsia-board-astro', 'fuchsia-board-sherlock'}
 
+class _TestConditionFuchsiaCastStreamingShell(_TestCondition):
+  def ShouldDisable(self, platform, finder_options):
+    return (platform.GetOSName() == 'fuchsia' and
+            finder_options.browser_type.startswith('cast-streaming-shell'))
+
+  def __str__(self):
+    return 'Fuchsia with cast-streaming-shell'
+
+  def GetSupportedPlatformNames(self):
+    return {'fuchsia', 'fuchsia-board-astro', 'fuchsia-board-sherlock'}
 
 class _TestConditionFuchsiaByBoard(_TestCondition):
   def __init__(self, board):
@@ -243,6 +253,7 @@ ANDROID_GO_WEBVIEW = _TestConditionLogicalAndConditions(
 ANDROID_PIXEL2_WEBVIEW = _TestConditionLogicalAndConditions(
     [ANDROID_PIXEL2, ANDROID_WEBVIEW], 'Pixel2 Webview')
 FUCHSIA_WEB_ENGINE_SHELL = _TestConditionFuchsiaWebEngineShell()
+FUCHSIA_CAST_STREAMING_SHELL = _TestConditionFuchsiaCastStreamingShell()
 FUCHSIA_ASTRO = _TestConditionFuchsiaByBoard('astro')
 FUCHSIA_SHERLOCK = _TestConditionFuchsiaByBoard('sherlock')
 
@@ -276,6 +287,7 @@ EXPECTATION_NAME_MAP = {
     'Android_Go_Webview': ANDROID_GO_WEBVIEW,
     'Pixel2_Webview': ANDROID_PIXEL2_WEBVIEW,
     'Fuchsia_WebEngineShell': FUCHSIA_WEB_ENGINE_SHELL,
+    'Fuchsia_CastStreamingShell': FUCHSIA_CAST_STREAMING_SHELL,
     'Fuchsia_Astro': FUCHSIA_ASTRO,
     'Fuchsia_Sherlock': FUCHSIA_SHERLOCK,
 }

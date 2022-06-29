@@ -16,7 +16,8 @@ from telemetry.core import util
 
 FUCHSIA_BROWSERS = [
     'fuchsia-chrome',
-    'web-engine-shell'
+    'web-engine-shell',
+    'cast-streaming-shell',
 ]
 
 _SDK_ROOT_IN_CATAPULT = os.path.join(util.GetCatapultDir(), 'third_party',
