@@ -110,6 +110,16 @@ class ApiRequestHandlerTest(testing_common.TestCase):
                           ('Content-Type', 'application/json; charset=utf-8')],
                          response.headerlist)
 
+  def testOptions_InvalidOriginWithSharedPrefix_HeadersNotSet(self):
+    api_request_handler._ALLOWED_ORIGINS = ['foo.appspot.com']
+    response = self.testapp.options(
+        '/api/test',
+        headers={'origin': 'https://foo.appspot.com.blablabla.com'})
+    self.assertListEqual([('Content-Length', '0'),
+                          ('Cache-Control', 'no-cache'),
+                          ('Content-Type', 'application/json; charset=utf-8')],
+                         response.headerlist)
+
   def testPost_ValidProdOrigin_HeadersSet(self):
     api_request_handler._ALLOWED_ORIGINS = ['foo.appspot.com']
     response = self.testapp.options(

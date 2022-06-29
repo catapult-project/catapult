@@ -47,6 +47,10 @@ class NotFoundError(Exception):
     super(NotFoundError, self).__init__('Not found')
 
 
+def SafeOriginRegex(prefix, origin):
+  return re.compile(r'^' + prefix + re.escape(origin) + '$')
+
+
 if utils.IsRunningFlask():
 
   def RequestHandlerDecoratorFactory(user_checker):
@@ -87,9 +91,8 @@ if utils.IsRunningFlask():
     set_cors_headers = False
     origin = req.headers.get('Origin', '')
     for allowed in _ALLOWED_ORIGINS:
-      dev_pattern = re.compile(r'https://[A-Za-z0-9-]+-dot-' +
-                               re.escape(allowed))
-      prod_pattern = re.compile(r'https://' + re.escape(allowed))
+      dev_pattern = SafeOriginRegex(r'https://[A-Za-z0-9-]+-dot-', allowed)
+      prod_pattern = SafeOriginRegex(r'https://', allowed)
       if dev_pattern.match(origin) or prod_pattern.match(origin):
         set_cors_headers = True
     if set_cors_headers:
@@ -190,9 +193,8 @@ else:
       set_cors_headers = False
       origin = self.request.headers.get('Origin', '')
       for allowed in _ALLOWED_ORIGINS:
-        dev_pattern = re.compile(r'https://[A-Za-z0-9-]+-dot-' +
-                                 re.escape(allowed))
-        prod_pattern = re.compile(r'https://' + re.escape(allowed))
+        dev_pattern = SafeOriginRegex(r'https://[A-Za-z0-9-]+-dot-', allowed)
+        prod_pattern = SafeOriginRegex(r'https://', allowed)
         if dev_pattern.match(origin) or prod_pattern.match(origin):
           set_cors_headers = True
       if not set_cors_headers:
