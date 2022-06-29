@@ -25,11 +25,6 @@ devil also provides command-line utilities:
  - [`devil/utils/markdown.py`](docs/markdown.md) generated markdown
    documentation for python modules.
 
-## Constraints and Caveats
-
-devil supports python 2.7. Python 3 compatibility is currently a work in
-progress (see https://crbug.com/1007101).
-
 ## Contributing
 
 Please see [our contributor's guide](/CONTRIBUTING.md)
