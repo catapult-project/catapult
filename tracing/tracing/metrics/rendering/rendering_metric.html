@@ -6,7 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/metrics/metric_registry.html">
-<link rel="import" href="/tracing/metrics/rendering/frame_time.html">
+<link rel="import" href="/tracing/metrics/rendering/cpu_utilization.html">
+<link rel="import" href="/tracing/metrics/rendering/frame_segment_filter.html">
 <link rel="import" href="/tracing/metrics/rendering/image_decode_time.html">
 <link rel="import" href="/tracing/metrics/rendering/pixels.html">
 <link rel="import" href="/tracing/metrics/rendering/queueing_duration.html">
@@ -28,18 +29,27 @@ tr.exportTo('tr.metrics.rendering', function() {
       segments = chromeHelper.telemetryHelper.animationSegments;
     }
     if (segments.length > 0) {
-      tr.metrics.rendering.addFrameTimeHistograms(histograms, model, segments);
+      const frameSegments = tr.metrics.rendering.computeFrameSegments(model, segments);
+      if (frameSegments.length > 0) {
+        tr.metrics.rendering.addCpuSegmentCostHistograms(
+            histograms, model, frameSegments,
+            (thread, segment) => thread.getCpuTimeForRange(segment.boundsRange),
+            category => `thread_${category}_cpu_time_per_frame`,
+            'CPU cores of a thread group per frame');
+        tr.metrics.rendering.addCpuSegmentCostHistograms(
+            histograms, model, frameSegments,
+            (thread, segment) =>
+            thread.getNumToplevelSlicesForRange(segment.boundsRange),
+            category => `tasks_per_frame_${category}`,
+            'Number of tasks of a thread group per frame');
+        tr.metrics.rendering.addCpuWallTimeHistogram(histograms, model, frameSegments);
+      }
+
       tr.metrics.rendering.addImageDecodeTimeHistograms(histograms, model,
           segments);
       tr.metrics.rendering.addPixelsHistograms(histograms, model, segments);
       tr.metrics.rendering.addQueueingDurationHistograms(
           histograms, model, segments);
-    }
-
-    const uiSegments = chromeHelper.telemetryHelper.uiSegments;
-    if (uiSegments.length > 0) {
-      tr.metrics.rendering.addUIFrameTimeHistograms(
-          histograms, model, chromeHelper.telemetryHelper.uiSegments);
     }
   }
 

@@ -239,7 +239,8 @@ tr.exportTo('tr.model', function() {
       let sum = 0;
       tr.b.iterateOverIntersectingIntervals(
           this.sliceGroup.topLevelSlices,
-          slice => slice.start, slice => slice.end,
+          slice => slice.start,    // mapLoFn
+          slice => slice.duration, // mapWidthFn measures width not end of slice
           range.min, range.max,
           slice => {
             let fractionOfSliceInsideRangeOfInterest = 1;

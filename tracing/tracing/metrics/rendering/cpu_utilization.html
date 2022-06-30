@@ -7,6 +7,9 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/math/statistics.html">
 <link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
+<link rel="import" href="/tracing/model/user_model/segment.html">
+
 <link rel="import" href="/tracing/value/histogram.html">
 
 <script>
@@ -15,7 +18,7 @@ found in the LICENSE file.
 /**
  * @fileoverview This file contains implementations of the following metrics.
  *
- * The addCpuUtilizationHistograms method can generate the following sets of
+ * The addCpuSegmentCostHistograms method can generate the following sets of
  * metrics, dependeing on the input values for segments, and segmentCostFunc.
  *
  * thread_{thread group}_cpu_time_per_frame
@@ -33,6 +36,13 @@ found in the LICENSE file.
  *
  * This set of metrics show the distribution of the number of task in each
  * display compositor's frame of a thread group.
+ *
+ * The addCpuWallTimeHistogram method generates the metric:
+ * cpu_wall_time_ratio
+ * ==================
+ * segments: display compositor's frames
+ *
+ * This metric shows the ratio of cpu usage to wall time.
  *
  * Note: the CPU usage in all above-mentioned metrics, is approximated from
  * top-level trace events in each thread; it does not come from the OS. So, the
@@ -86,7 +96,7 @@ tr.exportTo('tr.metrics.rendering', function() {
     if (isOther) yield 'other';
   }
 
-  function addCpuUtilizationHistograms(
+  function addCpuSegmentCostHistograms(
       histograms, model, segments, segmentCostFunc, histogramNameFunc,
       description) {
     const categoryValues = new Map();
@@ -120,14 +130,26 @@ tr.exportTo('tr.metrics.rendering', function() {
     }
   }
 
-  const SUMMARY_OPTIONS = {
-    percentile: [0.90, 0.95],
-    ci: [0.95],
-  };
+  function addCpuWallTimeHistogram(histograms, model, segments) {
+    let totalWallTime = 0;
+    let totalCpuTime = 0;
+    for (const segment of segments) {
+      for (const thread of model.getAllThreads()) {
+        totalCpuTime += thread.getCpuTimeForRange(segment.boundsRange);
+        totalWallTime += thread.getWallTimeForRange(segment.boundsRange);
+      }
+    }
+    histograms.createHistogram('cpu_wall_time_ratio',
+        tr.b.Unit.byName.unitlessNumber_biggerIsBetter,
+        totalWallTime ? totalCpuTime / totalWallTime : NaN,
+        { description: 'Ratio of total cpu-time vs. wall-time.',
+          summaryOptions: {},
+        });
+  }
 
   return {
-    addCpuUtilizationHistograms,
-    SUMMARY_OPTIONS,
+    addCpuSegmentCostHistograms,
+    addCpuWallTimeHistogram,
   };
 });
 </script>

@@ -39,11 +39,11 @@ tr.b.unittest.testSuite(function() {
     // The gesture interaction record should be adjusted to [10, 30]. So, the
     // first two frames and the last frame are outside the interaction record
     // and should be discarded. The remaining frames are 11 to 29 which result
-    // in 9 frame times of 2.
-    const hist = histograms.getHistogramNamed('frame_times');
-    assert.closeTo(2, hist.min, 1e-6);
-    assert.closeTo(2, hist.max, 2e-6);
-    assert.closeTo(2, hist.average, 1e-6);
+    // in 9 frames which have 1 task each.
+    const hist = histograms.getHistogramNamed('tasks_per_frame_total_all');
+    assert.closeTo(1, hist.min, 1e-6);
+    assert.closeTo(1, hist.max, 1e-6);
+    assert.closeTo(1, hist.average, 1e-6);
   });
 });
 </script>

@@ -38,7 +38,7 @@ tr.b.unittest.testSuite(function() {
           { start: 5, end: 6, cpuStart: 1, cpuEnd: 2 }));
     });
     const histograms = new tr.v.HistogramSet();
-    tr.metrics.rendering.addCpuUtilizationHistograms(
+    tr.metrics.rendering.addCpuSegmentCostHistograms(
         histograms, model, [new tr.model.um.Segment(0, 10)],
         (thread, segment) => thread.getCpuTimeForRange(segment.boundsRange),
         category => `thread_${category}_cpu_time_per_frame`, 'description');
@@ -95,7 +95,7 @@ tr.b.unittest.testSuite(function() {
           { start: 5, end: 6, cpuStart: 1, cpuEnd: 2 }));
     });
     const histograms = new tr.v.HistogramSet();
-    tr.metrics.rendering.addCpuUtilizationHistograms(
+    tr.metrics.rendering.addCpuSegmentCostHistograms(
         histograms, model,
         [new tr.model.um.Segment(0, 5), new tr.model.um.Segment(5, 5)],
         (thread, segment) => thread.getCpuTimeForRange(segment.boundsRange),
@@ -134,7 +134,7 @@ tr.b.unittest.testSuite(function() {
           { start: 5, end: 6, cpuStart: 1, cpuEnd: 2 }));
     });
     const histograms = new tr.v.HistogramSet();
-    tr.metrics.rendering.addCpuUtilizationHistograms(
+    tr.metrics.rendering.addCpuSegmentCostHistograms(
         histograms, model, [new tr.model.um.Segment(0, 10)],
         (thread, segment) => thread.getCpuTimeForRange(segment.boundsRange),
         category => `thread_${category}_cpu_time_per_frame`, 'description');
@@ -176,7 +176,7 @@ tr.b.unittest.testSuite(function() {
           { start: 5, end: 6, cpuStart: 1, cpuEnd: 2 }));
     });
     const histograms = new tr.v.HistogramSet();
-    tr.metrics.rendering.addCpuUtilizationHistograms(
+    tr.metrics.rendering.addCpuSegmentCostHistograms(
         histograms, model, [new tr.model.um.Segment(0, 10)],
         (thread, segment) =>
           thread.getNumToplevelSlicesForRange(segment.boundsRange),
