@@ -16,6 +16,8 @@ from dashboard.common import testing_common
 class CanBisectTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(CanBisectTest, self).setUp()
     namespaced_stored_object.Set(
         can_bisect.BISECT_BOT_MAP_KEY,

@@ -12,12 +12,11 @@ import utils
 def CompilePattern(pattern):
   if pattern.HasField('glob'):
     return re2.compile(utils.Translate(pattern.glob))
-  elif pattern.HasField('regex'):
+  if pattern.HasField('regex'):
     return re2.compile(pattern.regex)
-  else:
-    # TODO(dberris): this is the extension point for supporting new
-    # matchers; for now we'll skip the new patterns we don't handle yet.
-    return None
+  # TODO(dberris): this is the extension point for supporting new
+  # matchers; for now we'll skip the new patterns we don't handle yet.
+  return None
 
 
 def CompilePatterns(patterns, ignore_broken=False):

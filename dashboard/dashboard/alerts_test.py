@@ -27,6 +27,8 @@ from dashboard.sheriff_config_client import SheriffConfigClient
 class AlertsTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(AlertsTest, self).setUp()
     app = webapp2.WSGIApplication([('/alerts', alerts.AlertsHandler)])
     self.testapp = webtest.TestApp(app)

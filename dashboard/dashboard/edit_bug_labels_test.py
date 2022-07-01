@@ -22,6 +22,8 @@ from dashboard.models import bug_label_patterns
 class EditBugLabelsTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(EditBugLabelsTest, self).setUp()
     app = webapp2.WSGIApplication([('/edit_bug_labels',
                                     edit_bug_labels.EditBugLabelsHandler)])
@@ -30,6 +32,8 @@ class EditBugLabelsTest(testing_common.TestCase):
     self.SetCurrentUser('x@google.com', is_admin=True)
 
   def tearDown(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(EditBugLabelsTest, self).tearDown()
     self.UnsetCurrentUser()
 

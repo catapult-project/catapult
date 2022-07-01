@@ -73,6 +73,8 @@ ONE_TWO_TEST_SUITES_KEY = 'one_two_test_suites'
 COMPLEX_CASES_TEST_SUITES_KEY = 'complex_cases_test_suites'
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class Descriptor(object):
   """Describe a timeseries by its characteristics.
 

@@ -23,6 +23,8 @@ import itertools
 ###################
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class Not(object):
 
   def __init__(self, filter_):
@@ -32,6 +34,8 @@ class Not(object):
     return not self._filter(*args)
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class All(object):
 
   def __init__(self, *filters):
@@ -41,6 +45,8 @@ class All(object):
     return all(f(*args) for f in self._filters)
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class Any(object):
 
   def __init__(self, *filters):
@@ -50,6 +56,8 @@ class Any(object):
     return any(f(*args) for f in self._filters)
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class TaskTypeEq(object):
 
   def __init__(self, task_type_filter):
@@ -59,6 +67,8 @@ class TaskTypeEq(object):
     return task.task_type == self._task_type_filter
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class TaskStatusIn(object):
 
   def __init__(self, include_types):
@@ -68,6 +78,8 @@ class TaskStatusIn(object):
     return task.status in self._include_types
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class TaskIsEventTarget(object):
 
   def __call__(self, task, event, _):
@@ -78,6 +90,8 @@ class TaskIsEventTarget(object):
 ######################
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class NoopEvaluator(object):
 
   def __call__(self, *_):
@@ -87,6 +101,8 @@ class NoopEvaluator(object):
     return 'NoopEvaluator()'
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class TaskPayloadLiftingEvaluator(object):
   """An evaluator that copies task payload and status to the accumulator.
 
@@ -132,6 +148,8 @@ class TaskPayloadLiftingEvaluator(object):
     return None
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class SequenceEvaluator(object):
 
   def __init__(self, evaluators):
@@ -151,6 +169,8 @@ class SequenceEvaluator(object):
     ])
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class FilteringEvaluator(object):
 
   def __init__(self, predicate, delegate, alternative=None):
@@ -169,6 +189,8 @@ class FilteringEvaluator(object):
     return self._alternative(*args)
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class DispatchEvaluatorBase(object):
 
   def __init__(self, evaluator_map, default_evaluator=None):
@@ -223,5 +245,7 @@ class Selector(FilteringEvaluator):
         matches |= predicate(task, event, accumulator)
       return matches
 
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(Selector, self).__init__(
         predicate=Predicate, delegate=TaskPayloadLiftingEvaluator(**kwargs))

@@ -73,6 +73,8 @@ _GERRIT_CHANGE_INFO = {
 class GerritPatchTest(test.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(GerritPatchTest, self).setUp()
     self.get_change.return_value = _GERRIT_CHANGE_INFO
 

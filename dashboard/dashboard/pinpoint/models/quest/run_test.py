@@ -82,6 +82,9 @@ class RunTest(quest.Quest):
             and self._attempt_count == other._attempt_count
             and self._started_executions == other._started_executions)
 
+  def __hash__(self):
+    return hash(self.__str__())
+
   def __str__(self):
     return 'Test'
 
@@ -254,6 +257,8 @@ class _RunTestExecution(execution_module.Execution):
                command=None,
                relative_cwd='out/Release',
                execution_timeout_secs=None):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(_RunTestExecution, self).__init__()
     self._quest = containing_quest
     self._bot_id = None
@@ -362,11 +367,11 @@ class _RunTestExecution(execution_module.Execution):
       if 'outputs_ref' not in result:
         task_url = '%s/task?id=%s' % (self._swarming_server, self._task_id)
         raise errors.SwarmingTaskFailed('%s' % (task_url,))
-      else:
-        isolate_output_url = '%s/browse?digest=%s' % (
-            result['outputs_ref']['isolatedserver'],
-            result['outputs_ref']['isolated'])
-        raise errors.SwarmingTaskFailed('%s' % (isolate_output_url,))
+
+      isolate_output_url = '%s/browse?digest=%s' % (
+          result['outputs_ref']['isolatedserver'],
+          result['outputs_ref']['isolated'])
+      raise errors.SwarmingTaskFailed('%s' % (isolate_output_url,))
 
     if 'cas_output_root' in result:
       result_arguments = {

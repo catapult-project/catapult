@@ -28,6 +28,8 @@ class Error(Exception):
 class FetchError(Error):
 
   def __init__(self, error):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(FetchError,
           self).__init__('Failed fetching project configs: {}'.format(error))
     self.error = error
@@ -36,6 +38,8 @@ class FetchError(Error):
 class InvalidConfigError(Error):
 
   def __init__(self, config, fields):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(InvalidConfigError, self).__init__(
         'Config (%r) missing required fields: %r' % (config, fields))
     self.fields = fields
@@ -45,6 +49,8 @@ class InvalidConfigError(Error):
 class InvalidContentError(Error):
 
   def __init__(self, error, config):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(InvalidContentError, self).__init__(
         'Config (%r) content decoding error: %s' % (config, error))
     self.config = config
@@ -56,6 +62,8 @@ def FindAllSheriffConfigs(client):
   try:
     configs = client.get_project_configs(path=SHERIFF_CONFIG_PATH).execute()
   except (errors.HttpError, httplib2.HttpLib2Error) as e:
+    # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
+    # pylint: disable=raise-missing-from
     raise FetchError(e)
   return configs
 
@@ -108,7 +116,9 @@ def StoreConfigs(client, configs):
       sheriff_config = validator.Validate(
           base64.standard_b64decode(config['content']))
     except validator.Error as error:
-      raise InvalidContentError(config, error)
+      # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
+      # pylint: disable=raise-missing-from
+      raise InvalidContentError(error, config)
 
     entity = datastore.Entity(
         key=key, exclude_from_indexes=['sheriff_config', 'url'])
@@ -144,6 +154,9 @@ def StoreConfigs(client, configs):
     })
     client.put_multi(list(entities.values()) + [subscription_index])
 
+
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class Matcher(object):
 
   def __init__(self, subscription):
@@ -223,7 +236,7 @@ def ListAllConfigs(client):
     subscription_index_key = client.key('SubscriptionIndex', 'global')
     subscription_index = client.get(subscription_index_key)
     if subscription_index is None:
-      return
+      return None
 
     # Then for each instance in the 'config_sets', create a key based on the
     # subscription_index_key as a parent, and look those up in one go.

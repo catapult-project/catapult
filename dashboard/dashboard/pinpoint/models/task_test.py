@@ -23,7 +23,6 @@ FakeEvent = collections.namedtuple('Event', ('type', 'status', 'payload'))
 def TaskStatusGetter(task_status, task, event, _):
   if event.type == 'test':
     task_status[task.id] = task.status
-  return None
 
 
 def UpdateTask(job, task_id, new_state, _):
@@ -36,6 +35,8 @@ def UpdateTask(job, task_id, new_state, _):
 class PopulateTests(test.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(PopulateTests, self).setUp()
     self.maxDiff = None
 
@@ -107,7 +108,7 @@ class PopulateTests(test.TestCase):
       logging.debug('Evaluating: %s, %s, %s', task, event, accumulator)
       if task.task_type == 'revision':
         accumulator[task.id] = task.payload
-        return
+        return None
 
       if task.task_type == 'bisection':
         rev_positions = list(
@@ -151,6 +152,7 @@ class PopulateTests(test.TestCase):
             ])
 
           return [GraphExtender]
+      return None
 
     accumulator = task_module.Evaluate(job, None, ExplorationEvaluator)
     self.assertEqual(
@@ -179,7 +181,6 @@ class PopulateTests(test.TestCase):
     def CallCountEvaluator(task, event, accumulator):
       logging.debug('Evaluate(%s, %s, %s) called.', task.id, event, accumulator)
       calls[task.id] = calls.get(task.id, 0) + 1
-      return None
 
     task_module.Evaluate(job, 'test', CallCountEvaluator)
     self.assertDictEqual({
@@ -215,7 +216,6 @@ class PopulateTests(test.TestCase):
     def CycleEvaluator(task, event, accumulator):
       logging.debug('Evaluate(%s, %s, %s) called.', task.id, event, accumulator)
       calls[task.id] = calls.get(task.id, 0) + 1
-      return None
 
     task_module.Evaluate(job, 'test', CycleEvaluator)
     self.assertDictEqual({'node_0': 1, 'node_1': 1}, calls)
@@ -239,11 +239,14 @@ def TransitionEvaluator(job, task, event, accumulator):
 
   if task.status == event.get('current_state'):
     return [functools.partial(UpdateTask, job, task.id, event.get('new_state'))]
+  return None
 
 
 class EvaluateTest(test.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(EvaluateTest, self).setUp()
     self.maxDiff = None
     with mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
@@ -350,6 +353,7 @@ class EvaluateTest(test.TestCase):
                 ])
 
           return [GraphExtender]
+        return None
 
       task_module.Evaluate(self.job, {'target': 'task_0'},
                            AddExistingTaskEvaluator)
@@ -369,6 +373,7 @@ class EvaluateTest(test.TestCase):
                 ])
 
           return [GraphExtender]
+        return None
 
       task_module.Evaluate(self.job, {'target': 'task_0'},
                            AddExistingTaskEvaluator)

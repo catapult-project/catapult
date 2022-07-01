@@ -30,6 +30,8 @@ from tracing.value.diagnostics import reserved_infos
 class EvaluatorTest(test.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(EvaluatorTest, self).setUp()
     self.maxDiff = None
     with mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',

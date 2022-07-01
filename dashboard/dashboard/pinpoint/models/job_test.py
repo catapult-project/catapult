@@ -142,15 +142,12 @@ class JobTestOddBots(test.TestCase):
 
   def testOddBots(self):
     j = job.Job.New((), (), bug_id=123456)
-    self.assertEquals(len(j.bots), 4)
+    self.assertEqual(len(j.bots), 4)
 
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 class RetryTest(test.TestCase):
-
-  def setUp(self):
-    super(RetryTest, self).setUp()
 
   def testStarted_RecoverableError_BacksOff(self):
     j = job.Job.New((), (), comparison_mode='performance')
@@ -204,6 +201,8 @@ class RetryTest(test.TestCase):
 class BugCommentTest(test.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(BugCommentTest, self).setUp()
     self.add_bug_comment = mock.MagicMock()
     self.get_issue = mock.MagicMock()
@@ -396,8 +395,7 @@ class BugCommentTest(test.TestCase):
     def _GetIssue(bug_id, project='chromium'):
       if bug_id == '111222':
         return {'status': 'Duplicate', 'projectId': project, 'id': '111222'}
-      else:
-        return {'status': 'Untriaged', 'projectId': project, 'id': str(bug_id)}
+      return {'status': 'Untriaged', 'projectId': project, 'id': str(bug_id)}
 
     self.get_issue.side_effect = _GetIssue
     layered_cache.SetExternal('commit_hash_git_hash', 'chromium:111222')

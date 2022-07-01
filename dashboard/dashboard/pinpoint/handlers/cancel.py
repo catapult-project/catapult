@@ -63,8 +63,8 @@ if utils.IsRunningFlask():
           }), 400)
 
 else:
-  # pylint: disable=abstract-method
   class Cancel(api_request_handler.ApiRequestHandler):
+    # pylint: disable=abstract-method
 
     required_arguments = {'job_id', 'reason'}
 

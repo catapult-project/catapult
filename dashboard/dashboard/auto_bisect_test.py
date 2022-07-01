@@ -21,6 +21,8 @@ from dashboard.models import anomaly
 class StartNewBisectForBugTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(StartNewBisectForBugTest, self).setUp()
     self.SetCurrentUser('internal@chromium.org')
     namespaced_stored_object.Set('bot_configurations', {

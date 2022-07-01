@@ -24,6 +24,8 @@ from dashboard.models import graph_data
 class ListTestSuitesTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ListTestSuitesTest, self).setUp()
     app = webapp2.WSGIApplication([
         ('/update_test_suites', update_test_suites.UpdateTestSuitesHandler)

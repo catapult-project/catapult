@@ -27,6 +27,8 @@ class ExploreTest(test.TestCase):
     self.stream_handler = logging.StreamHandler(sys.stdout)
     self.logger.addHandler(self.stream_handler)
     self.addCleanup(self.logger.removeHandler, self.stream_handler)
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ExploreTest, self).setUp()
 
   def testDifferentWithMidpoint(self):
@@ -192,6 +194,8 @@ class ScheduleWorkTest(unittest.TestCase):
     expected_regexp = ('.*7/10.*\nInformationalError: Expected error for '
                        'testing.$')
     self.assertTrue(state.ScheduleWork())
+    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+    # pylint: disable=deprecated-method
     with self.assertRaisesRegexp(Exception, expected_regexp):
       self.assertFalse(state.ScheduleWork())
 
@@ -203,6 +207,8 @@ class ScheduleWorkTest(unittest.TestCase):
       state.AddChange(change_test.Change(i))
     self.assertEqual(len(state._changes), n)
     expected_regexp = ('Bisected max number of times: %d.+' % n)
+    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+    # pylint: disable=deprecated-method
     with self.assertRaisesRegexp(Exception, expected_regexp):
       state.AddChange(change_test.Change(123))
 

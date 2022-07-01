@@ -26,6 +26,8 @@ from tracing.value.diagnostics import generic_set
 class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(UpdateTestSuiteDescriptorsTest, self).setUp()
     handler = update_test_suite_descriptors.UpdateTestSuiteDescriptorsHandler
     self.SetUpApp([('/update_test_suite_descriptors', handler)])
@@ -65,6 +67,8 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
     # to global state like SetPrivilegedRequest, so set privileged=False as the
     # taskqueue does, and test that UpdateDescriptor sets it back to True so
     # that it gets the internal TestMetadata.
+    # TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+    # pylint: disable=useless-object-inheritance
     class FakeRequest(object):
 
       def __init__(self):

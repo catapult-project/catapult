@@ -181,6 +181,8 @@ _UNITS_TO_DIRECTION_DICT = {
 class AddPointTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(AddPointTest, self).setUp()
     app = webapp2.WSGIApplication([('/add_point', add_point.AddPointHandler),
                                    ('/add_point_queue',

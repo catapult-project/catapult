@@ -97,9 +97,9 @@ class RecordTimingTest(test.TestCase):
             'story': 'bar1'
         }, now - datetime.timedelta(minutes=1), now)
 
-    median = math_utils.Median([i for i in range(0, 10)])
-    std_dev = math_utils.StandardDeviation([i for i in range(0, 10)])
-    p90 = math_utils.Percentile([i for i in range(0, 10)], 0.9)
+    median = math_utils.Median(list(range(0, 10)))
+    std_dev = math_utils.StandardDeviation(list(range(0, 10)))
+    p90 = math_utils.Percentile(list(range(0, 10)), 0.9)
     for i in range(0, 10):
       j = self._RecordTiming(
           {

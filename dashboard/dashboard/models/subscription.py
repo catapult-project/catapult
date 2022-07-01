@@ -10,6 +10,8 @@ from google.appengine.ext import ndb
 from dashboard.common import defaults
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class _Visibility(object):
   """Mirror of sheriff_pb2.Subscription.VisibilityTag."""
   # This needs to be kept in sync with sheriff_pb2.Subscription.VisibilityTag.

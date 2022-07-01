@@ -90,8 +90,10 @@ class TTestTest(unittest.TestCase):
     stats2 = ttest.SampleStats(mean=0.307, var=0.08, size=165)
     # Note that a negative t-value is obtained when the first sample has a
     # smaller mean than the second, otherwise a positive value is returned.
-    self.assertAlmostEqual(-0.27968236, ttest._TValue(stats1, stats2))
-    self.assertAlmostEqual(0.27968236, ttest._TValue(stats2, stats1))
+    self.assertAlmostEqual(-0.27968236,
+                           ttest._TValue(stats1=stats1, stats2=stats2))
+    self.assertAlmostEqual(0.27968236,
+                           ttest._TValue(stats1=stats2, stats2=stats1))
 
   def testTValue_ConstantSamples_ResultIsInfinity(self):
     """If there is no variation, infinity is used as the t-statistic value."""

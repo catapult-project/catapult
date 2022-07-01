@@ -49,6 +49,8 @@ class _QuestStub(quest.Quest):
 class ExecutionResults(execution_test._ExecutionStub):
 
   def __init__(self, c):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ExecutionResults, self).__init__()
     self._result_for_test = _RESULTS_BY_CHANGE[str(c)]
 
@@ -71,6 +73,8 @@ def _FakeTasklet(*args):
 class UpdateDashboardStatsTest(test.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(UpdateDashboardStatsTest, self).setUp()
     app = webapp2.WSGIApplication([
         ('/update_dashboard_stats',

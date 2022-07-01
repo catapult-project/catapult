@@ -97,7 +97,7 @@ if utils.IsRunningFlask():
 
       return isolate_infos
 
-    elif request.method == 'GET':
+    if request.method == 'GET':
       validators = {
           'builder_name': str,
           'change': (lambda x: change_module.Change.FromDict(json.loads(x))),
@@ -116,10 +116,10 @@ if utils.IsRunningFlask():
         return make_response(json.dumps({'error': str(e)}), 404)
 
       return {'isolate_server': isolate_server, 'isolate_hash': isolate_hash}
-
+    return {}
 else:
-  # pylint: disable=abstract-method
   class Isolate(api_request_handler.ApiRequestHandler):
+    # pylint: disable=abstract-method
     """Handler for managing isolates.
 
     A post request adds new isolate information.

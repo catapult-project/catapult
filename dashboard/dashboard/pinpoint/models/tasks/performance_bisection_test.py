@@ -20,6 +20,8 @@ from dashboard.pinpoint.models.tasks import bisection_test_util
 class EvaluatorTest(bisection_test_util.BisectionTestBase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(EvaluatorTest, self).setUp()
     self.maxDiff = None
     with mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
@@ -74,7 +76,7 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
 
     # Here we're testing that we can find the change between commit_1 and
     # commit_2 in the values we seed above.
-    self.assertEquals(evaluate_result['performance_bisection']['culprits'], [[
+    self.assertEqual(evaluate_result['performance_bisection']['culprits'], [[
         change_module.Change.FromDict({
             'commits': [{
                 'repository': 'chromium',
@@ -140,8 +142,8 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
         self.job, bisection_test_util.SelectEvent(),
         evaluators.Selector(task_type='find_culprit'))
     self.assertIn('performance_bisection', evaluate_result)
-    self.assertEquals(evaluate_result['performance_bisection']['culprits'],
-                      [mock.ANY, mock.ANY, mock.ANY])
+    self.assertEqual(evaluate_result['performance_bisection']['culprits'],
+                     [mock.ANY, mock.ANY, mock.ANY])
 
   def testEvaluateFailure_DependenciesFailed(self):
     self.PopulateSimpleBisectionGraph(self.job)

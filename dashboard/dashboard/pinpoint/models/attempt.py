@@ -7,6 +7,8 @@ from __future__ import division
 from __future__ import absolute_import
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class Attempt(object):
   """One run of all the Quests on a Change.
 

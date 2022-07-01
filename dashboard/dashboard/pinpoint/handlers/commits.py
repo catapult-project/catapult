@@ -37,8 +37,8 @@ if utils.IsRunningFlask():
     except request.RequestError as e:
       raise api_request_handler.BadRequestError(str(e))
 else:
-  # pylint: disable=abstract-method
   class Commits(api_request_handler.ApiRequestHandler):
+    # pylint: disable=abstract-method
 
     def _CheckUser(self):
       pass

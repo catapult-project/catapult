@@ -59,15 +59,11 @@ class JobError(Exception):
 
 
 class FatalError(JobError):
-
-  def __init__(self, message):
-    super(FatalError, self).__init__(message)
+  pass
 
 
 class InformationalError(JobError):
-
-  def __init__(self, message):
-    super(InformationalError, self).__init__(message)
+  pass
 
 
 # Not a JobError because this is only used for internal control flow -- this
@@ -76,6 +72,8 @@ class RecoverableError(Exception):
   """An error that is usually transient, so the operation should be retried."""
 
   def __init__(self, wrapped_exc):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(RecoverableError, self).__init__()
     self.wrapped_exc = wrapped_exc
 
@@ -88,6 +86,8 @@ class BuildIsolateNotFound(FatalError):
   category = 'build'
 
   def __init__(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(BuildIsolateNotFound, self).__init__(
         'The build was reported to have completed successfully, but Pinpoint '\
         'is unable to find the isolate that was produced and will be unable '\
@@ -98,6 +98,8 @@ class BuildFailed(InformationalError):
   category = 'build'
 
   def __init__(self, reason):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(BuildFailed, self).__init__(
         'Encountered an %s error while attempting to build this revision. '\
         'Pinpoint will be unable to run any tests against this '\
@@ -105,14 +107,14 @@ class BuildFailed(InformationalError):
 
 
 class BuildFailedFatal(BuildFailed, FatalError):
-
-  def __init__(self, reason):
-    super(BuildFailedFatal, self).__init__(reason)
+  pass
 
 
 class BuildCancelled(InformationalError):
 
   def __init__(self, reason):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(BuildCancelled,
           self).__init__('The build was cancelled with reason: %s. "\
         "Pinpoint will be unable to run any tests against this "\
@@ -120,15 +122,15 @@ class BuildCancelled(InformationalError):
 
 
 class BuildCancelledFatal(BuildCancelled, FatalError):
-
-  def __init__(self, reason):
-    super(BuildCancelledFatal, self).__init__(reason)
+  pass
 
 
 class BuildNumberExceeded(InformationalError):
 
   def __init__(self, reason):
     # pylint: disable=line-too-long
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(BuildNumberExceeded,
           self).__init__('Bisected max number of times: %d. To bisect further, consult '\
             'https://chromium.googlesource.com/catapult/+/HEAD/dashboard/dashboard/pinpoint/docs/abort_error.md' % reason)
@@ -137,6 +139,8 @@ class BuildNumberExceeded(InformationalError):
 class BuildGerritUrlNotFound(InformationalError):
 
   def __init__(self, reason):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(BuildGerritUrlNotFound, self).__init__(
         'Unable to find gerrit url for commit %s. Pinpoint will be unable '\
         'to run any tests against this revision.' % reason)
@@ -145,6 +149,8 @@ class BuildGerritURLInvalid(InformationalError):
   category = 'request'
 
   def __init__(self, reason):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(BuildGerritURLInvalid, self).__init__(
         'Invalid url: %s. Pinpoint currently only supports the fully '\
         'redirected patch URL, ie. https://chromium-review.googlesource.com/'\
@@ -153,6 +159,8 @@ class BuildGerritURLInvalid(InformationalError):
 class CancelError(InformationalError):
 
   def __init__(self, reason):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(CancelError,
           self).__init__('Cancellation request failed: {}'.format(reason))
 
@@ -161,6 +169,8 @@ class SwarmingExpired(FatalError):
   category = 'pinpoint'
 
   def __init__(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(SwarmingExpired, self).__init__(
         'The test was successfully queued in swarming, but expired. This is '\
         'likely due to the bots being overloaded, dead, or misconfigured. '\
@@ -173,6 +183,8 @@ class SwarmingTaskError(InformationalError):
   category = 'test'
 
   def __init__(self, reason):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(SwarmingTaskError, self).__init__(
         'The swarming task failed with state "%s". This generally indicates '\
         'that the test was successfully started, but was stopped prematurely. '\
@@ -186,6 +198,8 @@ class SwarmingTaskFailed(InformationalError):
   category = 'test'
 
   def __init__(self, task_output):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(SwarmingTaskFailed, self).__init__(
         'The test ran but failed. This is likely to a problem with the test '
         'itself either being broken or flaky in the range specified.\n\n'
@@ -199,6 +213,8 @@ class SwarmingNoBots(InformationalError):
   category = 'request'
 
   def __init__(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(SwarmingNoBots, self).__init__(
         "There doesn't appear to be any bots available to run the "\
         'performance test. Either all the swarming devices are offline, or '\
@@ -210,6 +226,8 @@ class ReadValueNoValues(InformationalError):
   category = 'test'
 
   def __init__(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ReadValueNoValues, self).__init__(
         'The test ran successfully, but the output failed to contain any '\
         'valid values. This is likely due to a problem with the test itself '\
@@ -221,6 +239,8 @@ class ReadValueNotFound(InformationalError):
   category = 'request'
 
   def __init__(self, reason):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ReadValueNotFound, self).__init__(
         "The test ran successfully, but the metric specified (%s) wasn't "\
         'found in the output. Either the metric specified was invalid, or '\
@@ -232,6 +252,8 @@ class ReadValueUnknownStat(InformationalError):
   category = 'pinpoint'
 
   def __init__(self, reason):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ReadValueUnknownStat, self).__init__(
         "The test ran successfully, but the statistic specified (%s) wasn't "\
         'found in the output. Either the metric specified was invalid, '\
@@ -243,6 +265,8 @@ class ReadValueChartNotFound(InformationalError):
   category = 'request'
 
   def __init__(self, reason):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ReadValueChartNotFound, self).__init__(
         "The test ran successfully, but the chart specified (%s) wasn't "\
         'found in the output. Either the chart specified was invalid, or '\
@@ -254,6 +278,8 @@ class ReadValueTraceNotFound(InformationalError):
   category = 'request'
 
   def __init__(self, reason):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ReadValueTraceNotFound, self).__init__(
         "The test ran successfully, but the trace specified (%s) wasn't "\
         'found in the output. Either the trace specified was invalid, or '\
@@ -265,6 +291,8 @@ class ReadValueNoFile(InformationalError):
   category = 'test'
 
   def __init__(self, reason):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ReadValueNoFile, self).__init__(
         'The test ran successfully but failed to produce an expected '\
         'output file: %s. This is likely due to a problem with the test '\
@@ -276,6 +304,8 @@ class ReadValueUnknownFormat(InformationalError):
   category = 'request'
 
   def __init__(self, reason):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ReadValueUnknownFormat, self).__init__(
         'The test ran successfully but produced a format that Pinpoint could '
         'not parse properly. Please see the file "%s" and potentially file an '
@@ -285,6 +315,8 @@ class ReadValueUnknownFormat(InformationalError):
 class AllRunsFailed(FatalError):
 
   def __init__(self, exc_count, att_count, exc):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(AllRunsFailed, self).__init__(
         'All of the runs failed. The most common error (%d/%d runs) '\
         'was:\n%s' % (exc_count, att_count, exc))
@@ -296,6 +328,8 @@ class AllRunsFailed(FatalError):
 class JobRetryError(JobError):
 
   def __init__(self, message, category=None, wrapped_exc=None):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(JobRetryError, self).__init__()
     self.message = message
     self.category = category
@@ -330,6 +364,8 @@ class ExecutionEngineErrors(FatalError):
   category = 'pinpoint'
 
   def __init__(self, errors):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ExecutionEngineErrors, self).__init__(
         'Encountered fatal errors executing under the execution engine.\n'
         'All errors:\n %s' % (pprint.pformat(errors),),)

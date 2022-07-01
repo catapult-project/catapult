@@ -51,6 +51,8 @@ METRICS = [
 class JsTsMonHandler(TSMonJSHandler):
 
   def __init__(self, request=None, response=None):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(JsTsMonHandler, self).__init__(request, response)
     self.register_metrics(METRICS)
 

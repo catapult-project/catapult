@@ -33,6 +33,8 @@ RECENT_REV = speed_releasing.CHROMIUM_MILESTONES[
 class SpeedReleasingTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(SpeedReleasingTest, self).setUp()
     app = webapp2.WSGIApplication([(r'/speed_releasing/(.*)',
                                     speed_releasing.SpeedReleasingHandler)])
@@ -42,6 +44,8 @@ class SpeedReleasingTest(testing_common.TestCase):
     self.SetCurrentUser('internal@chromium.org', is_admin=True)
 
   def tearDown(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(SpeedReleasingTest, self).tearDown()
     self.UnsetCurrentUser()
 

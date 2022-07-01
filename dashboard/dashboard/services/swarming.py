@@ -19,6 +19,8 @@ from dashboard.services import request
 _API_PATH = '_ah/api/swarming/v1'
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class Swarming(object):
 
   def __init__(self, server):
@@ -37,6 +39,8 @@ class Swarming(object):
     return Tasks(self._server)
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class Bot(object):
 
   def __init__(self, server, bot_id):
@@ -59,6 +63,8 @@ class Bot(object):
     return request.RequestJson(url, **kwargs)
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class Bots(object):
 
   def __init__(self, server):
@@ -85,6 +91,8 @@ class Bots(object):
         quarantined=quarantined)
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class Task(object):
 
   def __init__(self, server, task_id):
@@ -120,6 +128,8 @@ class Task(object):
     return request.RequestJson(url, **kwargs)
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class Tasks(object):
 
   def __init__(self, server):
@@ -153,8 +163,7 @@ def GetAliveBotsByDimensions(dimensions, swarming_server):
     bots = [i['bot_id'] for i in results['items']]
     random.shuffle(bots)
     return bots
-  else:
-    return []
+  return []
 
 
 def IsBotAlive(bot_id, swarming_server):

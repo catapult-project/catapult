@@ -23,6 +23,8 @@ def GetSheriffConfigClient():
   return GetSheriffConfigClient._client
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class SheriffConfigClient(object):
   """Wrapping of sheriff-config HTTP API."""
 
@@ -33,9 +35,13 @@ class SheriffConfigClient(object):
     # Defer as many imports as possible until here, to ensure AppEngine
     # workarounds for protobuf import paths are fully installed.
     self._InitSession()
+    # pylint: disable=import-outside-toplevel
     from dashboard.common.utils import GetEmail
+    # pylint: disable=import-outside-toplevel
     from dashboard.models.subscription import Subscription, AnomalyConfig
+    # pylint: disable=import-outside-toplevel
     from google.protobuf import json_format
+    # pylint: disable=import-outside-toplevel
     from dashboard import sheriff_config_pb2
     self._GetEmail = GetEmail  # pylint: disable=invalid-name
     SheriffConfigClient._Subscription = Subscription
@@ -44,8 +50,11 @@ class SheriffConfigClient(object):
     self._sheriff_config_pb2 = sheriff_config_pb2
 
   def _InitSession(self):
+    # pylint: disable=import-outside-toplevel
     import google.auth
+    # pylint: disable=import-outside-toplevel
     from google.auth import jwt
+    # pylint: disable=import-outside-toplevel
     from google.auth.transport.requests import AuthorizedSession
     credentials, _ = google.auth.default(
         scopes=['https://www.googleapis.com/auth/userinfo.email'])

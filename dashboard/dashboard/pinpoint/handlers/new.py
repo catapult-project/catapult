@@ -90,8 +90,8 @@ if utils.IsRunningFlask():
         'jobUrl': job.url,
     }
 else:
-  # pylint: disable=abstract-method
   class New(api_request_handler.ApiRequestHandler):
+    # pylint: disable=abstract-method
     """Handler that cooks up a fresh Pinpoint job."""
 
     def _CheckUser(self):
@@ -301,6 +301,8 @@ def _ArgumentsWithConfiguration(original_arguments):
   return new_arguments
 
 
+# TODO(https://crbug.com/1262292): raise directly after Python2 trybots retire.
+# pylint: disable=inconsistent-return-statements
 def _ValidateBugId(bug_id, project):
   if not bug_id:
     return None, None
@@ -315,6 +317,8 @@ def _ValidateBugId(bug_id, project):
     six.raise_from(ValueError(_ERROR_BUG_ID), e)
 
 
+# TODO(https://crbug.com/1262292): raise directly after Python2 trybots retire.
+# pylint: disable=inconsistent-return-statements
 def _ValidatePriority(priority):
   if not priority:
     return None
@@ -386,6 +390,8 @@ def _ValidateChangesForTry(arguments):
   return change_1, change_2
 
 
+# TODO(https://crbug.com/1262292): raise directly after Python2 trybots retire.
+# pylint: disable=inconsistent-return-statements
 def _ValidateChanges(comparison_mode, arguments):
   try:
     changes = arguments.get('changes')

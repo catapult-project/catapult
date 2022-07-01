@@ -186,11 +186,11 @@ def GetIterationCount(initial_attempt_count, bot_count):
 
   if bot_count >= initial_attempt_count:
     return initial_attempt_count
-  else:
-    repeats = initial_attempt_count // bot_count
-    if repeats * bot_count < initial_attempt_count:
-      repeats += 1
-    return repeats * bot_count
+
+  repeats = initial_attempt_count // bot_count
+  if repeats * bot_count < initial_attempt_count:
+    repeats += 1
+  return repeats * bot_count
 
 
 class Job(ndb.Model):
@@ -349,7 +349,7 @@ class Job(ndb.Model):
       A Job object.
     """
     bots = swarming.GetAliveBotsByDimensions(dimensions, swarming_server)
-    if not len(bots):
+    if not bots:
       raise errors.SwarmingNoBots()
 
     # For A/B ordering to be equal, we need an even number of bots (or one)
@@ -505,7 +505,7 @@ class Job(ndb.Model):
         task_module.Evaluate(
             self,
             event_module.Event(type='initiate', target_task=None, payload={}),
-            task_evaluator.ExecutionEngine(self)),
+            task_evaluator.ExecutionEngine(self))
       except task_module.Error as error:
         logging.error('Failed: %s', error)
         self.Fail()

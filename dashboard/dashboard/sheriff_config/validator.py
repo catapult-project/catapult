@@ -34,6 +34,8 @@ class MissingFields(Error):
   """
 
   def __init__(self, message, index, field):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(MissingFields, self).__init__()
     self.message = message
     self.index = index
@@ -48,6 +50,8 @@ class MissingEmail(MissingFields):
   """Raised when a subscription is missing a contact_email field."""
 
   def __init__(self, message, index):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(MissingEmail, self).__init__(message, index, 'contact_email')
 
 
@@ -55,6 +59,8 @@ class MissingName(MissingFields):
   """Raised when a subscription is missing a name."""
 
   def __init__(self, message, index):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(MissingName, self).__init__(message, index, 'name')
 
 
@@ -62,6 +68,8 @@ class MissingPatterns(MissingFields):
   """Raised when a subscription has no patterns."""
 
   def __init__(self, message, index):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(MissingPatterns, self).__init__(message, index, 'patterns')
 
 
@@ -74,6 +82,8 @@ class InvalidPattern(MissingFields):
   """
 
   def __init__(self, message, index, pattern_index, reason, group):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(InvalidPattern, self).__init__(message, index, 'patterns')
     self.pattern_index = pattern_index
     self.reason = reason
@@ -99,6 +109,8 @@ def Validate(content):
   try:
     result = text_format.Parse(content, sheriff_pb2.SheriffConfig())
   except text_format.ParseError as error:
+    # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
+    # pylint: disable=raise-missing-from
     raise InvalidConfig('SheriffConfig Validation Error: %s' % (error))
 
   # Go through each of the subscriptions, and ensure we find the semantically
@@ -108,15 +120,17 @@ def Validate(content):
     if field is None:
       raise InvalidPattern(result, index, pattern_idx,
                            'must provide either \'glob\' or \'regex\'', group)
-    elif field == 'glob' and len(pattern.glob) == 0:
+    if field == 'glob' and len(pattern.glob) == 0:
       raise InvalidPattern(result, index, pattern_idx, 'glob must not be empty',
                            group)
-    elif field == 'regex' and len(pattern.regex) == 0:
+    if field == 'regex' and len(pattern.regex) == 0:
       raise InvalidPattern(result, index, pattern_idx,
                            'regex must not be empty', group)
     try:
       matcher.CompilePattern(pattern)
     except re2.error as e:
+      # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
+      # pylint: disable=raise-missing-from
       raise InvalidPattern(result, index, pattern_idx, 'failed: %s' % (e,),
                            group)
 

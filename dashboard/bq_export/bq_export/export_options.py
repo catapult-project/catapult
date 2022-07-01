@@ -46,6 +46,8 @@ class BqExportOptions(PipelineOptions):
     return _TimeRangeProvider(self.end_date, self.num_days)
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class _TimeRangeProvider(object):
   """A ValueProvider-like based on the end_date and num_days ValueProviders.
 

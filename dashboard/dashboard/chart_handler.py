@@ -20,11 +20,15 @@ class ChartHandler(request_handler.RequestHandler):
     template_values.update(self._GetChartValues())
     template_values['revision_info'] = json.dumps(
         template_values['revision_info'])
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     return super(ChartHandler, self).RenderHtml(template_file, template_values,
                                                 status)
 
   def GetDynamicVariables(self, template_values, request_path=None):
     template_values.update(self._GetChartValues())
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ChartHandler, self).GetDynamicVariables(template_values, request_path)
 
   def _GetChartValues(self):

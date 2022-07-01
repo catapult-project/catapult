@@ -143,6 +143,7 @@ def _AllSdkThirdPartyLibraryPaths():
     sys.path.insert(0, appengine_path)
 
   try:
+    # pylint: disable=import-outside-toplevel
     import dev_appserver
   except ImportError:
     # TODO: Put the Cloud SDK in the path with the binary dependency manager.

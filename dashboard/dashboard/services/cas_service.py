@@ -23,6 +23,8 @@ def GetRBECASService():
   return GetRBECASService._client
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class RBECASService(object):
 
   def __init__(self):

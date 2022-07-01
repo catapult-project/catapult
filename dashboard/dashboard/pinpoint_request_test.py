@@ -60,6 +60,8 @@ def GenerateBisectRequestParams(params):
 class PinpointNewPrefillRequestHandlerTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(PinpointNewPrefillRequestHandlerTest, self).setUp()
 
     app = webapp2.WSGIApplication([
@@ -79,6 +81,8 @@ class PinpointNewPrefillRequestHandlerTest(testing_common.TestCase):
 class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(PinpointNewPerfTryRequestHandlerTest, self).setUp()
 
     app = webapp2.WSGIApplication([
@@ -298,6 +302,8 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
 class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(PinpointNewBisectRequestHandlerTest, self).setUp()
 
     app = webapp2.WSGIApplication([
@@ -761,6 +767,8 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
 class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(PinpointNewBisectComparisonMagnitude, self).setUp()
 
     self.SetCurrentUser('foo@chromium.org')

@@ -8,10 +8,12 @@ from __future__ import absolute_import
 
 import collections
 import functools
-from six.moves import http_client
 import logging
 
 from google.appengine.api import urlfetch_errors
+
+from six.moves import http_client
+from six.moves import map  # pylint: disable=redefined-builtin
 
 from dashboard.common import math_utils
 from dashboard.pinpoint.models import attempt as attempt_module
@@ -19,7 +21,6 @@ from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import compare
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import exploration
-from six.moves import map # pylint: disable=redefined-builtin
 
 # We start with 10 attempts at a given change and double until we reach 160
 # attempts max (that's 4 iterations).
@@ -34,6 +35,8 @@ TRY = 'try'
 COMPARISON_MODES = (FUNCTIONAL, PERFORMANCE, TRY)
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class JobState(object):
   """The internal state of a Job.
 
@@ -350,7 +353,7 @@ class JobState(object):
         )
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
-        elif comparison == compare.UNKNOWN:
+        if comparison == compare.UNKNOWN:
           any_unknowns = True
 
       # Compare result values by consolidating all measurments by change, and
@@ -383,7 +386,7 @@ class JobState(object):
         )
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
-        elif comparison == compare.UNKNOWN:
+        if comparison == compare.UNKNOWN:
           any_unknowns = True
 
     if any_unknowns:

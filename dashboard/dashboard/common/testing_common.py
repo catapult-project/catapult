@@ -42,6 +42,8 @@ EXTERNAL_USER = users.User(
     email='external@example.com', _auth_domain='example.com')
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class FakeRequestObject(object):
   """Fake Request object which can be used by datastore_hooks mocks."""
 
@@ -50,6 +52,8 @@ class FakeRequestObject(object):
     self.remote_addr = remote_addr
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class FakeResponseObject(object):
   """Fake Response Object which can be returned by urlfetch mocks."""
 
@@ -123,7 +127,7 @@ class TestCase(unittest.TestCase):
       responses.append(
           self.Post(
               handler_name,
-              six.moves.urllib.parse.unquote_plus(  # pylint: disable=too-many-function-args
+              six.moves.urllib.parse.unquote_plus(
                   base64.b64decode(task['body']))))
       if recurse:
         responses.extend(
@@ -333,6 +337,8 @@ def SetIpAllowlist(ip_addresses):
 
 
 # TODO(fancl): Make it a "real" fake issue tracker.
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class FakeIssueTrackerService(object):
   """A fake version of IssueTrackerService that saves call values."""
 
@@ -447,6 +453,8 @@ class FakeIssueTrackerService(object):
     return self.issue_comments.get((project, issue_id), [])
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class FakeSheriffConfigClient(object):
 
   def __init__(self):
@@ -461,6 +469,8 @@ class FakeSheriffConfigClient(object):
     return [], None
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class FakeCrrev(object):
 
   def __init__(self):
@@ -478,6 +488,8 @@ class FakeCrrev(object):
     return self._response
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class FakePinpoint(object):
 
   def __init__(self):
@@ -496,6 +508,8 @@ class FakePinpoint(object):
     return self._response
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class FakeGitiles(object):
 
   def __init__(self, repo_commit_list=None):
@@ -506,6 +520,8 @@ class FakeGitiles(object):
     return self._repo_commit_list.get(repo, {}).get(revision, {})
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class FakeRevisionInfoClient(object):
 
   def __init__(self, infos, revisions):
@@ -533,6 +549,8 @@ class FakeRevisionInfoClient(object):
     return infos
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class FakeCASClient(object):
 
   _trees = {}

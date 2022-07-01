@@ -20,6 +20,7 @@ class DispatcherTest(unittest.TestCase):
     os.environ['CURRENT_MODULE_ID'] = ''
     os.environ['CURRENT_VERSION_ID'] = ''
 
+    # pylint: disable=import-outside-toplevel
     from dashboard import dispatcher  # pylint: disable=unused-import
 
 

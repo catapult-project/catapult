@@ -55,6 +55,9 @@ class ReadValue(quest.Quest):
             and self._statistic == other._statistic
             and self._chart == other._chart)
 
+  def __hash__(self):
+    return hash(self.__str__())
+
   def __str__(self):
     return 'Get values'
 
@@ -111,6 +114,8 @@ class ReadValueExecution(execution.Execution):
   def __init__(self, results_filename, results_path, metric, grouping_label,
                trace_or_story, statistic, chart, isolate_server, isolate_hash,
                cas_root_ref=None):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ReadValueExecution, self).__init__()
     self._results_filename = results_filename
     self._results_path = results_path
@@ -186,6 +191,8 @@ class ReadValueExecution(execution.Execution):
         result_values = self._ParseGraphJson(json_data)
         self._mode = 'graphjson'
         logging.debug('Succeess.')
+      # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
+      # pylint: disable=try-except-raise
       except (errors.ReadValueChartNotFound, errors.ReadValueTraceNotFound,
               errors.FatalError):
         raise
@@ -206,6 +213,8 @@ class ReadValueExecution(execution.Execution):
       elif proto_data is not None:
         histograms.ImportProto(proto_data)
     except BaseException:
+      # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
+      # pylint: disable=raise-missing-from
       raise errors.ReadValueUnknownFormat(self._results_filename)
 
     self._trace_urls = FindTraceUrls(histograms)
@@ -291,15 +300,15 @@ def _GetValuesOrStatistic(statistic, hist):
   # js.
   if statistic == 'avg':
     return [hist.running.mean]
-  elif statistic == 'min':
+  if statistic == 'min':
     return [hist.running.min]
-  elif statistic == 'max':
+  if statistic == 'max':
     return [hist.running.max]
-  elif statistic == 'sum':
+  if statistic == 'sum':
     return [hist.running.sum]
-  elif statistic == 'std':
+  if statistic == 'std':
     return [hist.running.stddev]
-  elif statistic == 'count':
+  if statistic == 'count':
     return [hist.running.count]
   raise errors.ReadValueUnknownStat(statistic)
 
@@ -416,14 +425,14 @@ def ExtractValuesFromHistograms(test_paths_to_match, histograms_by_path,
   if not result_values and histogram_name:
     if matching_histograms:
       raise errors.ReadValueNoValues()
-    else:
-      conditions = {'histogram': histogram_name}
-      if grouping_label:
-        conditions['grouping_label'] = grouping_label
-      if story:
-        conditions['story'] = story
-      reason = ', '.join(list(':'.join(i) for i in conditions.items()))
-      raise errors.ReadValueNotFound(reason)
+
+    conditions = {'histogram': histogram_name}
+    if grouping_label:
+      conditions['grouping_label'] = grouping_label
+    if story:
+      conditions['story'] = story
+    reason = ', '.join(list(':'.join(i) for i in conditions.items()))
+    raise errors.ReadValueNotFound(reason)
   return result_values
 
 
@@ -454,6 +463,9 @@ class ReadHistogramsJsonValue(quest.Quest):
             and self._grouping_label == other._grouping_label
             and self.trace_or_story == other.trace_or_story
             and self._statistic == other._statistic)
+
+  def __hash__(self):
+    return hash(self.__str__())
 
   def __str__(self):
     return 'Get results'
@@ -503,6 +515,8 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
 
   def __init__(self, results_filename, hist_name, grouping_label,
                trace_or_story, statistic, isolate_server, isolate_hash):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(_ReadHistogramsJsonValueExecution, self).__init__()
     self._results_filename = results_filename
     self._hist_name = hist_name
@@ -580,6 +594,9 @@ class ReadGraphJsonValue(quest.Quest):
             and self._results_filename == other._results_filename
             and self._chart == other._chart and self._trace == other._trace)
 
+  def __hash__(self):
+    return hash(self.__str__())
+
   def __str__(self):
     return 'Get results'
 
@@ -614,6 +631,8 @@ class _ReadGraphJsonValueExecution(execution.Execution):
 
   def __init__(self, results_filename, chart, trace, isolate_server,
                isolate_hash):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(_ReadGraphJsonValueExecution, self).__init__()
     self._results_filename = results_filename
     self._chart = chart

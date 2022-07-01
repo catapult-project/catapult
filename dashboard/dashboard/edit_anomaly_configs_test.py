@@ -29,6 +29,8 @@ class EditAnomalyConfigsTest(testing_common.TestCase):
   # Each post request is either a request to add an entity or to edit one.
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(EditAnomalyConfigsTest, self).setUp()
     app = webapp2.WSGIApplication([
         ('/edit_anomaly_configs',
@@ -38,6 +40,8 @@ class EditAnomalyConfigsTest(testing_common.TestCase):
     self.testapp = webtest.TestApp(app)
 
   def tearDown(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(EditAnomalyConfigsTest, self).tearDown()
     self.UnsetCurrentUser()
 

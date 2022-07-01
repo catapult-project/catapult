@@ -44,6 +44,8 @@ _ALT_SAMPLE_TABLE_CONFIG = {
 class CreateHealthReportTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(CreateHealthReportTest, self).setUp()
     app = webapp2.WSGIApplication([
         ('/create_health_report',
@@ -55,6 +57,8 @@ class CreateHealthReportTest(testing_common.TestCase):
     self.SetCurrentUser('internal@chromium.org', is_admin=True)
 
   def tearDown(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(CreateHealthReportTest, self).tearDown()
     self.UnsetCurrentUser()
 

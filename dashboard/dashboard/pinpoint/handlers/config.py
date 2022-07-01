@@ -20,8 +20,8 @@ if utils.IsRunningFlask():
     return {'configurations': bot_configurations.List()}
 
 else:
-  # pylint: disable=abstract-method
   class Config(api_request_handler.ApiRequestHandler):
+    # pylint: disable=abstract-method
     """Handler returning site configuration details."""
 
     def _CheckUser(self):

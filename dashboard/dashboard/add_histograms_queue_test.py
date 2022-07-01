@@ -79,6 +79,8 @@ TEST_OWNERS = {
 class AddHistogramsQueueTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(AddHistogramsQueueTest, self).setUp()
     app = webapp2.WSGIApplication([
         ('/add_histograms_queue',
@@ -618,6 +620,8 @@ class AddHistogramsQueueTest(testing_common.TestCase):
 class AddHistogramsQueueTestWithUploadCompletionToken(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(AddHistogramsQueueTestWithUploadCompletionToken, self).setUp()
     app = webapp2.WSGIApplication([
         ('/add_histograms_queue',

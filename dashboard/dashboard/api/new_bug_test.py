@@ -19,6 +19,8 @@ from dashboard.models import graph_data
 class NewBugTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(NewBugTest, self).setUp()
     self.SetUpApp([('/api/new_bug', new_bug.NewBugHandler)])
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])

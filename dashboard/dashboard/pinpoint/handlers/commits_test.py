@@ -14,6 +14,8 @@ from dashboard.pinpoint import test
 from dashboard.services import request
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class MockCommit(object):
 
   def __init__(self, url, msg):

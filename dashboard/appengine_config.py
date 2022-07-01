@@ -30,6 +30,7 @@ if sys.version_info.major == 2:
                                                  ['chromeos-peng-performance'])
 
   def webapp_add_wsgi_middleware(app):
+    # pylint: disable=import-outside-toplevel
     from google.appengine.ext.appstats import recording
     app = recording.appstats_wsgi_middleware(app)
     return app

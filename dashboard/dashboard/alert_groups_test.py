@@ -33,6 +33,8 @@ _SERVICE_ACCOUNT_EMAIL = 'service-account@chromium.org'
                    lambda: _SERVICE_ACCOUNT_EMAIL)
 class GroupReportTestBase(testing_common.TestCase):
   def __init__(self, *args, **kwargs):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(GroupReportTestBase, self).__init__(*args, **kwargs)
     self.fake_issue_tracker = testing_common.FakeIssueTrackerService()
     self.fake_issue_tracker.comments.append({
@@ -47,6 +49,8 @@ class GroupReportTestBase(testing_common.TestCase):
         infos={}, revisions={})
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(GroupReportTestBase, self).setUp()
     self.maxDiff = None
     app = webapp2.WSGIApplication([('/alert_groups_update',
@@ -429,6 +433,8 @@ class GroupReportTest(GroupReportTestBase):
         'Chromeperf-Auto-Triaged'
     ])
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
+    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+    # pylint: disable=deprecated-method
     self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
                              r'Top 1 affected measurements in bot:')
     self.assertEqual(a.get().bug_id, 12345)
@@ -475,10 +481,16 @@ class GroupReportTest(GroupReportTestBase):
         'Chromeperf-Auto-Triaged'
     ])
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
+    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+    # pylint: disable=deprecated-method
     self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
                              r'Top 4 affected measurements in bot:')
+    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+    # pylint: disable=deprecated-method
     self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
                              r'Top 1 affected in test_suite:')
+    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+    # pylint: disable=deprecated-method
     self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
                              r'Top 1 affected in other_test_suite:')
     self.assertEqual(a.get().bug_id, 12345)
@@ -555,6 +567,8 @@ class GroupReportTest(GroupReportTestBase):
     self.assertEqual(self.fake_issue_tracker.add_comment_args[0], 12345)
     self.assertItemsEqual(
         self.fake_issue_tracker.add_comment_kwargs['components'], ['Foo>Bar'])
+    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+    # pylint: disable=deprecated-method
     self.assertRegexpMatches(self.fake_issue_tracker.add_comment_args[1],
                              r'Top 2 affected measurements in bot:')
 
@@ -597,6 +611,8 @@ class GroupReportTest(GroupReportTestBase):
 @mock.patch('dashboard.sheriff_config_client.GetSheriffConfigClient')
 class RecoveredAlertsTests(GroupReportTestBase):
   def __init__(self, *args, **kwargs):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(RecoveredAlertsTests, self).__init__(*args, **kwargs)
     self.anomalies = []
 
@@ -630,6 +646,8 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self.InitAfterMocks()
     self._CallHandler()
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
+    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+    # pylint: disable=deprecated-method
     self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
                              r'Top 1 affected measurements in bot:')
 
@@ -640,6 +658,8 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self.InitAfterMocks()
     self._CallHandler()
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
+    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+    # pylint: disable=deprecated-method
     self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
                              r'Top 1 affected measurements in bot:')
     # Mark one of the anomalies recovered.
@@ -648,6 +668,8 @@ class RecoveredAlertsTests(GroupReportTestBase):
     recovered_anomaly.put()
     self._CallHandler()
     self.assertEqual(self.fake_issue_tracker.issue['state'], 'closed')
+    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+    # pylint: disable=deprecated-method
     self.assertRegexpMatches(
         self.fake_issue_tracker.add_comment_args[1],
         r'All regressions for this issue have been marked recovered; closing.')
@@ -668,9 +690,13 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self._CallHandler()
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.add_comment_args[1])
     self.assertEqual(self.fake_issue_tracker.issue["state"], 'open')
+    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+    # pylint: disable=deprecated-method
     self.assertRegexpMatches(
         self.fake_issue_tracker.add_comment_args[1],
         r'Reopened due to new regressions detected for this alert group:')
+    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+    # pylint: disable=deprecated-method
     self.assertRegexpMatches(self.fake_issue_tracker.add_comment_args[1],
                              r'test_suite/measurement/other_test_case')
 
@@ -697,6 +723,8 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self._CallHandler()
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.add_comment_args[1])
     self.assertEqual(self.fake_issue_tracker.issue["state"], 'closed')
+    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
+    # pylint: disable=deprecated-method
     self.assertRegexpMatches(self.fake_issue_tracker.add_comment_args[1],
                              r'test_suite/measurement/other_test_case')
 

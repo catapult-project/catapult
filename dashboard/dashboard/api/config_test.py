@@ -20,6 +20,8 @@ from dashboard.common import testing_common
 class ConfigTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ConfigTest, self).setUp()
     self.SetUpApp([(r'/api/config', config.ConfigHandler)])
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])

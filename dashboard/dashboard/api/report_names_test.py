@@ -18,6 +18,8 @@ from dashboard.models import report_template
 class ReportNamesTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ReportNamesTest, self).setUp()
     self.SetUpApp([('/api/report_names', report_names.ReportNamesHandler)])
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])

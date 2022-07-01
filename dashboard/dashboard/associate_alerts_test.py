@@ -27,6 +27,8 @@ from dashboard.services import issue_tracker_service
 class AssociateAlertsTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(AssociateAlertsTest, self).setUp()
     app = webapp2.WSGIApplication([('/associate_alerts',
                                     associate_alerts.AssociateAlertsHandler)])

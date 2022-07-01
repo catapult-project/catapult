@@ -73,7 +73,8 @@ def _ArgSortReverse(a):
   """Returns the indices that would sort an array.
 
   Ties are given indices in reverse ordinal order."""
-  return list(reversed(sorted(list(range(len(a))), key=a.__getitem__, reverse=True)))
+  return list(
+      reversed(sorted(list(range(len(a))), key=a.__getitem__, reverse=True)))
 
 
 def _TieCorrectionFactor(rankvals):
@@ -83,8 +84,7 @@ def _TieCorrectionFactor(rankvals):
   size = len(arr)
   if size < 2:
     return 1.0
-  else:
-    return 1.0 - sum(x**3 - x for x in cnt) / float(size**3 - size)
+  return 1.0 - sum(x**3 - x for x in cnt) / float(size**3 - size)
 
 
 def _NormSf(x):

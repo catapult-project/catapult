@@ -20,6 +20,8 @@ from dashboard.models import anomaly
 class MainTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(MainTest, self).setUp()
     app = webapp2.WSGIApplication([('/', main.MainHandler)])
     self.testapp = webtest.TestApp(app)

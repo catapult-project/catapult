@@ -40,6 +40,8 @@ class ReadValueQuestTest(unittest.TestCase):
     self.stream_handler = logging.StreamHandler(sys.stdout)
     self.logger.addHandler(self.stream_handler)
     self.addCleanup(self.logger.removeHandler, self.stream_handler)
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ReadValueQuestTest, self).setUp()
 
   def testMinimumArguments(self):
@@ -147,6 +149,8 @@ class _ReadValueExecutionTest(unittest.TestCase):
         testing_common.FakeCASClient)
     cas_client.start()
     self.addCleanup(cas_client.stop)
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(_ReadValueExecutionTest, self).setUp()
 
   def SetOutputFileContents(self, contents):

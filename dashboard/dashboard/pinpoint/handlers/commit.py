@@ -18,6 +18,8 @@ if utils.IsRunningFlask():
   def _CheckUser():
     pass
 
+  # TODO(https://crbug.com/1262292): raise directly after Python2 trybots retire.
+  # pylint: disable=inconsistent-return-statements
   @api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
   def CommitHandlerPost():
     repository = request.args.get('repository', 'chromium')
@@ -33,12 +35,14 @@ if utils.IsRunningFlask():
           api_request_handler.BadRequestError('Unknown git hash: %s' %
                                               git_hash), e)
 else:
-  # pylint: disable=abstract-method
   class Commit(api_request_handler.ApiRequestHandler):
+    # pylint: disable=abstract-method
 
     def _CheckUser(self):
       pass
 
+    # TODO(https://crbug.com/1262292): raise directly after Python2 trybots retire.
+    # pylint: disable=inconsistent-return-statements
     def Post(self, *args, **kwargs):
       del args, kwargs  # Unused.
       repository = self.request.get('repository', 'chromium')

@@ -22,6 +22,8 @@ from dashboard.pinpoint import test
 class MigrateAuthTest(test.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(MigrateAuthTest, self).setUp()
 
     patcher = mock.patch.object(migrate, 'datetime', _DatetimeStub())
@@ -56,6 +58,8 @@ class MigrateAuthTest(test.TestCase):
 class MigrateTest(MigrateAuthTest):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(MigrateTest, self).setUp()
 
     print('MigrateTest')
@@ -120,9 +124,12 @@ def _JobStateSetState(self, state):
   self._new_field = 'new value'
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class _DatetimeStub(object):
 
-  # pylint: disable=invalid-name
+  # TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+  # pylint: disable=useless-object-inheritance,invalid-name
   class datetime(object):
 
     def isoformat(self):

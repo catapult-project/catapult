@@ -19,6 +19,8 @@ from dashboard.common import testing_common
 class LayeredCacheDeleteExpiredTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(LayeredCacheDeleteExpiredTest, self).setUp()
     app = webapp2.WSGIApplication([
         ('/delete_expired_entities',

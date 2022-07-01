@@ -22,6 +22,8 @@ TEST_SUITE_NAME = 'test_suite'
 class DescribeTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(DescribeTest, self).setUp()
     self.SetUpApp([(r'/api/describe', describe.DescribeHandler)])
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])

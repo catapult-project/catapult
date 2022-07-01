@@ -696,6 +696,8 @@ def _IsAcceptableRowId(row_id, last_row_id):
   return True
 
 
+# TODO(https://crbug.com/1262292): raise directly after Python2 trybots retire.
+# pylint: disable=inconsistent-return-statements
 def GetAndValidateRowId(row_dict):
   """Returns the integer ID for a new Row.
 

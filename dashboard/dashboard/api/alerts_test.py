@@ -22,6 +22,8 @@ from dashboard.models.subscription import Subscription
 class AlertsGeneralTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(AlertsGeneralTest, self).setUp()
     self.SetUpApp([('/api/alerts', alerts.AlertsHandler)])
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])

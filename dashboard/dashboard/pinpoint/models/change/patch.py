@@ -131,8 +131,7 @@ class GerritPatch(
     """
     if isinstance(data, six.string_types):
       return cls.FromUrl(data)
-    else:
-      return cls.FromDict(data)
+    return cls.FromDict(data)
 
   @classmethod
   def FromUrl(cls, url):
@@ -199,6 +198,8 @@ class GerritPatch(
       patch_info = gerrit_service.GetChange(
           server, change, fields=('ALL_REVISIONS',))
     except gerrit_service.NotFoundError as e:
+      # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
+      # pylint: disable=raise-missing-from
       raise KeyError(str(e))
     change = patch_info['id']
 
@@ -206,7 +207,7 @@ class GerritPatch(
     if not revision:
       revision = patch_info['current_revision']
     for revision_id, revision_info in patch_info['revisions'].items():
-      if revision == revision_id or revision == revision_info['_number']:
+      if revision in [revision_id, revision_info.get('_number')]:
         revision = revision_id
         break
     else:

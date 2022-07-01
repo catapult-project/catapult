@@ -277,6 +277,8 @@ def _LoadTaskGraph(job):
         terminal_tasks=terminal_tasks, tasks={task.key: task for task in tasks})
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class NoopAction(object):
 
   @staticmethod
@@ -344,7 +346,7 @@ def Evaluate(job, event, evaluator):
 
     if not graph.tasks:
       logging.debug('Task graph empty for job %s', job.job_id)
-      return
+      return None
 
     # First get all the "terminal" tasks, and traverse the dependencies in a
     # depth-first-search.

@@ -33,6 +33,8 @@ _TEST_HISTOGRAM_DATA = {
 class GetHistogramsTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(GetHistogramsTest, self).setUp()
     app = webapp2.WSGIApplication([('/get_histogram',
                                     get_histogram.GetHistogramHandler)])

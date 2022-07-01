@@ -11,6 +11,8 @@ import logging
 import time
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class WallTimeLogger(object):
 
   def __init__(self, label, description=''):

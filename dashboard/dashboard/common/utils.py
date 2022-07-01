@@ -582,6 +582,8 @@ class GroupMemberAuthFailed(Exception):
   pass
 
 
+# TODO(https://crbug.com/1262292): raise directly after Python2 trybots retire.
+# pylint: disable=inconsistent-return-statements
 def IsGroupMember(identity, group):
   """Checks if a user is a group member of using chrome-infra-auth.appspot.com.
 
@@ -817,7 +819,7 @@ def GetBuildDetailsFromStdioLink(stdio_link):
     # This wasn't a buildbot formatted link.
     return no_details
   base_url, master, bot, buildnumber, step = m.groups()
-  bot = six.moves.urllib.parse.unquote(bot)  # pylint: disable=too-many-function-args
+  bot = six.moves.urllib.parse.unquote(bot)
   return base_url, master, bot, buildnumber, step
 
 

@@ -20,6 +20,8 @@ from dashboard.models import page_state
 class ShortUriTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ShortUriTest, self).setUp()
     self.SetUpApp([('/short_uri', short_uri.ShortUriHandler)])
 

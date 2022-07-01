@@ -62,7 +62,6 @@ class SampleElementTiming(ndb.Model):
 
 class Queues(ndb.Model):
   """A root element for all queues."""
-  pass
 
 
 class ConfigurationQueue(ndb.Model):
@@ -110,6 +109,8 @@ class ConfigurationQueue(ndb.Model):
     ]
     if len(self.samples) > 50:
       self.samples = random.sample(self.samples, 50)
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ConfigurationQueue, self).put()
 
 

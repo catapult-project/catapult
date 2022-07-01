@@ -23,6 +23,8 @@ from dashboard.models import graph_data
 class UtilsTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(UtilsTest, self).setUp()
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)

@@ -62,6 +62,9 @@ class FindIsolate(quest.Quest):
             and self._builder_name == other._builder_name
             and self._fallback_target == other._fallback_target)
 
+  def __hash__(self):
+    return hash(self.__str__())
+
   def __str__(self):
     return 'Build'
 
@@ -112,6 +115,8 @@ class _FindIsolateExecution(execution.Execution):
                build_tags,
                fallback_target,
                comparison_mode='performance'):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(_FindIsolateExecution, self).__init__()
     self._builder_name = builder_name
     self._target = target
@@ -228,13 +233,11 @@ class _FindIsolateExecution(execution.Execution):
       reason = build['failure_reason']
       if self._IsTryJob():
         raise errors.BuildFailedFatal(reason)
-      else:
-        raise errors.BuildFailed(reason)
+      raise errors.BuildFailed(reason)
     if build['result'] == 'CANCELED':
       if self._IsTryJob():
         raise errors.BuildCancelledFatal(build['cancelation_reason'])
-      else:
-        raise errors.BuildCancelled(build['cancelation_reason'])
+      raise errors.BuildCancelled(build['cancelation_reason'])
 
     # The build succeeded, and should now be in the isolate cache.
     # If it is, this will call self._Complete()
@@ -259,20 +262,17 @@ class _FindIsolateExecution(execution.Execution):
     if build_status == 'FAILURE':
       if self._IsTryJob():
         raise errors.BuildFailedFatal('BUILD_FAILURE')
-      else:
-        raise errors.BuildFailed('BUILD_FAILURE')
+      raise errors.BuildFailed('BUILD_FAILURE')
     if build_status == 'INFRA_FAILURE':
       reason = 'TIMEOUT' if 'timeout' in job_status.get('statusDetails',
                                                         {}) else 'INFRA_FAILURE'
       if self._IsTryJob():
         raise errors.BuildFailedFatal(reason)
-      else:
-        raise errors.BuildFailed(reason)
+      raise errors.BuildFailed(reason)
     if build_status == 'CANCELED':
       if self._IsTryJob():
         raise errors.BuildCancelledFatal('CANCELED_EXPLICITLY')
-      else:
-        raise errors.BuildCancelled('CANCELED_EXPLICITLY')
+      raise errors.BuildCancelled('CANCELED_EXPLICITLY')
 
     # The build succeeded, and should now be in the isolate cache.
     # If it is, this will call self._Complete()

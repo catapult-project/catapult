@@ -29,6 +29,8 @@ class RefreshJobsTest(test.TestCase):
     self.stream_handler = logging.StreamHandler(sys.stdout)
     self.logger.addHandler(self.stream_handler)
     self.addCleanup(self.logger.removeHandler, self.stream_handler)
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(RefreshJobsTest, self).setUp()
 
   def testGet(self):

@@ -23,6 +23,8 @@ class EditAnomalyConfigsHandler(edit_config_handler.EditConfigHandler):
   """
 
   def __init__(self, request, response):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(EditAnomalyConfigsHandler,
           self).__init__(request, response, anomaly_config.AnomalyConfig)
 

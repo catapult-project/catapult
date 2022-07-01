@@ -7,6 +7,8 @@ from __future__ import division
 from __future__ import absolute_import
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class Quest(object):
   """A description of work to do on a Change.
 
@@ -34,7 +36,6 @@ class Quest(object):
     Arguments:
       job: A dashboard.pinpoint.models.job.Job instance.
     """
-    pass
 
   @classmethod
   def FromDict(cls, arguments):

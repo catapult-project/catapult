@@ -14,6 +14,8 @@ from dashboard.pinpoint.models import errors
 import six
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class Execution(object):
   """Object tracking the execution of a Quest.
 
@@ -134,7 +136,8 @@ class Execution(object):
       if hasattr(e, 'task_output'):
         tb += '\n%s' % getattr(e, 'task_output')
       self._exception = {'message': str(e), 'traceback': tb}
-    except:
+    # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
+    except:  # pylint: disable=try-except-raise
       # All other exceptions must be propagated.
       raise
 

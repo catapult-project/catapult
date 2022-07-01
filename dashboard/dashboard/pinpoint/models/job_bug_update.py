@@ -61,10 +61,7 @@ def ComputeLabelUpdates(labels):
         label in label_set for label_set in _LABEL_EXCLUSION_SETS)
     if found_in_sets > 1:
       raise ValueError(
-          'label "%s" is found in %s label sets',
-          label,
-          found_in_sets,
-      )
+          'label "%s" is found in %s label sets' % (label, found_in_sets),)
 
   for label_set in _LABEL_EXCLUSION_SETS:
     label_updates |= set('-' + l for l in label_set)
@@ -73,6 +70,8 @@ def ComputeLabelUpdates(labels):
   return list(label_updates)
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class JobUpdateBuilder(object):
   """Builder for job issue updates.
 
@@ -106,6 +105,8 @@ class JobUpdateBuilder(object):
     return _BugUpdateInfo(comment_text, None, None, labels, None)
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class DifferencesFoundBugUpdateBuilder(object):
   """Builder for bug updates about differences found in a metric.
 
@@ -279,6 +280,8 @@ class DifferencesFoundBugUpdateBuilder(object):
     return owner, cc_list, why_text
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class _Difference(object):
 
   # Define this as a class attribute so that accessing it never fails with

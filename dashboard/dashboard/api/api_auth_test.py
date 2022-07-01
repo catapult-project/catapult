@@ -18,6 +18,8 @@ from dashboard.common import utils
 class ApiAuthTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ApiAuthTest, self).setUp()
 
     patcher = mock.patch.object(datastore_hooks, 'SetPrivilegedRequest')

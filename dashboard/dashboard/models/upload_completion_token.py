@@ -16,6 +16,8 @@ from dashboard.models import internal_only_model
 _MEMCACHE_TIMEOUT = 60 * 10
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class State(object):
   PENDING = 0
   PROCESSING = 1

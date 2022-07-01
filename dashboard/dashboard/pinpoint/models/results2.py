@@ -87,6 +87,8 @@ class CachedResults2(ndb.Model):
   job_id = ndb.StringProperty()
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class _GcsFileStream(object):
   """Wraps a gcs file providing a FileStream like api."""
 
@@ -210,7 +212,7 @@ def _FetchHistograms(job):
                 execution._task_id)
             swarming_result = swarming_task.Result()
           except Exception as e:  # pylint: disable=broad-except
-            logging.error("_FetchHistograms swarming query failed: " + str(e))
+            logging.error("_FetchHistograms swarming query failed: %s", str(e))
           continue
 
         # Attempt to extract Histograms if this is a read_value.*
@@ -292,7 +294,7 @@ def _SaveJobToGeneralBigQuery(job):
     row["metric"] = h.histogram["name"]
     row["values"] = h.histogram["sampleValues"]
     rows.append(row)
-  if len(rows):
+  if rows:
     _InsertBQRows(_PROJECT_ID, _DATASET_GENERAL, _TABLE_GENERAL, rows)
 
 RowKey = collections.namedtuple('RowKey', ['change', 'iteration'])
@@ -398,7 +400,7 @@ def _InsertBQRows(project_id, dataset_id, table_id, rows, num_retries=5):
   service = _BQService()
   rows = [{'insertId': str(uuid.uuid4()), 'json': row} for row in rows]
   insert_data = {'rows': rows}
-  logging.info("Saving to BQ: " + str(insert_data))
+  logging.info("Saving to BQ: %s", str(insert_data))
   response = service.tabledata().insertAll(
       projectId=project_id,
       datasetId=dataset_id,
@@ -406,7 +408,7 @@ def _InsertBQRows(project_id, dataset_id, table_id, rows, num_retries=5):
       body=insert_data).execute(num_retries=num_retries)
 
   if 'insertErrors' in response:
-    logging.error("Insert failed: " + str(response))
+    logging.error("Insert failed: %s", str(response))
 
 
 def _BQService():

@@ -32,6 +32,8 @@ class CreateHookInternalOnlyModel(InternalOnlyModel):
   """Base Model class which implements a create hook called CreateCallback."""
 
   def __init__(self, *args, **kwargs):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(CreateHookInternalOnlyModel, self).__init__(*args, **kwargs)
     # This attribute is used to keep track of whether its the first time the
     # entity has been created, so that the CreateCallback is only called once.

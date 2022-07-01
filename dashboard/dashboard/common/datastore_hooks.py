@@ -109,7 +109,6 @@ def _IsServicingPrivilegedRequest():
     allowlist = utils.GetIpAllowlist()
     if allowlist and hasattr(flask_request, 'remote_addr'):
       return flask_request.remote_addr in allowlist
-    return False
   else:
     try:
       request = webapp2.get_request()
@@ -131,7 +130,7 @@ def _IsServicingPrivilegedRequest():
     allowlist = utils.GetIpAllowlist()
     if allowlist and hasattr(request, 'remote_addr'):
       return request.remote_addr in allowlist
-    return False
+  return False
 
 
 def IsUnalteredQueryPermitted():

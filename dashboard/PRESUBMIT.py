@@ -1,6 +1,7 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+# pylint: disable=invalid-name
 
 from __future__ import print_function
 from __future__ import division
@@ -27,7 +28,8 @@ def _CommonChecks(input_api, output_api):
           output_api,
           extra_paths_list=_GetPathsToPrepend(input_api),
           files_to_skip=files_to_skip,
-          pylintrc='pylintrc'))
+          pylintrc='pylintrc',
+          version='2.7'))
   return results
 
 

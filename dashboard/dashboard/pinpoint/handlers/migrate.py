@@ -10,10 +10,10 @@ import datetime
 import logging
 
 from google.appengine.api import datastore_errors
-from dashboard.api import api_auth
 from google.appengine.datastore import datastore_query
 from google.appengine.ext import deferred
 
+from dashboard.api import api_auth
 from dashboard.api import api_request_handler
 from dashboard.common import stored_object
 from dashboard.common import utils
@@ -43,6 +43,7 @@ if utils.IsRunningFlask():
       if not status:
         _Start()
       return stored_object.Get(_STATUS_KEY) or {}
+    return {}
 
 else:
 

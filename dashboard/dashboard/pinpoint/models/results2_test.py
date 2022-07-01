@@ -28,6 +28,8 @@ from dateutil.parser import isoparse
 from tracing.value import histogram_set
 from tracing.value import histogram as histogram_module
 
+# pylint: disable=too-many-lines
+
 _TEST_START_TIME = datetime.datetime.fromtimestamp(1326244364)
 _TEST_START_TIME_STR = _TEST_START_TIME.strftime('%Y-%m-%d %H:%M:%S.%f')
 
@@ -936,6 +938,8 @@ class FakePatch(
     }
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class _AttemptFake(object):
 
   def __init__(self, attempt):
@@ -950,6 +954,8 @@ class _AttemptFake(object):
     return '%s' % (self._attempt,)
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class _JobStateFake(object):
 
   def __init__(self, attempts):
@@ -970,11 +976,13 @@ class _JobStateFake(object):
     def Pairwise(iterable):
       a, b = itertools.tee(iterable)
       next(b, None)
-      return itertools.izip(a, b)
+      return zip(a, b)
 
-    return [(a, b) for a, b in Pairwise(list(self._attempts.keys()))]
+    return list(Pairwise(list(self._attempts.keys())))
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class _JobStub(object):
 
   def __init__(self,

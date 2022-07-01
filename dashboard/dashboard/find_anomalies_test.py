@@ -116,6 +116,8 @@ def _MakeSampleChangePoint(x_value, median_before, median_after):
   )
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class EndRevisionMatcher(object):
   """Custom matcher to test if an anomaly matches a given end rev."""
 
@@ -135,6 +137,8 @@ class EndRevisionMatcher(object):
     return hash(self._end_revision)
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class ModelMatcher(object):
   """Custom matcher to check if two ndb entity names match."""
 
@@ -164,6 +168,8 @@ def _MockTasklet(*_):
 class ProcessAlertsTest(testing_common.TestCase):
 
   def setUp(self):
+    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
+    # pylint: disable=super-with-arguments
     super(ProcessAlertsTest, self).setUp()
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 

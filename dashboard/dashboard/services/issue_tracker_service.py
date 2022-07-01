@@ -21,6 +21,8 @@ MAX_DISCOVERY_RETRIES = 3
 MAX_REQUEST_RETRIES = 5
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class IssueTrackerService(object):
   """Class for updating bug issues."""
 

@@ -42,7 +42,7 @@ def _StoryToGtestFilter(story_name):
     return 'RampUpTest.*'
   if story_name.startswith('real - estimated'):
     return '*.Real_Estimated_*'
-  elif story_name.startswith('bwe_after_'):
+  if story_name.startswith('bwe_after_'):
     return '*.Bwe_After_*'
 
   if len(story_name) > 50:

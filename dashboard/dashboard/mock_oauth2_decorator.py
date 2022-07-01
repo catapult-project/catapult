@@ -10,6 +10,8 @@ from apiclient import http
 from dashboard import oauth2_decorator
 
 
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
 class MockOAuth2Decorator(object):
   """Mocks OAuth2Decorator for testing."""
 
