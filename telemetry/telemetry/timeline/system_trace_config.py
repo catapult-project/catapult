@@ -65,7 +65,7 @@ class SystemTraceConfig(object):
       # to ensure that "linux.process_stats" is not overwritten.
       text_config += """
           buffers {
-              size_kb: 2048
+              size_kb: 190464
           }
 
           buffers {
@@ -78,6 +78,8 @@ class SystemTraceConfig(object):
                   name: "linux.process_stats"
                   target_buffer: 1
                   process_stats_config {{
+                      scan_all_processes_on_start: true
+                      record_thread_names: true
                       proc_stats_poll_ms: 100
                   }}
               }}
