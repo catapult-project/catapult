@@ -27,7 +27,7 @@ KEY_EVENT_TYPE_KEY_PRESSED = 'keyPressed'
 KEY_EVENT_TYPE_KEY_RELEASED = 'keyReleased'
 
 
-class UIDevTools(object):
+class UIDevTools():
   """This class is mainly used to interact with native UI
 
   For more info see the Desktop UI benchmark documentation in the link below

@@ -15,7 +15,7 @@ _GTEST_STATUS = {
 }
 
 
-class GTestProgressReporter(object):
+class GTestProgressReporter():
   """A progress reporter that outputs the progress report in gtest style."""
 
   def __init__(self, output_stream=None):

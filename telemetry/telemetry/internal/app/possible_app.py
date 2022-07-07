@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 
-class PossibleApp(object):
+class PossibleApp():
   """A factory class that can be used to create a running instance of app.
 
   Call Create() to launch the app and begin manipulating it.

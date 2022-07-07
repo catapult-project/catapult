@@ -53,7 +53,7 @@ def ContentTypeFromExt(name):
   return _DEFAULT_CONTENT_TYPE
 
 
-class _Artifact(object):
+class _Artifact():
   def __init__(self, local_path, content_type):
     """
     Args:
@@ -78,7 +78,7 @@ class _Artifact(object):
     }
 
 
-class StoryRun(object):
+class StoryRun():
   def __init__(self, story, test_prefix=None, index=0, intermediate_dir=None):
     """StoryRun objects track results for a single run of a story.
 

@@ -52,7 +52,7 @@ _RUNTIME_CONFIG_TEMPLATE = """
 CAST_CORE_CONFIG_PATH = os.path.join(
     os.getenv("HOME"), '.config', 'cast_shell', '.eureka.conf')
 
-class CastRuntime(object):
+class CastRuntime():
   def __init__(self, root_dir, runtime_dir, log_file):
     self._root_dir = root_dir
     self._runtime_dir = runtime_dir
@@ -92,7 +92,7 @@ class CastRuntime(object):
 class LocalCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
   def __init__(self, cast_platform_backend, browser_options,
                browser_directory, profile_directory, casting_tab):
-    super(LocalCastBrowserBackend, self).__init__(
+    super().__init__(
         cast_platform_backend,
         browser_options=browser_options,
         browser_directory=browser_directory,
@@ -141,4 +141,4 @@ class LocalCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
     if self._cast_core_process:
       self._cast_core_process.kill()
       self._cast_core_process = None
-    super(LocalCastBrowserBackend, self).Close()
+    super().Close()

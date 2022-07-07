@@ -41,7 +41,7 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           be determined.
     """
     assert browser_options.IsCrosBrowserOptions()
-    super(LacrosBrowserBackend, self).__init__(
+    super().__init__(
         cros_platform_backend,
         browser_options=browser_options,
         browser_directory=browser_directory,
@@ -180,7 +180,7 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   @exc_util.BestEffort
   def Close(self):
-    super(LacrosBrowserBackend, self).Close()
+    super().Close()
 
     if self._tmp_minidump_dir:
       shutil.rmtree(self._tmp_minidump_dir, ignore_errors=True)

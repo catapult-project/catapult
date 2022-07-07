@@ -31,7 +31,7 @@ class SeekAction(media_action.MediaAction):
                timeout_in_seconds=0,
                log_time=True,
                label=''):
-    super(SeekAction, self).__init__(timeout=timeout_in_seconds)
+    super().__init__(timeout=timeout_in_seconds)
     self._seconds = seconds
     self._selector = selector if selector else ''
     self._log_time = log_time
@@ -39,7 +39,7 @@ class SeekAction(media_action.MediaAction):
 
   def WillRunAction(self, tab):
     """Load the media metrics JS code prior to running the action."""
-    super(SeekAction, self).WillRunAction(tab)
+    super().WillRunAction(tab)
     utils.InjectJavaScript(tab, 'seek.js')
 
   def RunAction(self, tab):
@@ -53,9 +53,10 @@ class SeekAction(media_action.MediaAction):
           label=self._label)
       if self.timeout > 0:
         self.WaitForEvent(tab, self._selector, 'seeked', self.timeout)
-    except exceptions.EvaluateException:
-      raise page_action.PageActionFailed('Cannot seek media element(s) with '
-                                         'selector = %s.' % self._selector)
+    except exceptions.EvaluateException as e:
+      raise page_action.PageActionFailed(
+          'Cannot seek media element(s) with selector = %s.' %
+          self._selector) from e
 
   def __str__(self):
     return "%s(%s)" % (self.__class__.__name__, self._selector)

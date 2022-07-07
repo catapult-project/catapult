@@ -18,7 +18,7 @@ from telemetry.wpr import archive_info
 
 class MockPage(page.Page):
   def __init__(self, url, name=None, platform_specific=False):
-    super(MockPage, self).__init__(url, None, name=name)
+    super().__init__(url, None, name=name)
     self._platform_specific = platform_specific
 
 page1 = MockPage('http://www.page1.com/', 'Page1')

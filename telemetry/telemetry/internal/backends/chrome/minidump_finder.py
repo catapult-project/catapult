@@ -25,7 +25,7 @@ def _ParseCrashpadDateTime(date_time_str):
   return datetime.datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
 
 
-class MinidumpFinder(object):
+class MinidumpFinder():
   """Handles finding Crashpad/Breakpad minidumps.
 
   In addition to whatever data is expected to be returned, most public methods
@@ -35,7 +35,7 @@ class MinidumpFinder(object):
   BrowserBackend.GetRecentMinidumpPathWithTimeout().
   """
   def __init__(self, os_name, arch_name):
-    super(MinidumpFinder, self).__init__()
+    super().__init__()
     self._os = os_name
     self._arch = arch_name
     self._minidump_path_crashpad_retrieval = {}
@@ -138,7 +138,7 @@ class MinidumpFinder(object):
     # This can be removed once fully switched to Python 3 by setting text=True
     # when calling check_output above.
     if not isinstance(report_output, six.string_types):
-      report_output = report_output.decode('utf-8')  # pylint: disable=redefined-variable-type
+      report_output = report_output.decode('utf-8')
 
     last_indentation = -1
     reports_list = []

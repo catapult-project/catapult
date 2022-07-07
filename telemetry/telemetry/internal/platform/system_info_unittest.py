@@ -42,13 +42,8 @@ class TestSystemInfo(unittest.TestCase):
             ]
         }
     }
-    try:
-      info = system_info.SystemInfo.FromDict(data)
-      self.assertEqual(info.model_name, '')
-    except AssertionError:
-      raise
-    except Exception: # pylint: disable=broad-except
-      self.fail('Should not raise exception for empty model_name string')
+    info = system_info.SystemInfo.FromDict(data)
+    self.assertEqual(info.model_name, '')
 
   def testMissingAttrsFromDict(self):
     data = {
@@ -60,13 +55,8 @@ class TestSystemInfo(unittest.TestCase):
     for k in data:
       data_copy = data.copy()
       del data_copy[k]
-      try:
+      with self.assertRaises(KeyError):
         system_info.SystemInfo.FromDict(data_copy)
-        self.fail('Should raise exception if attribute "%s" is missing' % k)
-      except AssertionError:
-        raise
-      except KeyError:
-        pass
 
   def testModelNameAndVersion(self):
     data = {

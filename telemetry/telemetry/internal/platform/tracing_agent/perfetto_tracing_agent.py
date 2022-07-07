@@ -25,7 +25,7 @@ STOP_TIMEOUT = 60
 
 class PerfettoTracingAgent(tracing_agent.TracingAgent):
   def __init__(self, platform_backend, config):
-    super(PerfettoTracingAgent, self).__init__(platform_backend, config)
+    super().__init__(platform_backend, config)
     self._device = platform_backend.device
     self._trace_config_temp_file = None
     self._trace_output_temp_file = None

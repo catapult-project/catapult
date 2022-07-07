@@ -15,10 +15,10 @@ import sys
 import traceback
 from io import BytesIO
 
-import six.moves.BaseHTTPServer # pylint: disable=import-error
-import six.moves.SimpleHTTPServer # pylint: disable=import-error
 import six.moves.socketserver # pylint: disable=import-error
 import six.moves.urllib.parse # pylint: disable=import-error
+import six.moves.BaseHTTPServer # pylint: disable=import-error
+import six.moves.SimpleHTTPServer # pylint: disable=import-error
 from six.moves import map # pylint: disable=redefined-builtin
 
 from telemetry.core import local_server
@@ -43,7 +43,7 @@ class MemoryCacheHTTPRequestHandler(
       # Connection reset errors happen all the time due to the browser closing
       # without terminating the connection properly.  They can be safely
       # ignored.
-      if e[0] != errno.ECONNRESET:
+      if e.errno != errno.ECONNRESET:
         raise
 
   def do_GET(self):
@@ -237,6 +237,7 @@ class _MemoryCacheHTTPServerImpl(six.moves.socketserver.ThreadingMixIn,
     SocketServer.ThreadingMixIn runs network operations on multiple threads and
     there's a race condition on stdout.
     """
+    del request  # unused
     logging.error('Exception happened during processing of request from '
                   '%s\n%s%s', client_address, traceback.format_exc(), '-'*80)
 
@@ -244,7 +245,7 @@ class _MemoryCacheHTTPServerImpl(six.moves.socketserver.ThreadingMixIn,
 class MemoryCacheHTTPServerBackend(local_server.LocalServerBackend):
 
   def __init__(self):
-    super(MemoryCacheHTTPServerBackend, self).__init__()
+    super().__init__()
     self._httpd = None
 
   def StartAndGetNamedPorts(self, args, handler_class=None):
@@ -275,7 +276,7 @@ class MemoryCacheHTTPServerBackend(local_server.LocalServerBackend):
 class MemoryCacheHTTPServer(local_server.LocalServer):
 
   def __init__(self, paths):
-    super(MemoryCacheHTTPServer, self).__init__(MemoryCacheHTTPServerBackend)
+    super().__init__(MemoryCacheHTTPServerBackend)
     self._base_dir = None
 
     for path in paths:
@@ -333,7 +334,9 @@ class MemoryCacheDynamicHTTPRequestHandler(MemoryCacheHTTPRequestHandler):
     """Returns the dynamic response if exists, otherwise, use the resource
     map.
     """
+    # pylint: disable=assignment-from-no-return
     response = self.ResponseFromHandler(path)
+    # pylint: enable=assignment-from-no-return
     if response:
       return response
 
@@ -364,7 +367,7 @@ class MemoryCacheDynamicHTTPServer(MemoryCacheHTTPServer):
     # MemoryCacheDynamicHTTPRequestHandler
     assert issubclass(dynamic_request_handler_class,
                       MemoryCacheDynamicHTTPRequestHandler)
-    super(MemoryCacheDynamicHTTPServer, self).__init__(paths)
+    super().__init__(paths)
     self._dynamic_request_handler_class = dynamic_request_handler_class
 
   @property
@@ -372,7 +375,7 @@ class MemoryCacheDynamicHTTPServer(MemoryCacheHTTPServer):
     return self._dynamic_request_handler_class
 
   def GetBackendStartupArgs(self):
-    args = super(MemoryCacheDynamicHTTPServer, self).GetBackendStartupArgs()
+    args = super().GetBackendStartupArgs()
     args['dynamic_request_handler_module_name'] = \
         self._dynamic_request_handler_class.__module__
     args['dynamic_request_handler_class_name'] = \

@@ -22,7 +22,7 @@ import py_utils
 class ActionRunnerMeasureMemoryTest(tab_test_case.TabTestCase):
 
   def setUp(self):
-    super(ActionRunnerMeasureMemoryTest, self).setUp()
+    super().setUp()
     self.action_runner = action_runner_module.ActionRunner(
         self._tab, skip_waits=True)
     self.Navigate('blank.html')

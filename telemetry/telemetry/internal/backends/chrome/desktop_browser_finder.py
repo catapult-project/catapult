@@ -53,7 +53,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     """
     del finder_options
     target_os = sys.platform.lower()
-    super(PossibleDesktopBrowser, self).__init__(
+    super().__init__(
         browser_type, target_os, not is_content_shell)
     assert browser_type in FindAllBrowserTypes(), (
         'Please add %s to desktop_browser_finder.FindAllBrowserTypes' %
@@ -111,7 +111,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     return [self.profile_directory, self.browser_directory]
 
   def SetUpEnvironment(self, browser_options):
-    super(PossibleDesktopBrowser, self).SetUpEnvironment(browser_options)
+    super().SetUpEnvironment(browser_options)
     if self._browser_options.dont_override_profile:
       return
 
@@ -206,6 +206,9 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
                           ' disabled. Please try again with'
                           ' --allow-software-compositing flag.')
           raise
+    # Should never be hit, but Pylint can't see that we will retry until we
+    # eventually re-raise the above exception.
+    raise RuntimeError()
 
   def GetBrowserStartupArgs(self, browser_options):
     startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)
@@ -270,7 +273,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     debug_x64 is being used for tests, and the release tag if a release
     browser like release_x64 is being used.
     '''
-    tags = super(PossibleDesktopBrowser, self).GetTypExpectationsTags()
+    tags = super().GetTypExpectationsTags()
     if 'debug' in self.browser_type.lower().split('_'):
       tags.append('debug')
     if 'release' in self.browser_type.lower().split('_'):

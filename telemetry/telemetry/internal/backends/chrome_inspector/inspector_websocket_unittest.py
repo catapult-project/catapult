@@ -13,7 +13,7 @@ from telemetry.internal.backends.chrome_inspector import websocket
 from telemetry.testing import fakes
 
 
-class FakeSocket(object):
+class FakeSocket():
   """A fake websocket that allows test to send random data."""
   def __init__(self, fake_timer):
     self._fake_timer = fake_timer

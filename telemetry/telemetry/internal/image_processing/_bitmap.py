@@ -27,7 +27,7 @@ from telemetry.util import rgba_color
 import png
 
 
-class _BitmapTools(object):
+class _BitmapTools():
   """Wraps a child process of bitmaptools and allows for one command."""
   CROP_PIXELS = 0
   HISTOGRAM = 1
@@ -89,7 +89,7 @@ class _BitmapTools(object):
     return box, count
 
 
-class Bitmap(object):
+class Bitmap():
   """Utilities for parsing and inspecting a bitmap."""
 
   def __init__(self, bpp, width, height, pixels, metadata=None):

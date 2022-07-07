@@ -10,7 +10,7 @@ from telemetry.internal.platform import system_info
 from py_utils import camel_case
 
 
-class SystemInfoBackend(object):
+class SystemInfoBackend():
   def __init__(self, browser_target_ws):
     self._browser_target_ws = browser_target_ws
 

@@ -10,7 +10,7 @@ from telemetry.story import story as story_module
 from telemetry.wpr import archive_info
 
 
-class StorySet(object):
+class StorySet():
   """A collection of stories.
 
   A typical usage of StorySet would be to subclass it and then call

@@ -36,7 +36,7 @@ def _RunOneSetOfTests(browser_type, top_level_dir, tests, stream):
   return run_tests.RunTestsCommand.main(args, stream=stream)
 
 
-class _LoggingOutputStream(object):
+class _LoggingOutputStream():
 
   def __init__(self):
     self._buffer = []

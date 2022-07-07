@@ -9,7 +9,7 @@ import os
 _next_file_id = 0
 
 
-class FileHandle(object):
+class FileHandle():
   def __init__(self, temp_file=None, absolute_path=None):
     """Constructs a FileHandle object.
 

@@ -29,7 +29,7 @@ class Thread(event_container.TimelineEventContainer):
   The asynchronous slices are stored in an AsyncSliceGroup object.
   """
   def __init__(self, process, tid):
-    super(Thread, self).__init__('thread %s' % tid, parent=process)
+    super().__init__('thread %s' % tid, parent=process)
     self.tid = tid
     self._async_slices = []
     self._flow_events = []
@@ -153,7 +153,7 @@ class Thread(event_container.TimelineEventContainer):
     # On Windows, it is possible to have a value for |end_thread_timestamp|
     # but not for |curr_slice.thread_start|, because it takes some time to
     # initialize the thread time timer.
-    if curr_slice.thread_start != None and end_thread_timestamp != None:
+    if curr_slice.thread_start is not None and end_thread_timestamp is not None:
       curr_slice.thread_duration = (end_thread_timestamp -
                                     curr_slice.thread_start)
     curr_slice.did_not_finish = False
@@ -189,7 +189,7 @@ class Thread(event_container.TimelineEventContainer):
       if s.did_not_finish:
         s.duration = max_timestamp - s.start
         assert s.duration >= 0
-        if s.thread_start != None:
+        if s.thread_start is not None:
           s.thread_duration = max_thread_timestamp - s.thread_start
           assert s.thread_duration >= 0
     self._open_slices = []

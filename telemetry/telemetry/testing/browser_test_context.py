@@ -13,7 +13,7 @@ def GetCopy():
   return copy.deepcopy(_global_test_context)
 
 
-class TypTestContext(object):
+class TypTestContext():
   """ The TestContext that is used for passing data from the main test process
   to typ's subprocesses. Those includes:
      _ client_configs: list of client configs that contain infos about binaries

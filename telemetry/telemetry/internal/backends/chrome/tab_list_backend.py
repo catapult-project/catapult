@@ -43,10 +43,10 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
           msg='Received response: %s' % response)
     try:
       return self.GetBackendFromContextId(response['result']['targetId'])
-    except KeyError:
+    except KeyError as e:
       raise TabUnexpectedResponseException(
           app=self._browser_backend.browser,
-          msg='Received response: %s' % response)
+          msg='Received response: %s' % response) from e
 
 
   def CloseTab(self, tab_id, timeout=300):

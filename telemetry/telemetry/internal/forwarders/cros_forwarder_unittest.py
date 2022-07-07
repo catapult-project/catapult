@@ -62,4 +62,3 @@ class CrOsSshForwarderTests(unittest.TestCase):
         port_forward=False)
     self.assertEqual(f.local_port, 777)
     self.assertEqual(f.remote_port, 222)
-

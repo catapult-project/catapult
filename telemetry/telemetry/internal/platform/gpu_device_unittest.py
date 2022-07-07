@@ -56,10 +56,5 @@ class TestGPUDevice(unittest.TestCase):
     for k in data:
       data_copy = data.copy()
       del data_copy[k]
-      try:
+      with self.assertRaises(KeyError):
         gpu_device.GPUDevice.FromDict(data_copy)
-        self.fail('Should raise exception if attribute "%s" is missing' % k)
-      except AssertionError:
-        raise
-      except KeyError:
-        pass

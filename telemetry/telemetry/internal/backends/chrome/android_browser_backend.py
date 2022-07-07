@@ -53,7 +53,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     """
     assert isinstance(android_platform_backend,
                       android_platform_backend_module.AndroidPlatformBackend)
-    super(AndroidBrowserBackend, self).__init__(
+    super().__init__(
         android_platform_backend,
         browser_options=finder_options.browser_options,
         browser_directory=browser_directory,
@@ -116,7 +116,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       raise
 
   def BindDevToolsClient(self):
-    super(AndroidBrowserBackend, self).BindDevToolsClient()
+    super().BindDevToolsClient()
     package = self.devtools_client.GetVersion().get('Android-Package')
     if package is None:
       logging.warning('Could not determine package name from DevTools client.')
@@ -147,10 +147,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # fixed, remove this workaround and just switch blocking above to True.
     try:
       app_ui.AppUi(self.device).WaitForUiNode(package=package)
-    except Exception:
+    except Exception as e:
       raise exceptions.BrowserGoneException(
           self.browser,
-          'Timed out waiting for browser to come back foreground.')
+          'Timed out waiting for browser to come back foreground.') from e
 
   def Background(self):
     package = 'org.chromium.push_apps_to_background'
@@ -217,7 +217,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def Close(self):
     if os.getenv('CHROME_PGO_PROFILING'):
       self.devtools_client.DumpProfilingDataOfAllProcesses(timeout=120)
-    super(AndroidBrowserBackend, self).Close()
+    super().Close()
     self._StopBrowser()
     if self._tmp_minidump_dir:
       shutil.rmtree(self._tmp_minidump_dir, ignore_errors=True)
@@ -255,7 +255,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # adb issues), we're more likely to end up with useful debug information.
     suffix = artifact_logger.GetTimestampSuffix()
     self._StoreLogcatAsArtifact(suffix)
-    retval = super(AndroidBrowserBackend, self).CollectDebugData(log_level)
+    retval = super().CollectDebugData(log_level)
     self._StoreUiDumpAsArtifact(suffix)
     self._StoreTombstonesAsArtifact(suffix)
     return retval

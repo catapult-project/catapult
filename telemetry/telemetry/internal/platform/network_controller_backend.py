@@ -18,7 +18,7 @@ class ReplayAndBrowserPortsError(Exception):
   """Raised an existing browser would get different remote replay ports."""
 
 
-class NetworkControllerBackend(object):
+class NetworkControllerBackend():
   """Control network settings and servers to simulate the Web.
 
   Network changes include forwarding device ports to host platform ports.

@@ -11,7 +11,7 @@ from telemetry.testing import test_utils
 
 # pylint: disable=unused-argument
 
-class PlatformBackend(object):
+class PlatformBackend():
 
   def __init__(self, device=None):
     """ Initalize an instance of PlatformBackend from a device optionally.

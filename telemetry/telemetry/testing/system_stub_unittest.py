@@ -4,17 +4,13 @@
 
 from __future__ import absolute_import
 import os
-import sys
 import io
 import unittest
 
 from telemetry.testing import system_stub
 from telemetry.internal.testing import system_stub_test_module
 
-if sys.version_info.major == 3:
-  OPEN_FILE_TYPE = io.TextIOWrapper
-else:
-  OPEN_FILE_TYPE = file
+OPEN_FILE_TYPE = io.TextIOWrapper
 
 class CloudStorageTest(unittest.TestCase):
   SUCCESS_FILE_HASH = 'success'.zfill(40)

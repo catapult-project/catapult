@@ -7,10 +7,10 @@ import json
 import re
 
 
-class SystemTraceConfig(object):
+class SystemTraceConfig():
   """Stores configuration options for Perfetto tracing agent."""
 
-  class ProfilingArgs(object):
+  class ProfilingArgs():
 
     def __init__(self, target_cmdlines, sampling_frequency_hz):
       """Arguments for Perfetto profiling (callstack sampling).

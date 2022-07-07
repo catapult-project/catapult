@@ -31,7 +31,7 @@ class DragAction(page_action.ElementPageAction):
                use_touch=False,
                synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT,
                timeout=page_action.DEFAULT_TIMEOUT):
-    super(DragAction, self).__init__(
+    super().__init__(
         selector, text, element_function, timeout=timeout)
     self._left_start_ratio = left_start_ratio
     self._top_start_ratio = top_start_ratio
