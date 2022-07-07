@@ -9,11 +9,11 @@ from telemetry.testing import browser_test_case
 
 class TabTestCase(browser_test_case.BrowserTestCase):
   def __init__(self, *args):
-    super(TabTestCase, self).__init__(*args)
+    super().__init__(*args)
     self._tab = None
 
   def setUp(self):
-    super(TabTestCase, self).setUp()
+    super().setUp()
 
     if self._browser.supports_tab_control:
       try:

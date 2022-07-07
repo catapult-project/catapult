@@ -15,7 +15,7 @@ class AndroidApp(app.App):
       ... do all your operations on android_app here
   """
   def __init__(self, app_backend, platform_backend):
-    super(AndroidApp, self).__init__(app_backend=app_backend,
+    super().__init__(app_backend=app_backend,
                                      platform_backend=platform_backend)
     self._app_backend.Start()
 

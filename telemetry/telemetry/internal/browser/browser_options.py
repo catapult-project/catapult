@@ -7,7 +7,7 @@ from __future__ import absolute_import
 import atexit
 import copy
 import logging
-import optparse
+import optparse  # pylint: disable=deprecated-module
 import os
 import shlex
 import socket
@@ -360,7 +360,7 @@ class BrowserFinderOptions(optparse.Values):
     def ParseArgs(args=None):
       defaults = parser.get_default_values()
       for k, v in defaults.__dict__.items():
-        if k in self.__dict__ and self.__dict__[k] != None:
+        if k in self.__dict__ and self.__dict__[k] is not None:
           continue
         self.__dict__[k] = v
       ret = real_parse(args, self)  # pylint: disable=E1121
@@ -421,7 +421,7 @@ class BrowserFinderOptions(optparse.Values):
           raise RuntimeError(
               'Running a CrOS test in remote mode, but failed to retrieve port '
               'used by SSH service. This likely means SSH is not installed on '
-              'the system. Original error: %s' % e)
+              'the system. Original error: %s' % e) from e
 
       # Profiling other periods along with the story_run period leads to running
       # multiple profiling processes at the same time. The effects of performing
@@ -487,17 +487,17 @@ class BrowserFinderOptions(optparse.Values):
     # available, which we can't rely on, so use this to exit early in unittests.
     self._NoOpFunctionForTesting()
     sys.path.append(build_android_dir)
-    # pylint: disable=import-error
+    # pylint: disable=import-error,import-outside-toplevel
     from pylib import constants as pylib_constants
     from pylib.local.emulator import local_emulator_environment
-    # pylint: enable=import-error
+    # pylint: enable=import-error,import-outside-toplevel
 
     # We need to call this so that the Chromium output directory is set if it
     # is not explicitly specified via the command line argument/environment
     # variable.
     pylib_constants.CheckOutputDirectory()
 
-    class AvdArgs(object):
+    class AvdArgs():
       """A class to stand in for the AVD argparse.ArgumentParser object.
 
       Chromium's Android emulator code expects quite a few arguments from
@@ -554,7 +554,7 @@ class BrowserFinderOptions(optparse.Values):
       self.ensure_value(k, v)
 
 
-class BrowserOptions(object):
+class BrowserOptions():
   """Options to be used for launching a browser."""
   # Allows clients to check whether they are dealing with a browser_options
   # object, without having to import this module. This may be needed in some
@@ -796,7 +796,7 @@ class ChromeBrowserOptions(BrowserOptions):
   """Chrome-specific browser options."""
 
   def __init__(self, br_options):
-    super(ChromeBrowserOptions, self).__init__()
+    super().__init__()
     # Copy to self.
     self.__dict__.update(br_options.__dict__)
 
@@ -805,7 +805,7 @@ class CrosBrowserOptions(ChromeBrowserOptions):
   """ChromeOS-specific browser options."""
 
   def __init__(self, br_options):
-    super(CrosBrowserOptions, self).__init__(br_options)
+    super().__init__(br_options)
     # Create a browser with oobe property.
     self.create_browser_with_oobe = False
     # Clear enterprise policy before logging in.

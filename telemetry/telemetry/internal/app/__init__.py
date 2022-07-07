@@ -9,7 +9,7 @@ import time
 from telemetry.core import debug_data
 
 
-class App(object):
+class App():
   """ A running application instance that can be controlled in a limited way.
 
   Be sure to clean up after yourself by calling Close() when you are done with
@@ -18,7 +18,7 @@ class App(object):
       ... do all your operations on app here
   """
   def __init__(self, app_backend, platform_backend):
-    assert platform_backend.platform != None
+    assert platform_backend.platform is not None
     self._app_backend = app_backend
     self._platform_backend = platform_backend
     self._app_backend.SetApp(self)

@@ -11,7 +11,7 @@ import six
 from telemetry.timeline import event as timeline_event
 
 
-class MmapCategory(object):
+class MmapCategory():
   _DEFAULT_CATEGORY = None
 
   def __init__(self, name, file_pattern, children=None):
@@ -48,7 +48,7 @@ class MmapCategory(object):
     """
     if not self._children:
       return None
-    for child in self._children:
+    for child in self._children:  # pylint:disable=not-an-iterable
       if child.Match(mapped_file):
         return child
     return type(self).DefaultCategory()
@@ -117,7 +117,7 @@ MMAPS_METRICS = {
     'mmaps_native_heap': ('/Native heap.proportional_resident', True)}
 
 
-class MemoryBucket(object):
+class MemoryBucket():
   """Simple object to hold and aggregate memory values."""
   def __init__(self):
     self._bucket = dict.fromkeys(six.iterkeys(BUCKET_ATTRS), 0)
@@ -159,7 +159,7 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
     #2To3-division: these lines are unchanged as result is expected floats.
     start_time = min(event['ts'] for event in dump_events) / 1000.0
     duration = max(event['ts'] for event in dump_events) / 1000.0 - start_time
-    super(ProcessMemoryDumpEvent, self).__init__('memory', 'memory_dump',
+    super().__init__('memory', 'memory_dump',
                                                  start_time, duration)
 
     self.process = process
@@ -283,7 +283,7 @@ class ProcessMemoryDumpEvent(timeline_event.TimelineEvent):
     return usage
 
 
-class GlobalMemoryDump(object):
+class GlobalMemoryDump():
   """Object to aggregate individual process dumps with the same dump id.
 
   Args:

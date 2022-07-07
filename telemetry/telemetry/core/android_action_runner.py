@@ -15,7 +15,7 @@ class ActionNotSupported(Exception):
   pass
 
 
-class AndroidActionRunner(object):
+class AndroidActionRunner():
   """Provides an API for interacting with an android device.
 
   This makes use of functionality provided by the android input command. None

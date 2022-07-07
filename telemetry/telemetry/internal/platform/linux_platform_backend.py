@@ -41,7 +41,7 @@ class LinuxPlatformBackend(
     posix_platform_backend.PosixPlatformBackend,
     linux_based_platform_backend.LinuxBasedPlatformBackend):
   def __init__(self):
-    super(LinuxPlatformBackend, self).__init__()
+    super().__init__()
 
   @classmethod
   def IsPlatformBackendForHost(cls):
@@ -127,7 +127,7 @@ class LinuxPlatformBackend(
   def CanLaunchApplication(self, application):
     if application == 'ipfw' and not self._IsIpfwKernelModuleInstalled():
       return False
-    return super(LinuxPlatformBackend, self).CanLaunchApplication(application)
+    return super().CanLaunchApplication(application)
 
   def InstallApplication(self, application):
     if application == 'ipfw':

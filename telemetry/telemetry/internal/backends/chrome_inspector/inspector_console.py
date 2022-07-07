@@ -10,7 +10,7 @@ except ImportError:
 from telemetry.internal.backends.chrome_inspector import websocket
 
 
-class InspectorConsole(object):
+class InspectorConsole():
   def __init__(self, inspector_websocket):
     self._inspector_websocket = inspector_websocket
     self._inspector_websocket.RegisterDomain('Console', self._OnNotification)

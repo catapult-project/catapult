@@ -22,14 +22,14 @@ class _MetaBrowserTestCase(type):
   print browser standard output and log upon failure.
   """
 
-  def __new__(mcs, name, bases, dct):
+  def __new__(cls, name, bases, dct):
     new_dct = {}
     for attributeName, attribute in six.iteritems(dct):
       if (isinstance(attribute, types.FunctionType) and
           attributeName.startswith('test')):
-        attribute = mcs._PrintBrowserStandardOutputAndLogOnFailure(attribute)
+        attribute = cls._PrintBrowserStandardOutputAndLogOnFailure(attribute)
       new_dct[attributeName] = attribute
-    return type.__new__(mcs, name, bases, new_dct)
+    return type.__new__(cls, name, bases, new_dct)
 
   @staticmethod
   def _PrintBrowserStandardOutputAndLogOnFailure(method):

@@ -15,7 +15,7 @@ from telemetry.core import util
 class TestGetSequentialFileName(unittest.TestCase):
 
   def __init__(self, *args, **kwargs):
-    super(TestGetSequentialFileName, self).__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
     self.test_directory = None
 
   def setUp(self):

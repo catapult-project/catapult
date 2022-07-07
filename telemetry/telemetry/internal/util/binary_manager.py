@@ -220,7 +220,7 @@ def ReinstallAndroidHelperIfNeeded(binary_name, install_path, device):
   host_path = FetchPath(binary_name, 'android', device.GetABI())
   if not host_path:
     raise Exception(
-        '%s binary could not be fetched as %s', binary_name, host_path)
+        '%s binary could not be fetched as %s' % (binary_name, host_path))
   device.PushChangedFiles([(host_path, install_path)])
   device.RunShellCommand(['chmod', '777', install_path], check_return=True)
   _installed_helpers.add((device.serial, install_path))
@@ -261,11 +261,11 @@ def UpdateDependency(dependency, dep_local_path, version,
   try:
     old_version = c.GetVersion(dependency, dep_platform)
     print('Updating from version: {}'.format(old_version))
-  except ValueError:
+  except ValueError as e:
     raise RuntimeError(
         ('binary_dependencies.json entry for %s missing or invalid; please add '
          'it first! (need download_path and path_within_archive)') %
-        dep_platform)
+        dep_platform) from e
 
   if dep_local_path:
     c.AddCloudStorageDependencyUpdateJob(

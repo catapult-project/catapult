@@ -15,7 +15,7 @@ from devil.android.sdk import version_codes
 
 class AtraceTracingAgent(tracing_agent.TracingAgent):
   def __init__(self, platform_backend, config):
-    super(AtraceTracingAgent, self).__init__(platform_backend, config)
+    super().__init__(platform_backend, config)
     self._device = platform_backend.device
     self._categories = None
     self._atrace_agent = atrace_agent.AtraceAgent(

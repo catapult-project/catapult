@@ -426,7 +426,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
         'state.CanRunStory': exceptions.Error('foo')
     })
 
-    with self.assertRaisesRegexp(exceptions.Error, 'foo'):
+    with self.assertRaisesRegex(exceptions.Error, 'foo'):
       story_runner._RunStoryAndProcessErrorIfNeeded(
           root_mock.story, root_mock.results, root_mock.state, root_mock.test,
           self.finder_options)
@@ -467,7 +467,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
         'test.WillRunStory': Exception('foo')
     })
 
-    with self.assertRaisesRegexp(Exception, 'foo'):
+    with self.assertRaisesRegex(Exception, 'foo'):
       story_runner._RunStoryAndProcessErrorIfNeeded(
           root_mock.story, root_mock.results, root_mock.state, root_mock.test,
           self.finder_options)
@@ -488,7 +488,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
         'state.DidRunStory': exc,
     })
 
-    with self.assertRaisesRegexp(Exception, 'bar'):
+    with self.assertRaisesRegex(Exception, 'bar'):
       story_runner._RunStoryAndProcessErrorIfNeeded(
           root_mock.story, root_mock.results, root_mock.state, root_mock.test,
           self.finder_options)
@@ -534,7 +534,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
         'test.DidRunStory': Exception('bar')
     })
 
-    with self.assertRaisesRegexp(exceptions.Error, 'foo'):
+    with self.assertRaisesRegex(exceptions.Error, 'foo'):
       story_runner._RunStoryAndProcessErrorIfNeeded(
           root_mock.story, root_mock.results, root_mock.state, root_mock.test,
           self.finder_options)
@@ -574,7 +574,7 @@ class RunStoryAndProcessErrorIfNeededTest(unittest.TestCase):
         'test.DidRunStory': Exception('bar')
     })
 
-    with self.assertRaisesRegexp(Exception, 'foo'):
+    with self.assertRaisesRegex(Exception, 'foo'):
       story_runner._RunStoryAndProcessErrorIfNeeded(
           root_mock.story, root_mock.results, root_mock.state, root_mock.test,
           self.finder_options)
@@ -606,7 +606,7 @@ class FakeBenchmark(benchmark.Benchmark):
         a single DummyStory.
       other kwargs are passed to the test_stories.DummyStorySet constructor.
     """
-    super(FakeBenchmark, self).__init__()
+    super().__init__()
     self._story_set = test_stories.DummyStorySet(
         stories if stories is not None else ['story'], **kwargs)
 
@@ -618,7 +618,7 @@ class FakeBenchmark(benchmark.Benchmark):
     return self._story_set
 
 
-class FakeStoryFilter(object):
+class FakeStoryFilter():
   def __init__(self, stories_to_filter_out=None, stories_to_skip=None):
     self._stories_to_filter = stories_to_filter_out or []
     self._stories_to_skip = stories_to_skip or []

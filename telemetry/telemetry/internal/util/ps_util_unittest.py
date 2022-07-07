@@ -17,7 +17,7 @@ class PsUtilTest(unittest.TestCase):
   @decorators.Disabled('chromeos')  # crbug.com/939730
   def testListAllSubprocesses_RaceCondition(self):
     """This is to check that crbug.com/934575 stays fixed."""
-    class FakeProcess(object):
+    class FakeProcess():
       def __init__(self):
         self.pid = '1234'
       def name(self):

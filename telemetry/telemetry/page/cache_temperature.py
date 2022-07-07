@@ -36,7 +36,7 @@ HOT = 'hot'
 ALL_CACHE_TEMPERATURES = [ANY, COLD, WARM_BROWSER, HOT_BROWSER, WARM, HOT]
 
 
-class _MarkTelemetryInternal(object):
+class _MarkTelemetryInternal():
   def __init__(self, tab, identifier):
     self.tab = tab
     self.identifier = identifier
@@ -71,7 +71,7 @@ def _WarmCache(page, tab, temperature):
     tab.StopAllServiceWorkers()
 
 
-class CacheManipulator(object):
+class CacheManipulator():
   RENDERER_TEMPERATURE = None
   BROWSER_TEMPERATURE = None
   @staticmethod

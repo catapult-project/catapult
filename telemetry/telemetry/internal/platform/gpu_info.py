@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from telemetry.internal.platform import gpu_device
 
 
-class GPUInfo(object):
+class GPUInfo():
   """Provides information about the GPUs on the system."""
 
   def __init__(self, device_array, aux_attributes,

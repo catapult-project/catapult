@@ -71,7 +71,7 @@ class ChromeReturnAsStreamTracingAgent(chrome_tracing_agent.ChromeTracingAgent):
       # always cleaned up.
       atexit_with_log.Register(self._RemoveTraceConfigFile)
       return True
-    elif os_name == 'chromeos':
+    if os_name == 'chromeos':
       self._trace_config_file = os.path.join(_CHROME_TRACE_CONFIG_DIR_CROS,
                                              _CHROME_TRACE_CONFIG_FILE_NAME)
       cri = self._platform_backend.cri
@@ -82,7 +82,7 @@ class ChromeReturnAsStreamTracingAgent(chrome_tracing_agent.ChromeTracingAgent):
       # always cleaned up.
       atexit_with_log.Register(self._RemoveTraceConfigFile)
       return True
-    elif os_name in _DESKTOP_OS_NAMES:
+    if os_name in _DESKTOP_OS_NAMES:
       self._trace_config_file = os.path.join(tempfile.mkdtemp(),
                                              _CHROME_TRACE_CONFIG_FILE_NAME)
       with open(self._trace_config_file, 'w') as f:
@@ -92,11 +92,10 @@ class ChromeReturnAsStreamTracingAgent(chrome_tracing_agent.ChromeTracingAgent):
       os.chmod(self._trace_config_file,
                os.stat(self._trace_config_file).st_mode | stat.S_IROTH)
       return True
-    elif os_name == 'fuchsia':
+    if os_name == 'fuchsia':
       logging.warning('Fuchsia does not support startup tracing')
       return False
-    else:
-      raise NotImplementedError('Tracing not supported on: %s' % os_name)
+    raise NotImplementedError('Tracing not supported on: %s' % os_name)
 
   def _RemoveTraceConfigFile(self):
     if not self._trace_config_file:

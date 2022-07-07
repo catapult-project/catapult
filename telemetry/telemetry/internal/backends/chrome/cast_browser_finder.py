@@ -25,7 +25,7 @@ class PossibleCastBrowser(possible_browser.PossibleBrowser):
 
   def __init__(self, browser_type, finder_options, cast_platform):
     del finder_options
-    super(PossibleCastBrowser, self).__init__(browser_type,
+    super().__init__(browser_type,
                                               sys.platform.lower(), True)
     self._casting_tab = None
     self._platform = cast_platform
@@ -61,7 +61,6 @@ class PossibleCastBrowser(possible_browser.PossibleBrowser):
 
     startup_args = chrome_startup_args.GetFromBrowserOptions(
         self._browser_options)
-    # pylint: disable=redefined-variable-type
     if self._platform_backend.ip_addr:
       browser_backend = remote_cast_browser_backend.RemoteCastBrowserBackend(
           self._platform_backend, self._browser_options,
@@ -72,7 +71,6 @@ class PossibleCastBrowser(possible_browser.PossibleBrowser):
           self._platform_backend, self._browser_options,
           self.browser_directory, self.profile_directory,
           self._casting_tab)
-    # pylint: enable=redefined-variable-type
     try:
       return browser.Browser(
           browser_backend, self._platform_backend, startup_args,

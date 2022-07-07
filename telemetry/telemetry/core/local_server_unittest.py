@@ -58,7 +58,7 @@ class SimpleLocalServerBackend(six.moves.BaseHTTPServer.HTTPServer,
 class SimpleLocalServer(local_server.LocalServer):
 
   def __init__(self):
-    super(SimpleLocalServer, self).__init__(SimpleLocalServerBackend)
+    super().__init__(SimpleLocalServerBackend)
 
   def GetBackendStartupArgs(self):
     return {'hello': 'world'}

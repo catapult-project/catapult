@@ -18,7 +18,7 @@ from telemetry.internal.platform import posix_platform_backend
 
 class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
   def __init__(self):
-    super(MacPlatformBackend, self).__init__()
+    super().__init__()
 
   def GetSystemLog(self):
     try:
@@ -85,7 +85,7 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
   def GetTypExpectationsTags(self):
     # telemetry benchmarks expectations need to know if the version number
     # of the operating system is 10.12 or 10.13
-    tags = super(MacPlatformBackend, self).GetTypExpectationsTags()
+    tags = super().GetTypExpectationsTags()
     detail_string = self.GetOSVersionDetailString()
     if detail_string.startswith('10.11'):
       tags.append('mac-10.11')

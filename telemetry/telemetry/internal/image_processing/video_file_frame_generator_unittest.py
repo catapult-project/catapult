@@ -18,11 +18,13 @@ except (ImportError, NotImplementedError):
 else:
   class VideoFileFrameGeneratorTest(unittest.TestCase):
     def __init__(self, *args, **kwargs):
-      super(VideoFileFrameGeneratorTest, self).__init__(*args, **kwargs)
+      super().__init__(*args, **kwargs)
       # Import modules with dependencies that may not be preset in test setup so
       # that importing this unit test doesn't cause the test runner to raise an
       # exception.
+      # pylint: disable=import-outside-toplevel
       from telemetry.internal.image_processing import video_file_frame_generator
+      # pylint: enable=import-outside-toplevel
       self.VideoFileFrameGenerator = \
           video_file_frame_generator.VideoFileFrameGenerator
 

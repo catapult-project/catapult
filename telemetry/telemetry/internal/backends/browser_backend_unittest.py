@@ -51,7 +51,7 @@ class BrowserBackendLogsUploadingUnittest(unittest.TestCase):
 
 class BrowserBackendIntegrationTest(browser_test_case.BrowserTestCase):
   def setUp(self):
-    super(BrowserBackendIntegrationTest, self).setUp()
+    super().setUp()
     self._browser_backend = self._browser._browser_backend
 
   def testSmokeIsBrowserRunningReturnTrue(self):

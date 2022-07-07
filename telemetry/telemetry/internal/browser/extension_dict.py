@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from telemetry.internal.browser import extension_to_load
 
 
-class ExtensionDict(object):
+class ExtensionDict():
   """Dictionary of ExtensionPage instances, with extension_id as key."""
 
   def __init__(self, extension_backend):

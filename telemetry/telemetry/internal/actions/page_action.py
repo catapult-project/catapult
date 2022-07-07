@@ -56,7 +56,7 @@ class ElementPageAction(PageAction):
 
   def __init__(self, selector=None, text=None, element_function=None,
                timeout=DEFAULT_TIMEOUT):
-    super(ElementPageAction, self).__init__(timeout)
+    super().__init__(timeout)
     self._selector = selector
     self._text = text
     self._element_function = element_function

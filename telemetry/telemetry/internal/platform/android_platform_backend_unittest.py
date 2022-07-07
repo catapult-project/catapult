@@ -209,11 +209,11 @@ class AndroidPlatformBackendTest(unittest.TestCase):
 
 class AndroidPlatformBackendPsutilTest(unittest.TestCase):
 
-  class psutil_1_0(object):
+  class psutil_1_0():
     version_info = (1, 0)
     def __init__(self):
       self.set_cpu_affinity_args = []
-    class Process(object):
+    class Process():
       def __init__(self, parent):
         self._parent = parent
         self.name = 'adb'
@@ -222,11 +222,11 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
     def process_iter(self):
       return [self.Process(self)]
 
-  class psutil_2_0(object):
+  class psutil_2_0():
     version_info = (2, 0)
     def __init__(self):
       self.set_cpu_affinity_args = []
-    class Process(object):
+    class Process():
       def __init__(self, parent):
         self._parent = parent
         self.set_cpu_affinity_args = []

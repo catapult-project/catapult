@@ -79,7 +79,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
   def __init__(self, browser_type, finder_options, android_platform,
                backend_settings, local_apk=None, target_os='android'):
-    super(PossibleAndroidBrowser, self).__init__(
+    super().__init__(
         browser_type, target_os, backend_settings.supports_tab_control)
     assert browser_type in FindAllBrowserTypes(), (
         'Please add %s to android_browser_finder.FindAllBrowserTypes' %
@@ -200,7 +200,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
                                          profile_dir)
 
   def SetUpEnvironment(self, browser_options):
-    super(PossibleAndroidBrowser, self).SetUpEnvironment(browser_options)
+    super().SetUpEnvironment(browser_options)
     self._platform_backend.DismissCrashDialogIfNeeded()
     device = self._platform_backend.device
     startup_args = self.GetBrowserStartupArgs(self._browser_options)
@@ -359,7 +359,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       self._platform_backend.device.SetWebViewImplementation(package_name)
 
   def GetTypExpectationsTags(self):
-    tags = super(PossibleAndroidBrowser, self).GetTypExpectationsTags()
+    tags = super().GetTypExpectationsTags()
     if 'webview' in self.browser_type:
       tags.append('android-webview')
     else:
@@ -429,6 +429,7 @@ def _GetReferenceAndroidBrowser(android_platform, finder_options):
         android_platform,
         android_browser_backend_settings.ANDROID_CHROME,
         reference_build)
+  return None
 
 
 def _FindAllPossibleBrowsers(finder_options, android_platform):
@@ -453,10 +454,10 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
     try:
       backend_settings = next(
           b for b in ANDROID_BACKEND_SETTINGS if b.package == package_name)
-    except StopIteration:
+    except StopIteration as e:
       raise exceptions.UnknownPackageError(
           '%s specified by --browser-executable has an unknown package: %s' %
-          (finder_options.browser_executable, package_name))
+          (finder_options.browser_executable, package_name)) from e
 
     possible_browsers.append(PossibleAndroidBrowser(
         'exact',

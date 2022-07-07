@@ -37,7 +37,7 @@ def _CheckMsrKernelModule():
   if ret != 0:
     raise OSError('lsmod failed')
 
-  if not any([line.startswith('msr ') for line in stdout.splitlines()]):
+  if not any(line.startswith('msr ') for line in stdout.splitlines()):
     print('Error: MSR module not loaded.')
     return False
 

@@ -10,7 +10,7 @@ from telemetry.core import exceptions
 # real evaluation errors (syntax error) from this recoverable DevTool error.
 TARGET_CLOSED_MESSAGE = "Inspected target navigated or closed"
 
-class InspectorRuntime(object):
+class InspectorRuntime():
   def __init__(self, inspector_websocket):
     self._inspector_websocket = inspector_websocket
     self._inspector_websocket.RegisterDomain('Runtime', self._OnNotification)
