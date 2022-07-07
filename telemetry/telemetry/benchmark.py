@@ -109,8 +109,8 @@ class Benchmark(command_line.Command):
       parser.add_option_group(group)
 
   @classmethod
-  def AddBenchmarkCommandLineArgs(cls, group):
-    del group  # unused
+  def AddBenchmarkCommandLineArgs(cls, parser):
+    del parser  # unused
 
   @classmethod
   def GetSupportedPlatformNames(cls, supported_platforms):
@@ -141,7 +141,7 @@ class Benchmark(command_line.Command):
   def CustomizeOptions(self, finder_options, possible_browser=None):
     """Add options that are required by this benchmark."""
 
-  def SetExtraBrowserOptions(self, browser_options):
+  def SetExtraBrowserOptions(self, options):
     """Set extra browser command line options"""
 
   def GetBugComponents(self):

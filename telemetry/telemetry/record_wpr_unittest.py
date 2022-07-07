@@ -79,8 +79,8 @@ class MockBenchmark(benchmark.Benchmark):
     self.mock_story_set = None
 
   @classmethod
-  def AddBenchmarkCommandLineArgs(cls, group):
-    group.add_option('', '--mock-benchmark-url', action='store', type='string')
+  def AddBenchmarkCommandLineArgs(cls, parser):
+    parser.add_option('', '--mock-benchmark-url', action='store', type='string')
 
   def CreateStorySet(self, options):
     kwargs = {}
@@ -89,8 +89,8 @@ class MockBenchmark(benchmark.Benchmark):
     self.mock_story_set = MockStorySet(**kwargs)
     return self.mock_story_set
 
-  def SetExtraBrowserOptions(self, browser_options):
-    browser_options.AppendExtraBrowserArgs('--extra-option')
+  def SetExtraBrowserOptions(self, options):
+    options.AppendExtraBrowserArgs('--extra-option')
 
 
 class MockTimelineBasedMeasurementBenchmark(benchmark.Benchmark):
@@ -100,8 +100,8 @@ class MockTimelineBasedMeasurementBenchmark(benchmark.Benchmark):
     self.mock_story_set = None
 
   @classmethod
-  def AddBenchmarkCommandLineArgs(cls, group):
-    group.add_option('', '--mock-benchmark-url', action='store', type='string')
+  def AddBenchmarkCommandLineArgs(cls, parser):
+    parser.add_option('', '--mock-benchmark-url', action='store', type='string')
 
   def CreateStorySet(self, options):
     kwargs = {}
