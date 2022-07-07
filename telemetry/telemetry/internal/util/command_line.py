@@ -4,12 +4,12 @@
 
 from __future__ import absolute_import
 import argparse
-import optparse
+import optparse  # pylint: disable=deprecated-module
 
 from py_utils import camel_case
 
 
-class ArgumentHandlerMixIn(object):
+class ArgumentHandlerMixIn():
   """A structured way to handle command-line arguments.
 
   In AddCommandLineArgs, add command-line arguments.

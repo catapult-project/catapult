@@ -9,7 +9,7 @@ import socket
 import sys
 import six
 
-import six.moves.http_client  # pylint: disable=import-error
+import six.moves.http_client  # pylint: disable=import-error,wrong-import-order
 
 from telemetry.core import exceptions
 
@@ -22,7 +22,7 @@ class DevToolsClientUrlError(DevToolsClientConnectionError):
   pass
 
 
-class DevToolsHttp(object):
+class DevToolsHttp():
   """A helper class to send and parse DevTools HTTP requests.
 
   This class maintains a persistent http connection to Chrome devtools.
@@ -96,14 +96,8 @@ class DevToolsHttp(object):
     except (socket.error, six.moves.http_client.HTTPException) as e:
       self.Disconnect()
       if isinstance(e, socket.error) and e.errno == errno.ECONNREFUSED:
-        six.reraise(
-            DevToolsClientUrlError,
-            DevToolsClientUrlError(repr(e)),
-            sys.exc_info()[2])
-      six.reraise(
-          DevToolsClientConnectionError,
-          DevToolsClientConnectionError(repr(e)),
-          sys.exc_info()[2])
+        raise DevToolsClientUrlError() from e
+      raise DevToolsClientConnectionError() from e
 
   def RequestJson(self, path, timeout=30):
     """Sends a request and parse the response as JSON.

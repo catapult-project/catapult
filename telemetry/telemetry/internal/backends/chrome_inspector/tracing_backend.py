@@ -46,7 +46,7 @@ class TraceBufferDataLossException(exceptions.Error):
   pass
 
 
-class _DevToolsStreamReader(object):
+class _DevToolsStreamReader():
   def __init__(self, inspector_socket, stream_handle, trace_handle):
     """Constructor for the stream reader that reads trace data over a stream.
 
@@ -102,7 +102,7 @@ class _DevToolsStreamReader(object):
     self._callback()
 
 
-class TracingBackend(object):
+class TracingBackend():
 
   _TRACING_DOMAIN = 'Tracing'
 
@@ -228,13 +228,12 @@ class TracingBackend(object):
     """
     if not self.is_tracing_running:
       raise TracingHasNotRunException()
-    else:
-      req = {'method': 'Tracing.end'}
-      response = self._inspector_websocket.SyncRequest(req, timeout=2)
-      if 'error' in response:
-        raise TracingUnexpectedResponseException(
-            'Inspector returned unexpected response for '
-            'Tracing.end:\n' + json.dumps(response, indent=2))
+    req = {'method': 'Tracing.end'}
+    response = self._inspector_websocket.SyncRequest(req, timeout=2)
+    if 'error' in response:
+      raise TracingUnexpectedResponseException(
+          'Inspector returned unexpected response for '
+          'Tracing.end:\n' + json.dumps(response, indent=2))
 
     logging.info('Successfully stopped tracing.')
     self._is_tracing_running = False
@@ -272,16 +271,15 @@ class TracingBackend(object):
           err.websocket_error_type, websocket.WebSocketTimeoutException):
         raise TracingTimeoutException(
             'Exception raised while sending a Tracing.requestMemoryDump '
-            'request:\n' + traceback.format_exc())
-      else:
-        raise TracingUnrecoverableException(
-            'Exception raised while sending a Tracing.requestMemoryDump '
-            'request:\n' + traceback.format_exc())
-    except (socket.error,
-            inspector_websocket.WebSocketDisconnected):
+            'request:\n' + traceback.format_exc()) from err
       raise TracingUnrecoverableException(
           'Exception raised while sending a Tracing.requestMemoryDump '
-          'request:\n' + traceback.format_exc())
+          'request:\n' + traceback.format_exc()) from err
+    except (socket.error,
+            inspector_websocket.WebSocketDisconnected) as err:
+      raise TracingUnrecoverableException(
+          'Exception raised while sending a Tracing.requestMemoryDump '
+          'request:\n' + traceback.format_exc()) from err
     dump_id = None
     try:
       if response['result']['success'] and 'error' not in response:
@@ -325,11 +323,11 @@ class TracingBackend(object):
               err.websocket_error_type, websocket.WebSocketTimeoutException):
             raise TracingUnrecoverableException(
                 'Exception raised while collecting tracing data:\n' +
-                traceback.format_exc())
-        except socket.error:
+                traceback.format_exc()) from err
+        except socket.error as err:
           raise TracingUnrecoverableException(
               'Exception raised while collecting tracing data:\n' +
-              traceback.format_exc())
+              traceback.format_exc()) from err
 
         if self._has_received_all_tracing_data:
           # Only raise this exception after collecting all the data to aid

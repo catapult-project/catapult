@@ -10,7 +10,7 @@ from telemetry.timeline import flow_event as flow_event_module
 from telemetry.timeline import slice as slice_module
 
 
-class TimelineEventContainer(object):
+class TimelineEventContainer():
   """Represents a container for events.
 
   """
@@ -81,8 +81,8 @@ class TimelineEventContainer(object):
     containers = []
     def GetContainersRecursive(container):
       containers.append(container)
-      for container in container.IterChildContainers():
-        GetContainersRecursive(container)
+      for c in container.IterChildContainers():
+        GetContainersRecursive(c)
     GetContainersRecursive(self)
 
     # Actually create the iterator.

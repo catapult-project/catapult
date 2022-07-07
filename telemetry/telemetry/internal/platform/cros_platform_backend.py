@@ -19,7 +19,7 @@ CROS_INFO_PATH = '/etc/lsb-release'
 class CrosPlatformBackend(
     linux_based_platform_backend.LinuxBasedPlatformBackend):
   def __init__(self, device=None):
-    super(CrosPlatformBackend, self).__init__(device)
+    super().__init__(device)
     if device and not device.is_local:
       self._cri = cros_interface.CrOSInterface(
           device.host_name, device.ssh_port, device.ssh_identity)
@@ -150,7 +150,7 @@ class CrosPlatformBackend(
     return self._cri.TakeScreenshot(file_path)
 
   def GetTypExpectationsTags(self):
-    tags = super(CrosPlatformBackend, self).GetTypExpectationsTags()
+    tags = super().GetTypExpectationsTags()
     tags.append('desktop')
     if self.cri.local:
       tags.append('chromeos-local')

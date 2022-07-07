@@ -57,7 +57,7 @@ class TabListBackendTest(tab_test_case.TabTestCase):
     while len(self.tabs) < 2:
       self.tabs.New()
 
-    tabs = [t for t in self.tabs]
+    tabs = list(self.tabs)
 
     # Crash the first tab.
     self.assertRaises(exceptions.DevtoolsTargetCrashException,

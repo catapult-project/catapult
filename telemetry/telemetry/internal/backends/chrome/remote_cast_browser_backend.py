@@ -21,7 +21,7 @@ _CWR_ZIP = 'core_runtime_package.zip'
 class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
   def __init__(self, cast_platform_backend, browser_options,
                browser_directory, profile_directory, casting_tab):
-    super(RemoteCastBrowserBackend, self).__init__(
+    super().__init__(
         cast_platform_backend,
         browser_options=browser_options,
         browser_directory=browser_directory,
@@ -202,4 +202,4 @@ class RemoteCastBrowserBackend(cast_browser_backend.CastBrowserBackend):
 
   def Close(self):
     self._StopSDKCast()
-    super(RemoteCastBrowserBackend, self).Close()
+    super().Close()

@@ -12,7 +12,7 @@ from py_trace_event import trace_event
 
 DEFAULT_WEB_CONTENTS_TIMEOUT = 90
 
-class ServiceWorkerState(object):
+class ServiceWorkerState():
   # These strings should exactly match strings used in
   # wait_for_serviceworker_registration.js
   # The page did not call register().

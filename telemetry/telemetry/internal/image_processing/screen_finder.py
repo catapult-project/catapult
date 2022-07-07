@@ -27,7 +27,7 @@ np = external_modules.ImportRequiredModule('numpy')
 cv2 = external_modules.ImportRequiredModule('cv2')
 
 
-class ScreenFinder(object):
+class ScreenFinder():
   """Finds and extracts device screens from video.
 
   Sample Usage:
@@ -280,7 +280,7 @@ class ScreenFinder(object):
       return False
     return True
 
-  class CornerData(object):
+  class CornerData():
 
     def __init__(self, corner_index, corner_location, brightness_score, line1,
                  line2):

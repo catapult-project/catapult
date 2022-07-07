@@ -19,7 +19,7 @@ class BoundingBoxNotFoundException(Exception):
   pass
 
 
-class Video(object):
+class Video():
   """Utilities for storing and interacting with the video capture."""
 
   def __init__(self, video_file_obj):
@@ -169,7 +169,7 @@ class Video(object):
     while True:
       num_read = proc.stdout.readinto(frame_data)
       if not num_read:
-        raise StopIteration
+        return
       assert num_read == len(frame_data), 'Unexpected frame size: %d' % num_read
       yield (GetFrameTimestampMs(proc.stderr),
              image_util.FromRGBPixels(dimensions[0], dimensions[1], frame_data))

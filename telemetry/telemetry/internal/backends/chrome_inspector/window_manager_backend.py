@@ -9,7 +9,7 @@ class WindowManagerException(Exception):
   pass
 
 
-class WindowManagerBackend(object):
+class WindowManagerBackend():
 
   _WINDOW_MANAGER_DOMAIN = 'WindowManager'
 

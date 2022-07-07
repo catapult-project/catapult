@@ -7,7 +7,7 @@ class Failure(Exception):
   """StoryTest Exception raised when an undesired but designed-for problem."""
 
 
-class StoryTest(object):
+class StoryTest():
   """A class for creating story tests.
 
   The overall test run control flow follows this order:

@@ -61,23 +61,13 @@ class TestGPUInfo(unittest.TestCase):
     for k in data:
       data_copy = data.copy()
       del data_copy[k]
-      try:
+      with self.assertRaises(KeyError):
         gpu_info.GPUInfo.FromDict(data_copy)
-        self.fail('Should raise exception if attribute "%s" is missing' % k)
-      except AssertionError:
-        raise
-      except KeyError:
-        pass
 
   def testMissingDevices(self):
     data = {
         'devices': []
     }
 
-    try:
+    with self.assertRaises(Exception):
       gpu_info.GPUInfo.FromDict(data)
-      self.fail('Should raise exception if devices array is empty')
-    except AssertionError:
-      raise
-    except Exception: # pylint: disable=broad-except
-      pass

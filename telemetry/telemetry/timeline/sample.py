@@ -16,6 +16,6 @@ class Sample(timeline_event.TimelineEvent):
   All time units are stored in milliseconds.
   """
   def __init__(self, parent_thread, category, name, timestamp, args=None):
-    super(Sample, self).__init__(
+    super().__init__(
         category, name, timestamp, 0, args=args)
     self.parent_thread = parent_thread

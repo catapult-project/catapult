@@ -12,7 +12,7 @@ class Error(Exception):
   """Base class for Telemetry exceptions."""
 
   def __init__(self, msg=''):
-    super(Error, self).__init__(msg)
+    super().__init__(msg)
     self._debugging_messages = []
 
   def AddDebuggingMessage(self, msg):
@@ -41,10 +41,10 @@ class Error(Exception):
     return output
 
   def __str__(self):
-    return self._get_debugging_messages(super(Error, self).__str__())
+    return self._get_debugging_messages(super().__str__())
 
   def __repr__(self):
-    return self._get_debugging_messages(super(Error, self).__repr__())
+    return self._get_debugging_messages(super().__repr__())
 
 
 class PlatformError(Error):
@@ -62,7 +62,7 @@ class TimeoutException(Error):
 class AppCrashException(Error):
 
   def __init__(self, app=None, msg=''):
-    super(AppCrashException, self).__init__(msg)
+    super().__init__(msg)
     self._msg = msg
     self._is_valid_dump = False
     self._stack_trace = []
@@ -73,7 +73,6 @@ class AppCrashException(Error):
       debug_data = app.CollectDebugData(logging.ERROR)
       self._system_log = debug_data.system_log or self._system_log
       if not isinstance(self._system_log, six.string_types):
-        # pylint:disable=redefined-variable-type
         self._system_log = self._system_log.decode('utf-8')
       self._app_stdout = debug_data.stdout
       if not isinstance(self._app_stdout, six.string_types):
@@ -95,7 +94,7 @@ class AppCrashException(Error):
   def __str__(self):
     divider = '*' * 80
     debug_messages = []
-    debug_messages.append(super(AppCrashException, self).__str__())
+    debug_messages.append(super().__str__())
     debug_messages.append('Found Minidump: %s' % self._is_valid_dump)
     debug_messages.append('Stack Trace:')
     debug_messages.append(divider)
@@ -121,7 +120,7 @@ class DevtoolsTargetCrashException(AppCrashException):
   """
 
   def __init__(self, app, msg='Devtools target crashed'):
-    super(DevtoolsTargetCrashException, self).__init__(app, msg)
+    super().__init__(app, msg)
 
 class DevtoolsTargetClosedException(Error):
   """Represents an error when Devtools target navigated or closed.
@@ -133,14 +132,14 @@ class BrowserGoneException(AppCrashException):
   In this state, all bets are pretty much off."""
 
   def __init__(self, app, msg='Browser crashed'):
-    super(BrowserGoneException, self).__init__(app, msg)
+    super().__init__(app, msg)
 
 
 class BrowserConnectionGoneException(BrowserGoneException):
   """Represents a browser that still exists but cannot be reached."""
 
   def __init__(self, app, msg='Browser exists but the connection is gone'):
-    super(BrowserConnectionGoneException, self).__init__(app, msg)
+    super().__init__(app, msg)
 
 
 class TabMissingError(Error):
@@ -158,7 +157,7 @@ class IntentionalException(Error):
 class InitializationError(Error):
 
   def __init__(self, string):
-    super(InitializationError, self).__init__(string)
+    super().__init__(string)
 
 
 class LoginException(Error):
@@ -167,12 +166,12 @@ class LoginException(Error):
 
 class EvaluateException(Error):
   def __init__(self, text='', class_name='', description=None):
-    super(EvaluateException, self).__init__(text)
+    super().__init__(text)
     self._class_name = class_name
     self._description = description
 
   def __str__(self):
-    output = super(EvaluateException, self).__str__()
+    output = super().__str__()
     if self._class_name and self._description:
       output += '%s:\n%s' % (self._class_name, self._description)
     return output

@@ -36,7 +36,7 @@ class TimelineModelUnittest(unittest.TestCase):
 
 class TimelineModelIntegrationTests(tab_test_case.TabTestCase):
   def setUp(self):
-    super(TimelineModelIntegrationTests, self).setUp()
+    super().setUp()
     self.tracing_controller = self._browser.platform.tracing_controller
     self.config = tracing_config.TracingConfig()
     self.config.chrome_trace_config.SetLowOverheadFilter()

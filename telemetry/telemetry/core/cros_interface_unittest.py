@@ -368,29 +368,29 @@ class CrOSInterfaceTest(unittest.TestCase):
 
     mock_run_cmd.return_value = ('', 'Host key verification failed')
     self.assertRaises(cros_interface.LoginException, cri.TryLogin)
-    self.assertRaisesRegexp(cros_interface.LoginException,
+    self.assertRaisesRegex(cros_interface.LoginException,
                             r'.*host key verification failed..*', cri.TryLogin)
 
     mock_run_cmd.return_value = ('', 'Operation timed out')
-    self.assertRaisesRegexp(cros_interface.LoginException,
+    self.assertRaisesRegex(cros_interface.LoginException,
                             r'Timed out while logging into.*', cri.TryLogin)
 
     mock_run_cmd.return_value = ('', 'UNPROTECTED PRIVATE KEY FILE!')
-    self.assertRaisesRegexp(cros_interface.LoginException,
+    self.assertRaisesRegex(cros_interface.LoginException,
                             r'Permissions for .* are too open. To fix this.*',
                             cri.TryLogin)
 
     mock_run_cmd.return_value = (
         '', 'Permission denied (publickey,keyboard-interactive)')
-    self.assertRaisesRegexp(cros_interface.KeylessLoginRequiredException,
+    self.assertRaisesRegex(cros_interface.KeylessLoginRequiredException,
                             r'Need to set up ssh auth for .*', cri.TryLogin)
 
     mock_run_cmd.return_value = ('', 'Fallback error case')
-    self.assertRaisesRegexp(cros_interface.LoginException,
+    self.assertRaisesRegex(cros_interface.LoginException,
                             r'While logging into .*, got .*', cri.TryLogin)
 
     mock_run_cmd.return_value = ('', 'Could not resolve hostname')
-    self.assertRaisesRegexp(cros_interface.DNSFailureException,
+    self.assertRaisesRegex(cros_interface.DNSFailureException,
                             r'Unable to resolve the hostname for:.*',
                             cri.TryLogin)
 
@@ -400,7 +400,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     mock_run_cmd.return_value = ('notrooot', '')
     cri = cros_interface.CrOSInterface(
         "testhostname", 22, options_for_unittests.GetCopy().cros_ssh_identity)
-    self.assertRaisesRegexp(cros_interface.LoginException,
+    self.assertRaisesRegex(cros_interface.LoginException,
                             r'Logged into .*, expected \$USER=root, but got .*',
                             cri.TryLogin)
 
@@ -433,6 +433,7 @@ class CrOSInterfaceTest(unittest.TestCase):
           # For the user $guest, returns the guest-mounted state.
           source, target = 'guestfs', args[2]
         return ('Filesystem Mounted on\n%s %s\n' % (source, target), '')
+      return 'Reached unreachable code'
     mock_run_cmd.side_effect = mockRunCmdOnDevice
 
     cri = cros_interface.CrOSInterface(

@@ -7,7 +7,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 import json
 import logging
-import optparse
+import optparse  # pylint: disable=deprecated-module
 import sys
 
 from telemetry import benchmark
@@ -150,7 +150,7 @@ def PrintBenchmarkList(
           end='', file=json_pipe)
 
 
-class List(object):
+class List():
   """Lists the available benchmarks"""
 
   @classmethod
@@ -190,7 +190,7 @@ class List(object):
     return 0
 
 
-class Run(object):
+class Run():
   """Run one or more benchmarks (default)"""
 
   @classmethod

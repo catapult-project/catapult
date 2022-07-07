@@ -11,7 +11,7 @@ class InspectorMemoryException(exceptions.Error):
   pass
 
 
-class InspectorMemory(object):
+class InspectorMemory():
   """Communicates with the remote inspector's Memory domain."""
 
   def __init__(self, inspector_websocket):

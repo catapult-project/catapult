@@ -27,7 +27,7 @@ def AssertValidCloudStorageBucket(bucket):
     raise ValueError("Cloud storage privacy bucket %s is invalid" % bucket)
 
 
-class WprArchiveInfo(object):
+class WprArchiveInfo():
   def __init__(self, file_path, data, bucket):
     AssertValidCloudStorageBucket(bucket)
     self._file_path = file_path

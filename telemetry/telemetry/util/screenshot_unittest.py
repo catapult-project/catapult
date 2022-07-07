@@ -92,7 +92,7 @@ class ScreenshotUtilTests(unittest.TestCase):
 
 class FakeScreenshotTimeoutPlatform(fakes.FakePlatform):
   def __init__(self, *args, **kwargs):
-    super(FakeScreenshotTimeoutPlatform, self).__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
     self.take_screenshot_call_count = 0
     self.target_screenshot_call_count = None
 

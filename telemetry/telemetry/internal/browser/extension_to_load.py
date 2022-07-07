@@ -13,7 +13,7 @@ class ExtensionPathNonExistentException(Exception):
 class MissingPublicKeyException(Exception):
   pass
 
-class ExtensionToLoad(object):
+class ExtensionToLoad():
   def __init__(self, path, browser_type):
     if not os.path.isdir(path):
       raise ExtensionPathNonExistentException(

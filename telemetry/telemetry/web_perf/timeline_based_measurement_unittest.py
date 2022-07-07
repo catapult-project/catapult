@@ -18,7 +18,7 @@ from telemetry.web_perf import timeline_based_measurement
 
 class TestTimelineBenchmark(benchmark.Benchmark):
   def __init__(self, story_run_side_effect=None):
-    super(TestTimelineBenchmark, self).__init__()
+    super().__init__()
     self._story_run_side_effect = story_run_side_effect
 
   def CreateStorySet(self, _):

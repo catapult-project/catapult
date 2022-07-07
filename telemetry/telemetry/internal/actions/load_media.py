@@ -15,13 +15,13 @@ class LoadMediaAction(media_action.MediaAction):
 
   def __init__(self, selector=None, timeout_in_seconds=0,
                event_to_await='canplaythrough'):
-    super(LoadMediaAction, self).__init__(timeout=timeout_in_seconds)
+    super().__init__(timeout=timeout_in_seconds)
     self._selector = selector or ''
     self._event_to_await = event_to_await
 
   def WillRunAction(self, tab):
     """Load the JS code prior to running the action."""
-    super(LoadMediaAction, self).WillRunAction(tab)
+    super().WillRunAction(tab)
     utils.InjectJavaScript(tab, 'load_media.js')
 
   def RunAction(self, tab):
@@ -32,10 +32,10 @@ class LoadMediaAction(media_action.MediaAction):
       if self.timeout > 0:
         self.WaitForEvent(tab, self._selector, self._event_to_await,
                           self.timeout)
-    except exceptions.EvaluateException:
-      raise page_action.PageActionFailed('Failed waiting for event "%s" on '
-                                         'elements with selector = %s.' %
-                                         (self._event_to_await, self._selector))
+    except exceptions.EvaluateException as e:
+      raise page_action.PageActionFailed(
+          'Failed waiting for event "%s" on elements with selector = %s.' %
+          (self._event_to_await, self._selector)) from e
 
   def __str__(self):
     return "%s(%s)" % (self.__class__.__name__, self._selector)

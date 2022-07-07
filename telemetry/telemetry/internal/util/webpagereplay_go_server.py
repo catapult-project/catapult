@@ -17,7 +17,7 @@ class ReplayServerNotStartedError(
   pass
 
 # TODO(crbug/1074047): remove this class entirely.
-class ReplayServer(object):
+class ReplayServer():
   """Start and Stop Web Page Replay.
 
   Web Page Replay is a proxy that can record and "replay" web pages with
@@ -72,9 +72,9 @@ class ReplayServer(object):
     """
     try:
       return self._wpr_server.StartServer()
-    except webpagereplay_go_server.ReplayNotStartedError:
+    except webpagereplay_go_server.ReplayNotStartedError as e:
       raise ReplayServerNotStartedError(
-          'Web Page Replay Server failed to start.')
+          'Web Page Replay Server failed to start.') from e
 
   def StopServer(self, log_level=logging.DEBUG):
     """Stop Web Page Replay.
@@ -93,4 +93,3 @@ class ReplayServer(object):
   def __exit__(self, unused_exc_type, unused_exc_val, unused_exc_tb):
     """Add support for with-statement."""
     self.StopServer()
-

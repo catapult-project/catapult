@@ -22,7 +22,7 @@ from telemetry.internal.browser import browser_finder
 from telemetry.internal.util import path
 
 
-class FakeResponse(object):
+class FakeResponse():
   def __init__(self):
     self.content = None
 

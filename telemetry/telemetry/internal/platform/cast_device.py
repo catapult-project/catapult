@@ -16,7 +16,7 @@ class CastDevice(device.Device):
     self._output_dir = output_dir
     self._runtime_exe = runtime_exe
     self._ip_addr = ip_addr
-    super(CastDevice, self).__init__(name='cast', guid='cast')
+    super().__init__(name='cast', guid='cast')
 
   @classmethod
   def GetAllConnectedDevices(cls, denylist):

@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 
-class Device(object):
+class Device():
   """ A base class of devices.
   A device instance contains all the necessary information for constructing
   a platform backend object for remote platforms.

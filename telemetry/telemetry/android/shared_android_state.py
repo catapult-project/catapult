@@ -24,7 +24,7 @@ class SharedAndroidState(story_module.SharedState):
       options: a BrowserFinderOptions instance with command line options.
       story_set: a story.StorySet instance.
     """
-    super(SharedAndroidState, self).__init__(
+    super().__init__(
         test, finder_options, story_set, possible_browser)
     if not isinstance(
         test, timeline_based_measurement.TimelineBasedMeasurement):

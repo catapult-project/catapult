@@ -32,7 +32,7 @@ try:
   try:
     import winreg  # pylint: disable=import-error
   except ImportError:
-    import six.moves.winreg as winreg  # pylint: disable=import-error,wrong-import-order
+    import six.moves.winreg as winreg  # pylint: disable=import-error,wrong-import-order,ungrouped-imports
   import win32security  # pylint: disable=import-error
 except ImportError as e:
   if platform.system() == 'Windows':
@@ -60,7 +60,7 @@ except ImportError:
 
 class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
   def __init__(self):
-    super(WinPlatformBackend, self).__init__()
+    super().__init__()
 
   @classmethod
   def IsPlatformBackendForHost(cls):
@@ -132,8 +132,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     if len(lines) > 1 and lines[0] == 'PCSystemType':
       if use_powershell:
         return lines[2]
-      else:
-        return lines[1]
+      return lines[1]
     return '0'
 
   def IsLaptop(self):
@@ -141,7 +140,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     return self.GetPcSystemType() == '2'
 
   def GetTypExpectationsTags(self):
-    tags = super(WinPlatformBackend, self).GetTypExpectationsTags()
+    tags = super().GetTypExpectationsTags()
     if self.IsLaptop():
       tags.append('win-laptop')
     return tags
@@ -279,7 +278,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       def __init__(self):
         self.size = ctypes.sizeof(self)
         # pylint: disable=bad-super-call
-        super(PerformanceInfo, self).__init__()
+        super().__init__()
 
     performance_info = PerformanceInfo()
     ctypes.windll.psapi.GetPerformanceInfo(
