@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 from __future__ import absolute_import
+import argparse
 import os
 import shutil
 import tarfile
@@ -19,8 +20,10 @@ _FUCHSIA_DEVICE_IMPORT_PATH = 'telemetry.internal.platform.fuchsia_device'
 class FuchsiaDeviceTest(unittest.TestCase):
 
   def testFindFuchsiaDevice(self):
-    with mock.patch('telemetry.util.cmd_util.GetAllCmdOutput',
-                    return_value=['{"device":"list"}', None]):
+    with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH +
+                        '.fuchsia_interface.run_ffx_command',
+                    return_value=argparse.Namespace(
+                        stdout='{"device":"list"}')):
       self.assertEqual(fuchsia_device._FindFuchsiaDevice(), {"device":"list"})
 
   def testFindAllAvailableDevicesFailsNonFuchsiaBrowser(self):

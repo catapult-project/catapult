@@ -89,10 +89,10 @@ def _DownloadFuchsiaSDK(tar_file, dest=fuchsia_interface.SDK_ROOT):
 
 def _FindFuchsiaDevice():
   """Returns the (possibly empty) list of targets known to ffx."""
-  ffx = os.path.join(fuchsia_interface.SDK_ROOT, 'tools',
-                     fuchsia_interface.GetHostArchFromPlatform(), 'ffx')
-  finder_cmd = [ffx, 'target', 'list', '-f', 'json']
-  json_targets, _ = cmd_util.GetAllCmdOutput(finder_cmd)
+
+  json_targets = fuchsia_interface.run_ffx_command(
+      ['target', 'list', '-f', 'json'],
+      capture_output=True).stdout.strip()
   if not json_targets:
     return []
   return json.loads(json_targets)

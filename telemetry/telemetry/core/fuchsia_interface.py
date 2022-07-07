@@ -43,6 +43,75 @@ def GetHostArchFromPlatform():
 _FFX_TOOL = os.path.join(
     SDK_ROOT, 'tools', GetHostArchFromPlatform(), 'ffx')
 
+
+def _run_repair_command(output):
+    """Scans |output| for a self-repair command to run and, if found, runs it.
+
+    Returns:
+      True if a repair command was found and ran successfully. False otherwise.
+    """
+
+    # Check for a string along the lines of:
+    # "Run `ffx doctor --restart-daemon` for further diagnostics."
+    match = re.search('`ffx ([^`]+)`', output)
+    if not match or len(match.groups()) != 1:
+      return False  # No repair command found.
+    args = match.groups()[0].split()
+
+    try:
+      run_ffx_command(args, suppress_repair=True)
+    except subprocess.CalledProcessError:
+      return False  # Repair failed.
+    return True  # Repair succeeded.
+
+
+def run_ffx_command(cmd, target_id = None, check = True,
+                    suppress_repair = False, **kwargs):
+  """Runs `ffx` with the given arguments, waiting for it to exit.
+
+  If `ffx` exits with a non-zero exit code, the output is scanned for a
+  recommended repair command (e.g., "Run `ffx doctor --restart-daemon` for
+  further diagnostics."). If such a command is found, it is run and then the
+  original command is retried. This behavior can be suppressed via the
+  `suppress_repair` argument.
+
+  Args:
+      cmd: A sequence of arguments to ffx.
+      target_id: Whether to execute the command for a specific target. The
+            target_id could be in the form of a nodename or an address.
+      check: If True, CalledProcessError is raised if ffx returns a non-zero
+          exit code.
+      suppress_repair: If True, do not attempt to find and run a repair
+          command.
+  Returns:
+      A CompletedProcess instance
+  Raises:
+      CalledProcessError if |check| is true.
+  """
+
+  ffx_cmd = [_FFX_TOOL]
+  ffx_cmd.extend(('--target', target_id))
+  ffx_cmd.extend(cmd)
+  try:
+    return subprocess.run(ffx_cmd, check=check, encoding='utf-8', **kwargs)
+  except subprocess.CalledProcessError as cpe:
+    if suppress_repair or not _run_repair_command(cpe.output):
+      raise
+
+  # If the original command failed but a repair command was found and
+  # succeeded, try one more time with the original command.
+  return run_ffx_command(cmd, target_id, check, True, **kwargs)
+
+
+def run_continuous_ffx_command(cmd, target_id, **kwargs):
+  """Runs an ffx command asynchronously."""
+
+  ffx_cmd = [_FFX_TOOL]
+  ffx_cmd.extend(('--target', target_id))
+  ffx_cmd.extend(cmd)
+  return subprocess.Popen(ffx_cmd, encoding='utf-8', **kwargs)
+
+
 class CommandRunner(object):
   """Helper class used to execute commands on Fuchsia devices on a remote host
   over SSH."""
@@ -86,68 +155,11 @@ class CommandRunner(object):
       prefix_cmd += ['-p', str(self._port)]
     return prefix_cmd
 
-  def _run_repair_command(self, output):
-    """Scans |output| for a self-repair command to run and, if found, runs it.
-
-    Returns:
-      True if a repair command was found and ran successfully. False otherwise.
-    """
-
-    # Check for a string along the lines of:
-    # "Run `ffx doctor --restart-daemon` for further diagnostics."
-    match = re.search('`ffx ([^`]+)`', output)
-    if not match or len(match.groups()) != 1:
-      return False  # No repair command found.
-    args = match.groups()[0].split()
-
-    try:
-      self.run_ffx_command(args, suppress_repair=True)
-    except subprocess.CalledProcessError:
-      return False  # Repair failed.
-    return True  # Repair succeeded.
-
-  def run_ffx_command(self, cmd, check = True, suppress_repair = False,
-                      **kwargs):
-    """Runs `ffx` with the given arguments, waiting for it to exit.
-
-    If `ffx` exits with a non-zero exit code, the output is scanned for a
-    recommended repair command (e.g., "Run `ffx doctor --restart-daemon` for
-    further diagnostics."). If such a command is found, it is run and then the
-    original command is retried. This behavior can be suppressed via the
-    `suppress_repair` argument.
-
-    Args:
-        cmd: A sequence of arguments to ffx.
-        check: If True, CalledProcessError is raised if ffx returns a non-zero
-            exit code.
-        suppress_repair: If True, do not attempt to find and run a repair
-            command.
-    Returns:
-        A CompletedProcess instance
-    Raises:
-        CalledProcessError if |check| is true.
-    """
-
-    ffx_cmd = [_FFX_TOOL]
-    ffx_cmd.extend(('--target', self._target_id))
-    ffx_cmd.extend(cmd)
-    try:
-      return subprocess.run(ffx_cmd, check=check, encoding='utf-8', **kwargs)
-    except subprocess.CalledProcessError as cpe:
-      if suppress_repair or not self._run_repair_command(cpe.output):
-        raise
-
-    # If the original command failed but a repair command was found and
-    # succeeded, try one more time with the original command.
-    return self.run_ffx_command(cmd, check, True, **kwargs)
+  def run_ffx_command(self, cmd, **kwargs):
+    return run_ffx_command(cmd, self._target_id, **kwargs)
 
   def run_continuous_ffx_command(self, cmd, **kwargs):
-    """Runs an ffx command asynchronously."""
-
-    ffx_cmd = [_FFX_TOOL]
-    ffx_cmd.extend(('--target', self._target_id))
-    ffx_cmd.extend(cmd)
-    return subprocess.Popen(ffx_cmd, encoding='utf-8', **kwargs)
+    return run_continuous_ffx_command(cmd, self._target_id, **kwargs)
 
   def RunCommandPiped(self, command=None, ssh_args=None, **kwargs):
     """Executes an SSH command on the remote host and returns a process object
@@ -170,7 +182,6 @@ class CommandRunner(object):
     ssh_args.append('-oControlMaster=no')
     ssh_command = self._GetSshCommandLinePrefix() + ssh_args + ['--'] + command
     logging.debug(' '.join(ssh_command))
-    print(ssh_command)
     if six.PY3:
       kwargs['text'] = True
     return subprocess.Popen(ssh_command, **kwargs)
