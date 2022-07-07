@@ -29,13 +29,18 @@ _CAS_DEFAULT_INSTANCE = (
 
 
 def SwarmingTagsFromJob(job):
-  return {
+  ret = {
       'pinpoint_job_id': job.job_id,
       'url': job.url,
       'comparison_mode': job.comparison_mode,
       'pinpoint_task_kind': 'test',
       'pinpoint_user': job.user,
   }
+
+  if job.batch_id is not None:
+    ret['pinpoint_batch_id'] = job.batch_id
+
+  return ret
 
 
 class RunTest(quest.Quest):
