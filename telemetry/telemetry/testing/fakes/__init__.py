@@ -29,7 +29,7 @@ from telemetry.testing.internal import fake_gpu_info
 # Classes and functions which are intended to be part of the public
 # fakes API.
 
-class FakePlatformBackend(object):
+class FakePlatformBackend():
   def __init__(self, os_name):
     self._os_name = os_name
 
@@ -37,7 +37,7 @@ class FakePlatformBackend(object):
     return self._os_name
 
 
-class FakePlatform(object):
+class FakePlatform():
   def __init__(self, os_name='', os_version_name='', arch_name=''):
     self._network_controller = None
     self._tracing_controller = None
@@ -147,7 +147,7 @@ class FakePlatform(object):
 
 class FakeLinuxPlatform(FakePlatform):
   def __init__(self):
-    super(FakeLinuxPlatform, self).__init__()
+    super().__init__()
     self.screenshot_png_data = None
     self.http_server_directories = []
     self.http_server = FakeHTTPServer()
@@ -188,18 +188,18 @@ class FakeLinuxPlatform(FakePlatform):
     self.http_server_directories.append(paths)
 
 
-class FakeHTTPServer(object):
+class FakeHTTPServer():
   def UrlOf(self, url):
     del url  # unused
     return 'file:///foo'
 
 
-class FakeForwarder(object):
+class FakeForwarder():
   def Close(self):
     pass
 
 
-class FakeForwarderFactory(object):
+class FakeForwarderFactory():
   def __init__(self):
     self.raise_exception_on_create = False
     self.host_ip = '127.0.0.1'
@@ -213,7 +213,7 @@ class FakeForwarderFactory(object):
     return FakeForwarder()
 
 
-class FakePossibleBrowser(object):
+class FakePossibleBrowser():
   def __init__(self, execute_on_startup=None,
                execute_after_browser_creation=None,
                arch_name='', os_name='', os_version_name='', browser_type=''):
@@ -280,22 +280,22 @@ class FakeSharedPageState(shared_page_state.SharedPageState):
     """
 
 
-  def DidRunStory(self, results):
+  def DidRunStory(self, results):  # pylint:disable=useless-super-delegation
     # TODO(kbr): add a test which throws an exception from DidRunStory
     # to verify the fix from https://crrev.com/86984d5fc56ce00e7b37ebe .
-    super(FakeSharedPageState, self).DidRunStory(results)
+    super().DidRunStory(results)
 
 
 class FakeSystemInfo(system_info.SystemInfo):
   def __init__(self, model_name='', gpu_dict=None, command_line=''):
     if gpu_dict is None:
       gpu_dict = fake_gpu_info.FAKE_GPU_INFO
-    super(FakeSystemInfo, self).__init__(model_name, gpu_dict, command_line)
+    super().__init__(model_name, gpu_dict, command_line)
 
 
 class _FakeBrowserFinderOptions(browser_options_module.BrowserFinderOptions):
-  def __init__(self, execute_on_startup=None,
-               execute_after_browser_creation=None, *args, **kwargs):
+  def __init__(self, execute_on_startup,
+               execute_after_browser_creation, *args, **kwargs):
     browser_options_module.BrowserFinderOptions.__init__(self, *args, **kwargs)
     self.fake_possible_browser = \
       FakePossibleBrowser(
@@ -312,7 +312,7 @@ def CreateBrowserFinderOptions(browser_type=None, execute_on_startup=None,
       execute_after_browser_creation=execute_after_browser_creation)
 
 
-class FakeApp(object):
+class FakeApp():
 
   def __init__(self, platform=None):
     if not platform:
@@ -352,7 +352,7 @@ class FakeApp(object):
 
 class FakeBrowser(FakeApp):
   def __init__(self, platform, browser_type=''):
-    super(FakeBrowser, self).__init__(platform)
+    super().__init__(platform)
     self._tabs = _FakeTabList(self)
     # Fake the creation of the first tab.
     self._tabs.New()
@@ -419,7 +419,7 @@ class FakeBrowser(FakeApp):
     pass
 
 
-class _FakeTracingController(object):
+class _FakeTracingController():
   def __init__(self):
     self._is_tracing = False
 
@@ -439,7 +439,7 @@ class _FakeTracingController(object):
     pass
 
 
-class _FakeNetworkController(object):
+class _FakeNetworkController():
   def __init__(self):
     self.wpr_mode = None
 
@@ -472,7 +472,7 @@ class _FakeNetworkController(object):
     pass
 
 
-class _FakeTab(object):
+class _FakeTab():
   def __init__(self, browser, tab_id):
     self._browser = browser
     self._tab_id = str(tab_id)
@@ -528,7 +528,7 @@ class _FakeTab(object):
     return image_util.FromBase64Png(self.test_png)
 
 
-class _FakeTabList(object):
+class _FakeTabList():
   _current_tab_id = 0
 
   def __init__(self, browser):
@@ -551,8 +551,7 @@ class _FakeTabList(object):
   def __getitem__(self, index):
     if self._tabs[index].browser._is_crashed:
       raise Exception
-    else:
-      return self._tabs[index]
+    return self._tabs[index]
 
   def GetTabById(self, identifier):
     """The identifier of a tab can be accessed with tab.id."""
@@ -562,7 +561,7 @@ class _FakeTabList(object):
     return None
 
 
-class FakeInspectorWebsocket(object):
+class FakeInspectorWebsocket():
   _NOTIFICATION_EVENT = 1
   _NOTIFICATION_CALLBACK = 2
 
@@ -638,7 +637,7 @@ class FakeInspectorWebsocket(object):
       raise Exception('Unexpected response type')
 
 
-class FakeTimer(object):
+class FakeTimer():
   """ A fake timer to fake out the timing for a module.
     Args:
       module: module to fake out the time
@@ -671,7 +670,7 @@ class FakeTimer(object):
       self._actual_time = None
 
 
-class FakeParsedArgsForStoryFilter(object):
+class FakeParsedArgsForStoryFilter():
   def __init__(
       self, story_filter=None, story_filter_exclude=None,
       story_tag_filter=None, story_tag_filter_exclude=None,

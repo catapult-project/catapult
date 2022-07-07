@@ -17,7 +17,7 @@ class RepeatableScrollAction(page_action.PageAction):
                repeat_count=0, repeat_delay_ms=250,
                timeout=page_action.DEFAULT_TIMEOUT,
                prevent_fling=None, speed=None):
-    super(RepeatableScrollAction, self).__init__(timeout=timeout)
+    super().__init__(timeout=timeout)
     self._x_scroll_distance_ratio = x_scroll_distance_ratio
     self._y_scroll_distance_ratio = y_scroll_distance_ratio
     self._repeat_count = repeat_count

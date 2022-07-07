@@ -30,7 +30,7 @@ class SharedPageState(story_module.SharedState):
   _device_type = None
 
   def __init__(self, test, finder_options, story_set, possible_browser):
-    super(SharedPageState, self).__init__(
+    super().__init__(
         test, finder_options, story_set, possible_browser)
     self._page_test = None
     if issubclass(type(test), legacy_page_test.LegacyPageTest):

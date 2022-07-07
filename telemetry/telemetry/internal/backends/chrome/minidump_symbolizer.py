@@ -18,7 +18,7 @@ from dependency_manager import exceptions as dependency_exceptions
 from telemetry.internal.util import local_first_binary_manager
 
 
-class MinidumpSymbolizer(object):
+class MinidumpSymbolizer():
   def __init__(self, os_name, arch_name, dump_finder, build_dir,
                symbols_dir=None):
     """Abstract class for handling all minidump symbolizing code.
@@ -76,7 +76,6 @@ class MinidumpSymbolizer(object):
       # This can be removed once fully switched to Python 3 by passing text=True
       # to the check_output call above.
       if not isinstance(output, six.string_types):
-        # pylint: disable=redefined-variable-type
         output = output.decode('utf-8')
       return output
     finally:

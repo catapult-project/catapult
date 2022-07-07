@@ -13,7 +13,7 @@ import random
 import re
 import shutil
 import signal
-import subprocess as subprocess
+import subprocess
 import sys
 import tempfile
 
@@ -39,7 +39,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                browser_directory, profile_directory,
                executable, flash_path, is_content_shell,
                build_dir=None):
-    super(DesktopBrowserBackend, self).__init__(
+    super().__init__(
         desktop_platform_backend,
         browser_options=browser_options,
         browser_directory=browser_directory,
@@ -218,7 +218,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if not self.IsBrowserRunning():
       raise exceptions.ProcessGoneException(
           'Return code: %d' % self._proc.returncode)
-    super(DesktopBrowserBackend, self).BindDevToolsClient()
+    super().BindDevToolsClient()
 
   def GetPid(self):
     if self._proc:
@@ -320,9 +320,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           # 'CHROME_SHUTDOWN_TIMEOUT' environment variable.
           # TODO(sebmarchand): Remove this now that there's an option to shut
           # down Chrome via Devtools.
-          py_utils.WaitFor(lambda: not self.IsBrowserRunning(),
-                           timeout=int(os.getenv('CHROME_SHUTDOWN_TIMEOUT', 15))
-                          )
+          py_utils.WaitFor(
+              lambda: not self.IsBrowserRunning(),
+              timeout=int(os.getenv('CHROME_SHUTDOWN_TIMEOUT', '15')))
           logging.info('Successfully shut down browser cooperatively')
         except py_utils.TimeoutException as e:
           logging.warning('Failed to cooperatively shutdown. ' +
@@ -333,7 +333,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   @exc_util.BestEffort
   def Close(self):
-    super(DesktopBrowserBackend, self).Close()
+    super().Close()
 
     # First, try to cooperatively shutdown.
     if self.IsBrowserRunning():
@@ -346,7 +346,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._proc.send_signal(signal.SIGINT)
       try:
         py_utils.WaitFor(lambda: not self.IsBrowserRunning(),
-                         timeout=int(os.getenv('CHROME_SHUTDOWN_TIMEOUT', 5))
+                         timeout=int(os.getenv('CHROME_SHUTDOWN_TIMEOUT', '5'))
                         )
         self._proc = None
       except py_utils.TimeoutException:

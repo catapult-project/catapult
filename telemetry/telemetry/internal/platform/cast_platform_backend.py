@@ -22,7 +22,7 @@ from telemetry.internal.platform import platform_backend
 
 class CastPlatformBackend(platform_backend.PlatformBackend):
   def __init__(self, device):
-    super(CastPlatformBackend, self).__init__(device)
+    super().__init__(device)
     self._ip_addr = None
     self._output_dir = device.output_dir
     self._runtime_exe = device.runtime_exe
@@ -53,7 +53,7 @@ class CastPlatformBackend(platform_backend.PlatformBackend):
   def _CreateForwarderFactory(self):
     if self._ip_addr:
       return cast_forwarder.CastForwarderFactory(self._ip_addr)
-    return super(CastPlatformBackend, self)._CreateForwarderFactory()
+    return super()._CreateForwarderFactory()
 
   def GetSSHSession(self):
     ssh = pxssh.pxssh(options={
@@ -130,6 +130,6 @@ class CastPlatformBackend(platform_backend.PlatformBackend):
     return None
 
   def GetTypExpectationsTags(self):
-    tags = super(CastPlatformBackend, self).GetTypExpectationsTags()
+    tags = super().GetTypExpectationsTags()
     tags.append(self.GetDeviceTypeName())
     return tags

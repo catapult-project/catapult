@@ -14,7 +14,7 @@ class AsyncSlice(event.TimelineEvent):
   def __init__(self, category, name, timestamp, args=None,
                duration=0, start_thread=None, end_thread=None,
                thread_start=None, thread_duration=None):
-    super(AsyncSlice, self).__init__(
+    super().__init__(
         category, name, timestamp, duration, thread_start, thread_duration,
         args)
     self.parent_slice = None

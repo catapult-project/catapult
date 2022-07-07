@@ -9,7 +9,7 @@ from telemetry.core import os_version as os_version_module
 # TODO(rnephew): Since TestConditions are being used for more than
 # just story expectations now, this should be decoupled and refactored
 # to be clearer.
-class _TestCondition(object):
+class _TestCondition():
   def ShouldDisable(self, platform, finder_options):
     raise NotImplementedError
 

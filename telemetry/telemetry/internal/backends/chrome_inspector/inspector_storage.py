@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from telemetry.core import exceptions
 
 
-class InspectorStorage(object):
+class InspectorStorage():
   def __init__(self, inspector_websocket):
     self._websocket = inspector_websocket
     self._websocket.RegisterDomain('Storage', self._OnNotification)

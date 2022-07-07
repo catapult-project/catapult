@@ -19,7 +19,7 @@ class TapAction(page_action.ElementPageAction):
                duration_ms=50,
                synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT,
                timeout=page_action.DEFAULT_TIMEOUT):
-    super(TapAction, self).__init__(selector, text, element_function, timeout)
+    super().__init__(selector, text, element_function, timeout)
     self._left_position_percentage = left_position_percentage
     self._top_position_percentage = top_position_percentage
     self._duration_ms = duration_ms

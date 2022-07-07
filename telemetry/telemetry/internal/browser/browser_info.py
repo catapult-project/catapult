@@ -17,7 +17,7 @@ _CHECK_WEBGL_SUPPORTED_SCRIPT = """
 })();
 """
 
-class BrowserInfo(object):
+class BrowserInfo():
   """A wrapper around browser object that allows looking up infos of the
   browser.
   """

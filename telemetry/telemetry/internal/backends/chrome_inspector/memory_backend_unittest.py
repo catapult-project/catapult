@@ -16,7 +16,7 @@ from telemetry.testing import tab_test_case
 class MemoryBackendTest(tab_test_case.TabTestCase):
 
   def setUp(self):
-    super(MemoryBackendTest, self).setUp()
+    super().setUp()
     if not self._browser.supports_overriding_memory_pressure_notifications:
       self.skipTest('Browser does not support overriding memory pressure '
                     'notification signals, skipping test.')

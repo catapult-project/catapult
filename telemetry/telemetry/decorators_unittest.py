@@ -12,7 +12,7 @@ from telemetry import decorators
 from telemetry.internal.browser import possible_browser
 
 
-class FakeTest(object):
+class FakeTest():
 
   def SetEnabledStrings(self, enabled_strings):
     enabled_attr_name = decorators.EnabledAttributeName(self)
@@ -28,7 +28,7 @@ class TestDisableDecorators(unittest.TestCase):
 
   def testCannotDisableClasses(self):
 
-    class Ford(object):
+    class Ford():
       pass
 
     with self.assertRaises(TypeError):
@@ -36,7 +36,7 @@ class TestDisableDecorators(unittest.TestCase):
 
   def testDisabledStringOnMethod(self):
 
-    class Ford(object):
+    class Ford():
 
       @decorators.Disabled('windshield')
       def Drive(self):
@@ -45,7 +45,7 @@ class TestDisableDecorators(unittest.TestCase):
     self.assertEqual({'windshield'},
                      decorators.GetDisabledAttributes(Ford().Drive))
 
-    class Honda(object):
+    class Honda():
 
       @decorators.Disabled('windows', 'Drive')
       @decorators.Disabled('wheel')
@@ -79,7 +79,7 @@ class TestEnableDecorators(unittest.TestCase):
 
   def testCannotEnableClasses(self):
 
-    class Ford(object):
+    class Ford():
       pass
 
     with self.assertRaises(TypeError):
@@ -87,7 +87,7 @@ class TestEnableDecorators(unittest.TestCase):
 
   def testEnabledStringOnMethod(self):
 
-    class Ford(object):
+    class Ford():
 
       @decorators.Enabled('windshield')
       def Drive(self):
@@ -96,7 +96,7 @@ class TestEnableDecorators(unittest.TestCase):
     self.assertEqual({'windshield'},
                      decorators.GetEnabledAttributes(Ford().Drive))
 
-    class Honda(object):
+    class Honda():
 
       @decorators.Enabled('windows', 'Drive')
       @decorators.Enabled('wheel', 'Drive')
@@ -130,7 +130,7 @@ class TestInfoDecorators(unittest.TestCase):
 
     @decorators.Info(emails=['owner@chromium.org'],
                      documentation_url='http://foo.com')
-    class Ford(object):
+    class Ford():
       pass
 
     self.assertEqual(['owner@chromium.org'], decorators.GetEmails(Ford))
@@ -139,7 +139,7 @@ class TestInfoDecorators(unittest.TestCase):
     @decorators.Info(component='component',
                      documentation_url='http://bar.com',
                      info_blurb='Has CVT Transmission')
-    class Honda(object):
+    class Honda():
       pass
 
 
@@ -155,7 +155,7 @@ class TestInfoDecorators(unittest.TestCase):
 
     @decorators.Info(emails=['owner@chromium.org'], component='comp',
                      documentation_url='https://car.com')
-    class Car(object):
+    class Car():
       pass
 
     class Ford(Car):
@@ -175,7 +175,7 @@ class TestInfoDecorators(unittest.TestCase):
     with self.assertRaises(AssertionError):
       @decorators.Info(emails=['owner2@chromium.org'])
       @decorators.Info(emails=['owner@chromium.org'], component='comp')
-      class Car(object):
+      class Car():
         pass
 
 
@@ -365,7 +365,7 @@ class TestDeprecation(unittest.TestCase):
   @mock.patch('warnings.warn')
   def testMethodDeprecated(self, warn_mock):
 
-    class Bar(object):
+    class Bar():
 
       @decorators.Deprecated(2015, 12, 1, 'Testing only.')
       def Foo(self, x):
@@ -382,7 +382,7 @@ class TestDeprecation(unittest.TestCase):
   def testClassWithoutInitDefinedDeprecated(self, warn_mock):
 
     @decorators.Deprecated(2015, 12, 1)
-    class Bar(object):
+    class Bar():
 
       def Foo(self, x):
         return x
@@ -398,7 +398,7 @@ class TestDeprecation(unittest.TestCase):
   def testClassWithInitDefinedDeprecated(self, warn_mock):
 
     @decorators.Deprecated(2015, 12, 1)
-    class Bar(object):
+    class Bar():
 
       def __init__(self):
         pass
@@ -416,7 +416,7 @@ class TestDeprecation(unittest.TestCase):
   @mock.patch('warnings.warn')
   def testInheritedClassDeprecated(self, warn_mock):
 
-    class Ba(object):
+    class Ba():
       pass
 
     @decorators.Deprecated(2015, 12, 1)
@@ -437,7 +437,7 @@ class TestDeprecation(unittest.TestCase):
 
   def testReturnValue(self):
 
-    class Bar(object):
+    class Bar():
 
       @decorators.Deprecated(2015, 12, 1, 'Testing only.')
       def Foo(self, x):

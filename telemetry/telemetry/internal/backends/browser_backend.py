@@ -35,7 +35,7 @@ class BrowserBackend(app_backend.AppBackend):
   def __init__(self, platform_backend, browser_options,
                supports_extensions, tab_list_backend):
     assert browser_options.browser_type
-    super(BrowserBackend, self).__init__(browser_options.browser_type,
+    super().__init__(browser_options.browser_type,
                                          platform_backend)
     self.browser_options = browser_options
     self._supports_extensions = supports_extensions
@@ -47,7 +47,7 @@ class BrowserBackend(app_backend.AppBackend):
     self._collect_periodic_screenshots = False
 
   def SetBrowser(self, browser):
-    super(BrowserBackend, self).SetApp(app=browser)
+    super().SetApp(app=browser)
 
   @property
   def log_file_path(self):

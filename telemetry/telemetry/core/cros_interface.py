@@ -94,7 +94,7 @@ def _IsIgnoredFileType(filename):
   return False
 
 
-class CrOSInterface(object):
+class CrOSInterface():
 
   CROS_MINIDUMP_DIR = '/var/log/chrome/Crash Reports/'
 

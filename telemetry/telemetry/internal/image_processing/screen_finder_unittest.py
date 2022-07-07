@@ -22,20 +22,21 @@ else:
   # pylint: disable=protected-access
   class ScreenFinderTest(unittest.TestCase):
     def __init__(self, *args, **kwargs):
-      super(ScreenFinderTest, self).__init__(*args, **kwargs)
+      super().__init__(*args, **kwargs)
       # Import modules with dependencies that may not be preset in test setup so
       # that importing this unit test doesn't cause the test runner to raise an
       # exception.
+      # pylint: disable=import-outside-toplevel
       from telemetry.internal.image_processing import fake_frame_generator
       from telemetry.internal.image_processing import screen_finder
       from telemetry.internal.image_processing import video_file_frame_generator
+      # pylint: enable=import-outside-toplevel
       self.FakeFrameGenerator = fake_frame_generator.FakeFrameGenerator
       self.VideoFileFrameGenerator = \
           video_file_frame_generator.VideoFileFrameGenerator
       self.ScreenFinder = screen_finder.ScreenFinder
 
     def _GetScreenFinder(self, video_filename):
-      # pylint: disable=redefined-variable-type
       if not video_filename:
         fg = self.FakeFrameGenerator()
       else:

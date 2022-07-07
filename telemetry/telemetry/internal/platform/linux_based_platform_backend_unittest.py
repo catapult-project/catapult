@@ -15,7 +15,7 @@ class TestLinuxBackend(linux_based_platform_backend.LinuxBasedPlatformBackend):
   # pylint: disable=abstract-method
 
   def __init__(self):
-    super(TestLinuxBackend, self).__init__()
+    super().__init__()
     self._mock_files = {}
 
   def SetMockFile(self, filename, output):

@@ -8,7 +8,7 @@ from telemetry.timeline import chrome_trace_config
 from telemetry.timeline import system_trace_config
 
 
-class TracingConfig(object):
+class TracingConfig():
   """Tracing config is the configuration for tracing in Telemetry.
 
   TracingConfig configures tracing in Telemetry. It contains tracing options

@@ -25,7 +25,7 @@ TEST_RESULTS = '_test_results.jsonl'
 DIAGNOSTICS_NAME = 'diagnostics.json'
 
 
-class PageTestResults(object):
+class PageTestResults():
   def __init__(self, progress_stream=None, intermediate_dir=None,
                benchmark_name=None, benchmark_description=None,
                bot_id_name=None, results_label=None):
@@ -43,7 +43,7 @@ class PageTestResults(object):
       results_label: A string that serves as an identifier for the current
           benchmark run.
     """
-    super(PageTestResults, self).__init__()
+    super().__init__()
     self._progress_reporter = gtest_progress_reporter.GTestProgressReporter(
         progress_stream)
     self._intermediate_dir = intermediate_dir

@@ -11,7 +11,7 @@ from telemetry.internal.platform import device
 
 class CrOSDevice(device.Device):
   def __init__(self, host_name, ssh_port, ssh_identity, is_local):
-    super(CrOSDevice, self).__init__(
+    super().__init__(
         name='ChromeOs with host %s' % host_name or 'localhost',
         guid='cros:%s' % host_name or 'localhost')
     self._host_name = host_name

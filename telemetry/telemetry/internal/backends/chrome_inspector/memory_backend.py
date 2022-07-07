@@ -23,7 +23,7 @@ class MemoryUnexpectedResponseException(Exception):
   pass
 
 
-class MemoryBackend(object):
+class MemoryBackend():
 
   def __init__(self, inspector_socket):
     self._inspector_websocket = inspector_socket
@@ -73,14 +73,10 @@ class MemoryBackend(object):
           err.websocket_error_type, websocket.WebSocketTimeoutException):
         raise MemoryTimeoutException(
             'Exception raised while sending a %s request:\n%s' %
-            (method, traceback.format_exc()))
-      else:
-        raise MemoryUnrecoverableException(
-            'Exception raised while sending a %s request:\n%s' %
-            (method, traceback.format_exc()))
+            (method, traceback.format_exc())) from err
       raise MemoryUnrecoverableException(
           'Exception raised while sending a %s request:\n%s' %
-          (method, traceback.format_exc()))
+          (method, traceback.format_exc())) from err
 
     if 'error' in response:
       code = response['error']['code']

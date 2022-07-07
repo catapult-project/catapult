@@ -11,6 +11,6 @@ class FlowEvent(event.TimelineEvent):
   with that interval.
   """
   def __init__(self, category, event_id, name, start, args=None):
-    super(FlowEvent, self).__init__(
+    super().__init__(
         category, name, start, duration=0, args=args)
     self.event_id = event_id

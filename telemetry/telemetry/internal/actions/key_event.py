@@ -78,7 +78,7 @@ _AddRegularKey(' ', 0x20)
 class KeyPressAction(page_action.PageAction):
 
   def __init__(self, dom_key, timeout=page_action.DEFAULT_TIMEOUT):
-    super(KeyPressAction, self).__init__(timeout=timeout)
+    super().__init__(timeout=timeout)
     char_code = 0 if len(dom_key) > 1 else ord(dom_key)
     self._dom_key = dom_key
     # Check that ascii chars are allowed.

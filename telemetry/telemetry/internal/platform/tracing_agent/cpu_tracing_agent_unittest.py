@@ -20,7 +20,7 @@ SNAPSHOT_KEYS = ['pid', 'ppid', 'name', 'pCpu', 'pMem']
 TRACE_EVENT_KEYS = ['name', 'tid', 'pid', 'ph', 'args', 'local', 'id', 'ts']
 
 
-class FakeAndroidPlatformBackend(object):
+class FakeAndroidPlatformBackend():
   def __init__(self):
     self.device = 'fake_device'
 
@@ -33,7 +33,6 @@ class CpuTracingAgentTest(unittest.TestCase):
   def setUp(self):
     self._config = tracing_config.TracingConfig()
     self._config.enable_cpu_trace = True
-    # pylint: disable=redefined-variable-type
     if sys.platform.startswith('win'):
       self._desktop_backend = win_platform_backend.WinPlatformBackend()
     elif sys.platform.startswith('darwin'):

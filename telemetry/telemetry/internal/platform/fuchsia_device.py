@@ -16,7 +16,6 @@ import tarfile
 from telemetry.core import fuchsia_interface
 from telemetry.core import util
 from telemetry.internal.platform import device
-from telemetry.util import cmd_util
 
 _LIST_DEVICES_TIMEOUT_SECS = 5
 _GCS_PREFIX = 'gs://fuchsia/sdk/core/linux-amd64'
@@ -28,7 +27,7 @@ class FuchsiaDevice(device.Device):
 
   def __init__(self, host, ssh_config, system_log_file,
                port, target_id, managed_repo):
-    super(FuchsiaDevice, self).__init__(
+    super().__init__(
         name='Fuchsia with host: %s' % host,
         guid=host)
     self._ssh_config = ssh_config

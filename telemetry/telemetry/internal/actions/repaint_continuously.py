@@ -17,7 +17,7 @@ class RepaintContinuouslyAction(page_action.PageAction):
   """
 
   def __init__(self, seconds):
-    super(RepaintContinuouslyAction, self).__init__()
+    super().__init__()
     self._seconds = seconds
 
   def RunAction(self, tab):

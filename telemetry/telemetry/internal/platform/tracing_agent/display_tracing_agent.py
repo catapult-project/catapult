@@ -17,6 +17,7 @@ class DisplayTracingAgent(tracing_agent.TracingAgent):
     if config.enable_platform_display_trace:
       self._platform_backend.StartDisplayTracing()
       return True
+    return False
 
   def StopAgentTracing(self):
     # TODO: Split collection and stopping.

@@ -34,7 +34,7 @@ def _ParsePsProcessString(line):
   }
 
 
-class ProcessCollector(object):
+class ProcessCollector():
   def _GetProcessesAsStrings(self):
     """Returns a list of strings, each of which contains info about a
     process.
@@ -117,7 +117,7 @@ class WindowsProcessCollector(ProcessCollector):
     self._GetProcessesAsStrings()
 
   def GetProcesses(self):
-    processes = super(WindowsProcessCollector, self).GetProcesses()
+    processes = super().GetProcesses()
 
     # On Windows, the absolute minimal name of the process is given
     # (e.g. "python" for Telemetry). In order to make this more useful, we check
@@ -270,11 +270,10 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
   }
 
   def __init__(self, platform_backend, config):
-    super(CpuTracingAgent, self).__init__(platform_backend, config)
+    super().__init__(platform_backend, config)
     self._snapshot_ongoing = False
     self._snapshots = []
     self._os_name = platform_backend.GetOSName()
-    # pylint: disable=redefined-variable-type
     if  self._os_name == 'win':
       self._collector = WindowsProcessCollector()
     elif self._os_name == 'mac':

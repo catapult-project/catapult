@@ -11,7 +11,7 @@ class ExamplePage(page.Page):
 
   def __init__(self, page_set):
     url = 'https://example.com'
-    super(ExamplePage, self).__init__(
+    super().__init__(
         url=url,
         name=url,
         page_set=page_set)
@@ -28,7 +28,7 @@ class ExamplePage(page.Page):
 
 class SimpleStorySet(story.StorySet):
   def __init__(self):
-    super(SimpleStorySet, self).__init__(
+    super().__init__(
         archive_data_file='data/simple_story_set.json',
         cloud_storage_bucket=story.PARTNER_BUCKET)
     self.AddStory(ExamplePage(self))

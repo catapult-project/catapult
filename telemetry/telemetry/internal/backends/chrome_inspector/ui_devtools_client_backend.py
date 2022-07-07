@@ -32,7 +32,7 @@ def GetUIDevtoolsBackend(port, app_backend, browser_target='/0'):
   return client
 
 
-class UIDevToolsClientBackend(object):
+class UIDevToolsClientBackend():
   """Backend for UIDevTools
 
   Protocol definition:

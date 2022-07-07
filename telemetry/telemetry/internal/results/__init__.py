@@ -5,4 +5,3 @@
 The PageTestResults hierarchy provides a way of representing the results of
 running the test or measurement on pages.
 """
-

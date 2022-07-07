@@ -42,7 +42,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   ]
 
   def __init__(self, browser_type, finder_options, cros_platform, is_guest):
-    super(PossibleCrOSBrowser, self).__init__(
+    super().__init__(
         browser_type,
         'lacros' if browser_type == 'lacros-chrome' else 'cros', True)
     assert browser_type in FindAllBrowserTypes(), (
@@ -83,7 +83,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     return [self.profile_directory, self.browser_directory]
 
   def SetUpEnvironment(self, browser_options):
-    super(PossibleCrOSBrowser, self).SetUpEnvironment(browser_options)
+    super().SetUpEnvironment(browser_options)
 
     # Copy extensions to temp directories on the device.
     # Note that we also perform this copy locally to ensure that
