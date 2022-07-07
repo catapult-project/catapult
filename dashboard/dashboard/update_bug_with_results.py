@@ -36,6 +36,8 @@ def GetMergeIssueDetails(issue_tracker, commit_cache_key):
   """
   merge_issue_key = layered_cache.GetExternal(commit_cache_key)
   if not merge_issue_key:
+    logging.debug('GetMergeIssueDetails: Could not get commit cache key "%s".',
+                 commit_cache_key)
     return {'issue': {}, 'projectId': None, 'id': None, 'comments': ''}
 
   try:
@@ -46,6 +48,9 @@ def GetMergeIssueDetails(issue_tracker, commit_cache_key):
 
   merge_issue = issue_tracker.GetIssue(issue_id, project=project)
   if not merge_issue:
+    logging.debug('GetMergeIssueDetails: Could not get issue with id "%s"'\
+                  'and merge_issue_key "%s"',
+                 issue_id, merge_issue_key)
     return {'issue': {}, 'projectId': None, 'id': None, 'comments': ''}
 
   # Check if we can duplicate this issue against an existing issue.
@@ -75,6 +80,11 @@ def UpdateMergeIssue(commit_cache_key,
                      merge_details,
                      bug_id,
                      project='chromium'):
+  logging.debug('UpdateMergeIssue: "%s", "%s", "%s", "%s"',
+                bug_id,
+                commit_cache_key,
+                merge_details.get('id'),
+                merge_details.get('issue', {}).get('id'))
   if merge_details.get('issue', {}).get('id') is None:
     return
 
