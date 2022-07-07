@@ -306,6 +306,9 @@ class BrowserFinderOptions(optparse.Values):
         '--fuchsia-repo',
         default='fuchsia.com',
         help='The name of the Fuchsia repo used to serve required packages.')
+    group.add_option(
+        '--fuchsia-target-id',
+        help='The Fuchsia target id used by the ffx tool.')
     parser.add_option_group(group)
 
     # CPU profiling on Android/Linux/ChromeOS.

@@ -25,7 +25,7 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
         self._ssh_config,
         device.host,
         device.port,
-        node_name=device.target_name)
+        device.target_id)
     self._managed_repo = device.managed_repo
     self._detailed_os_version = None
     self._device_type = None

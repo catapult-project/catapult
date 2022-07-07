@@ -26,16 +26,16 @@ _GSUTIL_PATH = os.path.join(
 
 class FuchsiaDevice(device.Device):
 
-  def __init__(self, target_name, host, ssh_config,
-               system_log_file, port, managed_repo):
+  def __init__(self, host, ssh_config, system_log_file,
+               port, target_id, managed_repo):
     super(FuchsiaDevice, self).__init__(
         name='Fuchsia with host: %s' % host,
-        guid='fuchsia:%s' % target_name)
-    self._target_name = target_name
+        guid=host)
     self._ssh_config = ssh_config
     self._system_log_file = system_log_file
     self._host = host
     self._port = port
+    self._target_id = target_id
     self._managed_repo = managed_repo
 
   @classmethod
@@ -45,10 +45,6 @@ class FuchsiaDevice(device.Device):
   @property
   def managed_repo(self):
     return self._managed_repo
-
-  @property
-  def target_name(self):
-    return self._target_name
 
   @property
   def host(self):
@@ -65,6 +61,10 @@ class FuchsiaDevice(device.Device):
   @property
   def port(self):
     return self._port
+
+  @property
+  def target_id(self):
+    return self._target_id
 
 
 def _GetLatestSDKHash():
@@ -127,20 +127,20 @@ def FindAllAvailableDevices(options):
   # If the ssh port of the device has been forwarded to a port on the host,
   # return that device directly.
   if options.fuchsia_ssh_port:
-    return [FuchsiaDevice(target_name='local_device',
-                          host='localhost',
+    return [FuchsiaDevice(host='localhost',
                           system_log_file=options.fuchsia_system_log_file,
                           ssh_config=options.fuchsia_ssh_config,
                           port=options.fuchsia_ssh_port,
+                          target_id=options.fuchsia_target_id,
                           managed_repo=options.fuchsia_repo)]
 
   # If the IP address of the device is specified, use that directly.
   if options.fuchsia_device_address:
-    return [FuchsiaDevice(target_name='device_target',
-                          host=options.fuchsia_device_address,
+    return [FuchsiaDevice(host=options.fuchsia_device_address,
                           system_log_file=options.fuchsia_system_log_file,
                           ssh_config=options.fuchsia_ssh_config,
                           port=options.fuchsia_ssh_port,
+                          target_id=options.fuchsia_target_id,
                           managed_repo=options.fuchsia_repo)]
 
   # Download the Fuchsia SDK if it doesn't exist.
@@ -157,12 +157,12 @@ def FindAllAvailableDevices(options):
   if not device_list:
     return []
   host = device_list[0].get('addresses')[0]
-  target_name = device_list[0].get('nodename')
+  target_id = device_list[0].get('nodename')
   logging.info('Using Fuchsia device with address %s and name %s'
-               % (host, target_name))
-  return [FuchsiaDevice(target_name=target_name,
-                        host=host,
+               % (host, target_id))
+  return [FuchsiaDevice(host=host,
                         system_log_file=options.fuchsia_system_log_file,
                         ssh_config=options.fuchsia_ssh_config,
                         port=options.fuchsia_ssh_port,
+                        target_id=target_id,
                         managed_repo=options.fuchsia_repo)]

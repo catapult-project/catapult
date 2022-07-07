@@ -80,16 +80,22 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _StartWebEngineShell(self, startup_args):
     browser_cmd = [
-        'run',
+        'component',
+        'run-legacy',
         'fuchsia-pkg://%s/web_engine_shell#meta/web_engine_shell.cmx' %
-        self._managed_repo,
+        self._managed_repo
+    ]
+
+    # Flags forwarded to the web_engine_shell component.
+    browser_cmd.extend([
+        '--',
         '--web-engine-package-name=web_engine_with_webui',
         '--remote-debugging-port=0',
         '--use-web-instance',
         '--enable-web-instance-tmp',
         '--with-webui',
         'about:blank'
-    ]
+    ])
 
     # Use flags used on WebEngine in production devices.
     browser_cmd.extend([
@@ -105,7 +111,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     ])
     if startup_args:
       browser_cmd.extend(startup_args)
-    self._browser_process = self._command_runner.RunCommandPiped(
+    self._browser_process = self._command_runner.run_continuous_ffx_command(
         browser_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     self._browser_log_proc = self._browser_process
 
@@ -136,21 +142,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._browser_log_proc = self._browser_process
 
   def _StartChrome(self, startup_args):
-    ffx = os.path.join(fuchsia_interface.SDK_ROOT, 'tools',
-                       fuchsia_interface.GetHostArchFromPlatform(), 'ffx')
-    browser_cmd = [ffx]
-
-    # Specify target command if possible.
-    target = self._command_runner.host
-    if (self._command_runner.node_name and
-        'fuchsia' in self._command_runner.node_name):
-      target = self._command_runner.node_name
-    if target:
-      browser_cmd.extend([
-          '--target',
-          target])
-
-    browser_cmd.extend([
+    browser_cmd = [
         'session',
         'add',
         'fuchsia-pkg://%s/chrome#meta/chrome_v1.cmx' %
@@ -159,7 +151,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         'about:blank',
         '--remote-debugging-port=0',
         '--enable-logging'
-    ])
+    ]
     if startup_args:
       browser_cmd.extend(startup_args)
 
@@ -177,7 +169,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._browser_log_proc.stderr = self._browser_log_proc.stdout
 
     logging.debug('Browser command: %s', ' '.join(browser_cmd))
-    self._browser_process = subprocess.Popen(
+    self._browser_process = self._command_runner.run_continuous_ffx_command(
         browser_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
   def Start(self, startup_args):
@@ -193,7 +185,8 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       elif self.browser_type == CAST_STREAMING_SHELL:
         self._StartCastStreamingShell(startup_args)
         browser_id_files = [
-            os.path.join(output_root, 'shell', 'cast_streaming_shell', 'ids.txt'),
+            os.path.join(output_root, 'shell', 'cast_streaming_shell',
+                'ids.txt'),
             os.path.join(output_root, 'webengine', 'web_engine', 'ids.txt'),
         ]
       else:
