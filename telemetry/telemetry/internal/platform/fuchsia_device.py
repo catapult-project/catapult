@@ -108,6 +108,39 @@ def _DownloadFuchsiaSDKIfNecessary():
     _DownloadFuchsiaSDK(tar_file)
 
 
+def _get_ssh_address(target_id):
+  """Get the ssh address for the Fuchsia target."""
+
+  ssh_address = fuchsia_interface.run_ffx_command(
+      ['target', 'get-ssh-address'],
+      target_id,
+      capture_output=True).stdout.strip()
+
+  def parse_host_port(host_port_pair):
+    """Parses a host name or IP address and a port number from a string of any
+    of the following forms:
+    - hostname:port
+    - IPv4addy:port
+    - [IPv6addy]:port
+
+    Returns:
+      A tuple of the string host name/address and integer port number.
+
+    Raises:
+      ValueError if `host_port_pair` does not contain a colon or if the
+      substring following the last colon cannot be converted to an int.
+    """
+
+    host, port = host_port_pair.rsplit(':', 1)
+
+    # Strip the brackets if the host looks like an IPv6 address.
+    if len(host) > 2 and host[0] == '[' and host[-1] == ']':
+      host = host[1:-1]
+    return (host, int(port))
+
+  return parse_host_port(ssh_address)
+
+
 def FindAllAvailableDevices(options):
   """Returns a list of available device types."""
 
@@ -139,6 +172,15 @@ def FindAllAvailableDevices(options):
                           system_log_file=options.fuchsia_system_log_file,
                           ssh_config=options.fuchsia_ssh_config,
                           port=options.fuchsia_ssh_port,
+                          target_id=options.fuchsia_target_id,
+                          managed_repo=options.fuchsia_repo)]
+
+  if options.fuchsia_target_id:
+    host, port = _get_ssh_address(options.fuchsia_target_id)
+    return [FuchsiaDevice(host=host,
+                          system_log_file=options.fuchsia_system_log_file,
+                          ssh_config=options.fuchsia_ssh_config,
+                          port=port,
                           target_id=options.fuchsia_target_id,
                           managed_repo=options.fuchsia_repo)]
 

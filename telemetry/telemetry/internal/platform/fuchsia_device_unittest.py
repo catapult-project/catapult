@@ -73,6 +73,27 @@ class FuchsiaSDKUsageTest(unittest.TestCase):
       self.assertEqual(device.port, 22222)
       self.assertEqual(device.host, 'localhost')
 
+  def testUseFfxIfTargetIdExists(self):
+    self._options.fuchsia_target_id = 'fuchsia-test-device'
+    with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH +
+                        '.fuchsia_interface.run_ffx_command',
+                    return_value=argparse.Namespace(
+                        stdout='1.2.3.4:22222')):
+      found_devices = fuchsia_device.FindAllAvailableDevices(self._options)
+      self.assertEqual(len(found_devices), 1)
+      device = found_devices[0]
+      self.assertEqual(device.port, 22222)
+      self.assertEqual(device.host, '1.2.3.4')
+
+  def testRaiseValueErrorForInvalidInput(self):
+    self._options.fuchsia_target_id = 'fuchsia-test-device'
+    with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH +
+                        '.fuchsia_interface.run_ffx_command',
+                    return_value=argparse.Namespace(
+                        stdout='1.2.3.4;22222')):
+      with self.assertRaises(ValueError):
+        fuchsia_device.FindAllAvailableDevices(self._options)
+
   def testDownloadSDKIfNotExists(self):
     with mock.patch('os.path.exists', return_value=False):
       with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH +

@@ -297,8 +297,7 @@ class BrowserFinderOptions(optparse.Values):
         '--fuchsia-ssh-port',
         type=int,
         help='The port on the host to which the ssh service running on the '
-        'Fuchsia device was forwarded. Will skip using the device-finder tool '
-        'if specified.')
+        'Fuchsia device was forwarded.')
     group.add_option(
         '--fuchsia-system-log-file',
         help='The file where Fuchsia system logs will be stored.')
