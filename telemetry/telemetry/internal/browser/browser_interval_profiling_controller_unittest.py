@@ -12,21 +12,21 @@ from devil.android.sdk import version_codes
 from telemetry.internal.browser import browser_interval_profiling_controller
 
 
-class FakeDevice():
+class FakeDevice(object):
   def __init__(self, build_version_sdk):
-    super().__init__()
+    super(FakeDevice, self).__init__()
     self.build_version_sdk = build_version_sdk
 
 
-class FakeAndroidPlatformBackend():
+class FakeAndroidPlatformBackend(object):
   def __init__(self, build_version_sdk):
-    super().__init__()
+    super(FakeAndroidPlatformBackend, self).__init__()
     self.device = FakeDevice(build_version_sdk)
 
   def GetOSName(self):
     return 'android'
 
-class FakeChromeOSPlatformBackend():
+class FakeChromeOSPlatformBackend(object):
   def GetOSName(self):
     return 'chromeos'
 
@@ -36,17 +36,17 @@ class FakeChromeOSPlatformBackend():
   def PushContents(self, *_):
     return
 
-class FakeLinuxPlatformBackend():
+class FakeLinuxPlatformBackend(object):
   def GetOSName(self):
     return 'linux'
 
 
-class FakeWindowsPlatformBackend():
+class FakeWindowsPlatformBackend(object):
   def GetOSName(self):
     return 'windows'
 
 
-class FakePossibleBrowser():
+class FakePossibleBrowser(object):
   def __init__(self, platform_backend):
     self._platform_backend = platform_backend
 

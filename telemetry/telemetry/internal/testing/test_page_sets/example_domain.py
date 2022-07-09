@@ -26,7 +26,7 @@ def FetchExampleDomainArchive():
 
 class ExampleDomainPageSet(story.StorySet):
   def __init__(self):
-    super().__init__(
+    super(ExampleDomainPageSet, self).__init__(
         archive_data_file='data/example_domain.json',
         cloud_storage_bucket=story.PUBLIC_BUCKET)
 

@@ -45,24 +45,24 @@ _FFX_TOOL = os.path.join(
 
 
 def _run_repair_command(output):
-  """Scans |output| for a self-repair command to run and, if found, runs it.
+    """Scans |output| for a self-repair command to run and, if found, runs it.
 
-  Returns:
-    True if a repair command was found and ran successfully. False otherwise.
-  """
+    Returns:
+      True if a repair command was found and ran successfully. False otherwise.
+    """
 
-  # Check for a string along the lines of:
-  # "Run `ffx doctor --restart-daemon` for further diagnostics."
-  match = re.search('`ffx ([^`]+)`', output)
-  if not match or len(match.groups()) != 1:
-    return False  # No repair command found.
-  args = match.groups()[0].split()
+    # Check for a string along the lines of:
+    # "Run `ffx doctor --restart-daemon` for further diagnostics."
+    match = re.search('`ffx ([^`]+)`', output)
+    if not match or len(match.groups()) != 1:
+      return False  # No repair command found.
+    args = match.groups()[0].split()
 
-  try:
-    run_ffx_command(args, suppress_repair=True)
-  except subprocess.CalledProcessError:
-    return False  # Repair failed.
-  return True  # Repair succeeded.
+    try:
+      run_ffx_command(args, suppress_repair=True)
+    except subprocess.CalledProcessError:
+      return False  # Repair failed.
+    return True  # Repair succeeded.
 
 
 def run_ffx_command(cmd, target_id = None, check = True,
@@ -112,7 +112,7 @@ def run_continuous_ffx_command(cmd, target_id, **kwargs):
   return subprocess.Popen(ffx_cmd, encoding='utf-8', **kwargs)
 
 
-class CommandRunner():
+class CommandRunner(object):
   """Helper class used to execute commands on Fuchsia devices on a remote host
   over SSH."""
 

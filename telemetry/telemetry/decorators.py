@@ -29,8 +29,7 @@ def Cache(obj):
 
   @functools.wraps(obj)
   def Cacher(*args, **kwargs):
-    cacher = (args[0] if inspect.getfullargspec(obj).args[:1] == ['self']
-              else obj)
+    cacher = args[0] if inspect.getargspec(obj).args[:1] == ['self'] else obj
     cacher.__cache = cacher.__cache if hasattr(cacher, '__cache') else {}
     key = str(obj) + str(args) + str(kwargs)
     if key not in cacher.__cache:
@@ -40,7 +39,7 @@ def Cache(obj):
   return Cacher
 
 
-class Deprecated():
+class Deprecated(object):
 
   def __init__(self, year, month, day, extra_guidance=''):
     self._date_of_support_removal = datetime.date(year, month, day)

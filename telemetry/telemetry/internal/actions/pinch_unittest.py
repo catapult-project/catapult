@@ -13,7 +13,7 @@ from telemetry.testing import tab_test_case
 
 class PinchActionTest(tab_test_case.TabTestCase):
   def setUp(self):
-    super().setUp()
+    super(PinchActionTest, self).setUp()
     self.Navigate('zoom.html')
     utils.InjectJavaScript(self._tab, 'gesture_common.js')
 

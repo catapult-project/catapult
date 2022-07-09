@@ -42,7 +42,7 @@ SYSTEM_CONDITION_TAGS = frozenset([
 ])
 
 
-class StoryExpectations():
+class StoryExpectations(object):
 
   def __init__(self, benchmark_name):
     self._tags = []

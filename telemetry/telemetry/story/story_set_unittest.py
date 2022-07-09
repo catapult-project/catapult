@@ -21,7 +21,7 @@ class SharedStateBar(story.SharedState):
 class StoryFoo(story.Story):
   def __init__(self, name='', labels=None, grouping_keys=None,
                shared_state_class=SharedStateFoo):
-    super().__init__(
+    super(StoryFoo, self).__init__(
         shared_state_class, name, labels, grouping_keys=grouping_keys)
 
 

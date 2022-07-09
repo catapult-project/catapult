@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.core import exceptions
 
-class InspectorServiceWorker():
+class InspectorServiceWorker(object):
   def __init__(self, inspector_socket, timeout):
     self._websocket = inspector_socket
     self._websocket.RegisterDomain('ServiceWorker', self._OnNotification)

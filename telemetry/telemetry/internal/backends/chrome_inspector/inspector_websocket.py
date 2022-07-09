@@ -22,7 +22,7 @@ class WebSocketException(exceptions.Error):
   def __init__(self, websocket_error):
     msg = 'WebSocketException of type %s. Error message: %s' % (
         type(websocket_error), repr(websocket_error))
-    super().__init__(msg)
+    super(WebSocketException, self).__init__(msg)
     self._websocket_error_type = type(websocket_error)
 
   @property
@@ -30,7 +30,7 @@ class WebSocketException(exceptions.Error):
     return self._websocket_error_type
 
 
-class InspectorWebsocket():
+class InspectorWebsocket(object):
 
   # See http://www.jsonrpc.org/specification#error_object.
   METHOD_NOT_FOUND_CODE = -32601
@@ -116,7 +116,7 @@ class InspectorWebsocket():
       if logging.getLogger().isEnabledFor(logging.DEBUG):
         logging.debug('sent [%s]', json.dumps(req, indent=2, sort_keys=True))
     except websocket.WebSocketException as err:
-      raise WebSocketException(err) from err
+      raise WebSocketException(err)
 
   def SyncRequest(self, req, timeout):
     """Sends a request and waits for a response.
@@ -178,7 +178,7 @@ class InspectorWebsocket():
         else:
           raise
       except websocket.WebSocketException as err:
-        raise WebSocketException(err) from err
+        raise WebSocketException(err)
       else:
         break
 

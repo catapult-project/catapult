@@ -18,7 +18,7 @@ class TestFoo(unittest.TestCase):
     self.fail('expected failure')
 
 
-class LoggingProgressReporter():
+class LoggingProgressReporter(object):
   def __init__(self):
     self._call_log = []
 

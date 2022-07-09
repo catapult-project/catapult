@@ -21,7 +21,10 @@ class _FakeWebSocketHandler(six.moves.BaseHTTPServer.BaseHTTPRequestHandler):
     key = self.headers.get('Sec-WebSocket-Key')
 
     value = (key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").encode('utf-8')
-    hashed = base64.encodebytes(hashlib.sha1(value).digest()).strip().lower()
+    if six.PY3:
+      hashed = base64.encodebytes(hashlib.sha1(value).digest()).strip().lower()
+    else:
+      hashed = base64.encodestring(hashlib.sha1(value).digest()).strip().lower()
 
     self.send_response(101)
     self.send_header('Sec-Websocket-Accept', hashed.decode('utf-8'))

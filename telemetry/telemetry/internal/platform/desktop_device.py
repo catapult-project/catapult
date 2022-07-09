@@ -9,7 +9,7 @@ from telemetry.internal.platform import device
 
 class DesktopDevice(device.Device):
   def __init__(self):
-    super().__init__(name='desktop', guid='desktop')
+    super(DesktopDevice, self).__init__(name='desktop', guid='desktop')
 
   @classmethod
   def GetAllConnectedDevices(cls, denylist):

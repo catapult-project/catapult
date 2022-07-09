@@ -9,18 +9,12 @@ import threading
 import os
 import subprocess
 
-try:
-  import psutil
-except ImportError:
-  psutil = None
-
 import py_utils
 from py_utils import atexit_with_log
 
 
 def _GetProcessDescription(process):
-  if psutil is None:
-    return 'unable to get process description without psutil'
+  import psutil  # pylint: disable=import-error
   try:
     if inspect.ismethod(process.name):
       name = process.name()
@@ -38,7 +32,9 @@ def _GetProcessDescription(process):
 
 
 def _GetAllSubprocesses():
-  if psutil is None:
+  try:
+    import psutil
+  except ImportError:
     logging.warning(
         'psutil is not installed on the system. Not listing possible '
         'leaked processes. To install psutil, see: '

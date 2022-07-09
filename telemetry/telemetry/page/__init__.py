@@ -16,10 +16,6 @@ from telemetry.page import traffic_setting as traffic_setting_module
 from telemetry.internal.actions import action_runner as action_runner_module
 
 
-def cmp(a, b):
-  return int(a > b) - int(a < b)
-
-
 class Page(story.Story):
 
   def __init__(self, url, page_set=None, base_dir=None, name='',
@@ -34,7 +30,7 @@ class Page(story.Story):
     self._url = url
     self._SchemeErrorCheck()
 
-    super().__init__(
+    super(Page, self).__init__(
         shared_page_state_class, name=name, tags=tags,
         is_local=self._scheme in ['file', 'chrome', 'about'],
         make_javascript_deterministic=make_javascript_deterministic,

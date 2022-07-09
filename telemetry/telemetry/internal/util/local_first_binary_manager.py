@@ -23,7 +23,7 @@ from telemetry.core import exceptions
 from telemetry.internal.util import binary_manager
 
 
-class LocalFirstBinaryManager():
+class LocalFirstBinaryManager(object):
   """Singleton wrapper around telemetry.internal.util.binary_manager.
 
   Prioritizes locally built versions of dependencies.

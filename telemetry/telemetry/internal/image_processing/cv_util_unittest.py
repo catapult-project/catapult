@@ -15,13 +15,11 @@ except ImportError:
 else:
   class CVUtilTest(unittest.TestCase):
     def __init__(self, *args, **kwargs):
-      super().__init__(*args, **kwargs)
+      super(CVUtilTest, self).__init__(*args, **kwargs)
       # Import modules with dependencies that may not be preset in test setup so
       # that importing this unit test doesn't cause the test runner to raise an
       # exception.
-      # pylint: disable=import-outside-toplevel
       from telemetry.internal.image_processing import cv_util
-      # pylint: enable=import-outside-toplevel
       self.cv_util = cv_util
 
     def testAreLinesOrthogonalish(self):

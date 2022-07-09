@@ -30,7 +30,7 @@ DEFAULT_LOG_FORMAT = (
 
 class RecorderPageTest(legacy_page_test.LegacyPageTest):
   def __init__(self, page_test):
-    super().__init__()
+    super(RecorderPageTest, self).__init__()
     self._page_test = page_test
     self._platform = None
 
@@ -125,7 +125,7 @@ def _PrintPairs(pairs, output_stream, prefix=''):
     output_stream.write(format_string % (a, b.strip()))
 
 
-class WprRecorder():
+class WprRecorder(object):
 
   def __init__(self, environment, target, args=None, parse_flags=True):
     self._base_dir = environment.top_level_dir

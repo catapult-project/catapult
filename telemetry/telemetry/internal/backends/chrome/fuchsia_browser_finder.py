@@ -24,7 +24,7 @@ class PossibleFuchsiaBrowser(possible_browser.PossibleBrowser):
 
   def __init__(self, browser_type, finder_options, fuchsia_platform):
     del finder_options
-    super().__init__(browser_type, 'fuchsia', True)
+    super(PossibleFuchsiaBrowser, self).__init__(browser_type, 'fuchsia', True)
     self._platform = fuchsia_platform
     self._platform_backend = (
         fuchsia_platform._platform_backend) # pylint: disable=protected-access

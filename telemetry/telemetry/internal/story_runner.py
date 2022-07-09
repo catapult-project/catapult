@@ -7,7 +7,7 @@ from __future__ import absolute_import
 import contextlib
 import itertools
 import logging
-import optparse  # pylint: disable=deprecated-module
+import optparse
 import os
 import re
 import sys

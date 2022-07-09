@@ -16,7 +16,7 @@ class ExtensionPage(web_contents.WebContents):
   """Represents an extension page in the browser"""
 
   def __init__(self, inspector_backend):
-    super().__init__(inspector_backend)
+    super(ExtensionPage, self).__init__(inspector_backend)
     self.url = inspector_backend.url
     self.extension_id = UrlToExtensionId(self.url)
 

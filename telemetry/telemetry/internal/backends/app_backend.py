@@ -11,7 +11,7 @@ from py_trace_event import trace_event
 class AppBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
 
   def __init__(self, app_type, platform_backend):
-    super().__init__()
+    super(AppBackend, self).__init__()
     self._app = None
     self._app_type = app_type
     self._platform_backend = platform_backend

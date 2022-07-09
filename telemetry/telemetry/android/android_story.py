@@ -18,7 +18,7 @@ class AndroidStory(story.Story):
       tags: See Story.__init__
       is_app_ready_predicate: See Story.__init__.
     """
-    super().__init__(
+    super(AndroidStory, self).__init__(
         shared_android_state.SharedAndroidState, name=name, tags=tags,
         is_local=is_local)
     self.start_intent = start_intent

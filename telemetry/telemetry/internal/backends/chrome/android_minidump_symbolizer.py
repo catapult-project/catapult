@@ -60,7 +60,7 @@ class AndroidMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
     # looking for symbol binaries (string).
     self._minidump_symbol_binaries_directories = {}
     # We use the OS/arch of the host, not the device.
-    super().__init__(
+    super(AndroidMinidumpSymbolizer, self).__init__(
         platform.system().lower(), platform.machine(), dump_finder, build_dir,
         symbols_dir=symbols_dir)
 
@@ -73,7 +73,7 @@ class AndroidMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
       logging.warning(
           'Cannot get Android stack traces without build directory.')
       return None
-    return super().SymbolizeMinidump(minidump)
+    return super(AndroidMinidumpSymbolizer, self).SymbolizeMinidump(minidump)
 
   def GetSymbolBinaries(self, minidump):
     """Returns a list of paths to binaries where symbols may be located.

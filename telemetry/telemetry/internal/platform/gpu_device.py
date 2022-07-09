@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-class GPUDevice():
+class GPUDevice(object):
   """Provides information about an individual GPU device.
 
      On platforms which support them, the vendor_id and device_id are

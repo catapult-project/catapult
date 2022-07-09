@@ -16,7 +16,7 @@ class Process(event_container.TimelineEventContainer):
   """The Process represents a single userland process in the trace.
   """
   def __init__(self, parent, pid):
-    super().__init__('process %s' % pid, parent)
+    super(Process, self).__init__('process %s' % pid, parent)
     self.pid = pid
     self.labels = None
     self.uptime_seconds = None

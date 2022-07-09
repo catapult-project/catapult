@@ -38,6 +38,6 @@ class DesktopPlatformBackend(platform_backend.PlatformBackend):
     return 'Desktop'
 
   def GetTypExpectationsTags(self):
-    tags = super().GetTypExpectationsTags()
+    tags = super(DesktopPlatformBackend, self).GetTypExpectationsTags()
     tags.append('desktop')
     return tags

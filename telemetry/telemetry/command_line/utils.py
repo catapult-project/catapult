@@ -18,7 +18,7 @@ class MixedHelpAction(argparse.Action):
   """An argparse.Action to display help of multiple connected parsers."""
   def __init__(self, option_strings, dest=argparse.SUPPRESS,
                legacy_parser=None):
-    super().__init__(
+    super(MixedHelpAction, self).__init__(
         option_strings=option_strings, dest=dest, default=argparse.SUPPRESS,
         nargs=0, help=argparse.SUPPRESS)
     assert legacy_parser, 'missing required argument: legacy_parser'

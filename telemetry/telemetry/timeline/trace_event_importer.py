@@ -22,7 +22,7 @@ from tracing.trace_data import trace_data as trace_data_module
 # expected floats.
 class TraceEventTimelineImporter(importer.TimelineImporter):
   def __init__(self, model, trace_data):
-    super().__init__(model, trace_data)
+    super(TraceEventTimelineImporter, self).__init__(model, trace_data)
     self._trace_data = trace_data
 
     self._all_async_events = []

@@ -43,9 +43,6 @@ def _HandleInspectorWebSocketExceptions(func):
     except (socket.error, inspector_websocket.WebSocketException,
             inspector_websocket.WebSocketDisconnected) as e:
       inspector_backend._ConvertExceptionFromInspectorWebsocket(e)
-    # Will never actually get hit, but Pylint doesn't realize that the above
-    # except re-raises the exception.
-    raise RuntimeError()
 
   return Inner
 
@@ -701,6 +698,7 @@ class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
       exceptions.DevtoolsTargetCrashException: On any other error, the most
         likely explanation is that the devtool's target crashed.
     """
+    # pylint: disable=redefined-variable-type
     if isinstance(error, inspector_websocket.WebSocketException):
       new_error = exceptions.TimeoutException()
       new_error.AddDebuggingMessage(exceptions.AppCrashException(

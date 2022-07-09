@@ -10,21 +10,22 @@ from telemetry.internal.testing.pages.external_page import ExternalPage
 
 class InternalPage(page.Page):
   def __init__(self, story_set):
-    super().__init__('file://bar.html', page_set=story_set)
+    super(InternalPage, self).__init__('file://bar.html', story=story_set)
 
 class TestPageSet(story.StorySet):
   """A pageset for testing purpose"""
 
   def __init__(self):
-    super().__init__(
+    super(TestPageSet, self).__init__(
         archive_data_file='data/archive_files/test.json',
-        cloud_storage_bucket=story.PUBLIC_BUCKET)
+        user_agent_type='desktop',
+        bucket=story.PUBLIC_BUCKET)
 
     #top google property; a google tab is often open
     class Google(page.Page):
       def __init__(self, story_set):
         # pylint: disable=bad-super-call
-        super().__init__('https://www.google.com',
+        super(Google, self).__init__('https://www.google.com',
                                      page_set=story_set)
 
       def RunGetActionRunner(self, action_runner):

@@ -7,7 +7,7 @@ import time
 from telemetry.util import image_util
 
 
-class InspectorPage():
+class InspectorPage(object):
   """Class that controls a page connected by an inspector_websocket.
 
   This class provides utility methods for controlling a page connected by an
