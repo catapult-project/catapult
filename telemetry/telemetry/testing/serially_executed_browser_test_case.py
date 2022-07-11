@@ -24,10 +24,6 @@ DEFAULT_LOG_FORMAT = (
 
 class SeriallyExecutedBrowserTestCase(test_case.TestCase):
 
-  # This should be removed once all references to it in Chromium have been
-  # removed, as trying to reference the runner in a parallel context breaks on
-  # Windows and Mac.
-  _typ_runner = None
   browser = None
 
   def __init__(self, methodName):

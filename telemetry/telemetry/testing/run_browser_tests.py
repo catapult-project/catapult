@@ -255,7 +255,7 @@ def RunTests(args):
         cl.Name() for cl in browser_test_classes))
     return 1
 
-  test_class._typ_runner = typ_runner = typ.Runner()
+  typ_runner = typ.Runner()
 
   # Create test context.
   typ_runner.context = browser_test_context.TypTestContext()
