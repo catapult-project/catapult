@@ -86,6 +86,8 @@ def UpdateMergeIssue(commit_cache_key,
                 merge_details.get('id'),
                 merge_details.get('issue', {}).get('id'))
   if merge_details.get('issue', {}).get('id') is None:
+    _UpdateCacheKeyForIssue(merge_details.get('id'), commit_cache_key, bug_id,
+                            project)
     return
 
   # If the issue we were going to merge into was itself a duplicate, we don't
@@ -99,8 +101,6 @@ def UpdateMergeIssue(commit_cache_key,
           merge_details.get('projectId', 'chromium'),
           int(merge_details['issue']['id'])),
       source=IssueInfo(project, bug_id))
-  _UpdateCacheKeyForIssue(merge_details['id'], commit_cache_key, bug_id,
-                          project)
 
 
 def _MapAnomaliesAndUpdateBug(dest, source):
