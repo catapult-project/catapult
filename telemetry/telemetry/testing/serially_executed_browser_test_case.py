@@ -56,8 +56,7 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
   def Name(cls):
     return cls.__name__
 
-  @classmethod
-  def CanRunInParallel(cls):
+  def CanRunInParallel(self):
     return False
 
   @classmethod
