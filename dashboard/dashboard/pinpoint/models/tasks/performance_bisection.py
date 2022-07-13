@@ -660,6 +660,7 @@ class Serializer(evaluators.FilteringEvaluator):
 
 EXPERIMENTAL_TELEMETRY_BENCHMARKS = {
     'performance_test_suite_eve',
+    'performance_test_suite_octopus',
     'performance_webview_test_suite',
     'performance_web_engine_test_suite',
     'telemetry_perf_webview_tests',

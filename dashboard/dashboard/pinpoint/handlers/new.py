@@ -499,7 +499,8 @@ def _GenerateQuests(arguments):
         arguments['fallback_target'] = fallback_target
       quest_classes = (quest_module.FindIsolate, quest_module.RunTelemetryTest,
                        quest_module.ReadValue)
-    elif 'performance_test_suite_eve' in target:
+    elif ('performance_test_suite_eve' in target
+          or 'performance_test_suite_octopus' in target):
       quest_classes = (quest_module.FindIsolate,
                        quest_module.RunLacrosTelemetryTest,
                        quest_module.ReadValue)

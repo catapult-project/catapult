@@ -168,6 +168,8 @@ def GetIsolateTarget(bot_name, suite):
   # performance_test_suites are device type specific.
   if 'eve' in bot_name.lower():
     return 'performance_test_suite_eve'
+  if bot_name == 'lacros-x86-perf':
+    return 'performance_test_suite_octopus'
 
   # WebEngine tests are specific to Fuchsia devices only.
   if 'fuchsia-perf' in bot_name.lower():
