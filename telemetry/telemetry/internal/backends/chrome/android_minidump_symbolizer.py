@@ -30,6 +30,8 @@ _POSSIBLE_SYMBOL_BINARY_DIRECTORIES = [
 # The Breakpad processor architecture values are hex representations of the
 # values in MDCPUArchitecture from Breakpad's minidump_format.h.
 _BREAKPAD_ARCH_TO_FILE_REGEX = {
+    # 32-bit x86 (emulators).
+    '0x0': r'.*32-bit.*Intel.*',
     # 32-bit ARM.
     '0x5': r'.*32-bit.*ARM.*',
     # 64-bit ARM.
