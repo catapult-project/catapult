@@ -40,10 +40,15 @@ message MotionMark {
   float motionmark = 1;
 }
 
+message Jetstream2 {
+  float Score = 1;
+}
+
 message Measures {
   CoreWebVitals core_web_vitals = 1;
   Speedometer2 speedometer2 = 2;
   MotionMark motionmark = 3;
+  Jetstream2 jetstream2 = 4;
 }
 
 // Represents a row in a BigQuery table.

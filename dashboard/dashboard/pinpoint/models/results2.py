@@ -63,7 +63,10 @@ _METRIC_MAP = {
     "VueJS-TodoMVC": ("speedometer2", "VueJS_TodoMVC"),
 
     # MotionMark
-    "motionmark": ("motionmark", "motionmark")
+    "motionmark": ("motionmark", "motionmark"),
+
+    # Jetstream2
+    "Score": ("jetstream2", "Score")
 }
 
 _PROJECT_ID = 'chromeperf'
@@ -326,6 +329,7 @@ def _GetEmptyMeasures():
   measures["core_web_vitals"] = {}
   measures["speedometer2"] = {}
   measures["motionmark"] = {}
+  measures["jetstream2"] = {}
   return measures
 
 
