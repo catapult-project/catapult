@@ -50,6 +50,29 @@ def _IsCrosBrowser(options):
   return (options.browser_type in
           ['cros-chrome', 'cros-chrome-guest', 'lacros-chrome'])
 
+def SetTargetPlatformsBasedOnBrowserType(options):
+  """Sets options.target_platforms based on options.browser_type
+
+  This is in an effort to avoid doing unnecessary work, e.g. looking for Android
+  devices if a desktop browser is specified.
+
+  Args:
+    options: A BrowserFinderOptions instance.
+  """
+  browser_type = options.browser_type
+  if options.target_platforms or not browser_type or browser_type == 'list':
+    return
+
+  options.target_platforms = []
+  if browser_type in desktop_browser_finder.FindAllBrowserTypes():
+    options.target_platforms.extend(['linux', 'mac', 'win'])
+  if browser_type in android_browser_finder.FindAllBrowserTypes():
+    options.target_platforms.append('android')
+  if browser_type in cros_browser_finder.FindAllBrowserTypes():
+    options.target_platforms.append('chromeos')
+  if browser_type in fuchsia_browser_finder.FindAllBrowserTypes():
+    options.target_platforms.append('fuchsia')
+
 @decorators.Cache
 def FindBrowser(options):
   """Finds the best PossibleBrowser object given a BrowserOptions object.
@@ -77,6 +100,7 @@ def FindBrowser(options):
     raise browser_finder_exceptions.BrowserFinderException(
         '--remote requires --browser=[la]cros-chrome[-guest].')
 
+  SetTargetPlatformsBasedOnBrowserType(options)
   devices = device_finder.GetDevicesMatchingOptions(options)
   browsers = []
   default_browsers = []
