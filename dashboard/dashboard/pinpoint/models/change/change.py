@@ -40,6 +40,9 @@ class Change(
       args: A list of strings associated with a Change.
       variant: 0=base, 1..N=expN. Only valid for A/B jobs.
     """
+    # Handle empty-string patch
+    if not patch:
+      patch = None
     if not (commits or patch):
       raise TypeError('At least one commit or patch required.')
     return super(Change, cls).__new__(cls, tuple(commits), patch, label,
