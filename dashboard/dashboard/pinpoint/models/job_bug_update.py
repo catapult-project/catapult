@@ -362,7 +362,7 @@ def _ComputePostMergeDetails(issue_tracker, commit_cache_key, cc_list):
     merge_details = update_bug_with_results.GetMergeIssueDetails(
         issue_tracker, commit_cache_key)
     if merge_details['id']:
-      cc_list = []
+      cc_list = set()
   return merge_details, cc_list
 
 
