@@ -43,6 +43,206 @@ wheel: <
 >
 
 # Used by:
+#   vpython3 bin/run_py_test
+# This is used in pre-submit try jobs, which used to rely on gae-sdk from cipd,
+# and in post-submit cloud biulds, which used to rely on google/cloud-sdk
+# docker image. Both sources are out of date and do not support python 3.
+wheel: <
+  name: "infra/python/wheels/appengine-python-standard-py3"
+  version: "version:0.3.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/frozendict-py3"
+  version: "version:2.0.6"
+>
+
+wheel: <
+  name: "infra/python/wheels/google-auth-py2_py3"
+  version: "version:1.35.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/pytz-py2_py3"
+  version: "version:2021.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/mock-py3"
+  version: "version:4.0.3"
+>
+
+wheel: <
+  name: "infra/python/wheels/ruamel_yaml-py3"
+  version: "version:0.17.16"
+>
+
+wheel: <
+  name: "infra/python/wheels/pyasn1_modules-py2_py3"
+  version: "version:0.2.8"
+>
+
+wheel: <
+  name: "infra/python/wheels/rsa-py3"
+  version: "version:4.7.2"
+>
+
+wheel: <
+  name: "infra/python/wheels/cachetools-py3"
+  version: "version:4.2.2"
+>
+
+wheel: <
+  name: "infra/python/wheels/pyasn1-py2_py3"
+  version: "version:0.4.8"
+>
+
+wheel: <
+  name: "infra/python/wheels/charset_normalizer-py3"
+  version: "version:2.0.4"
+>
+
+wheel: <
+  name: "infra/python/wheels/ruamel_yaml_clib/${vpython_platform}"
+  version: "version:0.2.6"
+>
+
+wheel: <
+  name: "infra/python/wheels/httplib2-py3"
+  version: "version:0.19.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/pyparsing-py2_py3"
+  version: "version:2.4.7"
+>
+
+wheel: <
+  name: "infra/python/wheels/google-api-python-client-py3"
+  version: "version:2.2.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/google-auth-httplib2-py2_py3"
+  version: "version:0.1.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/google-api-core-py3"
+  version: "version:1.31.5"
+>
+
+wheel: <
+  name: "infra/python/wheels/googleapis-common-protos-py2_py3"
+  version: "version:1.52.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/uritemplate-py2_py3"
+  version: "version:3.0.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/webtest-py2_py3"
+  version: "version:2.0.35"
+>
+
+wheel: <
+  name: "infra/python/wheels/webob-py2_py3"
+  version: "version:1.8.6"
+>
+
+wheel: <
+  name: "infra/python/wheels/waitress-py2_py3"
+  version: "version:1.4.3"
+>
+
+wheel: <
+  name: "infra/python/wheels/beautifulsoup4-py3"
+  version: "version:4.9.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/soupsieve-py2_py3"
+  version: "version:1.9.5"
+>
+
+wheel: <
+  name: "infra/python/wheels/jinja2-py2_py3"
+  version: "version:2.10.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/markupsafe/${vpython_platform}"
+  version: "version:1.1.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/infra_libs-py2_py3"
+  version: "version:2.3.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/oauth2client-py2_py3"
+  version: "version:3.0.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/google-cloud-logging-py3"
+  version: "version:3.0.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/google-cloud-core-py3"
+  version: "version:2.2.2"
+>
+
+wheel: <
+  name: "infra/python/wheels/google-cloud-audit-log-py2_py3"
+  version: "version:0.2.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/grpc-google-iam-v1-py3"
+  version: "version:0.12.3"
+>
+
+wheel: <
+  name: "infra/python/wheels/proto-plus-py3"
+  version: "version:1.20.3"
+>
+
+wheel: <
+  name: "infra/python/wheels/google-cloud-appengine-logging-py2_py3"
+  version: "version:1.1.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/grpcio/${vpython_platform}"
+  version: "version:1.44.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/flask-py2_py3"
+  version: "version:1.0.2"
+>
+
+wheel: <
+  name: "infra/python/wheels/werkzeug-py2_py3"
+  version: "version:1.0.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/itsdangerous-py2_py3"
+  version: "version:1.1.0"
+>
+
+wheel: <
+  name: "infra/python/wheels/click-py2_py3"
+  version: "version:7.0"
+>
+
+# Used by:
 #  telemetry/bin/fetch_telemetry_binary_dependencies
 wheel: <
   name: "infra/python/wheels/pywin32/${vpython_platform}"
@@ -58,8 +258,8 @@ wheel: <
 # Used by:
 #   build/android/pylib/local/emulator/avd.py
 wheel: <
-  name: "infra/python/wheels/protobuf-py2_py3"
-  version: "version:3.6.1"
+  name: "infra/python/wheels/protobuf-py3"
+  version: "version:4.21.1"
 >
 
 # Used by:
@@ -95,14 +295,9 @@ wheel: <
 >
 wheel: <
   name: "infra/python/wheels/requests-py2_py3"
-  version: "version:2.13.0"
+  version: "version:2.26.0"
 >
 
-# Used by various python unit tests.
-wheel: <
-  name: "infra/python/wheels/mock-py2_py3"
-  version: "version:2.0.0"
->
 wheel: <
   name: "infra/python/wheels/parameterized-py2_py3"
   version: "version:0.7.1"
@@ -152,7 +347,7 @@ wheel: <
 >
 wheel: <
   name: "infra/python/wheels/urllib3-py2_py3"
-  version: "version:1.24.3"
+  version: "version:1.26.6"
 >
 wheel: <
   name: "infra/python/wheels/blessings-py2_py3"
@@ -204,11 +399,6 @@ wheel: <
 >
 
 wheel: <
-  name: "infra/python/wheels/pyparsing-py2_py3"
-  version: "version:2.2.0"
->
-
-wheel: <
   name: "infra/python/wheels/toml-py3"
   version: "version:0.10.1"
 >
@@ -225,7 +415,7 @@ wheel <
 
 wheel <
   name: "infra/python/wheels/attrs-py2_py3"
-  version: "version:20.3.0"
+  version: "version:21.4.0"
 >
 
 wheel <

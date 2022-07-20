@@ -9,6 +9,7 @@ from __future__ import absolute_import
 import datetime
 import mock
 import sys
+import unittest
 
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
@@ -333,6 +334,8 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
+  @unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping tests under models/tasks for python 3.')
   def testCompletedMergeIntoExisting(self, differences, result_values,
                                      commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
@@ -452,6 +455,8 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
+  @unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping tests under models/tasks for python 3.')
   def testCompletedWithCommitAndDocs(self, differences, result_values,
                                      commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
@@ -1024,6 +1029,8 @@ class BugCommentTest(test.TestCase):
             mock.MagicMock(return_value=["a"]))
 class GetImprovementDirectionTest(testing_common.TestCase):
 
+  @unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping tests under models/tasks for python 3.')
   def testGetImprovementDirection(self):
     # create metric and improvement directions
     t = graph_data.TestMetadata(id='ChromiumPerf/win7/dromaeo/down',)

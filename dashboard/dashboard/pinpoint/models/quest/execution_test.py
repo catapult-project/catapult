@@ -111,7 +111,10 @@ class ExecutionTest(unittest.TestCase):
 
     self.assertTrue(e.completed)
     self.assertTrue(e.failed)
-    expected = 'InformationalError: Expected error for testing.'
+    if six.PY2:
+      expected = 'InformationalError: Expected error for testing.'
+    else:
+      expected = 'dashboard.pinpoint.models.errors.InformationalError: Expected error for testing.'
     self.assertEqual(e.exception['traceback'].splitlines()[-1], expected)
     self.assertEqual(e.result_values, ())
     self.assertEqual(e.result_arguments, {})

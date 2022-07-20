@@ -11,7 +11,11 @@ import six
 
 from google.appengine.ext import ndb
 
-from oauth2client import xsrfutil
+try:
+  from oauth2client import xsrfutil
+except ImportError:
+  # xsrfutil is moved to contrib since oauth2client 2.0
+  from oauth2client.contrib import xsrfutil
 
 from dashboard.common import utils
 

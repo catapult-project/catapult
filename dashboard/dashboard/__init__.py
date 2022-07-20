@@ -14,48 +14,53 @@ _CATAPULT_PATH = os.path.abspath(
 
 # Directories in catapult/third_party required by dashboard.
 THIRD_PARTY_LIBRARIES = [
-    'beautifulsoup4',
-    'cachetools',
     'certifi',
-    'chardet',
-    'click',
     'cloudstorage',
     'depot_tools',
-    'flask',
     'flot',
     'gae_ts_mon',
-    'google-auth',
     'graphy',
     'html5lib-python',
     'idna',
     'ijson',
-    'itsdangerous',
-    'jinja2',
     'jquery',
     'mapreduce',
-    'markupsafe',
-    'mock',
     'pipeline',
     'polymer',
     'polymer-svg-template',
     'polymer2/bower_components',
     'polymer2/bower_components/chopsui',
-    'pyasn1',
-    'pyasn1_modules',
     'redux/redux.min.js',
     'requests',
     'requests_toolbelt',
-    'rsa',
     'six',
-    'uritemplate',
     'urllib3',
     'webapp2',
-    'webtest',
-    'werkzeug',
 ]
 
+# Add third party libraries needed *copying* for python 2. When running in
+# python 3, those libraries should be installed either by pip or vpython.
 THIRD_PARTY_LIBRARIES_PY2 = THIRD_PARTY_LIBRARIES + [
-    'apiclient', 'httplib2/python2/httplib2', 'oauth2client', 'pyparsing'
+    'apiclient',
+    'beautifulsoup4',
+    'cachetools',
+    'chardet',
+    'click',
+    'flask',
+    'google-auth',
+    'httplib2/python2/httplib2',
+    'itsdangerous',
+    'jinja2',
+    'markupsafe',
+    'mock',
+    'oauth2client',
+    'pyasn1',
+    'pyasn1_modules',
+    'pyparsing',
+    'rsa',
+    'uritemplate',
+    'webtest',
+    'werkzeug',
 ]
 
 THIRD_PARTY_LIBRARIES_PY3 = THIRD_PARTY_LIBRARIES
@@ -144,7 +149,12 @@ def _AllSdkThirdPartyLibraryPaths():
 
   try:
     # pylint: disable=import-outside-toplevel
-    import dev_appserver
+    if sys.version_info.major == 2:
+      import dev_appserver
+    else:
+      # dev_appserver is not ready for python 3. Try import google.appengine
+      # for validation purpose.
+      import google.appengine  # pylint: disable=unused-import
   except ImportError:
     # TODO: Put the Cloud SDK in the path with the binary dependency manager.
     # https://github.com/catapult-project/catapult/issues/2135
@@ -154,7 +164,8 @@ def _AllSdkThirdPartyLibraryPaths():
     )
     sys.exit(1)
 
-  paths.extend(dev_appserver.EXTRA_PATHS)
+  if sys.version_info.major == 2:
+    paths.extend(dev_appserver.EXTRA_PATHS)
   return paths
 
 

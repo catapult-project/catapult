@@ -19,11 +19,6 @@ pickle.HIGHEST_PROTOCOL = 2
 
 import sys
 
-if sys.version_info.major == 3:
-  import logging
-  import google.cloud.logging
-  google.cloud.logging.Client().setup_logging(log_level=logging.DEBUG)
-
 from dashboard.common import utils
 from dashboard.pinpoint import handlers
 

@@ -12,6 +12,7 @@ import itertools
 import logging
 import mock
 import unittest
+import six
 
 from google.appengine.api import taskqueue
 
@@ -497,7 +498,8 @@ class GenerateResults2Test(testing_common.TestCase):
 
     results2.GenerateResults2(job)
     self.maxDiff = None
-    self.assertItemsEqual(mock_bqinsert.call_args_list[0][0][3], expected_rows)
+    six.assertCountEqual(self, mock_bqinsert.call_args_list[0][0][3],
+                         expected_rows)
 
   @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
   @mock.patch.object(results2, '_InsertBQRows')
@@ -641,7 +643,8 @@ class GenerateResults2Test(testing_common.TestCase):
 
     results2.GenerateResults2(job)
     self.maxDiff = None
-    self.assertItemsEqual(mock_bqinsert.call_args_list[0][0][3], expected_rows)
+    six.assertCountEqual(self, mock_bqinsert.call_args_list[0][0][3],
+                         expected_rows)
 
   @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
   @mock.patch.object(results2, '_InsertBQRows')
@@ -737,7 +740,8 @@ class GenerateResults2Test(testing_common.TestCase):
 
     results2.GenerateResults2(job)
     self.maxDiff = None
-    self.assertItemsEqual(mock_bqinsert.call_args_list[0][0][3], expected_rows)
+    six.assertCountEqual(self, mock_bqinsert.call_args_list[0][0][3],
+                         expected_rows)
 
   @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
   @mock.patch.object(results2, '_InsertBQRows')
@@ -833,7 +837,8 @@ class GenerateResults2Test(testing_common.TestCase):
 
     results2.GenerateResults2(job)
     self.maxDiff = None
-    self.assertItemsEqual(mock_bqinsert.call_args_list[0][0][3], expected_rows)
+    six.assertCountEqual(self, mock_bqinsert.call_args_list[0][0][3],
+                         expected_rows)
 
   @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
   @mock.patch.object(results2, '_InsertBQRows')
@@ -895,7 +900,8 @@ class GenerateResults2Test(testing_common.TestCase):
 
     results2.GenerateResults2(job)
     self.maxDiff = None
-    self.assertItemsEqual(mock_bqinsert.call_args_list[1][0][3], expected_rows)
+    six.assertCountEqual(self, mock_bqinsert.call_args_list[1][0][3],
+                         expected_rows)
 
 
 def _CreateGeneralRow(checkout, variant, metric, values):

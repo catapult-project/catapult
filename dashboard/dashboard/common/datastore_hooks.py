@@ -15,6 +15,7 @@ from google.appengine.api import users
 from google.appengine.datastore import datastore_pb
 
 from dashboard.common import utils
+import six
 
 if utils.IsRunningFlask():
   from flask import g as flask_global
@@ -174,7 +175,8 @@ def _DatastorePreHook(service, call, request, _):
   assert service == 'datastore_v3'
   if call != 'RunQuery':
     return
-  if request.kind() not in _INTERNAL_ONLY_KINDS:
+  request_kind = request.kind() if six.PY2 else request.kind
+  if request_kind not in _INTERNAL_ONLY_KINDS:
     return
   if IsUnalteredQueryPermitted():
     return

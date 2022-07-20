@@ -7,7 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 from collections import namedtuple
-from six import StringIO
+from six import BytesIO
 import pickle
 
 from dashboard.pinpoint.models.change import change
@@ -316,14 +316,14 @@ class PickleTest(test.TestCase):
   def testBackwardsCompatibility(self):
     old_commit = commit.Commit('chromium', 'aaaaaaaa')
     old = OldChange([old_commit], None)
-    string_io = StringIO()
+    string_io = BytesIO()
     p = pickle.Pickler(string_io)
     p.dump(old)
 
     # Now attempt to unpickle into the current definition, and ensure it works
     # just fine.
     pickled_data = string_io.getvalue()
-    new = CustomUnpickler(StringIO(pickled_data)).load()
+    new = CustomUnpickler(BytesIO(pickled_data)).load()
     self.assertEqual(old.patch, new.patch)
     self.assertEqual(len(old.commits), len(new.commits))
     self.assertIsNone(new.change_label)

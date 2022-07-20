@@ -162,7 +162,7 @@ class _ReadValueExecutionTest(unittest.TestCase):
   def SetOutputCASContents(self, path, content):
 
     def GetDigest(data):
-      data_str = str(data)
+      data_str = six.ensure_binary(str(data))
       return (
           hashlib.sha256(data_str).hexdigest(),
           len(data_str),

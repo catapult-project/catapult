@@ -6,7 +6,11 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import gae_ts_mon
+try:
+  import gae_ts_mon
+except ModuleNotFoundError:
+  # When running unit tests, we need to import from infra_libs.
+  from infra_libs import ts_mon as gae_ts_mon
 import logging
 import time
 
