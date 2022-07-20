@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright 2018 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -71,7 +71,7 @@ def GetUntrackedPaths():
   """Return directories/files in catapult/ that are not tracked by git."""
   output = subprocess.check_output([
     'git', 'ls-files', '--others', '--exclude-standard', '--directory',
-    '--full-name'])
+    '--full-name'], text=True)
   paths = output.split('\n')
   return [os.path.abspath(p) for p in paths if p]
 

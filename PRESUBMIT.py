@@ -127,7 +127,7 @@ def CheckChangeOnUpload(input_api, output_api):
   results = CheckChange(input_api, output_api)
   cwd = input_api.PresubmitLocalPath()
   exit_code = input_api.subprocess.call(
-      [input_api.python_executable, 'generate_telemetry_build.py', '--check'],
+      [input_api.python3_executable, 'generate_telemetry_build.py', '--check'],
       cwd=cwd)
   if exit_code != 0:
     results.append(output_api.PresubmitError(
