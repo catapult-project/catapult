@@ -471,6 +471,10 @@ class Job(ndb.Model):
     return '/results2/%s' % self.job_id
 
   @property
+  def improvement_direction(self):
+    return self._GetImprovementDirection()
+
+  @property
   def auto_name(self):
     if self.name:
       return self.name
@@ -556,7 +560,6 @@ class Job(ndb.Model):
     scheduler.Complete(self)
 
   def _GetImprovementDirection(self):
-    # returns the improvement direction
     if self.tags is not None and "test_path" in self.tags:
       datastore_hooks.SetSinglePrivilegedRequest()
       t = graph_data.TestMetadata.get_by_id(self.tags["test_path"])
@@ -859,6 +862,7 @@ class Job(ndb.Model):
         'job_id': self.job_id,
         'configuration': self.configuration,
         'results_url': self.results_url,
+        'improvement_direction': self.improvement_direction,
         'arguments': self.arguments,
         'bug_id': self.bug_id,
         'project': self.project,

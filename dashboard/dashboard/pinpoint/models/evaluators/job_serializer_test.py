@@ -55,6 +55,7 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
             'created': mock.ANY,
             'difference_count': None,
             'exception': None,
+            'improvement_direction': mock.ANY,
             'job_id': self.job.job_id,
             'name': mock.ANY,
             'quests': ['Build', 'Test'],
@@ -112,6 +113,8 @@ class EvaluatorTest(bisection_test_util.BisectionTestBase):
                 0,
             'exception':
                 None,
+            'improvement_direction':
+                mock.ANY,
             'job_id':
                 mock.ANY,
             'metric':

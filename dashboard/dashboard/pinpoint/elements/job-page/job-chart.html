@@ -118,7 +118,10 @@ found in the LICENSE file.
       }
     </style>
 
-    <div id="yaxis_title">[[job.metric]]</div>
+    <div id="yaxis_title">
+      [[_getImprovementDirection(job)]]<br>
+      [[job.metric]]
+    </div>
     <svg id="yaxis">
       <g id="yaxis_group" transform="translate(64, 0)"></g>
     </svg>
@@ -147,6 +150,18 @@ found in the LICENSE file.
           type: Number,
           observer: '_reverseChangeIndexChanged',
         },
+      },
+
+      _getImprovementDirection(job){
+        // improvement direction is 0, 1, or 4
+        // 0 is higher is better, 1 is lower is better, 4 is unknown
+        if (!job || !job.improvement_direction || job.improvement_direction == 4){
+          return 'Unknown improvement direction'
+        }
+        if (job.improvement_direction == 0) {
+          return 'Higher is better'
+        }
+        return 'Lower is better'
       },
 
       _jobChanged() {
