@@ -204,4 +204,4 @@ try_builder("Catapult Android Tryserver Py2", "Android", dimensions = {"device_t
 try_builder("Catapult Presubmit", "Ubuntu", is_presubmit = True)
 
 try_builder("Dashboard Linux Tryserver", "Ubuntu", is_dashboard = True)
-try_builder("Dashboard Linux Tryserver Py3", "Ubuntu", is_dashboard = True, experiment = 100, properties = {"use_python3": True})
+try_builder("Dashboard Linux Tryserver Py3", "Ubuntu", is_dashboard = True, properties = {"use_python3": True})
