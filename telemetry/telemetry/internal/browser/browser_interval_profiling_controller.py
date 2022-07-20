@@ -7,8 +7,7 @@ import contextlib
 import logging
 import os
 import shutil
-import tempfile
-import textwrap
+import subprocess
 import six.moves.urllib.parse # pylint: disable=import-error
 
 from telemetry.internal.util import binary_manager
@@ -78,6 +77,9 @@ class _PlatformController():
 
 
 class _LinuxController(_PlatformController):
+  PERF_BINARY_PATH = '/usr/bin/perf'
+  DEVICE_OUT_FILE_PATTERN = '/tmp/{period}-{pid}-perf.data'
+
   def __init__(self, possible_browser, process_name, thread_name,
                profiler_options):
     super().__init__()
@@ -91,28 +93,58 @@ class _LinuxController(_PlatformController):
           % (process_name, thread_name))
     possible_browser.AddExtraBrowserArg('--no-sandbox')
     self._temp_results = []
+    self._perf_command = [self.PERF_BINARY_PATH, 'record'] + profiler_options
+    self._process_name = process_name
+    self._thread_name = thread_name
+    self._device_results = []
 
   @contextlib.contextmanager
   def SamplePeriod(self, period, action_runner, **_):
-    (fd, out_file) = tempfile.mkstemp()
-    os.close(fd)
-    action_runner.ExecuteJavaScript(textwrap.dedent("""
-        if (typeof chrome.gpuBenchmarking.startProfiling !== "undefined") {
-          chrome.gpuBenchmarking.startProfiling("%s");
-        }""" % out_file))
-    yield
-    action_runner.ExecuteJavaScript(textwrap.dedent("""
-        if (typeof chrome.gpuBenchmarking.stopProfiling !== "undefined") {
-          chrome.gpuBenchmarking.stopProfiling();
-        }"""))
-    self._temp_results.append((period, out_file))
+    """Collects CPU profiles for the giving period."""
+    browser = action_runner.tab.browser
+
+    processes = [p for p in browser._browser_backend.processes
+                 if p.name == self._process_name]
+
+    # The tests make 2 renderers, only one of which is the one we want to use
+    # for profiling. We always get the heavier one here. If this breaks, change
+    # this below.
+    if self._process_name == 'renderer':
+      processes = [p for p in processes if p.name == 'renderer']
+      # Sort by RSS, from smallest to biggest.
+      processes.sort(key=lambda p: int(p.rss))
+
+    process = processes[-1]
+    outfile = (self.DEVICE_OUT_FILE_PATTERN
+          .format(period=period, pid=process.pid).replace(' ', ''))
+    tmp = ' '.join(self._perf_command + [
+        '-g',
+        '-e', 'cpu-clock',
+        '-p', process.pid,
+        '-o', outfile])
+    result = subprocess.Popen(tmp.split())
+    try:
+      yield
+    finally:
+      result.poll()
+      if result.returncode is not None:
+        logging.warning('Profiling process exited prematurely.')
+      else:
+        self._temp_results.append((period, outfile))
+        self._StopProfiling()
+        result.wait()
 
   def GetResults(self, file_safe_name, results):
     for period, temp_file in self._temp_results:
       with results.CaptureArtifact(
-          'pprof-%s-%s.profile.pb' % (file_safe_name, period)) as dest_file:
+          'perf-%s-%s.perf.data' % (file_safe_name, period)) as dest_file:
         shutil.move(temp_file, dest_file)
     self._temp_results = []
+
+  def _StopProfiling(self):
+    # Kill the profiling process directly.
+    subprocess.call(['killall', '-s', 'INT',
+                     self.PERF_BINARY_PATH])
 
 
 class _AndroidController(_PlatformController):
