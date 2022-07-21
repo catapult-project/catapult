@@ -20,7 +20,7 @@ import mock
 class DummyPageTest(legacy_page_test.LegacyPageTest):
 
   def __init__(self):
-    super().__init__()
+    super(DummyPageTest, self).__init__()
     # Without disabling the above warning, this complains that
     # ValidateAndMeasurePage is abstract; but defining it complains
     # that its definition is overridden here.
@@ -35,7 +35,7 @@ class DummyPageTest(legacy_page_test.LegacyPageTest):
 class FakePage(page_module.Page):
 
   def __init__(self, page_set):
-    super().__init__(
+    super(FakePage, self).__init__(
         url='http://nonexistentserver.com/nonexistentpage.html',
         name='fake page',
         page_set=page_set,
@@ -47,7 +47,7 @@ class FakePage(page_module.Page):
 class FakeBenchmark(benchmark_module.Benchmark):
 
   def __init__(self, max_failures=None):
-    super().__init__(max_failures)
+    super(FakeBenchmark, self).__init__(max_failures)
     self._fake_pages = []
     self._fake_story_set = story_module.StorySet()
     self._created_story_set = False
@@ -76,7 +76,7 @@ class FakeBenchmark(benchmark_module.Benchmark):
 class FailingPage(FakePage):
 
   def __init__(self, page_set):
-    super().__init__(page_set)
+    super(FailingPage, self).__init__(page_set)
     self.RunNavigateSteps.side_effect = Exception('Deliberate exception')
 
 

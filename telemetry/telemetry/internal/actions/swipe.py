@@ -21,7 +21,7 @@ class SwipeAction(page_action.ElementPageAction):
                speed_in_pixels_per_second=800,
                synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT,
                timeout=page_action.DEFAULT_TIMEOUT):
-    super().__init__(selector, text, element_function, timeout)
+    super(SwipeAction, self).__init__(selector, text, element_function, timeout)
     if direction not in ['down', 'up', 'left', 'right']:
       raise page_action.PageActionNotSupported(
           'Invalid swipe direction: %s' % direction)

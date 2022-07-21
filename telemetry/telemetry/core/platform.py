@@ -72,7 +72,7 @@ def GetPlatformForDevice(device, finder_options, logging=real_logging):
     raise
 
 
-class Platform():
+class Platform(object):
   """The platform that the target browser is running on.
 
   Provides a limited interface to interact with the platform itself, where
@@ -333,6 +333,7 @@ class Platform():
 
   def SetHTTPServerDirectories(self, paths, handler_class=None):
     """Returns True if the HTTP server was started, False otherwise."""
+    # pylint: disable=redefined-variable-type
     if isinstance(paths, six.string_types):
       paths = {paths}
     paths = set(os.path.realpath(p) for p in paths)

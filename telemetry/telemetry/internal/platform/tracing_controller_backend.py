@@ -55,7 +55,7 @@ def _DisableGarbageCollection():
     gc.enable()
 
 
-class _TraceDataDiscarder():
+class _TraceDataDiscarder(object):
   """A do-nothing data builder that just discards trace data.
 
   TODO(crbug.com/928278): This should be moved as a "discarding mode" in
@@ -75,7 +75,7 @@ class _TraceDataDiscarder():
                  ''.join(traceback.format_exception(*sys.exc_info())))
 
 
-class _TracingState():
+class _TracingState(object):
 
   def __init__(self, config, timeout):
     self._builder = trace_data.TraceDataBuilder()
@@ -95,7 +95,7 @@ class _TracingState():
     return self._timeout
 
 
-class TracingControllerBackend():
+class TracingControllerBackend(object):
   def __init__(self, platform_backend):
     self._platform_backend = platform_backend
     self._current_state = None
@@ -173,6 +173,7 @@ class TracingControllerBackend():
       self.StopTracing()
       return
 
+    # pylint: disable=redefined-variable-type
     # See: https://github.com/PyCQA/pylint/issues/710
     if discard_current:
       trace_builder = _TraceDataDiscarder()

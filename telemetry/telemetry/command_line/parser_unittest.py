@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import
 import argparse
-import optparse  # pylint: disable=deprecated-module
+import optparse
 import sys
 import unittest
 

@@ -37,16 +37,13 @@ class FakeFrameGenerator(frame_generator.FrameGenerator):
     self._channels = channels
     self._frames = frames
 
-    super().__init__()
+    super(FakeFrameGenerator, self).__init__()
 
   # OVERRIDE
   def _CreateGenerator(self):
     while self._frame_index < self._frames - 1:
       self._frame_index += 1
-      try:
-        self._timestamp = next(self._timestamps)
-      except StopIteration:
-        return
+      self._timestamp = next(self._timestamps)
       yield np.zeros((self._dimensions[0], self._dimensions[1],
                       self._channels), np.uint8)
 

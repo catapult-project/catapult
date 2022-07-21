@@ -16,12 +16,12 @@ _CHROME_TRACING_AGENT_IMPORT_PATH = 'telemetry.internal.platform.tracing_agent'\
                                     '.chrome_tracing_agent.ChromeTracingAgent'
 
 
-class FakeTracingControllerBackend():
+class FakeTracingControllerBackend(object):
   def __init__(self):
     self.is_tracing_running = False
 
 
-class FakePlatformBackend():
+class FakePlatformBackend(object):
   def __init__(self):
     self.tracing_controller_backend = FakeTracingControllerBackend()
 
@@ -38,15 +38,14 @@ class FakeDesktopPlatformBackend(FakePlatformBackend):
       return 'mac'
     if system == 'Windows':
       return 'win'
-    return 'unknown'
 
 
-class FakeContextMap():
+class FakeContextMap(object):
   def __init__(self, contexts):
     self.contexts = contexts
 
 
-class FakeDevtoolsClient():
+class FakeDevtoolsClient(object):
   def __init__(self, remote_port, platform_backend):
     self.has_tracing_client = True
     self.is_alive = True

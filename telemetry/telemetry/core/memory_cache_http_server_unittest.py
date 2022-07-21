@@ -21,7 +21,7 @@ class RequestHandler(
 class MemoryCacheHTTPServerTest(tab_test_case.TabTestCase):
 
   def setUp(self):
-    super().setUp()
+    super(MemoryCacheHTTPServerTest, self).setUp()
     self._test_filename = 'bear.webm'
     test_file = os.path.join(util.GetUnittestDataDir(), 'bear.webm')
     self._test_file_size = os.stat(test_file).st_size

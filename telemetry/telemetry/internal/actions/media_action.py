@@ -11,10 +11,13 @@ from telemetry.internal.actions import utils
 import py_utils
 
 
-class MediaAction(page_action.PageAction):  # pylint: disable=abstract-method
+class MediaAction(page_action.PageAction):
   def WillRunAction(self, tab):
     """Loads the common media action JS code prior to running the action."""
     utils.InjectJavaScript(tab, 'media_action.js')
+
+  def RunAction(self, tab):
+    super(MediaAction, self).RunAction(tab)
 
   def WaitForEvent(self, tab, selector, event_name, timeout_in_seconds):
     """Halts media action until the selector's event is fired.

@@ -10,7 +10,7 @@ from telemetry import decorators
 _counter = 0
 
 
-class Foo():
+class Foo(object):
   @decorators.Cache
   def GetCountCached(self, _):
     global _counter # pylint: disable=global-statement

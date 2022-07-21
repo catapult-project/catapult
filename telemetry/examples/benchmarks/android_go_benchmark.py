@@ -26,7 +26,7 @@ class SharedAndroidStoryState(story_module.SharedState):
       finder_options: A finder_options object
       story_set: (unused)
     """
-    super().__init__(
+    super(SharedAndroidStoryState, self).__init__(
         test, finder_options, story_set, possible_browser)
     self._finder_options = finder_options
     if not self._possible_browser:
@@ -108,7 +108,7 @@ class AndroidGoFooStory(story_module.Story):
   URL = 'https://en.wikipedia.org/wiki/Main_Page'
 
   def __init__(self):
-    super().__init__(
+    super(AndroidGoFooStory, self).__init__(
         SharedAndroidStoryState, name='go:story:foo')
 
   def Run(self, shared_state):
@@ -122,7 +122,7 @@ class AndroidGoFooStory(story_module.Story):
 
 class AndroidGoBarStory(story_module.Story):
   def __init__(self):
-    super().__init__(
+    super(AndroidGoBarStory, self).__init__(
         SharedAndroidStoryState, name='go:story:bar')
 
   def Run(self, shared_state):
@@ -135,7 +135,7 @@ class AndroidGoBarStory(story_module.Story):
 
 class AndroidGoStories(story_module.StorySet):
   def __init__(self):
-    super().__init__()
+    super(AndroidGoStories, self).__init__()
     self.AddStory(AndroidGoFooStory())
     self.AddStory(AndroidGoBarStory())
 

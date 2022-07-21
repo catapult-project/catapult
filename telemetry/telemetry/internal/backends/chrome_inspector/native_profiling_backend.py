@@ -23,7 +23,7 @@ class NativeProfilingUnexpectedResponseException(Exception):
   pass
 
 
-class NativeProfilingBackend():
+class NativeProfilingBackend(object):
 
   def __init__(self, inspector_socket):
     self._inspector_websocket = inspector_socket
@@ -46,10 +46,14 @@ class NativeProfilingBackend():
           err.websocket_error_type, websocket.WebSocketTimeoutException):
         raise NativeProfilingTimeoutException(
             'Exception raised while sending a %s request:\n%s' %
-            (method, traceback.format_exc())) from err
+            (method, traceback.format_exc()))
+      else:
+        raise NativeProfilingUnrecoverableException(
+            'Exception raised while sending a %s request:\n%s' %
+            (method, traceback.format_exc()))
       raise NativeProfilingUnrecoverableException(
           'Exception raised while sending a %s request:\n%s' %
-          (method, traceback.format_exc())) from err
+          (method, traceback.format_exc()))
 
   def Close(self):
     self._inspector_websocket = None

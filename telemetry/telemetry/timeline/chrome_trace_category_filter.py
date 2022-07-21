@@ -58,7 +58,7 @@ def CreateDebugOverheadFilter():
 _delay_re = re.compile(r'DELAY[(][A-Za-z0-9._;]+[)]')
 
 
-class ChromeTraceCategoryFilter():
+class ChromeTraceCategoryFilter(object):
   """A set of included and excluded categories that should be traced.
 
   The ChromeTraceCategoryFilter allows fine tuning of what data is traced for

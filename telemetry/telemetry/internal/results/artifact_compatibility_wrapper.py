@@ -30,7 +30,7 @@ def ArtifactCompatibilityWrapperFactory(artifact_impl):
                      type(artifact_impl).__name__)
 
 
-class ArtifactCompatibilityWrapper():
+class ArtifactCompatibilityWrapper(object):
   def __init__(self, artifact_impl):
     self._artifact_impl = artifact_impl
 
@@ -77,7 +77,7 @@ class LoggingArtifactCompatibilityWrapper(ArtifactCompatibilityWrapper):
   the first 100 characters.
   """
   def __init__(self):
-    super().__init__(None)
+    super(LoggingArtifactCompatibilityWrapper, self).__init__(None)
 
   def CreateArtifact(self, name, data):
     # Don't log binary files as the utf-8 encoding will cause errors.
@@ -92,7 +92,7 @@ class LoggingArtifactCompatibilityWrapper(ArtifactCompatibilityWrapper):
     logging.info('Artifact with name %s: %s', name, data[:min(100, len(data))])
 
 
-class FullLoggingArtifactImpl():
+class FullLoggingArtifactImpl(object):
   """A dummy 'artifact implementation'.
 
   Used to specify that FullLoggingArtifactCompatibilityWrapper should be used
@@ -107,7 +107,7 @@ class FullLoggingArtifactCompatibilityWrapper(ArtifactCompatibilityWrapper):
   results in more log spam, hence why it is not the default.
   """
   def __init__(self):
-    super().__init__(None)
+    super(FullLoggingArtifactCompatibilityWrapper, self).__init__(None)
 
   def CreateArtifact(self, name, data):
     # Don't log binary files as the utf-8 encoding will cause errors.

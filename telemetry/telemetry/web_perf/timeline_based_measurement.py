@@ -23,7 +23,7 @@ ALL_OVERHEAD_LEVELS = [
 ]
 
 
-class Options():
+class Options(object):
   """A class to be used to configure TimelineBasedMeasurement.
 
   This is created and returned by

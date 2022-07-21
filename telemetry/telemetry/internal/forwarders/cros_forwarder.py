@@ -17,7 +17,7 @@ import py_utils
 class CrOsForwarderFactory(forwarders.ForwarderFactory):
 
   def __init__(self, cri):
-    super().__init__()
+    super(CrOsForwarderFactory, self).__init__()
     self._cri = cri
 
   def Create(self, local_port, remote_port, reverse=False):
@@ -32,7 +32,7 @@ class CrOsForwarderFactory(forwarders.ForwarderFactory):
 class CrOsSshForwarder(forwarders.Forwarder):
 
   def __init__(self, cri, local_port, remote_port, port_forward):
-    super().__init__()
+    super(CrOsSshForwarder, self).__init__()
     self._cri = cri
     self._proc = None
 
@@ -74,4 +74,4 @@ class CrOsSshForwarder(forwarders.Forwarder):
     if self._proc:
       self._proc.kill()
       self._proc = None
-    super().Close()
+    super(CrOsSshForwarder, self).Close()

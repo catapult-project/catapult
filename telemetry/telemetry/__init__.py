@@ -26,9 +26,7 @@ if sys.version_info < (2, 7):
 
 
 def _JoinPath(*path_parts):
-  # pylint: disable=no-value-for-parameter
   return os.path.abspath(os.path.join(*path_parts))
-  # pylint: enable=no-value-for-parameter
 
 
 def _InsertPath(path):

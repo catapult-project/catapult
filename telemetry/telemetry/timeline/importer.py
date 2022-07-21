@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 
-class TimelineImporter():
+class TimelineImporter(object):
   """Reads trace data and populates timeline model with what it finds."""
   def __init__(self, model, trace_data):
     self._model = model

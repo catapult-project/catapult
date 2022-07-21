@@ -24,7 +24,7 @@ class CrOSMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
           provided directory *must* be unique per browser binary, e.g. by
           including the hash of the binary in the directory name.
     """
-    super().__init__(
+    super(CrOSMinidumpSymbolizer, self).__init__(
         'linux', platform.machine(), dump_finder, build_dir,
         symbols_dir=symbols_dir)
 
@@ -36,7 +36,7 @@ class CrOSMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
       logging.warning('Cannot get stack traces unless '
                       '--chromium-output-directory is specified.')
       return None
-    return super().SymbolizeMinidump(minidump)
+    return super(CrOSMinidumpSymbolizer, self).SymbolizeMinidump(minidump)
 
   def GetSymbolBinaries(self, minidump):
     """Returns a list of paths to binaries where symbols may be located.

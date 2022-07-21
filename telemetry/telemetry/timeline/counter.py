@@ -9,7 +9,7 @@ import telemetry.timeline.event_container as event_container
 # Doesn't inherit from TimelineEvent because its only a temporary wrapper of a
 # counter sample into an event. During stable operation, the samples are stored
 # a dense array of values rather than in the long-form done by an Event.
-class CounterSample():
+class CounterSample(object):
   def __init__(self, counter, sample_index):
     self._counter = counter
     self._sample_index = sample_index
@@ -59,7 +59,7 @@ class Counter(event_container.TimelineEventContainer):
   """ Stores all the samples for a given counter.
   """
   def __init__(self, parent, category, name):
-    super().__init__(name, parent)
+    super(Counter, self).__init__(name, parent)
     self.category = category
     self.full_name = category + '.' + name
     self.samples = []

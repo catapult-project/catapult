@@ -58,12 +58,12 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
     class Test(legacy_page_test.LegacyPageTest):
       def __init__(self):
-        super().__init__()
+        super(Test, self).__init__()
         self.browser_starts = 0
         self.platform_name = None
 
       def DidStartBrowser(self, browser):
-        super().DidStartBrowser(browser)
+        super(Test, self).DidStartBrowser(browser)
         self.browser_starts += 1
         self.platform_name = browser.platform.GetOSName()
 
@@ -141,7 +141,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
     class MeasureLatency(legacy_page_test.LegacyPageTest):
       def __init__(self):
-        super().__init__()
+        super(MeasureLatency, self).__init__()
         self._will_navigate_time = None
 
       def WillNavigateToPage(self, page, tab):
@@ -182,7 +182,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
     class TestBeforeLaunch(legacy_page_test.LegacyPageTest):
       def __init__(self):
-        super().__init__()
+        super(TestBeforeLaunch, self).__init__()
         self._did_call_will_start = False
         self._did_call_did_start = False
 
@@ -210,7 +210,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
     class Test(legacy_page_test.LegacyPageTest):
       def __init__(self):
-        super().__init__()
+        super(Test, self).__init__()
         self.did_call_clean_up = False
 
       def ValidateAndMeasurePage(self, *_):
@@ -244,7 +244,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
     class Test(legacy_page_test.LegacyPageTest):
       def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(Test, self).__init__(*args, **kwargs)
         self.will_navigate_to_page_called = False
 
       def ValidateAndMeasurePage(self, *args):
@@ -275,7 +275,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     # Loads a page and scrolls it to the end.
     class ScrollingPage(page_module.Page):
       def __init__(self, url, page_set, base_dir):
-        super().__init__(page_set=page_set,
+        super(ScrollingPage, self).__init__(page_set=page_set,
                                             base_dir=base_dir,
                                             shared_page_state_class=
                                             NoClosingBrowserSharedState,
@@ -288,7 +288,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     # at the top of the page (in was_page_at_top_on_start).
     class CheckScrollPositionPage(page_module.Page):
       def __init__(self, url, page_set, base_dir):
-        super().__init__(
+        super(CheckScrollPositionPage, self).__init__(
             page_set=page_set, base_dir=base_dir,
             shared_page_state_class=NoClosingBrowserSharedState, url=url,
             name='CheckScroll')

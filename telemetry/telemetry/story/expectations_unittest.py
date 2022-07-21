@@ -12,12 +12,12 @@ from telemetry.story import expectations
 from telemetry.testing import fakes
 
 
-class MockState():
+class MockState(object):
   def __init__(self):
     self.platform = fakes.FakePlatform()
 
 
-class MockStory():
+class MockStory(object):
   def __init__(self, name):
     self._name = name
 
@@ -26,7 +26,7 @@ class MockStory():
     return self._name
 
 
-class MockStorySet():
+class MockStorySet(object):
   def __init__(self, stories):
     self._stories = stories
 
@@ -34,7 +34,7 @@ class MockStorySet():
   def stories(self):
     return self._stories
 
-class MockBrowserFinderOptions():
+class MockBrowserFinderOptions(object):
   def __init__(self):
     self._browser_type = None
 

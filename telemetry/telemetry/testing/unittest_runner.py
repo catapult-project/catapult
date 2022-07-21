@@ -26,10 +26,10 @@ def ProcessConfig(project_config, args=None, no_browser=False,
     args.extend(['--client-config', c])
   for e in project_config.expectations_files:
     args.extend(['--expectations-file', e])
-  if no_browser and '--no-browser' not in args:
+  if no_browser and not '--no-browser' in args:
     args.extend(['--no-browser'])
 
-  if project_config.default_chrome_root and '--chrome-root' not in args:
+  if project_config.default_chrome_root and not '--chrome-root' in args:
     args.extend(['--chrome-root', project_config.default_chrome_root])
 
   if disable_cloud_storage_io_during_test:

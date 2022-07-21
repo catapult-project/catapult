@@ -18,7 +18,7 @@ class ReceiverNotFoundException(Exception):
 class CastBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def __init__(self, cast_platform_backend, browser_options,
                browser_directory, profile_directory, casting_tab):
-    super().__init__(
+    super(CastBrowserBackend, self).__init__(
         cast_platform_backend,
         browser_options=browser_options,
         browser_directory=browser_directory,
@@ -94,14 +94,14 @@ class CastBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           'Could not find Cast Receiver {0}.'.format(self._ReadReceiverName()))
 
   def BindDevToolsClient(self):
-    super().BindDevToolsClient()
+    super(CastBrowserBackend, self).BindDevToolsClient()
     self._window_visible = True
 
   def GetPid(self):
     return self._browser_process.pid
 
   def Close(self):
-    super().Close()
+    super(CastBrowserBackend, self).Close()
     self._discovery_mode = False
     self._window_visible = False
 
@@ -116,3 +116,4 @@ class CastBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def SymbolizeMinidump(self, minidump_path):
     logging.info('Symbolizing Minidump is not yet supported on Cast browser.')
+    return None

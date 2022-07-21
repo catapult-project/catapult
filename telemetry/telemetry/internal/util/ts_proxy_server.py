@@ -25,3 +25,4 @@ class TsProxyServer(ts_proxy_server.TsProxyServer):
   def __exit__(self, unused_exc_type, unused_exc_val, unused_exc_tb):
     """Add support for with-statement."""
     self.StopServer()
+

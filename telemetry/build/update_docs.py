@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 from __future__ import absolute_import
 import logging
-import optparse  # pylint: disable=deprecated-module
+import optparse
 import os
 import pkgutil
 import pydoc
@@ -78,7 +78,7 @@ def GetAllModulesToDocument(module):
   return modules
 
 
-class AlreadyDocumentedModule():
+class AlreadyDocumentedModule(object):
 
   def __init__(self, filename):
     self.filename = filename

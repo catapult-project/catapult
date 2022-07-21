@@ -77,7 +77,7 @@ _DEVICE_MEMTRACK_HELPER_LOCATION = '/data/local/tmp/profilers/memtrack_helper'
 _DEVICE_CLEAR_SYSTEM_CACHE_TOOL_LOCATION = '/data/local/tmp/clear_system_cache'
 
 
-class _VideoRecorder():
+class _VideoRecorder(object):
   def __init__(self):
     self._stop_recording_signal = threading.Event()
     self._recording_path = None
@@ -118,7 +118,7 @@ class AndroidPlatformBackend(
   def __init__(self, device, require_root):
     assert device, (
         'AndroidPlatformBackend can only be initialized from remote device')
-    super().__init__(device)
+    super(AndroidPlatformBackend, self).__init__(device)
     self._device = device_utils.DeviceUtils(device.device_id)
     self._can_elevate_privilege = False
     self._require_root = require_root
@@ -240,7 +240,7 @@ class AndroidPlatformBackend(
 
   def StopDisplayTracing(self):
     if not self._surface_stats_collector:
-      return None
+      return
 
     try:
       refresh_period, timestamps = self._surface_stats_collector.Stop()

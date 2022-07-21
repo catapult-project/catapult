@@ -23,7 +23,10 @@ class MeasurementFailure(Failure):
   """Exception raised when an undesired but designed-for problem."""
 
 
-LegacyPageTestBase = six.with_metaclass(trace_event.TracedMetaClass, object)
+if six.PY2:
+  LegacyPageTestBase = object
+else:
+  LegacyPageTestBase = six.with_metaclass(trace_event.TracedMetaClass, object)
 
 class LegacyPageTest(LegacyPageTestBase):
   """A class styled on unittest.TestCase for creating page-specific tests.

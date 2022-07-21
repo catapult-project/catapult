@@ -8,21 +8,21 @@ import unittest
 from telemetry.util import matching
 
 
-class BenchmarkFoo():
+class BenchmarkFoo(object):
   """ Benchmark Foo for testing."""
   @classmethod
   def Name(cls):
     return 'FooBenchmark'
 
 
-class BenchmarkBar():
+class BenchmarkBar(object):
   """ Benchmark Bar for testing long description line."""
   @classmethod
   def Name(cls):
     return 'BarBenchmarkkkkk'
 
 
-class UnusualBenchmark():
+class UnusualBenchmark(object):
   @classmethod
   def Name(cls):
     return 'I have a very unusual name'

@@ -46,7 +46,8 @@ def FindLineIntersection(line1, line2):
   g = np.dot(np.subtract(line2p0, line1p0), Pf)
   g = np.divide(g, np.dot(E, Pf))
   intersection = np.add(line2p0, np.dot(F, h))
-  intersect = (-0.000001 <= h <= 1.000001 and -0.000001 <= g <= 1.000001)
+  intersect = (h >= -0.000001 and h <= 1.000001 and
+               g >= -0.000001 and g <= 1.000001)
   return intersect, intersection
 
 

@@ -27,7 +27,7 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
   browser = None
 
   def __init__(self, methodName):
-    super().__init__(methodName)
+    super(SeriallyExecutedBrowserTestCase, self).__init__(methodName)
     self._private_methodname = methodName
 
   def shortName(self):
@@ -35,7 +35,7 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
     return self._private_methodname
 
   def set_artifacts(self, artifacts):
-    super().set_artifacts(artifacts)
+    super(SeriallyExecutedBrowserTestCase, self).set_artifacts(artifacts)
     artifact_logger.RegisterArtifactImplementation(artifacts)
 
   def setUp(self):
@@ -332,7 +332,7 @@ def GenerateTestCases(test_class, finder_options):
       # subclasses, to avoid collisions with Python's unit test runner.
       raise Exception('Name collision with Python\'s unittest runner: %s' %
                       name)
-    if name.startswith('Test'):
+    elif name.startswith('Test'):
       # Pass these through for the time being. We may want to rethink
       # how they are handled in the future.
       test_cases.append(test_class(name))

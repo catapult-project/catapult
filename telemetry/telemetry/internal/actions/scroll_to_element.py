@@ -34,7 +34,7 @@ class ScrollToElementAction(page_action.PageAction):
           used to retrieve the container element.
       speed_in_pixels_per_second: Speed to scroll.
     """
-    super().__init__()
+    super(ScrollToElementAction, self).__init__()
     self._selector = selector
     self._element_function = element_function
     self._container_selector = container_selector

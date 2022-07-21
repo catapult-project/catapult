@@ -5,7 +5,7 @@ from __future__ import absolute_import
 from telemetry.internal.platform import gpu_info
 
 
-class SystemInfo():
+class SystemInfo(object):
   """Provides low-level system information."""
 
   def __init__(self, model_name, gpu_dict, command_line):

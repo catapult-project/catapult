@@ -18,7 +18,7 @@ class PinchAction(page_action.PageAction):
                speed_in_pixels_per_second=800,
                synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT,
                timeout=page_action.DEFAULT_TIMEOUT):
-    super().__init__(timeout=timeout)
+    super(PinchAction, self).__init__(timeout=timeout)
     self._left_anchor_ratio = left_anchor_ratio
     self._top_anchor_ratio = top_anchor_ratio
     self._scale_factor = scale_factor

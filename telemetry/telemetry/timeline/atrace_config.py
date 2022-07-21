@@ -5,7 +5,7 @@
 from __future__ import absolute_import
 from systrace.tracing_agents import atrace_agent
 
-class AtraceConfig():
+class AtraceConfig(object):
   """Stores configuration options specific to Atrace.
 
     categories: List that specifies the Atrace categories to trace.

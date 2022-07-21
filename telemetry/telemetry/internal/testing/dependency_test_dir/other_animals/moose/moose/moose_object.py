@@ -6,7 +6,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from moose.horn import horn_object
 
-class Moose():
+class Moose(object):
   def __init__(self):
     self._horn = horn_object.Horn()
 

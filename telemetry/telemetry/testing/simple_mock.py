@@ -5,7 +5,7 @@
 
 DONT_CARE = ''
 
-class MockFunctionCall():
+class MockFunctionCall(object):
   def __init__(self, name):
     self.name = name
     self.args = tuple()
@@ -46,12 +46,12 @@ class MockFunctionCall():
       return '%s(%s)' % (self.name, args_text)
     return '%s(%s)->%s' % (self.name, args_text, repr(self.return_value))
 
-class MockTrace():
+class MockTrace(object):
   def __init__(self):
     self.expected_calls = []
     self.next_call_index = 0
 
-class MockObject():
+class MockObject(object):
   def __init__(self, parent_mock=None):
     if parent_mock:
       self._trace = parent_mock._trace # pylint: disable=protected-access

@@ -71,7 +71,7 @@ class TelemetryTracingAgent(tracing_agent.TracingAgent):
   metadata with information e.g. about the benchmark that produced a trace.
   """
   def __init__(self, platform_backend, config):
-    super().__init__(platform_backend, config)
+    super(TelemetryTracingAgent, self).__init__(platform_backend, config)
     self._trace_file = None
 
     # When tracing Chrome on Android, Telemetry and the browser run on

@@ -13,7 +13,7 @@ from telemetry.internal.forwarders import forwarder_utils
 class FuchsiaForwarderFactory(forwarders.ForwarderFactory):
 
   def __init__(self, command_runner):
-    super().__init__()
+    super(FuchsiaForwarderFactory, self).__init__()
     self._command_runner = command_runner
 
   def Create(self, local_port, remote_port, reverse=False):
@@ -32,7 +32,7 @@ class FuchsiaSshForwarder(forwarders.Forwarder):
       remote_port: Port on the Fuchsia device.
       command_runner: Contains information related to ssh configuration.
       port_forward: Determines the direction of the connection."""
-    super().__init__()
+    super(FuchsiaSshForwarder, self).__init__()
     self._proc = None
 
     if port_forward:
@@ -65,4 +65,4 @@ class FuchsiaSshForwarder(forwarders.Forwarder):
     if self._proc:
       self._proc.kill()
       self._proc = None
-    super().Close()
+    super(FuchsiaSshForwarder, self).Close()

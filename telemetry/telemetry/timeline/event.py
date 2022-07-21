@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-class TimelineEvent():
+class TimelineEvent(object):
   """Represents a timeline event.
 
   thread_start, thread_duration and thread_end are the start time, duration

@@ -14,6 +14,10 @@ class PortsMismatchError(Error):
   """Raised when local and remote ports are not equal."""
 
 
+class ConnectionError(Error):
+  """Raised when unable to connect to local TCP ports."""
+
+
 class DoNothingForwarderFactory(forwarders.ForwarderFactory):
 
   def Create(self, local_port, remote_port, reverse=False):
@@ -32,7 +36,7 @@ class DoNothingForwarder(forwarders.Forwarder):
   """
 
   def __init__(self, local_port, remote_port):
-    super().__init__()
+    super(DoNothingForwarder, self).__init__()
     local_port, remote_port = _ValidatePorts(local_port, remote_port)
     self._StartedForwarding(local_port, remote_port)
 

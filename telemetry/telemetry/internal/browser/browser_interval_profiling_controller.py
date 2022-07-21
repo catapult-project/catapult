@@ -17,7 +17,7 @@ from devil.android.sdk import version_codes
 
 __all__ = ['BrowserIntervalProfilingController']
 
-class BrowserIntervalProfilingController():
+class BrowserIntervalProfilingController(object):
   def __init__(self, possible_browser, process_name, periods, frequency,
                profiler_options):
     process_name, _, thread_name = process_name.partition(':')
@@ -49,7 +49,6 @@ class BrowserIntervalProfilingController():
     if os_name == 'chromeos':
       return _ChromeOSController(possible_browser, process_name, thread_name,
                                  profiler_options)
-    return None
 
   @contextlib.contextmanager
   def SamplePeriod(self, period, action_runner):
@@ -68,7 +67,7 @@ class BrowserIntervalProfilingController():
       self._platform_controller.GetResults(file_safe_name, results)
 
 
-class _PlatformController():
+class _PlatformController(object):
   def SamplePeriod(self, period, action_runner):
     raise NotImplementedError()
 
@@ -82,7 +81,7 @@ class _LinuxController(_PlatformController):
 
   def __init__(self, possible_browser, process_name, thread_name,
                profiler_options):
-    super().__init__()
+    super(_LinuxController, self).__init__()
     if profiler_options:
       raise ValueError(
           'Additional arguments to the profiler is not supported on Linux.')
@@ -153,7 +152,7 @@ class _AndroidController(_PlatformController):
 
   def __init__(self, possible_browser, process_name, thread_name,
                profiler_options):
-    super().__init__()
+    super(_AndroidController, self).__init__()
     if profiler_options:
       raise ValueError(
           'Additional arguments to the profiler is not supported on Android.')
@@ -267,7 +266,7 @@ class _ChromeOSController(_PlatformController):
 
   def __init__(self, possible_browser, process_name, thread_name,
                profiler_options):
-    super().__init__()
+    super(_ChromeOSController, self).__init__()
     if process_name != 'system_wide':
       raise ValueError(
           'Only system-wide profiling is supported on ChromeOS.'
@@ -340,7 +339,7 @@ class _ChromeOSController(_PlatformController):
     # Poll the SSH process to check if the connection is still alive. If it is
     # alive, the returncode should not be set.
     ssh_process.poll()
-    if ssh_process.returncode is not None:
+    if ssh_process.returncode != None:
       logging.warning('Profiling process exited prematurely.')
       return False
     # Kill the profiling process directly. Terminating the SSH process doesn't

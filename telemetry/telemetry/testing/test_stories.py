@@ -19,7 +19,7 @@ classes to work with these kinds of stories.
 from __future__ import absolute_import
 import posixpath
 import six
-import six.moves.urllib.parse # pylint: disable=import-error,wrong-import-order
+import six.moves.urllib.parse # pylint: disable=import-error
 
 import mock
 
@@ -69,7 +69,7 @@ class TestPage(page.Page):
     """
     if name is None:
       name = _StoryNameFromUrl(url)
-    super().__init__(
+    super(TestPage, self).__init__(
         url, story_set, name=name, base_dir=story_set.base_dir)
     self._run_side_effect = run_side_effect
 
@@ -77,7 +77,8 @@ class TestPage(page.Page):
     if self._run_side_effect is not None:
       if isinstance(self._run_side_effect, Exception):
         raise self._run_side_effect  # pylint: disable=raising-bad-type
-      self._run_side_effect(action_runner)
+      else:
+        self._run_side_effect(action_runner)
 
 
 def SinglePageStorySet(url=None, name=None, base_dir=None,
@@ -120,7 +121,7 @@ class DummyStory(story_module.Story):
         with no arguments.
       Extra kwargs are passed to the constructor of the base class.
     """
-    super().__init__(TestSharedState, name=name, **kwargs)
+    super(DummyStory, self).__init__(TestSharedState, name=name, **kwargs)
     self._serving_dir = serving_dir
     self._run_side_effect = run_side_effect
 
@@ -128,7 +129,8 @@ class DummyStory(story_module.Story):
     if self._run_side_effect is not None:
       if isinstance(self._run_side_effect, BaseException):
         raise self._run_side_effect  # pylint: disable=raising-bad-type
-      self._run_side_effect()
+      else:
+        self._run_side_effect()
 
   @property
   def serving_dir(self):
@@ -148,7 +150,7 @@ class DummyStorySet(story_module.StorySet):
         to be run in abridged mode.
       Additional kwargs are passed to the StorySet base class.
     """
-    super().__init__(
+    super(DummyStorySet, self).__init__(
         cloud_storage_bucket=cloud_bucket, **kwargs)
     self._abridging_tag = abridging_tag
     assert stories, 'There should be at least one story.'
@@ -178,7 +180,7 @@ class TestSharedState(story_module.SharedState):
   mock_platform = MockPlatform()
 
   def __init__(self, test, options, story_set, possible_browser):
-    super().__init__(
+    super(TestSharedState, self).__init__(
         test, options, story_set, possible_browser)
     self._current_story = None
 

@@ -24,7 +24,7 @@ from telemetry.util import wpr_modes
 
 class MockPage(page_module.Page):
   def __init__(self, story_set, url):
-    super().__init__(url=url,
+    super(MockPage, self).__init__(url=url,
                                    page_set=story_set,
                                    base_dir=util.GetUnittestDataDir(),
                                    name=url)
@@ -41,14 +41,14 @@ class MockStorySet(story.StorySet):
   def __init__(self, url=''):
     if url == '':
       return
-    super().__init__(
+    super(MockStorySet, self).__init__(
         archive_data_file='data/archive_files/test.json')
     self.AddStory(MockPage(self, url))
 
 
 class MockPageTest(legacy_page_test.LegacyPageTest):
   def __init__(self):
-    super().__init__()
+    super(MockPageTest, self).__init__()
     self._action_name_to_run = "RunPageInteractions"
     self.func_calls = []
 
@@ -75,7 +75,7 @@ class MockBenchmark(benchmark.Benchmark):
   test = MockPageTest
 
   def __init__(self):
-    super().__init__()
+    super(MockBenchmark, self).__init__()
     self.mock_story_set = None
 
   @classmethod
@@ -96,7 +96,7 @@ class MockBenchmark(benchmark.Benchmark):
 class MockTimelineBasedMeasurementBenchmark(benchmark.Benchmark):
 
   def __init__(self):
-    super().__init__()
+    super(MockTimelineBasedMeasurementBenchmark, self).__init__()
     self.mock_story_set = None
 
   @classmethod

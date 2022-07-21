@@ -53,7 +53,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
           determined.
       enable_tracing: Defines if a tracing_client is created.
     """
-    super().__init__(
+    super(ChromeBrowserBackend, self).__init__(
         platform_backend=platform_backend,
         browser_options=browser_options,
         supports_extensions=supports_extensions,
@@ -242,7 +242,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       return 'main'
     if thread_name.startswith('RenderThread'):
       return 'render'
-    return 'unknown'
 
   def Close(self):
     # If Chrome tracing is running, flush the trace before closing the browser.
@@ -339,7 +338,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
             timeout=10)
       except Exception as e:
         raise Exception('%s Did you launch browser with '
-                        '--enable-ui-devtools=0?' % e) from e
+                        '--enable-ui-devtools=0?' % e)
     return self._ui_devtools_client
 
   def GetWindowForTarget(self, target_id):

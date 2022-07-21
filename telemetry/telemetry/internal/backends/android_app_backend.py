@@ -15,7 +15,7 @@ class AndroidAppBackend(app_backend.AppBackend):
 
   def __init__(self, android_platform_backend, start_intent,
                is_app_ready_predicate=None, app_has_webviews=False):
-    super().__init__(
+    super(AndroidAppBackend, self).__init__(
         start_intent.package, android_platform_backend)
     self._start_intent = start_intent
     self._is_app_ready_predicate = is_app_ready_predicate

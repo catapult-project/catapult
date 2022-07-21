@@ -17,7 +17,7 @@ class Slice(timeline_event.TimelineEvent):
   """
   def __init__(self, parent_thread, category, name, timestamp, duration=0,
                thread_timestamp=None, thread_duration=None, args=None):
-    super().__init__(
+    super(Slice, self).__init__(
         category, name, timestamp, duration, thread_timestamp, thread_duration,
         args)
     self.parent_thread = parent_thread

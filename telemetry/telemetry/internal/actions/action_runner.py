@@ -7,7 +7,7 @@ from __future__ import absolute_import
 import logging
 import time
 import six
-import six.moves.urllib.parse # pylint: disable=import-error,wrong-import-order
+import six.moves.urllib.parse # pylint: disable=import-error
 from six.moves import input # pylint: disable=redefined-builtin
 
 from telemetry.core import exceptions
@@ -49,7 +49,10 @@ _MEMORY_DUMP_WAIT_TIME = 3
 _GARBAGE_COLLECTION_PROPAGATION_TIME = 6
 
 
-ActionRunnerBase = six.with_metaclass(trace_event.TracedMetaClass, object)
+if six.PY2:
+  ActionRunnerBase = object
+else:
+  ActionRunnerBase = six.with_metaclass(trace_event.TracedMetaClass, object)
 
 class ActionRunner(ActionRunnerBase):
 
@@ -859,7 +862,7 @@ class ActionRunner(ActionRunnerBase):
     self._tab.StopMobileDeviceEmulation(timeout)
 
 
-class Interaction():
+class Interaction(object):
 
   def __init__(self, action_runner, label, flags):
     assert action_runner

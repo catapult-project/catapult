@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 
-class TabList():
+class TabList(object):
 
   def __init__(self, tab_list_backend):
     self._tab_list_backend = tab_list_backend

@@ -14,7 +14,6 @@ import re
 import subprocess
 import sys
 import time
-import traceback
 import six
 
 from telemetry.core import util
@@ -22,7 +21,7 @@ from telemetry.core import util
 NamedPort = collections.namedtuple('NamedPort', ['name', 'port'])
 
 
-class LocalServerBackend():
+class LocalServerBackend(object):
 
   def __init__(self):
     pass
@@ -44,7 +43,7 @@ class LocalServerBackend():
     raise NotImplementedError()
 
 
-class LocalServer():
+class LocalServer(object):
 
   def __init__(self, server_backend_class):
     assert LocalServerBackend in server_backend_class.__bases__
@@ -120,7 +119,7 @@ class LocalServer():
 
   @property
   def is_running(self):
-    return self._subprocess is not None
+    return self._subprocess != None
 
   def __enter__(self):
     return self
@@ -161,7 +160,7 @@ class LocalServer():
     raise NotImplementedError()
 
 
-class LocalServerController():
+class LocalServerController(object):
   """Manages the list of running servers
 
   This class manages the running servers, but also provides an isolation layer
@@ -201,6 +200,7 @@ class LocalServerController():
       try:
         server.Close()
       except Exception: # pylint: disable=broad-except
+        import traceback
         traceback.print_exc()
 
   def GetRemotePort(self, port):
