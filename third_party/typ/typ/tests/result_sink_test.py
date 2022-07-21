@@ -208,8 +208,8 @@ class ResultSinkReporterTest(unittest.TestCase):
         })
         rsr._post = StubWithRetval(2)
         retval = rsr.report_individual_test_result(
-                'test_name_prefix.', result, ARTIFACT_DIR,
-                CreateTestExpectations(), FAKE_TEST_PATH, FAKE_TEST_LINE)
+                result, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
+                FAKE_TEST_LINE, 'test_name_prefix.')
         self.assertEqual(retval, 2)
         expected_result = CreateExpectedTestResult()
         self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[1]),
@@ -226,8 +226,8 @@ class ResultSinkReporterTest(unittest.TestCase):
         })
         rsr._post = StubWithRetval(2)
         retval = rsr.report_individual_test_result(
-                'test_name_prefix.', result, ARTIFACT_DIR,
-                CreateTestExpectations(), FAKE_TEST_PATH, FAKE_TEST_LINE)
+                result, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
+                FAKE_TEST_LINE, 'test_name_prefix.')
         self.assertEqual(retval, 2)
         expected_result = CreateExpectedTestResult(
                 status=json_results.ResultType.Failure,
@@ -245,8 +245,8 @@ class ResultSinkReporterTest(unittest.TestCase):
         })
         rsr._post = StubWithRetval(2)
         retval = rsr.report_individual_test_result(
-                'test_name_prefix.', result, ARTIFACT_DIR, None, FAKE_TEST_PATH,
-                FAKE_TEST_LINE)
+                result, ARTIFACT_DIR, None, FAKE_TEST_PATH, FAKE_TEST_LINE,
+                'test_name_prefix.')
         self.assertEqual(retval, 2)
         expected_result = CreateExpectedTestResult(tags=[
             {'key': 'test_name', 'value': 'test_name'},
@@ -265,8 +265,8 @@ class ResultSinkReporterTest(unittest.TestCase):
         })
         rsr._post = StubWithRetval(2)
         retval = rsr.report_individual_test_result(
-                'test_name_prefix.', result, ARTIFACT_DIR, None, FAKE_TEST_PATH,
-                FAKE_TEST_LINE, {'additional_tag_key': 'additional_tag_value'})
+                result, ARTIFACT_DIR, None, FAKE_TEST_PATH, FAKE_TEST_LINE,
+                'test_name_prefix.', {'additional_tag_key': 'additional_tag_value'})
         self.assertEqual(retval, 2)
         expected_result = CreateExpectedTestResult(tags=[
             {'key': 'test_name', 'value': 'test_name'},
@@ -287,12 +287,12 @@ class ResultSinkReporterTest(unittest.TestCase):
         })
         with self.assertRaises(AssertionError):
             rsr.report_individual_test_result(
-                    'test_name_prefix.', result, ARTIFACT_DIR, None,
-                    FAKE_TEST_PATH, FAKE_TEST_LINE, {1: 'str'})
+                    result, ARTIFACT_DIR, None, FAKE_TEST_PATH,
+                    FAKE_TEST_LINE, 'test_name_prefix.', {1: 'str'})
         with self.assertRaises(AssertionError):
             rsr.report_individual_test_result(
-                    'test_name_prefix.', result, ARTIFACT_DIR, None,
-                    FAKE_TEST_PATH, FAKE_TEST_LINE, {'str': 1})
+                    result, ARTIFACT_DIR, None, FAKE_TEST_PATH,
+                    FAKE_TEST_LINE, 'test_name_prefix.', {'str': 1})
 
     def testReportIndividualTestResultHtmlSummaryUnicode(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
@@ -305,8 +305,8 @@ class ResultSinkReporterTest(unittest.TestCase):
         })
         rsr._post = StubWithRetval(0)
         rsr.report_individual_test_result(
-                'test_name_prefix.', result, ARTIFACT_DIR,
-                CreateTestExpectations(), FAKE_TEST_PATH, FAKE_TEST_LINE)
+                result, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
+                FAKE_TEST_LINE, 'test_name_prefix.')
 
         test_result = GetTestResultFromPostedJson(rsr._post.args[1])
         expected_result = CreateExpectedTestResult(
@@ -332,10 +332,9 @@ class ResultSinkReporterTest(unittest.TestCase):
             },
         })
         with self.assertRaises(AssertionError):
-            rsr.report_individual_test_result('test_name_name_prefix', result,
-                                              ARTIFACT_DIR,
-                                              CreateTestExpectations(),
-                                              FAKE_TEST_PATH, FAKE_TEST_LINE)
+            rsr.report_individual_test_result(
+                result, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
+                FAKE_TEST_LINE, 'test_name_name_prefix')
         result = CreateResult({
             'name': 'test_name',
             'actual': 'json_results.ResultType.Pass',
@@ -344,10 +343,9 @@ class ResultSinkReporterTest(unittest.TestCase):
             },
         })
         with self.assertRaises(AssertionError):
-            rsr.report_individual_test_result('test_name_name_prefix', result,
-                                              ARTIFACT_DIR,
-                                              CreateTestExpectations(),
-                                              FAKE_TEST_PATH, FAKE_TEST_LINE)
+            rsr.report_individual_test_result(
+                result, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
+                FAKE_TEST_LINE, 'test_name_name_prefix')
 
     def testReportIndividualTestResultSingleArtifact(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
@@ -361,8 +359,8 @@ class ResultSinkReporterTest(unittest.TestCase):
             }
         })
         retval = rsr.report_individual_test_result(
-                'test_name_prefix.', results, ARTIFACT_DIR,
-                CreateTestExpectations(), FAKE_TEST_PATH, FAKE_TEST_LINE)
+                results, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
+                FAKE_TEST_LINE, 'test_name_prefix.')
         self.assertEqual(retval, 2)
 
         test_result = GetTestResultFromPostedJson(rsr._post.args[1])
@@ -390,8 +388,8 @@ class ResultSinkReporterTest(unittest.TestCase):
             },
         })
         retval = rsr.report_individual_test_result(
-                'test_name_prefix.', results, ARTIFACT_DIR,
-                CreateTestExpectations(), FAKE_TEST_PATH, FAKE_TEST_LINE)
+                results, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
+                FAKE_TEST_LINE, 'test_name_prefix.')
         self.assertEqual(retval, 2)
 
         test_result = GetTestResultFromPostedJson(rsr._post.args[1])
@@ -424,8 +422,8 @@ class ResultSinkReporterTest(unittest.TestCase):
             }
         })
         retval = rsr.report_individual_test_result(
-                'test_name_prefix.', results, ARTIFACT_DIR,
-                CreateTestExpectations(), FAKE_TEST_PATH, FAKE_TEST_LINE)
+                results, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
+                FAKE_TEST_LINE, 'test_name_prefix.')
         self.assertEqual(retval, 2)
 
         test_result = GetTestResultFromPostedJson(rsr._post.args[1])
@@ -448,10 +446,9 @@ class ResultSinkReporterTest(unittest.TestCase):
             'actual': json_results.ResultType.Pass,
         })
         rsr._post = StubWithRetval(0)
-        _ = rsr.report_individual_test_result('test_name_prefix.', result,
-                                              ARTIFACT_DIR,
-                                              CreateTestExpectations(),
-                                              FAKE_TEST_PATH, FAKE_TEST_LINE)
+        _ = rsr.report_individual_test_result(
+            result, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
+            FAKE_TEST_LINE, 'test_name_prefix.')
         expected_results = CreateExpectedTestResult(
             test_id=('test_name_prefix.' + test_name))
         index = -1
@@ -479,10 +476,9 @@ class ResultSinkReporterTest(unittest.TestCase):
             'actual': json_results.ResultType.Pass,
         })
         rsr._post = StubWithRetval(0)
-        _ = rsr.report_individual_test_result('test_name_prefix.', result,
-                                              ARTIFACT_DIR,
-                                              CreateTestExpectations(),
-                                              FAKE_TEST_PATH, FAKE_TEST_LINE)
+        _ = rsr.report_individual_test_result(
+            result, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
+            FAKE_TEST_LINE, 'test_name_prefix.')
         expected_results = CreateExpectedTestResult(
             test_id=('test_name_prefix.' + test_name))
         self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[1]),

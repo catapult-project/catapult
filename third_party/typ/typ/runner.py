@@ -1162,9 +1162,9 @@ def _run_one_test(child, test_input):
                            unexpected=False, pid=pid)
             result.result_sink_retcode =\
                     child.result_sink_reporter.report_individual_test_result(
-                        child.test_name_prefix, result,
-                        child.artifact_output_dir, child.expectations,
-                        test_location, test_line, additional_tags)
+                        result, child.artifact_output_dir, child.expectations,
+                        test_location, test_line, child.test_name_prefix,
+                        additional_tags)
             return (result, False)
         should_retry_on_failure = (should_retry_on_failure
                                    or test_case.retryOnFailure)
@@ -1174,8 +1174,9 @@ def _run_one_test(child, test_input):
                                     art.artifacts)
     result.result_sink_retcode =\
             child.result_sink_reporter.report_individual_test_result(
-                child.test_name_prefix, result, child.artifact_output_dir,
-                child.expectations, test_location, test_line, additional_tags)
+                result, child.artifact_output_dir, child.expectations,
+                test_location, test_line, child.test_name_prefix,
+                additional_tags)
     return (result, should_retry_on_failure)
 
 

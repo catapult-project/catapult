@@ -107,8 +107,8 @@ class ResultSinkReporter(object):
         return res
 
     def report_individual_test_result(
-            self, test_name_prefix, result, artifact_output_dir, expectations,
-            test_file_location, test_file_line=None, additional_tags=None):
+            self, result, artifact_output_dir, expectations, test_file_location,
+            test_file_line=None, test_name_prefix='', additional_tags=None):
         """Reports a single test result to ResultSink.
 
         Inputs are typically similar to what is passed to
@@ -116,8 +116,6 @@ class ResultSinkReporter(object):
         of multiple tests/a ResultSet.
 
         Args:
-            test_name_prefix: A string containing the prefix that will be added
-                    to the test name.
             result: A json_results.Result instance containing the result to
                     report.
             artifact_output_dir: The path to the directory where artifacts test
@@ -130,6 +128,8 @@ class ResultSinkReporter(object):
                     containing the test.
             test_file_line: An int indicating the source file line number
                     containing the test.
+            test_name_prefix: A string containing the prefix that will be added
+                    to the test name.
             additional_tags: An optional dict of additional tags to report to
                     ResultDB.
 
