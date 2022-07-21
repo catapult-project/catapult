@@ -271,17 +271,16 @@ class Runner(object):
             self._summarize(full_results)
             self._write(self.args.write_full_results_to, full_results)
             upload_ret = self._upload(full_results)
-            if not ret:
-                ret = upload_ret
             reporting_end = h.time()
             self._add_trace_event(trace, 'run', find_start, reporting_end)
             self._add_trace_event(trace, 'discovery', find_start, find_end)
             self._add_trace_event(trace, 'testing', find_end, test_end)
             self._add_trace_event(trace, 'reporting', test_end, reporting_end)
             self._write(self.args.write_trace_to, trace)
-            self.report_coverage()
-        else:
-            upload_ret = 0
+            cov_ret = self.report_coverage() if self.args.coverage else 0
+            # Exit with the code of the first failing step, but do not skip
+            # any steps with short-circuiting.
+            ret = ret or upload_ret or cov_ret
 
         return ret, full_results, trace
 
@@ -421,7 +420,7 @@ class Runner(object):
             if not source:
                 source = self.top_level_dirs + self.args.path
             self.coverage_source = source
-            self.cov = coverage.coverage(source=self.coverage_source,
+            self.cov = coverage.Coverage(source=self.coverage_source,
                                          data_suffix=True)
             self.cov.erase()
 
@@ -834,16 +833,17 @@ class Runner(object):
             h.print_('Uploading the JSON results raised "%s"' % str(e))
             return 1
 
-    def report_coverage(self):
-        if self.args.coverage:  # pragma: no cover
-            self.host.print_()
-            import coverage
-            cov = coverage.coverage(data_suffix=True)
-            cov.combine()
-            cov.report(show_missing=self.args.coverage_show_missing,
-                       omit=self.args.coverage_omit)
-            if self.args.coverage_annotate:
-                cov.annotate(omit=self.args.coverage_omit)
+    def report_coverage(self):  # pragma: no cover
+        self.host.print_()
+        import coverage
+        cov = coverage.Coverage(data_suffix=True)
+        cov.combine()
+        percentage = cov.report(show_missing=self.args.coverage_show_missing,
+                                omit=self.args.coverage_omit)
+        if self.args.coverage_annotate:
+            cov.annotate(omit=self.args.coverage_omit)
+        # https://coverage.readthedocs.io/en/6.4.2/config.html#report-fail-under
+        return 2 if percentage < cov.get_option('report:fail_under') else 0
 
     def _add_trace_event(self, trace, name, start, end):
         event = {
@@ -1006,7 +1006,7 @@ def _setup_process(host, worker_num, child):
 
     if child.coverage:  # pragma: no cover
         import coverage
-        child.cov = coverage.coverage(source=child.coverage_source,
+        child.cov = coverage.Coverage(source=child.coverage_source,
                                       data_suffix=True)
         child.cov._warn_no_data = False
         child.cov.start()
