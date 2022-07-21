@@ -27,13 +27,17 @@ if __name__ == '__main__':
   else:
     install.InstallHooks()
 
+  # PYTHONPATH points to a out-of-date cipd package.
+  if sys.version_info.major == 3 and 'PYTHONPATH' in os.environ:
+    os.environ.pop('PYTHONPATH')
+
   from catapult_build import run_with_typ
   import dashboard
   if sys.version_info.major == 2:
     root = 'dashboard'
   else:
     # The root will be 'dashboard' when all tests are running on python 3.
-    root = 'dashboard/pinpoint/models'
+    root = 'dashboard/pinpoint'
   return_code = run_with_typ.Run(
       os.path.join(_DASHBOARD_PATH, root),
       path=dashboard.PathsForTesting())

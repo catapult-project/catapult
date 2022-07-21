@@ -9,6 +9,8 @@ from __future__ import absolute_import
 import datetime
 import json
 import mock
+import sys
+import unittest
 
 from dashboard.pinpoint import test
 from dashboard.pinpoint.models import job as job_module
@@ -17,6 +19,8 @@ from dashboard.pinpoint.models import results2 as results2_module
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
+@unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping old handler tests for python 3.')
 class JobTest(test.TestCase):
 
   @mock.patch.object(results2_module, 'GetCachedResults2', return_value="")

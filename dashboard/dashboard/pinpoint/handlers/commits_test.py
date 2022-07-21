@@ -8,6 +8,8 @@ from __future__ import absolute_import
 
 import json
 import mock
+import sys
+import unittest
 
 from dashboard.pinpoint.models.change import commit
 from dashboard.pinpoint import test
@@ -26,6 +28,8 @@ class MockCommit(object):
     return {self.url: self.msg}
 
 
+@unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping old handler tests for python 3.')
 class CommitsHandlerTest(test.TestCase):
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.CommitRange',

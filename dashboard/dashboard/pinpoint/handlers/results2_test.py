@@ -9,6 +9,8 @@ from __future__ import absolute_import
 import datetime
 import json
 import mock
+import sys
+import unittest
 
 from dashboard.pinpoint.handlers import results2
 from dashboard.pinpoint.models.results2 import Results2Error
@@ -32,6 +34,8 @@ class _Results2Test(test.TestCase):
     self._job_from_id.return_value = job
 
 
+@unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping old handler tests for python 3.')
 class Results2GetTest(_Results2Test):
 
   def testGet_InvalidJob_Error(self):
@@ -81,6 +85,8 @@ class Results2GetTest(_Results2Test):
 
 
 @mock.patch.object(results2.results2, 'GenerateResults2')
+@unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping old handler tests for python 3.')
 class Results2GeneratorPostTest(_Results2Test):
 
   def testGet_CallsGenerate(self, mock_generate):

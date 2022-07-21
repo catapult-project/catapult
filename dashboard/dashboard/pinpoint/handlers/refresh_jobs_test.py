@@ -10,6 +10,7 @@ import datetime
 import logging
 import mock
 import sys
+import unittest
 
 from dashboard.common import layered_cache
 from dashboard.pinpoint.handlers import refresh_jobs
@@ -19,6 +20,8 @@ from dashboard.pinpoint import test
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
+@unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping old handler tests for python 3.')
 class RefreshJobsTest(test.TestCase):
 
   def setUp(self):

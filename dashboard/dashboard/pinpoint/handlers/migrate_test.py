@@ -9,6 +9,8 @@ from __future__ import absolute_import
 import json
 
 import mock
+import sys
+import unittest
 
 from dashboard.api import api_auth
 from dashboard.common import stored_object
@@ -19,6 +21,8 @@ from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint import test
 
 
+@unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping old handler tests for python 3.')
 class MigrateAuthTest(test.TestCase):
 
   def setUp(self):
@@ -55,6 +59,8 @@ class MigrateAuthTest(test.TestCase):
     self.testapp.get('/api/migrate', status=403)
 
 
+@unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping old handler tests for python 3.')
 class MigrateTest(MigrateAuthTest):
 
   def setUp(self):

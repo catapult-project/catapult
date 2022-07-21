@@ -8,6 +8,8 @@ from __future__ import absolute_import
 
 import json
 import mock
+import sys
+import unittest
 
 from dashboard.api import api_auth
 from dashboard.common import datastore_hooks
@@ -69,6 +71,8 @@ class _NewTest(test.TestCase):
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
+@unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping old handler tests for python 3.')
 class NewAuthTest(_NewTest):
 
   @mock.patch.object(api_auth, 'Authorize',
@@ -97,6 +101,8 @@ class NewAuthTest(_NewTest):
 @mock.patch.object(utils, 'IsTryjobUser', mock.MagicMock())
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
+@unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping old handler tests for python 3.')
 class NewTest(_NewTest):
 
   def testPost(self):

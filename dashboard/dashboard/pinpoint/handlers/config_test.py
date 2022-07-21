@@ -7,12 +7,16 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import sys
+import unittest
 
 from dashboard.common import namespaced_stored_object
 from dashboard.common import testing_common
 from dashboard.pinpoint import test
 
 
+@unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping old handler tests for python 3.')
 class ConfigTest(test.TestCase):
 
   def setUp(self):

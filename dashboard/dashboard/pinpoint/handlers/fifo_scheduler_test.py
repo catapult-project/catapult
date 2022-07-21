@@ -8,6 +8,8 @@ from __future__ import division
 from __future__ import absolute_import
 
 import mock
+import sys
+import unittest
 
 from dashboard.common import namespaced_stored_object
 from dashboard.common import bot_configurations
@@ -19,6 +21,8 @@ from dashboard.pinpoint.models.tasks import bisection_test_util
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
+@unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping old handler tests for python 3.')
 class FifoSchedulerTest(test.TestCase):
 
   def setUp(self):
@@ -245,6 +249,8 @@ class FifoSchedulerTest(test.TestCase):
 # "live" bisection operations will be looking into.
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
+@unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping old handler tests for python 3.')
 class FifoSchedulerExecutionEngineTest(bisection_test_util.BisectionTestBase):
 
   def setUp(self):
@@ -274,6 +280,8 @@ class FifoSchedulerExecutionEngineTest(bisection_test_util.BisectionTestBase):
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
+@unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping old handler tests for python 3.')
 class FifoSchedulerCostModelTest(test.TestCase):
 
   def setUp(self):

@@ -7,12 +7,16 @@ from __future__ import division
 from __future__ import print_function
 
 import json
+import sys
+import unittest
 
 from dashboard.api import api_auth
 from dashboard.common import testing_common
 from dashboard.pinpoint import test
 
 
+@unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping old handler tests for python 3.')
 class AuthTest(test.TestCase):
 
   def _ValidParams(self):
@@ -57,6 +61,8 @@ class AuthTest(test.TestCase):
     self.Post('/api/cas', self._ValidParams(), status=403)
 
 
+@unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping old handler tests for python 3.')
 class FunctionalityTest(test.TestCase):
 
   def testPostAndGet(self):
@@ -104,6 +110,8 @@ class FunctionalityTest(test.TestCase):
     self.testapp.post('/api/cas', status=401)
 
 
+@unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping old handler tests for python 3.')
 class ParameterValidationTest(test.TestCase):
 
   def testExtraParameter(self):
