@@ -155,10 +155,10 @@ found in the LICENSE file.
       _getImprovementDirection(job){
         // improvement direction is 0, 1, or 4
         // 0 is higher is better, 1 is lower is better, 4 is unknown
-        if (!job || !job.improvement_direction || job.improvement_direction == 4){
+        if (!job || job.improvement_direction === null || job.improvement_direction === 4){
           return 'Unknown improvement direction'
         }
-        if (job.improvement_direction == 0) {
+        if (job.improvement_direction === 0) {
           return 'Higher is better'
         }
         return 'Lower is better'
