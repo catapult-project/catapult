@@ -116,7 +116,7 @@ found in the LICENSE file.
           </p>
         </template>
         <template is="dom-if" if="[[error]]">
-          <p class="error">[[error]]
+          <p class="error">Base and Experiment Git hashes must both be populated! If they are, this error may help: [[error]]
         </template>
         <iron-ajax method="post" headers="[[authHeaders]]" auto url="/api/config" loading="{{configLoading}}" last-response="{{config}}"></iron-ajax>
         <iron-ajax method="post" headers="[[authHeaders]]" auto url="{{generateChromeperfUrl('/api/test_suites')}}" loading="{{suitesLoading}}" last-response="{{testSuites}}"></iron-ajax>
