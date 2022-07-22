@@ -55,7 +55,7 @@ def get_catapult_rev_in_git_():
     catapult_rev = subprocess.check_output(
         'git rev-parse HEAD',
         shell=True, # Needed by Windows
-        cwd=os.path.dirname(os.path.abspath(__file__))).strip()
+        cwd=os.path.dirname(os.path.abspath(__file__))).strip().decode('UTF-8')
   except (subprocess.CalledProcessError, OSError):
     return None
   if not catapult_rev:
