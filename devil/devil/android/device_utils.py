@@ -1954,7 +1954,8 @@ class DeviceUtils(object):
                        host_device_tuples,
                        delete_device_stale=False,
                        timeout=None,
-                       retries=None):
+                       retries=None,
+                       run_as=None):
     """Push files to the device, skipping files that don't need updating.
 
     When a directory is pushed, it is traversed recursively on the host and
@@ -1996,7 +1997,8 @@ class DeviceUtils(object):
     if changed_files:
       if missing_dirs:
         self.RunShellCommand(['mkdir', '-p'] + list(missing_dirs),
-                             check_return=True)
+                             check_return=True,
+                             run_as=run_as)
       self._PushFilesImpl(host_device_tuples, changed_files)
     cache_commit_func()
 
@@ -2550,7 +2552,8 @@ class DeviceUtils(object):
                 as_root=False,
                 force_push=False,
                 timeout=None,
-                retries=None):
+                retries=None,
+                run_as=None):
     """Writes |contents| to a file on the device.
 
     Args:
@@ -2575,7 +2578,11 @@ class DeviceUtils(object):
       # a shell command rather than pushing a file.
       cmd = 'echo -n %s > %s' % (cmd_helper.SingleQuote(contents),
                                  cmd_helper.SingleQuote(device_path))
-      self.RunShellCommand(cmd, shell=True, as_root=as_root, check_return=True)
+      self.RunShellCommand(cmd,
+                           shell=True,
+                           as_root=as_root,
+                           run_as=run_as,
+                           check_return=True)
     elif as_root and self.NeedsSU():
       # Adb does not allow to "push with su", so we first push to a temp file
       # on a safe location, and then copy it to the desired location with su.
