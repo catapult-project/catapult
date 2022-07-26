@@ -77,6 +77,8 @@ def ToHelper(path_or_helper):
     return ApkHelper(path_or_helper)
   if path_or_helper.endswith('.apks'):
     return ApksHelper(path_or_helper)
+  if path_or_helper.endswith('.apex'):
+    return ApexHelper(path_or_helper)
   if path_or_helper.endswith('_bundle'):
     return BundleScriptHelper(path_or_helper)
 
@@ -477,6 +479,30 @@ class ApkHelper(BaseApkHelper):
     if modules:
       raise ApkHelperError('Cannot install modules when installing single APK')
     return _NoopFileHelper([self._apk_path])
+
+
+class ApexHelper(BaseApkHelper):
+  """Represents a single APEX mainline module."""
+
+  def __init__(self, apex_path):
+    super(ApexHelper, self).__init__()
+    self._apex_path = apex_path
+
+  @property
+  def path(self):
+    return self._apex_path
+
+  def _GetBaseApkPath(self):
+    return _NoopFileHelper(self._apex_path)
+
+  def GetApkPaths(self,
+                  device,
+                  modules=None,
+                  allow_cached_props=False,
+                  additional_locales=None):
+    if modules:
+      raise ApkHelperError('Cannot install modules when installing an APEX')
+    return _NoopFileHelper([self._apex_path])
 
 
 class IncrementalApkHelper(ApkHelper):

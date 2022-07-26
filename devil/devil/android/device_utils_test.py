@@ -41,6 +41,7 @@ with devil_env.SysPath(devil_env.PYMOCK_PATH):
   import mock  # pylint: disable=import-error
 
 TEST_APK_PATH = '/fake/test/app.apk'
+TEST_APEX_PATH = '/fake/test/module.apex'
 TEST_PACKAGE = 'test.package'
 
 
@@ -496,6 +497,32 @@ class DeviceUtilsIsApplicationInstalledTest(DeviceUtilsTest):
          ['Package [some.installed.app] (a12345):'])):
       self.assertTrue(
           self.device.IsApplicationInstalled('some.installed.app', 1234))
+
+
+class DeviceUtilsIsSystemModuleInstalledTest(DeviceUtilsTest):
+  def testIsSystemModuleInstalled_installed(self):
+    with self.assertCalls((self.call.device.RunShellCommand(
+        ['dumpsys', 'package', 'some.installed.module'],
+        check_return=True,
+        large_output=True), ['Some app info', ' Version: 1234', 'extra info'])):
+      self.assertTrue(
+          self.device.IsSystemModuleInstalled('some.installed.module', 1234))
+
+  def testIsSystemModuleInstalled_installedWrongVersion(self):
+    with self.assertCalls((self.call.device.RunShellCommand(
+        ['dumpsys', 'package', 'some.installed.module'],
+        check_return=True,
+        large_output=True), ['Some app info', ' Version: 3284', 'extra info'])):
+      self.assertFalse(
+          self.device.IsSystemModuleInstalled('some.installed.module', 1234))
+
+  def testIsSystemModuleInstalled_NotInstalled(self):
+    with self.assertCalls((self.call.device.RunShellCommand(
+        ['dumpsys', 'package', 'some.installed.module'],
+        check_return=True,
+        large_output=True), [])):
+      self.assertFalse(
+          self.device.IsSystemModuleInstalled('some.installed.module', 1234))
 
 
 class DeviceUtilsGetApplicationPathsInternalTest(DeviceUtilsTest):
@@ -1317,6 +1344,73 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk,
                             force_queryable=True)
+
+
+class DeviceUtilsInstallApexTest(DeviceUtilsTest):
+
+  mock_apex = _MockApkHelper(TEST_APEX_PATH, TEST_PACKAGE, ['p1'])
+
+  def testInstallApex(self):
+    with self.patch_call(self.call.device.build_version_sdk, return_value=29):
+      with self.assertCalls(
+          (mock.call.os.path.exists(TEST_APEX_PATH), True),
+          self.call.adb.Install(TEST_APEX_PATH), self.call.device.Reboot(),
+          (self.call.device.IsSystemModuleInstalled(TEST_PACKAGE, None), True)):
+        self.device.InstallApex(DeviceUtilsInstallApexTest.mock_apex, retries=0)
+
+  def testInstallApex_preAndroidQFails(self):
+    with self.patch_call(self.call.device.build_version_sdk, return_value=28):
+      with self.assertRaises(device_errors.DeviceVersionError):
+        self.device.InstallApex(DeviceUtilsInstallApexTest.mock_apex, retries=0)
+
+  def testInstallApex_fileDoesNotExistFails(self):
+    with self.patch_call(self.call.device.build_version_sdk, return_value=29):
+      with self.assertCalls((mock.call.os.path.exists(TEST_APEX_PATH), False)):
+        with self.assertRaises(device_errors.CommandFailedError):
+          self.device.InstallApex(DeviceUtilsInstallApexTest.mock_apex,
+                                  retries=0)
+
+  def testInstallApex_moduleNotInstalledFails(self):
+    with self.patch_call(self.call.device.build_version_sdk, return_value=29):
+      with self.assertCalls((mock.call.os.path.exists(TEST_APEX_PATH), True),
+                            self.call.adb.Install(TEST_APEX_PATH),
+                            self.call.device.Reboot(),
+                            (self.call.device.IsSystemModuleInstalled(
+                                TEST_PACKAGE, None), False)):
+        with self.assertRaises(device_errors.CommandFailedError):
+          self.device.InstallApex(DeviceUtilsInstallApexTest.mock_apex,
+                                  retries=0)
+
+  def testInstallApex_apexAlreadyStagedFails(self):
+    with self.patch_call(self.call.device.build_version_sdk, return_value=29):
+      with self.assertCalls((mock.call.os.path.exists(TEST_APEX_PATH), True), (
+          self.call.adb.Install(TEST_APEX_PATH),
+          self.AdbCommandError(
+              output='Cannot stage multiple sessions without checkpoint support'
+          ))):
+        with self.assertRaises(device_errors.CommandFailedError):
+          self.device.InstallApex(DeviceUtilsInstallApexTest.mock_apex,
+                                  retries=0)
+
+  def testInstallApex_deviceDoesntSupportApex(self):
+    with self.patch_call(self.call.device.build_version_sdk, return_value=29):
+      with self.assertCalls(
+          (mock.call.os.path.exists(TEST_APEX_PATH), True),
+          (self.call.adb.Install(TEST_APEX_PATH),
+           self.AdbCommandError(
+               output="device doesn't support the installation of APEX"))):
+        with self.assertRaises(device_errors.CommandFailedError):
+          self.device.InstallApex(DeviceUtilsInstallApexTest.mock_apex,
+                                  retries=0)
+
+  def testInstallApex_otherAdbErrorsChanneledThrough(self):
+    with self.patch_call(self.call.device.build_version_sdk, return_value=29):
+      with self.assertCalls((mock.call.os.path.exists(TEST_APEX_PATH), True),
+                            (self.call.adb.Install(TEST_APEX_PATH),
+                             self.AdbCommandError(output="An adb error"))):
+        with self.assertRaises(device_errors.AdbCommandFailedError):
+          self.device.InstallApex(DeviceUtilsInstallApexTest.mock_apex,
+                                  retries=0)
 
 
 class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):

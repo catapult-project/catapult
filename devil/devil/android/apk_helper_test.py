@@ -176,6 +176,10 @@ class ApkHelperTest(mock_calls.TestCase):
     apk = apk_helper.ToHelper('abc.apks')
     self.assertTrue(isinstance(apk, apk_helper.ApksHelper))
 
+  def testToHelperApex(self):
+    apex = apk_helper.ToHelper('abc.apex')
+    self.assertTrue(isinstance(apex, apk_helper.ApexHelper))
+
   def testToHelperBundleScript(self):
     apk = apk_helper.ToHelper('abc_bundle')
     self.assertTrue(isinstance(apk, apk_helper.BundleScriptHelper))
