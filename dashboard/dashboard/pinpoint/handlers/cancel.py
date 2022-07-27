@@ -15,7 +15,7 @@ from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import errors
 
 if utils.IsRunningFlask():
-  from flask import request, make_response
+  from flask import request
 
   def _CheckUser():
     if utils.IsDevAppserver():
@@ -56,11 +56,11 @@ if utils.IsRunningFlask():
       job.Cancel(email, reason[:252] + '...' if len(reason) > 255 else reason)
       return {'job_id': job.job_id, 'state': 'Cancelled'}
     except errors.CancelError as e:
-      return make_response(
+      raise api_request_handler.BadRequestError(
           json.dumps({
               'job_id': job.job_id,
               'message': str(e)
-          }), 400)
+          }))
 
 else:
   class Cancel(api_request_handler.ApiRequestHandler):

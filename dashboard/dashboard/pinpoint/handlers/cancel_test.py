@@ -6,8 +6,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 import mock
-import sys
-import unittest
 
 from dashboard.common import testing_common
 from dashboard.api import api_auth
@@ -20,8 +18,6 @@ from dashboard.pinpoint.models import scheduler
 @mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
-@unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping old handler tests for python 3.')
 class CancelJobTest(test.TestCase):
 
   def setUp(self):
