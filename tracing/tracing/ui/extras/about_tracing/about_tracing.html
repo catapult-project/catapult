@@ -22,6 +22,15 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     Polymer.dom(document.body).appendChild(profilingView);
   });
 
+  if (window.location.href.startsWith('chrome://tracing/')) {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('noredirect') === null) {
+      alert('chrome://tracing is deprecated: You will be redirected to the successor, Perfetto UI. ' +
+          'Use chrome://tracing/?noredirect to keep using the deprecated trace viewer.');
+      window.location.replace("https://ui.perfetto.dev");
+    }
+  }
+
   return {};
 });
 </script>
