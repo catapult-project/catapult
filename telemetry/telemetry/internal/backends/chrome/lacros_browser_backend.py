@@ -166,6 +166,13 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         self.browser.platform.GetOSName(), self.browser.platform.GetArchName())
 
     self.LaunchLacrosChrome(startup_args)
+    if not self._is_browser_running:
+      raise EnvironmentError('Unable to launch Lacros. If this is a local '
+       'run, did you install Lacros via deploy_chrome? If not, build and '
+       'deploy Lacros by following the instructions at '
+       'https://docs.google.com/document/d/1gkc_df4pv0OdVqRTz49kTkSsIybTAU_b'
+       'KfjFSWNcqnk/edit#bookmark=kix.edfe7j8hizjs '
+       '(Googlers only).')
     self.BindDevToolsClient()
 
   def Background(self):
