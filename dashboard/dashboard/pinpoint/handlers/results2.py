@@ -105,5 +105,7 @@ else:
           logging.debug('No job [%s]', job_id)
           raise results2.Results2Error('Error: Unknown job %s' % job_id)
         results2.GenerateResults2(job)
+
       except results2.Results2Error as e:
+        self.response.set_status(400)
         self.response.out.write(str(e))

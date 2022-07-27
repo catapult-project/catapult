@@ -8,8 +8,6 @@ from __future__ import absolute_import
 
 import json
 import mock
-import sys
-import unittest
 
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint import test
@@ -17,8 +15,6 @@ from dashboard.pinpoint import test
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
-@unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping old handler tests for python 3.')
 class StatsTest(test.TestCase):
 
   def testPost_ValidRequest(self):

@@ -8,8 +8,6 @@ from __future__ import absolute_import
 
 import json
 import mock
-import sys
-import unittest
 
 from dashboard.common import utils
 from dashboard.pinpoint import test
@@ -22,8 +20,6 @@ _SERVICE_ACCOUNT_EMAIL = 'some-service-account@example.com'
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
-@unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping old handler tests for python 3.')
 class JobsTest(test.TestCase):
 
   @mock.patch.object(utils,

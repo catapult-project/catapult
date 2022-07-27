@@ -71,8 +71,6 @@ class _NewTest(test.TestCase):
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
-@unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping old handler tests for python 3.')
 class NewAuthTest(_NewTest):
 
   @mock.patch.object(api_auth, 'Authorize',

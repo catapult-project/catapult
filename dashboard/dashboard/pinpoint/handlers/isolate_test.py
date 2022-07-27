@@ -15,8 +15,6 @@ from dashboard.common import testing_common
 from dashboard.pinpoint import test
 
 
-@unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping old handler tests for python 3.')
 class AuthTest(test.TestCase):
 
   def _ValidParams(self):

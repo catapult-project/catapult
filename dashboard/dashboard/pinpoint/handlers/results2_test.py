@@ -9,8 +9,6 @@ from __future__ import absolute_import
 import datetime
 import json
 import mock
-import sys
-import unittest
 
 from dashboard.pinpoint.handlers import results2
 from dashboard.pinpoint.models.results2 import Results2Error
@@ -34,15 +32,13 @@ class _Results2Test(test.TestCase):
     self._job_from_id.return_value = job
 
 
-@unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping old handler tests for python 3.')
 class Results2GetTest(_Results2Test):
 
   def testGet_InvalidJob_Error(self):
     self._SetJob(None)
 
     response = self.testapp.get('/api/results2/456', status=400)
-    self.assertIn('Error', response.body)
+    self.assertIn(b'Error', response.body)
 
   @mock.patch.object(results2.results2, 'GetCachedResults2',
                      mock.MagicMock(return_value=None))
@@ -85,8 +81,6 @@ class Results2GetTest(_Results2Test):
 
 
 @mock.patch.object(results2.results2, 'GenerateResults2')
-@unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping old handler tests for python 3.')
 class Results2GeneratorPostTest(_Results2Test):
 
   def testGet_CallsGenerate(self, mock_generate):
@@ -98,8 +92,8 @@ class Results2GeneratorPostTest(_Results2Test):
     mock_generate.side_effect = Results2Error('foo')
     self._SetJob(_JobStub('101112'))
 
-    response = self.testapp.post('/api/generate-results2/101112')
-    self.assertIn('foo', response.body)
+    response = self.testapp.post('/api/generate-results2/101112', status=400)
+    self.assertIn(b'foo', response.body)
 
 
 # TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
