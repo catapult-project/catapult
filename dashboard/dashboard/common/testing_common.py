@@ -17,8 +17,10 @@ import os
 import re
 import sys
 import unittest
+import six
 import six.moves.urllib.parse
-import webapp2
+if six.PY2:
+  import webapp2
 import webtest
 
 from google.appengine.api import oauth
@@ -93,7 +95,8 @@ class TestCase(unittest.TestCase):
     self.addCleanup(self.logger.removeHandler, self.stream_handler)
 
   def SetUpApp(self, handlers):
-    self.testapp = webtest.TestApp(webapp2.WSGIApplication(handlers))
+    if six.PY2:
+      self.testapp = webtest.TestApp(webapp2.WSGIApplication(handlers))
 
   def PatchEnviron(self, path):
     environ_patch = {'PATH_INFO': path}
@@ -111,6 +114,9 @@ class TestCase(unittest.TestCase):
         environ_patch['HTTP_AUTHORIZATION'] = ''
     except oauth.Error:
       pass
+    if six.PY3:
+      # In Python 3, the 'HTTP_AUTHORIZATION' is found removed in the handler.
+      self.testapp.extra_environ.update(environ_patch)
     return mock.patch.dict(os.environ, environ_patch)
 
   def Post(self, path, *args, **kwargs):

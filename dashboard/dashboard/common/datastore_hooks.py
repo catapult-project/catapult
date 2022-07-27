@@ -95,7 +95,11 @@ def CancelSinglePrivilegedRequest():
 def _IsServicingPrivilegedRequest():
   """Checks whether the request is considered privileged."""
   if utils.IsRunningFlask():
-    path = flask_request.path
+    try:
+      path = flask_request.path
+    except RuntimeError:
+      # This happens in unit tests, when code gets called outside of a request.
+      return False
     if path.startswith('/mapreduce'):
       return True
     if path.startswith('/_ah/queue/deferred'):

@@ -32,6 +32,7 @@ class TestCase(testing_common.TestCase):
   def _SetUpTestApp(self):
     self.testapp = webtest.TestApp(dispatcher.APP)
     self.testapp.extra_environ.update({'REMOTE_ADDR': 'remote_ip'})
+    self.testapp.extra_environ.update({'APPLICATION_ID': 'testbed-test'})
 
   def _SetUpStubs(self):
     patcher = mock.patch('dashboard.services.gitiles_service.CommitInfo')
