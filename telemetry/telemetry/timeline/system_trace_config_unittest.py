@@ -13,7 +13,7 @@ class SystemTraceConfigUnittest(unittest.TestCase):
   def assertEqualIgnoringWhitespace(self, actual, expected):
 
     def removeWhitespace(text):
-      return re.sub(r"\s+", "", text, flags=re.UNICODE)
+      return re.sub(r'\s+', '', text, flags=re.UNICODE)
 
     return self.assertEqual(
         removeWhitespace(actual), removeWhitespace(expected))
@@ -21,7 +21,8 @@ class SystemTraceConfigUnittest(unittest.TestCase):
   def testProfilingConfigWithCmdlines(self):
     config = system_trace_config.SystemTraceConfig()
     config.EnableProfiling(
-        target_cmdlines="a,'b',c,d,\" e \",, ", sampling_frequency_hz=None)
+        target_cmdlines=['a', 'b ', ' c', ' d ', '  e '],
+        sampling_frequency_hz=None)
     self.assertEqualIgnoringWhitespace(
         config.GetTextConfig(), """
       buffers: {
@@ -33,26 +34,10 @@ class SystemTraceConfigUnittest(unittest.TestCase):
           size_kb: 190464
       }
 
-      buffers {
-          size_kb: 190464
-      }
-
-      data_sources {
-          config {
-              name: "linux.process_stats"
-              target_buffer: 1
-              process_stats_config {
-                  scan_all_processes_on_start: true
-                  record_thread_names: true
-                  proc_stats_poll_ms: 100
-              }
-          }
-      }
-
       data_sources {
           config {
               name: "linux.perf"
-              target_buffer: 2
+              target_buffer: 1
               perf_event_config {
                   all_cpus: true
                   sampling_frequency: 100
@@ -70,7 +55,7 @@ class SystemTraceConfigUnittest(unittest.TestCase):
 
   def testProfilingConfigWithFrequency(self):
     config = system_trace_config.SystemTraceConfig()
-    config.EnableProfiling(target_cmdlines="", sampling_frequency_hz=1234)
+    config.EnableProfiling(target_cmdlines=[], sampling_frequency_hz=1234)
     self.assertEqualIgnoringWhitespace(
         config.GetTextConfig(), """
       buffers: {
@@ -82,26 +67,10 @@ class SystemTraceConfigUnittest(unittest.TestCase):
           size_kb: 190464
       }
 
-      buffers {
-          size_kb: 190464
-      }
-
-      data_sources {
-          config {
-              name: "linux.process_stats"
-              target_buffer: 1
-              process_stats_config {
-                  scan_all_processes_on_start: true
-                  record_thread_names: true
-                  proc_stats_poll_ms: 100
-              }
-          }
-      }
-
       data_sources {
           config {
               name: "linux.perf"
-              target_buffer: 2
+              target_buffer: 1
               perf_event_config {
                   all_cpus: true
                   sampling_frequency: 1234
@@ -115,7 +84,7 @@ class SystemTraceConfigUnittest(unittest.TestCase):
   def testProfilingConfigWithCmdlinesAndFrequency(self):
     config = system_trace_config.SystemTraceConfig()
     config.EnableProfiling(
-        target_cmdlines="com.example.app", sampling_frequency_hz=1234)
+        target_cmdlines=['com.example.app'], sampling_frequency_hz=1234)
     self.assertEqualIgnoringWhitespace(
         config.GetTextConfig(), """
       buffers: {
@@ -127,26 +96,10 @@ class SystemTraceConfigUnittest(unittest.TestCase):
           size_kb: 190464
       }
 
-      buffers {
-          size_kb: 190464
-      }
-
-      data_sources {
-          config {
-              name: "linux.process_stats"
-              target_buffer: 1
-              process_stats_config {
-                  scan_all_processes_on_start: true
-                  record_thread_names: true
-                  proc_stats_poll_ms: 100
-              }
-          }
-      }
-
       data_sources {
           config {
               name: "linux.perf"
-              target_buffer: 2
+              target_buffer: 1
               perf_event_config {
                   all_cpus: true
                   sampling_frequency: 1234

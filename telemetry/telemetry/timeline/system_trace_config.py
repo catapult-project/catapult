@@ -29,7 +29,6 @@ class SystemTraceConfig():
     # we don't currently do that, this makes the config a bit more robust to
     # invalid user input.
     def _ProcessCmdlineForConfig(self, target_cmdline):
-      target_cmdline = target_cmdline.replace("\"", "").replace("'", "")
       return re.sub(r"\s+", "", target_cmdline, flags=re.UNICODE)
 
     def GenerateTextConfigForCmdlines(self):
@@ -60,14 +59,8 @@ class SystemTraceConfig():
 
     if self._profiling_args is not None:
       # Use separate buffers for data related to callstack sampling to avoid
-      # interference with other data being collected in the trace. To allow us
-      # to associate callstack samples with a particular process, we also need
-      # to ensure that "linux.process_stats" is not overwritten.
+      # interference with other data being collected in the trace.
       text_config += """
-          buffers {
-              size_kb: 190464
-          }
-
           buffers {
               size_kb: 190464
           }
@@ -75,20 +68,8 @@ class SystemTraceConfig():
       text_config += """
           data_sources {{
               config {{
-                  name: "linux.process_stats"
-                  target_buffer: 1
-                  process_stats_config {{
-                      scan_all_processes_on_start: true
-                      record_thread_names: true
-                      proc_stats_poll_ms: 100
-                  }}
-              }}
-          }}
-
-          data_sources {{
-              config {{
                   name: "linux.perf"
-                  target_buffer: 2
+                  target_buffer: 1
                   perf_event_config {{
                       all_cpus: true
                       sampling_frequency: {frequency}
@@ -211,9 +192,9 @@ class SystemTraceConfig():
     details.
 
     Args:
-      target_cmdlines: A comma-separated list indicating processes/apps that
-        should be profiled for callstack sampling.
+      target_cmdlines: A list of strings indicating processes/apps that should
+        be profiled for callstack sampling.
       sampling_frequency_hz: Frequency for sampling callstacks.
     """
-    self._profiling_args = self.ProfilingArgs(
-        target_cmdlines.split(","), sampling_frequency_hz)
+    self._profiling_args = self.ProfilingArgs(target_cmdlines,
+                                              sampling_frequency_hz)
