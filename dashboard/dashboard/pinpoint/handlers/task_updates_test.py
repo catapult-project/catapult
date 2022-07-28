@@ -10,8 +10,6 @@ import base64
 import itertools
 import json
 import mock
-import sys
-import unittest
 
 from dashboard.pinpoint.handlers import task_updates
 from dashboard.pinpoint.models import job as job_module
@@ -49,7 +47,7 @@ def CreateBuildUpdate(job, commit_id):
                                       (commit_id,)
                               }
                           })
-                  }))
+                  }).encode('utf-8')).decode('utf-8')
       }
   })
 
@@ -76,7 +74,7 @@ def CreateTestUpdate(job, commit_id, attempt):
                                       (commit_id, attempt)
                               }
                           })
-                  }))
+                  }).encode('utf-8')).decode('utf-8')
       }
   })
 
@@ -86,8 +84,6 @@ def CreateTestUpdate(job, commit_id, attempt):
 @mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())
 @mock.patch('dashboard.services.buildbucket_service.Put')
 @mock.patch('dashboard.services.buildbucket_service.GetJobStatus')
-@unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping old handler tests for python 3.')
 class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
 
   def setUp(self):
@@ -142,7 +138,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
                                         'type': 'build',
                                     }
                                 }),
-                        }))
+                        }).encode('utf-8')).decode('utf-8')
             }
         }))
 
@@ -169,7 +165,9 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
                   'attributes': {
                       'nothing': 'important'
                   },
-                  'data': base64.urlsafe_b64encode('not json formatted'),
+                  'data':
+                      base64.urlsafe_b64encode(b'not json formatted').decode(
+                          'utf-8'),
               },
           }))
 

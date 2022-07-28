@@ -44,7 +44,7 @@ def HandleTaskUpdate(request_body):
 
   try:
     decoded_data = base64.urlsafe_b64decode(data.encode('utf-8'))
-  except TypeError as e:
+  except (TypeError, binascii.Error) as e:
     six.raise_from(
         ValueError('Failed decoding `data` field in `message`: %s (%s)' %
                    (str(e), data)), e)
