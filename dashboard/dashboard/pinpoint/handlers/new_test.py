@@ -8,8 +8,7 @@ from __future__ import absolute_import
 
 import json
 import mock
-import sys
-import unittest
+import six
 
 from dashboard.api import api_auth
 from dashboard.common import datastore_hooks
@@ -22,6 +21,11 @@ from dashboard.pinpoint.handlers import new
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import quest as quest_module
 from dashboard.pinpoint.models.change import change_test
+
+if six.PY2:
+  _JOB_URL_HOST = 'https://testbed.example.com'
+else:
+  _JOB_URL_HOST = 'https://localhost:80'
 
 # All arguments must have string values.
 _BASE_REQUEST = {
@@ -99,8 +103,6 @@ class NewAuthTest(_NewTest):
 @mock.patch.object(utils, 'IsTryjobUser', mock.MagicMock())
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
-@unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping old handler tests for python 3.')
 class NewTest(_NewTest):
 
   def testPost(self):
@@ -108,7 +110,7 @@ class NewTest(_NewTest):
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     self.assertEqual(result['jobUrl'],
-                     'https://testbed.example.com/job/%s' % result['jobId'])
+                     _JOB_URL_HOST + '/job/%s' % result['jobId'])
 
   def testNoConfiguration(self):
     request = dict(_BASE_REQUEST)
@@ -120,7 +122,7 @@ class NewTest(_NewTest):
     job = job_module.JobFromId(json.loads(response.body)['jobId'])
     self.assertIsNotNone(job.batch_id)
     self.assertEqual(result['jobUrl'],
-                     'https://testbed.example.com/job/%s' % result['jobId'])
+                     _JOB_URL_HOST + '/job/%s' % result['jobId'])
 
   def testBadConfiguration(self):
     request = dict(_BASE_REQUEST)
@@ -369,7 +371,7 @@ class NewTest(_NewTest):
     result = json.loads(response.body)
     self.assertIn('jobId', result)
     self.assertEqual(result['jobUrl'],
-                     'https://testbed.example.com/job/%s' % result['jobId'])
+                     _JOB_URL_HOST + '/job/%s' % result['jobId'])
 
   def testWithPatch(self):
     request = dict(_BASE_REQUEST)
