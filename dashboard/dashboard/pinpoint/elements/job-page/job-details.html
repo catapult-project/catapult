@@ -50,7 +50,12 @@ found in the LICENSE file.
       <dl>
         <template is="dom-repeat" items="[[getArguments(job)]]">
           <dt>[[item.key]]
-          <dd>[[item.value]]
+          <template is="dom-if" if="[[item.url]]" restamp>
+              <dd><a href="[[item.url]]" target="_blank">[[item.value]]</a>
+          </template>
+          <template is="dom-if" if="[[!item.url]]" restamp>
+              <dd>[[item.value]]
+          </template>
         </template>
       </dl>
     </div>
@@ -83,7 +88,18 @@ found in the LICENSE file.
           if (['bug_id', 'name', 'user'].includes(key)) {
             continue;
           }
-          tuples.push({key, value: job.arguments[key]});
+          if (job.arguments[key].startsWith('http')) {
+              tuples.push({
+                key,
+                value: job.arguments[key],
+                url: job.arguments[key],
+              });
+          } else {
+            tuples.push({
+                key,
+                value: job.arguments[key],
+              });
+          }
         }
         tuples.sort(function(a, b) {
           if (a.key < b.key) return -1;
