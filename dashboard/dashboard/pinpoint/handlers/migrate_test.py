@@ -9,8 +9,6 @@ from __future__ import absolute_import
 import json
 
 import mock
-import sys
-import unittest
 
 from dashboard.api import api_auth
 from dashboard.common import stored_object
@@ -21,8 +19,6 @@ from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint import test
 
 
-@unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping old handler tests for python 3.')
 class MigrateAuthTest(test.TestCase):
 
   def setUp(self):
@@ -50,17 +46,15 @@ class MigrateAuthTest(test.TestCase):
   def testGet_ExternalUser_Fails(self):
     self._SetupCredentials(testing_common.EXTERNAL_USER, None, False, False)
 
-    self.testapp.get('/api/migrate', status=403)
+    self.Get('/api/migrate', status=403)
 
   def testGet_InternalUser_NotAdmin_Fails(self):
     self._SetupCredentials(testing_common.INTERNAL_USER,
                            api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0], True, False)
 
-    self.testapp.get('/api/migrate', status=403)
+    self.Get('/api/migrate', status=403)
 
 
-@unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping old handler tests for python 3.')
 class MigrateTest(MigrateAuthTest):
 
   def setUp(self):
@@ -73,8 +67,8 @@ class MigrateTest(MigrateAuthTest):
                            api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0], True, True)
 
   def testGet_NoMigration(self):
-    response = self.testapp.get('/api/migrate', status=200)
-    self.assertEqual(response.normal_body, '{}')
+    response = self.Get('/api/migrate', status=200)
+    self.assertEqual(response.normal_body, b'{}')
 
   def testGet_MigrationInProgress(self):
     expected = {
@@ -84,11 +78,11 @@ class MigrateTest(MigrateAuthTest):
         'errors': 0,
     }
 
-    response = self.testapp.post('/api/migrate', status=200)
-    self.assertEqual(response.normal_body, json.dumps(expected))
+    response = self.Post('/api/migrate', status=200)
+    self.assertEqual(response.normal_body, json.dumps(expected).encode('utf-8'))
 
-    response = self.testapp.get('/api/migrate', status=200)
-    self.assertEqual(response.normal_body, json.dumps(expected))
+    response = self.Get('/api/migrate', status=200)
+    self.assertEqual(response.normal_body, json.dumps(expected).encode('utf-8'))
 
   def testPost_EndToEnd(self):
     expected = {
@@ -100,8 +94,8 @@ class MigrateTest(MigrateAuthTest):
 
     job_state.JobState.__setstate__ = _JobStateSetState
 
-    response = self.testapp.post('/api/migrate', status=200)
-    self.assertEqual(response.normal_body, json.dumps(expected))
+    response = self.Post('/api/migrate', status=200)
+    self.assertEqual(response.normal_body, json.dumps(expected).encode('utf-8'))
 
     expected = {
         'count': 50,

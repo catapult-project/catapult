@@ -119,6 +119,10 @@ class TestCase(unittest.TestCase):
       self.testapp.extra_environ.update(environ_patch)
     return mock.patch.dict(os.environ, environ_patch)
 
+  def Get(self, path, *args, **kwargs):
+    with self.PatchEnviron(path):
+      return self.testapp.get(path, *args, **kwargs)
+
   def Post(self, path, *args, **kwargs):
     with self.PatchEnviron(path):
       return self.testapp.post(path, *args, **kwargs)
