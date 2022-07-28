@@ -28,12 +28,7 @@ class DeviceTempFile(object):
   Behaves like tempfile.NamedTemporaryFile.
   """
 
-  def __init__(self,
-               adb,
-               suffix='',
-               prefix='temp_file',
-               dir='/data/local/tmp',
-               run_as=None):
+  def __init__(self, adb, suffix='', prefix='temp_file', dir='/data/local/tmp'):
     """Find an unused temporary file path on the device.
 
     When this object is closed, the file will be deleted on the device.
@@ -44,7 +39,6 @@ class DeviceTempFile(object):
       prefix: The prefix of the name of the temporary file.
       dir: The directory on the device in which the temporary file should be
         placed.
-      run_as: The package name that all adb commands should be run as.
     Raises:
       ValueError if any of suffix, prefix, or dir are None.
     """
@@ -57,9 +51,6 @@ class DeviceTempFile(object):
     # Python's random module use 52-bit numbers according to its docs.
     self.name = _GenerateName(prefix, suffix, dir)
     self.name_quoted = cmd_helper.SingleQuote(self.name)
-    self.run_as_pkg_name_quoted = None
-    if run_as:
-      self.run_as_pkg_name_quoted = cmd_helper.SingleQuote(run_as)
 
   def close(self):
     """Deletes the temporary file from the device."""
@@ -67,10 +58,8 @@ class DeviceTempFile(object):
     # ignore exception if the file is already gone.
     def delete_temporary_file():
       try:
-        cmd = 'rm -f %s' % self.name_quoted
-        if self.run_as_pkg_name_quoted:
-          cmd = 'run-as {} {}'.format(self.run_as_pkg_name_quoted, cmd)
-        self._adb.Shell(cmd, expect_status=None, retries=0)
+        self._adb.Shell(
+            'rm -f %s' % self.name_quoted, expect_status=None, retries=0)
       except base_error.BaseError as e:
         # We don't really care, and stack traces clog up the log.
         # Log a warning and move on.
@@ -83,18 +72,7 @@ class DeviceTempFile(object):
         target=delete_temporary_file,
         name='delete_temporary_file(%s)' % self._adb.GetDeviceSerial()).start()
 
-  def _initialize_file(self):
-    touch_cmd = 'touch {}'.format(self.name_quoted)
-    chmod_cmd = 'chmod uga+rw {}'.format(self.name_quoted)
-    if self.run_as_pkg_name_quoted:
-      touch_cmd = 'run-as {} {}'.format(self.run_as_pkg_name_quoted, touch_cmd)
-      chmod_cmd = 'run-as {} {}'.format(self.run_as_pkg_name_quoted, chmod_cmd)
-
-    self._adb.Shell(touch_cmd, expect_status=None, retries=0)
-    self._adb.Shell(chmod_cmd, expect_status=None, retries=0)
-
   def __enter__(self):
-    self._initialize_file()
     return self
 
   def __exit__(self, type, value, traceback):
