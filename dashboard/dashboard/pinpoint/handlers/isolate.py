@@ -140,6 +140,8 @@ else:
           ('change', lambda x: change_module.Change.FromDict(json.loads(x))),
           ('target', str),
       )
+      logging.info('Received api/isolate GET request. Request.remote_addr: %s',
+                   self.request.remote_addr)
       try:
         # pylint: disable=unbalanced-tuple-unpacking
         builder_name, change, target = self._ValidateParameters(parameters)
