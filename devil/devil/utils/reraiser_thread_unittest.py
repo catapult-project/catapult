@@ -6,8 +6,12 @@
 import threading
 import unittest
 
+from devil import devil_env
 from devil.utils import reraiser_thread
 from devil.utils import watchdog_timer
+
+with devil_env.SysPath(devil_env.PYMOCK_PATH):
+  import mock  # pylint: disable=import-error
 
 
 class TestException(Exception):
@@ -30,7 +34,8 @@ class TestReraiserThread(unittest.TestCase):
     self.assertEqual(result[0], 1)
     self.assertEqual(result[1], 2)
 
-  def testRaise(self):
+  @mock.patch('logging.critical')
+  def testRaise(self, logging_critical):
     def f():
       raise TestException
 
@@ -39,6 +44,7 @@ class TestReraiserThread(unittest.TestCase):
     thread.join()
     with self.assertRaises(TestException):
       thread.ReraiseIfException()
+    logging_critical.critical.assert_called()
 
 
 class TestReraiserThreadGroup(unittest.TestCase):
