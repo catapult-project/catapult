@@ -45,10 +45,6 @@ _LEGACY_ENVIRONMENT_VARIABLES = {
         'dependency_name': 'adb',
         'platform': 'linux2_x86_64',
     },
-    'ANDROID_SDK_ROOT': {
-        'dependency_name': 'android_sdk',
-        'platform': 'linux2_x86_64',
-    },
 }
 
 
