@@ -59,10 +59,10 @@ class AuthTest(test.TestCase):
     self.Post('/api/isolate', self._ValidParams(), status=403)
 
 
-@unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping old handler tests for python 3.')
 class FunctionalityTest(test.TestCase):
 
+  @unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping get handler of api/isolate for python 3.')
   def testPostAndGet(self):
     testing_common.SetIpAllowlist(['remote_ip'])
 
@@ -92,6 +92,8 @@ class FunctionalityTest(test.TestCase):
     })
     self.assertEqual(response.normal_body, expected_body)
 
+  @unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping get handler of api/isolate for python 3.')
   def testGetUnknownIsolate(self):
     params = {
         'builder_name':
@@ -108,10 +110,10 @@ class FunctionalityTest(test.TestCase):
     self.testapp.post('/api/isolate', status=401)
 
 
-@unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping old handler tests for python 3.')
 class ParameterValidationTest(test.TestCase):
 
+  @unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping get handler of api/isolate for python 3.')
   def testExtraParameter(self):
     params = {
         'builder_name':
@@ -125,6 +127,8 @@ class ParameterValidationTest(test.TestCase):
     }
     self.testapp.get('/api/isolate', params, status=400)
 
+  @unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping get handler of api/isolate for python 3.')
   def testMissingParameter(self):
     params = {
         'builder_name':
@@ -134,6 +138,8 @@ class ParameterValidationTest(test.TestCase):
     }
     self.testapp.get('/api/isolate', params, status=400)
 
+  @unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping get handler of api/isolate for python 3.')
   def testEmptyParameter(self):
     params = {
         'builder_name':
@@ -145,6 +151,8 @@ class ParameterValidationTest(test.TestCase):
     }
     self.testapp.get('/api/isolate', params, status=400)
 
+  @unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping get handler of api/isolate for python 3.')
   def testBadJson(self):
     params = {
         'builder_name': 'Mac Builder',
@@ -153,6 +161,8 @@ class ParameterValidationTest(test.TestCase):
     }
     self.testapp.get('/api/isolate', params, status=400)
 
+  @unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping get handler of api/isolate for python 3.')
   def testBadChange(self):
     params = {
         'builder_name': 'Mac Builder',
@@ -161,6 +171,8 @@ class ParameterValidationTest(test.TestCase):
     }
     self.testapp.get('/api/isolate', params, status=400)
 
+  @unittest.skipIf(sys.version_info.major == 3,
+                   'Skipping get handler of api/isolate for python 3.')
   def testGetInvalidChangeBecauseOfUnknownRepository(self):
     params = {
         'builder_name': 'Mac Builder',
