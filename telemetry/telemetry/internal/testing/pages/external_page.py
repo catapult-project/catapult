@@ -9,4 +9,4 @@ from telemetry.page.page import Page
 
 class ExternalPage(Page):
   def __init__(self, ps):
-    super().__init__('file://foo.html', page_set=ps)
+    super(ExternalPage, self).__init__('file://foo.html', page_set=ps)

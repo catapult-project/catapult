@@ -12,7 +12,7 @@ from telemetry.internal.backends import android_app_backend
 class AndroidPlatform(platform.Platform):
 
   def __init__(self, platform_backend):
-    super().__init__(platform_backend)
+    super(AndroidPlatform, self).__init__(platform_backend)
     self._android_action_runner = android_action_runner.AndroidActionRunner(
         platform_backend)
 

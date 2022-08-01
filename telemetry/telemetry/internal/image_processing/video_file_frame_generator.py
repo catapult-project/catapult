@@ -45,7 +45,7 @@ class VideoFileFrameGenerator(frame_generator.FrameGenerator):
     while self._frame_index < start_frame_index - 1:
       self._ReadFrame(True)
 
-    super().__init__()
+    super(self.__class__, self).__init__()
 
   def _ReadFrame(self, skip_decode=False):
     """Reads the next frame, updates attributes.

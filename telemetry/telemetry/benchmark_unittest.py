@@ -27,7 +27,7 @@ class DummyPageTest(legacy_page_test.LegacyPageTest):
 
 class TestBenchmark(benchmark.Benchmark):
   def __init__(self, story):
-    super().__init__()
+    super(TestBenchmark, self).__init__()
     self._story_set = story_module.StorySet()
     self._story_set.AddStory(story)
 
@@ -50,7 +50,7 @@ class BenchmarkTest(unittest.TestCase):
     b = TestBenchmark(story_module.Story(
         name='test story',
         shared_state_class=shared_page_state.SharedPageState))
-    with self.assertRaisesRegex(
+    with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
       b.Run(self.options)
 
@@ -58,13 +58,13 @@ class BenchmarkTest(unittest.TestCase):
     b = TestBenchmark(story_module.Story(
         name='test benchmark',
         shared_state_class=state_class))
-    with self.assertRaisesRegex(
+    with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
       b.Run(self.options)
 
     b = TestBenchmark(android.AndroidStory(
         name='test benchmark', start_intent=None))
-    with self.assertRaisesRegex(
+    with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
       b.Run(self.options)
 
@@ -84,14 +84,14 @@ class BenchmarkTest(unittest.TestCase):
         timeline_based_measurement.TimelineBasedMeasurement)
 
   def testUnknownTestTypeRaises(self):
-    class UnknownTestType():
+    class UnknownTestType(object):
       pass
     class UnknownTestTypeBenchmark(benchmark.Benchmark):
       test = UnknownTestType
 
     type_error_regex = (
         '"UnknownTestType" is not a PageTest or a StoryTest')
-    with self.assertRaisesRegex(TypeError, type_error_regex):
+    with self.assertRaisesRegexp(TypeError, type_error_regex):
       UnknownTestTypeBenchmark().CreatePageTest(options=None)
 
   def testGetOwners(self):

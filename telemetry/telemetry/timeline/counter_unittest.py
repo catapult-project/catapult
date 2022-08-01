@@ -9,7 +9,7 @@ import unittest
 from telemetry.timeline import counter as counter_module
 
 
-class FakeProcess():
+class FakeProcess(object):
   pass
 
 

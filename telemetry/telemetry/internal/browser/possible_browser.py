@@ -33,7 +33,7 @@ class PossibleBrowser(possible_app.PossibleApp):
   """
 
   def __init__(self, browser_type, target_os, supports_tab_control):
-    super().__init__(app_type=browser_type,
+    super(PossibleBrowser, self).__init__(app_type=browser_type,
                                           target_os=target_os)
     self._supports_tab_control = supports_tab_control
     self._browser_options = None

@@ -8,7 +8,7 @@ from telemetry import benchmark
 from py_utils import discover
 
 
-class ProjectConfig():
+class ProjectConfig(object):
   """Contains information about the benchmark runtime environment.
 
   Attributes:

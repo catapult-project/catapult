@@ -6,6 +6,8 @@ from __future__ import absolute_import
 import logging
 import re
 import socket
+import sys
+import six
 
 from py_utils import exc_util
 from py_utils import retry_util
@@ -67,7 +69,7 @@ def GetDevToolsBackEndIfReady(devtools_port,
 class BrowserTargetNotFoundException(Exception):
   pass
 
-class _DevToolsClientBackend():
+class _DevToolsClientBackend(object):
   """An object that communicates with Chrome's devtools.
 
   This class owns a map of InspectorBackends. It is responsible for creating
@@ -141,7 +143,7 @@ class _DevToolsClientBackend():
 
   @property
   def has_tracing_client(self):
-    return self._tracing_backend is not None
+    return self._tracing_backend != None
 
   def Connect(self, devtools_port, browser_target, enable_tracing=True):
     try:
@@ -318,9 +320,10 @@ class _DevToolsClientBackend():
     try:
       return self._devtools_http.Request(
           'close/%s' % tab_id, timeout=timeout)
-    except devtools_http.DevToolsClientUrlError as e:
-      raise TabNotFoundError(
-          'Unable to close tab, tab id not found: %s' % tab_id) from e
+    except devtools_http.DevToolsClientUrlError:
+      error = TabNotFoundError(
+          'Unable to close tab, tab id not found: %s' % tab_id)
+      six.reraise(error, None, sys.exc_info()[2])
 
   def ActivateTab(self, tab_id, timeout):
     """Activates the tab with the given id.
@@ -332,9 +335,10 @@ class _DevToolsClientBackend():
     try:
       return self._devtools_http.Request(
           'activate/%s' % tab_id, timeout=timeout)
-    except devtools_http.DevToolsClientUrlError as e:
-      raise TabNotFoundError(
-          'Unable to activate tab, tab id not found: %s' % tab_id) from e
+    except devtools_http.DevToolsClientUrlError:
+      error = TabNotFoundError(
+          'Unable to activate tab, tab id not found: %s' % tab_id)
+      six.reraise(error, None, sys.exc_info()[2])
 
   def GetUrl(self, tab_id):
     """Returns the URL of the tab with |tab_id|, as reported by devtools.
@@ -393,7 +397,7 @@ class _DevToolsClientBackend():
         timeout: Time waited for websocket to receive a response.
     """
     if not self._tracing_backend:
-      return None
+      return
 
     assert trace_config and trace_config.enable_chrome_trace
     return self._tracing_backend.StartTracing(
@@ -570,7 +574,7 @@ class _DevToolsClientBackend():
     self._browser_websocket.SyncRequest(request, timeout=30)
 
 
-class _DevToolsContextMapBackend():
+class _DevToolsContextMapBackend(object):
   def __init__(self, devtools_client):
     self._devtools_client = devtools_client
     self._contexts = None

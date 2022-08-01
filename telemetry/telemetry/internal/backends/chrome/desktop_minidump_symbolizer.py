@@ -31,7 +31,7 @@ class DesktopMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
           provided directory *must* be unique per browser binary, e.g. by
           including the hash of the binary in the directory name.
     """
-    super().__init__(
+    super(DesktopMinidumpSymbolizer, self).__init__(
         os_name, arch_name, dump_finder, build_dir, symbols_dir=symbols_dir)
 
   def SymbolizeMinidump(self, minidump):
@@ -61,6 +61,7 @@ class DesktopMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
                                         '-c', '.ecxr;.lastevent;kb30;~*kb30;q',
                                         '-z', minidump])
       if six.PY3:
+        # pylint: disable=redefined-variable-type
         output = output.decode('utf-8')
 
       # The output we care about starts with "Last event:" or possibly
@@ -72,7 +73,7 @@ class DesktopMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
         info_start = info_start_match.start()
       info_end = output.find('quit:')
       return output[info_start:info_end]
-    return super().SymbolizeMinidump(minidump)
+    return super(DesktopMinidumpSymbolizer, self).SymbolizeMinidump(minidump)
 
   def GetSymbolBinaries(self, minidump):
     """Returns a list of paths to binaries where symbols may be located.
@@ -95,6 +96,7 @@ class DesktopMinidumpSymbolizer(minidump_symbolizer.MinidumpSymbolizer):
       minidump_output = e.output
 
     if six.PY3:
+      # pylint: disable=redefined-variable-type
       minidump_output = minidump_output.decode('utf-8')
 
     minidump_binary_re = re.compile(r'\W+\(code_file\)\W+=\W\"(.*)\"')

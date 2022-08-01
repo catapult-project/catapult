@@ -5,7 +5,7 @@ from __future__ import absolute_import
 import logging
 
 
-class InspectorLog():
+class InspectorLog(object):
   def __init__(self, inspector_websocket):
     """Enables the Log domain of DevTools protocol.
 

@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-class DebugData():
+class DebugData(object):
   """A class for storing debug data in string format for later use.
 
   This is largely so that telemetry.core.exceptions' AppCrashException can
@@ -11,7 +11,7 @@ class DebugData():
   """
 
   def __init__(self):
-    super().__init__()
+    super(DebugData, self).__init__()
 
     # List of strings, each element being a human-readable symbolized minidump.
     self.symbolized_minidumps = []

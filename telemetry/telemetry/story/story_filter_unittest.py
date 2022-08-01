@@ -46,7 +46,7 @@ class ProcessCommandLineUnittest(unittest.TestCase):
         parser=None, args=args)
 
 
-class FakeStory():
+class FakeStory(object):
   def __init__(self, name='fake_story_name', tags=None):
     self.name = name
     self.tags = tags or set()
@@ -281,7 +281,7 @@ class FilterStoriesShardIndexUnittest(unittest.TestCase):
     self.assertEqual(list(self.stories), output)
 
 
-class FakeExpectations():
+class FakeExpectations(object):
   def __init__(self, stories_to_disable=None):
     self._stories_to_disable = stories_to_disable or []
 

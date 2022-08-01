@@ -25,13 +25,13 @@ from tracing.trace_data import trace_data as trace_data_module
 
 class MarkerMismatchError(Exception):
   def __init__(self):
-    super().__init__(
+    super(MarkerMismatchError, self).__init__(
         'Number or order of timeline markers does not match provided labels')
 
 
 class MarkerOverlapError(Exception):
   def __init__(self):
-    super().__init__(
+    super(MarkerOverlapError, self).__init__(
         'Overlapping timeline markers found')
 
 
@@ -60,7 +60,7 @@ class TimelineModel(event_container.TimelineEventContainer):
         shift_world_to_zero: If true, the events will be shifted such that the
             first event starts at time 0.
     """
-    super().__init__(name='TimelineModel', parent=None)
+    super(TimelineModel, self).__init__(name='TimelineModel', parent=None)
     self._bounds = bounds.Bounds()
     self._thread_time_bounds = {}
     self._processes = {}
@@ -191,9 +191,9 @@ class TimelineModel(event_container.TimelineEventContainer):
       for event in thread.IterEventsInThisContainer(
           event_type_predicate=lambda t: True,
           event_predicate=lambda e: True):
-        if event.thread_start is not None:
+        if event.thread_start != None:
           self._thread_time_bounds[thread].AddValue(event.thread_start)
-        if event.thread_end is not None:
+        if event.thread_end != None:
           self._thread_time_bounds[thread].AddValue(event.thread_end)
 
   def GetOrCreateProcess(self, pid):

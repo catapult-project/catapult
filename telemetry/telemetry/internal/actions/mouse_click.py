@@ -11,7 +11,7 @@ class MouseClickAction(page_action.ElementPageAction):
 
   def WillRunAction(self, tab):
     """Load the mouse click JS code prior to running the action."""
-    super().WillRunAction(tab)
+    super(MouseClickAction, self).WillRunAction(tab)
     utils.InjectJavaScript(tab, 'mouse_click.js')
     tab.ExecuteJavaScript("""
         window.__mouseClickActionDone = false;

@@ -3,6 +3,6 @@
 # found in the LICENSE file.
 
 from __future__ import print_function
-class Cat():
+class Cat(object):
   def Run(self):
     print('Meow')

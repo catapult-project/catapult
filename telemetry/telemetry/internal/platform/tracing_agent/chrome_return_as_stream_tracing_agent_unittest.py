@@ -20,7 +20,7 @@ from devil.android import device_utils
 class FakeAndroidPlatformBackend(
     chrome_tracing_agent_unittest.FakePlatformBackend):
   def __init__(self):
-    super().__init__()
+    super(FakeAndroidPlatformBackend, self).__init__()
     devices = device_utils.DeviceUtils.HealthyDevices(None)
     self.device = devices[0]
 
@@ -30,7 +30,7 @@ class FakeAndroidPlatformBackend(
 class FakeCrOSPlatformBackend(
     chrome_tracing_agent_unittest.FakePlatformBackend):
   def __init__(self):
-    super().__init__()
+    super(FakeCrOSPlatformBackend, self).__init__()
     remote = options_for_unittests.GetCopy().cros_remote
     remote_ssh_port = options_for_unittests.GetCopy().cros_remote_ssh_port
     self.cri = cros_interface.CrOSInterface(

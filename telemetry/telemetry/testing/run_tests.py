@@ -42,7 +42,7 @@ class RunTestsCommand(command_line.OptparseCommand):
   xvfb_process = None
 
   def __init__(self):
-    super().__init__()
+    super(RunTestsCommand, self).__init__()
     self.stream = sys.stdout
 
   @classmethod

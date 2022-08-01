@@ -24,7 +24,7 @@ from telemetry.timeline import tracing_config
 import mock
 
 
-class FakeTraceDataBuilder():
+class FakeTraceDataBuilder(object):
   """Discards trace data but used to keep track of clock syncs."""
   def __init__(self):
     self.clock_syncs = []

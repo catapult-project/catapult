@@ -46,7 +46,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           be determined.
     """
     assert browser_options.IsCrosBrowserOptions()
-    super().__init__(
+    super(CrOSBrowserBackend, self).__init__(
         cros_platform_backend,
         browser_options=browser_options,
         browser_directory=browser_directory,
@@ -180,7 +180,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   @exc_util.BestEffort
   def Close(self):
-    super().Close()
+    super(CrOSBrowserBackend, self).Close()
 
     if self._cri:
       self._cri.RestartUI(False) # Logs out.
@@ -229,7 +229,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     """
     self._CollectBrowserLogs(log_level)
     self._CollectUiLogs(log_level)
-    return super().CollectDebugData(log_level)
+    return super(CrOSBrowserBackend, self).CollectDebugData(log_level)
 
   def _CollectBrowserLogs(self, log_level):
     """Helper function to handle the browser log part of CollectDebugData.

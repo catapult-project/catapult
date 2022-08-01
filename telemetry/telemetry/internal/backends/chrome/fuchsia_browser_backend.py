@@ -27,7 +27,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                browser_directory, profile_directory):
     assert isinstance(fuchsia_platform_backend,
                       fuchsia_platform_backend_module.FuchsiaPlatformBackend)
-    super().__init__(
+    super(FuchsiaBrowserBackend, self).__init__(
         fuchsia_platform_backend,
         browser_options=browser_options,
         browser_directory=browser_directory,
@@ -246,7 +246,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         close_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
   def Close(self):
-    super().Close()
+    super(FuchsiaBrowserBackend, self).Close()
 
     if self._browser_process:
       logging.info('Shutting down browser process on Fuchsia')

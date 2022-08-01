@@ -20,16 +20,16 @@ _TEST_URL = example_domain.HTTP_EXAMPLE
 
 class CacheTemperatureTests(browser_test_case.BrowserTestCase):
   def __init__(self, *args, **kwargs):
-    super().__init__(*args, **kwargs)
+    super(CacheTemperatureTests, self).__init__(*args, **kwargs)
     self.markers = None
 
   def setUp(self):
-    super().setUp()
+    super(CacheTemperatureTests, self).setUp()
     self._browser.platform.network_controller.StartReplay(
         example_domain.FetchExampleDomainArchive())
 
   def tearDown(self):
-    super().tearDown()
+    super(CacheTemperatureTests, self).tearDown()
     self._browser.platform.network_controller.StopReplay()
 
   @contextlib.contextmanager

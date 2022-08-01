@@ -10,7 +10,7 @@ from telemetry.internal.util import path
 from telemetry.testing import options_for_unittests
 
 
-class ProgressReporter():
+class ProgressReporter(object):
   def __init__(self, output_stream):
     self._output_stream = output_stream
 
@@ -50,13 +50,13 @@ class TestSuite(unittest.TestSuite):
   def run(self, result):  # pylint: disable=arguments-differ
     if hasattr(result, 'startTestSuite'):
       result.startTestSuite(self)
-    result = super().run(result)
+    result = super(TestSuite, self).run(result)
     if hasattr(result, 'stopTestSuite'):
       result.stopTestSuite(self)
     return result
 
 
-class TestRunner():
+class TestRunner(object):
   def run(self, test, progress_reporters, repeat_count, args):
     sys.path.append(path.GetUnittestDataDir())
     result = TestResult(progress_reporters)
@@ -74,7 +74,7 @@ class TestRunner():
 
 class TestResult(unittest.TestResult):
   def __init__(self, progress_reporters):
-    super().__init__()
+    super(TestResult, self).__init__()
     self.successes = []
     self._progress_reporters = progress_reporters
 
@@ -83,7 +83,7 @@ class TestResult(unittest.TestResult):
     return self.failures + self.errors
 
   def startTest(self, test):
-    super().startTest(test)
+    super(TestResult, self).startTest(test)
     for progress_reporter in self._progress_reporters:
       progress_reporter.StartTest(test)
 
@@ -92,12 +92,12 @@ class TestResult(unittest.TestResult):
       progress_reporter.StartTestSuite(suite)
 
   def startTestRun(self):
-    super().startTestRun()
+    super(TestResult, self).startTestRun()
     for progress_reporter in self._progress_reporters:
       progress_reporter.StartTestRun()
 
   def stopTest(self, test):
-    super().stopTest(test)
+    super(TestResult, self).stopTest(test)
     for progress_reporter in self._progress_reporters:
       progress_reporter.StopTest(test)
 
@@ -106,27 +106,27 @@ class TestResult(unittest.TestResult):
       progress_reporter.StopTestSuite(suite)
 
   def stopTestRun(self):
-    super().stopTestRun()
+    super(TestResult, self).stopTestRun()
     for progress_reporter in self._progress_reporters:
       progress_reporter.StopTestRun(self)
 
   def addError(self, test, err):
-    super().addError(test, err)
+    super(TestResult, self).addError(test, err)
     for progress_reporter in self._progress_reporters:
       progress_reporter.Error(test, err)
 
   def addFailure(self, test, err):
-    super().addFailure(test, err)
+    super(TestResult, self).addFailure(test, err)
     for progress_reporter in self._progress_reporters:
       progress_reporter.Failure(test, err)
 
   def addSuccess(self, test):
-    super().addSuccess(test)
+    super(TestResult, self).addSuccess(test)
     self.successes.append(test)
     for progress_reporter in self._progress_reporters:
       progress_reporter.Success(test)
 
   def addSkip(self, test, reason):
-    super().addSkip(test, reason)
+    super(TestResult, self).addSkip(test, reason)
     for progress_reporter in self._progress_reporters:
       progress_reporter.Skip(test, reason)

@@ -15,7 +15,7 @@ from telemetry.internal.platform import platform_backend
 
 class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
   def __init__(self, device):
-    super().__init__(device)
+    super(FuchsiaPlatformBackend, self).__init__(device)
     if os.path.isfile(device.ssh_config):
       self._ssh_config = device.ssh_config
     else:
@@ -140,6 +140,6 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
     return None
 
   def GetTypExpectationsTags(self):
-    tags = super().GetTypExpectationsTags()
+    tags = super(FuchsiaPlatformBackend, self).GetTypExpectationsTags()
     tags.append(self.GetDeviceTypeName())
     return tags

@@ -14,7 +14,7 @@ _next_story_id = 0
 _VALID_TAG_RE = re.compile(r'^[\w]+$')
 
 
-class Story():
+class Story(object):
   """A class styled on unittest.TestCase for creating story tests.
 
   Tests should override Run to maybe start the application and perform actions

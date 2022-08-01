@@ -36,7 +36,7 @@ class Browser(app.App):
   """
   def __init__(self, backend, platform_backend, startup_args,
                find_existing=False):
-    super().__init__(app_backend=backend,
+    super(Browser, self).__init__(app_backend=backend,
                                   platform_backend=platform_backend)
     try:
       self._browser_backend = backend
@@ -225,12 +225,12 @@ class Browser(app.App):
   def DumpMemory(self, timeout=None):
     try:
       return self._browser_backend.DumpMemory(timeout=timeout)
-    except tracing_backend.TracingUnrecoverableException as e:
+    except tracing_backend.TracingUnrecoverableException:
       logging.exception('Failed to record memory dump due to exception:')
       # Re-raise as an AppCrashException to obtain further debug information
       # about the browser state.
       raise exceptions.AppCrashException(
-          app=self, msg='Browser failed to record memory dump.') from e
+          app=self, msg='Browser failed to record memory dump.')
 
   @property
   def supports_java_heap_garbage_collection( # pylint: disable=invalid-name

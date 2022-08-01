@@ -60,7 +60,7 @@ class FindTestBase(unittest.TestCase):
 
 class FindSystemTest(FindTestBase):
   def setUp(self):
-    super().setUp()
+    super(FindSystemTest, self).setUp()
     self._finder_stubs.sys.platform = 'win32'
     self._path_stubs.sys.platform = 'win32'
     self._util_stubs.sys.platform = 'win32'
@@ -95,7 +95,7 @@ class FindSystemTest(FindTestBase):
 
 class FindLocalBuildsTest(FindTestBase):
   def setUp(self):
-    super().setUp()
+    super(FindLocalBuildsTest, self).setUp()
     self._finder_stubs.sys.platform = 'win32'
     self._path_stubs.sys.platform = 'win32'
     self._util_stubs.sys.platform = 'win32'
@@ -124,7 +124,7 @@ class FindLocalBuildsTest(FindTestBase):
 
 class OSXFindTest(FindTestBase):
   def setUp(self):
-    super().setUp()
+    super(OSXFindTest, self).setUp()
     self._finder_stubs.sys.platform = 'darwin'
     self._path_stubs.sys.platform = 'darwin'
     self._util_stubs.sys.platform = 'darwin'
@@ -266,7 +266,7 @@ class LinuxFindTest(fake_filesystem_unittest.TestCase):
 
 class WinFindTest(FindTestBase):
   def setUp(self):
-    super().setUp()
+    super(WinFindTest, self).setUp()
 
     self._finder_stubs.sys.platform = 'win32'
     self._path_stubs.sys.platform = 'win32'

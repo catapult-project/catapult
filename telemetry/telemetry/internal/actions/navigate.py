@@ -12,7 +12,7 @@ class NavigateAction(page_action.PageAction):
 
   def __init__(self, url, script_to_evaluate_on_commit=None,
                timeout_in_seconds=page_action.DEFAULT_TIMEOUT):
-    super().__init__(timeout=timeout_in_seconds)
+    super(NavigateAction, self).__init__(timeout=timeout_in_seconds)
     assert url, 'Must specify url for navigate action'
     self._url = url
     self._script_to_evaluate_on_commit = script_to_evaluate_on_commit

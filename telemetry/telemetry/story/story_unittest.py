@@ -16,7 +16,7 @@ class SharedStateBar(shared_state.SharedState):
 
 class StoryFoo(story.Story):
   def __init__(self, name='', tags=None):
-    super().__init__(
+    super(StoryFoo, self).__init__(
         SharedStateBar, name, tags)
 
 

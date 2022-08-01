@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
-import optparse  # pylint:disable=deprecated-module
+import optparse
 import os
 import logging
 import re
@@ -11,7 +11,7 @@ import re
 from telemetry.story import typ_expectations
 
 
-class _StoryMatcher():
+class _StoryMatcher(object):
   def __init__(self, pattern):
     self._regex = None
     if pattern:
@@ -32,7 +32,7 @@ class _StoryMatcher():
     return self and bool(self._regex.search(story.name))
 
 
-class _StoryTagMatcher():
+class _StoryTagMatcher(object):
   def __init__(self, tags_str):
     self._tags = [tag.strip() for tag in tags_str.split(',')
                  ] if tags_str else None
@@ -46,7 +46,7 @@ class _StoryTagMatcher():
     return self and bool(story.tags.intersection(self._tags))
 
 
-class StoryFilterFactory():
+class StoryFilterFactory(object):
   """This factory reads static global configuration for a StoryFilter.
 
   Static global configuration includes commandline flags and ProjectConfig.
@@ -178,7 +178,7 @@ class StoryFilterFactory():
     cls._run_abridged_story_set = args.run_abridged_story_set
 
 
-class StoryFilter():
+class StoryFilter(object):
   """Logic to decide whether to run, skip, or ignore stories."""
 
   def __init__(

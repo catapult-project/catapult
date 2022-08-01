@@ -30,7 +30,7 @@ class AndroidDevice(device.Device):
       'adb devices' command
   """
   def __init__(self, device_id):
-    super().__init__(
+    super(AndroidDevice, self).__init__(
         name='Android device %s' % device_id, guid=device_id)
     self._device_id = device_id
 

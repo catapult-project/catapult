@@ -26,3 +26,4 @@ class ExampleTests(unittest.TestCase):
 
   def test_skip(self):
     self.skipTest('SKIPPING TEST')
+

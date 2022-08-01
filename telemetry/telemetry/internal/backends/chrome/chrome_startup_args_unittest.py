@@ -15,7 +15,7 @@ from telemetry.util import wpr_modes
 
 class FakeBrowserOptions(browser_options_module.BrowserOptions):
   def __init__(self, wpr_mode=wpr_modes.WPR_OFF):
-    super().__init__()
+    super(FakeBrowserOptions, self).__init__()
     self.wpr_mode = wpr_mode
     self.browser_type = 'chrome'
     self.browser_user_agent_type = 'desktop'
@@ -26,7 +26,7 @@ class FakeBrowserOptions(browser_options_module.BrowserOptions):
 
 class FakeProjectConfig(project_config.ProjectConfig):
   def __init__(self):
-    super().__init__(top_level_dir=None)
+    super(FakeProjectConfig, self).__init__(top_level_dir=None)
 
   def AdjustStartupFlags(self, args):
     # Example function that removes '--bar' flags.
@@ -115,3 +115,4 @@ class ReplayStartupArgsTest(unittest.TestCase):
         expected_args,
         chrome_startup_args.GetReplayArgs(network_backend,
                                           supports_spki_list=False))
+

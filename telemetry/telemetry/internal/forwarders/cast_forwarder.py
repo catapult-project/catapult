@@ -16,7 +16,7 @@ from telemetry.internal.forwarders import forwarder_utils
 class CastForwarderFactory(forwarders.ForwarderFactory):
 
   def __init__(self, ip_addr):
-    super().__init__()
+    super(CastForwarderFactory, self).__init__()
     self._ip_addr = ip_addr
 
   def Create(self, local_port, remote_port, reverse=False):
@@ -34,7 +34,7 @@ class CastSshForwarder(forwarders.Forwarder):
       remote_port: Port on the Cast device.
       ip_addr: IP address of the cast receiver.
       port_forward: Determines the direction of the connection."""
-    super().__init__()
+    super(CastSshForwarder, self).__init__()
     self._proc = None
 
     if port_forward:
@@ -73,4 +73,4 @@ class CastSshForwarder(forwarders.Forwarder):
     if self._proc:
       self._proc.close(force=True)
       self._proc = None
-    super().Close()
+    super(CastSshForwarder, self).Close()
