@@ -298,6 +298,7 @@ def RunTests(args):
   typ_runner.args.write_full_results_to = options.write_full_results_to
   typ_runner.args.write_trace_to = options.write_trace_to
   typ_runner.args.disable_resultsink = options.disable_resultsink
+  typ_runner.args.use_global_pool = options.use_global_pool
 
   typ_runner.classifier = _GetClassifier(typ_runner)
   typ_runner.path_delimiter = test_class.GetJSONResultsDelimiter()

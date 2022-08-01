@@ -209,3 +209,134 @@ class _AsyncPool(object):
         if not self.closed:
             self.close()
         return [self.final_context]
+
+
+class _NoOpPool(object):
+    def close(self):
+        pass
+
+    def join(self):
+        return []
+
+
+class _PoolGroup(object):
+    """Abstraction layer for global vs. scoped pools.
+
+    Most tests should be able to run fine with scoped pools, but provide the
+    older global pool behavior as an option in case it's needed.
+
+    If using scoped pools, the global pool is a _NoOpPool and all work is done
+    on the scoped pools.
+
+    If using global pools, the scoped pools map to the global pool.
+    """
+    def __init__(self, host, jobs, callback, context, pre_fn, post_fn):
+        self.host = host
+        self.jobs = jobs
+        self.callback = callback
+        self.context = context
+        self.pre_fn = pre_fn
+        self.post_fn = post_fn
+
+        self.global_pool = None
+        self.parallel_pool = None
+        self.serial_pool = None
+
+    def make_global_pool(self):
+        raise NotImplementedError()
+
+    def close_global_pool(self):
+        self.global_pool.close()
+
+    def join_global_pool(self):
+        return self.global_pool.join()
+
+    def make_parallel_pool(self):
+        raise NotImplementedError()
+
+    def close_parallel_pool(self):
+        raise NotImplementedError()
+
+    def join_parallel_pool(self):
+        raise NotImplementedError()
+
+    def make_serial_pool(self):
+        raise NotImplementedError()
+
+    def close_serial_pool(self):
+        raise NotImplementedError()
+
+    def join_serial_pool(self):
+        raise NotImplementedError()
+
+
+class _GlobalPoolGroup(_PoolGroup):
+    def make_global_pool(self):
+        assert self.global_pool is None
+        self.global_pool = make_pool(self.host, self.jobs,
+                                     self.callback, self.context,
+                                     self.pre_fn, self.post_fn)
+        return self.global_pool
+
+    def make_parallel_pool(self):
+        assert self.global_pool
+        self.parallel_pool = self.global_pool
+        return self.parallel_pool
+
+    def close_parallel_pool(self):
+        pass
+
+    def join_parallel_pool(self):
+        return []
+
+    def make_serial_pool(self):
+        assert self.global_pool
+        self.serial_pool = self.global_pool
+        return self.serial_pool
+
+    def close_serial_pool(self):
+        pass
+
+    def join_serial_pool(self):
+        return []
+
+
+class _ScopedPoolGroup(_PoolGroup):
+    def make_global_pool(self):
+        assert self.global_pool is None
+        self.global_pool = _NoOpPool()
+        return self.global_pool
+
+    def make_parallel_pool(self):
+        if self.parallel_pool:
+            assert self.parallel_pool.closed
+        self.parallel_pool = make_pool(self.host, self.jobs,
+                                       self.callback, self.context,
+                                       self.pre_fn, self.post_fn)
+        return self.parallel_pool
+
+    def close_parallel_pool(self):
+        self.parallel_pool.close()
+
+    def join_parallel_pool(self):
+        return self.parallel_pool.join()
+
+    def make_serial_pool(self):
+        if self.serial_pool:
+            assert self.serial_pool.closed
+        self.serial_pool = make_pool(self.host, 1, self.callback,
+                                     self.context, self.pre_fn,
+                                     self.post_fn)
+        return self.serial_pool
+
+    def close_serial_pool(self):
+        self.serial_pool.close()
+
+    def join_serial_pool(self):
+        return self.serial_pool.join()
+
+
+def make_pool_group(host, jobs, callback, context, pre_fn, post_fn, use_global):
+    if use_global:
+        return _GlobalPoolGroup(host, jobs, callback, context, pre_fn, post_fn)
+    return _ScopedPoolGroup(host, jobs, callback, context, pre_fn, post_fn)

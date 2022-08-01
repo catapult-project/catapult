@@ -46,7 +46,7 @@ from typ import result_sink
 from typ.arg_parser import ArgumentParser
 from typ.expectations_parser import TestExpectations, Expectation
 from typ.host import Host
-from typ.pool import make_pool
+from typ.pool import make_pool_group
 from typ.stats import Stats
 from typ.printer import Printer
 from typ.test_case import TestCase as TypTestCase
@@ -590,10 +590,14 @@ class Runner(object):
             jobs = 1
 
         child = _Child(self)
-        pool = make_pool(h, jobs, _run_one_test, child,
-                         _setup_process, _teardown_process)
+        # TODO(crbug.com/1345782): Switch to using the value of
+        # --use-global-pool once the Chromium side CL is in.
+        pool_group = make_pool_group(h, jobs, _run_one_test, child,
+                                     _setup_process, _teardown_process, True)
+        pool_group.make_global_pool()
 
-        self._run_one_set(self.stats, result_set, test_set, jobs, pool)
+        self._run_one_set(self.stats, result_set, test_set, jobs,
+                          pool_group)
 
         tests_to_retry = sorted(get_tests_to_retry(result_set))
         retry_limit = self.args.retry_limit
@@ -621,13 +625,14 @@ class Runner(object):
                         iteration=iteration) for name in tests_to_retry]
                 tests_to_retry = test_set
                 retry_set = ResultSet()
-                self._run_one_set(stats, retry_set, tests_to_retry, 1, pool)
+                self._run_one_set(stats, retry_set, tests_to_retry, 1,
+                                  pool_group)
                 result_set.results.extend(retry_set.results)
                 tests_to_retry = get_tests_to_retry(retry_set)
                 retry_limit -= 1
-            pool.close()
+            pool_group.close_global_pool()
         finally:
-            self.final_responses.extend(pool.join())
+            self.final_responses.extend(pool_group.join_global_pool())
 
         if retry_limit != self.args.retry_limit:
             self.print_('')
@@ -641,12 +646,23 @@ class Runner(object):
 
         return (retcode, full_results)
 
-    def _run_one_set(self, stats, result_set, test_set, jobs, pool):
+    def _run_one_set(self, stats, result_set, test_set, jobs, pool_group):
         self._skip_tests(stats, result_set, test_set.tests_to_skip)
-        self._run_list(stats, result_set,
-                       test_set.parallel_tests, jobs, pool)
-        self._run_list(stats, result_set,
-                       test_set.isolated_tests, 1, pool)
+        pool = pool_group.make_parallel_pool()
+        try:
+            self._run_list(stats, result_set,
+                           test_set.parallel_tests, jobs, pool)
+            pool_group.close_parallel_pool()
+        finally:
+            self.final_responses.extend(pool_group.join_parallel_pool())
+
+        pool = pool_group.make_serial_pool()
+        try:
+            self._run_list(stats, result_set,
+                           test_set.isolated_tests, 1, pool)
+            pool_group.close_serial_pool()
+        finally:
+            self.final_responses.extend(pool_group.join_serial_pool())
 
     def _skip_tests(self, stats, result_set, tests_to_skip):
         for test_input in tests_to_skip:

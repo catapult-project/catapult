@@ -219,6 +219,10 @@ class ArgumentParser(argparse.ArgumentParser):
                               type=str,
                               metavar='PATH',
                               help='directory to write output to (ignored)')
+            self.add_argument('--use-global-pool', action='store_true',
+                              default=False,
+                              help=('Use the older, single/global process pool '
+                                    'approach instead of the scoped approach.'))
 
         if discovery or running:
             self.add_argument('-P', '--path', action='append', default=[],
