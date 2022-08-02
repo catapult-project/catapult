@@ -108,6 +108,11 @@ class RunTestsUnitTest(unittest.TestCase):
           # We don't want the underlying tests to report their results to
           # ResultDB.
           '--disable-resultsink',
+          # These tests currently rely on some information sticking around
+            # between tests, so we need to use the older global process pool
+            # approach instead of having different pools scoped for
+            # parallel/serial execution.
+            '--use-global-pool',
       ]
       if test_name:
         passed_args.append(test_name)

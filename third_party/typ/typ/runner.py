@@ -590,10 +590,9 @@ class Runner(object):
             jobs = 1
 
         child = _Child(self)
-        # TODO(crbug.com/1345782): Switch to using the value of
-        # --use-global-pool once the Chromium side CL is in.
         pool_group = make_pool_group(h, jobs, _run_one_test, child,
-                                     _setup_process, _teardown_process, True)
+                                     _setup_process, _teardown_process,
+                                     self.args.use_global_pool)
         pool_group.make_global_pool()
 
         self._run_one_set(self.stats, result_set, test_set, jobs,
