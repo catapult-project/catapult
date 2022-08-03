@@ -17,8 +17,8 @@ tags
 # an accidental add.
 perf_insights/perf_insights/download_traces.py
 
-# devil test coverage data.
-/devil/.coverage
+# test coverage data
+.coverage
 
 # telemetry's binary dependency download folders.
 /telemetry/telemetry/internal/bin/
