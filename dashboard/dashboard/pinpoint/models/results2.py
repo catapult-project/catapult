@@ -483,7 +483,7 @@ def _InsertBQRows(project_id, dataset_id, table_id, rows, num_retries=5):
   service = _BQService()
   rows = [{'insertId': str(uuid.uuid4()), 'json': row} for row in rows]
   insert_data = {'rows': rows}
-  logging.info("Saving to BQ: %s", str(insert_data))
+  logging.info("Saving %d rows to BQ.", len(rows))
   response = service.tabledata().insertAll(
       projectId=project_id,
       datasetId=dataset_id,
