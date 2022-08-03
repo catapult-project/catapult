@@ -2052,7 +2052,8 @@ class DeviceUtils(object):
                        delete_device_stale=False,
                        timeout=None,
                        retries=None,
-                       run_as=None):
+                       run_as=None,
+                       as_root=False):
     """Push files to the device, skipping files that don't need updating.
 
     When a directory is pushed, it is traversed recursively on the host and
@@ -2068,6 +2069,10 @@ class DeviceUtils(object):
       delete_device_stale: option to delete stale files on device
       timeout: timeout in seconds
       retries: number of retries
+      run_as: A string containing the package as which the command should be
+        run.
+      as_root: A boolean indicating whether the shell command should be run
+        with root privileges.
 
     Raises:
       CommandFailedError on failure.
@@ -2095,7 +2100,8 @@ class DeviceUtils(object):
       if missing_dirs:
         self.RunShellCommand(['mkdir', '-p'] + list(missing_dirs),
                              check_return=True,
-                             run_as=run_as)
+                             run_as=run_as,
+                             as_root=as_root)
       self._PushFilesImpl(host_device_tuples, changed_files)
     cache_commit_func()
 
