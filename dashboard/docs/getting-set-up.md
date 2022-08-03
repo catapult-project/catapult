@@ -24,7 +24,24 @@ component tests, use `bin/run_dev_server_tests`.
 
 ## Running a local instance
 
-Run `bin/dev_server`; this sets up a temporary directory, adds links to
+Running a local instance (i.e., a dev server) of the Performance Dashboard is
+only supported on Linux. First, you need to do the following one-time setups:
+
+- Make sure you have depot\_tools installed and in your PATH.
+- Run the following commands:
+```
+sudo apt install nodejs
+GAE_SDK_PATH=~/gae_sdk
+echo infra/gae_sdk/python/all latest | cipd ensure -root $GAE_SDK_PATH -ensure-file -
+export PYTHONPATH=$GAE_SDK_PATH
+export PATH=$PATH:$GAE_SDK_PATH
+```
+
+You may want to preserve the changes of `PYTHONPATH` and `PATH` to your shell
+environment settings, otherwise you will need to reapply the changes each time.
+
+After the setups, run `vpython bin/dev_server`;
+this sets up a temporary directory, adds links to
 required libraries, and calls `dev_appserver.py` on that directory.  By
 default, this starts a server on [localhost:8080](http://localhost:8080/).
 
