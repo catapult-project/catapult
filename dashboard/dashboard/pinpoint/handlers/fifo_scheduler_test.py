@@ -21,8 +21,6 @@ from dashboard.pinpoint.models.tasks import bisection_test_util
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
-@unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping old handler tests for python 3.')
 class FifoSchedulerTest(test.TestCase):
 
   def setUp(self):
@@ -32,18 +30,18 @@ class FifoSchedulerTest(test.TestCase):
     namespaced_stored_object.Set(bot_configurations.BOT_CONFIGURATIONS_KEY,
                                  {'mock': {}})
 
-  def testSingleQueue(self):
+  @mock.patch('dashboard.pinpoint.models.job.Job.Start')
+  def testSingleQueue(self, mock_job_start):
     j = job.Job.New((), (),
                     arguments={'configuration': 'mock'},
                     comparison_mode='performance')
     scheduler.Schedule(j)
-    j.Start = mock.MagicMock()
 
     response = self.testapp.get('/cron/fifo-scheduler')
     self.assertEqual(response.status_code, 200)
     self.ExecuteDeferredTasks('default')
 
-    self.assertTrue(j.Start.called)
+    self.assertEqual(mock_job_start.call_count, 1)
 
     # Ensure that the job is still running.
     job_id, queue_status = scheduler.PickJobs('mock')[0]
@@ -61,33 +59,35 @@ class FifoSchedulerTest(test.TestCase):
     self.assertEqual(job_id, j.job_id)
     self.assertEqual(queue_status, 'Running')
 
-  def testJobCompletes(self):
+  @mock.patch('dashboard.pinpoint.models.job.Job.Start')
+  def testJobCompletes(self, mock_job_start):
     j = job.Job.New((), (),
                     arguments={'configuration': 'mock'},
                     comparison_mode='performance')
     scheduler.Schedule(j)
-    j.Start = mock.MagicMock(side_effect=j._Complete)
+    mock_job_start.side_effect = j._Complete
 
     response = self.testapp.get('/cron/fifo-scheduler')
     self.assertEqual(response.status_code, 200)
     self.ExecuteDeferredTasks('default')
 
-    self.assertTrue(j.Start.called)
+    self.assertEqual(mock_job_start.call_count, 1)
     job_id, _ = scheduler.PickJobs('mock')[0]
     self.assertIsNone(job_id)
 
-  def testJobFails(self):
+  @mock.patch('dashboard.pinpoint.models.job.Job.Start')
+  def testJobFails(self, mock_job_start):
     j = job.Job.New((), (),
                     arguments={'configuration': 'mock'},
                     comparison_mode='performance')
     scheduler.Schedule(j)
-    j.Start = mock.MagicMock(side_effect=j.Fail)
+    mock_job_start.side_effect = j.Fail
 
     response = self.testapp.get('/cron/fifo-scheduler')
     self.assertEqual(response.status_code, 200)
     self.ExecuteDeferredTasks('default')
 
-    self.assertTrue(j.Start.called)
+    self.assertEqual(mock_job_start.call_count, 1)
     job_id, _ = scheduler.PickJobs('mock')[0]
     self.assertIsNone(job_id)
 
@@ -116,12 +116,13 @@ class FifoSchedulerTest(test.TestCase):
       self.assertTrue(j.Start.Called,
                       'job at index {} was not run!'.format(index))
 
-  def testQueueStatsUpdates(self):
+  @mock.patch('dashboard.pinpoint.models.job.Job.Start')
+  def testQueueStatsUpdates(self, mock_job_start):
     j = job.Job.New((), (),
                     arguments={'configuration': 'mock'},
                     comparison_mode='performance')
     scheduler.Schedule(j)
-    j.Start = mock.MagicMock(side_effect=j._Complete)
+    mock_job_start.side_effect = j._Complete
 
     # Check that we can find the queued job.
     stats = scheduler.QueueStats('mock')
@@ -134,7 +135,7 @@ class FifoSchedulerTest(test.TestCase):
 
     self.ExecuteDeferredTasks('default')
 
-    self.assertTrue(j.Start.called)
+    self.assertEqual(mock_job_start.call_count, 1)
     job_id, _ = scheduler.PickJobs('mock')[0]
     self.assertIsNone(job_id)
 
@@ -148,18 +149,18 @@ class FifoSchedulerTest(test.TestCase):
   def testJobStuckInRunning(self):
     self.skipTest('Not implemented yet.')
 
-  def testJobCancellationSucceedsOnRunningJob(self):
+  @mock.patch('dashboard.pinpoint.models.job.Job.Start')
+  def testJobCancellationSucceedsOnRunningJob(self, mock_job_start):
     j = job.Job.New((), (),
                     arguments={'configuration': 'mock'},
                     comparison_mode='performance')
     scheduler.Schedule(j)
-    j.Start = mock.MagicMock()
 
     response = self.testapp.get('/cron/fifo-scheduler')
     self.assertEqual(response.status_code, 200)
     self.ExecuteDeferredTasks('default')
 
-    self.assertTrue(j.Start.called)
+    self.assertEqual(mock_job_start.call_count, 1)
 
     # Ensure that the job is still running.
     job_id, queue_status = scheduler.PickJobs('mock')[0]
@@ -202,12 +203,13 @@ class FifoSchedulerTest(test.TestCase):
     stats = scheduler.QueueStats('mock')
     self.assertLessEqual(len(stats.get('queue_time_samples')), 50)
 
-  def testSchedulePriorityOrder(self):
+  @mock.patch('dashboard.pinpoint.models.job.Job.Start')
+  def testSchedulePriorityOrder(self, mock_job_start):
     j0 = job.Job.New((), (),
                      arguments={'configuration': 'mock'},
                      comparison_mode='performance')
     scheduler.Schedule(j0)
-    j0.Start = mock.MagicMock(side_effect=j0._Complete)
+
     j1 = job.Job.New((), (),
                      arguments={
                          'configuration': 'mock',
@@ -215,34 +217,39 @@ class FifoSchedulerTest(test.TestCase):
                      },
                      comparison_mode='performance',
                      priority=100)
-    j1.Start = mock.MagicMock(side_effect=j1._Complete)
     scheduler.Schedule(j1)
+
     j2 = job.Job.New((), (),
                      arguments={'configuration': 'mock'},
                      comparison_mode='performance')
     scheduler.Schedule(j2)
-    j2.Start = mock.MagicMock(side_effect=j2._Complete)
 
     # The first time we call the scheduler, it must mark j0 completed.
+    mock_job_start.side_effect = j0._Complete
+    self.assertEqual(
+        scheduler.QueueStats('mock')['job_id_with_status'][0]['job_id'], '1')
     response = self.testapp.get('/cron/fifo-scheduler')
     self.assertEqual(response.status_code, 200)
     self.ExecuteDeferredTasks('default')
-    self.assertTrue(j0.Start.called)
-    self.assertFalse(j1.Start.called)
-    self.assertFalse(j2.Start.called)
+    self.assertEqual(mock_job_start.call_count, 1)
 
     # Next time, j2 should be completed.
+    mock_job_start.side_effect = j2._Complete
+    self.assertEqual(
+        scheduler.QueueStats('mock')['job_id_with_status'][0]['job_id'], '3')
     response = self.testapp.get('/cron/fifo-scheduler')
     self.assertEqual(response.status_code, 200)
     self.ExecuteDeferredTasks('default')
-    self.assertFalse(j1.Start.called)
-    self.assertTrue(j2.Start.called)
+    self.assertEqual(mock_job_start.call_count, 2)
 
     # Then we should have j1 completed.
+    mock_job_start.side_effect = j1._Complete
+    self.assertEqual(
+        scheduler.QueueStats('mock')['job_id_with_status'][0]['job_id'], '2')
     response = self.testapp.get('/cron/fifo-scheduler')
     self.assertEqual(response.status_code, 200)
     self.ExecuteDeferredTasks('default')
-    self.assertTrue(j1.Start.called)
+    self.assertEqual(mock_job_start.call_count, 3)
 
 
 # TODO(dberris): Need to mock *all* of the back-end services that the various
@@ -250,7 +257,7 @@ class FifoSchedulerTest(test.TestCase):
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 @unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping old handler tests for python 3.')
+                 'Skipping as execution Engine setup not ready for python 3.')
 class FifoSchedulerExecutionEngineTest(bisection_test_util.BisectionTestBase):
 
   def setUp(self):
@@ -280,8 +287,6 @@ class FifoSchedulerExecutionEngineTest(bisection_test_util.BisectionTestBase):
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
-@unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping old handler tests for python 3.')
 class FifoSchedulerCostModelTest(test.TestCase):
 
   def setUp(self):
@@ -305,25 +310,33 @@ class FifoSchedulerCostModelTest(test.TestCase):
             }
         })
 
-  def testSchedule_AllBisections(self):
+  @mock.patch('dashboard.pinpoint.models.job.Job.Start')
+  def testSchedule_AllBisections(self, mock_job_start):
 
     def CreateAndSchedule():
       j = job.Job.New((), (),
                       arguments={'configuration': 'mock'},
                       comparison_mode='performance')
       scheduler.Schedule(j)
-      j.Start = mock.MagicMock(side_effect=j._Complete)
       return j
 
     jobs = [CreateAndSchedule() for _ in range(10)]
 
+    def CompleteJobAndPop():
+      jobs[0]._Complete()
+      jobs.pop(0)
+
+    mock_job_start.side_effect = CompleteJobAndPop
+
     # We want to ensure that every iteration, we'll have two of the bisections
     # started, given our cost model and budget.
-    for offset in range(4):
+    for offset in range(1, 5):
       response = self.testapp.get('/cron/fifo-scheduler')
       self.assertEqual(response.status_code, 200)
       self.ExecuteDeferredTasks('default')
-      self.assertTrue(jobs[offset * 2].Start.called,
-                      'Job %s not started.' % (jobs[offset * 2].job_id,))
-      self.assertTrue(jobs[offset * 2 + 1].Start.called,
-                      'Job %s not started.' % (jobs[offset * 2 + 1].job_id,))
+      self.assertEqual(job.Job.Start.call_count, offset * 2)
+      self.assertEqual(
+          scheduler.QueueStats('mock')['job_id_with_status'][0]['job_id'],
+          str(offset * 2 + 1))
+      self.assertEqual(
+          scheduler.QueueStats('mock')['queued_jobs'], 10 - offset * 2)
