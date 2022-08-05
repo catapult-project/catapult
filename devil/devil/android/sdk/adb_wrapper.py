@@ -454,15 +454,18 @@ class AdbWrapper(object):
         env=self._ADB_ENV,
         check_status=check_error)
 
-  def _Shell(self, command, timeout, retries, expect_status=None):
+  def _Shell(self,
+             command,
+             expect_status=None,
+             timeout=DEFAULT_TIMEOUT,
+             retries=DEFAULT_RETRIES):
     """Runs a shell command on the device.
 
     Args:
       command: A string with the shell command to run.
-        this value. Default is 0. If set to None the test is skipped.
+      expect_status: (optional) If None, skip status check.
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
-      expect_status: (optional) If None, skip status check.
 
     Returns:
       The output of the shell command as a string.
@@ -750,7 +753,7 @@ class AdbWrapper(object):
         |expect_status|.
     """
     # TODO(crbug/1021686): Add request for persistent shell.
-    output, status = self._Shell(command, timeout, retries, expect_status)
+    output, status = self._Shell(command, expect_status, timeout, retries)
     if expect_status is not None and status != expect_status:
       raise device_errors.AdbShellCommandFailedError(
           command, output, status=status, device_serial=self._device_serial)
