@@ -21,24 +21,13 @@ _DEFAULT_DAYS_TO_SHOW = 7
 _DEFAULT_CHANGES_TO_SHOW = 10
 _DEFAULT_SHERIFF_NAME = 'Chromium Perf Sheriff'
 
+if utils.IsRunningFlask():
+  from flask import request
 
-class MainHandler(request_handler.RequestHandler):
-  """Displays the main overview page."""
-
-  def get(self):
-    """Renders the UI for the main overview page.
-
-    Request parameters:
-      days: Number of days to show anomalies for (optional).
-      sheriff: Sheriff to show anomalies for (optional)
-      num_changes: The number of improvements/regressions to list.
-
-    Outputs:
-      A HTML page that shows recent regressions, improvements.
-    """
-    days = int(self.request.get('days', _DEFAULT_DAYS_TO_SHOW))
-    num_changes = int(self.request.get('num_changes', _DEFAULT_CHANGES_TO_SHOW))
-    sheriff_name = self.request.get('sheriff', _DEFAULT_SHERIFF_NAME)
+  def MainHandlerGet():
+    days = int(request.args.get('days', _DEFAULT_DAYS_TO_SHOW))
+    num_changes = int(request.args.get('num_changes', _DEFAULT_CHANGES_TO_SHOW))
+    sheriff_name = request.args.get('sheriff', _DEFAULT_SHERIFF_NAME)
     sheriff = ndb.Key('Sheriff', sheriff_name)
 
     anomalies = _GetRecentAnomalies(days, sheriff)
@@ -54,7 +43,44 @@ class MainHandler(request_handler.RequestHandler):
         'improvements': _AnomalyInfoDicts(top_improvements, tests),
         'regressions': _AnomalyInfoDicts(top_regressions, tests),
     }
-    self.RenderHtml('main.html', template_dict)
+    return request_handler.RequestHandlerRenderHtml('main.html', template_dict)
+
+else:
+
+  class MainHandler(request_handler.RequestHandler):
+    """Displays the main overview page."""
+
+    def get(self):
+      """Renders the UI for the main overview page.
+
+      Request parameters:
+        days: Number of days to show anomalies for (optional).
+        sheriff: Sheriff to show anomalies for (optional)
+        num_changes: The number of improvements/regressions to list.
+
+      Outputs:
+        A HTML page that shows recent regressions, improvements.
+      """
+      days = int(self.request.get('days', _DEFAULT_DAYS_TO_SHOW))
+      num_changes = int(
+          self.request.get('num_changes', _DEFAULT_CHANGES_TO_SHOW))
+      sheriff_name = self.request.get('sheriff', _DEFAULT_SHERIFF_NAME)
+      sheriff = ndb.Key('Sheriff', sheriff_name)
+
+      anomalies = _GetRecentAnomalies(days, sheriff)
+
+      top_improvements = _TopImprovements(anomalies, num_changes)
+      top_regressions = _TopRegressions(anomalies, num_changes)
+      tests = _GetKeyToTestDict(top_improvements + top_regressions)
+
+      template_dict = {
+          'num_days': days,
+          'num_changes': num_changes,
+          'sheriff_name': sheriff_name,
+          'improvements': _AnomalyInfoDicts(top_improvements, tests),
+          'regressions': _AnomalyInfoDicts(top_regressions, tests),
+      }
+      self.RenderHtml('main.html', template_dict)
 
 
 def _GetRecentAnomalies(days, sheriff):
