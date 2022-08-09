@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import base64
+import six
 
 from dashboard.services import gerrit_service
 from dashboard.services import request
@@ -93,7 +94,7 @@ def FileContents(repository_url, git_hash, path):
       use_cache=IsHash(git_hash),
       use_auth=True,
       scope=gerrit_service.GERRIT_SCOPE)
-  return base64.b64decode(response)
+  return six.ensure_str(base64.b64decode(response))
 
 
 def IsHash(git_hash):
