@@ -238,6 +238,30 @@ class AdbWrapper(object):
     def __exit__(self, exc_type, exc_value, tb):
       self.Stop()
 
+    def EnsureStarted(self, force_restart=False):
+      """Ensures the persistent shell is running and ready for commands.
+
+      Will restart the shell in case it has crashed.
+      """
+      if self._process is not None:
+        if force_restart:
+          self._process.kill()
+          retcode = None
+        else:
+          retcode = self._process.poll()
+          # If no return code, shell process is alive and hopefully well.
+          if retcode is None:
+            return
+        logging.warning("Adb PersistentShell crashed with code %d", retcode)
+        self._process = None
+
+      # self._process will always be None at this point.
+      self.Start()
+
+    def HardStop(self):
+      if self._process is not None and self._process.poll() is None:
+        self._process.kill()
+
     def Start(self):
       """Start the shell."""
       if self._process is not None:
