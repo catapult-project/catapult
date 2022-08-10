@@ -2233,6 +2233,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
 
     w = alert_group_workflow.AlertGroupWorkflow(
         canonical_group.get(),
+        sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
@@ -2295,6 +2296,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
 
     w = alert_group_workflow.AlertGroupWorkflow(
         duplicate_group.get(),
+        sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
@@ -2353,6 +2355,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
 
     w = alert_group_workflow.AlertGroupWorkflow(
         duplicate_group.get(),
+        sheriff_config=self._sheriff_config,
         issue_tracker=self._issue_tracker,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
