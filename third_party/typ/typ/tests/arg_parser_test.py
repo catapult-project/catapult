@@ -81,3 +81,17 @@ class ArgumentParserTest(unittest.TestCase):
 
         parser.parse_args(['--total-shards', '5', '--shard-index', '6'])
         self.assertEqual(parser.exit_status, 2)
+
+
+    def test_filter_coverage_options(self):
+        parser = ArgumentParser()
+
+        args = parser.parse_args(['--coverage',
+                                  ('--isolated-script-test-filter=blinkpy.'
+                                  'unittest.Test1::blinkpy.unittest.Test2')])
+        self.assertFalse(args.coverage)
+
+        args = parser.parse_args(['--coverage',
+                                  ('--test-filter=blinkpy.unittest.Test1::'
+                                  'blinkpy.unittest.Test2')])
+        self.assertFalse(args.coverage)
