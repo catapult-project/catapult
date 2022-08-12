@@ -332,7 +332,8 @@ class PerfControl(object):
     output = self._device.RunShellCommand(
         script, cwd=self._CPU_PATH, check_return=True, as_root=True, shell=True)
     output = '\n'.join(output).split('%~%')
-    return zip(self._cpu_files, output[0::2], (int(c) for c in output[1::2]))
+    return zip(cpu_list.split(' '), output[0::2],
+               (int(c) for c in output[1::2]))
 
   def _ConditionallyWriteCpuFiles(self, path, value, cpu_files, condition):
     template = (
