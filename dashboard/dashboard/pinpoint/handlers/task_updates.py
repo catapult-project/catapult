@@ -161,7 +161,7 @@ if utils.IsRunningFlask():
     except (ValueError, binascii.Error) as error:
       logging.error('Failed: %s', error)
 
-    make_response('', 204)
+    return make_response('', 204)
 
 else:
   import webapp2
