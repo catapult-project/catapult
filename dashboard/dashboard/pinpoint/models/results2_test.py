@@ -1051,6 +1051,32 @@ class GenerateResults2Test(testing_common.TestCase):
     self.assertEqual(1, len(mock_bqinsert.call_args_list))
 
   @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
+  @mock.patch.object(results2, '_RequestInsertBQRows')
+  @mock.patch.object(results2, '_BQService')
+  @mock.patch.object(results2.render_histograms_viewer,
+                     'RenderHistogramsViewer')
+  @mock.patch.object(results2, '_JsonFromExecution')
+  @mock.patch.object(swarming, 'Swarming')
+  @mock.patch.object(commit.Commit, 'GetOrCacheCommitInfo')
+  def testTypeDispatch_PushBQ_CH_Many_Rows(self, mock_commit_info,
+                                           mock_swarming, mock_json,
+                                           mock_render, mock_bqservice,
+                                           mock_reqbqinsert):
+    histograms = []
+    for i in range(1001):
+      some_histogram = histogram_module.Histogram('someMetric-' + str(i),
+                                                  'count')
+      some_histogram.AddSample(i)
+      histograms.append(some_histogram)
+    expected_histogram_set = histogram_set.HistogramSet(histograms)
+    job = _SetupBQTest(mock_commit_info, mock_swarming, mock_render, mock_json,
+                       expected_histogram_set)
+
+    results2.GenerateResults2(job)
+    self.assertEqual(1, len(mock_bqservice.call_args_list))
+    self.assertEqual(3, len(mock_reqbqinsert.call_args_list))
+
+  @mock.patch.object(results2, '_GcsFileStream', mock.MagicMock())
   @mock.patch.object(results2, '_InsertBQRows')
   @mock.patch.object(results2.render_histograms_viewer,
                      'RenderHistogramsViewer')

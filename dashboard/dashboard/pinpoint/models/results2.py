@@ -11,6 +11,8 @@ import logging
 import os
 import uuid
 import six
+import sys
+import json
 
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
@@ -482,16 +484,31 @@ def _ConvertDatetimeToBQ(dt):
 def _InsertBQRows(project_id, dataset_id, table_id, rows, num_retries=5):
   service = _BQService()
   rows = [{'insertId': str(uuid.uuid4()), 'json': row} for row in rows]
-  insert_data = {'rows': rows}
-  logging.info("Saving %d rows to BQ.", len(rows))
-  response = service.tabledata().insertAll(
+  logging.info("Saving %d rows to BQ. Total size: %d.", len(rows),
+               sys.getsizeof(json.dumps(rows)))
+  row_data_list = _CreateRowDataLists(rows)
+  for i, row_list in enumerate(row_data_list):
+    logging.info('Saving rows to BQ. Batch #%d with size %d.', i,
+                 sys.getsizeof(json.dumps(row_list)))
+    response = _RequestInsertBQRows(service, project_id, dataset_id, table_id,
+                                    row_list, num_retries)
+    if 'insertErrors' in response:
+      logging.error("Insert failed: %s", str(response))
+
+
+def _RequestInsertBQRows(service,
+                         project_id,
+                         dataset_id,
+                         table_id,
+                         row_list,
+                         num_retries=5):
+  return service.tabledata().insertAll(
       projectId=project_id,
       datasetId=dataset_id,
       tableId=table_id,
-      body=insert_data).execute(num_retries=num_retries)
-
-  if 'insertErrors' in response:
-    logging.error("Insert failed: %s", str(response))
+      body={
+          'rows': row_list
+      }).execute(num_retries=num_retries)
 
 
 def _BQService():
@@ -502,3 +519,13 @@ def _BQService():
     credentials = credentials.create_scoped(
         'https://www.googleapis.com/auth/bigquery')
   return build('bigquery', 'v2', credentials=credentials)
+
+
+def _CreateRowDataLists(rows):
+  # crbug/1340323, crbug/1352869
+  # We saw complains on query size in Python 3 runtime. In order to limit the
+  # size, we will separate the rows into multiple batches. Without a good
+  # estimate, we are using 1000 rows as a conservative guess.
+  batch_size = 1000
+
+  return [rows[i:i + batch_size] for i in range(0, len(rows), batch_size)]
