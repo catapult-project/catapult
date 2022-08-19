@@ -112,13 +112,6 @@ def _GetReleaseVersion():
   return None
 
 
-def _GetSdkVersion():
-  # pylint: disable=protected-access
-  raw_version = AdbWrapper._RunAdbCmd(
-      ['shell', 'getprop', 'ro.build.version.sdk'], timeout=2, retries=0)
-  return int(raw_version.rstrip())
-
-
 def _ShouldRetryAdbCmd(exc):
   # Errors are potentially transient and should be retried, with the exception
   # of NoAdbError. Exceptions [e.g. generated from SIGTERM handler] should be
@@ -181,7 +174,6 @@ class AdbWrapper(object):
   _adb_path = lazy.WeakConstant(_FindAdb)
   _adb_protocol_version = lazy.WeakConstant(_GetProtocolVersion)
   _adb_release_version = lazy.WeakConstant(_GetReleaseVersion)
-  _adb_sdk_version = lazy.WeakConstant(_GetSdkVersion)
 
   def __init__(self, device_serial, skip_device_check=True):
     """Initializes the AdbWrapper.
@@ -362,15 +354,6 @@ class AdbWrapper(object):
     http://issuetracker.google.com/218716282#comment8
     """
     return cls._adb_release_version.read()
-
-  @classmethod
-  def SdkVersion(cls):
-    """Returns the adb "shell getprop ro.build.version.sdk"
-
-    Used for when using arguments that are only supported on later
-    Android versions
-    """
-    return cls._adb_sdk_version.read()
 
   @classmethod
   def _BuildAdbCmd(cls, args, device_serial, cpu_affinity=None):
@@ -628,7 +611,9 @@ class AdbWrapper(object):
 
     Throws: device_errors.DeviceVersionError
     """
-    device_version = self.SdkVersion()
+    raw_version = self._RunDeviceAdbCmd(
+        ['shell', 'getprop', 'ro.build.version.sdk'], timeout=2, retries=0)
+    device_version = int(raw_version.rstrip())
     if device_version < expected_sdk:
       raise device_errors.DeviceVersionError(
           '%s: SDK version %d expected but %d reported' %
