@@ -25,6 +25,7 @@ from devil import base_error
 from devil import devil_env
 from devil.android import decorators
 from devil.android import device_errors
+from devil.android.sdk import version_codes
 from devil.utils import cmd_helper
 from devil.utils import lazy
 from devil.utils import timeout_retry
@@ -909,14 +910,14 @@ class AdbWrapper(object):
         already being forwarded.
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
+    Returns:
+      The output of the "adb forward" command as a string.
     """
     cmd = ['forward']
     if not allow_rebind:
       cmd.append('--no-rebind')
     cmd.extend([str(local), str(remote)])
-    output = self._RunDeviceAdbCmd(cmd, timeout, retries).strip()
-    if output:
-      logger.warning('Unexpected output from "adb forward": %s', output)
+    return self._RunDeviceAdbCmd(cmd, timeout, retries).strip()
 
   def ForwardRemove(self,
                     local,
@@ -929,7 +930,69 @@ class AdbWrapper(object):
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
     """
-    self._RunDeviceAdbCmd(['forward', '--remove', str(local)], timeout, retries)
+    output = self._RunDeviceAdbCmd(
+        ['forward', '--remove', str(local)], timeout, retries)
+    if output:
+      logger.warning('Unexpected output from "adb forward --remove": %s',
+                     output)
+
+  def Reverse(self,
+              remote,
+              local,
+              allow_rebind=False,
+              timeout=DEFAULT_TIMEOUT,
+              retries=DEFAULT_RETRIES):
+    """Forward socket connections from the remote socket to the local socket.
+
+    Sockets are specified by one of:
+      tcp:<port>
+      localabstract:<unix domain socket name>
+      localreserved:<unix domain socket name>
+      localfilesystem:<unix domain socket name>
+
+    Args:
+      remote: The device socket.
+      local: The host socket.
+      allow_rebind: A boolean indicating whether adb may rebind a remote socket;
+        otherwise, the default, an exception is raised if the remote socket is
+        already being forwarded.
+      timeout: (optional) Timeout per try in seconds.
+      retries: (optional) Number of retries to attempt.
+    Returns:
+      The output of the "adb reverse" command as a string.
+    Raises:
+      DeviceVersionError if the device SDK version does not support reverse
+        forwarding
+    """
+    self._CheckSdkVersion(version_codes.LOLLIPOP,
+                          error_message='Reverse forwarding is not supported')
+    cmd = ['reverse']
+    if not allow_rebind:
+      cmd.append('--no-rebind')
+    cmd.extend([str(remote), str(local)])
+    return self._RunDeviceAdbCmd(cmd, timeout, retries).strip()
+
+  def ReverseRemove(self,
+                    remote,
+                    timeout=DEFAULT_TIMEOUT,
+                    retries=DEFAULT_RETRIES):
+    """Remove a reverse forward socket connection.
+
+    Args:
+      local: The device socket.
+      timeout: (optional) Timeout per try in seconds.
+      retries: (optional) Number of retries to attempt.
+    Raises:
+      DeviceVersionError if the device SDK version does not support reverse
+        forwarding
+    """
+    self._CheckSdkVersion(version_codes.LOLLIPOP,
+                          error_message='Reverse forwarding is not supported')
+    output = self._RunDeviceAdbCmd(
+        ['reverse', '--remove', str(remote)], timeout, retries)
+    if output:
+      logger.warning('Unexpected output from "adb reverse --remove": %s',
+                     output)
 
   def ForwardList(self, timeout=DEFAULT_TIMEOUT, retries=DEFAULT_RETRIES):
     """List all currently forwarded socket connections.
