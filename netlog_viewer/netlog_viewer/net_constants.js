@@ -99,7 +99,6 @@ function setNetLogConstantsForTest() {
   LoadFlag = {
     NORMAL: 0,
     MAIN_FRAME_DEPRECATED: 1 << 12,
-    MAYBE_USER_GESTURE: 1 << 15,
     VERIFY_EV_CERT: 1 << 8
   };
 
