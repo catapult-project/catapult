@@ -432,7 +432,7 @@ class DeviceUtils(object):
   _MAX_ADB_COMMAND_LENGTH = 512
   _MAX_ADB_OUTPUT_LENGTH = 32768
   _RESUMED_LAUNCHER_ACTIVITY_RE = re.compile(
-      r'\s*mResumedActivity.*(Launcher|launcher).*')
+      r'\s*(m|top)ResumedActivity.*(Launcher|launcher).*')
   _VALID_SHELL_VARIABLE = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*$')
 
   LOCAL_PROPERTIES_PATH = posixpath.join('/', 'data', 'local.prop')

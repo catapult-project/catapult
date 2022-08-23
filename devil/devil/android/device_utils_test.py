@@ -2419,6 +2419,14 @@ class DeviceUtilsGoHomeTest(DeviceUtilsTest):
         [' mResumedActivity .launcher/.']):
       self.device.GoHome()
 
+  def testGoHome_alreadyFocusedWithTopResumedActivity(self):
+    with self.assertCall(
+        self.call.device.RunShellCommand(['dumpsys', 'activity', 'activities'],
+                                         check_return=True,
+                                         large_output=True),
+        ['topResumedActivity=LauncherActivity']):
+      self.device.GoHome()
+
   def testGoHome_obtainsFocusAfterGoingHome(self):
     with self.assertCalls(
         (self.call.device.RunShellCommand(['dumpsys', 'activity', 'activities'],
