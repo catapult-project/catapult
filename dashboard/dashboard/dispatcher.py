@@ -10,6 +10,7 @@ from dashboard.common import utils
 
 if utils.IsRunningFlask():
   from dashboard import main
+  from dashboard import navbar
   from dashboard import sheriff_config_poller
 
   from flask import Flask
@@ -18,6 +19,10 @@ if utils.IsRunningFlask():
   @APP.route('/')
   def MainHandlerGet():
     return main.MainHandlerGet()
+
+  @APP.route('/navbar')
+  def NavbarHandlerPost():
+    return navbar.NavbarHandlerPost()
 
   @APP.route('/configs/update')
   def SheriffConfigPollerGet():
