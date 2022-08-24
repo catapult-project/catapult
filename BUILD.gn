@@ -93,7 +93,6 @@ group("telemetry_chrome_test_support") {
     "third_party/pyasn1_modules/",
     "third_party/pyfakefs/",
     "third_party/pyparsing/",
-    "third_party/pyserial/",
     "third_party/python_gflags/",
     "third_party/redux/",
     "third_party/requests/",
