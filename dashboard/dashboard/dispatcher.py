@@ -11,6 +11,7 @@ from dashboard.common import utils
 if utils.IsRunningFlask():
   from dashboard import alerts
   from dashboard import edit_site_config
+  from dashboard import graph_csv
   from dashboard import main
   from dashboard import navbar
   from dashboard import sheriff_config_poller
@@ -33,6 +34,14 @@ if utils.IsRunningFlask():
   @APP.route('/edit_site_config', methods=['POST'])
   def EditSiteConfigHandlerPost():
     return edit_site_config.EditSiteConfigHandlerPost()
+
+  @APP.route('/graph_csv', methods=['GET'])
+  def GraphCSVHandlerGet():
+    return graph_csv.GraphCSVGet()
+
+  @APP.route('/graph_csv', methods=['POST'])
+  def GraphCSVHandlerPost():
+    return graph_csv.GraphCSVPost()
 
   @APP.route('/')
   def MainHandlerGet():
