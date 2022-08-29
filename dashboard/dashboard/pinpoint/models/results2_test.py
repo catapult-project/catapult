@@ -417,6 +417,7 @@ class GenerateResults2Test(testing_common.TestCase):
     expected_rows = [{
         'job_start_time': _TEST_START_TIME_STR,
         'batch_id': 'fake_batch_id',
+        'attempt_count': 2,
         'dims': {
             'start_time': '2022-06-09 20:21:22.123456',
             'swarming_task_id': 'a4b',
@@ -456,6 +457,7 @@ class GenerateResults2Test(testing_common.TestCase):
     }, {
         'job_start_time': _TEST_START_TIME_STR,
         'batch_id': 'fake_batch_id',
+        'attempt_count': 2,
         'dims': {
             'start_time': '2022-06-09 20:21:22.123456',
             'swarming_task_id': 'a4b',
@@ -536,6 +538,7 @@ class GenerateResults2Test(testing_common.TestCase):
     expected_rows = [{
         'job_start_time': _TEST_START_TIME_STR,
         'batch_id': 'fake_batch_id',
+        'attempt_count': 2,
         'dims': {
             'start_time': '2022-06-09 20:21:22.123456',
             'swarming_task_id': 'a4b',
@@ -588,6 +591,7 @@ class GenerateResults2Test(testing_common.TestCase):
     }, {
         'job_start_time': _TEST_START_TIME_STR,
         'batch_id': 'fake_batch_id',
+        'attempt_count': 2,
         'dims': {
             'start_time': '2022-06-09 20:21:22.123456',
             'swarming_task_id': 'a4b',
@@ -665,6 +669,7 @@ class GenerateResults2Test(testing_common.TestCase):
     expected_rows = [{
         'job_start_time': _TEST_START_TIME_STR,
         'batch_id': 'fake_batch_id',
+        'attempt_count': 2,
         'dims': {
             'start_time': '2022-06-09 20:21:22.123456',
             'swarming_task_id': 'a4b',
@@ -701,6 +706,7 @@ class GenerateResults2Test(testing_common.TestCase):
     }, {
         'job_start_time': _TEST_START_TIME_STR,
         'batch_id': 'fake_batch_id',
+        'attempt_count': 2,
         'dims': {
             'start_time': '2022-06-09 20:21:22.123456',
             'swarming_task_id': 'a4b',
@@ -826,6 +832,7 @@ class GenerateResults2Test(testing_common.TestCase):
     expected_rows = [{
         'job_start_time': _TEST_START_TIME_STR,
         'batch_id': 'fake_batch_id',
+        'attempt_count': 2,
         'dims': {
             'start_time': '2022-06-09 20:21:22.123456',
             'swarming_task_id': 'a4b',
@@ -926,6 +933,7 @@ class GenerateResults2Test(testing_common.TestCase):
     }, {
         'job_start_time': _TEST_START_TIME_STR,
         'batch_id': 'fake_batch_id',
+        'attempt_count': 2,
         'dims': {
             'start_time': '2022-06-09 20:21:22.123456',
             'swarming_task_id': 'a4b',
@@ -1126,6 +1134,7 @@ def _CreateGeneralRow(checkout, variant, metric, values):
   return {
       'job_start_time': _TEST_START_TIME_STR,
       'batch_id': 'fake_batch_id',
+      'attempt_count': 2,
       'dims': {
           'start_time': '2022-06-09 20:21:22.123456',
           'swarming_task_id': 'a4b',
@@ -1290,6 +1299,7 @@ class _JobStateFake(object):
         for change, attempt_list in attempts.items() for attempt in attempt_list
     }
     logging.debug('JobStateFake = %s', self._attempts)
+    self.attempt_count = len(self._attempts)
 
   @property
   def _changes(self):

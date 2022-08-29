@@ -21,4 +21,5 @@ message Result {
   Dims dims = 4;
   string metric = 5;
   repeated float values = 6;
+  int32 attempt_count = 7;
 }

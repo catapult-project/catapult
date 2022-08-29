@@ -427,6 +427,7 @@ def _PopulateMetadata(job, h):
   md["job_start_time"] = _ConvertDatetimeToBQ(job.started_time)
   md["batch_id"] = job.batch_id
   md["run_id"] = job.job_id
+  md["attempt_count"] = job.state.attempt_count
   md["dims"] = {}
   md["dims"]["device"] = {}
   md["dims"]["device"]["cfg"] = job.configuration
