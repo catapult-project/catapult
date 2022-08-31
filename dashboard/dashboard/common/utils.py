@@ -879,7 +879,7 @@ def RequestParamsMixed(req):
   """
   result = {}
   multi = {}
-  for key, value in req.form.items(True):
+  for key, value in req.values.items(True):
     if key in result:
       # We do this to not clobber any lists that are
       # *actual* values in this dictionary:
