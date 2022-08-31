@@ -89,7 +89,26 @@ found in the LICENSE file.
     </style>
 
     <template is="dom-if" if="[[changeState]]">
-      <h2 class="commit-title">Commit [[changeString(changeState.change)]]</h2>
+      <h2 class="commit-title">Commit [[changeString(changeState.change)]]
+        <copy id="casDownload" on-click="casDownload" isolate="{{isolateDetail(changeState.attempts.0.executions.0.details)}}">
+           ⬇️
+        </copy>
+        <paper-tooltip for="casDownload" type="explanatory">
+          Command to download CAS binaries
+        </paper-tooltip>
+        <copy id="copyBenchmark" on-click="copyBenchmark" suffix="[[getArguments(job)]]">
+          🖥️
+        </copy>
+        <paper-tooltip for="copyBenchmark" type="explanatory">
+          Command to run benchmark
+        </paper-tooltip>
+        <copy id="openDownloadDialog" on-click="openDownloadDialog">
+          ❓
+        </copy>
+        <paper-tooltip for="openDownloadDialog" type="explanatory">
+          Help
+        </paper-tooltip>
+      </h2>
 
       <change-info change="[[changeState.change]]"></change-info>
 
@@ -120,10 +139,45 @@ found in the LICENSE file.
         <execution-details execution="[[currentExecution(changeState.attempts, attemptIndex, index)]]"></execution-details>
       </template>
     </template>
+
+    <paper-dialog id="tooltip_download" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
+      <h2>Buttons usage:</h2>
+      <p>
+        ⬇️: Copy the CAS command which downloads the corresponding isolate binaries in terminal
+      </p>
+      <p>
+        🖥️: Copy the benchmark command which kicks off the tests
+      </p>
+      <h2>Pre-requisite: depot_tools and CAS</h2>
+      <div>
+        <p>
+          You need <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/docs/windows_build_instructions.md#install"
+            target="_blank">depot_tools </a>
+          and <a href="https://g3doc.corp.google.com/devtools/foundry/g3doc/dev/architecture/cas.md?cl=head" target="_blank">CAS</a> installed to run the tests locally.
+        </p>
+        <code>
+          # (if needed, use "\${platform}" as-is) cipd install "infra/tools/luci/cas/\${platform}" -root bar
+        </code>
+        </br>
+        <code>
+          # (if needed) ./bar/cas login
+        </code>
+      </div>
+    </paper-dialog>
+    <paper-toast id="casDownloadToast"></paper-toast>
+    <paper-toast id="benchmarkToast" text="Benchmark command copied"></paper-toast>
   </template>
 
   <script>
     'use strict';
+
+    const _CAS_DOWNLOAD_SUCCESS_PREFIX = 'Download command copied for isolate: '
+    const _CAS_DOWNLOAD_PREFIX = 'cas download -cas-instance projects/chrome-swarming/instances/default_instance -digest '
+    const _CAS_DOWNLOAD_SUFFIX = ' -dir foo'
+    const _BENCHMARK_CMD_WINDOWS = 'vpython3 foo/tools/perf/run_benchmark --output-format=json-test-results --output-dir=blah -d --pageset-repeat 1 --browser release_x64'
+    const _BENCHMARK_CMD = 'foo/tools/perf/run_benchmark --output-format=json-test-results --output-dir=blah -d --pageset-repeat 1 --browser release'
+    const _BENCHMARK_ARGS = {'benchmark': ' ', 'story': ' --story-filter ', 'story_tags': ' --story-tag-filter '}
+
     Polymer({
       is: 'change-details',
 
@@ -140,6 +194,57 @@ found in the LICENSE file.
           type: Number,
           value: 0
         },
+      },
+
+      getArguments(job) {
+        if (!job) {
+          return '';
+        }
+        const args = Object.assign({}, job.arguments);
+        let res = '';
+        for (const key in _BENCHMARK_ARGS) {
+          if (args[key]) {
+            res += _BENCHMARK_ARGS[key];
+            if (key === 'story') {
+              res += '^' + args[key] + '$';
+            } else {
+              res += args[key];
+            }
+          }
+        }
+        return res;
+      },
+
+      copyBenchmark(e) {
+        const args = e.target.suffix;
+        if (window.navigator.userAgent.indexOf('Windows') != -1) {
+          navigator.clipboard.writeText(_BENCHMARK_CMD_WINDOWS + args);
+        } else {
+          navigator.clipboard.writeText(_BENCHMARK_CMD + args);
+        }
+        document.getElementById('benchmarkToast').show();
+      },
+
+      openDownloadDialog() {
+        this.$.tooltip_download.open();
+      },
+
+      isolateDetail(details) {
+        let i = 0;
+        while (i < details.length) {
+          if (details[i].key == 'isolate') {
+            return details[i].value;
+          }
+          i += 1;
+        }
+      },
+
+      casDownload(e) {
+        let isolate  = e.target.isolate;
+        navigator.clipboard.writeText(_CAS_DOWNLOAD_PREFIX + isolate + _CAS_DOWNLOAD_SUFFIX);
+        const toast = document.getElementById('casDownloadToast');
+        toast.text = _CAS_DOWNLOAD_SUCCESS_PREFIX + isolate;
+        toast.show();
       },
 
       changeString(change) {
