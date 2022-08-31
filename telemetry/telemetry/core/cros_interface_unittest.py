@@ -280,7 +280,8 @@ class CrOSInterfaceTest(unittest.TestCase):
 
       self.assertTrue(remote_port_1 != remote_port_2)
 
-  @decorators.Enabled('chromeos')
+  # TODO(b/244116695, crbug.com/1358322): Re-enable when fix is in.
+  @decorators.Disabled('all')
   def testTakeScreenshotWithPrefix(self):
     with self._GetCRI() as cri:
       def _Cleanup():
