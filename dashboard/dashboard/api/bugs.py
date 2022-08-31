@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import six
+import logging
 
 from dashboard.api import api_request_handler
 from dashboard.api import utils as api_utils
@@ -36,6 +37,7 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
     Outputs:
       JSON data for the bug, see README.md.
     """
+    logging.debug('crbug/1298177 - /api/bugs handler triggered')
     if len(args) == 0:
       raise api_request_handler.BadRequestError('Invalid bug ID "None".')
     bug_id = args[0]
@@ -119,6 +121,7 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
 class BugsWithProjectHandler(BugsHandler):
 
   def Post(self, *args, **kwargs):
+    logging.debug('crbug/1298177 - /api/bugs project handler triggered')
     del kwargs  # Unused.
     # We translate the order of the arguments, because the first arg is the
     # project and the second is the bug id.

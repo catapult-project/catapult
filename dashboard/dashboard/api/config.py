@@ -6,6 +6,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import logging
+
 from dashboard.api import api_request_handler
 from dashboard.common import namespaced_stored_object
 from dashboard import revision_info_client
@@ -22,6 +24,7 @@ class ConfigHandler(api_request_handler.ApiRequestHandler):
     pass
 
   def Post(self, *args, **kwargs):
+    logging.debug('crbug/1298177 - /api/config handler triggered')
     del args, kwargs  # Unused.
     key = self.request.get('key')
     if key not in ALLOWLIST:

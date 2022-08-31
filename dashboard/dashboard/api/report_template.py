@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import json
 import six
+import logging
 
 from dashboard.api import api_request_handler
 from dashboard.models import report_template
@@ -21,6 +22,7 @@ class ReportTemplateHandler(api_request_handler.ApiRequestHandler):
 
   def Post(self, *args, **kwargs):
     del args, kwargs  # Unused.
+    logging.debug('crbug/1298177 - /api/report_template handler triggered')
     template = json.loads(self.request.get('template'))
     name = self.request.get('name', None)
     owners = self.request.get('owners', None)

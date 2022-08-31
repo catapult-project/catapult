@@ -8,6 +8,8 @@ from __future__ import absolute_import
 
 from google.appengine.ext import ndb
 
+import logging
+
 from dashboard import associate_alerts
 from dashboard.api import api_request_handler
 from dashboard.common import utils
@@ -22,6 +24,7 @@ class ExistingBugHandler(api_request_handler.ApiRequestHandler):
 
   def Post(self, *args, **kwargs):
     del args, kwargs  # Unused.
+    logging.debug('crbug/1298177 - /api/existing_bug handler triggered')
     keys = self.request.get_all('key')
     bug_id = int(self.request.get('bug'))
     project_id = self.request.get('project_id', 'chromium')
