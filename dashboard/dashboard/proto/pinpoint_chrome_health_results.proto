@@ -127,4 +127,5 @@ message ChromeHealthResult {
 
   // Overall job start time
   google.protobuf.Timestamp job_start_time = 5;
+  int32 attempt_count = 6;
 }
