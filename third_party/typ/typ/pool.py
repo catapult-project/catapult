@@ -20,10 +20,10 @@ import traceback
 from typ.host import Host
 
 
-def make_pool(host, jobs, callback, context, pre_fn, post_fn):
+def make_pool(host, jobs, stable_jobs, callback, context, pre_fn, post_fn):
     _validate_args(context, pre_fn, post_fn)
     if jobs > 1:
-        return _ProcessPool(host, jobs, callback, context, pre_fn, post_fn)
+        return _ProcessPool(host, jobs, stable_jobs, callback, context, pre_fn, post_fn)
     else:
         return _AsyncPool(host, jobs, callback, context, pre_fn, post_fn)
 
@@ -55,12 +55,27 @@ def _validate_args(context, pre_fn, post_fn):
         raise ValueError('post_fn passed to make_pool is not picklable')
 
 
+class _RequestPool(object):
+    def __init__(self, jobs, stable_jobs):
+        self.next_request_index = 0
+        self.stable_jobs = stable_jobs
+        num_queues = jobs if stable_jobs else 1
+        self.requests = [multiprocessing.Queue() for _ in range(num_queues)]
+
+    def put(self, request):
+        self.get_request_queue(self.next_request_index).put(request)
+        self.next_request_index = (self.next_request_index + 1) % len(self.requests)
+
+    def get_request_queue(self, job):
+        return self.requests[job] if self.stable_jobs else self.requests[0]
+
+
 class _ProcessPool(object):
 
-    def __init__(self, host, jobs, callback, context, pre_fn, post_fn):
+    def __init__(self, host, jobs, stable_jobs, callback, context, pre_fn, post_fn):
         self.host = host
         self.jobs = jobs
-        self.requests = multiprocessing.Queue()
+        self.request_pool = _RequestPool(jobs, stable_jobs)
         self.responses = multiprocessing.Queue()
         self.workers = []
         self.discarded_responses = []
@@ -68,15 +83,15 @@ class _ProcessPool(object):
         self.erred = False
         for worker_num in range(1, jobs + 1):
             w = multiprocessing.Process(target=_loop,
-                                        args=(self.requests, self.responses,
-                                              host.for_mp(), worker_num,
-                                              callback, context,
+                                        args=(self.request_pool,
+                                              self.responses, host.for_mp(),
+                                              worker_num, callback, context,
                                               pre_fn, post_fn))
             w.start()
             self.workers.append(w)
 
-    def send(self, msg):
-        self.requests.put((_MessageType.Request, msg))
+    def send(self, msg, msg_type=_MessageType.Request):
+        self.request_pool.put((_MessageType.Request, msg))
 
     def get(self):
         msg_type, resp = self.responses.get()
@@ -89,7 +104,7 @@ class _ProcessPool(object):
 
     def close(self):
         for _ in self.workers:
-            self.requests.put((_MessageType.Close, None))
+            self.request_pool.put((_MessageType.Close, None))
         self.closed = True
 
     def join(self):
@@ -152,8 +167,9 @@ class _ProcessPool(object):
 
 # 'Too many arguments' pylint: disable=R0913
 
-def _loop(requests, responses, host, worker_num,
+def _loop(request_pool, responses, host, worker_num,
           callback, context, pre_fn, post_fn, should_loop=True):
+    requests = request_pool.get_request_queue(worker_num - 1)
     host = host or Host()
     try:
         context_after_pre = pre_fn(host, worker_num, context)
@@ -230,9 +246,10 @@ class _PoolGroup(object):
 
     If using global pools, the scoped pools map to the global pool.
     """
-    def __init__(self, host, jobs, callback, context, pre_fn, post_fn):
+    def __init__(self, host, jobs, stable_jobs, callback, context, pre_fn, post_fn):
         self.host = host
         self.jobs = jobs
+        self.stable_jobs = stable_jobs
         self.callback = callback
         self.context = context
         self.pre_fn = pre_fn
@@ -273,7 +290,7 @@ class _PoolGroup(object):
 class _GlobalPoolGroup(_PoolGroup):
     def make_global_pool(self):
         assert self.global_pool is None
-        self.global_pool = make_pool(self.host, self.jobs,
+        self.global_pool = make_pool(self.host, self.jobs, self.stable_jobs,
                                      self.callback, self.context,
                                      self.pre_fn, self.post_fn)
         return self.global_pool
@@ -310,7 +327,7 @@ class _ScopedPoolGroup(_PoolGroup):
     def make_parallel_pool(self):
         if self.parallel_pool:
             assert self.parallel_pool.closed
-        self.parallel_pool = make_pool(self.host, self.jobs,
+        self.parallel_pool = make_pool(self.host, self.jobs, self.stable_jobs,
                                        self.callback, self.context,
                                        self.pre_fn, self.post_fn)
         return self.parallel_pool
@@ -324,7 +341,7 @@ class _ScopedPoolGroup(_PoolGroup):
     def make_serial_pool(self):
         if self.serial_pool:
             assert self.serial_pool.closed
-        self.serial_pool = make_pool(self.host, 1, self.callback,
+        self.serial_pool = make_pool(self.host, 1, self.stable_jobs, self.callback,
                                      self.context, self.pre_fn,
                                      self.post_fn)
         return self.serial_pool
@@ -336,7 +353,7 @@ class _ScopedPoolGroup(_PoolGroup):
         return self.serial_pool.join()
 
 
-def make_pool_group(host, jobs, callback, context, pre_fn, post_fn, use_global):
+def make_pool_group(host, jobs, stable_jobs, callback, context, pre_fn, post_fn, use_global):
     if use_global:
-        return _GlobalPoolGroup(host, jobs, callback, context, pre_fn, post_fn)
-    return _ScopedPoolGroup(host, jobs, callback, context, pre_fn, post_fn)
+        return _GlobalPoolGroup(host, jobs, stable_jobs, callback, context, pre_fn, post_fn)
+    return _ScopedPoolGroup(host, jobs, stable_jobs, callback, context, pre_fn, post_fn)

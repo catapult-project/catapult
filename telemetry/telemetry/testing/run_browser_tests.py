@@ -276,6 +276,7 @@ def RunTests(args):
   typ_runner.args.all = options.all
   typ_runner.args.expectations_files = options.expectations_files
   typ_runner.args.jobs = options.jobs
+  typ_runner.args.stable_jobs = options.stable_jobs
   typ_runner.args.list_only = options.list_only
   typ_runner.args.metadata = options.metadata
   typ_runner.args.passthrough = options.passthrough

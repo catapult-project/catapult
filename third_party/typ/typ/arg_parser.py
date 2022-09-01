@@ -141,6 +141,11 @@ class ArgumentParser(argparse.ArgumentParser):
                               default=self._host.cpu_count(),
                               help=('Runs N jobs in parallel '
                                     '(defaults to %(default)s).'))
+            self.add_argument('--stable-jobs', action='store_true',
+                              default=False,
+                              help='When multiple jobs are used, round-robin '
+                                   'assignment of test inputs so the job '
+                                   'assignment is stable regardless of runtime.')
             self.add_argument('-l', '--list-only', action='store_true',
                               help='Lists all the test names found and exits.')
             self.add_argument('-n', '--dry-run', action='store_true',

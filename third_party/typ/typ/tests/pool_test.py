@@ -51,7 +51,7 @@ class TestPool(test_case.TestCase):
     def run_basic_test(self, jobs):
         host = Host()
         context = {'pre': False, 'post': False}
-        pool = make_pool(host, jobs, _echo, context, _pre, _post)
+        pool = make_pool(host, jobs, False, _echo, context, _pre, _post)
         pool.send('hello')
         pool.send('world')
         msg1 = pool.get()
@@ -71,17 +71,17 @@ class TestPool(test_case.TestCase):
             host = pool.host
         else:
             host = Host()
-            pool = _ProcessPool(host, 0, _stub, None, _stub, _stub)
+            pool = _ProcessPool(host, 0, False, _stub, None, _stub, _stub)
             pool.send('hello')
 
         worker_num = 1
-        _loop(pool.requests, pool.responses, host, worker_num, callback,
+        _loop(pool.request_pool, pool.responses, host, worker_num, callback,
               None, _stub, _stub, should_loop=False)
         return pool
 
     def test_async_close(self):
         host = Host()
-        pool = make_pool(host, 1, _echo, None, _stub, _stub)
+        pool = make_pool(host, 1, False, _echo, None, _stub, _stub)
         pool.join()
 
     def test_basic_one_job(self):
@@ -93,7 +93,7 @@ class TestPool(test_case.TestCase):
     def test_join_discards_messages(self):
         host = Host()
         context = {'pre': False, 'post': False}
-        pool = make_pool(host, 2, _echo, context, _pre, _post)
+        pool = make_pool(host, 2, False, _echo, context, _pre, _post)
         pool.send('hello')
         pool.close()
         pool.join()
@@ -102,7 +102,7 @@ class TestPool(test_case.TestCase):
     @unittest.skipIf(sys.version_info.major == 3, 'fails under python3')
     def test_join_gets_an_error(self):
         host = Host()
-        pool = make_pool(host, 2, _error, None, _stub, _stub)
+        pool = make_pool(host, 2, False, _error, None, _stub, _stub)
         pool.send('hello')
         pool.close()
         try:
@@ -112,7 +112,7 @@ class TestPool(test_case.TestCase):
 
     def test_join_gets_an_interrupt(self):
         host = Host()
-        pool = make_pool(host, 2, _interrupt, None, _stub, _stub)
+        pool = make_pool(host, 2, False, _interrupt, None, _stub, _stub)
         pool.send('hello')
         pool.close()
         self.assertRaises(KeyboardInterrupt, pool.join)
@@ -121,7 +121,7 @@ class TestPool(test_case.TestCase):
         pool = self.run_through_loop()
         resp = pool.get()
         self.assertEqual(resp, None)
-        pool.requests.put((_MessageType.Close, None))
+        pool.request_pool.put((_MessageType.Close, None))
         pool.close()
         self.run_through_loop(pool=pool)
         pool.join()
@@ -131,8 +131,8 @@ class TestPool(test_case.TestCase):
         # on a closed queue; we can't simulate this directly through the
         # api in a single thread.
         pool = self.run_through_loop()
-        pool.requests.put((_MessageType.Request, None))
-        pool.requests.put((_MessageType.Close, None))
+        pool.request_pool.put((_MessageType.Request, None))
+        pool.request_pool.put((_MessageType.Close, None))
         self.run_through_loop(pool=pool)
         pool.join()
 
@@ -140,14 +140,14 @@ class TestPool(test_case.TestCase):
     def test_loop_get_raises_error(self):
         pool = self.run_through_loop(_error)
         self.assertRaises(Exception, pool.get)
-        pool.requests.put((_MessageType.Close, None))
+        pool.request_pool.put((_MessageType.Close, None))
         pool.close()
         pool.join()
 
     def test_loop_get_raises_interrupt(self):
         pool = self.run_through_loop(_interrupt)
         self.assertRaises(KeyboardInterrupt, pool.get)
-        pool.requests.put((_MessageType.Close, None))
+        pool.request_pool.put((_MessageType.Close, None))
         pool.close()
         pool.join()
 
@@ -158,15 +158,15 @@ class TestPool(test_case.TestCase):
         host = Host()
         jobs = 2
         self.assertRaises(Exception, make_pool,
-                          host, jobs, _stub, unpicklable_fn, None, None)
+                          host, jobs, False, _stub, unpicklable_fn, None, None)
         self.assertRaises(Exception, make_pool,
-                          host, jobs, _stub, None, unpicklable_fn, None)
+                          host, jobs, False, _stub, None, unpicklable_fn, None)
         self.assertRaises(Exception, make_pool,
-                          host, jobs, _stub, None, None, unpicklable_fn)
+                          host, jobs, False, _stub, None, None, unpicklable_fn)
 
     def test_no_close(self):
         host = Host()
         context = {'pre': False, 'post': False}
-        pool = make_pool(host, 2, _echo, context, _pre, _post)
+        pool = make_pool(host, 2, False, _echo, context, _pre, _post)
         final_contexts = pool.join()
         self.assertEqual(final_contexts, [])

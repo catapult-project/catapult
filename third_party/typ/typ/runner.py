@@ -590,8 +590,9 @@ class Runner(object):
             jobs = 1
 
         child = _Child(self)
-        pool_group = make_pool_group(h, jobs, _run_one_test, child,
-                                     _setup_process, _teardown_process,
+        pool_group = make_pool_group(h, jobs, self.args.stable_jobs,
+                                     _run_one_test, child, _setup_process,
+                                     _teardown_process,
                                      self.args.use_global_pool)
         pool_group.make_global_pool()
 
