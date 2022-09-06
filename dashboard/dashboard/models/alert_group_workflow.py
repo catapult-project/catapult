@@ -498,19 +498,14 @@ class AlertGroupWorkflow(object):
     regressions = []
     subscriptions_dict = {}
     for a in anomalies:
-      # This logging is just for debugging
-      # https://bugs.chromium.org/p/chromium/issues/detail?id=1223401
-      # in production since I can't reproduce it in unit tests. One theory I
-      # have is that there's a bug in this part of the code, where
-      # details of one anomaly's subscription get replaced with another
-      # anomaly's subscription.
-      for s in a.subscriptions:
-        if (s.name in subscriptions_dict and s.auto_triage_enable !=
-            subscriptions_dict[s.name].auto_triage_enable):
-          logging.warning('altered merged auto_triage_enable: %s', s.name)
+      logging.debug('anomaly %s/%s/%s auto_triage_enable is %s',
+                    a.master_name,
+                    a.bot_name,
+                    a.benchmark_name,
+                    a.auto_triage_enable)
 
       subscriptions_dict.update({s.name: s for s in a.subscriptions})
-      if not a.is_improvement and not a.recovered:
+      if not a.is_improvement and not a.recovered and a.auto_triage_enable:
         regressions.append(a)
     return (regressions, list(subscriptions_dict.values()))
 
