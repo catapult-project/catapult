@@ -441,12 +441,14 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
     # This test is based on a real-world case where there was a step up at
     # r362399, and shortly thereafter a step down at r362680 of roughly similar
     # magnitude. Alert key agxzfmNocm9tZXBlcmZyFAsSB0Fub21hbHkYgIDAnbimogoM
+    # Once the anomaly min_rel_change was updated to 10% due to crbug/1338325,
+    # value manipulation was required to trigger step up and down
     series = [(361776, 78260720), (361807, 78760907), (361837, 77723737),
               (361864, 77984606), (361869, 78660955), (361879, 78276998),
-              (361903, 77420262), (362399, 79629598), (362416, 79631028),
-              (362428, 79074016), (362445, 79348860), (362483, 79724728),
-              (362532, 79673772), (362623, 79120915), (362641, 79384809),
-              (362666, 79885480), (362680, 78308585), (362701, 78063846),
+              (361903, 77420262), (362399, 89629598), (362416, 89631028),
+              (362428, 89074016), (362445, 89348860), (362483, 89724728),
+              (362532, 89673772), (362623, 89120915), (362641, 89384809),
+              (362666, 89885480), (362680, 78308585), (362701, 78063846),
               (362730, 78244836), (362759, 77375408), (362799, 77836310),
               (362908, 78069878), (362936, 77191699), (362958, 77951200),
               (362975, 77906097)]
@@ -455,7 +457,7 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
         test_key,
         revision=362399,
         median_before=78275468.8,
-        median_after=79630313.6)
+        median_after=89630313.6)
     self.testapp.post('/mark_recovered_alerts')
     self.ExecuteTaskQueueTasks('/mark_recovered_alerts',
                                mark_recovered_alerts._TASK_QUEUE_NAME)

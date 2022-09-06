@@ -35,7 +35,7 @@ MIN_SEGMENT_SIZE = 6
 MIN_ABSOLUTE_CHANGE = 0
 
 # Minimum relative difference between medians before and after.
-MIN_RELATIVE_CHANGE = 0.01
+MIN_RELATIVE_CHANGE = 0.1
 
 # "Steppiness" is a number between 0 and 1 that indicates how similar the
 # shape is to a perfect step function, where 1 represents a step function.

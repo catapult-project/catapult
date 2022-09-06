@@ -28,7 +28,7 @@ class ValidatorTest(unittest.TestCase):
             rules: { match: [{regex: "^project/.*memory_.*$"}] },
             anomaly_configs: [
               {
-                min_relative_change: 0.01
+                min_relative_change: 0.10
                 rules: {
                   match: {
                     regex: "^project/platform/.*/memory_peak$"

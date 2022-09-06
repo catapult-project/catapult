@@ -84,7 +84,7 @@ message AnomalyConfig {
 
   // Setting the min_relative_change lets the anomaly detection algorithm filter
   // out detected changes that don't meet the minimum relative change for values
-  // before and at the candidate change-point. Default is 0.01.
+  // before and at the candidate change-point. Default is 0.10.
   float min_relative_change = 4;
 
   // "Setppiness" is a number between 0 and 1 that indicates how similar the
@@ -249,9 +249,9 @@ message Subscription {
 //       regex: "^project/.*memory_.*$"
 //     }
 //
-//     // Only look at peak memory usage changes of at least 1%.
+//     // Only look at peak memory usage changes of at least 10%.
 //     anomaly_configs {
-//       min_relative_change: 0.01  // 1%
+//       min_relative_change: 0.10  // 10%
 //       patterns {
 //         regex: "^project/platform/.*/memory_peak$"
 //       }
