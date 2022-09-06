@@ -104,7 +104,6 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     self._RunScrollDistanceTest(
         500000, 200000, page_action.GESTURE_SOURCE_MOUSE, 15000)
 
-  @decorators.Disabled('chromeos')  # crbug.com/1358617
   def testScrollDistanceSlowTouch(self):
     # Just pass the test on platforms that don't support touch (i.e. Mac)
     if not page_action.IsGestureSourceTypeSupported(self._tab, 'touch'):
@@ -117,7 +116,6 @@ class ScrollActionTest(tab_test_case.TabTestCase):
         1000, 300, page_action.GESTURE_SOURCE_TOUCH, 10)
 
   @decorators.Disabled('android-reference')  # crbug.com/934649
-  @decorators.Disabled('chromeos')  # crbug.com/1358617
   def testScrollDistanceSlowWheel(self):
     self._RunScrollDistanceTest(
         1000, 300, page_action.GESTURE_SOURCE_MOUSE, 200)
