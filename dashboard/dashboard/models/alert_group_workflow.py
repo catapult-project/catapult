@@ -498,11 +498,11 @@ class AlertGroupWorkflow(object):
     regressions = []
     subscriptions_dict = {}
     for a in anomalies:
-      logging.debug('anomaly %s/%s/%s auto_triage_enable is %s',
-                    a.master_name,
-                    a.bot_name,
-                    a.benchmark_name,
-                    a.auto_triage_enable)
+      logging.info(
+          'GetRegressions: auto_triage_enable is %s for anomaly %s due to subscription: %s',
+          a.auto_triage_enable,
+          a.test.string_id(),
+          [s.name for s in a.subscriptions])
 
       subscriptions_dict.update({s.name: s for s in a.subscriptions})
       if not a.is_improvement and not a.recovered and a.auto_triage_enable:
