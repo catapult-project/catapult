@@ -32,15 +32,18 @@ from typ import host as typ_host
 from typ import json_results
 from typ import expectations_parser
 
-# Valid status taken from the "TestStatus" enum in
-# https://source.chromium.org/chromium/infra/infra/+/master:go/src/go.chromium.org/luci/resultdb/proto/v1/test_result.proto
-VALID_STATUSES = {
-    'PASS',
-    'FAIL',
-    'CRASH',
-    'ABORT',
-    'SKIP',
+# Map JSON result types to ResultDB statuses. Currently, this is an identity map
+# except for `TIMEOUT`, which maps to ResultDB's more general `ABORT`. See also:
+#   https://chromium.googlesource.com/chromium/src/+/HEAD/docs/testing/json_test_results_format.md#test-result-types
+#   https://source.chromium.org/chromium/infra/infra/+/master:go/src/go.chromium.org/luci/resultdb/proto/v1/test_result.proto
+_JSON_TO_RESULTDB_STATUSES = {
+    json_results.ResultType.Pass: 'PASS',
+    json_results.ResultType.Failure: 'FAIL',
+    json_results.ResultType.Crash: 'CRASH',
+    json_results.ResultType.Timeout: 'ABORT',
+    json_results.ResultType.Skip: 'SKIP',
 }
+VALID_STATUSES = set(_JSON_TO_RESULTDB_STATUSES.values())
 STDOUT_KEY = 'typ_stdout'
 STDERR_KEY = 'typ_stderr'
 # From https://source.chromium.org/chromium/infra/infra/+/main:go/src/go.chromium.org/luci/resultdb/pbutil/strpair.go;l=28
@@ -237,10 +240,10 @@ class ResultSinkReporter(object):
         if test_file_line is not None:
             test_metadata['location'].update({'line': test_file_line})
 
+        status = _JSON_TO_RESULTDB_STATUSES.get(result.actual, result.actual)
         return self._report_result(
-                test_id, result.actual, result_is_expected, artifacts,
-                tag_list, html_summary, result.took, test_metadata,
-                result.failure_reason)
+                test_id, status, result_is_expected, artifacts, tag_list,
+                html_summary, result.took, test_metadata, result.failure_reason)
 
 
     def _report_result(

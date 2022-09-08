@@ -204,14 +204,14 @@ class ResultSinkReporterTest(unittest.TestCase):
         rsr = ResultSinkReporterWithFakeSrc(self._host)
         result = CreateResult({
             'name': 'test_name',
-            'actual': json_results.ResultType.Pass,
+            'actual': json_results.ResultType.Timeout,
         })
         rsr._post = StubWithRetval(2)
         retval = rsr.report_individual_test_result(
                 result, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
                 FAKE_TEST_LINE, 'test_name_prefix.')
         self.assertEqual(retval, 2)
-        expected_result = CreateExpectedTestResult()
+        expected_result = CreateExpectedTestResult(status='ABORT', expected=False)
         self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[1]),
                          expected_result)
 
