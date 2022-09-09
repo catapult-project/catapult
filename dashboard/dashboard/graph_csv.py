@@ -16,79 +16,81 @@ from dashboard.common import utils
 from dashboard.models import graph_data
 
 
-if utils.IsRunningFlask():
-  # Request handler for getting data from one series as CSV.
+# Request handler for getting data from one series as CSV.
 
-  from flask import request, make_response
+from flask import request, make_response
 
-  def GraphCSVGet():
-    """Gets CSV from data store and outputs it.
 
-    Request parameters:
-      test_path: Full test path of one trace.
-      rev: End revision number; if not given, latest revision is used.
-      num_points: Number of Rows to get data for.
-      attr: Comma-separated list of attributes (columns) to return.
+def GraphCSVGet():
+  """Gets CSV from data store and outputs it.
 
-    Outputs:
-      CSV file contents.
-    """
-    test_path = request.args.get('test_path')
-    rev = request.args.get('rev')
-    num_points = int(request.args.get('num_points', 500))
-    attributes = request.args.get('attr', 'revision,value').split(',')
+  Request parameters:
+    test_path: Full test path of one trace.
+    rev: End revision number; if not given, latest revision is used.
+    num_points: Number of Rows to get data for.
+    attr: Comma-separated list of attributes (columns) to return.
 
-    if not test_path:
-      return request_handler.RequestHandlerReportError(
-          'No test path given.', status=400)
+  Outputs:
+    CSV file contents.
+  """
+  test_path = request.args.get('test_path')
+  rev = request.args.get('rev')
+  num_points = int(request.args.get('num_points', 500))
+  attributes = request.args.get('attr', 'revision,value').split(',')
 
-    logging.info('Got request to /graph_csv for test: "%s".', test_path)
+  if not test_path:
+    return request_handler.RequestHandlerReportError(
+        'No test path given.', status=400)
 
-    test_key = utils.TestKey(test_path)
-    test = test_key.get()
-    assert (datastore_hooks.IsUnalteredQueryPermitted()
-            or not test.internal_only)
-    datastore_hooks.SetSinglePrivilegedRequest()
-    q = graph_data.Row.query()
-    q = q.filter(graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
-    if rev:
-      q = q.filter(graph_data.Row.revision <= int(rev))
-    q = q.order(-graph_data.Row.revision)  # pylint: disable=invalid-unary-operand-type
-    points = reversed(q.fetch(limit=num_points))
+  logging.info('Got request to /graph_csv for test: "%s".', test_path)
 
-    rows = _GraphCSVGenerateRows(points, attributes)
+  test_key = utils.TestKey(test_path)
+  test = test_key.get()
+  assert (datastore_hooks.IsUnalteredQueryPermitted() or not test.internal_only)
+  datastore_hooks.SetSinglePrivilegedRequest()
+  q = graph_data.Row.query()
+  q = q.filter(graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
+  if rev:
+    q = q.filter(graph_data.Row.revision <= int(rev))
+  q = q.order(-graph_data.Row.revision)  # pylint: disable=invalid-unary-operand-type
+  points = reversed(q.fetch(limit=num_points))
 
-    output = six.StringIO()
-    csv.writer(output).writerows(rows)
-    res = make_response(output.getvalue())
-    res.headers['Content-Type'] = 'text/csv'
-    res.headers['Content-Disposition'] = ('attachment; filename=%s.csv' %
-                                          test.test_name)
-    return res
+  rows = _GraphCSVGenerateRows(points, attributes)
 
-  def GraphCSVPost():
-    """A post request is the same as a get request for this endpoint."""
-    return GraphCSVGet()
+  output = six.StringIO()
+  csv.writer(output).writerows(rows)
+  res = make_response(output.getvalue())
+  res.headers['Content-Type'] = 'text/csv'
+  res.headers['Content-Disposition'] = ('attachment; filename=%s.csv' %
+                                        test.test_name)
+  return res
 
-  def _GraphCSVGenerateRows(points, attributes):
-    """Generates CSV rows based on the attributes given.
 
-    Args:
-      points: A list of Row entities.
-      attributes: A list of properties of Row entities to get.
+def GraphCSVPost():
+  """A post request is the same as a get request for this endpoint."""
+  return GraphCSVGet()
 
-    Returns:
-      A list of lists of attribute values for the given points.
-    """
-    rows = [attributes]
-    for point in points:
-      row = []
-      for attr in attributes:
-        row.append(getattr(point, attr, ''))
-      rows.append(row)
-    return rows
 
-else:
+def _GraphCSVGenerateRows(points, attributes):
+  """Generates CSV rows based on the attributes given.
+
+  Args:
+    points: A list of Row entities.
+    attributes: A list of properties of Row entities to get.
+
+  Returns:
+    A list of lists of attribute values for the given points.
+  """
+  rows = [attributes]
+  for point in points:
+    row = []
+    for attr in attributes:
+      row.append(getattr(point, attr, ''))
+    rows.append(row)
+  return rows
+
+
+if six.PY2:
 
   class GraphCsvHandler(request_handler.RequestHandler):
     """Request handler for getting data from one series as CSV."""

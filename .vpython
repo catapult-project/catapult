@@ -45,7 +45,7 @@ wheel: <
 >
 wheel: <
   name: "infra/python/wheels/werkzeug-py2_py3"
-  version: "version:0.15.2"
+  version: "version:1.0.1"
 >
 wheel: <
   name: "infra/python/wheels/click-py2_py3"

@@ -7,22 +7,24 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import six
+
 from dashboard.common import request_handler
-from dashboard.common import utils
 from dashboard.sheriff_config_client import SheriffConfigClient
 
 
-if utils.IsRunningFlask():
-  from flask import Response
+from flask import Response
 
-  def SheriffConfigPollerGet():
-    client = SheriffConfigClient()
-    ok, err_msg = client.Update()
-    if not ok:
-      return Response('FAILED: %s' % err_msg)
-    return Response('OK')
 
-else:
+def SheriffConfigPollerGet():
+  client = SheriffConfigClient()
+  ok, err_msg = client.Update()
+  if not ok:
+    return Response('FAILED: %s' % err_msg)
+  return Response('OK')
+
+
+if six.PY2:
   import webapp2
 
   class ConfigsUpdateHandler(request_handler.RequestHandler):

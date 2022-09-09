@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import datetime
 import logging
+import six
 
 from google.appengine.ext import ndb
 
@@ -21,31 +22,32 @@ _DEFAULT_DAYS_TO_SHOW = 7
 _DEFAULT_CHANGES_TO_SHOW = 10
 _DEFAULT_SHERIFF_NAME = 'Chromium Perf Sheriff'
 
-if utils.IsRunningFlask():
-  from flask import request
+from flask import request
 
-  def MainHandlerGet():
-    days = int(request.args.get('days', _DEFAULT_DAYS_TO_SHOW))
-    num_changes = int(request.args.get('num_changes', _DEFAULT_CHANGES_TO_SHOW))
-    sheriff_name = request.args.get('sheriff', _DEFAULT_SHERIFF_NAME)
-    sheriff = ndb.Key('Sheriff', sheriff_name)
 
-    anomalies = _GetRecentAnomalies(days, sheriff)
+def MainHandlerGet():
+  days = int(request.args.get('days', _DEFAULT_DAYS_TO_SHOW))
+  num_changes = int(request.args.get('num_changes', _DEFAULT_CHANGES_TO_SHOW))
+  sheriff_name = request.args.get('sheriff', _DEFAULT_SHERIFF_NAME)
+  sheriff = ndb.Key('Sheriff', sheriff_name)
 
-    top_improvements = _TopImprovements(anomalies, num_changes)
-    top_regressions = _TopRegressions(anomalies, num_changes)
-    tests = _GetKeyToTestDict(top_improvements + top_regressions)
+  anomalies = _GetRecentAnomalies(days, sheriff)
 
-    template_dict = {
-        'num_days': days,
-        'num_changes': num_changes,
-        'sheriff_name': sheriff_name,
-        'improvements': _AnomalyInfoDicts(top_improvements, tests),
-        'regressions': _AnomalyInfoDicts(top_regressions, tests),
-    }
-    return request_handler.RequestHandlerRenderHtml('main.html', template_dict)
+  top_improvements = _TopImprovements(anomalies, num_changes)
+  top_regressions = _TopRegressions(anomalies, num_changes)
+  tests = _GetKeyToTestDict(top_improvements + top_regressions)
 
-else:
+  template_dict = {
+      'num_days': days,
+      'num_changes': num_changes,
+      'sheriff_name': sheriff_name,
+      'improvements': _AnomalyInfoDicts(top_improvements, tests),
+      'regressions': _AnomalyInfoDicts(top_regressions, tests),
+  }
+  return request_handler.RequestHandlerRenderHtml('main.html', template_dict)
+
+
+if six.PY2:
 
   class MainHandler(request_handler.RequestHandler):
     """Displays the main overview page."""

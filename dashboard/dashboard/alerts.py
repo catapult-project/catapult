@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import six
 
 from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext import ndb
@@ -28,72 +29,74 @@ _MAX_ANOMALIES_TO_COUNT = 5000
 _MAX_ANOMALIES_TO_SHOW = 500
 
 
-if utils.IsRunningFlask():
-  # Shows an overview of recent anomalies for perf sheriffing.
-  from flask import make_response, request
+# Shows an overview of recent anomalies for perf sheriffing.
+from flask import make_response, request
 
-  def AlertsHandlerGet():
-    """Renders the UI for listing alerts."""
-    return request_handler.RequestHandlerRenderStaticHtml('alerts.html')
 
-  def AlertsHandlerPost():
-    """Returns dynamic data for listing alerts in response to XHR.
+def AlertsHandlerGet():
+  """Renders the UI for listing alerts."""
+  return request_handler.RequestHandlerRenderStaticHtml('alerts.html')
 
-    Request parameters:
-      sheriff: The name of a sheriff (optional).
-      triaged: Whether to include triaged alerts (i.e. with a bug ID).
-      improvements: Whether to include improvement anomalies.
-      anomaly_cursor: Where to begin a paged query for anomalies (optional).
 
-    Outputs:
-      JSON data for an XHR request to show a table of alerts.
-    """
-    sheriff_name = request.args.get('sheriff', 'Chromium Perf Sheriff')
-    if not _SheriffIsFound(sheriff_name):
-      return make_response(
-          json.dumps({'error': 'Sheriff "%s" not found.' % sheriff_name}))
+def AlertsHandlerPost():
+  """Returns dynamic data for listing alerts in response to XHR.
 
-    # Cursors are used to fetch paged queries. If none is supplied, then the
-    # first 500 alerts will be returned. If a cursor is given, the next
-    # 500 alerts (starting at the given cursor) will be returned.
-    anomaly_cursor = request.args.get('anomaly_cursor', None)
-    if anomaly_cursor:
-      anomaly_cursor = Cursor(urlsafe=anomaly_cursor)
+  Request parameters:
+    sheriff: The name of a sheriff (optional).
+    triaged: Whether to include triaged alerts (i.e. with a bug ID).
+    improvements: Whether to include improvement anomalies.
+    anomaly_cursor: Where to begin a paged query for anomalies (optional).
 
-    is_improvement = None
-    if not bool(request.args.get('improvements')):
-      is_improvement = False
+  Outputs:
+    JSON data for an XHR request to show a table of alerts.
+  """
+  sheriff_name = request.args.get('sheriff', 'Chromium Perf Sheriff')
+  if not _SheriffIsFound(sheriff_name):
+    return make_response(
+        json.dumps({'error': 'Sheriff "%s" not found.' % sheriff_name}))
 
-    bug_id = None
-    recovered = None
-    if not bool(request.args.get('triaged')):
-      bug_id = ''
-      recovered = False
+  # Cursors are used to fetch paged queries. If none is supplied, then the
+  # first 500 alerts will be returned. If a cursor is given, the next
+  # 500 alerts (starting at the given cursor) will be returned.
+  anomaly_cursor = request.args.get('anomaly_cursor', None)
+  if anomaly_cursor:
+    anomaly_cursor = Cursor(urlsafe=anomaly_cursor)
 
-    max_anomalies_to_show = _MAX_ANOMALIES_TO_SHOW
-    if request.args.get('max_anomalies_to_show'):
-      max_anomalies_to_show = int(request.args.get('max_anomalies_to_show'))
+  is_improvement = None
+  if not bool(request.args.get('improvements')):
+    is_improvement = False
 
-    anomalies, next_cursor, count = anomaly.Anomaly.QueryAsync(
-        start_cursor=anomaly_cursor,
-        subscriptions=[sheriff_name],
-        bug_id=bug_id,
-        is_improvement=is_improvement,
-        recovered=recovered,
-        count_limit=_MAX_ANOMALIES_TO_COUNT,
-        limit=max_anomalies_to_show).get_result()
+  bug_id = None
+  recovered = None
+  if not bool(request.args.get('triaged')):
+    bug_id = ''
+    recovered = False
 
-    values = {
-        'anomaly_list': AnomalyDicts(anomalies),
-        'anomaly_count': count,
-        'sheriff_list': _GetSheriffList(),
-        'anomaly_cursor': (next_cursor.urlsafe() if next_cursor else None),
-        'show_more_anomalies': next_cursor != None,
-    }
-    request_handler.RequestHandlerGetDynamicVariables(values)
-    return make_response(json.dumps(values))
+  max_anomalies_to_show = _MAX_ANOMALIES_TO_SHOW
+  if request.args.get('max_anomalies_to_show'):
+    max_anomalies_to_show = int(request.args.get('max_anomalies_to_show'))
 
-else:
+  anomalies, next_cursor, count = anomaly.Anomaly.QueryAsync(
+      start_cursor=anomaly_cursor,
+      subscriptions=[sheriff_name],
+      bug_id=bug_id,
+      is_improvement=is_improvement,
+      recovered=recovered,
+      count_limit=_MAX_ANOMALIES_TO_COUNT,
+      limit=max_anomalies_to_show).get_result()
+
+  values = {
+      'anomaly_list': AnomalyDicts(anomalies),
+      'anomaly_count': count,
+      'sheriff_list': _GetSheriffList(),
+      'anomaly_cursor': (next_cursor.urlsafe() if next_cursor else None),
+      'show_more_anomalies': next_cursor != None,
+  }
+  request_handler.RequestHandlerGetDynamicVariables(values)
+  return make_response(json.dumps(values))
+
+
+if six.PY2:
 
   class AlertsHandler(request_handler.RequestHandler):
     """Shows an overview of recent anomalies for perf sheriffing."""

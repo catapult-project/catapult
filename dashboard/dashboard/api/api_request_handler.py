@@ -10,12 +10,12 @@ import json
 import logging
 import re
 import traceback
+import six
 
 from dashboard.api import api_auth
 from dashboard.common import utils
-if utils.IsRunningFlask():
-  from flask import make_response, request
-else:
+from flask import make_response, request
+if six.PY2:
   import webapp2
 
 _ALLOWED_ORIGINS = [
@@ -55,63 +55,64 @@ def SafeOriginRegex(prefix, origin):
   return re.compile(r'^' + prefix + re.escape(origin) + '$')
 
 
-if utils.IsRunningFlask():
+def RequestHandlerDecoratorFactory(user_checker):
 
-  def RequestHandlerDecoratorFactory(user_checker):
+  def RequestHandlerDecorator(request_handler):
 
-    def RequestHandlerDecorator(request_handler):
+    def Wrapper():
+      try:
+        user_checker()
+      except api_auth.NotLoggedInError as e:
+        return _WriteErrorMessage(str(e), 401)
+      except api_auth.OAuthError as e:
+        return _WriteErrorMessage(str(e), 403)
+      except ForbiddenError as e:
+        return _WriteErrorMessage(str(e), 403)
+      # Allow oauth.Error to manifest as HTTP 500.
 
-      def Wrapper():
-        try:
-          user_checker()
-        except api_auth.NotLoggedInError as e:
-          return _WriteErrorMessage(str(e), 401)
-        except api_auth.OAuthError as e:
-          return _WriteErrorMessage(str(e), 403)
-        except ForbiddenError as e:
-          return _WriteErrorMessage(str(e), 403)
-        # Allow oauth.Error to manifest as HTTP 500.
+      try:
+        results = request_handler()
+      except NotFoundError as e:
+        return _WriteErrorMessage(str(e), 404)
+      except (BadRequestError, KeyError, TypeError, ValueError) as e:
+        return _WriteErrorMessage(str(e), 400)
+      except ForbiddenError as e:
+        return _WriteErrorMessage(str(e), 403)
 
-        try:
-          results = request_handler()
-        except NotFoundError as e:
-          return _WriteErrorMessage(str(e), 404)
-        except (BadRequestError, KeyError, TypeError, ValueError) as e:
-          return _WriteErrorMessage(str(e), 400)
-        except ForbiddenError as e:
-          return _WriteErrorMessage(str(e), 403)
+      response = make_response(json.dumps(results))
+      _SetCorsHeadersIfAppropriate(request, response)
+      return response
 
-        response = make_response(json.dumps(results))
-        _SetCorsHeadersIfAppropriate(request, response)
-        return response
+    Wrapper.__name__ = request_handler.__name__
+    return Wrapper
 
-      Wrapper.__name__ = request_handler.__name__
-      return Wrapper
+  return RequestHandlerDecorator
 
-    return RequestHandlerDecorator
 
-  def _SetCorsHeadersIfAppropriate(req, resp):
-    resp.headers['Content-Type'] = 'application/json; charset=utf-8'
-    set_cors_headers = False
-    origin = req.headers.get('Origin', '')
-    for allowed in _ALLOWED_ORIGINS:
-      dev_pattern = SafeOriginRegex(r'https://[A-Za-z0-9-]+-dot-', allowed)
-      prod_pattern = SafeOriginRegex(r'https://', allowed)
-      if dev_pattern.match(origin) or prod_pattern.match(origin):
-        set_cors_headers = True
-    if set_cors_headers:
-      resp.headers['Access-Control-Allow-Origin'] = origin
-      resp.headers['Access-Control-Allow-Credentials'] = 'true'
-      resp.headers['Access-Control-Allow-Methods'] = 'GET,OPTIONS,POST'
-      resp.headers[
-          'Access-Control-Allow-Headers'] = 'Accept,Authorization,Content-Type'
-      resp.headers['Access-Control-Max-Age'] = '3600'
+def _SetCorsHeadersIfAppropriate(req, resp):
+  resp.headers['Content-Type'] = 'application/json; charset=utf-8'
+  set_cors_headers = False
+  origin = req.headers.get('Origin', '')
+  for allowed in _ALLOWED_ORIGINS:
+    dev_pattern = SafeOriginRegex(r'https://[A-Za-z0-9-]+-dot-', allowed)
+    prod_pattern = SafeOriginRegex(r'https://', allowed)
+    if dev_pattern.match(origin) or prod_pattern.match(origin):
+      set_cors_headers = True
+  if set_cors_headers:
+    resp.headers['Access-Control-Allow-Origin'] = origin
+    resp.headers['Access-Control-Allow-Credentials'] = 'true'
+    resp.headers['Access-Control-Allow-Methods'] = 'GET,OPTIONS,POST'
+    resp.headers[
+        'Access-Control-Allow-Headers'] = 'Accept,Authorization,Content-Type'
+    resp.headers['Access-Control-Max-Age'] = '3600'
 
-  def _WriteErrorMessage(message, status):
-    logging.error(traceback.format_exc())
-    return make_response(json.dumps({'error': message}), status)
 
-else:
+def _WriteErrorMessage(message, status):
+  logging.error(traceback.format_exc())
+  return make_response(json.dumps({'error': message}), status)
+
+
+if six.PY2:
 
   class ApiRequestHandler(webapp2.RequestHandler):
     """API handler for api requests.

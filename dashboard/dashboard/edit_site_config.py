@@ -9,6 +9,7 @@ from __future__ import absolute_import
 
 import difflib
 import json
+import six
 
 from google.appengine.api import app_identity
 from google.appengine.api import mail
@@ -19,6 +20,7 @@ from dashboard.common import request_handler
 from dashboard.common import stored_object
 from dashboard.common import utils
 from dashboard.common import xsrf
+
 
 _NOTIFICATION_EMAIL_BODY = """
 The configuration of %(hostname)s was changed by %(user)s.
@@ -41,80 +43,79 @@ Internal-only value diff:
 _NOTIFICATION_ADDRESS = 'browser-perf-engprod@google.com'
 _SENDER_ADDRESS = 'gasper-alerts@google.com'
 
-if utils.IsRunningFlask():
-  from flask import request
-  # Handles editing of site config values stored with stored_entity.
+from flask import request
+# Handles editing of site config values stored with stored_entity.
 
-  def EditSiteConfigHandlerGet():
-    """Renders the UI with the form."""
-    key = request.args.get('key')
-    if not key:
-      return request_handler.RequestHandlerRenderHtml('edit_site_config.html',
-                                                      {})
 
-    value = stored_object.Get(key)
-    external_value = namespaced_stored_object.GetExternal(key)
-    internal_value = namespaced_stored_object.Get(key)
+def EditSiteConfigHandlerGet():
+  """Renders the UI with the form."""
+  key = request.args.get('key')
+  if not key:
+    return request_handler.RequestHandlerRenderHtml('edit_site_config.html', {})
+
+  value = stored_object.Get(key)
+  external_value = namespaced_stored_object.GetExternal(key)
+  internal_value = namespaced_stored_object.Get(key)
+  res = request_handler.RequestHandlerRenderHtml(
+      'edit_site_config.html', {
+          'key': key,
+          'value': _FormatJson(value),
+          'external_value': _FormatJson(external_value),
+          'internal_value': _FormatJson(internal_value),
+      })
+  return res
+
+
+@xsrf.TokenRequired
+def EditSiteConfigHandlerPost():
+  """Accepts posted values, makes changes, and shows the form again."""
+  key = request.values.get('key')
+
+  if not utils.IsInternalUser():
     res = request_handler.RequestHandlerRenderHtml(
-        'edit_site_config.html', {
-            'key': key,
-            'value': _FormatJson(value),
-            'external_value': _FormatJson(external_value),
-            'internal_value': _FormatJson(internal_value),
-        })
+        'edit_site_config.html',
+        {'error': 'Only internal users can post to this end-point.'})
     return res
 
-  @xsrf.TokenRequired
-  def EditSiteConfigHandlerPost():
-    """Accepts posted values, makes changes, and shows the form again."""
-    key = request.args.get('key')
+  if not key:
+    return request_handler.RequestHandlerRenderHtml('edit_site_config.html', {})
 
-    if not utils.IsInternalUser():
-      res = request_handler.RequestHandlerRenderHtml(
-          'edit_site_config.html',
-          {'error': 'Only internal users can post to this end-point.'})
-      return res
+  new_value_json = request.values.get('value').strip()
+  new_external_value_json = request.values.get('external_value').strip()
+  new_internal_value_json = request.values.get('internal_value').strip()
 
-    if not key:
-      return request_handler.RequestHandlerRenderHtml('edit_site_config.html',
-                                                      {})
+  template_params = {
+      'key': key,
+      'value': new_value_json,
+      'external_value': new_external_value_json,
+      'internal_value': new_internal_value_json,
+  }
 
-    new_value_json = request.args.get('value').strip()
-    new_external_value_json = request.args.get('external_value').strip()
-    new_internal_value_json = request.args.get('internal_value').strip()
-
-    template_params = {
-        'key': key,
-        'value': new_value_json,
-        'external_value': new_external_value_json,
-        'internal_value': new_internal_value_json,
-    }
-
-    try:
-      new_value = json.loads(new_value_json or 'null')
-      new_external_value = json.loads(new_external_value_json or 'null')
-      new_internal_value = json.loads(new_internal_value_json or 'null')
-    except ValueError:
-      template_params['error'] = 'Invalid JSON in at least one field.'
-      return request_handler.RequestHandlerRenderHtml('edit_site_config.html',
-                                                      template_params)
-
-    old_value = stored_object.Get(key)
-    old_external_value = namespaced_stored_object.GetExternal(key)
-    old_internal_value = namespaced_stored_object.Get(key)
-
-    stored_object.Set(key, new_value)
-    namespaced_stored_object.SetExternal(key, new_external_value)
-    namespaced_stored_object.Set(key, new_internal_value)
-
-    _SendNotificationEmail(key, old_value, old_external_value,
-                           old_internal_value, new_value, new_external_value,
-                           new_internal_value)
-
+  try:
+    new_value = json.loads(new_value_json or 'null')
+    new_external_value = json.loads(new_external_value_json or 'null')
+    new_internal_value = json.loads(new_internal_value_json or 'null')
+  except ValueError:
+    template_params['error'] = 'Invalid JSON in at least one field.'
     return request_handler.RequestHandlerRenderHtml('edit_site_config.html',
                                                     template_params)
 
-else:
+  old_value = stored_object.Get(key)
+  old_external_value = namespaced_stored_object.GetExternal(key)
+  old_internal_value = namespaced_stored_object.Get(key)
+
+  stored_object.Set(key, new_value)
+  namespaced_stored_object.SetExternal(key, new_external_value)
+  namespaced_stored_object.Set(key, new_internal_value)
+
+  _SendNotificationEmail(key, old_value, old_external_value, old_internal_value,
+                         new_value, new_external_value, new_internal_value)
+
+  return request_handler.RequestHandlerRenderHtml('edit_site_config.html',
+                                                  template_params)
+
+
+if six.PY2:
 
   class EditSiteConfigHandler(request_handler.RequestHandler):
     """Handles editing of site config values stored with stored_entity.

@@ -7,27 +7,28 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import six
 
 from dashboard.common import request_handler
-from dashboard.common import utils
 
-if utils.IsRunningFlask():
-  from flask import make_response, request
+from flask import make_response, request
 
-  def NavbarHandlerPost():
-    """XHR endpoint to fill in navbar fields."""
-    template_values = {}
-    request_handler.RequestHandlerGetDynamicVariable(template_values,
-                                                     request.args.get('path'))
-    res = make_response(
-        json.dumps({
-            'login_url': template_values['login_url'],
-            'is_admin': template_values['is_admin'],
-            'display_username': template_values['display_username'],
-        }))
-    return res
 
-else:
+def NavbarHandlerPost():
+  """XHR endpoint to fill in navbar fields."""
+  template_values = {}
+  request_handler.RequestHandlerGetDynamicVariable(template_values,
+                                                   request.args.get('path'))
+  res = make_response(
+      json.dumps({
+          'login_url': template_values['login_url'],
+          'is_admin': template_values['is_admin'],
+          'display_username': template_values['display_username'],
+      }))
+  return res
+
+
+if six.PY2:
 
   class NavbarHandler(request_handler.RequestHandler):
     """XHR endpoint to fill in navbar fields."""
