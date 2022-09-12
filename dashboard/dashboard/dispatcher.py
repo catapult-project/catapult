@@ -205,7 +205,7 @@ if six.PY2:
 _PATHS_HANDLED_BY_FLASK = [
     # '/alerts',
     # '/configs/update',
-    # '/edit_site_config',
+    '/edit_site_config',
     # '/graph_csv',
     # '/navbar',
 ]

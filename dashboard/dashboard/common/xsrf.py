@@ -9,6 +9,8 @@ from __future__ import absolute_import
 import os
 import six
 
+from flask import abort, request
+
 from google.appengine.ext import ndb
 
 try:
@@ -60,5 +62,18 @@ def TokenRequired(handler_method):
     if not email or not _ValidateToken(token, email):
       self.abort(403)
     handler_method(self, *args, **kwargs)
+
+  return CheckToken
+
+
+def TokenRequiredFlask(handler_method):
+  """A decorator to require that the XSRF token be validated for the handler."""
+
+  def CheckToken(*args, **kwargs):
+    email = utils.GetEmail()
+    token = str(request.values.get('xsrf_token'))
+    if not email or not _ValidateToken(token, email):
+      abort(403)
+    return handler_method(*args, **kwargs)
 
   return CheckToken
