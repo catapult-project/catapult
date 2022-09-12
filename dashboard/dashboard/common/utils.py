@@ -652,10 +652,24 @@ def ServiceAccountHttp(scope=EMAIL_SCOPE, timeout=None):
   assert scope, "ServiceAccountHttp scope must not be None."
 
   client.logger.setLevel(logging.WARNING)
-  credentials = client.SignedJwtAssertionCredentials(
-      service_account_name=account_details['client_email'],
-      private_key=account_details['private_key'],
-      scope=scope)
+  if six.PY2:
+    credentials = client.SignedJwtAssertionCredentials(
+        service_account_name=account_details['client_email'],
+        private_key=account_details['private_key'],
+        scope=scope)
+  else:
+    # We need oauth2client at v2.0+ in Python 3, where
+    # SignedJwtAssertionCredentials is removed.
+    from oauth2client.service_account import ServiceAccountCredentials  # pylint: disable=import-outside-toplevel
+    from oauth2client import crypt  # pylint: disable=import-outside-toplevel
+
+    key_string = six.ensure_binary(account_details['private_key'])
+    signer = crypt.Signer.from_string(key_string)
+    credentials = ServiceAccountCredentials(
+        service_account_email=account_details['client_email'],
+        signer=signer,
+        scopes=scope)
+    credentials._private_key_pkcs8_pem = key_string
 
   http = httplib2.Http(timeout=timeout)
   credentials.authorize(http)
