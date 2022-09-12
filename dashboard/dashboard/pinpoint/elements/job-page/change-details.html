@@ -94,13 +94,13 @@ found in the LICENSE file.
            ⬇️
         </copy>
         <paper-tooltip for="casDownload" type="explanatory">
-          Command to download CAS binaries
+          Click to copy the "download CAS binaries" command
         </paper-tooltip>
         <copy id="copyBenchmark" on-click="copyBenchmark" suffix="[[getArguments(job)]]">
           🖥️
         </copy>
         <paper-tooltip for="copyBenchmark" type="explanatory">
-          Command to run benchmark
+          Click to copy the "run benchmark" command
         </paper-tooltip>
         <copy id="openDownloadDialog" on-click="openDownloadDialog">
           ❓
@@ -143,18 +143,22 @@ found in the LICENSE file.
     <paper-dialog id="tooltip_download" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
       <h2>Buttons usage:</h2>
       <p>
-        ⬇️: Copy the CAS command which downloads the corresponding isolate binaries in terminal
+        ⬇️: Copy the CAS command which downloads the corresponding isolate binaries in terminal for reproducing the tests locally.
       </p>
       <p>
-        🖥️: Copy the benchmark command which kicks off the tests
+        🖥️: Copy the benchmark command which kicks off the local reproduction tests with corresponding parameters.
       </p>
       <h2>Pre-requisite: depot_tools and CAS</h2>
       <div>
         <p>
           You need <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/docs/windows_build_instructions.md#install"
-            target="_blank">depot_tools </a>
+            target="_blank">depot_tools(download instructions) </a>
           and <a href="https://g3doc.corp.google.com/devtools/foundry/g3doc/dev/architecture/cas.md?cl=head" target="_blank">CAS</a> installed to run the tests locally.
         </p>
+        <code>
+          # To set up CAS in your current folder, copy code below and paste to terminal after you installed depot_tools
+        </code>
+        </br>
         <code>
           # (if needed, use "\${platform}" as-is) cipd install "infra/tools/luci/cas/\${platform}" -root bar
         </code>

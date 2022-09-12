@@ -65,15 +65,19 @@ found in the LICENSE file.
     <paper-dialog id="tooltip_swarming" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
       <h2>Button usage:</h2>
       <p>
-        🖥️: Copy the swarming command which kicks off the tests
+        🖥️: Copy the swarming command which kicks off the swarming tests with corresponding parameters.
       </p>
-      <h2>Pre-requisite: depot_tools and CAS</h2>
+      <h2>Pre-requisite: depot_tools and swarming</h2>
       <div>
         <p>
           You need <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/docs/windows_build_instructions.md#install"
-                      target="_blank">depot_tools </a>
+                      target="_blank">depot_tools(download instructions)  </a>
           and <a href="https://g3doc.corp.google.com/company/teams/chrome/ops/luci/swarming/index.md?cl=head" target="_blank">swarming</a> installed to run the tests locally.
         </p>
+        <code>
+          # To set up swarming in your current folder, copy code below and paste to terminal after you installed depot_tools
+        </code>
+        </br>
         <code>
           # (if needed, use "\${platform}" as-is) cipd install "infra/tools/luci/swarming/\${platform}" -root bar
         </code>
