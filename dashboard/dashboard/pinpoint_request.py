@@ -201,9 +201,9 @@ def GetIsolateTarget(bot_name, suite):
   if bot_name == 'android-pixel4a_power-perf':
     return 'performance_test_suite_android_clank_chrome'
   if bot_name == 'android-new-pixel-perf':
-    return 'performance_test_suite_android_clank_trichrome_bundle'
+    return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
   if bot_name == 'android-new-pixel-pro-perf':
-    return 'performance_test_suite_android_clank_trichrome_bundle'
+    return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
   if 'android' in bot_name.lower():
     raise InvalidParamsError(
         'Given Android bot %s does not have an isolate mapped to it' % bot_name)

@@ -419,6 +419,12 @@ ANDROID_TRICHROME_BUNDLE = GenericChromeBundleBackendSettings(
     apk_name='trichrome_chrome_google_bundle',
     additional_apk_name='TrichromeLibraryGoogle.apk')
 
+ANDROID_TRICHROME_CHROME_GOOGLE_64_32_BUNDLE = GenericChromeBundleBackendSettings(
+    browser_type='android-trichrome-chrome-google-64-32-bundle',
+    package='com.google.android.apps.chrome',
+    apk_name='trichrome_chrome_google_64_32_bundle',
+    additional_apk_name='TrichromeLibraryGoogle6432.apk')
+
 ANDROID_CHROME_64_BUNDLE = GenericChromeBundleBackendSettings(
     browser_type='android-chrome-64-bundle',
     package='com.google.android.apps.chrome',
@@ -468,6 +474,7 @@ ANDROID_BACKEND_SETTINGS = (
     ANDROID_CHROME_64_BUNDLE,
     ANDROID_CHROME_BUNDLE,
     ANDROID_TRICHROME_BUNDLE,
+    ANDROID_TRICHROME_CHROME_GOOGLE_64_32_BUNDLE,
     ANDROID_CHROME_BETA,
     ANDROID_CHROME_DEV,
     ANDROID_CHROME_CANARY,
