@@ -3,7 +3,12 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
-import collections
+try:
+  # Since python 3
+  import collections.abc as collections_abc
+except ImportError:
+  # Won't work after python 3.8
+  import collections as collections_abc
 from telemetry.core import exceptions
 
 
@@ -11,7 +16,7 @@ def DebuggerUrlToId(debugger_url):
   return debugger_url.split('/')[-1]
 
 
-class InspectorBackendList(collections.Sequence):
+class InspectorBackendList(collections_abc.Sequence):
   """A dynamic sequence of active InspectorBackends."""
 
   def __init__(self, browser_backend):
