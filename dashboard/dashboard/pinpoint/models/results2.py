@@ -290,6 +290,10 @@ def _FetchHistograms(job):
       for execution in attempt.executions:
         # Attempt to extract taskID if this is a run_test._RunTestExecution
         if isinstance(execution, run_test._RunTestExecution):
+          # crbug/1352875. task_id can be None if the pinpoint job is cancelled.
+          if execution._task_id is None:
+            logging.warning('Swarming task id is None for the execution. Skip.')
+            continue
           # Query Swarming
           try:
             swarming_task = swarming.Swarming(execution._swarming_server).Task(
