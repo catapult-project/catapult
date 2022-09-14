@@ -12,6 +12,7 @@ from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import task as task_module
 from dashboard.pinpoint.models import event as event_module
 from dashboard.pinpoint.models.tasks import evaluator
+from dashboard.pinpoint.models import errors
 
 from dashboard.common import utils
 if utils.IsRunningFlask():
@@ -19,8 +20,14 @@ if utils.IsRunningFlask():
 
   def RunHandler(job_id):
     job = job_module.JobFromId(job_id)
-    job.Run()
-    return make_response('', 200)
+    try:
+      job.Run()
+      return make_response('', 200)
+    except errors.BuildCancelled as e:
+      logging.warning(
+          'Failed to run a job which has been already cancelled. Jod ID: %s',
+          job_id)
+      return make_response(str(e), 400)
 else:
   import webapp2
 
