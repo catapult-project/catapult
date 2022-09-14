@@ -6,6 +6,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import logging
+
 from dashboard.api import api_request_handler
 from dashboard.pinpoint.models import change
 from dashboard.services import request
@@ -21,9 +23,16 @@ if utils.IsRunningFlask():
   def CommitsHandlerPost():
     try:
       repository = flask_request.args.get('repository', 'chromium')
+      # crbug/1363418: workaround when start_git_hash is 'undefined'
+      start_git_hash = flask_request.args.get('start_git_hash')
+      if start_git_hash == 'undefined':
+        logging.warning(
+            'start_git_hash has "undefined" as the value. Using "HEAD" as default.'
+        )
+        start_git_hash = 'HEAD'
       c1 = change.Commit.FromDict({
           'repository': repository,
-          'git_hash': flask_request.args.get('start_git_hash'),
+          'git_hash': start_git_hash,
       })
       c2 = change.Commit.FromDict({
           'repository': repository,
