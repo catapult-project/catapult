@@ -139,6 +139,7 @@ def _LoadHistogramList(input_file):
 class AddHistogramsProcessHandler(request_handler.RequestHandler):
 
   def post(self):
+    logging.debug('crbug/1298177 - add_histograms POST triggered')
     datastore_hooks.SetPrivilegedRequest()
     token = None
 

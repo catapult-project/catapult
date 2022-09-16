@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import logging
 
 from google.appengine.ext import ndb
 
@@ -25,6 +26,7 @@ class GetHistogramHandler(request_handler.RequestHandler):
     Outputs:
       JSON serialized Histogram.
     """
+    logging.debug('crbug/1298177 - get_histogram POST triggered')
     guid = self.request.get('guid')
     if not guid:
       self.ReportError('Missing "guid" parameter', status=400)

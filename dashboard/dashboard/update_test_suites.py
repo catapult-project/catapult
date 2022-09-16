@@ -54,10 +54,12 @@ class UpdateTestSuitesHandler(request_handler.RequestHandler):
 
   def get(self):
     """Refreshes the cached test suites list."""
+    logging.debug('crbug/1298177 - update_test_suites GET triggered')
     self.post()
 
   def post(self):
     """Refreshes the cached test suites list."""
+    logging.debug('crbug/1298177 - update_test_suites POST triggered')
     if self.request.get('internal_only') == 'true':
       logging.info('Going to update internal-only test suites data.')
       # Update internal-only test suites data.

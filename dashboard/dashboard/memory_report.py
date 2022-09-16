@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 from dashboard import chart_handler
+import logging
 
 
 class MemoryReportHandler(chart_handler.ChartHandler):
@@ -14,4 +15,5 @@ class MemoryReportHandler(chart_handler.ChartHandler):
 
   def get(self):
     """Renders the memory infra specific graph selection UI."""
+    logging.debug('crbug/1298177 - memory_report GET triggered')
     self.RenderStaticHtml('memory_report.html')

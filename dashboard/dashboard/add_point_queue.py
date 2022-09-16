@@ -33,6 +33,7 @@ class AddPointQueueHandler(request_handler.RequestHandler):
 
   def get(self):
     """A get request is the same a post request for this endpoint."""
+    logging.debug('crbug/1298177 - add_point_queue GET triggered')
     self.post()
 
   def post(self):
@@ -43,6 +44,7 @@ class AddPointQueueHandler(request_handler.RequestHandler):
           one point to add. For each dict, one Row entity will be added, and
           any required TestMetadata or Master or Bot entities will be created.
     """
+    logging.debug('crbug/1298177 - add_point_queue POST triggered')
     datastore_hooks.SetPrivilegedRequest()
 
     data = json.loads(self.request.get('data'))

@@ -110,6 +110,7 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
       test_path: the test path to which this diagnostic or histogram should be
           attached.
     """
+    logging.debug('crbug/1298177 - add_histograms_queue POST triggered')
     datastore_hooks.SetPrivilegedRequest()
 
     params = json.loads(self.request.body)

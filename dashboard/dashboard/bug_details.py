@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import logging
 import re
 
 from dashboard import oauth2_decorator
@@ -22,6 +23,7 @@ class BugDetailsHandler(request_handler.RequestHandler):
 
   def post(self):
     """POST is the same as GET for this endpoint."""
+    logging.debug('crbug/1298177 - bug_details POST triggered')
     self.get()
 
   @oauth2_decorator.DECORATOR.oauth_required
@@ -31,6 +33,7 @@ class BugDetailsHandler(request_handler.RequestHandler):
     Request parameters:
       bug_id: Bug ID number, as a string
     """
+    logging.debug('crbug/1298177 - bug_details POST triggered')
     bug_id = int(self.request.get('bug_id'), 0)
     if bug_id <= 0:
       self.ReportError('Invalid or no bug id specified.')

@@ -37,6 +37,7 @@ class InvalidParamsError(Exception):
 class PinpointNewPrefillRequestHandler(request_handler.RequestHandler):
 
   def post(self):
+    logging.debug('crbug/1298177 - pinpoint_request prefill POST triggered')
     t = utils.TestKey(self.request.get('test_path')).get()
     self.response.write(json.dumps({'story_filter': t.unescaped_story_name}))
 
@@ -44,6 +45,7 @@ class PinpointNewPrefillRequestHandler(request_handler.RequestHandler):
 class PinpointNewBisectRequestHandler(request_handler.RequestHandler):
 
   def post(self):
+    logging.debug('crbug/1298177 - pinpoint_request new bisect POST triggered')
     job_params = dict(
         (a, self.request.get(a)) for a in self.request.arguments())
     self.response.write(json.dumps(NewPinpointBisect(job_params)))

@@ -17,6 +17,8 @@ from __future__ import absolute_import
 
 from google.appengine.ext import ndb
 
+import logging
+
 from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
 
@@ -25,6 +27,7 @@ class PutEntitiesTaskHandler(request_handler.RequestHandler):
 
   def post(self):
     """Saves the given entities."""
+    logging.debug('crbug/1298177 - put_entities_task POST triggered')
     datastore_hooks.SetPrivilegedRequest()
     urlsafe_keys = self.request.get('keys').split(',')
     keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys]

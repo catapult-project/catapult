@@ -163,6 +163,7 @@ class UploadInfoHandler(api_request_handler.ApiRequestHandler):
       - 404: Token could not be found. It is either expired or was never
         created.
     """
+    logging.debug('crbug/1298177 - uploads_info GET triggered')
     assert len(args) == 1
 
     token_id = args[0]

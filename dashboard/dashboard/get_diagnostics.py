@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import logging
 import sys
 
 from google.appengine.ext import ndb
@@ -30,6 +31,7 @@ class GetDiagnosticsHandler(request_handler.RequestHandler):
     Outputs:
       List of diagnostics.
     """
+    logging.debug('crbug/1298177 - get_diagnostics POST triggered')
     guid = self.request.get('guid')
     start_revision = self.request.get('start_revision')
     end_revision = self.request.get('end_revision')

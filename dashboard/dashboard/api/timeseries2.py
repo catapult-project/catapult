@@ -38,8 +38,8 @@ class Timeseries2Handler(api_request_handler.ApiRequestHandler):
     pass
 
   def Post(self, *args, **kwargs):
+    logging.debug('crbug/1298177 - /api/timeseries2 POST triggered')
     del args, kwargs  # Unused.
-    logging.debug('crbug/1298177 - /api/timeseries2 handler triggered')
     desc = descriptor.Descriptor(
         test_suite=self.request.get('test_suite'),
         measurement=self.request.get('measurement'),

@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import logging
 import time
 
 from dashboard.common import request_handler
@@ -22,6 +23,7 @@ class BuildbucketJobStatusHandler(request_handler.RequestHandler):
   human-readable format.
   """
   def get(self, job_id):
+    logging.debug('crbug/1298177 - buildbucket_job_status GET triggered')
     if utils.IsRunningBuildBucketV2():
       self.GetV2(job_id)
     else:

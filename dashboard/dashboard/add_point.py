@@ -123,6 +123,7 @@ class AddPointHandler(request_handler.RequestHandler):
       400 response with error message if required data is invalid.
       500 with error message otherwise.
     """
+    logging.debug('crbug/1298177 - add_point POST triggered')
     datastore_hooks.SetPrivilegedRequest()
     try:
       api_auth.Authorize()

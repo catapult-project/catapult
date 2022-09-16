@@ -64,9 +64,13 @@ def FetchCachedTestSuiteDescriptor(master, test_suite):
 class UpdateTestSuiteDescriptorsHandler(request_handler.RequestHandler):
 
   def get(self):
+    logging.debug(
+        'crbug/1298177 - update_test_suites_descriptors GET triggered')
     self.post()
 
   def post(self):
+    logging.debug(
+        'crbug/1298177 - update_test_suites_descriptors POST triggered')
     namespace = datastore_hooks.EXTERNAL
     if self.request.get('internal_only') == 'true':
       namespace = datastore_hooks.INTERNAL
