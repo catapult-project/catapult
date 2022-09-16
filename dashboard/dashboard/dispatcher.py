@@ -94,7 +94,6 @@ if six.PY2:
   from dashboard import list_tests
   from dashboard import load_from_prod
   from dashboard import mark_recovered_alerts
-  from dashboard import memory_report
   from dashboard import migrate_test_names
   from dashboard import oauth2_decorator
   from dashboard import pinpoint_request
@@ -172,7 +171,6 @@ if six.PY2:
       ('/', main.MainHandler),
       ('/mark_recovered_alerts',
        mark_recovered_alerts.MarkRecoveredAlertsHandler),
-      ('/memory_report', memory_report.MemoryReportHandler),
       ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler),
       ('/navbar', navbar.NavbarHandler),
       ('/pinpoint/new/bisect',
