@@ -94,7 +94,7 @@ class IdMap(object):
     assert 'id' not in items  # ID is set according to the path.
     for key, value in items.items():
       value_set = self._items[key]
-      if (isinstance(value, collections.Iterable) and
+      if (isinstance(value, collections.abc.Iterable) and
           not isinstance(value, StringTypes)):
         value_set.update(value)
       else:
