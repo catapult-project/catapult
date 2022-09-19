@@ -9,6 +9,7 @@ from __future__ import absolute_import
 import six
 import logging
 
+from dashboard import add_histograms
 from dashboard import alerts
 from dashboard import edit_site_config
 from dashboard import graph_csv
@@ -65,12 +66,21 @@ def SheriffConfigPollerGet():
   return sheriff_config_poller.SheriffConfigPollerGet()
 
 
+@flask_app.route('/add_histograms', methods=['POST'])
+def AddHistogramsPost():
+  return add_histograms.AddHistogramsPost()
+
+
+@flask_app.route('/add_histograms/process', methods=['POST'])
+def AddHistogramsProcessPost():
+  return add_histograms.AddHistogramsProcessPost()
+
+
 if six.PY2:
   import gae_ts_mon
   import webapp2
 
   # pylint: disable=ungrouped-imports
-  from dashboard import add_histograms
   from dashboard import add_histograms_queue
   from dashboard import add_point
   from dashboard import add_point_queue
@@ -203,6 +213,8 @@ if six.PY2:
 _PATHS_HANDLED_BY_FLASK = [
     # '/alerts',
     # '/configs/update',
+    # '/add_histograms',
+    # '/add_histograms/process',
     '/edit_site_config',
     # '/graph_csv',
     # '/navbar',

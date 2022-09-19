@@ -20,6 +20,7 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from dashboard import sheriff_config_client
+from dashboard.api import api_auth
 from dashboard.api import api_request_handler
 from dashboard.common import datastore_hooks
 from dashboard.common import histogram_helpers
@@ -33,6 +34,8 @@ from tracing.value import histogram_set
 from tracing.value.diagnostics import diagnostic
 from tracing.value.diagnostics import reserved_infos
 
+from flask import make_response, request
+
 TASK_QUEUE_NAME = 'histograms-queue'
 
 _RETRY_PARAMS = cloudstorage.RetryParams(backoff_factor=1.1)
@@ -40,62 +43,106 @@ _TASK_RETRY_LIMIT = 4
 _ZLIB_BUFFER_SIZE = 4096
 
 
-def _CheckRequest(condition, msg):
-  if not condition:
-    raise api_request_handler.BadRequestError(msg)
+def _CheckUser():
+  if utils.IsDevAppserver():
+    return
+  api_auth.Authorize()
+  if not utils.IsTryjobUser():
+    raise api_request_handler.ForbiddenError()
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class DecompressFileWrapper(object):
-  """A file-like object implementing inline decompression.
+def AddHistogramsProcessPost():
+  datastore_hooks.SetPrivilegedRequest()
+  token = None
 
-  This class wraps a file-like object and does chunk-based decoding of the data.
-  We only implement the read() function supporting fixed-chunk reading, capped
-  to a predefined constant buffer length.
+  try:
+    params = json.loads(request.get_data())
+    gcs_file_path = params['gcs_file_path']
 
-  Example
+    token_id = params.get('upload_completion_token')
+    if token_id is not None:
+      token = upload_completion_token.Token.get_by_id(token_id)
+      upload_completion_token.Token.UpdateObjectState(
+          token, upload_completion_token.State.PROCESSING)
 
-    with open('filename', 'r') as input:
-      decompressor = DecompressFileWrapper(input)
-      while True:
-        chunk = decompressor.read(4096)
-        if len(chunk) == 0:
-          break
-        // handle the chunk with size <= 4096
-  """
+    try:
+      logging.debug('Loading %s', gcs_file_path)
+      gcs_file = cloudstorage.open(
+          gcs_file_path, 'r', retry_params=_RETRY_PARAMS)
+      with DecompressFileWrapper(gcs_file) as decompressing_file:
+        histogram_dicts = _LoadHistogramList(decompressing_file)
 
-  def __init__(self, source_file, buffer_size=_ZLIB_BUFFER_SIZE):
-    self.source_file = source_file
-    self.decompressor = zlib.decompressobj()
-    self.buffer_size = buffer_size
+      gcs_file.close()
+      ProcessHistogramSet(histogram_dicts, token)
+    finally:
+      cloudstorage.delete(gcs_file_path, retry_params=_RETRY_PARAMS)
 
-  def __enter__(self):
-    return self
+    upload_completion_token.Token.UpdateObjectState(
+        token, upload_completion_token.State.COMPLETED)
+    return make_response('{}')
 
-  def read(self, size=None):  # pylint: disable=invalid-name
-    if size is None or size < 0:
-      size = self.buffer_size
+  except Exception as e:  # pylint: disable=broad-except
+    logging.error('Error processing histograms: %s', str(e))
+    upload_completion_token.Token.UpdateObjectState(
+        token, upload_completion_token.State.FAILED, str(e))
+    return make_response(json.dumps({'error': str(e)}))
 
-    # We want to read chunks of data from the buffer, chunks at a time.
-    temporary_buffer = self.decompressor.unconsumed_tail
-    if len(temporary_buffer) < self.buffer_size / 2:
-      raw_buffer = self.source_file.read(size)
-      if raw_buffer != '':
-        temporary_buffer += raw_buffer
 
-    if len(temporary_buffer) == 0:
-      return u''
+@api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
+def AddHistogramsPost():
+  if utils.IsDevAppserver():
+    # Don't require developers to zip the body.
+    # In prod, the data will be written to cloud storage and processed on the
+    # taskqueue, so the caller will not see any errors. In dev_appserver,
+    # process the data immediately so the caller will see errors.
+    # Also always create upload completion token for such requests.
+    token, token_info = _CreateUploadCompletionToken()
+    ProcessHistogramSet(
+        _LoadHistogramList(six.StringIO(request.get_data())), token)
+    token.UpdateState(upload_completion_token.State.COMPLETED)
+    return token_info
 
-    decompressed_data = self.decompressor.decompress(temporary_buffer, size)
-    return decompressed_data
+  with timing.WallTimeLogger('decompress'):
+    try:
+      data_str = request.get_data()
+      # Try to decompress at most 100 bytes from the data, only to determine
+      # if we've been given compressed payload.
+      zlib.decompressobj().decompress(data_str, 100)
+      logging.info('Received compressed data.')
+    except zlib.error as e:
+      if not data_str:
+        six.raise_from(
+            api_request_handler.BadRequestError(
+                'Missing or uncompressed data.'), e)
+      data_str = zlib.compress(data_str)
+      logging.info('Received uncompressed data.')
 
-  def close(self):  # pylint: disable=invalid-name
-    self.decompressor.flush()
+  if not data_str:
+    raise api_request_handler.BadRequestError('Missing "data" parameter')
 
-  def __exit__(self, exception_type, exception_value, execution_traceback):
-    self.close()
-    return False
+  filename = uuid.uuid4()
+  params = {'gcs_file_path': '/add-histograms-cache/%s' % filename}
+
+  gcs_file = cloudstorage.open(
+      params['gcs_file_path'],
+      'w',
+      content_type='application/octet-stream',
+      retry_params=_RETRY_PARAMS)
+  gcs_file.write(data_str)
+  gcs_file.close()
+
+  _, token_info = _CreateUploadCompletionToken(params['gcs_file_path'])
+  params['upload_completion_token'] = token_info['token']
+
+  retry_options = taskqueue.TaskRetryOptions(
+      task_retry_limit=_TASK_RETRY_LIMIT)
+  queue = taskqueue.Queue('default')
+  queue.add(
+      taskqueue.Task(
+          url='/add_histograms/process',
+          payload=json.dumps(params),
+          retry_options=retry_options))
+  return token_info
 
 
 def _LoadHistogramList(input_file):
@@ -136,124 +183,126 @@ def _LoadHistogramList(input_file):
   return objects
 
 
-class AddHistogramsProcessHandler(request_handler.RequestHandler):
+if six.PY2:
+  class AddHistogramsProcessHandler(request_handler.RequestHandler):
 
-  def post(self):
-    logging.debug('crbug/1298177 - add_histograms POST triggered')
-    datastore_hooks.SetPrivilegedRequest()
-    token = None
-
-    try:
-      params = json.loads(self.request.body)
-      gcs_file_path = params['gcs_file_path']
-
-      token_id = params.get('upload_completion_token')
-      if token_id is not None:
-        token = upload_completion_token.Token.get_by_id(token_id)
-        upload_completion_token.Token.UpdateObjectState(
-            token, upload_completion_token.State.PROCESSING)
+    def post(self):
+      logging.debug('crbug/1298177 - add_histograms POST triggered')
+      datastore_hooks.SetPrivilegedRequest()
+      token = None
 
       try:
-        logging.debug('Loading %s', gcs_file_path)
-        gcs_file = cloudstorage.open(
-            gcs_file_path, 'r', retry_params=_RETRY_PARAMS)
-        with DecompressFileWrapper(gcs_file) as decompressing_file:
-          histogram_dicts = _LoadHistogramList(decompressing_file)
+        params = json.loads(self.request.body)
+        gcs_file_path = params['gcs_file_path']
 
-        gcs_file.close()
+        token_id = params.get('upload_completion_token')
+        if token_id is not None:
+          token = upload_completion_token.Token.get_by_id(token_id)
+          upload_completion_token.Token.UpdateObjectState(
+              token, upload_completion_token.State.PROCESSING)
 
-        ProcessHistogramSet(histogram_dicts, token)
-      finally:
-        cloudstorage.delete(gcs_file_path, retry_params=_RETRY_PARAMS)
+        try:
+          logging.debug('Loading %s', gcs_file_path)
+          gcs_file = cloudstorage.open(
+              gcs_file_path, 'r', retry_params=_RETRY_PARAMS)
+          with DecompressFileWrapper(gcs_file) as decompressing_file:
+            histogram_dicts = _LoadHistogramList(decompressing_file)
 
-      upload_completion_token.Token.UpdateObjectState(
-          token, upload_completion_token.State.COMPLETED)
+          gcs_file.close()
 
-    except Exception as e:  # pylint: disable=broad-except
-      logging.error('Error processing histograms: %s', str(e))
-      self.response.out.write(json.dumps({'error': str(e)}))
+          ProcessHistogramSet(histogram_dicts, token)
+        finally:
+          cloudstorage.delete(gcs_file_path, retry_params=_RETRY_PARAMS)
 
-      upload_completion_token.Token.UpdateObjectState(
-          token, upload_completion_token.State.FAILED, str(e))
+        upload_completion_token.Token.UpdateObjectState(
+            token, upload_completion_token.State.COMPLETED)
+
+      except Exception as e:  # pylint: disable=broad-except
+        logging.error('Error processing histograms: %s', str(e))
+        self.response.out.write(json.dumps({'error': str(e)}))
+
+        upload_completion_token.Token.UpdateObjectState(
+            token, upload_completion_token.State.FAILED, str(e))
 
 
-# pylint: disable=abstract-method
-class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
+  # pylint: disable=abstract-method
+  class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
 
-  def _CheckUser(self):
-    self._CheckIsInternalUser()
+    def _CheckUser(self):
+      self._CheckIsInternalUser()
 
-  def _CreateUploadCompletionToken(self, temporary_staging_file_path=None):
-    token_info = {
-        'token': str(uuid.uuid4()),
-        'file': temporary_staging_file_path,
-    }
-    token = upload_completion_token.Token(
-        id=token_info['token'],
-        temporary_staging_file_path=temporary_staging_file_path,
-    )
-    token.put()
-    logging.info('Upload completion token created. Token id: %s',
-                 token_info['token'])
-    return token, token_info
+    def Post(self, *args, **kwargs):
+      del args, kwargs  # Unused.
+      if utils.IsDevAppserver():
+        # Don't require developers to zip the body.
+        # In prod, the data will be written to cloud storage and processed on
+        # the taskqueue, so the caller will not see any errors. In
+        # dev_appserver, process the data immediately so the caller will see
+        # errors. Also, always create upload completion token for such requests.
+        token, token_info = _CreateUploadCompletionToken()
+        ProcessHistogramSet(
+            _LoadHistogramList(six.StringIO(self.request.body)), token)
+        token.UpdateState(upload_completion_token.State.COMPLETED)
+        return token_info
 
-  def Post(self, *args, **kwargs):
-    del args, kwargs  # Unused.
-    if utils.IsDevAppserver():
-      # Don't require developers to zip the body.
-      # In prod, the data will be written to cloud storage and processed on the
-      # taskqueue, so the caller will not see any errors. In dev_appserver,
-      # process the data immediately so the caller will see errors.
-      # Also always create upload completion token for such requests.
-      token, token_info = self._CreateUploadCompletionToken()
-      ProcessHistogramSet(
-          _LoadHistogramList(six.StringIO(self.request.body)), token)
-      token.UpdateState(upload_completion_token.State.COMPLETED)
+      with timing.WallTimeLogger('decompress'):
+        try:
+          data_str = self.request.body
+
+          # Try to decompress at most 100 bytes from the data, only to determine
+          # if we've been given compressed payload.
+          zlib.decompressobj().decompress(data_str, 100)
+          logging.info('Received compressed data.')
+        except zlib.error as e:
+          data_str = self.request.get('data')
+          if not data_str:
+            six.raise_from(
+                api_request_handler.BadRequestError(
+                    'Missing or uncompressed data.'), e)
+          data_str = zlib.compress(data_str)
+          logging.info('Received uncompressed data.')
+
+      if not data_str:
+        raise api_request_handler.BadRequestError('Missing "data" parameter')
+
+      filename = uuid.uuid4()
+      params = {'gcs_file_path': '/add-histograms-cache/%s' % filename}
+
+      gcs_file = cloudstorage.open(
+          params['gcs_file_path'],
+          'w',
+          content_type='application/octet-stream',
+          retry_params=_RETRY_PARAMS)
+      gcs_file.write(data_str)
+      gcs_file.close()
+
+      _, token_info = _CreateUploadCompletionToken(params['gcs_file_path'])
+      params['upload_completion_token'] = token_info['token']
+
+      retry_options = taskqueue.TaskRetryOptions(
+          task_retry_limit=_TASK_RETRY_LIMIT)
+      queue = taskqueue.Queue('default')
+      queue.add(
+          taskqueue.Task(
+              url='/add_histograms/process',
+              payload=json.dumps(params),
+              retry_options=retry_options))
       return token_info
 
-    with timing.WallTimeLogger('decompress'):
-      try:
-        data_str = self.request.body
 
-        # Try to decompress at most 100 bytes from the data, only to determine
-        # if we've been given compressed payload.
-        zlib.decompressobj().decompress(data_str, 100)
-        logging.info('Received compressed data.')
-      except zlib.error as e:
-        data_str = self.request.get('data')
-        if not data_str:
-          six.raise_from(
-              api_request_handler.BadRequestError(
-                  'Missing or uncompressed data.'), e)
-        data_str = zlib.compress(data_str)
-        logging.info('Received uncompressed data.')
-
-    if not data_str:
-      raise api_request_handler.BadRequestError('Missing "data" parameter')
-
-    filename = uuid.uuid4()
-    params = {'gcs_file_path': '/add-histograms-cache/%s' % filename}
-
-    gcs_file = cloudstorage.open(
-        params['gcs_file_path'],
-        'w',
-        content_type='application/octet-stream',
-        retry_params=_RETRY_PARAMS)
-    gcs_file.write(data_str)
-    gcs_file.close()
-
-    _, token_info = self._CreateUploadCompletionToken(params['gcs_file_path'])
-    params['upload_completion_token'] = token_info['token']
-
-    retry_options = taskqueue.TaskRetryOptions(
-        task_retry_limit=_TASK_RETRY_LIMIT)
-    queue = taskqueue.Queue('default')
-    queue.add(
-        taskqueue.Task(
-            url='/add_histograms/process',
-            payload=json.dumps(params),
-            retry_options=retry_options))
-    return token_info
+def _CreateUploadCompletionToken(temporary_staging_file_path=None):
+  token_info = {
+      'token': str(uuid.uuid4()),
+      'file': temporary_staging_file_path,
+  }
+  token = upload_completion_token.Token(
+      id=token_info['token'],
+      temporary_staging_file_path=temporary_staging_file_path,
+  )
+  token.put()
+  logging.info('Upload completion token created. Token id: %s',
+               token_info['token'])
+  return token, token_info
 
 
 def _LogDebugInfo(histograms):
@@ -554,3 +603,61 @@ def _PurgeHistogramBinData(histograms):
         keys = list(dm.keys())
         for k in keys:
           del dm[k]
+
+
+def _CheckRequest(condition, msg):
+  if not condition:
+    raise api_request_handler.BadRequestError(msg)
+
+
+# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
+# pylint: disable=useless-object-inheritance
+class DecompressFileWrapper(object):
+  """A file-like object implementing inline decompression.
+
+  This class wraps a file-like object and does chunk-based decoding of the data.
+  We only implement the read() function supporting fixed-chunk reading, capped
+  to a predefined constant buffer length.
+
+  Example
+
+    with open('filename', 'r') as input:
+      decompressor = DecompressFileWrapper(input)
+      while True:
+        chunk = decompressor.read(4096)
+        if len(chunk) == 0:
+          break
+        // handle the chunk with size <= 4096
+  """
+
+  def __init__(self, source_file, buffer_size=_ZLIB_BUFFER_SIZE):
+    self.source_file = source_file
+    self.decompressor = zlib.decompressobj()
+    self.buffer_size = buffer_size
+
+  def __enter__(self):
+    return self
+
+  def read(self, size=None):  # pylint: disable=invalid-name
+    if size is None or size < 0:
+      size = self.buffer_size
+
+    # We want to read chunks of data from the buffer, chunks at a time.
+    temporary_buffer = self.decompressor.unconsumed_tail
+    if len(temporary_buffer) < self.buffer_size / 2:
+      raw_buffer = self.source_file.read(size)
+      if raw_buffer != '':
+        temporary_buffer += raw_buffer
+
+    if len(temporary_buffer) == 0:
+      return u''
+
+    decompressed_data = self.decompressor.decompress(temporary_buffer, size)
+    return decompressed_data
+
+  def close(self):  # pylint: disable=invalid-name
+    self.decompressor.flush()
+
+  def __exit__(self, exception_type, exception_value, execution_traceback):
+    self.close()
+    return False
