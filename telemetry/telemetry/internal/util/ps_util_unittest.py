@@ -3,8 +3,9 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
-import unittest
+import sys
 import time
+import unittest
 
 import py_utils
 import psutil  # pylint: disable=import-error
@@ -28,7 +29,7 @@ class PsUtilTest(unittest.TestCase):
 
   def testWaitForSubProcAndKillFinished(self):
     args = [
-        'python',
+        sys.executable,
         '-c',
         'import time; time.sleep(2)'
     ]
