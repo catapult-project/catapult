@@ -7,6 +7,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+USE_PYTHON3 = True
+
 
 def CheckChangeOnUpload(input_api, output_api):
   return _CommonChecks(input_api, output_api)

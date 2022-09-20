@@ -12,6 +12,8 @@ import os
 import tempfile
 import shutil
 
+USE_PYTHON3 = True
+
 def _RunArgs(args, input_api, cwd):
   p = input_api.subprocess.Popen(args, stdout=input_api.subprocess.PIPE,
                                  stderr=input_api.subprocess.STDOUT,
@@ -40,7 +42,7 @@ def _CommonChecks(input_api, output_api):
   if return_code:
     results.append(output_api.PresubmitError(
         'webpagereplay tests failed.', long_text=out))
-  print out
+  print(out)
 
   return results
 
