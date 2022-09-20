@@ -571,10 +571,6 @@ class BrowserOptions():
   _DEFAULT_LOGGING_LEVEL = NO_LOGGING
 
   def __init__(self):
-    # Property names that care copied over from finder_options
-    # in UpdateFromParseResults.
-    self._finder_options_to_copy = []
-
     self.browser_type = None
     self.show_stdout = False
 
@@ -652,13 +648,15 @@ class BrowserOptions():
   def IsCrosBrowserOptions(self):
     return False
 
-  def AddCommandLineArgs(self, parser):
+  @classmethod
+  def AddCommandLineArgs(cls, parser):
 
     ############################################################################
     # Please do not add any more options here without first discussing with    #
     # a telemetry owner. This is not the right place for platform-specific     #
     # options.                                                                 #
     ############################################################################
+
     group = optparse.OptionGroup(parser, 'Browser options')
     profile_choices = profile_types.GetProfileTypes()
     group.add_option(
@@ -687,33 +685,21 @@ class BrowserOptions():
         '--show-stdout',
         action='store_true',
         help='When possible, will display the stdout of the process')
+
     group.add_option(
         '--browser-logging-verbosity',
         dest='logging_verbosity',
         type='choice',
-        choices=self._LOGGING_LEVELS,
+        choices=cls._LOGGING_LEVELS,
         help=('Browser logging verbosity. The log file is saved in temp '
               "directory. Note that logging affects the browser's "
-              'performance. Supported values: %s. Defaults to %s.' %
-              (', '.join(self._LOGGING_LEVELS), self._DEFAULT_LOGGING_LEVEL)))
+              'performance. Supported values: %s. Defaults to %s.' % (
+                  ', '.join(cls._LOGGING_LEVELS), cls._DEFAULT_LOGGING_LEVEL)))
     group.add_option(
         '--assert-gpu-compositing',
-       action='store_true',
+        dest='assert_gpu_compositing', action='store_true',
         help='Assert the browser uses gpu compositing and not software path.')
-    group.add_option(
-      '--enable-component-extensions-with-background-pages',
-      dest="disable_component_extensions_with_background_pages",
-      action='store_false',
-      help=(
-        'Background pages of built-in component extensions can interfere with '
-        'performance measurements. Disabled by default.')
-    )
     parser.add_option_group(group)
-
-    # Store the variable name of all options in this group, so we can copy them
-    # out in UpdateFromParseResults.
-    for option in group.option_list:
-      self._finder_options_to_copy.append(option.dest)
 
     group = optparse.OptionGroup(parser, 'Compatibility options')
     group.add_option(
@@ -722,12 +708,20 @@ class BrowserOptions():
     parser.add_option_group(group)
 
   def UpdateFromParseResults(self, finder_options):
-    """Copies our browser options values from finder_options."""
-    for name in self._finder_options_to_copy:
-      option_value = getattr(finder_options, name, None)
-      if option_value is not None:
-        setattr(self, name, option_value)
-        delattr(finder_options, name)
+    """Copies our options from finder_options."""
+    browser_options_list = [
+        'extra_browser_args_as_string',
+        'extra_wpr_args_as_string',
+        'profile_dir',
+        'profile_type',
+        'show_stdout',
+        'compatibility_mode'
+        ]
+    for o in browser_options_list:
+      a = getattr(finder_options, o, None)
+      if a is not None:
+        setattr(self, o, a)
+        delattr(finder_options, o)
 
     self.browser_type = finder_options.browser_type
 
@@ -759,6 +753,10 @@ class BrowserOptions():
 
     if not self.profile_dir:
       self.profile_dir = profile_types.GetProfileDir(self.profile_type)
+
+    if getattr(finder_options, 'logging_verbosity'):
+      self.logging_verbosity = finder_options.logging_verbosity
+      delattr(finder_options, 'logging_verbosity')
 
     # This deferred import is necessary because browser_options is imported in
     # telemetry/telemetry/__init__.py.

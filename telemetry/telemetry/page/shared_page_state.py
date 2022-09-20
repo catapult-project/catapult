@@ -170,7 +170,7 @@ class SharedPageState(story_module.SharedState):
     if self._page_test:
       self._page_test.WillStartBrowser(self.platform)
     # Create a deep copy of browser_options so that we can add page-level
-    # arguments and url to it without polluting the run for thelf.e next page.
+    # arguments and url to it without polluting the run for the next page.
     browser_options = self._finder_options.browser_options.Copy()
     self._extra_browser_args = page.extra_browser_args
     browser_options.AppendExtraBrowserArgs(page.extra_browser_args)
