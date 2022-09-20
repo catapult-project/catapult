@@ -90,7 +90,31 @@ tr.exportTo('tr.metrics.v8', function() {
     'v8:gc:event:main_thread:full:incremental:sweep',
     'v8:gc:event:main_thread:full:incremental:sweep:cpp',
     'v8:gc:cycle:young',
+    'v8:gc:cycle:young:mark',
+    'v8:gc:cycle:young:weak',
+    'v8:gc:cycle:young:sweep',
+    'v8:gc:cycle:young:compact',
     'v8:gc:cycle:main_thread:young',
+    'v8:gc:cycle:main_thread:young:mark',
+    'v8:gc:cycle:main_thread:young:weak',
+    'v8:gc:cycle:main_thread:young:sweep',
+    'v8:gc:cycle:main_thread:young:compact',
+    'v8:gc:cycle:main_thread:young:atomic',
+    'v8:gc:cycle:main_thread:young:atomic:mark',
+    'v8:gc:cycle:main_thread:young:atomic:weak',
+    'v8:gc:cycle:main_thread:young:atomic:sweep',
+    'v8:gc:cycle:main_thread:young:atomic:compact',
+    'v8:gc:cycle:main_thread:young:incremental',
+    'v8:gc:cycle:main_thread:young:incremental:mark',
+    'v8:gc:cycle:main_thread:young:incremental:sweep',
+    'v8:gc:event:main_thread:young:atomic',
+    'v8:gc:event:main_thread:young:atomic:mark',
+    'v8:gc:event:main_thread:young:atomic:weak',
+    'v8:gc:event:main_thread:young:atomic:sweep',
+    'v8:gc:event:main_thread:young:atomic:compact',
+    'v8:gc:event:main_thread:young:incremental',
+    'v8:gc:event:main_thread:young:incremental:mark',
+    'v8:gc:event:main_thread:young:incremental:sweep',
   ];
 
   /**
@@ -104,8 +128,7 @@ tr.exportTo('tr.metrics.v8', function() {
     'V8.GC_MC_BACKGROUND_MARKING',
     'V8.GC_MC_MARK',
     'V8.GC_MC_INCREMENTAL',
-    'V8.GCIncrementalMarkingFinalize',
-    'V8.GCIncrementalMarkingStart',
+    'V8.GC_MC_INCREMENTAL_START',
   ];
 
   const V8_FULL_COMPACT_EVENTS = [
@@ -117,19 +140,39 @@ tr.exportTo('tr.metrics.v8', function() {
   const V8_FULL_SWEEP_EVENTS = [
     'V8.GC_MC_BACKGROUND_SWEEPING',
     'V8.GC_MC_SWEEP',
+    'V8.GC_MC_COMPLETE_SWEEPING',
   ];
 
   const V8_FULL_WEAK_EVENTS = [
     'V8.GC_MC_CLEAR',
   ];
 
-  const V8_YOUNG_EVENTS = [
+  const V8_YOUNG_ATOMIC_EVENTS = [
     'V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL',
     'V8.GC_SCAVENGER',
     'V8.GC_MINOR_MARK_COMPACTOR',
+  ];
+
+  const V8_YOUNG_MARK_EVENTS = [
     'V8.GC_MINOR_MC_BACKGROUND_MARKING',
+    'V8.GC_MINOR_MC_MARK',
+    'V8.GC_MINOR_MC_INCREMENTAL',
+    'V8.GC_MINOR_MC_INCREMENTAL_START',
+  ];
+
+  const V8_YOUNG_COMPACT_EVENTS = [
     'V8.GC_MINOR_MC_BACKGROUND_EVACUATE_COPY',
     'V8.GC_MINOR_MC_BACKGROUND_EVACUATE_UPDATE_POINTERS',
+    'V8.GC_MINOR_MC_EVACUATE',
+  ];
+
+  const V8_YOUNG_SWEEP_EVENTS = [
+    'V8.GC_MINOR_MC_BACKGROUND_SWEEPING',
+    'V8.GC_MINOR_MC_SWEEP',
+  ];
+
+  const V8_YOUNG_WEAK_EVENTS = [
+    'V8.GC_MINOR_MC_CLEAR',
   ];
 
   const CPP_GC_FULL_MARK_EVENTS = [
@@ -272,8 +315,38 @@ tr.exportTo('tr.metrics.v8', function() {
       contribute_to: 'full:incremental:sweep:cpp',
     },
     {
-      events: V8_YOUNG_EVENTS,
+      events: V8_YOUNG_ATOMIC_EVENTS,
       contribute_to: 'young:atomic',
+    },
+    {
+      events: V8_YOUNG_MARK_EVENTS,
+      inside: V8_YOUNG_ATOMIC_EVENTS,
+      contribute_to: 'young:atomic:mark',
+    },
+    {
+      events: V8_YOUNG_MARK_EVENTS,
+      outside: V8_YOUNG_ATOMIC_EVENTS,
+      contribute_to: 'young:incremental:mark',
+    },
+    {
+      events: V8_YOUNG_COMPACT_EVENTS,
+      inside: V8_YOUNG_ATOMIC_EVENTS,
+      contribute_to: 'young:atomic:compact',
+    },
+    {
+      events: V8_YOUNG_SWEEP_EVENTS,
+      inside: V8_YOUNG_ATOMIC_EVENTS,
+      contribute_to: 'young:atomic:sweep',
+    },
+    {
+      events: V8_YOUNG_WEAK_EVENTS,
+      inside: V8_YOUNG_ATOMIC_EVENTS,
+      contribute_to: 'young:atomic:weak',
+    },
+    {
+      events: V8_YOUNG_SWEEP_EVENTS,
+      outside: V8_YOUNG_ATOMIC_EVENTS,
+      contribute_to: 'young:incremental:sweep',
     },
   ];
 
@@ -1099,4 +1172,3 @@ tr.exportTo('tr.metrics.v8', function() {
   };
 });
 </script>
-
