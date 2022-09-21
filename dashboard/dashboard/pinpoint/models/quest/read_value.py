@@ -346,11 +346,10 @@ def RetrieveIsolateOutput(isolate_server, isolate_hash, filename):
   return isolate.Retrieve(isolate_server, output_isolate_hash)
 
 
-def RetrieveCASOutput(cas_root_ref, path, client=None):
+def RetrieveCASOutput(cas_root_ref, path):
   logging.debug('Retrieving output (%s, %s)', cas_root_ref, path)
 
-  if not client:
-    cas_client = cas_service.GetRBECASService()
+  cas_client = cas_service.GetRBECASService()
 
   def _GetTree(cas_ref):
     return cas_client.GetTree(cas_ref)[0]['directories'][0]
