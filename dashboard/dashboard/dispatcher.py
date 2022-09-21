@@ -16,6 +16,7 @@ from dashboard import graph_csv
 from dashboard import main
 from dashboard import navbar
 from dashboard import sheriff_config_poller
+from dashboard.api import describe
 
 from flask import Flask
 flask_app = Flask(__name__)
@@ -76,6 +77,11 @@ def AddHistogramsProcessPost():
   return add_histograms.AddHistogramsProcessPost()
 
 
+@flask_app.route('/api/describe', methods=['POST'])
+def DescribePost():
+  return describe.DescribePost()
+
+
 if six.PY2:
   import gae_ts_mon
   import webapp2
@@ -118,7 +124,6 @@ if six.PY2:
   from dashboard.api import alerts as api_alerts
   from dashboard.api import bugs
   from dashboard.api import config
-  from dashboard.api import describe
   from dashboard.api import list_timeseries
   from dashboard.api import new_bug
   from dashboard.api import new_pinpoint
@@ -212,6 +217,7 @@ if six.PY2:
 # the incoming requests.
 _PATHS_HANDLED_BY_FLASK = [
     # '/alerts',
+    '/api/describe',
     # '/configs/update',
     # '/add_histograms',
     # '/add_histograms/process',
