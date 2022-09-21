@@ -89,9 +89,10 @@ class Benchmark(command_line.Command):
     Returns:
       An exit code from exit_codes module describing what happened.
     """
-    args.target_platforms = self.GetSupportedPlatformNames(
+    finder_options = args
+    finder_options.target_platforms = self.GetSupportedPlatformNames(
         self.SUPPORTED_PLATFORMS)
-    return story_runner.RunBenchmark(self, args)
+    return story_runner.RunBenchmark(self, finder_options)
 
   @property
   def max_failures(self):
