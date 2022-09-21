@@ -287,6 +287,7 @@ tr.exportTo('tr.metrics.v8', function() {
     {
       events: V8_FULL_SWEEP_EVENTS,
       inside: V8_FULL_ATOMIC_EVENTS,
+      outside: V8_FULL_COMPACT_EVENTS,
       contribute_to: 'full:atomic:sweep',
     },
     {
@@ -306,7 +307,7 @@ tr.exportTo('tr.metrics.v8', function() {
     },
     {
       events: V8_FULL_SWEEP_EVENTS,
-      outside: V8_FULL_ATOMIC_EVENTS,
+      outside: V8_FULL_ATOMIC_EVENTS.concat(V8_FULL_COMPACT_EVENTS),
       contribute_to: 'full:incremental:sweep',
     },
     {
@@ -336,6 +337,7 @@ tr.exportTo('tr.metrics.v8', function() {
     {
       events: V8_YOUNG_SWEEP_EVENTS,
       inside: V8_YOUNG_ATOMIC_EVENTS,
+      outside: V8_YOUNG_COMPACT_EVENTS,
       contribute_to: 'young:atomic:sweep',
     },
     {
@@ -345,7 +347,7 @@ tr.exportTo('tr.metrics.v8', function() {
     },
     {
       events: V8_YOUNG_SWEEP_EVENTS,
-      outside: V8_YOUNG_ATOMIC_EVENTS,
+      outside: V8_YOUNG_ATOMIC_EVENTS.concat(V8_YOUNG_COMPACT_EVENTS),
       contribute_to: 'young:incremental:sweep',
     },
   ];
