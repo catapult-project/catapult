@@ -404,6 +404,54 @@ ANDROID_CHROMIUM_MONOCHROME = GenericChromeBackendSettings(
     apk_name='MonochromePublic.apk'
 )
 
+ANDROID_CHROMIUM_BETA = GenericChromeBackendSettings(
+    browser_type='android-chromium.beta',
+    package='org.chromium.chrome.beta',
+    apk_name='ChromePublic.apk')
+
+ANDROID_CHROMIUM_BUNDLE_BETA = GenericChromeBundleBackendSettings(
+    browser_type='android-chromium-bundle.beta',
+    package='org.chromium.chrome.beta',
+    apk_name='chrome_modern_public_bundle')
+
+ANDROID_CHROMIUM_MONOCHROME_BETA = GenericChromeBackendSettings(
+    browser_type='android-chromium-monochrome.beta',
+    package='org.chromium.chrome.beta',
+    apk_name='MonochromePublic.apk'
+)
+
+ANDROID_CHROMIUM_CANARY = GenericChromeBackendSettings(
+    browser_type='android-chromium.canary',
+    package='org.chromium.chrome.canary',
+    apk_name='ChromePublic.apk')
+
+ANDROID_CHROMIUM_BUNDLE_CANARY = GenericChromeBundleBackendSettings(
+    browser_type='android-chromium-bundle.canary',
+    package='org.chromium.chrome.canary',
+    apk_name='chrome_modern_public_bundle')
+
+ANDROID_CHROMIUM_MONOCHROME_CANARY = GenericChromeBackendSettings(
+    browser_type='android-chromium-monochrome.canary',
+    package='org.chromium.chrome.canary',
+    apk_name='MonochromePublic.apk'
+)
+
+ANDROID_CHROMIUM_DEV = GenericChromeBackendSettings(
+    browser_type='android-chromium.dev',
+    package='org.chromium.chrome.dev',
+    apk_name='ChromePublic.apk')
+
+ANDROID_CHROMIUM_BUNDLE_DEV = GenericChromeBundleBackendSettings(
+    browser_type='android-chromium-bundle.dev',
+    package='org.chromium.chrome.dev',
+    apk_name='chrome_modern_public_bundle')
+
+ANDROID_CHROMIUM_MONOCHROME_DEV = GenericChromeBackendSettings(
+    browser_type='android-chromium-monochrome.dev',
+    package='org.chromium.chrome.dev',
+    apk_name='MonochromePublic.apk'
+)
+
 ANDROID_CHROME = ChromeBackendSettings(
     browser_type='android-chrome',
     package='com.google.android.apps.chrome')
@@ -470,6 +518,15 @@ ANDROID_BACKEND_SETTINGS = (
     ANDROID_CHROMIUM,
     ANDROID_CHROMIUM_BUNDLE,
     ANDROID_CHROMIUM_MONOCHROME,
+    ANDROID_CHROMIUM_BETA,
+    ANDROID_CHROMIUM_BUNDLE_BETA,
+    ANDROID_CHROMIUM_MONOCHROME_BETA,
+    ANDROID_CHROMIUM_CANARY,
+    ANDROID_CHROMIUM_BUNDLE_CANARY,
+    ANDROID_CHROMIUM_MONOCHROME_CANARY,
+    ANDROID_CHROMIUM_DEV,
+    ANDROID_CHROMIUM_BUNDLE_DEV,
+    ANDROID_CHROMIUM_MONOCHROME_DEV,
     ANDROID_CHROME,
     ANDROID_CHROME_64_BUNDLE,
     ANDROID_CHROME_BUNDLE,
