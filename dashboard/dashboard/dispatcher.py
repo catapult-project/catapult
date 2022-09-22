@@ -97,8 +97,6 @@ if six.PY2:
   from dashboard import create_health_report
   from dashboard import dump_graph_json
   from dashboard import edit_anomalies
-  from dashboard import edit_anomaly_configs
-  from dashboard import edit_bug_labels
   from dashboard import file_bug
   from dashboard import get_diagnostics
   from dashboard import get_histogram
@@ -171,8 +169,6 @@ if six.PY2:
        layered_cache_delete_expired.LayeredCacheDeleteExpiredHandler),
       ('/dump_graph_json', dump_graph_json.DumpGraphJsonHandler),
       ('/edit_anomalies', edit_anomalies.EditAnomaliesHandler),
-      ('/edit_anomaly_configs', edit_anomaly_configs.EditAnomalyConfigsHandler),
-      ('/edit_bug_labels', edit_bug_labels.EditBugLabelsHandler),
       ('/edit_site_config', edit_site_config.EditSiteConfigHandler),
       ('/file_bug', file_bug.FileBugHandler),
       ('/get_diagnostics', get_diagnostics.GetDiagnosticsHandler),
