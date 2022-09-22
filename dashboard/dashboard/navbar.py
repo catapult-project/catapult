@@ -17,8 +17,8 @@ from flask import make_response, request
 def NavbarHandlerPost():
   """XHR endpoint to fill in navbar fields."""
   template_values = {}
-  request_handler.RequestHandlerGetDynamicVariable(template_values,
-                                                   request.args.get('path'))
+  request_handler.RequestHandlerGetDynamicVariables(template_values,
+                                                   request.values.get('path'))
   res = make_response(
       json.dumps({
           'login_url': template_values['login_url'],

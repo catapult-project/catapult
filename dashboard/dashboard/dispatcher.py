@@ -57,7 +57,7 @@ def MainHandlerGet():
   return main.MainHandlerGet()
 
 
-@flask_app.route('/navbar')
+@flask_app.route('/navbar', methods=['POST'])
 def NavbarHandlerPost():
   return navbar.NavbarHandlerPost()
 
@@ -216,14 +216,13 @@ if six.PY2:
 # The listed values will be used as *prefix* to match and redirect
 # the incoming requests.
 _PATHS_HANDLED_BY_FLASK = [
-    # '/alerts',
-    '/api/describe',
+    '/alerts',
     # '/configs/update',
     # '/add_histograms',
     # '/add_histograms/process',
     '/edit_site_config',
     # '/graph_csv',
-    # '/navbar',
+    '/navbar',
 ]
 
 
