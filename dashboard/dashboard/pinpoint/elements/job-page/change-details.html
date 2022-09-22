@@ -89,21 +89,21 @@ found in the LICENSE file.
     </style>
 
     <template is="dom-if" if="[[changeState]]">
-      <h2 class="commit-title">Commit [[changeString(changeState.change)]]
-        <copy id="casDownload" on-click="casDownload" isolate="{{isolateDetail(changeState.attempts.0.executions.0.details)}}">
+      <h2 class="commit-title" >Commit [[changeString(changeState.change)]]
+        <copy id="casDownload" on-click="casDownload" isolate="{{isolateDetail(changeState.attempts.0.executions.0.details)}}" >
            ⬇️
         </copy>
         <paper-tooltip for="casDownload" type="explanatory">
-          Click to copy the "download CAS binaries" command
+          Click to copy the command that downloads Chrome release folder from CAS
         </paper-tooltip>
-        <copy id="copyBenchmark" on-click="copyBenchmark" suffix="[[getArguments(job)]]">
+        <copy id="copyBenchmark" on-click="copyBenchmark" suffix="[[getArguments(job)]]" >
           🖥️
         </copy>
         <paper-tooltip for="copyBenchmark" type="explanatory">
-          Click to copy the "run benchmark" command
+          Click to copy the command that runs benchmark
         </paper-tooltip>
-        <copy id="openDownloadDialog" on-click="openDownloadDialog">
-          ❓
+        <copy id="openDownloadDialog" on-click="openDownloadDialog" style="color:blue;float:right;" >
+          Reproduce Locally
         </copy>
         <paper-tooltip for="openDownloadDialog" type="explanatory">
           Help
@@ -143,10 +143,16 @@ found in the LICENSE file.
     <paper-dialog id="tooltip_download" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
       <h2>Buttons usage:</h2>
       <p>
-        ⬇️: Copy the CAS command which downloads the corresponding isolate binaries in terminal for reproducing the tests locally.
+        <copy id="casDownload" on-click="casDownload" isolate="{{isolateDetail(changeState.attempts.0.executions.0.details)}}" >
+          ⬇️:
+        </copy>
+        Copy the CAS command which downloads the corresponding Chrome isolate binaries in terminal for reproducing the tests locally.
       </p>
       <p>
-        🖥️: Copy the benchmark command which kicks off the local reproduction tests with corresponding parameters.
+        <copy id="copyBenchmark" on-click="copyBenchmark" suffix="[[getArguments(job)]]" >
+          🖥️:
+        </copy>
+        Copy the benchmark command which kicks off the local reproduction tests with corresponding parameters.
       </p>
       <h2>Pre-requisite: depot_tools and CAS</h2>
       <div>
@@ -210,7 +216,7 @@ found in the LICENSE file.
           if (args[key]) {
             res += _BENCHMARK_ARGS[key];
             if (key === 'story') {
-              res += '^' + args[key] + '$';
+              res += '"^' + args[key] + '$"';
             } else {
               res += args[key];
             }
