@@ -64,7 +64,8 @@ class RBECASService(object):
             hash=digest['hash'],
             sizeBytes=digest['sizeBytes'],
             pageSize=page_size,
-            pageToken=page_token).execute()
+            pageToken=page_token).execute(
+                http=utils.ServiceAccountHttp(scope=utils.CLOUD_SCOPE))
       except Exception as e:  # pylint: disable=broad-except
         logging.debug('GetTree iteration %s raised %s', i, str(e))
         exc = e
@@ -79,7 +80,7 @@ class RBECASService(object):
             body={
                 'digests': [self._NormalizeDigest(d) for d in digests],
             },
-        ).execute()
+        ).execute(http=utils.ServiceAccountHttp(scope=utils.CLOUD_SCOPE))
       except Exception as e:  # pylint: disable=broad-except
         logging.debug('BatchRead iteration %s raised %s', i, str(e))
         exc = e
