@@ -11,6 +11,7 @@ import logging
 
 from dashboard import add_histograms
 from dashboard import alerts
+from dashboard import alert_groups
 from dashboard import edit_site_config
 from dashboard import graph_csv
 from dashboard import main
@@ -82,6 +83,11 @@ def DescribePost():
   return describe.DescribePost()
 
 
+@flask_app.route('/alert_groups_update')
+def AlertGroupsGet():
+  return alert_groups.AlertGroupsGet()
+
+
 if six.PY2:
   import gae_ts_mon
   import webapp2
@@ -90,7 +96,6 @@ if six.PY2:
   from dashboard import add_histograms_queue
   from dashboard import add_point
   from dashboard import add_point_queue
-  from dashboard import alert_groups
   from dashboard import associate_alerts
   from dashboard import bug_details
   from dashboard import buildbucket_job_status
@@ -213,6 +218,7 @@ if six.PY2:
 # the incoming requests.
 _PATHS_HANDLED_BY_FLASK = [
     '/alerts',
+    # '/alert_groups_update',
     '/api/describe',
     # '/configs/update',
     # '/add_histograms',
