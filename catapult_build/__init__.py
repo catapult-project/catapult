@@ -20,10 +20,15 @@ def _UpdateSysPathIfNeeded():
   if sys.version_info.major == 2:
     _AddToPathIfNeeded(
         os.path.join(catapult_third_party_path, 'beautifulsoup4'))
+    _AddToPathIfNeeded(
+        os.path.join(catapult_third_party_path, 'html5lib-python'))
   else:
     _AddToPathIfNeeded(
         os.path.join(catapult_third_party_path, 'beautifulsoup4-4.9.3', 'py3k'))
-  _AddToPathIfNeeded(os.path.join(catapult_third_party_path, 'html5lib-python'))
+    _AddToPathIfNeeded(
+        os.path.join(catapult_third_party_path, 'html5lib-1.1'))
+    _AddToPathIfNeeded(
+        os.path.join(catapult_third_party_path, 'webencodings-0.5.1'))
   _AddToPathIfNeeded(os.path.join(catapult_third_party_path, 'six'))
   _AddToPathIfNeeded(os.path.join(catapult_third_party_path, 'Paste'))
   _AddToPathIfNeeded(os.path.join(catapult_third_party_path, 'webapp2'))

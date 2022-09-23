@@ -7,8 +7,11 @@
 See https://www.chromium.org/developers/how-tos/depottools/presubmit-scripts
 for more details about the presubmit API built into depot_tools.
 """
+
 import re
 import sys
+
+USE_PYTHON3 = True
 
 _EXCLUDED_PATHS = (
     r'(.*[\\/])?\.git[\\/].*',
