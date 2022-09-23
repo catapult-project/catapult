@@ -50,7 +50,7 @@ def AlertsHandlerPost():
   Outputs:
     JSON data for an XHR request to show a table of alerts.
   """
-  sheriff_name = request.args.get('sheriff', 'Chromium Perf Sheriff')
+  sheriff_name = request.values.get('sheriff', 'Chromium Perf Sheriff')
   if not _SheriffIsFound(sheriff_name):
     return make_response(
         json.dumps({'error': 'Sheriff "%s" not found.' % sheriff_name}))
@@ -58,23 +58,23 @@ def AlertsHandlerPost():
   # Cursors are used to fetch paged queries. If none is supplied, then the
   # first 500 alerts will be returned. If a cursor is given, the next
   # 500 alerts (starting at the given cursor) will be returned.
-  anomaly_cursor = request.args.get('anomaly_cursor', None)
+  anomaly_cursor = request.values.get('anomaly_cursor', None)
   if anomaly_cursor:
     anomaly_cursor = Cursor(urlsafe=anomaly_cursor)
 
   is_improvement = None
-  if not bool(request.args.get('improvements')):
+  if not bool(request.values.get('improvements')):
     is_improvement = False
 
   bug_id = None
   recovered = None
-  if not bool(request.args.get('triaged')):
+  if not bool(request.values.get('triaged')):
     bug_id = ''
     recovered = False
 
   max_anomalies_to_show = _MAX_ANOMALIES_TO_SHOW
-  if request.args.get('max_anomalies_to_show'):
-    max_anomalies_to_show = int(request.args.get('max_anomalies_to_show'))
+  if request.values.get('max_anomalies_to_show'):
+    max_anomalies_to_show = int(request.values.get('max_anomalies_to_show'))
 
   anomalies, next_cursor, count = anomaly.Anomaly.QueryAsync(
       start_cursor=anomaly_cursor,
