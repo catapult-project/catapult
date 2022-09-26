@@ -41,16 +41,6 @@ handlers:
   login: admin
   secure: always
 
-- url: /edit_anomaly_configs
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /edit_bug_labels
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
 - url: /edit_sheriffs
   script: dashboard.dispatcher.APP
   login: admin
@@ -59,11 +49,6 @@ handlers:
 - url: /edit_anomalies
   script: dashboard.dispatcher.APP
   login: required
-  secure: always
-
-- url: /edit_site_config
-  script: dashboard.dispatcher.APP
-  login: admin
   secure: always
 
 - url: /file_bug
