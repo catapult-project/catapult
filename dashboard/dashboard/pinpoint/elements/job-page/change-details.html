@@ -18,6 +18,13 @@ found in the LICENSE file.
         margin-top: 8px;
       }
 
+      #openDownloadDialog {
+        color:var(--paper-indigo-500);
+        float:right;
+        font-size:14px;
+        line-height:26px;
+      }
+
       .emphasis {
         font-weight: bold;
       }
@@ -102,9 +109,9 @@ found in the LICENSE file.
         <paper-tooltip for="copyBenchmark" type="explanatory">
           Click to copy the command that runs benchmark
         </paper-tooltip>
-        <copy id="openDownloadDialog" on-click="openDownloadDialog" style="color:blue;float:right;" >
+        <span id="openDownloadDialog" on-click="openDownloadDialog" >
           Reproduce Locally
-        </copy>
+        </span>
         <paper-tooltip for="openDownloadDialog" type="explanatory">
           Help
         </paper-tooltip>
