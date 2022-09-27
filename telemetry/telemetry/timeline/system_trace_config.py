@@ -48,8 +48,12 @@ class SystemTraceConfig():
     self._chrome_config = None
     # Not None iff profiling (callstack sampling) is enabled.
     self._profiling_args = None
+    self._text_config = None
 
   def GetTextConfig(self):
+    if self._text_config is not None:
+      return self._text_config
+
     text_config = """
         buffers: {
             size_kb: 200000
@@ -198,3 +202,10 @@ class SystemTraceConfig():
     """
     self._profiling_args = self.ProfilingArgs(target_cmdlines,
                                               sampling_frequency_hz)
+  def SetTextConfig(self, text_config):
+    """Overrides the Perfetto configuration to the given value.
+
+    Set to None to remove the override. Useful for Perfetto power users that
+    want to be in full control of what is sent to the Perfetto tracing agent.
+    """
+    self._text_config = text_config
