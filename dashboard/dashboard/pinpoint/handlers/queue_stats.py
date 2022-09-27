@@ -23,7 +23,10 @@ if utils.IsRunningFlask():
       return make_response(
           json.dumps({'error': 'Missing configuration in request.'}), 400)
 
-    queue_stats = scheduler.QueueStats(configuration)
+    try:
+      queue_stats = scheduler.QueueStats(configuration)
+    except scheduler.QueueNotFound:
+      return make_response('The queue does not exist: %s' % configuration, 404)
     return make_response(json.dumps(queue_stats))
 else:
 
@@ -36,5 +39,9 @@ else:
             json.dumps({'error': 'Missing configuration in request.'}))
         return
 
-      queue_stats = scheduler.QueueStats(configuration)
+      try:
+        queue_stats = scheduler.QueueStats(configuration)
+      except scheduler.QueueNotFound:
+        self.response.set_status(404)
+        self.response.write('The queue does not exist: %s' % configuration)
       self.response.write(json.dumps(queue_stats))
