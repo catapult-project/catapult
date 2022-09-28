@@ -909,3 +909,17 @@ def RequestParamsMixed(req):
 
 def IsRunningFlask():
   return IsStagingEnvironment() or six.PY3
+
+
+def SanitizeArgs(args, key_name, default):
+  if key_name not in args:
+    logging.warning(
+        '%s is not found in the query arguments. Using "%s" as default.',
+        key_name, default)
+    return default
+  value = args[key_name]
+  if value in ('', 'undefined'):
+    logging.warning('%s has %s as the value. Using "%s" as default.', key_name,
+                    value, default)
+    return default
+  return value

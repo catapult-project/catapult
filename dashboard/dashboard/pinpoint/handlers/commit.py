@@ -22,8 +22,10 @@ if utils.IsRunningFlask():
   # pylint: disable=inconsistent-return-statements
   @api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
   def CommitHandlerPost():
-    repository = request.args.get('repository', 'chromium')
-    git_hash = request.args.get('git_hash')
+    repository = utils.SanitizeArgs(
+        args=request.args, key_name='repository', default='chromium')
+    git_hash = utils.SanitizeArgs(
+        args=request.args, key_name='git_hash', default='HEAD')
     try:
       c = change.Commit.FromDict({
           'repository': repository,
