@@ -378,7 +378,9 @@ class Platform():
     # TODO(https://crbug.com/1014670): Remove once debug flags supported in
     # Fuchsia browsers.
     if self._platform_backend.GetOSName() == 'fuchsia':
-      self._platform_backend.forwarder_factory.Create(server.port, server.port)
+      self._forwarder = (
+          self._platform_backend.forwarder_factory.Create(server.port,
+                                                          server.port))
     return True
 
   def StopAllLocalServers(self):

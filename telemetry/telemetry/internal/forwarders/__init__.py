@@ -38,6 +38,9 @@ class Forwarder():
     self._local_port = None
     self._remote_port = None
 
+  def __del__(self):
+    self.Close()
+
   def _StartedForwarding(self, local_port, remote_port):
     assert not self.is_forwarding, 'forwarder has already started'
     assert local_port and remote_port, 'ports should now be determined'
