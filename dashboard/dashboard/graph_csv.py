@@ -33,10 +33,10 @@ def GraphCSVGet():
   Outputs:
     CSV file contents.
   """
-  test_path = request.args.get('test_path')
-  rev = request.args.get('rev')
-  num_points = int(request.args.get('num_points', 500))
-  attributes = request.args.get('attr', 'revision,value').split(',')
+  test_path = request.values.get('test_path')
+  rev = request.values.get('rev')
+  num_points = int(request.values.get('num_points', 500))
+  attributes = request.values.get('attr', 'revision,value').split(',')
 
   if not test_path:
     return request_handler.RequestHandlerReportError(
@@ -46,8 +46,9 @@ def GraphCSVGet():
 
   test_key = utils.TestKey(test_path)
   test = test_key.get()
-  assert (datastore_hooks.IsUnalteredQueryPermitted() or not test.internal_only)
-  datastore_hooks.SetSinglePrivilegedRequest()
+  assert (datastore_hooks.IsUnalteredQueryPermitted(True)
+          or not test.internal_only)
+  datastore_hooks.SetSinglePrivilegedRequest(True)
   q = graph_data.Row.query()
   q = q.filter(graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
   if rev:
