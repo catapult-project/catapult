@@ -17,10 +17,10 @@ from google.appengine.datastore import datastore_pb
 from dashboard.common import utils
 import six
 
-if utils.IsRunningFlask():
-  from flask import g as flask_global
-  from flask import request as flask_request
-else:
+from flask import g as flask_global
+from flask import request as flask_request
+
+if not utils.IsRunningFlask():
   import webapp2
 
 # The list below contains all kinds that have an internal_only property.
