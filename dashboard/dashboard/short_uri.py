@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import hashlib
 import json
+import six
 
 from google.appengine.ext import ndb
 
@@ -17,50 +18,95 @@ from dashboard.common import request_handler
 from dashboard.common import datastore_hooks
 from dashboard.models import page_state
 
+from flask import make_response, request
 
-class ShortUriHandler(request_handler.RequestHandler):
-  """Handles short URI."""
 
-  def get(self):
-    """Handles getting page states."""
-    state_id = self.request.get('sid')
+def ShortUriHandlerGet():
+  """Handles getting page states."""
+  state_id = request.args.get('sid')
 
-    if not state_id:
-      self.ReportError('Missing required parameters.', status=400)
-      return
+  if not state_id:
+    return request_handler.RequestHandlerReportError(
+        'Missing required parameters.', status=400)
 
-    state = ndb.Key(page_state.PageState, state_id).get()
+  state = ndb.Key(page_state.PageState, state_id).get()
 
-    if not state:
-      self.ReportError('Invalid sid.', status=400)
-      return
+  if not state:
+    return request_handler.RequestHandlerReportError('Invalid sid.', status=400)
 
-    if self.request.get('v2', None) is None:
-      self.response.out.write(state.value)
-      return
+  if request.args.get('v2', None) is None:
+    return make_response(state.value)
 
-    if state.value_v2 is None:
-      state.value_v2 = _Upgrade(state.value)
-      # If the user is not signed in, then they won't be able to see
-      # internal_only TestMetadata, so value_v2 will be incomplete.
-      # If the user is signed in, then value_v2 is complete, so it's safe to
-      # store it.
-      if datastore_hooks.IsUnalteredQueryPermitted():
-        state.put()
-    self.response.out.write(state.value_v2)
+  if state.value_v2 is None:
+    state.value_v2 = _Upgrade(state.value)
+    # If the user is not signed in, then they won't be able to see
+    # internal_only TestMetadata, so value_v2 will be incomplete.
+    # If the user is signed in, then value_v2 is complete, so it's safe to
+    # store it.
+    if datastore_hooks.IsUnalteredQueryPermitted():
+      state.put()
+  return make_response(state.value_v2)
 
-  def post(self):
-    """Handles saving page states and getting state id."""
 
-    state = self.request.get('page_state')
+def ShortUriHandlerPost():
+  """Handles saving page states and getting state id."""
 
-    if not state:
-      self.ReportError('Missing required parameters.', status=400)
-      return
+  state = request.values.get('page_state')
 
-    state_id = GetOrCreatePageState(state)
+  if not state:
+    return request_handler.RequestHandlerReportError(
+        'Missing required parameters.', status=400)
 
-    self.response.out.write(json.dumps({'sid': state_id}))
+  state_id = GetOrCreatePageState(state)
+
+  return make_response(json.dumps({'sid': state_id}))
+
+
+if six.PY2:
+
+  class ShortUriHandler(request_handler.RequestHandler):
+    """Handles short URI."""
+
+    def get(self):
+      """Handles getting page states."""
+      state_id = self.request.get('sid')
+
+      if not state_id:
+        self.ReportError('Missing required parameters.', status=400)
+        return
+
+      state = ndb.Key(page_state.PageState, state_id).get()
+
+      if not state:
+        self.ReportError('Invalid sid.', status=400)
+        return
+
+      if self.request.get('v2', None) is None:
+        self.response.out.write(state.value)
+        return
+
+      if state.value_v2 is None:
+        state.value_v2 = _Upgrade(state.value)
+        # If the user is not signed in, then they won't be able to see
+        # internal_only TestMetadata, so value_v2 will be incomplete.
+        # If the user is signed in, then value_v2 is complete, so it's safe to
+        # store it.
+        if datastore_hooks.IsUnalteredQueryPermitted():
+          state.put()
+      self.response.out.write(state.value_v2)
+
+    def post(self):
+      """Handles saving page states and getting state id."""
+
+      state = self.request.get('page_state')
+
+      if not state:
+        self.ReportError('Missing required parameters.', status=400)
+        return
+
+      state_id = GetOrCreatePageState(state)
+
+      self.response.out.write(json.dumps({'sid': state_id}))
 
 
 def GetOrCreatePageState(state):

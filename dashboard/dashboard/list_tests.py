@@ -12,6 +12,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import six
 
 from google.appengine.ext import ndb
 
@@ -24,58 +25,115 @@ from dashboard.models import graph_data
 class BadRequestError(Exception):
   pass
 
+# URL endpoint for AJAX requests to list masters, bots, and tests.
+from flask import make_response, request
 
-class ListTestsHandler(request_handler.RequestHandler):
-  """URL endpoint for AJAX requests to list masters, bots, and tests."""
 
-  def post(self):
-    """Outputs a JSON string of the requested list.
+def ListTestsHandlerPost():
+  """Outputs a JSON string of the requested list.
 
-    This handler handles 3 different type of requests for historical reasons.
-    These could potentially be separated into 3 separate handlers.
+  This handler handles 3 different type of requests for historical reasons.
+  These could potentially be separated into 3 separate handlers.
 
-    Request parameters:
-      type: Type of list to make, one of "suite", "sub_tests" or "pattern".
-      suite: Test suite name (applies only if type is "sub_tests").
-      bots: Comma-separated bots name (applies only if type is "sub_tests").
-      p: Test path pattern (applies only if type is "pattern").
-      has_rows: "1" if the requester wants to list only list tests that
-          have points (applies only if type is "pattern").
-      test_path_dict: A test path dict having the format specified in
-          GetTestsForTestPathDict, below (applies only if type is
-          "test_path_dict").
-      return_selected: "1" if the requester wants to return selected tests,
-          otherwise unselected tests will be returned (applies only if type is
-          "test_path_dict").
+  Request parameters:
+    type: Type of list to make, one of "suite", "sub_tests" or "pattern".
+    suite: Test suite name (applies only if type is "sub_tests").
+    bots: Comma-separated bots name (applies only if type is "sub_tests").
+    p: Test path pattern (applies only if type is "pattern").
+    has_rows: "1" if the requester wants to list only list tests that
+        have points (applies only if type is "pattern").
+    test_path_dict: A test path dict having the format specified in
+        GetTestsForTestPathDict, below (applies only if type is
+        "test_path_dict").
+    return_selected: "1" if the requester wants to return selected tests,
+        otherwise unselected tests will be returned (applies only if type is
+        "test_path_dict").
 
-    Outputs:
-      A data structure with test names in JSON format, or nothing.
-    """
-    self.response.headers.add_header('Access-Control-Allow-Origin', '*')
-    list_type = self.request.get('type')
+  Outputs:
+    A data structure with test names in JSON format, or nothing.
+  """
+  headers = {'Access-Control-Allow-Origin': '*'}
+  list_type = request.values.get('type')
 
-    if list_type == 'sub_tests':
-      suite_name = self.request.get('suite')
-      bot_names = self.request.get('bots').split(',')
-      test_list = GetSubTests(suite_name, bot_names)
-      self.response.out.write(json.dumps(test_list))
+  if list_type == 'sub_tests':
+    suite_name = request.values.get('suite')
+    bot_names = request.values.get('bots').split(',')
+    test_dict = GetSubTests(suite_name, bot_names)
+    return make_response(test_dict, headers)
 
-    if list_type == 'pattern':
-      pattern = self.request.get('p')
-      only_with_rows = self.request.get('has_rows') == '1'
-      test_list = GetTestsMatchingPattern(
-          pattern, only_with_rows=only_with_rows)
-      self.response.out.write(json.dumps(test_list))
+  if list_type == 'pattern':
+    pattern = request.values.get('p')
+    only_with_rows = request.values.get('has_rows') == '1'
+    test_list = GetTestsMatchingPattern(pattern, only_with_rows=only_with_rows)
+    return make_response(json.dumps(test_list), headers)
 
-    if list_type == 'test_path_dict':
-      test_path_dict = self.request.get('test_path_dict')
-      return_selected = self.request.get('return_selected') == '1'
-      try:
-        test_list = GetTestsForTestPathDict(
-            json.loads(test_path_dict), return_selected)
+  if list_type == 'test_path_dict':
+    test_path_dict = request.values.get('test_path_dict')
+    return_selected = request.values.get('return_selected') == '1'
+    try:
+      test_list = GetTestsForTestPathDict(
+          json.loads(test_path_dict), return_selected)
+      return make_response(json.dumps(test_list), headers)
+    except BadRequestError as e:
+      return request_handler.RequestHandlerReportError(str(e), status=400)
+
+  return make_response(
+      json.dumps({'error': 'Unknown list_type: %s' % list_type}), 404)
+
+
+if six.PY2:
+
+  class ListTestsHandler(request_handler.RequestHandler):
+    """URL endpoint for AJAX requests to list masters, bots, and tests."""
+
+    def post(self):
+      """Outputs a JSON string of the requested list.
+
+      This handler handles 3 different type of requests for historical reasons.
+      These could potentially be separated into 3 separate handlers.
+
+      Request parameters:
+        type: Type of list to make, one of "suite", "sub_tests" or "pattern".
+        suite: Test suite name (applies only if type is "sub_tests").
+        bots: Comma-separated bots name (applies only if type is "sub_tests").
+        p: Test path pattern (applies only if type is "pattern").
+        has_rows: "1" if the requester wants to list only list tests that
+            have points (applies only if type is "pattern").
+        test_path_dict: A test path dict having the format specified in
+            GetTestsForTestPathDict, below (applies only if type is
+            "test_path_dict").
+        return_selected: "1" if the requester wants to return selected tests,
+            otherwise unselected tests will be returned (applies only if type is
+            "test_path_dict").
+
+      Outputs:
+        A data structure with test names in JSON format, or nothing.
+      """
+      self.response.headers.add_header('Access-Control-Allow-Origin', '*')
+      list_type = self.request.get('type')
+
+      if list_type == 'sub_tests':
+        suite_name = self.request.get('suite')
+        bot_names = self.request.get('bots').split(',')
+        test_list = GetSubTests(suite_name, bot_names)
         self.response.out.write(json.dumps(test_list))
-      except BadRequestError as e:
-        self.ReportError(str(e), status=400)
+
+      if list_type == 'pattern':
+        pattern = self.request.get('p')
+        only_with_rows = self.request.get('has_rows') == '1'
+        test_list = GetTestsMatchingPattern(
+            pattern, only_with_rows=only_with_rows)
+        self.response.out.write(json.dumps(test_list))
+
+      if list_type == 'test_path_dict':
+        test_path_dict = self.request.get('test_path_dict')
+        return_selected = self.request.get('return_selected') == '1'
+        try:
+          test_list = GetTestsForTestPathDict(
+              json.loads(test_path_dict), return_selected)
+          self.response.out.write(json.dumps(test_list))
+        except BadRequestError as e:
+          self.ReportError(str(e), status=400)
 
 
 def GetSubTests(suite_name, bot_names):
