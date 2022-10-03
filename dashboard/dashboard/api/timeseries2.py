@@ -30,38 +30,72 @@ ROWS_QUERY_LIMIT = 20000
 COLUMNS_REQUIRING_ROWS = {'timestamp', 'revisions',
                           'annotations'}.union(descriptor.STATISTICS)
 
+from flask import request
 
-# pylint: disable=abstract-method
-class Timeseries2Handler(api_request_handler.ApiRequestHandler):
 
-  def _CheckUser(self):
-    pass
+def _CheckUser():
+  pass
 
-  def Post(self, *args, **kwargs):
-    logging.debug('crbug/1298177 - /api/timeseries2 POST triggered')
-    del args, kwargs  # Unused.
-    desc = descriptor.Descriptor(
-        test_suite=self.request.get('test_suite'),
-        measurement=self.request.get('measurement'),
-        bot=self.request.get('bot'),
-        test_case=self.request.get('test_case'),
-        statistic=self.request.get('statistic', None),
-        build_type=self.request.get('build_type'))
-    min_revision = self.request.get('min_revision')
-    min_revision = int(min_revision) if min_revision else None
-    max_revision = self.request.get('max_revision')
-    max_revision = int(max_revision) if max_revision else None
-    query = TimeseriesQuery(
-        desc,
-        self.request.get('columns').split(','), min_revision, max_revision,
-        api_utils.ParseISO8601(self.request.get('min_timestamp', None)),
-        api_utils.ParseISO8601(self.request.get('max_timestamp', None)))
-    try:
-      result = query.FetchSync()
-    except AssertionError as e:
-      # The caller has requested internal-only data but is not authorized.
-      six.raise_from(api_request_handler.NotFoundError, e)
-    return result
+
+@api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
+def TimeSeries2Post():
+  logging.debug('crbug/1298177 - /api/timeseries2 POST triggered by flask')
+  desc = descriptor.Descriptor(
+      test_suite=request.values.get('test_suite'),
+      measurement=request.values.get('measurement'),
+      bot=request.values.get('bot'),
+      test_case=request.values.get('test_case'),
+      statistic=request.values.get('statistic', None),
+      build_type=request.values.get('build_type'))
+  min_revision = request.values.get('min_revision')
+  min_revision = int(min_revision) if min_revision else None
+  max_revision = request.values.get('max_revision')
+  max_revision = int(max_revision) if max_revision else None
+  query = TimeseriesQuery(
+      desc,
+      request.values.get('columns').split(','), min_revision, max_revision,
+      api_utils.ParseISO8601(request.values.get('min_timestamp', None)),
+      api_utils.ParseISO8601(request.values.get('max_timestamp', None)))
+  try:
+    result = query.FetchSync()
+  except AssertionError as e:
+    # The caller has requested internal-only data but is not authorized.
+    six.raise_from(api_request_handler.NotFoundError, e)
+  return result
+
+
+if six.PY2:
+  # pylint: disable=abstract-method
+  class Timeseries2Handler(api_request_handler.ApiRequestHandler):
+
+    def _CheckUser(self):
+      pass
+
+    def Post(self, *args, **kwargs):
+      logging.debug('crbug/1298177 - /api/timeseries2 handler triggered')
+      del args, kwargs  # Unused.
+      desc = descriptor.Descriptor(
+          test_suite=self.request.get('test_suite'),
+          measurement=self.request.get('measurement'),
+          bot=self.request.get('bot'),
+          test_case=self.request.get('test_case'),
+          statistic=self.request.get('statistic', None),
+          build_type=self.request.get('build_type'))
+      min_revision = self.request.get('min_revision')
+      min_revision = int(min_revision) if min_revision else None
+      max_revision = self.request.get('max_revision')
+      max_revision = int(max_revision) if max_revision else None
+      query = TimeseriesQuery(
+          desc,
+          self.request.get('columns').split(','), min_revision, max_revision,
+          api_utils.ParseISO8601(self.request.get('min_timestamp', None)),
+          api_utils.ParseISO8601(self.request.get('max_timestamp', None)))
+      try:
+        result = query.FetchSync()
+      except AssertionError as e:
+        # The caller has requested internal-only data but is not authorized.
+        six.raise_from(api_request_handler.NotFoundError, e)
+      return result
 
 
 # TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
