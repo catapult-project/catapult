@@ -245,7 +245,7 @@ class ApkHelperTest(mock_calls.TestCase):
       helper = apk_helper.ApkHelper('')
       self.assertEqual(helper.GetPackageName(), 'org.chromium.abc')
 
-  def testGetPermssions(self):
+  def testGetPermissions(self):
     with _MockAaptDump(_MANIFEST_DUMP):
       helper = apk_helper.ApkHelper('')
       all_permissions = helper.GetPermissions()
