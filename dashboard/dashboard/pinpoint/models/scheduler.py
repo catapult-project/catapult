@@ -21,6 +21,7 @@ import collections
 import datetime
 import functools
 import random
+import logging
 
 from google.appengine.ext import ndb
 
@@ -245,6 +246,7 @@ def QueueStats(configuration):
   queue = ConfigurationQueue.get_by_id(
       configuration, parent=ndb.Key('Queues', 'root'))
   if not queue:
+    logging.warning('Failed to find queue for configuration: %s', configuration)
     raise QueueNotFound()
 
   def StatCombiner(status_map, job):
