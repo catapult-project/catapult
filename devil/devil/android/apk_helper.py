@@ -25,7 +25,8 @@ _logger = logging.getLogger(__name__)
 _MANIFEST_ATTRIBUTE_RE = re.compile(r'\s*A: ([^\(\)= ]*)(?:\([^\(\)= ]*\))?='
                                     r'(?:"(.*)" \(Raw: .*\)|\(type.*?\)(.*))$')
 _MANIFEST_ELEMENT_RE = re.compile(r'\s*(?:E|N): (\S*) .*$')
-_BASE_APK_APKS_RE = re.compile(r'^splits/base-master.*\.apk$')
+_BASE_APK_APKS_RE = re.compile(
+    r'^splits/base-master.*\.apk$|^standalones/standalone.*\.apex$')
 
 
 class ApkHelperError(base_error.BaseError):
