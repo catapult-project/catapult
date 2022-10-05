@@ -19,6 +19,7 @@ from dashboard import navbar
 from dashboard import sheriff_config_poller
 from dashboard import short_uri
 from dashboard.api import describe
+from dashboard.api import test_suites
 from dashboard.api import timeseries2
 
 from flask import Flask
@@ -53,6 +54,11 @@ def AlertsHandlerPost():
 @flask_app.route('/api/describe', methods=['POST'])
 def DescribePost():
   return describe.DescribePost()
+
+
+@flask_app.route('/api/test_suites', methods=['POST'])
+def TestSuitesPost():
+  return test_suites.TestSuitesPost()
 
 
 @flask_app.route('/api/timeseries2', methods=['POST'])
@@ -156,7 +162,6 @@ if six.PY2:
   from dashboard.api import report_generate
   from dashboard.api import report_names
   from dashboard.api import report_template
-  from dashboard.api import test_suites
   from dashboard.api import timeseries
 
   _URL_MAPPING = [
@@ -240,6 +245,7 @@ _PATHS_HANDLED_BY_FLASK = [
     # '/alert_groups_update',
     '/alerts',
     '/api/describe',
+    '/api/test_suites',
     '/api/timeseries2',
     # '/configs/update',
     # '/add_histograms',
