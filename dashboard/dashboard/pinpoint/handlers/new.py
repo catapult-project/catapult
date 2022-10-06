@@ -186,26 +186,29 @@ def _CreateJob(req):
     initial_attempt_count = None
 
   # Create job.
-  job = job_module.Job.New(
-      quests if not use_execution_engine else (),
-      changes,
-      arguments=original_arguments,
-      bug_id=bug_id,
-      comparison_mode=comparison_mode,
-      comparison_magnitude=comparison_magnitude,
-      gerrit_server=gerrit_server,
-      gerrit_change_id=gerrit_change_id,
-      name=name,
-      pin=pin,
-      tags=tags,
-      user=user,
-      priority=priority,
-      use_execution_engine=use_execution_engine,
-      project=project,
-      batch_id=batch_id,
-      initial_attempt_count=initial_attempt_count,
-      dimensions=arguments.get('dimensions'),
-      swarming_server=arguments.get('swarming_server'))
+  try:
+    job = job_module.Job.New(
+        quests if not use_execution_engine else (),
+        changes,
+        arguments=original_arguments,
+        bug_id=bug_id,
+        comparison_mode=comparison_mode,
+        comparison_magnitude=comparison_magnitude,
+        gerrit_server=gerrit_server,
+        gerrit_change_id=gerrit_change_id,
+        name=name,
+        pin=pin,
+        tags=tags,
+        user=user,
+        priority=priority,
+        use_execution_engine=use_execution_engine,
+        project=project,
+        batch_id=batch_id,
+        initial_attempt_count=initial_attempt_count,
+        dimensions=arguments.get('dimensions'),
+        swarming_server=arguments.get('swarming_server'))
+  except errors.SwarmingNoBots as e:
+    six.raise_from(ValueError(str(e)), e)
 
   if use_execution_engine:
     # TODO(dberris): We need to figure out a way to get the arguments to be more

@@ -29,7 +29,11 @@ def _Request(endpoint, params):
     return request.RequestJson(
         endpoint, method='POST', use_cache=False, use_auth=True, **params)
   except request.RequestError as e:
-    return json.loads(e.content)
+    try:
+      return json.loads(e.content)
+    except ValueError:
+      # for errors.SwarmingNoBots()
+      return {"error":str(e)}
 
 
 class CommitRange(collections.namedtuple('CommitRange', ['start', 'end'])):
