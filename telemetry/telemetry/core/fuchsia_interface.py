@@ -90,7 +90,8 @@ def run_ffx_command(cmd, target_id = None, check = True,
   """
 
   ffx_cmd = [_FFX_TOOL]
-  ffx_cmd.extend(('--target', target_id))
+  if target_id:
+    ffx_cmd.extend(('--target', target_id))
   ffx_cmd.extend(cmd)
   try:
     return subprocess.run(ffx_cmd, check=check, encoding='utf-8', **kwargs)
