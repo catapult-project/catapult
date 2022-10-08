@@ -191,6 +191,10 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
     return cls.platform.http_server.UrlOf(file_path)
 
   @classmethod
+  def LocalhostUrlOfStaticFilePath(cls, file_path):
+    return cls.platform.http_server.LocalhostUrlOf(file_path)
+
+  @classmethod
   def ExpectationsFiles(cls):
     """Subclasses can override this class method to return a list of absolute
     paths to the test expectations files.
