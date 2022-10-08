@@ -12,6 +12,7 @@ import logging
 from dashboard import add_histograms
 from dashboard import alert_groups
 from dashboard import alerts
+from dashboard import buildbucket_job_status
 from dashboard import edit_site_config
 from dashboard import graph_csv
 from dashboard import main
@@ -64,6 +65,11 @@ def TestSuitesPost():
 @flask_app.route('/api/timeseries2', methods=['POST'])
 def TimeSeries2Post():
   return timeseries2.TimeSeries2Post()
+
+
+@flask_app.route('/buildbucket_job_status/<job_id>')
+def BuildbucketJobStatusGet(job_id):
+  return buildbucket_job_status.BuildbucketJobStatusGet(job_id)
 
 
 @flask_app.route('/edit_site_config', methods=['GET'])
@@ -126,7 +132,6 @@ if six.PY2:
   from dashboard import add_point_queue
   from dashboard import associate_alerts
   from dashboard import bug_details
-  from dashboard import buildbucket_job_status
   from dashboard import create_health_report
   from dashboard import dump_graph_json
   from dashboard import edit_anomalies
@@ -250,6 +255,7 @@ _PATHS_HANDLED_BY_FLASK = [
     # '/configs/update',
     # '/add_histograms',
     # '/add_histograms/process',
+    '/buildbucket_job_status',
     '/edit_site_config',
     '/graph_csv',
     '/list_tests',
