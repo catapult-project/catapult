@@ -6,13 +6,11 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import json
 import unittest
 
 import mock
 
 from dashboard.services import buildbucket_service
-from dashboard.common import utils
 
 _BUILD_PARAMETERS = {
     'builder_name': 'dummy_builder',
@@ -38,35 +36,19 @@ class BuildbucketServiceTest(unittest.TestCase):
   def _AssertCorrectResponse(self, content):
     self.assertEqual(content, {'build': {'id': 'build id'}})
 
-  def _AssertRequestMadeOnce(self, path, *args, **kwargs):
-    self._request_json.assert_called_once_with(
-        buildbucket_service.API_BASE_URL + path, *args, **kwargs)
 
-  def _AssertRequestV2MadeOnce(self, path, *args, **kwargs):
+  def _AssertRequestMadeOnce(self, path, *args, **kwargs):
     self._request_json.assert_called_once_with(
         buildbucket_service.API_BASE_URL2 + path, *args, **kwargs)
 
-  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: False)
-  def testPut(self):
-    expected_body = {
-        'bucket': 'bucket_name',
-        'tags': ['buildset:foo'],
-        'parameters_json': json.dumps(_BUILD_PARAMETERS, separators=(',', ':')),
-    }
-    response = buildbucket_service.Put('bucket_name', ['buildset:foo'],
-                                       _BUILD_PARAMETERS)
-    self._AssertCorrectResponse(response)
-    self._AssertRequestMadeOnce('builds', method='PUT', body=expected_body)
 
-  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: True)
-  def testPutV2_badBucketName(self):
+  def testPut_badBucketName(self):
     self.assertRaises(ValueError, buildbucket_service.Put,
                       'invalid bucket string', [''], _BUILD_PARAMETERS)
 
 
   @mock.patch('uuid.uuid4', _mock_uuid)
-  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: True)
-  def testPutV2(self):
+  def testPut(self):
     mock_hash = '1234567890123456789012345678901234567890'
     gitile_buildset = 'buildset:commit/gitiles/host/project/name/+/' + mock_hash
     patch_buildset = 'buildset:patch/gerrit/host/7654321/8'
@@ -105,23 +87,16 @@ class BuildbucketServiceTest(unittest.TestCase):
     response = buildbucket_service.Put('luci.chrome.bucket_name', tags,
                                        _BUILD_PARAMETERS)
     self._AssertCorrectResponse(response)
-    self._AssertRequestV2MadeOnce(
+    self._AssertRequestMadeOnce(
         'ScheduleBuild', method='POST', body=expected_body)
 
-  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: False)
   def testGetJobStatus(self):
-    response = buildbucket_service.GetJobStatus('job_id')
-    self._AssertCorrectResponse(response)
-    self._AssertRequestMadeOnce('builds/job_id')
-
-  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: True)
-  def testGetJobStatusV2(self):
     response = buildbucket_service.GetJobStatus('job_id')
     self._AssertCorrectResponse(response)
     expected_body = {
         'id': 'job_id',
     }
-    self._AssertRequestV2MadeOnce('GetBuild', method='POST', body=expected_body)
+    self._AssertRequestMadeOnce('GetBuild', method='POST', body=expected_body)
 
 
 # TODO(https://crbug.com/1262292): Update after Python2 trybots retire.

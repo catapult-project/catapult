@@ -7,7 +7,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
-import re
 import unittest
 
 import mock
@@ -16,7 +15,6 @@ import webtest
 
 from dashboard import buildbucket_job_status
 from dashboard.common import testing_common
-from dashboard.common import utils
 from dashboard.services import request
 
 SAMPLE_RESPONSE = r"""{
@@ -115,39 +113,14 @@ class BuildbucketJobStatusTest(testing_common.TestCase):
     ])
     self.testapp = webtest.TestApp(app)
 
-  @mock.patch.object(buildbucket_job_status.buildbucket_service, 'GetJobStatus',
-                     mock.MagicMock(return_value=json.loads(SAMPLE_RESPONSE)))
-  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: False)
-  def testGet_ExistingJob(self):
-    response = self.testapp.get('/buildbucket_job_status/9046721402459257808')
-    # Verify that a human-readable creation time is presented. We check for the
-    # minute:second string to avoid localization from breaking this test.
-    self.assertIn('26:12', response.body)
-    # Verify that both the good and bad revisions are displayed somewhere.
-    self.assertIn('328115', response.body)
-    self.assertIn('328111', response.body)
-    # Verify that a link to buildbot is provided somewhere.
-    self.assertTrue(
-        re.search('href\\s*=\\s*[\'"]http://build.chromium.org/p/tryserver',
-                  response.body, re.IGNORECASE))
 
-  @mock.patch.object(
-      buildbucket_job_status.buildbucket_service, 'GetJobStatus',
-      mock.MagicMock(return_value=json.loads(SAMPLE_RESPONSE_NOT_FOUND)))
-  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: False)
-  def testGet_JobNotFound(self):
-    response = self.testapp.get('/buildbucket_job_status/9046721402459257808')
-    # If the error code is shown somewhere in the page and no exception is
-    # raised, that's good enough.
-    self.assertIn('BUILD_NOT_FOUND', response)
 
   @mock.patch.object(
       buildbucket_job_status.buildbucket_service, 'GetJobStatus',
       mock.MagicMock(return_value=json.loads(r"""{"status": "SUCCESS"}""")))
   @mock.patch.object(buildbucket_job_status.BuildbucketJobStatusHandler,
                      'RenderHtml')
-  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: True)
-  def testGet_ExistingJobV2(self, render):
+  def testGet_ExistingJob(self, render):
     self.testapp.get('/buildbucket_job_status/12345')
     render.assert_called_once_with(
         'buildbucket_job_status.html', {
@@ -168,8 +141,7 @@ class BuildbucketJobStatusTest(testing_common.TestCase):
                              'oops', {'x-prpc-grpc-code': '5'}, 'Error msg.')))
   @mock.patch.object(buildbucket_job_status.BuildbucketJobStatusHandler,
                      'RenderHtml')
-  @mock.patch.object(utils, 'IsRunningBuildBucketV2', lambda: True)
-  def testGet_JobNotFoundV2(self, render):
+  def testGet_JobNotFound(self, render):
     self.testapp.get('/buildbucket_job_status/12345')
     render.assert_called_once_with(
         'buildbucket_job_status.html', {

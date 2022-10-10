@@ -211,40 +211,6 @@ class _FindIsolateExecution(execution.Execution):
     return self._comparison_mode == 'try'
 
   def _CheckBuildStatus(self):
-    if utils.IsRunningBuildBucketV2():
-      self._CheckBuildStatusV2()
-    else:
-      self._CheckBuildStatusV1()
-
-  def _CheckBuildStatusV1(self):
-    """Checks on the status of a previously requested build.
-
-    Raises:
-      BuildError: The build failed, was canceled, or didn't produce an isolate.
-    """
-    build = buildbucket_service.GetJobStatus(self._build)['build']
-    logging.debug('buildbucket response: %s', build)
-
-    self._build_url = build.get('url')
-
-    if build['status'] != 'COMPLETED':
-      return
-    if build['result'] == 'FAILURE':
-      reason = build['failure_reason']
-      if self._IsTryJob():
-        raise errors.BuildFailedFatal(reason)
-      raise errors.BuildFailed(reason)
-    if build['result'] == 'CANCELED':
-      if self._IsTryJob():
-        raise errors.BuildCancelledFatal(build['cancelation_reason'])
-      raise errors.BuildCancelled(build['cancelation_reason'])
-
-    # The build succeeded, and should now be in the isolate cache.
-    # If it is, this will call self._Complete()
-    if not self._CheckIsolateCache():
-      raise errors.BuildIsolateNotFound()
-
-  def _CheckBuildStatusV2(self):
     """Checks on the status of a previously requested build.
 
     Raises:
@@ -314,10 +280,7 @@ class _FindIsolateExecution(execution.Execution):
       # Request a build!
       buildbucket_info = RequestBuild(self._builder_name, self._change,
                                       self.bucket, self.build_tags)
-      if utils.IsRunningBuildBucketV2():
-        self._build = buildbucket_info['id']
-      else:
-        self._build = buildbucket_info['build']['id']
+      self._build = buildbucket_info['id']
       self._previous_builds[self._change] = self._build
 
 

@@ -872,11 +872,6 @@ def IsMonitored(sheriff_client, test_path):
   return False
 
 
-# temp helper during migration to bbv2
-def IsRunningBuildBucketV2():
-  return True
-
-
 def GetBuildbucketUrl(build_id):
   if build_id:
     return 'https://ci.chromium.org/b/%s' % build_id
