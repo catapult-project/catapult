@@ -16,6 +16,7 @@ from dashboard import buildbucket_job_status
 from dashboard import edit_anomalies
 from dashboard import edit_site_config
 from dashboard import graph_csv
+from dashboard import graph_json
 from dashboard import main
 from dashboard import navbar
 from dashboard import sheriff_config_poller
@@ -98,6 +99,11 @@ def GraphCSVHandlerPost():
   return graph_csv.GraphCSVPost()
 
 
+@flask_app.route('/graph_json', methods=['POST'])
+def GraphJsonPost():
+  return graph_json.GraphJsonPost()
+
+
 @flask_app.route('/list_tests', methods=['POST'])
 def ListTestsHandlerPost():
   return list_tests.ListTestsHandlerPost()
@@ -143,7 +149,6 @@ if six.PY2:
   from dashboard import file_bug
   from dashboard import get_diagnostics
   from dashboard import get_histogram
-  from dashboard import graph_json
   from dashboard import graph_revisions
   from dashboard import group_report
   from dashboard import jstsmon
@@ -264,6 +269,7 @@ _PATHS_HANDLED_BY_FLASK = [
     '/edit_anomalies',
     '/edit_site_config',
     '/graph_csv',
+    '/graph_json',
     '/list_tests',
     '/navbar',
     '/short_uri',
