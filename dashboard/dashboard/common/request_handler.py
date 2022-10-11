@@ -124,7 +124,8 @@ def RequestHandlerReportWarning(warning_message, status=200):
 if six.PY2:
 
   class RequestHandler(webapp2.RequestHandler):
-    """Base class for requests. Does common template and error handling tasks."""
+    """Base class for requests. Does common template and error handling tasks.
+    """
 
     def RenderHtml(self, template_file, template_values, status=200):
       """Renders HTML given template and values.
@@ -168,8 +169,8 @@ if six.PY2:
         login_url = users.create_login_url(request_path or self.request.path_qs)
       except users.RedirectTooLongError:
         # On the bug filing pages, the full login URL can be too long. Drop
-        # the correct redirect URL, since the user should already be logged in at
-        # this point anyway.
+        # the correct redirect URL, since the user should already be logged in
+        # at this point anyway.
         login_url = users.create_login_url('/')
       user_info = '<a href="%s" title="%s">%s</a>' % (login_url, title,
                                                       display_username)
