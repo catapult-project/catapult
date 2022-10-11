@@ -3,6 +3,14 @@
 # found in the LICENSE file.
 """An example of using perf dashboard API with a service account.
 
+#############  DEPRECATION WARNING  #############
+#  Oauth2client is now deprecated.
+#  As of Oct 11th, 2022, we are migrating oauth2client to google-auth.
+#  Update on examples will be available later.
+#  Please contact our team for urgent needs:
+#    browser-perf-engprod@google.com
+#################################################
+
 Getting set up:
 1. Install httplib2and oauth2client python modules:
 `pip install httplib2`
