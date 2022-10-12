@@ -58,7 +58,6 @@ tr.b.unittest.testSuite(function() {
       'V8.GCFinalizeMC': 'v8-gc-latency-mark-compactor',
       'V8.GCFinalizeMCReduceMemory': 'v8-gc-memory-mark-compactor',
       'V8.GCIncrementalMarking': 'v8-gc-incremental-step',
-      'V8.GCIncrementalMarkingFinalize': 'v8-gc-incremental-finalize',
       'V8.GCIncrementalMarkingStart': 'v8-gc-incremental-start',
       'V8.GCPhantomHandleProcessingCallback': 'v8-gc-phantom-handle-callback',
       'V8.GCScavenger': 'v8-gc-scavenger'
@@ -156,11 +155,6 @@ tr.b.unittest.testSuite(function() {
         cpuStart: 150, cpuEnd: 160
       },
       {
-        title: 'V8.GCIncrementalMarkingFinalize',
-        args: {}, start: 200, end: 220,
-        cpuStart: 200, cpuEnd: 220
-      },
-      {
         title: 'V8.GCFinalizeMC',
         args: {}, start: 250, end: 300,
         cpuStart: 250, cpuEnd: 300
@@ -169,7 +163,7 @@ tr.b.unittest.testSuite(function() {
     const histograms = run(slices);
     const mmu = histograms.getHistogramNamed(
         'v8-gc-mark-compactor-mmu-100ms_window');
-    assert.closeTo(0.3, mmu.min, 1e-3);
+    assert.closeTo(0.5, mmu.min, 1e-3);
     assert.strictEqual(mmu.summaryOptions.get('min'), true);
     assert.strictEqual(mmu.summaryOptions.get('max'), false);
   });
