@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env vpython3
 # Copyright 2017 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -60,7 +60,7 @@ def FindMemoryDumps(filename):
   processes = {}
 
   with OpenTraceFile(filename, 'r') as f:
-    data = json.loads(f.read().decode('utf-8'))
+    data = json.loads(f.read())
 
     for event in data['traceEvents']:
       pid = event['pid']
@@ -129,7 +129,8 @@ def FindMemoryDumps(filename):
           process.allocators = dump['heaps_v2']['allocators']
 
   # Remove processes with incomplete memory dump.
-  for pid, process in processes.items():
+  # Note: Calling list() otherwise we can't modify list while iterating.
+  for pid, process in list(processes.items()):
     if not (process.allocators and process.stackframes and process.types):
       del processes[pid]
 
