@@ -25,6 +25,7 @@ import httplib2
 from oauth2client import client
 
 from dashboard.common import stored_object
+from dashboard.common import oauth2_utils
 import six
 import six.moves.urllib.parse
 
@@ -131,7 +132,7 @@ def TickMonitoringCustomMetric(metric_name):
   Args:
     metric_name: The name of the metric being monitored.
   """
-  credentials = client.GoogleCredentials.get_application_default()
+  credentials = oauth2_utils.GetAppDefaultCredentials()
   monitoring = discovery.build('monitoring', 'v3', credentials=credentials)
   now = _GetNowRfc3339()
   project_id = stored_object.Get(_PROJECT_ID_KEY)

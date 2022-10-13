@@ -27,11 +27,11 @@ else:
     import cloudstorage
 from apiclient.discovery import build
 from dashboard.common import utils
+from dashboard.common import oauth2_utils
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models.quest import read_value
 from dashboard.pinpoint.models.quest import run_test
 from dashboard.services import swarming
-from oauth2client import client
 from tracing_build import render_histograms_viewer
 from tracing.value import gtest_json_converter
 from tracing.value.diagnostics import generic_set
@@ -519,10 +519,8 @@ def _RequestInsertBQRows(service,
 def _BQService():
   """Returns an initialized and authorized BigQuery client."""
   # pylint: disable=no-member
-  credentials = client.GoogleCredentials.get_application_default()
-  if credentials.create_scoped_required():
-    credentials = credentials.create_scoped(
-        'https://www.googleapis.com/auth/bigquery')
+  credentials = oauth2_utils.GetAppDefaultCredentials(
+      scope='https://www.googleapis.com/auth/bigquery')
   return build('bigquery', 'v2', credentials=credentials)
 
 
