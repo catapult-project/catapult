@@ -520,6 +520,10 @@ class BrowserFinderOptions(optparse.Values):
         self.tool = None
         self.adb_path = None
         self.enable_device_cache = True
+        # We don't want to use a persistent shell for setting up an emulator
+        # as the persistent shell doesn't work until the emulator is already
+        # running.
+        self.use_persistent_shell = False
 
     avd_args = AvdArgs(self.avd_config)
     BrowserFinderOptions.emulator_environment =\
