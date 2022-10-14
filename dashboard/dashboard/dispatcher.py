@@ -24,6 +24,7 @@ from dashboard import navbar
 from dashboard import sheriff_config_poller
 from dashboard import short_uri
 from dashboard.api import alerts as api_alerts
+from dashboard.api import config
 from dashboard.api import describe
 from dashboard.api import test_suites
 from dashboard.api import timeseries2
@@ -60,6 +61,11 @@ def AlertsHandlerPost():
 @flask_app.route('/api/alerts', methods=['POST'])
 def AlertsPost():
   return api_alerts.AlertsPost()
+
+
+@flask_app.route('/api/config', methods=['POST'])
+def ConfigHandlerPost():
+  return config.ConfigHandlerPost()
 
 
 @flask_app.route('/api/describe', methods=['POST'])
@@ -188,7 +194,6 @@ if six.PY2:
   from dashboard import update_test_suites
   from dashboard import uploads_info
   from dashboard.api import bugs
-  from dashboard.api import config
   from dashboard.api import list_timeseries
   from dashboard.api import new_bug
   from dashboard.api import new_pinpoint
@@ -280,6 +285,7 @@ _PATHS_HANDLED_BY_FLASK = [
     # '/alert_groups_update',
     '/alerts',
     '/api/alerts',
+    '/api/config',
     '/api/describe',
     '/api/test_suites',
     '/api/timeseries2',
