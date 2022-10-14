@@ -363,7 +363,8 @@ class AdbWrapper(object):
         last generated output is an integer status code.
       """
       if close:
-        send_cmd = '( %s ); echo $?; exit;\n' % command
+        send_cmd = '( %s ); echo %s$?; exit;\n' % (
+            command, self._SHELL_OUTPUT_END_MARKER)
         # This could be simplified with a communicate call, but py2 throws
         # an error from the thread reader and communicate accessing the same
         # fd.
@@ -375,15 +376,18 @@ class AdbWrapper(object):
             self._process.stdout.flush()
             line = six.ensure_str(self._outq.get(timeout=DEFAULT_TIMEOUT))
             if not _IsExtraneousLine(line, send_cmd):
+              # This allows us to check for the exit code to know when to stop
+              # looking for output.
+              if line.startswith(self._SHELL_OUTPUT_END_MARKER):
+                exit_code = int(line[len(self._SHELL_OUTPUT_END_MARKER):])
+                break
               output_lines.append(line)
           except Empty:
-            self._terminating = True
             break
 
+        self._terminating = True
         if include_status:
-          output_lines[-1] = int(output_lines[-1])
-        else:
-          output_lines = output_lines[:-1]
+          output_lines.append(exit_code)
 
         for x in output_lines:
           yield x
@@ -439,13 +443,11 @@ class AdbWrapper(object):
           # explicit output start marker allows us to skip over these bad
           # lines.
           if not self._start_found:
-            if output_line[:len(self._SHELL_OUTPUT_START_MARKER
-                                )] == self._SHELL_OUTPUT_START_MARKER:
+            if output_line.startswith(self._SHELL_OUTPUT_START_MARKER):
               self._start_found = True
             continue
 
-          if output_line[:len(self._SHELL_OUTPUT_END_MARKER
-                              )] == self._SHELL_OUTPUT_END_MARKER:
+          if output_line.startswith(self._SHELL_OUTPUT_END_MARKER):
             self._start_found = False
             if include_status:
               yield int(output_line[len(self._SHELL_OUTPUT_END_MARKER):])
@@ -480,8 +482,9 @@ class AdbWrapper(object):
     self._all_persistent_shells = []
     self._lock = threading.Lock()
 
-    # The test blinkpy.web_tests.port.android_unittest.AndroidPortTest.test_default_child_processes
-    # doesn't work with checking for a real device on some builders.
+    # The test blinkpy.web_tests.port.android_unittest.AndroidPortTest.
+    # test_default_child_processes doesn't work with checking for a
+    # real device on some builders.
     if not persistent_shell:
       return
 
@@ -492,9 +495,6 @@ class AdbWrapper(object):
         time.sleep(3)
         break
 
-    # TODO: Persistent Shell has issues when it is used to initialize a
-    # previously non running emulator.
-    # if persistent_shell and not self.is_emulator:
     if persistent_shell:
       if not self.is_ready:
         raise device_errors.DeviceUnreachableError(self._device_serial)

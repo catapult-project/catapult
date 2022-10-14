@@ -70,11 +70,17 @@ class TestAdbWrapper(device_test_case.DeviceTestCase):
     with self._adb.PersistentShell(serial) as pshell:
       (res1, code1) = pshell.RunCommand('echo TEST')
       (res2, code2) = pshell.RunCommand('echo TEST2', close=True)
-      self.assertEqual(len(res1), 1)
       self.assertEqual(res1[0], 'TEST')
-      self.assertEqual(res2[-1], 'TEST2')
       self.assertEqual(code1, 0)
+      self.assertEqual(res2[-1], 'TEST2')
       self.assertEqual(code2, 0)
+
+    # Testing with 0 as we want to be able to differentiate between
+    # a zero from the output and a zero from the exit_code.
+    with self._adb.PersistentShell(serial) as pshell:
+      (res3, code3) = pshell.RunCommand('echo 0', close=True)
+      self.assertEqual(res3[-1], '0')
+      self.assertEqual(code3, 0)
 
   def testPersistentShellEnsureStarted(self):
     serial = self._adb.GetDeviceSerial()
