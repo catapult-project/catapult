@@ -17,6 +17,7 @@ from dashboard import edit_anomalies
 from dashboard import edit_site_config
 from dashboard import graph_csv
 from dashboard import graph_json
+from dashboard import group_report
 from dashboard import main
 from dashboard import navbar
 from dashboard import sheriff_config_poller
@@ -110,6 +111,16 @@ def GraphJsonPost():
   return graph_json.GraphJsonPost()
 
 
+@flask_app.route('/group_report', methods=['GET'])
+def GroupReportGet():
+  return group_report.GroupReportGet()
+
+
+@flask_app.route('/group_report', methods=['POST'])
+def GroupReportPost():
+  return group_report.GroupReportPost()
+
+
 @flask_app.route('/list_tests', methods=['POST'])
 def ListTestsHandlerPost():
   return list_tests.ListTestsHandlerPost()
@@ -156,7 +167,6 @@ if six.PY2:
   from dashboard import get_diagnostics
   from dashboard import get_histogram
   from dashboard import graph_revisions
-  from dashboard import group_report
   from dashboard import jstsmon
   from dashboard import layered_cache_delete_expired
   from dashboard import list_tests
@@ -276,6 +286,7 @@ _PATHS_HANDLED_BY_FLASK = [
     '/edit_site_config',
     '/graph_csv',
     '/graph_json',
+    '/group_report',
     '/list_tests',
     '/navbar',
     '/short_uri',

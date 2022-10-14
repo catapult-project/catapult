@@ -12,6 +12,12 @@ from dashboard.common import request_handler
 from dashboard import revision_info_client
 
 
+def GetDynamicVariablesFlask(template_values, request_path=None):
+  template_values['revision_info'] = \
+    revision_info_client.GetRevisionInfoConfig()
+  request_handler.RequestHandlerGetDynamicVariables(template_values, request_path)
+
+
 class ChartHandler(request_handler.RequestHandler):
   """Base class for requests which display a chart."""
 

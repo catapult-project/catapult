@@ -20,20 +20,19 @@ from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import page_state
 
+from flask import request, make_response
+
 # This is the max number of alerts to query at once. This is used in cases
 # when we may want to query more many more alerts than actually get displayed.
 _QUERY_LIMIT = 5000
 
 
-class GroupReportHandler(chart_handler.ChartHandler):
-  """Request handler for requests for group report page."""
+def GroupReportGet():
+  return request_handler.RequestHandlerRenderStaticHtml('group_report.html')
 
-  def get(self):
-    """Renders the UI for the group report page."""
-    self.RenderStaticHtml('group_report.html')
 
-  def post(self):
-    """Returns dynamic data for /group_report with some set of alerts.
+def GroupReportPost():
+  """Returns dynamic data for /group_report with some set of alerts.
 
     The set of alerts is determined by the sid, keys, bug ID, AlertGroup ID,
     or revision given.
@@ -49,58 +48,137 @@ class GroupReportHandler(chart_handler.ChartHandler):
     Outputs:
       JSON for the /group_report page XHR request.
     """
-    bug_id = self.request.get('bug_id')
-    project_id = self.request.get('project_id', 'chromium') or 'chromium'
-    rev = self.request.get('rev')
-    keys = self.request.get('keys')
-    hash_code = self.request.get('sid')
-    group_id = self.request.get('group_id')
+  bug_id = request.values.get('bug_id')
+  project_id = request.values.get('project_id', 'chromium') or 'chromium'
+  rev = request.values.get('rev')
+  keys = request.values.get('keys')
+  hash_code = request.values.get('sid')
+  group_id = request.values.get('group_id')
 
-    # sid takes precedence.
-    if hash_code:
-      state = ndb.Key(page_state.PageState, hash_code).get()
-      if state:
-        keys = json.loads(state.value)
+  # sid takes precedence.
+  if hash_code:
+    state = ndb.Key(page_state.PageState, hash_code).get()
+    if state:
+      keys = json.loads(state.value)
+  elif keys:
+    keys = keys.split(',')
+
+  try:
+    alert_list = None
+    if bug_id:
+      try:
+        alert_list, _, _ = anomaly.Anomaly.QueryAsync(
+            bug_id=bug_id, project_id=project_id,
+            limit=_QUERY_LIMIT).get_result()
+      except ValueError as e:
+        six.raise_from(
+            request_handler.InvalidInputError('Invalid bug ID "%s:%s".' %
+                                              (project_id, bug_id)), e)
     elif keys:
-      keys = keys.split(',')
+      alert_list = GetAlertsForKeys(keys)
+    elif rev:
+      alert_list = GetAlertsAroundRevision(rev)
+    elif group_id:
+      alert_list = GetAlertsForGroupID(group_id)
+    else:
+      raise request_handler.InvalidInputError('No anomalies specified.')
 
-    try:
-      alert_list = None
-      if bug_id:
-        try:
-          alert_list, _, _ = anomaly.Anomaly.QueryAsync(
-              bug_id=bug_id, project_id=project_id,
-              limit=_QUERY_LIMIT).get_result()
-        except ValueError as e:
-          six.raise_from(
-              request_handler.InvalidInputError('Invalid bug ID "%s:%s".' %
-                                                (project_id, bug_id)), e)
+    alert_dicts = alerts.AnomalyDicts(
+        [a for a in alert_list if a.key.kind() == 'Anomaly'])
+
+    values = {
+        'alert_list': alert_dicts,
+        'test_suites': update_test_suites.FetchCachedTestSuites(),
+    }
+    if bug_id:
+      values['bug_id'] = bug_id
+      values['project_id'] = project_id
+    if keys:
+      values['selected_keys'] = keys
+    chart_handler.GetDynamicVariablesFlask(values)
+
+    return make_response(json.dumps(values))
+  except request_handler.InvalidInputError as error:
+    return make_response(json.dumps({'error': str(error)}))
+
+
+if six.PY2:
+  class GroupReportHandler(chart_handler.ChartHandler):
+    """Request handler for requests for group report page."""
+
+    def get(self):
+      """Renders the UI for the group report page."""
+      self.RenderStaticHtml('group_report.html')
+
+    def post(self):
+      """Returns dynamic data for /group_report with some set of alerts.
+
+      The set of alerts is determined by the sid, keys, bug ID, AlertGroup ID,
+      or revision given.
+
+      Request parameters:
+        keys: A comma-separated list of urlsafe Anomaly keys (optional).
+        bug_id: A bug number on the Chromium issue tracker (optional).
+        project_id: A project ID in Monorail (optional).
+        rev: A revision number (optional).
+        sid: A hash of a group of keys from /short_uri (optional).
+        group_id: An AlertGroup ID (optional).
+
+      Outputs:
+        JSON for the /group_report page XHR request.
+      """
+      bug_id = self.request.get('bug_id')
+      project_id = self.request.get('project_id', 'chromium') or 'chromium'
+      rev = self.request.get('rev')
+      keys = self.request.get('keys')
+      hash_code = self.request.get('sid')
+      group_id = self.request.get('group_id')
+
+      # sid takes precedence.
+      if hash_code:
+        state = ndb.Key(page_state.PageState, hash_code).get()
+        if state:
+          keys = json.loads(state.value)
       elif keys:
-        alert_list = GetAlertsForKeys(keys)
-      elif rev:
-        alert_list = GetAlertsAroundRevision(rev)
-      elif group_id:
-        alert_list = GetAlertsForGroupID(group_id)
-      else:
-        raise request_handler.InvalidInputError('No anomalies specified.')
+        keys = keys.split(',')
 
-      alert_dicts = alerts.AnomalyDicts(
-          [a for a in alert_list if a.key.kind() == 'Anomaly'])
+      try:
+        alert_list = None
+        if bug_id:
+          try:
+            alert_list, _, _ = anomaly.Anomaly.QueryAsync(
+                bug_id=bug_id, project_id=project_id,
+                limit=_QUERY_LIMIT).get_result()
+          except ValueError as e:
+            six.raise_from(
+                request_handler.InvalidInputError('Invalid bug ID "%s:%s".' %
+                                                  (project_id, bug_id)), e)
+        elif keys:
+          alert_list = GetAlertsForKeys(keys)
+        elif rev:
+          alert_list = GetAlertsAroundRevision(rev)
+        elif group_id:
+          alert_list = GetAlertsForGroupID(group_id)
+        else:
+          raise request_handler.InvalidInputError('No anomalies specified.')
 
-      values = {
-          'alert_list': alert_dicts,
-          'test_suites': update_test_suites.FetchCachedTestSuites(),
-      }
-      if bug_id:
-        values['bug_id'] = bug_id
-        values['project_id'] = project_id
-      if keys:
-        values['selected_keys'] = keys
-      self.GetDynamicVariables(values)
+        alert_dicts = alerts.AnomalyDicts(
+            [a for a in alert_list if a.key.kind() == 'Anomaly'])
 
-      self.response.out.write(json.dumps(values))
-    except request_handler.InvalidInputError as error:
-      self.response.out.write(json.dumps({'error': str(error)}))
+        values = {
+            'alert_list': alert_dicts,
+            'test_suites': update_test_suites.FetchCachedTestSuites(),
+        }
+        if bug_id:
+          values['bug_id'] = bug_id
+          values['project_id'] = project_id
+        if keys:
+          values['selected_keys'] = keys
+        self.GetDynamicVariables(values)
+
+        self.response.out.write(json.dumps(values))
+      except request_handler.InvalidInputError as error:
+        self.response.out.write(json.dumps({'error': str(error)}))
 
 
 def GetAlertsAroundRevision(rev):

@@ -95,6 +95,7 @@ def RequestHandlerGetDynamicVariables(template_values, request_path=None):
   template_values['xsrf_input'] = (
       '<input type="hidden" name="xsrf_token" value="%s">' % xsrf_token)
   template_values['login_url'] = login_url
+  return template_values
 
 
 def RequestHandlerReportError(error_message, status=500):
