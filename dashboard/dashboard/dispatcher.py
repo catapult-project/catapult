@@ -17,6 +17,7 @@ from dashboard import edit_anomalies
 from dashboard import edit_site_config
 from dashboard import graph_csv
 from dashboard import graph_json
+from dashboard import graph_revisions
 from dashboard import group_report
 from dashboard import main
 from dashboard import navbar
@@ -111,6 +112,11 @@ def GraphJsonPost():
   return graph_json.GraphJsonPost()
 
 
+@flask_app.route('/graph_revisions', methods=['POST'])
+def GraphRevisionsPost():
+  return graph_revisions.GraphRevisionsPost()
+
+
 @flask_app.route('/group_report', methods=['GET'])
 def GroupReportGet():
   return group_report.GroupReportGet()
@@ -166,7 +172,6 @@ if six.PY2:
   from dashboard import file_bug
   from dashboard import get_diagnostics
   from dashboard import get_histogram
-  from dashboard import graph_revisions
   from dashboard import jstsmon
   from dashboard import layered_cache_delete_expired
   from dashboard import list_tests
@@ -286,6 +291,7 @@ _PATHS_HANDLED_BY_FLASK = [
     '/edit_site_config',
     '/graph_csv',
     '/graph_json',
+    '/graph_revisions',
     '/group_report',
     '/list_tests',
     '/navbar',
