@@ -34,12 +34,6 @@ steps:
     'run', 'cloudbuild-prepare-deployment'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: '/bin/bash'
-  args: [
-      '-x', '-e', 'dashboard/dev_dockerfiles/cleanup_versions.sh',
-      'api', 'default', 'pinpoint', 'upload-processing', 'upload'
-  ]
-- name: 'gcr.io/cloud-builders/gcloud'
   dir: 'deploy-dashboard'
   args: [
     app, deploy, '--no-promote', '--version', 'cloud-build-${SHORT_SHA}',
