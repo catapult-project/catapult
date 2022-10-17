@@ -11,7 +11,7 @@ import six
 from dashboard import update_test_suite_descriptors
 from dashboard.api import api_request_handler
 
-from flask import make_response, request
+from flask import request
 
 
 def _CheckUser():
@@ -22,9 +22,8 @@ def _CheckUser():
 def DescribePost():
   master = request.values.get('master')
   suite = request.values.get('test_suite')
-  return make_response(
-      update_test_suite_descriptors.FetchCachedTestSuiteDescriptor(
-          master, suite))
+  return update_test_suite_descriptors.FetchCachedTestSuiteDescriptor(
+          master, suite)
 
 
 if six.PY2:
