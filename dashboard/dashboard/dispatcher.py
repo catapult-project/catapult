@@ -21,6 +21,7 @@ from dashboard import graph_revisions
 from dashboard import group_report
 from dashboard import main
 from dashboard import navbar
+from dashboard import pinpoint_request
 from dashboard import sheriff_config_poller
 from dashboard import short_uri
 from dashboard.api import alerts as api_alerts
@@ -148,6 +149,11 @@ def NavbarHandlerPost():
   return navbar.NavbarHandlerPost()
 
 
+@flask_app.route('/pinpoint/new/bisect', methods=['POST'])
+def PinpointNewBisectPost():
+  return pinpoint_request.PinpointNewBisectPost()
+
+
 @flask_app.route('/configs/update')
 def SheriffConfigPollerGet():
   return sheriff_config_poller.SheriffConfigPollerGet()
@@ -185,7 +191,6 @@ if six.PY2:
   from dashboard import mark_recovered_alerts
   from dashboard import migrate_test_names
   from dashboard import oauth2_decorator
-  from dashboard import pinpoint_request
   from dashboard import put_entities_task
   from dashboard import report
   from dashboard import speed_releasing
@@ -301,6 +306,7 @@ _PATHS_HANDLED_BY_FLASK = [
     '/group_report',
     '/list_tests',
     '/navbar',
+    '/pinpoint/new/bisect',
     '/short_uri',
 ]
 
