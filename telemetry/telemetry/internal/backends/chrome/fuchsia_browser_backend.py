@@ -60,6 +60,16 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return self.devtools_client.DumpMemory(timeout=timeout,
                                            detail_level=detail_level)
 
+  def _ReadDevToolsPortFromStdout(self, search_regex):
+    def TryReadingPort():
+      if not self._browser_log_proc.stderr:
+        return None
+      line = self._browser_log_proc.stdout.readline()
+      tokens = re.search(search_regex, line)
+      self._browser_log += line
+      return int(tokens.group(1)) if tokens else None
+    return py_utils.WaitFor(TryReadingPort, timeout=60)
+
   def _ReadDevToolsPortFromStderr(self, search_regex):
     def TryReadingPort():
       if not self._browser_log_proc.stderr:
@@ -71,19 +81,23 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return py_utils.WaitFor(TryReadingPort, timeout=60)
 
   def _ReadDevToolsPort(self):
-    if (self.browser_type == WEB_ENGINE_SHELL or
-        self.browser_type == CAST_STREAMING_SHELL):
+    if self.browser_type == WEB_ENGINE_SHELL:
       search_regex = r'Remote debugging port: (\d+)'
+      result = self._ReadDevToolsPortFromStdout(search_regex)
+    elif self.browser_type == CAST_STREAMING_SHELL:
+      search_regex = r'Remote debugging port: (\d+)'
+      result = self._ReadDevToolsPortFromStderr(search_regex)
     else:
       search_regex = r'DevTools listening on ws://127.0.0.1:(\d+)/devtools.*'
-    return self._ReadDevToolsPortFromStderr(search_regex)
+      result = self._ReadDevToolsPortFromStderr(search_regex)
+    return result
 
   def _StartWebEngineShell(self, startup_args):
     browser_cmd = [
-        'component',
-        'run-legacy',
-        'fuchsia-pkg://%s/web_engine_shell#meta/web_engine_shell.cmx' %
-        self._managed_repo
+        'test',
+        'run',
+        'fuchsia-pkg://%s/web_engine_shell#meta/web_engine_shell.cm' %
+        self._managed_repo,
     ]
 
     # Flags forwarded to the web_engine_shell component.
