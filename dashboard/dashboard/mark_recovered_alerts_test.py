@@ -24,7 +24,6 @@ from dashboard.services import issue_tracker_service
 
 @mock.patch('apiclient.discovery.build', mock.MagicMock())
 @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-@mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
 class MarkRecoveredAlertsTest(testing_common.TestCase):
 
   def setUp(self):

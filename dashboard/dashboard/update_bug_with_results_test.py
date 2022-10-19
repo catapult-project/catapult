@@ -44,7 +44,6 @@ class MockIssueTrackerService():
 # requests, which are normally made when the IssueTrackerService is initialized.
 @mock.patch('apiclient.discovery.build', mock.MagicMock())
 @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-@mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
 class UpdateBugWithResultsTest(testing_common.TestCase):
 
   def setUp(self):

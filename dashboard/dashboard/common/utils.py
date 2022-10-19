@@ -23,7 +23,6 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 
 from dashboard.common import stored_object
-from dashboard.common import oauth2_utils
 import six
 import six.moves.urllib.parse
 
@@ -86,11 +85,6 @@ def IsStagingEnvironment():
     return False
 
 
-def _GetNowRfc3339():
-  """Returns the current time formatted per RFC 3339."""
-  return time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
-
-
 def GetEmail():
   """Returns email address of the current user.
 
@@ -117,43 +111,6 @@ def GetEmail():
   else:
     user = users.GetCurrentUser() if six.PY3 else users.get_current_user()
   return user.email() if user else None
-
-
-@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, xg=True)
-def TickMonitoringCustomMetric(metric_name):
-  """Increments the stackdriver custom metric with the given name.
-
-  This is used for cron job monitoring; if these metrics stop being received
-  an alert mail is sent. For more information on custom metrics, see
-  https://cloud.google.com/monitoring/custom-metrics/using-custom-metrics
-
-  Args:
-    metric_name: The name of the metric being monitored.
-  """
-  credentials = oauth2_utils.GetAppDefaultCredentials()
-  monitoring = discovery.build('monitoring', 'v3', credentials=credentials)
-  now = _GetNowRfc3339()
-  project_id = stored_object.Get(_PROJECT_ID_KEY)
-  points = [{
-      'interval': {
-          'startTime': now,
-          'endTime': now,
-      },
-      'value': {
-          'int64Value': _DEFAULT_CUSTOM_METRIC_VAL,
-      },
-  }]
-  write_request = monitoring.projects().timeSeries().create(
-      name='projects/%s' % project_id,
-      body={
-          'timeSeries': [{
-              'metric': {
-                  'type': 'custom.googleapis.com/%s' % metric_name,
-              },
-              'points': points
-          }]
-      })
-  write_request.execute()
 
 
 def TestPath(key):
