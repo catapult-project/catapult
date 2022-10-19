@@ -1083,7 +1083,7 @@ class DeviceUtils(object):
             'Failed to get prop "sys.usb.config": device unreachable')
         return False
 
-    def sd_card_ready():
+    def is_sd_card_ready():
       try:
         self.RunShellCommand(
             ['test', '-d', self.GetExternalStoragePath()], check_return=True)
@@ -1094,7 +1094,7 @@ class DeviceUtils(object):
       except device_errors.AdbCommandFailedError:
         return False
 
-    def pm_ready():
+    def is_pm_ready():
       try:
         return self._GetApplicationPathsInternal('android', skip_cache=True)
       except device_errors.DeviceUnreachableError:
@@ -1103,20 +1103,22 @@ class DeviceUtils(object):
       except device_errors.CommandFailedError:
         return False
 
-    def boot_completed():
+    def is_boot_completed():
       try:
-        return self.GetProp('sys.boot_completed', cache=False) == '1'
+        return any(
+            self.GetProp(prop, cache=False) == '1'
+            for prop in ('sys.boot_completed', 'dev.bootcomplete'))
       except device_errors.DeviceUnreachableError:
         logging.warning('Failed to check boot_completed: device unreachable')
         return False
       except device_errors.CommandFailedError:
         return False
 
-    def wifi_enabled():
+    def is_wifi_enabled():
       return 'Wi-Fi is enabled' in self.RunShellCommand(['dumpsys', 'wifi'],
                                                         check_return=False)
 
-    def decryption_completed():
+    def is_decryption_completed():
       try:
         decrypt = self.GetProp('vold.decrypt', cache=False)
         # The prop "void.decrypt" will only be set when the device uses
@@ -1131,15 +1133,16 @@ class DeviceUtils(object):
         return False
 
     self.adb.WaitForDevice()
+    # Check that the device has booted
+    timeout_retry.WaitFor(is_boot_completed)
     # Rock960 devices connected twice. Wait for device ready.
     timeout_retry.WaitFor(is_device_connection_ready)
-    timeout_retry.WaitFor(sd_card_ready)
-    timeout_retry.WaitFor(pm_ready)
-    timeout_retry.WaitFor(boot_completed)
+    timeout_retry.WaitFor(is_sd_card_ready)
+    timeout_retry.WaitFor(is_pm_ready)
     if wifi:
-      timeout_retry.WaitFor(wifi_enabled)
+      timeout_retry.WaitFor(is_wifi_enabled)
     if decrypt:
-      timeout_retry.WaitFor(decryption_completed)
+      timeout_retry.WaitFor(is_decryption_completed)
 
   REBOOT_DEFAULT_TIMEOUT = 10 * _DEFAULT_TIMEOUT
 
