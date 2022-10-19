@@ -159,6 +159,16 @@ def PinpointNewBisectPost():
   return pinpoint_request.PinpointNewBisectPost()
 
 
+@flask_app.route('/pinpoint/new/perf_try', methods=['POST'])
+def PinpointNewPerfTryPost():
+  return pinpoint_request.PinpointNewPerfTryPost()
+
+
+@flask_app.route('/pinpoint/new/prefill', methods=['POST'])
+def PinpointNewPrefillPost():
+  return pinpoint_request.PinpointNewPrefillPost()
+
+
 @flask_app.route('/configs/update')
 def SheriffConfigPollerGet():
   return sheriff_config_poller.SheriffConfigPollerGet()
@@ -312,6 +322,8 @@ _PATHS_HANDLED_BY_FLASK = [
     '/list_tests',
     '/navbar',
     '/pinpoint/new/bisect',
+    '/pinpoint/new/perf_try',
+    '/pinpoint/new/prefill',
     '/short_uri',
 ]
 

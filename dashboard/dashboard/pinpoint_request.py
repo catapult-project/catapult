@@ -40,15 +40,29 @@ def PinpointNewBisectPost():
   return json.dumps(NewPinpointBisect(request.values))
 
 
-class PinpointNewPrefillRequestHandler(request_handler.RequestHandler):
+def PinpointNewPrefillPost():
+  t = utils.TestKey(request.values.get('test_path')).get()
+  return json.dumps({'story_filter': t.unescaped_story_name})
 
-  def post(self):
-    logging.debug('crbug/1298177 - pinpoint_request prefill POST triggered')
-    t = utils.TestKey(self.request.get('test_path')).get()
-    self.response.write(json.dumps({'story_filter': t.unescaped_story_name}))
+
+def PinpointNewPerfTryPost():
+  try:
+    pinpoint_params = PinpointParamsFromPerfTryParams(request.values)
+  except InvalidParamsError as e:
+    return json.dumps({'error': str(e)})
+
+  return json.dumps(pinpoint_service.NewJob(pinpoint_params))
 
 
 if six.PY2:
+  class PinpointNewPrefillRequestHandler(request_handler.RequestHandler):
+
+    def post(self):
+      logging.debug('crbug/1298177 - pinpoint_request prefill POST triggered')
+      t = utils.TestKey(self.request.get('test_path')).get()
+      self.response.write(json.dumps({'story_filter': t.unescaped_story_name}))
+
+
   class PinpointNewBisectRequestHandler(request_handler.RequestHandler):
 
     def post(self):
@@ -82,19 +96,20 @@ def NewPinpointBisect(job_params):
   return results
 
 
-class PinpointNewPerfTryRequestHandler(request_handler.RequestHandler):
+if six.PY2:
+  class PinpointNewPerfTryRequestHandler(request_handler.RequestHandler):
 
-  def post(self):
-    job_params = dict(
-        (a, self.request.get(a)) for a in self.request.arguments())
+    def post(self):
+      job_params = dict(
+          (a, self.request.get(a)) for a in self.request.arguments())
 
-    try:
-      pinpoint_params = PinpointParamsFromPerfTryParams(job_params)
-    except InvalidParamsError as e:
-      self.response.write(json.dumps({'error': str(e)}))
-      return
+      try:
+        pinpoint_params = PinpointParamsFromPerfTryParams(job_params)
+      except InvalidParamsError as e:
+        self.response.write(json.dumps({'error': str(e)}))
+        return
 
-    self.response.write(json.dumps(pinpoint_service.NewJob(pinpoint_params)))
+      self.response.write(json.dumps(pinpoint_service.NewJob(pinpoint_params)))
 
 
 def _GitHashToCommitPosition(commit_position):
