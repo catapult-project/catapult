@@ -69,6 +69,11 @@ def ConfigHandlerPost():
   return config.ConfigHandlerPost()
 
 
+@flask_app.route('/api/describe', methods=['OPTIONS'])
+def DescribeOptions():
+  return describe.DescribeOptions()
+
+
 @flask_app.route('/api/describe', methods=['POST'])
 def DescribePost():
   return describe.DescribePost()

@@ -19,6 +19,11 @@ def _CheckUser():
 
 
 @api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
+def DescribeOptions():
+  return ''
+
+
+@api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
 def DescribePost():
   master = request.values.get('master')
   suite = request.values.get('test_suite')
