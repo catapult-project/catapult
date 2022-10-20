@@ -402,7 +402,8 @@ class AndroidPlatformBackend(
 
   def FlushDnsCache(self):
     self._device.RunShellCommand(
-        ['ndc', 'resolver', 'flushdefaultif'], as_root=True, check_return=True)
+        ['ndc', 'resolver', 'flushdefaultif'],
+        as_root=True, check_return=self._require_root)
 
   def StopApplication(self, application):
     """Stop the given |application|.
