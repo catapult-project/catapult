@@ -9,7 +9,6 @@ from __future__ import absolute_import
 from google.appengine.api import users
 from google.appengine.ext import ndb
 
-from dashboard import oauth2_decorator
 from dashboard.common import file_bug
 from dashboard.common import request_handler
 from dashboard.common import utils
@@ -22,7 +21,6 @@ class FileBugHandler(request_handler.RequestHandler):
     """A POST request for this endpoint is the same as a GET request."""
     self.get()
 
-  @oauth2_decorator.DECORATOR.oauth_required
   def get(self):
     """Either shows the form to file a bug, or if filled in, files the bug.
 
@@ -123,7 +121,7 @@ class FileBugHandler(request_handler.RequestHandler):
           })
       return
 
-    http = oauth2_decorator.DECORATOR.http()
+    http = utils.ServiceAccountHttp()
     template_params = file_bug.FileBug(http, owner, cc, summary, description,
                                        project_id, labels, components,
                                        urlsafe_keys.split(','))

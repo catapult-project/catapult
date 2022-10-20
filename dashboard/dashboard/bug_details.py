@@ -10,8 +10,8 @@ import json
 import logging
 import re
 
-from dashboard import oauth2_decorator
 from dashboard.common import request_handler
+from dashboard.common import utils
 from dashboard.services import issue_tracker_service
 
 BUGDROID = 'bugdroid1@chromium.org'
@@ -26,7 +26,6 @@ class BugDetailsHandler(request_handler.RequestHandler):
     logging.debug('crbug/1298177 - bug_details POST triggered')
     self.get()
 
-  @oauth2_decorator.DECORATOR.oauth_required
   def get(self):
     """Response handler to get details about a specific bug.
 
@@ -39,7 +38,7 @@ class BugDetailsHandler(request_handler.RequestHandler):
       self.ReportError('Invalid or no bug id specified.')
       return
 
-    http = oauth2_decorator.DECORATOR.http()
+    http = utils.ServiceAccountHttp()
     self.response.out.write(json.dumps(GetBugDetails(bug_id, http)))
 
 

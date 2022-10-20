@@ -13,9 +13,6 @@ import mock
 import webapp2
 import webtest
 
-# pylint: disable=unused-import
-from dashboard import mock_oauth2_decorator
-# pylint: enable=unused-import
 
 from dashboard import bug_details
 from dashboard.common import testing_common

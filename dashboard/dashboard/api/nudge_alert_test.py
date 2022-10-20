@@ -8,12 +8,6 @@ from __future__ import absolute_import
 
 import json
 
-# Importing mock_oauth2_decorator before file_bug mocks out
-# OAuth2Decorator usage in that file.
-# pylint: disable=unused-import
-from dashboard import mock_oauth2_decorator
-# pylint: enable=unused-import
-
 from dashboard.api import api_auth
 from dashboard.api import nudge_alert
 from dashboard.common import testing_common

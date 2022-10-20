@@ -205,7 +205,6 @@ if six.PY2:
   from dashboard import load_from_prod
   from dashboard import mark_recovered_alerts
   from dashboard import migrate_test_names
-  from dashboard import oauth2_decorator
   from dashboard import put_entities_task
   from dashboard import report
   from dashboard import speed_releasing
@@ -290,9 +289,7 @@ if six.PY2:
       ('/update_test_suites', update_test_suites.UpdateTestSuitesHandler),
       ('/update_test_suite_descriptors',
        update_test_suite_descriptors.UpdateTestSuiteDescriptorsHandler),
-      ('/uploads/(.+)', uploads_info.UploadInfoHandler),
-      (oauth2_decorator.DECORATOR.callback_path,
-       oauth2_decorator.DECORATOR.callback_handler())
+      ('/uploads/(.+)', uploads_info.UploadInfoHandler)
   ]
 
   webapp2_app = webapp2.WSGIApplication(_URL_MAPPING, debug=False)

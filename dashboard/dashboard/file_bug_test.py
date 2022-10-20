@@ -14,12 +14,6 @@ import sys
 import webapp2
 import webtest
 
-# Importing mock_oauth2_decorator before file_bug mocks out
-# OAuth2Decorator usage in that file.
-# pylint: disable=unused-import
-from dashboard import mock_oauth2_decorator
-# pylint: enable=unused-import
-
 from dashboard import file_bug
 from dashboard.common import namespaced_stored_object
 from dashboard.common import testing_common

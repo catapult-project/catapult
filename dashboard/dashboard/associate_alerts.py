@@ -11,7 +11,6 @@ import re
 from google.appengine.api import users
 from google.appengine.ext import ndb
 
-from dashboard import oauth2_decorator
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -25,7 +24,6 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
     """POST is the same as GET for this endpoint."""
     self.get()
 
-  @oauth2_decorator.DECORATOR.oauth_required
   def get(self):
     """Response handler for the page used to group an alert with a bug.
 
@@ -90,7 +88,7 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
         })
 
   def _FetchBugs(self):
-    http = oauth2_decorator.DECORATOR.http()
+    http = utils.ServiceAccountHttp()
     issue_tracker = issue_tracker_service.IssueTrackerService(http)
     response = issue_tracker.List(
         q='opened-after:today-5',
