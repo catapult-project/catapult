@@ -56,12 +56,12 @@ class FindIsolate(quest.Quest):
 
     self._previous_builds = {}
     self._build_tags = collections.OrderedDict()
-
+    self._started_executions = {}
   def __eq__(self, other):
     return (isinstance(other, type(self)) and self._bucket == other._bucket
             and self._builder_name == other._builder_name
-            and self._fallback_target == other._fallback_target)
-
+            and self._fallback_target == other._fallback_target
+            and self._started_executions == other._started_executions)
   def __hash__(self):
     return hash(self.__str__())
 
@@ -81,16 +81,25 @@ class FindIsolate(quest.Quest):
       self._build_tags = collections.OrderedDict()
 
   def Start(self, change):
-    return _FindIsolateExecution(
+    if not hasattr(self, '_started_executions'):
+      self._started_executions = {}
+    if change not in self._started_executions:
+      self._started_executions[change] = []
+    index = len(self._started_executions[change])
+    build_execution = _FindIsolateExecution(
+        self,
         self._builder_name,
         self._target,
         self._bucket,
         change,
+        index,
         self._previous_builds,
         self.build_tags,
         fallback_target=self._fallback_target,
         comparison_mode=self._comparison_mode)
 
+    self._started_executions[change].append(build_execution)
+    return build_execution
   def PropagateJob(self, job):
     self._build_tags = BuildTagsFromJob(job)
 
@@ -102,15 +111,18 @@ class FindIsolate(quest.Quest):
 
     return cls(arguments['builder'], arguments['target'], arguments['bucket'],
                arguments.get('fallback_target'), arguments['comparison_mode'])
-
-
+  def CompleteExecutions(self, change, index, result_arguments):
+    for e in self._started_executions[change][:index+1]:
+      e._Complete(result_arguments=result_arguments)
 class _FindIsolateExecution(execution.Execution):
 
   def __init__(self,
+               containing_quest,
                builder_name,
                target,
                bucket,
                change,
+               index,
                previous_builds,
                build_tags,
                fallback_target,
@@ -118,12 +130,14 @@ class _FindIsolateExecution(execution.Execution):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(_FindIsolateExecution, self).__init__()
+    self._quest = containing_quest
     self._builder_name = builder_name
     self._target = target
     self._bucket = bucket
     self._change = change
     self._fallback_target = fallback_target
     self._comparison_mode = comparison_mode
+    self._index = index
 
     # previous_builds is shared among all Executions of the same Quest.
     self._previous_builds = previous_builds
@@ -204,7 +218,11 @@ class _FindIsolateExecution(execution.Execution):
         'isolate_hash': isolate_hash,
     }
     logging.debug('Found in isolate cache: %s', result_arguments)
-    self._Complete(result_arguments=result_arguments)
+    if not hasattr(self, '_quest'):
+      logging.debug('Execute older complete execution method in find_isolate')
+      self._Complete(result_arguments=result_arguments)
+    else:
+      self._quest.CompleteExecutions(self._change, self._index, result_arguments)
     return True
 
   def _IsTryJob(self):
