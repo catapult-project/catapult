@@ -8,10 +8,15 @@ from __future__ import absolute_import
 
 import traceback
 
-from oauth2client import client
-
 from dashboard.pinpoint.models import errors
 import six
+
+if six.PY2:
+  from oauth2client import client
+  TokenRefreshError = client.AccessTokenRefreshError
+else:
+  from google.auth import exceptions
+  TokenRefreshError = exceptions.RefreshError
 
 
 # TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
@@ -122,7 +127,7 @@ class Execution(object):
 
     try:
       self._Poll()
-    except client.AccessTokenRefreshError as e:
+    except TokenRefreshError as e:
       raise errors.RecoverableError(e)
     except (errors.FatalError, RuntimeError):
       # Some built-in exceptions are derived from RuntimeError which we'd like
