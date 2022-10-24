@@ -29,7 +29,7 @@ if utils.IsRunningFlask():
 
   if sys.version_info.major == 3:
     from google.appengine.api import wrap_wsgi_app
-    APP.wsgi_app = wrap_wsgi_app(APP.wsgi_app)
+    APP.wsgi_app = wrap_wsgi_app(APP.wsgi_app, use_deferred=True)
 
   @APP.route('/api/jobs')
   def JobsHandlerGet():

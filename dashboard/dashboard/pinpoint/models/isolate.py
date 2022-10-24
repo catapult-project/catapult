@@ -48,7 +48,7 @@ def Get(builder_name, change, target):
 def Put(isolate_infos):
   """Add isolate hashes to the Datastore.
 
-  This function takes multiple entries to do a batched Datstore put.
+  This function takes multiple entries to do a batched Datastore put.
 
   Args:
     isolate_infos: An iterable of tuples. Each tuple is of the form

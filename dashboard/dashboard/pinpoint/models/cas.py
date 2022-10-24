@@ -46,7 +46,7 @@ def Get(builder_name, change, target):
 def Put(cas_references):
   """Add CASReference to the Datastore.
 
-  This function takes multiple entries to do a batched Datstore put.
+  This function takes multiple entries to do a batched Datastore put.
 
   Args:
     cas_references: An iterable of tuples. Each tuple is of the form

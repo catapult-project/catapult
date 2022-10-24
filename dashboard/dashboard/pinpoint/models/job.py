@@ -318,7 +318,7 @@ class Job(ndb.Model):
           initial_attempt_count=10,
           dimensions=None,
           swarming_server=None):
-    """Creates a new Job, adds Changes to it, and puts it in the Datstore.
+    """Creates a new Job, adds Changes to it, and puts it in the Datastore.
 
     Args:
       quests: An iterable of Quests for the Job to run.

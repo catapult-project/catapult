@@ -4,8 +4,7 @@ api_version: 1
 instance_class: F4
 
 # A single upload can consume a lot of memory, so threadsafe:false prevents
-# handling multiple uploads simultaneously in order to stay under F2's 256MB
-# memory limit.
+# handling multiple uploads simultaneously in order to stay under memory limit.
 threadsafe: false
 
 automatic_scaling:
