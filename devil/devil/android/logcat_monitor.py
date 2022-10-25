@@ -224,7 +224,7 @@ class LogcatMonitor(object):
     """
     # pylint: disable=unexpected-keyword-arg
     if self._clear:
-      self._adb.Logcat(clear=True)
+      self._adb.Logcat(clear=True, check_error=self._check_error)
     if not self._record_file:
       if six.PY2:
         self._record_file = tempfile.NamedTemporaryFile(mode='a', bufsize=1)

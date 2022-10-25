@@ -624,7 +624,7 @@ class AdbWrapper(object):
     # Best effort to catch errors from adb; unfortunately adb is very
     # inconsistent with error reporting so many command failures present
     # differently.
-    if status != 0 or (check_error and output.startswith('error:')):
+    if check_error and (status != 0 or output.startswith('error:')):
       not_found_m = _DEVICE_NOT_FOUND_RE.search(output)
       device_waiting_m = _WAITING_FOR_DEVICE_RE.match(output)
       if (device_waiting_m is not None
@@ -646,8 +646,8 @@ class AdbWrapper(object):
       timeout: Timeout in seconds.
       retries: Number of retries.
       check_error: Check that the command doesn't return an error message. This
-        does check the error status of adb but DOES NOT check the exit status
-        of shell commands.
+        checks both the error status of adb and the exit status of shell
+        commands.
 
     Returns:
       The output of the command.
@@ -694,12 +694,16 @@ class AdbWrapper(object):
       retries: (optional) Number of retries to attempt.
 
     Returns:
-      The output of the shell command as a string.
+      A tuple: the first value is the output of the shell command as a string;
+      the second value is the integer status code of the command if
+      expect_status=True, otherwise this is None.
+    Raises:
+      DeviceUnreachableError on missing device.
     """
     # Pipe stderr->stdout to ensure the echo'ed exit code is not interleaved
     # with the command's stderr (as seen in https://crbug.com/1314912).
     args = ['shell', '( %s ) 2>&1;echo %%$?' % command.rstrip()]
-    output = self._RunDeviceAdbCmd(args, timeout, retries, check_error=False)
+    output = self._RunDeviceAdbCmd(args, timeout, retries)
     # If we don't care about the status, just return output and unchecked
     # status.
     if expect_status is None:
