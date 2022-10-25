@@ -337,7 +337,7 @@ def APP(environ, request):
   method = environ.get('REQUEST_METHOD', '')
   logging.info('Request path from environ: %s. Method: %s', path, method)
 
-  if IsPathHandledByFlask(path):
+  if IsPathHandledByFlask(path) or six.PY3:
     logging.debug('Handled by flask.')
     return flask_app(environ, request)
 
