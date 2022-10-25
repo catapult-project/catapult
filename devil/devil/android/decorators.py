@@ -6,6 +6,7 @@ Function/method decorators that provide timeout and retry logic.
 """
 
 import functools
+import inspect
 import itertools
 import logging
 import sys
@@ -21,6 +22,17 @@ DEFAULT_TIMEOUT_ATTR = '_default_timeout'
 DEFAULT_RETRIES_ATTR = '_default_retries'
 
 logger = logging.getLogger(__name__)
+
+
+def _get_params_with_defaults(func):
+  if six.PY2:
+    arg_spec = inspect.getargspec(func)  # pylint: disable=deprecated-method
+    return dict(zip(arg_spec.args[-len(arg_spec.defaults):], arg_spec.defaults))
+  return {
+      param: arg.default
+      for param, arg in inspect.signature(func).parameters.items()
+      if arg.default is not inspect.Parameter.empty
+  }
 
 
 def _TimeoutRetryWrapper(f,
@@ -102,7 +114,8 @@ def WithTimeoutAndRetries(f):
 def WithTimeoutAndConditionalRetries(retry_if_func):
   """Returns a decorator that handles timeouts and, in some cases, retries.
 
-  'timeout' and 'retries' kwargs must be passed to the function.
+  Either 'timeout' and 'retries' args must be passed to the function or
+  default values for the 'timeout' and 'retries' parameters must be set.
 
   Args:
     retry_if_func: A unary callable that takes an exception and returns
@@ -112,8 +125,11 @@ def WithTimeoutAndConditionalRetries(retry_if_func):
   """
 
   def decorator(f):
-    get_timeout = lambda *a, **kw: kw['timeout']
-    get_retries = lambda *a, **kw: kw['retries']
+    params_with_defaults = _get_params_with_defaults(f)
+    get_timeout = lambda *a, **kw: kw.get('timeout', params_with_defaults[
+        'timeout'])
+    get_retries = lambda *a, **kw: kw.get('retries', params_with_defaults[
+        'retries'])
     return _TimeoutRetryWrapper(
         f, get_timeout, get_retries, retry_if_func=retry_if_func)
 

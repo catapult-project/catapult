@@ -179,24 +179,13 @@ _MODIFICATION_RETRIES = 2
 _ENABLE_MODIFICATION_PROP = 'devil.modify_sys_apps'
 
 
-def _ShouldRetryModification(exc):
-  try:
-    if isinstance(exc, device_errors.CommandTimeoutError):
-      logger.info('Restarting the adb server')
-      adb_wrapper.RestartServer()
-    return True
-  except Exception: # pylint: disable=broad-except
-    logger.exception(('Caught an exception when deciding'
-                      ' to retry system modification'))
-    return False
-
-
 # timeout and retries are both required by the decorator, but neither
 # are used within the body of the function.
 # pylint: disable=unused-argument
 
 
-@decorators.WithTimeoutAndConditionalRetries(_ShouldRetryModification)
+@decorators.WithTimeoutAndConditionalRetries(
+    adb_wrapper.ShouldRetryAfterAdbServerRestart)
 def _SetUpSystemAppModification(device, timeout=None, retries=None):
   # Ensure that the device is online & available before proceeding to
   # handle the case where something fails in the middle of set up and
@@ -247,7 +236,8 @@ def _SetUpSystemAppModification(device, timeout=None, retries=None):
   return should_restore_root
 
 
-@decorators.WithTimeoutAndConditionalRetries(_ShouldRetryModification)
+@decorators.WithTimeoutAndConditionalRetries(
+    adb_wrapper.ShouldRetryAfterAdbServerRestart)
 def _TearDownSystemAppModification(device,
                                    should_restore_root,
                                    timeout=None,

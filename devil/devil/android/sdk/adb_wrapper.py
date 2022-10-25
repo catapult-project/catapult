@@ -117,6 +117,18 @@ def _GetReleaseVersion():
   return None
 
 
+def ShouldRetryAfterAdbServerRestart(exc):
+  try:
+    if isinstance(exc, device_errors.CommandTimeoutError):
+      logger.info('Restarting the adb server')
+      RestartServer()
+    return True
+  except Exception:  # pylint: disable=broad-except
+    logger.exception(('Caught an exception when deciding'
+                      ' to retry a function'))
+    return False
+
+
 def _ShouldRetryAdbCmd(exc):
   # Errors are potentially transient and should be retried, with the exception
   # of NoAdbError. Exceptions [e.g. generated from SIGTERM handler] should be

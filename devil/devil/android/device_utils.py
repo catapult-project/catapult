@@ -59,8 +59,12 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+_BOOT_TIMEOUT = 60
+_BOOT_RETRIES = 2
 _DEFAULT_TIMEOUT = 30
 _DEFAULT_RETRIES = 3
+
+
 # TODO(agrieve): Would be better to make this timeout based off of data size.
 # Needs to be large for remote devices & speed depends on internet connection.
 # Debug Chrome builds can be 200mb+.
@@ -1026,12 +1030,13 @@ class DeviceUtils(object):
           cmd, check_return=True, shell=True, timeout=timeout, retries=retries)
       self.PullFile(device_tmp_file.name, path)
 
-  @decorators.WithTimeoutAndRetriesFromInstance()
+  @decorators.WithTimeoutAndConditionalRetries(
+      adb_wrapper.ShouldRetryAfterAdbServerRestart)
   def WaitUntilFullyBooted(self,
                            wifi=False,
                            decrypt=False,
-                           timeout=None,
-                           retries=None):
+                           timeout=_BOOT_TIMEOUT,
+                           retries=_BOOT_RETRIES):
     """Wait for the device to fully boot.
 
     This means waiting for the device to boot, the package manager to be
