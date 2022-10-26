@@ -162,7 +162,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
 
   def GetBrowserDeviceFlags(self):
     flags = ['--browser', self._browser.browser_type,
-             '--remote', self._test_options.cros_remote,
+             '--remote', self._test_options.remote,
              '--device', self._device]
     if self._browser.browser_type == 'exact':
       flags += ['--browser-executable', self._test_options.browser_executable]

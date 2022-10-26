@@ -115,7 +115,7 @@ class CrOSBrowserMockCreationTest(unittest.TestCase):
 
 
 def IsRemote():
-  return bool(options_for_unittests.GetCopy().cros_remote)
+  return bool(options_for_unittests.GetCopy().remote)
 
 
 class CrOSBrowserEnvironmentTest(unittest.TestCase):
@@ -125,9 +125,9 @@ class CrOSBrowserEnvironmentTest(unittest.TestCase):
   """
   def _CreateBrowser(self):
     device = cros_device.CrOSDevice(
-        options_for_unittests.GetCopy().cros_remote,
-        options_for_unittests.GetCopy().cros_remote_ssh_port,
-        options_for_unittests.GetCopy().cros_ssh_identity,
+        options_for_unittests.GetCopy().remote,
+        options_for_unittests.GetCopy().remote_ssh_port,
+        options_for_unittests.GetCopy().ssh_identity,
         not IsRemote())
     plat = cros_platform_backend.CrosPlatformBackend.CreatePlatformForDevice(
         device, options_for_unittests.GetCopy())

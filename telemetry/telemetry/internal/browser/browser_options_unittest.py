@@ -156,7 +156,7 @@ class BrowserOptionsTest(unittest.TestCase):
     parser = options.CreateParser()
     parser.parse_args(['--browser=cros-chrome', '--remote=localhost'])
     serv_mock.assert_called()
-    self.assertEqual(options.cros_remote_ssh_port, 22)
+    self.assertEqual(options.remote_ssh_port, 22)
 
   @mock.patch('socket.getservbyname')
   def testGetServByNameNotCalledWithPortSpecified(self, serv_mock):

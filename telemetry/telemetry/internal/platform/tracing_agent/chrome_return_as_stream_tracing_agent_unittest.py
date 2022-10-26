@@ -31,11 +31,11 @@ class FakeCrOSPlatformBackend(
     chrome_tracing_agent_unittest.FakePlatformBackend):
   def __init__(self):
     super().__init__()
-    remote = options_for_unittests.GetCopy().cros_remote
-    remote_ssh_port = options_for_unittests.GetCopy().cros_remote_ssh_port
+    remote = options_for_unittests.GetCopy().remote
+    remote_ssh_port = options_for_unittests.GetCopy().remote_ssh_port
     self.cri = cros_interface.CrOSInterface(
         remote, remote_ssh_port,
-        options_for_unittests.GetCopy().cros_ssh_identity)
+        options_for_unittests.GetCopy().ssh_identity)
 
   def GetOSName(self):
     return 'chromeos'

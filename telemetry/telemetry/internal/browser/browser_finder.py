@@ -96,7 +96,7 @@ def FindBrowser(options):
         '--browser-executable requires --browser=exact.')
 
   if (not _IsCrosBrowser(options)  and
-      options.cros_remote is not None):
+      options.remote is not None):
     raise browser_finder_exceptions.BrowserFinderException(
         '--remote requires --browser=[la]cros-chrome[-guest].')
 

@@ -48,10 +48,10 @@ class BrowserFinderOptions(optparse.Values):
     self.chrome_root = None  # Path to src/
     self.chromium_output_dir = None  # E.g.: out/Debug
     self.device = None
-    self.cros_ssh_identity = None
+    self.ssh_identity = None
 
-    self.cros_remote = None
-    self.cros_remote_ssh_port = None
+    self.remote = None
+    self.remote_ssh_port = None
 
     self.verbosity = 0
 
@@ -130,14 +130,14 @@ class BrowserFinderOptions(optparse.Values):
         'CHROMIUM_OUTPUT_DIR.')
     group.add_option(
         '--remote',
-        dest='cros_remote',
+        dest='remote',
         help='The hostname of a remote ChromeOS device to use.')
     group.add_option(
         '--remote-ssh-port',
         type=int,
         # This is set in ParseArgs if necessary.
         default=-1,
-        dest='cros_remote_ssh_port',
+        dest='remote_ssh_port',
         help='The SSH port of the remote ChromeOS device (requires --remote).')
     compat_mode_options_list = [
         compat_mode_options.NO_FIELD_TRIALS,
@@ -178,7 +178,7 @@ class BrowserFinderOptions(optparse.Values):
       identity = testing_rsa
     group.add_option(
         '--identity',
-        dest='cros_ssh_identity',
+        dest='ssh_identity',
         default=identity,
         help='The identity file to use when ssh\'ing into the ChromeOS device')
     parser.add_option_group(group)
@@ -413,9 +413,9 @@ class BrowserFinderOptions(optparse.Values):
 
       if ((self.browser_type == 'cros-chrome' or
            self.browser_type == 'lacros-chrome') and
-          self.cros_remote and (self.cros_remote_ssh_port < 0)):
+          self.remote and (self.remote_ssh_port < 0)):
         try:
-          self.cros_remote_ssh_port = socket.getservbyname('ssh')
+          self.remote_ssh_port = socket.getservbyname('ssh')
         except OSError as e:
           raise RuntimeError(
               'Running a CrOS test in remote mode, but failed to retrieve port '

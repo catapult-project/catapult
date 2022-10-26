@@ -46,10 +46,10 @@ def IsRunningOnCrOS():
 
 def FindAllAvailableDevices(options):
   """Returns a list of available device types."""
-  use_ssh = options.cros_remote and cros_interface.HasSSH()
+  use_ssh = options.remote and cros_interface.HasSSH()
   if not use_ssh and not IsRunningOnCrOS():
     logging.debug('No --remote specified, and not running on ChromeOs.')
     return []
 
-  return [CrOSDevice(options.cros_remote, options.cros_remote_ssh_port,
-                     options.cros_ssh_identity, not use_ssh)]
+  return [CrOSDevice(options.remote, options.remote_ssh_port,
+                     options.ssh_identity, not use_ssh)]
