@@ -24,6 +24,7 @@ from dashboard import navbar
 from dashboard import pinpoint_request
 from dashboard import sheriff_config_poller
 from dashboard import short_uri
+from dashboard import update_test_suites
 from dashboard.api import alerts as api_alerts
 from dashboard.api import config
 from dashboard.api import describe
@@ -184,6 +185,11 @@ def ShortUriHandlerPost():
   return short_uri.ShortUriHandlerPost()
 
 
+@flask_app.route('/update_test_suites', methods=['GET','POST'])
+def UpdateTestSuitesPost():
+  return update_test_suites.UpdateTestSuitesPost()
+
+
 if six.PY2:
   import gae_ts_mon
   import webapp2
@@ -210,7 +216,6 @@ if six.PY2:
   from dashboard import speed_releasing
   from dashboard import update_dashboard_stats
   from dashboard import update_test_suite_descriptors
-  from dashboard import update_test_suites
   from dashboard import uploads_info
   from dashboard.api import bugs
   from dashboard.api import list_timeseries
@@ -322,6 +327,7 @@ _PATHS_HANDLED_BY_FLASK = [
     '/pinpoint/new/perf_try',
     '/pinpoint/new/prefill',
     '/short_uri',
+    '/update_test_suites',
 ]
 
 
