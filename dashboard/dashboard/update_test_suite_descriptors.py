@@ -24,6 +24,8 @@ from dashboard.models import histogram
 from tracing.value.diagnostics import reserved_infos
 from tracing.value.diagnostics import generic_set
 
+from flask import request, make_response
+
 
 def CacheKey(master, test_suite):
   return 'test_suite_descriptor_%s_%s' % (master, test_suite)
@@ -61,20 +63,30 @@ def FetchCachedTestSuiteDescriptor(master, test_suite):
   return desc
 
 
-class UpdateTestSuiteDescriptorsHandler(request_handler.RequestHandler):
+def UpdateTestSuiteDescriptorsPost():
+  namespace = datastore_hooks.EXTERNAL
+  if request.values.get('internal_only') == 'true':
+    namespace = datastore_hooks.INTERNAL
+  UpdateTestSuiteDescriptors(namespace)
+  return make_response('')
 
-  def get(self):
-    logging.debug(
-        'crbug/1298177 - update_test_suites_descriptors GET triggered')
-    self.post()
 
-  def post(self):
-    logging.debug(
-        'crbug/1298177 - update_test_suites_descriptors POST triggered')
-    namespace = datastore_hooks.EXTERNAL
-    if self.request.get('internal_only') == 'true':
-      namespace = datastore_hooks.INTERNAL
-    UpdateTestSuiteDescriptors(namespace)
+if six.PY2:
+
+  class UpdateTestSuiteDescriptorsHandler(request_handler.RequestHandler):
+
+    def get(self):
+      logging.debug(
+          'crbug/1298177 - update_test_suites_descriptors GET triggered')
+      self.post()
+
+    def post(self):
+      logging.debug(
+          'crbug/1298177 - update_test_suites_descriptors POST triggered')
+      namespace = datastore_hooks.EXTERNAL
+      if self.request.get('internal_only') == 'true':
+        namespace = datastore_hooks.INTERNAL
+      UpdateTestSuiteDescriptors(namespace)
 
 
 def UpdateTestSuiteDescriptors(namespace):
@@ -132,7 +144,7 @@ def _UpdateDescriptor(master,
                len(measurements), len(bots), len(cases))
   # This function always runs in the taskqueue as an anonymous user.
   if namespace == datastore_hooks.INTERNAL:
-    datastore_hooks.SetPrivilegedRequest()
+    datastore_hooks.SetPrivilegedRequest(flask_flag=six.PY3)
 
   measurements = set(measurements)
   bots = set(bots)
