@@ -1999,6 +1999,40 @@ class DeviceUtils(object):
       timeout_retry.WaitFor(dismiss_popups, wait_period=1)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
+  def Unlock(self, timeout=None, retries=None):
+    """Wakes up the device screen and unlocks (if not PIN protected).
+
+    This is a NOOP if the device screen is already unlocked.
+
+    Args:
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Raises:
+      CommandFailedError if device cannot be unlocked (ex. if PIN protected).
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+    """
+    # Must wake up the screen before unlocking. This is a NOOP if already awake.
+    self.SendKeyEvent(keyevent.KEYCODE_WAKEUP)
+
+    def is_screen_locked():
+      lines = self.RunShellCommand(['dumpsys', 'nfc'])
+      screen_locked = False
+      screen_locked_pattern = re.compile(r'mScreenState=.*\bON_LOCKED$')
+      for line in lines:
+        if screen_locked_pattern.match(line):
+          screen_locked = True
+          break
+      return screen_locked
+
+    if is_screen_locked():
+      self.SendKeyEvent(keyevent.KEYCODE_MENU)
+      if is_screen_locked():
+        raise device_errors.CommandFailedError('Screen is still locked. Is the '
+                                               'device password protected?')
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
   def ForceStop(self, package, timeout=None, retries=None):
     """Close the application.
 

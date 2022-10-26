@@ -2510,6 +2510,42 @@ class DeviceUtilsGoHomeTest(DeviceUtilsTest):
       self.device.GoHome()
 
 
+class DeviceUtilsUnlockTest(DeviceUtilsTest):
+  def testUnlock_AlreadyUnlocked(self):
+    with self.assertCalls(
+        (self.call.device.SendKeyEvent(keyevent.KEYCODE_WAKEUP), None),
+        (self.call.device.RunShellCommand(['dumpsys', 'nfc'
+                                           ]), ["mScreenState=ON_UNLOCKED"])):
+      self.device.Unlock()
+
+  def testUnlock_emulatorAlwaysUnlocked(self):
+    with self.assertCalls(
+        (self.call.device.SendKeyEvent(keyevent.KEYCODE_WAKEUP), None),
+        (self.call.device.RunShellCommand(['dumpsys', 'nfc'
+                                           ]), ["Can't find service: nfc"])):
+      self.device.Unlock()
+
+  def testUnlock_lockedWithoutPasscode(self):
+    with self.assertCalls(
+        (self.call.device.SendKeyEvent(keyevent.KEYCODE_WAKEUP), None),
+        (self.call.device.RunShellCommand(['dumpsys', 'nfc'
+                                           ]), ["mScreenState=ON_LOCKED"]),
+        (self.call.device.SendKeyEvent(keyevent.KEYCODE_MENU), None),
+        (self.call.device.RunShellCommand(['dumpsys', 'nfc']), [])):
+      self.device.Unlock()
+
+  def testUnlock_lockedRequiresPasscode(self):
+    with self.assertCalls(
+        (self.call.device.SendKeyEvent(keyevent.KEYCODE_WAKEUP), None),
+        (self.call.device.RunShellCommand(['dumpsys', 'nfc'
+                                           ]), ["mScreenState=ON_LOCKED"]),
+        (self.call.device.SendKeyEvent(keyevent.KEYCODE_MENU), None),
+        (self.call.device.RunShellCommand(['dumpsys', 'nfc'
+                                           ]), ["mScreenState=ON_LOCKED"])):
+      with self.assertRaises(device_errors.CommandFailedError):
+        self.device.Unlock()
+
+
 class DeviceUtilsForceStopTest(DeviceUtilsTest):
   def testForceStop(self):
     with self.assertCalls(
