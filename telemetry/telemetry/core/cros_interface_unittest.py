@@ -17,7 +17,7 @@ import mock
 from devil.utils import cmd_helper
 from telemetry.core import cros_interface
 from telemetry import decorators
-from telemetry.internal.forwarders import cros_forwarder
+from telemetry.internal.forwarders import linux_based_forwarder
 from telemetry.testing import options_for_unittests
 
 
@@ -252,7 +252,7 @@ class CrOSInterfaceTest(unittest.TestCase):
       self.assertFalse(cri.IsHTTPServerRunningOnPort(remote_port))
 
       # Forward local server's port to remote device's remote_port.
-      forwarder = cros_forwarder.CrOsForwarderFactory(cri).Create(
+      forwarder = linux_based_forwarder.LinuxBasedForwarderFactory(cri).Create(
           local_port=port, remote_port=remote_port)
 
       # At this point, remote device should be able to connect to local server.
