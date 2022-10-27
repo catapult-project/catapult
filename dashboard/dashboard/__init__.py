@@ -81,6 +81,7 @@ DASHBOARD_FILES = [
     'scripts.yaml',
     'upload-processing.yaml',
     'upload.yaml',
+    'upload-py3.yaml',  # remove after py3 migration is finalized.
 ]
 
 TRACING_PATHS = [

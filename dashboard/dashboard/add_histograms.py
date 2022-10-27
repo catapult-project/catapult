@@ -6,7 +6,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import cloudstorage
 import decimal
 import ijson
 import json
@@ -15,6 +14,14 @@ import six
 import sys
 import uuid
 import zlib
+if six.PY2:
+  import cloudstorage
+else:
+  try:
+    import cloudstorage.cloudstorage as cloudstorage
+  except ImportError:
+    # This is a work around to fix the discrepency on file tree in tests.
+    import cloudstorage
 
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
