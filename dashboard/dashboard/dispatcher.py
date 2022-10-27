@@ -35,6 +35,10 @@ from dashboard.api import timeseries2
 from flask import Flask
 flask_app = Flask(__name__)
 
+if six.PY3:
+  from google.appengine.api import wrap_wsgi_app
+  flask_app.wsgi_app = wrap_wsgi_app(flask_app.wsgi_app, use_deferred=True)
+
 
 @flask_app.route('/add_histograms', methods=['POST'])
 def AddHistogramsPost():
