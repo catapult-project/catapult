@@ -100,7 +100,6 @@ group("telemetry_chrome_test_support") {
     "third_party/rsa/",
     "third_party/six/",
     "third_party/snap-it/",
-    "third_party/tsmon_client/",
     "third_party/tsproxy/",
     "third_party/uritemplate/",
     "third_party/urllib3/",
