@@ -174,8 +174,7 @@ def _CatapultThirdPartyLibraryPaths():
   paths = []
   paths.append(
       os.path.join(_CATAPULT_PATH, 'common', 'node_runner', 'node_runner',
-                   'node_modules', '@chopsui', 'tsmon-client',
-                   'tsmon-client.js'))
+                   'node_modules', '@chopsui'))
   third_party_libraries = (
       THIRD_PARTY_LIBRARIES_PY3 if sys.version_info.major == 3
       else THIRD_PARTY_LIBRARIES_PY2)

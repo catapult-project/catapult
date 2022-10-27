@@ -197,7 +197,6 @@ def UpdateTestSuitesDescriptorsPost():
 
 
 if six.PY2:
-  import gae_ts_mon
   import webapp2
 
   # pylint: disable=ungrouped-imports
@@ -211,7 +210,6 @@ if six.PY2:
   from dashboard import file_bug
   from dashboard import get_diagnostics
   from dashboard import get_histogram
-  from dashboard import jstsmon
   from dashboard import layered_cache_delete_expired
   from dashboard import list_tests
   from dashboard import load_from_prod
@@ -234,7 +232,6 @@ if six.PY2:
   from dashboard.api import timeseries
 
   _URL_MAPPING = [
-      ('/_/jstsmon', jstsmon.JsTsMonHandler),
       ('/add_histograms', add_histograms.AddHistogramsHandler),
       ('/add_histograms/process', add_histograms.AddHistogramsProcessHandler),
       ('/add_histograms_queue', add_histograms_queue.AddHistogramsQueueHandler),
@@ -303,7 +300,6 @@ if six.PY2:
   ]
 
   webapp2_app = webapp2.WSGIApplication(_URL_MAPPING, debug=False)
-  gae_ts_mon.initialize(webapp2_app)
 
 # After a handler is migrated to flask, add its handled url here.
 # The listed values will be used as *prefix* to match and redirect
