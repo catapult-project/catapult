@@ -70,6 +70,11 @@ def RequestHandlerDecoratorFactory(user_checker):
         return _WriteErrorMessage(str(e), 403)
       # Allow oauth.Error to manifest as HTTP 500.
 
+      if request.method == 'OPTIONS':
+        response = make_response()
+        _SetCorsHeadersIfAppropriate(request, response)
+        return response
+
       try:
         results = request_handler()
       except NotFoundError as e:
