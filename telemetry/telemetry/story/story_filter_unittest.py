@@ -186,6 +186,17 @@ class FilterStoriesUnittest(unittest.TestCase):
     output = story_filter.FilterStories(stories)
     self.assertEqual([x, z], output)
 
+  def testStoryTagTakesPriorityOverShard(self):
+    x = FakeStory('x')
+    y = FakeStory('y')
+    z = FakeStory('z', {'t'})
+    stories = (x, y, z)
+    story_filter = story_filter_module.StoryFilter(
+        story_tag_filter='t',
+        shard_end_index=1)
+    output = story_filter.FilterStories(stories)
+    self.assertEqual([z], output)
+
 
 class FilterStoriesShardIndexUnittest(unittest.TestCase):
   def setUp(self):
