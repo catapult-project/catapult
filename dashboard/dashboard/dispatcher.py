@@ -26,6 +26,7 @@ from dashboard import sheriff_config_poller
 from dashboard import short_uri
 from dashboard import update_test_suites
 from dashboard import update_test_suite_descriptors
+from dashboard import uploads_info
 from dashboard.api import alerts as api_alerts
 from dashboard.api import config
 from dashboard.api import describe
@@ -195,6 +196,11 @@ def UpdateTestSuitesDescriptorsPost():
   return update_test_suite_descriptors.UpdateTestSuiteDescriptorsPost()
 
 
+@flask_app.route('/uploads')
+def UploadsInfoGet():
+  return uploads_info.UploadsInfoGet()
+
+
 if six.PY2:
   import webapp2
 
@@ -218,7 +224,6 @@ if six.PY2:
   from dashboard import report
   from dashboard import speed_releasing
   from dashboard import update_dashboard_stats
-  from dashboard import uploads_info
   from dashboard.api import bugs
   from dashboard.api import list_timeseries
   from dashboard.api import new_bug
@@ -329,6 +334,7 @@ _PATHS_HANDLED_BY_FLASK = [
     '/short_uri',
     '/update_test_suites',
     '/update_test_suite_descriptors',
+    # '/uploads/',
 ]
 
 
