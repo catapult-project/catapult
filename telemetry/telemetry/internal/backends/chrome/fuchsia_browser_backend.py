@@ -60,36 +60,38 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return self.devtools_client.DumpMemory(timeout=timeout,
                                            detail_level=detail_level)
 
-  def _ReadDevToolsPortFromStdout(self, search_regex):
+  def _ReadDevToolsPortFromPipe(self, search_regex, pipe):
     def TryReadingPort():
-      if not self._browser_log_proc.stderr:
+      if not pipe:
         return None
-      line = self._browser_log_proc.stdout.readline()
-      tokens = re.search(search_regex, line)
-      self._browser_log += line
-      return int(tokens.group(1)) if tokens else None
-    return py_utils.WaitFor(TryReadingPort, timeout=60)
-
-  def _ReadDevToolsPortFromStderr(self, search_regex):
-    def TryReadingPort():
-      if not self._browser_log_proc.stderr:
-        return None
-      line = self._browser_log_proc.stderr.readline()
+      line = pipe.readline()
       tokens = re.search(search_regex, line)
       self._browser_log += line
       return int(tokens.group(1)) if tokens else None
     return py_utils.WaitFor(TryReadingPort, timeout=60)
 
   def _ReadDevToolsPort(self):
-    if self.browser_type == WEB_ENGINE_SHELL:
-      search_regex = r'Remote debugging port: (\d+)'
-      result = self._ReadDevToolsPortFromStdout(search_regex)
-    elif self.browser_type == CAST_STREAMING_SHELL:
-      search_regex = r'Remote debugging port: (\d+)'
-      result = self._ReadDevToolsPortFromStderr(search_regex)
-    else:
-      search_regex = r'DevTools listening on ws://127.0.0.1:(\d+)/devtools.*'
-      result = self._ReadDevToolsPortFromStderr(search_regex)
+    read_port_mapping = {
+        WEB_ENGINE_SHELL: {
+            'search_regex': r'Remote debugging port: (\d+)',
+            'pipe': self._browser_log_proc.stdout,
+        },
+        CAST_STREAMING_SHELL: {
+            'search_regex': r'Remote debugging port: (\d+)',
+            'pipe': self._browser_log_proc.stderr,
+        },
+        FUCHSIA_CHROME: {
+            'search_regex': ('DevTools listening on'
+                             r' ws://127.0.0.1:(\d+)/devtools.*'),
+            'pipe': self._browser_log_proc.stderr,
+        }
+    }
+    if self.browser_type not in read_port_mapping:
+      raise NotImplementedError(f'Browser {self.browser_type} is not supported')
+
+    result = self._ReadDevToolsPortFromPipe(
+        **read_port_mapping[self.browser_type])
+
     return result
 
   def _StartWebEngineShell(self, startup_args):
