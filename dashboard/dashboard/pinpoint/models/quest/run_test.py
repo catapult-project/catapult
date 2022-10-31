@@ -117,8 +117,6 @@ class RunTest(quest.Quest):
     self._comparison_mode = job.comparison_mode
     self._attempt_count = job.state.attempt_count
     self._bots = [str(b) for b in job.bots]
-    logging.debug('crbug/1364271 - bots propagated %s',
-                  [str(b) for b in self._bots])
 
   def Start(self, change, isolate_server, isolate_hash):
     return self._Start(change, isolate_server, isolate_hash, self._extra_args,
@@ -155,16 +153,11 @@ class RunTest(quest.Quest):
 
   def _StartAllTasks(self):
     # We need to wait for all of the builds to be complete.
-    logging.debug('crbug/1364271 - job kicks off via _StartAllTasks')
     if len(self._started_executions) != 2:
       return
-    logging.debug('crbug/1364271 - bots in quest: %s',
-                  [str(b) for b in self._bots])
+    logging.debug('bots in quest: %s', [str(b) for b in self._bots])
     a_list, b_list = self._started_executions.values()
     if len(a_list) != self._attempt_count or len(b_list) != self._attempt_count:
-      logging.debug(
-          'crbug/1364271 - len(a_list) or len(b_list) does not equal attempt_count'
-      )
       return
 
     orderings = self._GetABOrderings(self._attempt_count)
@@ -196,10 +189,9 @@ class RunTest(quest.Quest):
       return self._dimensions
     dimensions = list(self._dimensions)
 
-    logging.debug('crbug/1364271 - add bot_id for index %s and bots %s',
-                  str(index), [str(b) for b in self._bots])
     bot_id = self._bots[index % len(self._bots)]
     if bot_id:
+      logging.debug('add bot_id for index %s and bots %s', str(index), bot_id)
       dimensions.append({'key': 'id', 'value': bot_id})
     return dimensions
 
@@ -406,7 +398,6 @@ class _RunTestExecution(execution_module.Execution):
 
   def _StartTasksIfMasterOrNotTry(self):
     if not hasattr(self, '_quest') or self._quest._comparison_mode != 'try':
-      logging.debug('crbug/1364271 - job kicks off via _StartTask()')
       self._StartTask()
       return
 

@@ -351,8 +351,6 @@ class Job(ndb.Model):
     bots = swarming.GetAliveBotsByDimensions(dimensions, swarming_server)
     if not bots:
       raise errors.SwarmingNoBots()
-    logging.debug('crbug/1364271 - alive bots from swarming %s',
-                  [str(b) for b in bots])
 
     # For A/B ordering to be equal, we need an even number of bots (or one)
     if len(bots) % 2 and len(bots) != 1:
@@ -366,8 +364,6 @@ class Job(ndb.Model):
         initial_attempt_count=GetIterationCount(initial_attempt_count,
                                                 len(bots)))
     args = arguments or {}
-    logging.debug('crbug/1364271 - bots used to create job object %s',
-                  [str(b) for b in bots])
     job = cls(
         state=state,
         arguments=args,
