@@ -60,6 +60,11 @@ def RequestHandlerDecoratorFactory(user_checker):
   def RequestHandlerDecorator(request_handler):
 
     def Wrapper():
+      if request.method == 'OPTIONS':
+        response = make_response()
+        _SetCorsHeadersIfAppropriate(request, response)
+        return response
+
       try:
         user_checker()
       except api_auth.NotLoggedInError as e:
@@ -69,11 +74,6 @@ def RequestHandlerDecoratorFactory(user_checker):
       except ForbiddenError as e:
         return _WriteErrorMessage(str(e), 403)
       # Allow oauth.Error to manifest as HTTP 500.
-
-      if request.method == 'OPTIONS':
-        response = make_response()
-        _SetCorsHeadersIfAppropriate(request, response)
-        return response
 
       try:
         results = request_handler()
