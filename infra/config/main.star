@@ -102,7 +102,7 @@ luci.cq_group(
 )
 
 # Matches any file under the 'dashboard' root directory.
-DASHBOARD_RE = ".+[+]/dashboard/.+"
+DASHBOARD_RE = "dashboard/.+"
 
 def try_builder(
         name,
@@ -175,7 +175,10 @@ def try_builder(
     # Presubmit sees all changes
     if not is_presubmit:
         if not is_dashboard:
-            verifier_kwargs["location_regexp_exclude"] = [DASHBOARD_RE]
+            verifier_kwargs["location_filters"] = [
+                cq.location_filter(path_regexp = ".*"),
+                cq.location_filter(path_regexp = DASHBOARD_RE, exclude = True),
+            ]
     if experiment != None:
         verifier_kwargs["experiment_percentage"] = experiment
 
