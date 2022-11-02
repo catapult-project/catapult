@@ -204,6 +204,12 @@ indexes:
   - name: created
     direction: desc
 
+# Index jobs by created time.
+- kind: Job
+  properties:
+  - name: created
+    direction: desc
+
 # Used in find_anomalies.GetRowsToAnalyze when getting latest points,
 # with projection query for properties revision, value, and timestamp.
 - kind: Row
