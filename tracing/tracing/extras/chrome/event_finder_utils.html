@@ -69,7 +69,9 @@ tr.exportTo('tr.e.chrome', function() {
       if (!rendererHelper.mainThread) return;
       // Events yielded by childEvents() are sorted by start time.
       for (const ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
-        if (rendererHelper.isTelemetryInternalEvent(ev)) continue;
+        if (rendererHelper.modelHelper.isTelemetryInternalEvent(ev)) {
+          continue;
+        }
         if (!this.hasCategoryAndName(ev, eventCategory, eventTitle)) {
           continue;
         }

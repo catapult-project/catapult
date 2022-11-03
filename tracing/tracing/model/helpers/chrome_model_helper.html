@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/guid.html">
+<link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/model/helpers/chrome_browser_helper.html">
 <link rel="import" href="/tracing/model/helpers/chrome_gpu_helper.html">
@@ -14,6 +15,8 @@ found in the LICENSE file.
 
 <script>
 'use strict';
+
+const {Range} = tr.b.math;
 
 /**
  * @fileoverview Utilities for accessing trace data about the Chrome browser.
@@ -158,6 +161,117 @@ tr.exportTo('tr.model.helpers', function() {
 
     get telemetryHelper() {
       return this.telemetryHelper_;
+    },
+
+    /**
+     * Returns true if slice is contained within telemetry internal ranges.
+     *
+     * Telemetry stories emit events in renderer processes that mark the start
+     * and end of time ranges of periods when some preparatory work is happening
+     * (e.g. warming up the cache).
+     *
+     * Note that internal ranges are global to the trace, i.e. you cannot mark a
+     * portion of only one process as internal. This is because the start and
+     * end marker of an internal range may end up in different processes. It's
+     * also very likely non-trivial amount of the work during these internal
+     * time ranges are happening across different processes (e.g. GPU or Browser
+     * process), so metrics should discard events from all processes.
+     */
+    isTelemetryInternalEvent(slice) {
+      if (this.telemetryInternalRanges_ === undefined) {
+        this.telemetryInternalRanges_ = this.findTelemetryInternalRanges_();
+      }
+
+      for (const range of this.telemetryInternalRanges_) {
+        if (range.containsExplicitRangeInclusive(slice.start, slice.end)) {
+          return true;
+        }
+      }
+      return false;
+    },
+
+    findTelemetryInternalRanges_() {
+      const internalRanges = [];
+
+      // Since start and end markers may be emitted in different
+      // processes, we first collect all start and end events from all the
+      // renderer processes, and then process them together. These markers are
+      // only emitted as renderer main thread async events, so it's sufficient
+      // to restrict our search to those.
+      const eventNameToMarkers = new Map();
+
+      for (const rendererHelper of Object.values(this.rendererHelpers)) {
+        const mainThreadAsyncSlices = rendererHelper.mainThread.asyncSliceGroup;
+        for (const slice of mainThreadAsyncSlices.getDescendantEvents()) {
+          // Internal events are of the form
+          // 'telemetry.internal.{eventName}.end'. `eventName` can be
+          // 'warm_cache.warm', 'ensure_disk_cache' etc. See
+          // telemetry/telemetry/page/cache_temperature.py for usage on
+          // telemetry side.
+          const re = new RegExp('^telemetry\.internal\.' +
+                                '(?<eventName>.*)\.(?<type>start|end)$');
+          const matches = re.exec(slice.title);
+          if (matches === null) continue;
+
+          const {eventName, type} = matches.groups;
+          if (!eventNameToMarkers.has(eventName)) {
+            eventNameToMarkers.set(eventName, []);
+          }
+          eventNameToMarkers.get(eventName).push({type, slice});
+        }
+      }
+
+      for (const [eventName, markers] of eventNameToMarkers.entries()) {
+        if (markers.length === 0) continue;
+
+        // Sort by ascending start time.
+        markers.sort((a, b) => a.slice.start - b.slice.start);
+
+        let lastMarker = undefined;
+
+        for (const marker of markers) {
+          const {type, slice} = marker;
+          if (lastMarker && type == lastMarker.type) {
+            throw Error(
+                `Invalid internal event marker order. Two consecutive ` +
+                `${type} markers with ` + `eventName '${eventName}' ` +
+                `at timestamps ${lastMarker.slice.start} and ${slice.start}.`);
+          }
+
+          switch (type) {
+            case 'end':
+              if (lastMarker === undefined) {
+                // Process end marker without a corresponding start marker. Note
+                // that these marker events are not zero duration, likely due to
+                // a limitation of console mark events work. We consider
+                // slice.start as the end of the marker time range as opposed to
+                // slice.end.
+                internalRanges.push(tr.b.math.Range.fromExplicitRange(
+                    this.chromeBounds.min, slice.start));
+              } else {
+                internalRanges.push(tr.b.math.Range.fromExplicitRange(
+                    lastMarker.slice.start, slice.start));
+              }
+              break;
+            case 'start':
+              // No need to do anything.
+              break;
+            default:
+              throw Error(`Telemetry internal events must end with 'start' ` +
+                          `or 'end'. Found ${type}`);
+          }
+
+          lastMarker = marker;
+        }
+
+        if (lastMarker && lastMarker.type === 'start') {
+          // Process start marker without a corresponding end marker.
+          internalRanges.push(tr.b.math.Range.fromExplicitRange(
+              lastMarker.slice.start, this.chromeBounds.max));
+        }
+      }
+
+      return internalRanges;
     }
   };
 

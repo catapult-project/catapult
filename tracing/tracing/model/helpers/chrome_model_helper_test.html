@@ -234,5 +234,191 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(modelHelper.chromeBounds.min, 0);
     assert.strictEqual(modelHelper.chromeBounds.max, 100);
   });
+
+  function findInternalRangesForTestScenario(internalMarkerSpecs, opt_modelBounds) {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel((model) => {
+      const pidToMainThread = new Map();
+
+      for (const markerSpec of internalMarkerSpecs) {
+        if (!pidToMainThread.has(markerSpec.pid)) {
+          const rendererProcess = model.getOrCreateProcess(markerSpec.pid);
+          const mainThread = rendererProcess.getOrCreateThread(1);
+          mainThread.name = 'CrRendererMain';
+          pidToMainThread.set(markerSpec.pid, mainThread);
+        }
+
+        pidToMainThread.get(markerSpec.pid).asyncSliceGroup.push(
+            tr.c.TestUtils.newAsyncSliceEx({
+              cat: 'blink.console',
+              title: ('telemetry.internal.' + markerSpec.eventName + '.'
+                      + markerSpec.type),
+              start: markerSpec.ts,
+              // These marker events are not instant events. Set an arbitrary
+              // small duration to represent reality.
+              duration: 3.0
+            }));
+      }
+
+      // Force model min and max bounds, if present.
+      if (opt_modelBounds && opt_modelBounds.modelMin) {
+        model.browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          {start: opt_modelBounds.modelMin, duration: 0}));
+      }
+
+      if (opt_modelBounds && opt_modelBounds.modelMax) {
+        model.browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          {start: opt_modelBounds.modelMax, duration: 0}));
+      }
+    });
+
+    const modelHelper =
+        model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
+    return modelHelper.findTelemetryInternalRanges_();
+  }
+
+  function assertRangesEqualExpectedBounds(internalRanges, expectedBounds) {
+    assert.strictEqual(expectedBounds.length, internalRanges.length);
+    internalRanges.sort((a, b) => (a.min - b.min));
+    expectedBounds.sort((a, b) => (a.start - b.start));
+    for (let i = 0; i < expectedBounds.length; i++) {
+      assert.strictEqual(expectedBounds[i].start, internalRanges[i].min);
+      assert.strictEqual(expectedBounds[i].end, internalRanges[i].max);
+    }
+  }
+
+  test('findTelemetryInternalRanges_unclosedStartOrEnd', () => {
+    const markerSpecs = [
+      {eventName: 'warm_cache.warm', pid: 123, ts: 250, type: 'end'},
+      {eventName: 'warm_cache.warm', pid: 123, ts: 300, type: 'start'},
+    ];
+    const modelBounds = { modelMin: 10 , modelMax: 999};
+    const expectedBounds = [
+      {start: 10, end: 250},
+      {start: 300, end: 999},
+    ];
+
+    const internalRanges =
+        findInternalRangesForTestScenario(markerSpecs, modelBounds);
+    assertRangesEqualExpectedBounds(internalRanges, expectedBounds);
+  });
+
+  test('findTelemetryInternalRanges_unordered', () => {
+    // Check that we're sorting the marker events before processing them, as
+    // they can end up unsorted when we're plucking them out of different
+    // processes.
+    const markerSpecs = [
+      {eventName: 'ensure_disk_cache', pid: 123, ts: 250, type: 'end'},
+      {eventName: 'ensure_disk_cache', pid: 124, ts: 200, type: 'start'},
+    ];
+    const expectedBounds = [ {start: 200, end: 250} ];
+
+    const internalRanges =
+        findInternalRangesForTestScenario(markerSpecs);
+    assertRangesEqualExpectedBounds(internalRanges, expectedBounds);
+  });
+
+  test('findTelemetryInternalRanges_invalidRanges', () => {
+    const unmatchedEndMarkers = [
+      {eventName: 'warm_cache.warm', pid: 123, ts: 200, type: 'start'},
+      {eventName: 'warm_cache.warm', pid: 124, ts: 250, type: 'end'},
+      {eventName: 'warm_cache.warm', pid: 125, ts: 300, type: 'end'},
+    ];
+    assert.throws(
+        () => findInternalRangesForTestScenario(unmatchedEndMarkers, []),
+        /Invalid internal event marker order.*end.*warm/);
+
+    const unmatchedStartMarkers = [
+      {eventName: 'warm_cache.warm', pid: 123, ts: 200, type: 'start'},
+      {eventName: 'warm_cache.warm', pid: 124, ts: 250, type: 'start'},
+      {eventName: 'warm_cache.warm', pid: 125, ts: 300, type: 'end'},
+    ];
+    assert.throws(
+        () => findInternalRangesForTestScenario(unmatchedStartMarkers, []),
+        /Invalid internal event marker order.*start.*warm/);
+  });
+
+  test('findTelemetryInternalRanges_multipleRangesSameEvent', () => {
+    const markerSpecs = [
+      {eventName: 'warm_cache.warm', pid: 123, ts: 200, type: 'start'},
+      {eventName: 'warm_cache.warm', pid: 124, ts: 250, type: 'end'},
+      {eventName: 'warm_cache.warm', pid: 124, ts: 300, type: 'start'},
+      {eventName: 'warm_cache.warm', pid: 123, ts: 350, type: 'end'},
+    ];
+    const expectedBounds = [{start: 200, end: 250}, {start: 300, end: 350}];
+
+    const internalRanges =
+        findInternalRangesForTestScenario(markerSpecs);
+    assertRangesEqualExpectedBounds(internalRanges, expectedBounds);
+  });
+
+  test('findTelemetryInternalRanges_multipleEvents', () => {
+    const markerSpecs = [
+      {eventName: 'warm_cache.hot', pid: 123, ts: 200, type: 'start'},
+      {eventName: 'warm_cache.warm', pid: 124, ts: 250, type: 'end'},
+      {eventName: 'warm_cache.hot', pid: 125, ts: 300, type: 'end'},
+      {eventName: 'warm_cache.hot-browser', pid: 126, ts: 350, type: 'start'},
+      {eventName: 'warm_cache.warm-browser', pid: 127, ts: 400, type: 'start'},
+      {eventName: 'warm_cache.hot-browser', pid: 128, ts: 450, type: 'end'},
+    ];
+    const modelBounds = { modelMin: 10, modelMax: 999 };
+    const expectedBounds = [
+      {start: modelBounds.modelMin, end: 250},  // warm load.
+      {start: 200, end: 300},  // hot load.
+      {start: 350, end: 450},  // hot-browser load.
+      {start: 400, end: modelBounds.modelMax},  // warm-browser load.
+    ];
+
+    const internalRanges =
+        findInternalRangesForTestScenario(markerSpecs, modelBounds);
+    assertRangesEqualExpectedBounds(internalRanges, expectedBounds);
+  });
+
+  test('isTelemetryInternalEvent', () => {
+    const internalEvents = [
+      {eventName: 'warm_cache.warm', ts: 300, type: 'end'},
+      {eventName: 'warm_cache.hot', ts: 400, type: 'start'},
+      {eventName: 'warm_cache.hot', ts: 450, type: 'end'},
+    ];
+    const modelMin = 10;
+
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel((model) => {
+      // Force chromeBounds min.
+      model.browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+        {start: modelMin, duration: 0}));
+
+      for (const event of internalEvents) {
+        model.rendererMain.asyncSliceGroup.push(
+            tr.c.TestUtils.newAsyncSliceEx({
+              cat: 'blink.console',
+              title: ('telemetry.internal.warm_cache.' +
+                      event.eventName + '.' + event.type),
+              start: event.ts,
+              duration: 3.0,  // Arbitrary small duration.
+            }));
+      }
+    });
+
+    const modelHelper =
+        model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
+
+    assert.isTrue(modelHelper.isTelemetryInternalEvent(
+        tr.c.TestUtils.newSliceEx({start: 10, duration: 0})));
+    assert.isTrue(modelHelper.isTelemetryInternalEvent(
+        tr.c.TestUtils.newSliceEx({start: 20, duration: 0})));
+    assert.isTrue(modelHelper.isTelemetryInternalEvent(
+        tr.c.TestUtils.newSliceEx({start: 300, duration: 0})));
+    assert.isFalse(modelHelper.isTelemetryInternalEvent(
+        tr.c.TestUtils.newSliceEx({start: 310, duration: 0})));
+    assert.isFalse(modelHelper.isTelemetryInternalEvent(
+        tr.c.TestUtils.newSliceEx({start: 399, duration: 0})));
+    assert.isTrue(modelHelper.isTelemetryInternalEvent(
+        tr.c.TestUtils.newSliceEx({start: 400, duration: 0})));
+    assert.isTrue(modelHelper.isTelemetryInternalEvent(
+        tr.c.TestUtils.newSliceEx({start: 449, duration: 0})));
+    assert.isTrue(modelHelper.isTelemetryInternalEvent(
+        tr.c.TestUtils.newSliceEx({start: 450, duration: 0})));
+    assert.isFalse(modelHelper.isTelemetryInternalEvent(
+        tr.c.TestUtils.newSliceEx({start: 451, duration: 0})));
+  });
 });
 </script>

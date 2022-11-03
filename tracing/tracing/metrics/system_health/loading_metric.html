@@ -106,7 +106,9 @@ tr.exportTo('tr.metrics.sh', function() {
     // Want to keep the event with the most recent timestamp
     let validEvent;
     for (const targetEvent of targetEvents) {
-      if (rendererHelper.isTelemetryInternalEvent(targetEvent)) continue;
+      if (rendererHelper.modelHelper.isTelemetryInternalEvent(targetEvent)) {
+        continue;
+      }
       if (validEvent === undefined) {
         validEvent = targetEvent;
       } else {
@@ -130,7 +132,10 @@ tr.exportTo('tr.metrics.sh', function() {
         rendererHelper, 'blink.user_timing', 'pc');
     if (pcEvent === undefined) return samples;
 
-    if (rendererHelper.isTelemetryInternalEvent(pcEvent)) return samples;
+    if (rendererHelper.modelHelper.isTelemetryInternalEvent(pcEvent)) {
+      return samples;
+    }
+
     const navigationStartEvent = navIdToNavStartEvents.get(
         pcEvent.args.data.navigationId);
     if (navigationStartEvent === undefined) return samples;
@@ -183,7 +188,9 @@ tr.exportTo('tr.metrics.sh', function() {
     const targetEvents = findAllEvents(rendererHelper, category, eventName);
     const entries = [];
     for (const targetEvent of targetEvents) {
-      if (rendererHelper.isTelemetryInternalEvent(targetEvent)) continue;
+      if (rendererHelper.modelHelper.isTelemetryInternalEvent(targetEvent)) {
+        continue;
+      }
       const frameIdRef = targetEvent.args.frame;
       const snapshot = findFrameLoaderSnapshotAt(
           rendererHelper, frameIdRef, targetEvent.start);
