@@ -10,6 +10,7 @@ import collections
 import datetime
 from six.moves import http_client
 import logging
+import six
 import time
 
 from google.appengine.ext import deferred
@@ -31,15 +32,25 @@ from tracing.value.diagnostics import reserved_infos
 _MAX_JOBS_TO_FETCH = 100
 
 
-class UpdateDashboardStatsHandler(request_handler.RequestHandler):
+def UpdateDashboardStatsGet():
   """A simple request handler to refresh the cached test suites info."""
+  logging.debug('crbug/1298177 - update_dashboard_stats GET triggered')
+  datastore_hooks.SetPrivilegedRequest(flask_flag=True)
+  deferred.defer(_ProcessAlerts)
+  deferred.defer(_ProcessPinpointStats)
+  deferred.defer(_ProcessPinpointJobs)
 
-  def get(self):
-    logging.debug('crbug/1298177 - update_dashboard_stats GET triggered')
-    datastore_hooks.SetPrivilegedRequest()
-    deferred.defer(_ProcessAlerts)
-    deferred.defer(_ProcessPinpointStats)
-    deferred.defer(_ProcessPinpointJobs)
+
+if six.PY2:
+  class UpdateDashboardStatsHandler(request_handler.RequestHandler):
+    """A simple request handler to refresh the cached test suites info."""
+
+    def get(self):
+      logging.debug('crbug/1298177 - update_dashboard_stats GET triggered')
+      datastore_hooks.SetPrivilegedRequest()
+      deferred.defer(_ProcessAlerts)
+      deferred.defer(_ProcessPinpointStats)
+      deferred.defer(_ProcessPinpointJobs)
 
 
 def _FetchCompletedPinpointJobs(start_date):
