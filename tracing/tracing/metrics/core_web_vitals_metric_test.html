@@ -170,5 +170,46 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(
         3, histograms.getHistogramNamed(CLS_HISTOGRAM_NAME).max);
   });
+
+  test('metricIsNotReportedFromTelemetryInternalRanges', () => {
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel((model) => {
+      model.browserMain.sliceGroup.pushSlice(timingUpdateEvent(
+          {sourceId: 42, ts: 100, fcp: 123, lcp: 300, cls: 2}));
+      model.browserMain.sliceGroup.pushSlice(timingUpdateEvent(
+          {sourceId: 48, ts: 300, fcp: 124, lcp: 301, cls: 3}));
+
+      // Create telemetry internal ranges from 50 to 150ms.
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+          cat: 'blink.console',
+          title: 'telemetry.internal.warm_cache.warm.start',
+          start: 50,
+          duration: 3.0,  // Arbitrary small duration.
+          }));
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+          cat: 'blink.console',
+          title: 'telemetry.internal.warm_cache.warm.end',
+          start: 150,
+          duration: 3.0,  // Arbitrary small duration.
+          }));
+    });
+
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.coreWebVitalsMetric(histograms, model);
+
+    // Only the second group of metrics are reported, since the first group
+    // falls within internal ranges.
+    assert.strictEqual(
+        1, histograms.getHistogramNamed(FCP_HISTOGRAM_NAME).numValues);
+    assert.strictEqual(
+        124, histograms.getHistogramNamed(FCP_HISTOGRAM_NAME).max);
+    assert.strictEqual(
+        1, histograms.getHistogramNamed(LCP_HISTOGRAM_NAME).numValues);
+    assert.strictEqual(
+        301, histograms.getHistogramNamed(LCP_HISTOGRAM_NAME).max);
+    assert.strictEqual(
+        1, histograms.getHistogramNamed(CLS_HISTOGRAM_NAME).numValues);
+    assert.strictEqual(
+        3, histograms.getHistogramNamed(CLS_HISTOGRAM_NAME).max);
+  });
 });
 </script>

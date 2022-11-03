@@ -58,6 +58,9 @@ tr.exportTo('tr.metrics', function() {
       for (const event of mainThread.sliceGroup.childEvents()) {
         if (event.category === 'loading' &&
             event.title === 'UkmPageLoadTimingUpdate') {
+          if (browserHelper.modelHelper.isTelemetryInternalEvent(event)) {
+            continue;
+          }
           const timingUpdate = event.args['ukm_page_load_timing_update'];
           const sourceId = timingUpdate['ukm_source_id'];
           latestTimingBySourceId.set(sourceId, timingUpdate);
