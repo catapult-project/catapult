@@ -203,16 +203,22 @@ def GetIsolateTarget(bot_name, suite):
   # Each Android binary has its own target, and different bots use different
   # binaries. Mapping based off of Chromium's
   # //tools/perf/core/perf_data_generator.py
-  if bot_name == 'android-pixel2-perf-calibration':
-    return 'performance_test_suite_android_clank_monochrome_64_32_bundle'
+  if bot_name == 'android-go-perf':
+    return 'performance_test_suite_android_clank_chrome'
+  if bot_name == 'android-go-wembley-perf':
+    return 'performance_test_suite_android_clank_trichrome_bundle'
+  if bot_name == 'android-new-pixel-perf':
+    return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
+  if bot_name == 'android-new-pixel-pro-perf':
+    return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
   if bot_name == 'android-nexus5x-perf-fyi':
     return 'performance_test_suite_android_clank_chrome'
+  if bot_name == 'android-pixel2-perf-calibration':
+    return 'performance_test_suite_android_clank_monochrome_64_32_bundle'
   if bot_name == 'android-pixel2-perf-fyi':
     return 'performance_test_suite_android_clank_chrome'
   if bot_name == 'android-pixel2-perf-aab-fyi':
     return 'performance_test_suite_android_clank_monochrome_bundle'
-  if bot_name == 'android-go-perf':
-    return 'performance_test_suite_android_clank_chrome'
   if bot_name == 'Android Nexus5 Perf':
     return 'performance_test_suite_android_chrome'
   if bot_name == 'android-pixel2-perf':
@@ -225,10 +231,6 @@ def GetIsolateTarget(bot_name, suite):
     return 'performance_weblayer_test_suite'
   if bot_name == 'android-pixel4a_power-perf':
     return 'performance_test_suite_android_clank_chrome'
-  if bot_name == 'android-new-pixel-perf':
-    return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
-  if bot_name == 'android-new-pixel-pro-perf':
-    return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
   if bot_name == 'android-samsung-foldable-perf':
     return 'performance_test_suite_android_clank_trichrome_bundle'
   if 'android' in bot_name.lower():
