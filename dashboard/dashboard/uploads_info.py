@@ -196,65 +196,6 @@ if six.PY2:
     def _CheckUser(self):
       self._CheckIsInternalUser()
 
-    @ndb.tasklet
-    def _GenerateMeasurementInfo(self, measurement, get_dimensions_info=False):
-      info = {
-          'name': measurement.test_path,
-          'state': upload_completion_token.StateToString(measurement.state),
-          'monitored': measurement.monitored,
-          'lastUpdated': str(measurement.update_time),
-      }
-      if measurement.error_message is not None:
-        info['error_message'] = measurement.error_message
-      if get_dimensions_info and measurement.histogram is not None:
-        histogram_entity = yield measurement.histogram.get_async()
-        attached_histogram = histogram_module.Histogram.FromDict(
-            histogram_entity.data)
-        info['dimensions'] = []
-        for name, diagnostic in attached_histogram.diagnostics.items():
-          if name not in histogram_helpers.ADD_HISTOGRAM_RELATED_DIAGNOSTICS:
-            continue
-
-          if isinstance(diagnostic, diagnostic_ref.DiagnosticRef):
-            original_diagnostic = histogram.SparseDiagnostic.get_by_id(
-                diagnostic.guid)
-            diagnostic = diagnostic_module.Diagnostic.FromDict(
-                original_diagnostic.data)
-
-          # We don't have other diagnostics in
-          # histogram_helpers.ADD_HISTOGRAM_RELATED_DIAGNOSTICS if they apper
-          # in the future, dimensions format should be changed.
-          assert isinstance(diagnostic, generic_set.GenericSet)
-
-          info['dimensions'].append({'name': name, 'value': list(diagnostic)})
-      raise ndb.Return(info)
-
-    def _GenerateResponse(self,
-                          token,
-                          get_measurement_info=False,
-                          get_dimensions_info=False):
-      measurements = token.GetMeasurements() if get_measurement_info else []
-      result = {
-          'token': token.key.id(),
-          'file': token.temporary_staging_file_path,
-          'created': str(token.creation_time),
-          'lastUpdated': str(token.update_time),
-          'state': upload_completion_token.StateToString(token.state),
-      }
-      if token.error_message is not None:
-        result['error_message'] = token.error_message
-      if measurements:
-        result['measurements'] = []
-
-      measurement_info_futures = []
-      for measurement in measurements:
-        measurement_info_futures.append(
-            self._GenerateMeasurementInfo(measurement, get_dimensions_info))
-      ndb.Future.wait_all(measurement_info_futures)
-      for future in measurement_info_futures:
-        result['measurements'].append(future.get_result())
-      return result
-
     def Get(self, *args):
       """Returns json, that describes state of the token.
 
@@ -341,5 +282,5 @@ if six.PY2:
 
       get_measurement_info = 'measurements' in self.request.get('additional_info')
       get_dimensions_info = 'dimensions' in self.request.get('additional_info')
-      return self._GenerateResponse(token, get_measurement_info,
+      return _GenerateResponse(token, get_measurement_info,
                                     get_dimensions_info)
