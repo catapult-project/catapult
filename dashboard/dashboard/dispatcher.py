@@ -24,6 +24,7 @@ from dashboard import graph_revisions
 from dashboard import group_report
 from dashboard import layered_cache_delete_expired
 from dashboard import main
+from dashboard import migrate_test_names
 from dashboard import mark_recovered_alerts
 from dashboard import navbar
 from dashboard import pinpoint_request
@@ -182,6 +183,16 @@ def MarkRecoveredAlertsPost():
   return mark_recovered_alerts.MarkRecoveredAlertsPost()
 
 
+@flask_app.route('/migrate_test_names', methods=['GET'])
+def MigrateTestNamesGet():
+  return migrate_test_names.MigrateTestNamesGet()
+
+
+@flask_app.route('/migrate_test_names', methods=['POST'])
+def MigrateTestNamesPost():
+  return migrate_test_names.MigrateTestNamesPost()
+
+
 @flask_app.route('/navbar', methods=['POST'])
 def NavbarHandlerPost():
   return navbar.NavbarHandlerPost()
@@ -250,7 +261,6 @@ if six.PY2:
   from dashboard import get_histogram
   from dashboard import list_tests
   from dashboard import load_from_prod
-  from dashboard import migrate_test_names
   from dashboard import put_entities_task
   from dashboard import report
   from dashboard import speed_releasing
@@ -361,6 +371,7 @@ _PATHS_HANDLED_BY_FLASK = [
     '/graph_revisions',
     '/group_report',
     '/list_tests',
+    '/migrate_test_names',
     # '/mark_recovered_alerts',
     '/navbar',
     '/pinpoint/new/bisect',

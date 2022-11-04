@@ -21,6 +21,7 @@ from __future__ import absolute_import
 
 import logging
 import re
+import six
 
 from google.appengine.api import mail
 from google.appengine.api import taskqueue
@@ -34,6 +35,8 @@ from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import histogram
+
+from flask import make_response, request
 
 _MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL = 50
 
@@ -97,51 +100,101 @@ class BadInputPatternError(Exception):
   pass
 
 
-class MigrateTestNamesHandler(request_handler.RequestHandler):
-  """Migrates the data for a test which has been renamed on the buildbots."""
+def MigrateTestNamesGet():
+  """Displays a simple UI form to kick off migrations."""
+  return request_handler.RequestHandlerRenderHtml('migrate_test_names.html', {})
 
-  def get(self):
-    """Displays a simple UI form to kick off migrations."""
-    self.RenderHtml('migrate_test_names.html', {})
 
-  def post(self):
-    """Starts migration of old TestMetadata entity names to new ones.
+def MigrateTestNamesPost():
+  """Starts migration of old TestMetadata entity names to new ones.
 
-    The form that's used to kick off migrations will give the parameters
-    old_pattern and new_pattern, which are both test path pattern strings.
+  The form that's used to kick off migrations will give the parameters
+  old_pattern and new_pattern, which are both test path pattern strings.
 
-    When this handler is called from the task queue, however, it will be given
-    the parameters old_test_key and new_test_key, which should both be keys
-    of TestMetadata entities in urlsafe form.
-    """
-    datastore_hooks.SetPrivilegedRequest()
+  When this handler is called from the task queue, however, it will be given
+  the parameters old_test_key and new_test_key, which should both be keys
+  of TestMetadata entities in urlsafe form.
+  """
+  datastore_hooks.SetPrivilegedRequest(flask_flag=True)
 
-    status = self.request.get('status')
+  status = request.values.get('status')
 
-    if not status:
-      try:
-        old_pattern = self.request.get('old_pattern')
-        new_pattern = self.request.get('new_pattern')
-        _MigrateTestBegin(old_pattern, new_pattern)
-        self.RenderHtml('result.html',
-                        {'headline': 'Test name migration task started.'})
-      except BadInputPatternError as error:
-        self.ReportError('Error: %s' % str(error), status=400)
-    elif status:
-      if status == _MIGRATE_TEST_LOOKUP_PATTERNS:
-        old_pattern = self.request.get('old_pattern')
-        new_pattern = self.request.get('new_pattern')
-        _MigrateTestLookupPatterns(old_pattern, new_pattern)
-      elif status == _MIGRATE_TEST_CREATE:
-        old_test_key = ndb.Key(urlsafe=self.request.get('old_test_key'))
-        new_test_key = ndb.Key(urlsafe=self.request.get('new_test_key'))
-        _MigrateTestCreateTest(old_test_key, new_test_key)
-      elif status == _MIGRATE_TEST_COPY_DATA:
-        old_test_key = ndb.Key(urlsafe=self.request.get('old_test_key'))
-        new_test_key = ndb.Key(urlsafe=self.request.get('new_test_key'))
-        _MigrateTestCopyData(old_test_key, new_test_key)
-    else:
-      self.ReportError('Missing required parameters of /migrate_test_names.')
+  if not status:
+    try:
+      old_pattern = request.values.get('old_pattern')
+      new_pattern = request.values.get('new_pattern')
+      _MigrateTestBegin(old_pattern, new_pattern)
+      return request_handler.RequestHandlerRenderHtml(
+          'result.html', {'headline': 'Test name migration task started.'})
+    except BadInputPatternError as error:
+      return request_handler.RequestHandlerReportError(
+          'Error: %s' % str(error), status=400)
+  elif status:
+    if status == _MIGRATE_TEST_LOOKUP_PATTERNS:
+      old_pattern = request.values.get('old_pattern')
+      new_pattern = request.values.get('new_pattern')
+      _MigrateTestLookupPatterns(old_pattern, new_pattern)
+    elif status == _MIGRATE_TEST_CREATE:
+      old_test_key = ndb.Key(urlsafe=request.values.get('old_test_key'))
+      new_test_key = ndb.Key(urlsafe=request.values.get('new_test_key'))
+      _MigrateTestCreateTest(old_test_key, new_test_key)
+    elif status == _MIGRATE_TEST_COPY_DATA:
+      old_test_key = ndb.Key(urlsafe=request.values.get('old_test_key'))
+      new_test_key = ndb.Key(urlsafe=request.values.get('new_test_key'))
+      _MigrateTestCopyData(old_test_key, new_test_key)
+    return make_response('')
+  else:
+    return request_handler.RequestHandlerReportError(
+        'Missing required parameters of /migrate_test_names.')
+
+
+if six.PY2:
+
+  class MigrateTestNamesHandler(request_handler.RequestHandler):
+    """Migrates the data for a test which has been renamed on the buildbots."""
+
+    def get(self):
+      """Displays a simple UI form to kick off migrations."""
+      self.RenderHtml('migrate_test_names.html', {})
+
+    def post(self):
+      """Starts migration of old TestMetadata entity names to new ones.
+
+      The form that's used to kick off migrations will give the parameters
+      old_pattern and new_pattern, which are both test path pattern strings.
+
+      When this handler is called from the task queue, however, it will be given
+      the parameters old_test_key and new_test_key, which should both be keys
+      of TestMetadata entities in urlsafe form.
+      """
+      datastore_hooks.SetPrivilegedRequest()
+
+      status = self.request.get('status')
+
+      if not status:
+        try:
+          old_pattern = self.request.get('old_pattern')
+          new_pattern = self.request.get('new_pattern')
+          _MigrateTestBegin(old_pattern, new_pattern)
+          self.RenderHtml('result.html',
+                          {'headline': 'Test name migration task started.'})
+        except BadInputPatternError as error:
+          self.ReportError('Error: %s' % str(error), status=400)
+      elif status:
+        if status == _MIGRATE_TEST_LOOKUP_PATTERNS:
+          old_pattern = self.request.get('old_pattern')
+          new_pattern = self.request.get('new_pattern')
+          _MigrateTestLookupPatterns(old_pattern, new_pattern)
+        elif status == _MIGRATE_TEST_CREATE:
+          old_test_key = ndb.Key(urlsafe=self.request.get('old_test_key'))
+          new_test_key = ndb.Key(urlsafe=self.request.get('new_test_key'))
+          _MigrateTestCreateTest(old_test_key, new_test_key)
+        elif status == _MIGRATE_TEST_COPY_DATA:
+          old_test_key = ndb.Key(urlsafe=self.request.get('old_test_key'))
+          new_test_key = ndb.Key(urlsafe=self.request.get('new_test_key'))
+          _MigrateTestCopyData(old_test_key, new_test_key)
+      else:
+        self.ReportError('Missing required parameters of /migrate_test_names.')
 
 
 def _MigrateTestBegin(old_pattern, new_pattern):
