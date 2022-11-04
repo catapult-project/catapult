@@ -10,6 +10,9 @@ import six
 import logging
 
 from dashboard import add_histograms
+from dashboard import add_histograms_queue
+from dashboard import add_point
+from dashboard import add_point_queue
 from dashboard import alert_groups
 from dashboard import alerts
 from dashboard import buildbucket_job_status
@@ -52,6 +55,21 @@ def AddHistogramsPost():
 @flask_app.route('/add_histograms/process', methods=['POST'])
 def AddHistogramsProcessPost():
   return add_histograms.AddHistogramsProcessPost()
+
+
+@flask_app.route('/add_histograms_queue', methods=['GET', 'POST'])
+def AddHistogramsQueuePost():
+  return add_histograms_queue.AddHistogramsQueuePost()
+
+
+@flask_app.route('/add_point', methods=['POST'])
+def AddPointPost():
+  return add_point.AddPointPost()
+
+
+@flask_app.route('/add_point_queue', methods=['GET', 'POST'])
+def AddPointQueuePost():
+  return add_point_queue.AddPointQueuePost()
 
 
 @flask_app.route('/alert_groups_update')
@@ -223,9 +241,6 @@ if six.PY2:
   import webapp2
 
   # pylint: disable=ungrouped-imports
-  from dashboard import add_histograms_queue
-  from dashboard import add_point
-  from dashboard import add_point_queue
   from dashboard import associate_alerts
   from dashboard import bug_details
   from dashboard import create_health_report
@@ -325,6 +340,9 @@ if six.PY2:
 # the incoming requests.
 _PATHS_HANDLED_BY_FLASK = [
     # '/alert_groups_update',
+    # '/add_histograms_queue',
+    # '/add_point',
+    # '/add_point_queue',
     '/alerts',
     '/api/alerts',
     '/api/config',
