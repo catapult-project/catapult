@@ -80,6 +80,7 @@ DASHBOARD_FILES = [
     'requirements.txt',
     'scripts.yaml',
     'upload-processing.yaml',
+    'upload-processing-py3.yaml',  # remove after py3 migration is finalized.
     'upload.yaml',
     'upload-py3.yaml',  # remove after py3 migration is finalized.
 ]
