@@ -7,78 +7,146 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import six
 
 from google.appengine.ext import ndb
 
 from dashboard import chart_handler
 from dashboard import list_tests
+from dashboard.common import request_handler
 from dashboard import short_uri
 from dashboard import update_test_suites
 from dashboard.models import page_state
 
+from flask import make_response, redirect, request
 
-class ReportHandler(chart_handler.ChartHandler):
-  """URL endpoint for /report page."""
 
-  def get(self):
-    """Renders the static UI for selecting graphs."""
-    query_string = self._GetQueryStringForOldUri()
-    if query_string:
-      self.redirect('/report?' + query_string)
-      return
-    self.RenderStaticHtml('report.html')
+def ReportHandlerGet():
+  """Renders the static UI for selecting graphs."""
+  query_string = _GetQueryStringForOldUri()
+  if query_string:
+    return redirect('/report?' + query_string)
+  return request_handler.RequestHandlerRenderStaticHtml('report.html')
 
-  def post(self):
-    """Gets dynamic data for selecting graphs"""
-    values = {}
-    self.GetDynamicVariables(values)
-    self.response.out.write(
-        json.dumps({
-            'is_internal_user': values['is_internal_user'],
-            'login_url': values['login_url'],
-            'revision_info': values['revision_info'],
-            'xsrf_token': values['xsrf_token'],
-            'test_suites': update_test_suites.FetchCachedTestSuites(),
-        }))
 
-  def _GetQueryStringForOldUri(self):
-    """Gets a new query string if old URI parameters are present.
+def ReportHandlerPost():
+  """Gets dynamic data for selecting graphs"""
+  values = {}
+  chart_handler.GetDynamicVariablesFlask(values)
+  return make_response(
+      json.dumps({
+          'is_internal_user': values['is_internal_user'],
+          'login_url': values['login_url'],
+          'revision_info': values['revision_info'],
+          'xsrf_token': values['xsrf_token'],
+          'test_suites': update_test_suites.FetchCachedTestSuites(),
+      }))
 
-    SID is a hash string generated from a page state dictionary which is
-    created here from old URI request parameters.
 
-    Returns:
-      A query string if request parameters are from old URI, otherwise None.
-    """
-    masters = self.request.get('masters')
-    bots = self.request.get('bots')
-    tests = self.request.get('tests')
-    checked = self.request.get('checked')
+def _GetQueryStringForOldUri():
+  """Gets a new query string if old URI parameters are present.
 
-    if not (masters and bots and tests):
-      return None
+  SID is a hash string generated from a page state dictionary which is
+  created here from old URI request parameters.
 
-    # Page state is a list of chart state.  Chart state is
-    # a list of pair of test path and selected series which is used
-    # to generate a chart on /report page.
-    state = _CreatePageState(masters, bots, tests, checked)
+  Returns:
+    A query string if request parameters are from old URI, otherwise None.
+  """
+  masters = request.values.get('masters')
+  bots = request.values.get('bots')
+  tests = request.values.get('tests')
+  checked = request.values.get('checked')
 
-    # Replace default separators to remove whitespace.
-    state_json = json.dumps(state, separators=(',', ':'))
-    state_id = short_uri.GenerateHash(state_json)
+  if not (masters and bots and tests):
+    return None
 
-    # Save page state.
-    if not ndb.Key(page_state.PageState, state_id).get():
-      page_state.PageState(id=state_id, value=state_json).put()
+  # Page state is a list of chart state.  Chart state is
+  # a list of pair of test path and selected series which is used
+  # to generate a chart on /report page.
+  state = _CreatePageState(masters, bots, tests, checked)
 
-    query_string = 'sid=' + state_id
-    if self.request.get('start_rev'):
-      query_string += '&start_rev=' + self.request.get('start_rev')
-    if self.request.get('end_rev'):
-      query_string += '&end_rev=' + self.request.get('end_rev')
-    if self.request.get('rev'):
-      query_string += '&rev=' + self.request.get('rev')
-    return query_string
+  # Replace default separators to remove whitespace.
+  state_json = json.dumps(state, separators=(',', ':'))
+  state_id = short_uri.GenerateHash(state_json)
+
+  # Save page state.
+  if not ndb.Key(page_state.PageState, state_id).get():
+    page_state.PageState(id=state_id, value=state_json).put()
+
+  query_string = 'sid=' + state_id
+  if request.values.get('start_rev'):
+    query_string += '&start_rev=' + request.values.get('start_rev')
+  if request.values.get('end_rev'):
+    query_string += '&end_rev=' + request.values.get('end_rev')
+  if request.values.get('rev'):
+    query_string += '&rev=' + request.values.get('rev')
+  return query_string
+
+
+if six.PY2:
+
+  class ReportHandler(chart_handler.ChartHandler):
+    """URL endpoint for /report page."""
+
+    def get(self):
+      """Renders the static UI for selecting graphs."""
+      query_string = self._GetQueryStringForOldUri()
+      if query_string:
+        self.redirect('/report?' + query_string)
+        return
+      self.RenderStaticHtml('report.html')
+
+    def post(self):
+      """Gets dynamic data for selecting graphs"""
+      values = {}
+      self.GetDynamicVariables(values)
+      self.response.out.write(
+          json.dumps({
+              'is_internal_user': values['is_internal_user'],
+              'login_url': values['login_url'],
+              'revision_info': values['revision_info'],
+              'xsrf_token': values['xsrf_token'],
+              'test_suites': update_test_suites.FetchCachedTestSuites(),
+          }))
+
+    def _GetQueryStringForOldUri(self):
+      """Gets a new query string if old URI parameters are present.
+
+      SID is a hash string generated from a page state dictionary which is
+      created here from old URI request parameters.
+
+      Returns:
+        A query string if request parameters are from old URI, otherwise None.
+      """
+      masters = self.request.get('masters')
+      bots = self.request.get('bots')
+      tests = self.request.get('tests')
+      checked = self.request.get('checked')
+
+      if not (masters and bots and tests):
+        return None
+
+      # Page state is a list of chart state.  Chart state is
+      # a list of pair of test path and selected series which is used
+      # to generate a chart on /report page.
+      state = _CreatePageState(masters, bots, tests, checked)
+
+      # Replace default separators to remove whitespace.
+      state_json = json.dumps(state, separators=(',', ':'))
+      state_id = short_uri.GenerateHash(state_json)
+
+      # Save page state.
+      if not ndb.Key(page_state.PageState, state_id).get():
+        page_state.PageState(id=state_id, value=state_json).put()
+
+      query_string = 'sid=' + state_id
+      if self.request.get('start_rev'):
+        query_string += '&start_rev=' + self.request.get('start_rev')
+      if self.request.get('end_rev'):
+        query_string += '&end_rev=' + self.request.get('end_rev')
+      if self.request.get('rev'):
+        query_string += '&rev=' + self.request.get('rev')
+      return query_string
 
 
 def _CreatePageState(masters, bots, tests, checked):

@@ -28,6 +28,7 @@ from dashboard import migrate_test_names
 from dashboard import mark_recovered_alerts
 from dashboard import navbar
 from dashboard import pinpoint_request
+from dashboard import report
 from dashboard import sheriff_config_poller
 from dashboard import short_uri
 from dashboard import update_dashboard_stats
@@ -218,6 +219,16 @@ def SheriffConfigPollerGet():
   return sheriff_config_poller.SheriffConfigPollerGet()
 
 
+@flask_app.route('/report', methods=['GET'])
+def ReportHandlerGet():
+  return report.ReportHandlerGet()
+
+
+@flask_app.route('/report', methods=['POST'])
+def ReportHandlerPost():
+  return report.ReportHandlerPost()
+
+
 @flask_app.route('/short_uri', methods=['GET'])
 def ShortUriHandlerGet():
   return short_uri.ShortUriHandlerGet()
@@ -262,7 +273,6 @@ if six.PY2:
   from dashboard import list_tests
   from dashboard import load_from_prod
   from dashboard import put_entities_task
-  from dashboard import report
   from dashboard import speed_releasing
   from dashboard.api import bugs
   from dashboard.api import list_timeseries
@@ -377,6 +387,7 @@ _PATHS_HANDLED_BY_FLASK = [
     '/pinpoint/new/bisect',
     '/pinpoint/new/perf_try',
     '/pinpoint/new/prefill',
+    # '/report',
     '/short_uri',
     '/update_dashboard_stats',
     '/update_test_suites',
