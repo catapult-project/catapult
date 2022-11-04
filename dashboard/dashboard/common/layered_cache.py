@@ -64,7 +64,8 @@ class CachedPickledString(ndb.Model):
     current_time = datetime.datetime.now()
     query = cls.query(cls.expire_time < current_time)
     query = query.filter(cls.expire_time != None)
-    return query.fetch(keys_only=True)
+    query = query.order(-cls.expire_time)
+    return query.fetch(limit=1000, keys_only=True)
 
 
 def Get(key):
