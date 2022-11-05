@@ -60,46 +60,30 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return self.devtools_client.DumpMemory(timeout=timeout,
                                            detail_level=detail_level)
 
-  def _ReadDevToolsPortFromPipe(self, search_regex, pipe):
+  def _ReadDevToolsPortFromStderr(self, search_regex):
     def TryReadingPort():
-      if not pipe:
+      if not self._browser_log_proc.stderr:
         return None
-      line = pipe.readline()
+      line = self._browser_log_proc.stderr.readline()
       tokens = re.search(search_regex, line)
       self._browser_log += line
       return int(tokens.group(1)) if tokens else None
     return py_utils.WaitFor(TryReadingPort, timeout=60)
 
   def _ReadDevToolsPort(self):
-    read_port_mapping = {
-        WEB_ENGINE_SHELL: {
-            'search_regex': r'Remote debugging port: (\d+)',
-            'pipe': self._browser_log_proc.stdout,
-        },
-        CAST_STREAMING_SHELL: {
-            'search_regex': r'Remote debugging port: (\d+)',
-            'pipe': self._browser_log_proc.stderr,
-        },
-        FUCHSIA_CHROME: {
-            'search_regex': ('DevTools listening on'
-                             r' ws://127.0.0.1:(\d+)/devtools.*'),
-            'pipe': self._browser_log_proc.stderr,
-        }
-    }
-    if self.browser_type not in read_port_mapping:
-      raise NotImplementedError(f'Browser {self.browser_type} is not supported')
-
-    result = self._ReadDevToolsPortFromPipe(
-        **read_port_mapping[self.browser_type])
-
-    return result
+    if (self.browser_type == WEB_ENGINE_SHELL or
+        self.browser_type == CAST_STREAMING_SHELL):
+      search_regex = r'Remote debugging port: (\d+)'
+    else:
+      search_regex = r'DevTools listening on ws://127.0.0.1:(\d+)/devtools.*'
+    return self._ReadDevToolsPortFromStderr(search_regex)
 
   def _StartWebEngineShell(self, startup_args):
     browser_cmd = [
-        'test',
-        'run',
-        'fuchsia-pkg://%s/web_engine_shell#meta/web_engine_shell.cm' %
-        self._managed_repo,
+        'component',
+        'run-legacy',
+        'fuchsia-pkg://%s/web_engine_shell#meta/web_engine_shell.cmx' %
+        self._managed_repo
     ]
 
     # Flags forwarded to the web_engine_shell component.
