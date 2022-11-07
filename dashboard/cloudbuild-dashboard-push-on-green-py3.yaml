@@ -60,34 +60,34 @@ steps:
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'default',
-    '--splits=cloud-build-aa7c33e=.7,cloud-build-3413510=.3'
+    '--splits=cloud-build-aa7c33e=.7,cloud-build-3413510=.2,cloud-build-b26b298=.1'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   id: 'Set traffic for api service'
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'api',
-    '--splits=cloud-build-aa7c33e=.7,cloud-build-3413510=.3'
+    '--splits=cloud-build-aa7c33e=.7,cloud-build-3413510=.2,cloud-build-b26b298=.1'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   id: 'Set traffic for upload service'
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'upload',
-    '--splits=cloud-build-aa7c33e=.7,cloud-build-07a32de=.3'
+    '--splits=cloud-build-aa7c33e=.7,cloud-build-07a32de=.2,cloud-build-b26b298=.1'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   id: 'Set traffic for upload-processing service'
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'upload-processing',
-    '--splits=cloud-build-aa7c33e=.7,cloud-build-07a32de=.3'
+    '--splits=cloud-build-aa7c33e=.7,cloud-build-07a32de=.2,cloud-build-b26b298=.1'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   id: 'Set traffic for pinpoint service'
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'pinpoint',
-    '--splits=cloud-build-3a19f7a=1'
+    '--splits=cloud-build-3a19f7a=.7,cloud-build-b26b298=.3'
   ]
 images: ['gcr.io/$PROJECT_ID/dashboard-base:latest']
