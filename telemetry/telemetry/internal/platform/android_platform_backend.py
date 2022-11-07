@@ -569,6 +569,16 @@ class AndroidPlatformBackend(
         profile is to be deleted.
       ignore_list: List of files to keep.
     """
+    # If we don't have root, then we are almost certainly actually using the
+    # default profile directory instead of the one we return from GetProfileDir.
+    # This current best guess for this behavior is that it is due to SELinux,
+    # as a non-root-readable directory will not be usable by the browser due to
+    # SELinux security contexts/permissions. So, clear the default directory by
+    # wiping the application state. We still go through the regular profile
+    # directory deletion afterwards on the off chance that we are somehow using
+    # the non-default directory.
+    if not self._require_root:
+      self._device.ClearApplicationState(package)
     profile_dir = self.GetProfileDir(package)
     if not self._device.PathExists(profile_dir):
       return
@@ -589,7 +599,13 @@ class AndroidPlatformBackend(
     """
     if self._require_root:
       return '/data/data/%s/' % package
-    return '/data/local/tmp/%s/' % package
+    # We use a public location to ensure minidumps can be pulled without root.
+    # /data/local/tmp/package/ seems like it would be more fitting, but for
+    # some reason (maybe related to SELinux), using that directory does not
+    # work. If the package directory doesn't exist, then Chromium ends up
+    # defaulting to /data/data/package/ instead. If the directory does exist,
+    # Chromium ends up segfaulting somewhere.
+    return '/sdcard/Download/%s/' % package
 
   def GetDumpLocation(self, package):
     """Returns the location where crash dumps should be written to.
@@ -662,8 +678,9 @@ class AndroidPlatformBackend(
       arch = _ARCH_TO_STACK_TOOL_ARCH.get(arch, arch)
       cmd.append('--arch=%s' % arch)
       cmd.append('--output-directory=%s' % self._build_dir)
-      p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-      return p.communicate(input=six.ensure_binary(logcat))[0]
+      p = subprocess.Popen(
+          cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+      return p.communicate(input=six.ensure_text(logcat))[0]
 
     return None
 
