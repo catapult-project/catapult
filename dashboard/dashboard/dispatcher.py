@@ -15,6 +15,7 @@ from dashboard import add_point
 from dashboard import add_point_queue
 from dashboard import alert_groups
 from dashboard import alerts
+from dashboard import associate_alerts
 from dashboard import buildbucket_job_status
 from dashboard import edit_anomalies
 from dashboard import edit_site_config
@@ -87,6 +88,11 @@ def AlertsHandlerGet():
 @flask_app.route('/alerts', methods=['POST'])
 def AlertsHandlerPost():
   return alerts.AlertsHandlerPost()
+
+
+@flask_app.route('/associate_alerts', methods=['GET', 'POST'])
+def AssociateAlertsHandlerPost():
+  return associate_alerts.AssociateAlertsHandlerPost()
 
 
 @flask_app.route('/api/alerts', methods=['POST', 'OPTIONS'])
@@ -263,7 +269,6 @@ if six.PY2:
   import webapp2
 
   # pylint: disable=ungrouped-imports
-  from dashboard import associate_alerts
   from dashboard import bug_details
   from dashboard import create_health_report
   from dashboard import dump_graph_json
@@ -369,6 +374,7 @@ _PATHS_HANDLED_BY_FLASK = [
     '/api/describe',
     '/api/test_suites',
     '/api/timeseries2',
+    '/associate_alerts',
     # '/configs/update',
     # '/add_histograms',
     # '/add_histograms/process',

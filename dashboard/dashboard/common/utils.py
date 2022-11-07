@@ -109,8 +109,12 @@ def GetEmail():
       return None
     user = oauth.get_current_user(OAUTH_SCOPES)
   else:
-    user = users.GetCurrentUser() if six.PY3 else users.get_current_user()
+    user = GetGaeCurrentUser()
   return user.email() if user else None
+
+
+def GetGaeCurrentUser():
+  return users.GetCurrentUser() if six.PY3 else users.get_current_user()
 
 
 def TestPath(key):

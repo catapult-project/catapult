@@ -6,7 +6,10 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from flask import request
 import re
+import six
+import logging
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
@@ -17,171 +20,300 @@ from dashboard.models import anomaly
 from dashboard.services import issue_tracker_service
 
 
-class AssociateAlertsHandler(request_handler.RequestHandler):
-  """Associates alerts with a bug."""
+def AssociateAlertsHandlerPost():
+  """Response handler for the page used to group an alert with a bug.
 
-  def post(self):
-    """POST is the same as GET for this endpoint."""
-    self.get()
+  Request parameters:
+    bug_id: Bug ID number, as a string (when submitting the form).
+    project_id: Monorail project ID (when submitting the form).
+    keys: Comma-separated alert keys in urlsafe format.
+    confirm: If non-empty, associate alerts with a bug ID even if
+        it appears that the alerts already associated with that bug
+        have a non-overlapping revision range.
 
-  def get(self):
-    """Response handler for the page used to group an alert with a bug.
+  Outputs:
+    HTML with result.
+  """
+  logging.info('DDEBUG: assoo')
+  if not utils.IsValidSheriffUser():
+    user = utils.GetGaeCurrentUser()
+    return request_handler.RequestHandlerReportError(
+        'User "%s" not authorized.' % user, status=403)
 
-    Request parameters:
-      bug_id: Bug ID number, as a string (when submitting the form).
-      project_id: Monorail project ID (when submitting the form).
-      keys: Comma-separated alert keys in urlsafe format.
-      confirm: If non-empty, associate alerts with a bug ID even if
-          it appears that the alerts already associated with that bug
-          have a non-overlapping revision range.
+  urlsafe_keys = request.values.get('keys')
+  if not urlsafe_keys:
+    return request_handler.RequestHandlerRenderHtml(
+        'bug_result.html', {'error': 'No alerts specified to add bugs to.'})
 
-    Outputs:
-      HTML with result.
-    """
-    if not utils.IsValidSheriffUser():
-      user = users.get_current_user()
-      self.ReportError('User "%s" not authorized.' % user, status=403)
-      return
-
-    urlsafe_keys = self.request.get('keys')
-    if not urlsafe_keys:
-      self.RenderHtml('bug_result.html',
-                      {'error': 'No alerts specified to add bugs to.'})
-      return
-
-    is_confirmed = bool(self.request.get('confirm'))
-    bug_id = self.request.get('bug_id')
-    if bug_id:
-      project_id = self.request.get('project_id', 'chromium')
-      self._AssociateAlertsWithBug(bug_id, project_id, urlsafe_keys,
+  is_confirmed = bool(request.values.get('confirm'))
+  bug_id = request.values.get('bug_id')
+  if bug_id:
+    logging.info('DDEBUG: assoo with BUG')
+    project_id = request.values.get('project_id', 'chromium')
+    return _AssociateAlertsWithBug(bug_id, project_id, urlsafe_keys,
                                    is_confirmed)
-    else:
-      self._ShowCommentDialog(urlsafe_keys)
+  logging.info('DDEBUG: assoo with NONE')
+  return _ShowCommentDialog(urlsafe_keys)
 
-  def _ShowCommentDialog(self, urlsafe_keys):
-    """Sends a HTML page with a form for selecting a bug number.
 
-    Args:
-      urlsafe_keys: Comma-separated Alert keys in urlsafe format.
-    """
-    # Get information about Alert entities and related TestMetadata entities,
-    # so that they can be compared with recent bugs.
-    alert_keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys.split(',')]
-    alert_entities = ndb.get_multi(alert_keys)
-    ranges = [(a.start_revision, a.end_revision) for a in alert_entities]
+def _ShowCommentDialog(urlsafe_keys):
+  """Sends a HTML page with a form for selecting a bug number.
 
-    # Mark bugs that have overlapping revision ranges as potentially relevant.
-    # On the alerts page, alerts are only highlighted if the revision range
-    # overlaps with the revision ranges for all of the selected alerts; the
-    # same thing is done here.
-    bugs = self._FetchBugs()
-    for bug in bugs:
-      this_range = _RevisionRangeFromSummary(bug['summary'])
-      bug['relevant'] = all(_RangesOverlap(this_range, r) for r in ranges)
+  Args:
+    urlsafe_keys: Comma-separated Alert keys in urlsafe format.
+  """
+  # Get information about Alert entities and related TestMetadata entities,
+  # so that they can be compared with recent bugs.
+  alert_keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys.split(',')]
+  alert_entities = ndb.get_multi(alert_keys)
+  ranges = [(a.start_revision, a.end_revision) for a in alert_entities]
 
-    self.RenderHtml(
-        'bug_result.html', {
-            'bug_associate_form': True,
-            'keys': urlsafe_keys,
-            'bugs': bugs,
-            'projects': utils.MONORAIL_PROJECTS
-        })
+  # Mark bugs that have overlapping revision ranges as potentially relevant.
+  # On the alerts page, alerts are only highlighted if the revision range
+  # overlaps with the revision ranges for all of the selected alerts; the
+  # same thing is done here.
+  bugs = _FetchBugs()
+  for bug in bugs:
+    this_range = _RevisionRangeFromSummary(bug['summary'])
+    bug['relevant'] = all(_RangesOverlap(this_range, r) for r in ranges)
 
-  def _FetchBugs(self):
-    http = utils.ServiceAccountHttp()
-    issue_tracker = issue_tracker_service.IssueTrackerService(http)
-    response = issue_tracker.List(
-        q='opened-after:today-5',
-        label='Type-Bug-Regression,Performance',
-        sort='-id')
-    return response.get('items', []) if response else []
+  return request_handler.RequestHandlerRenderHtml(
+      'bug_result.html', {
+          'bug_associate_form': True,
+          'keys': urlsafe_keys,
+          'bugs': bugs,
+          'projects': utils.MONORAIL_PROJECTS
+      })
 
-  def _AssociateAlertsWithBug(self, bug_id, project_id, urlsafe_keys,
-                              is_confirmed):
-    """Sets the bug ID for a set of alerts.
 
-    This is done after the user enters and submits a bug ID.
+def _FetchBugs():
+  http = utils.ServiceAccountHttp()
+  issue_tracker = issue_tracker_service.IssueTrackerService(http)
+  response = issue_tracker.List(
+      q='opened-after:today-5',
+      label='Type-Bug-Regression,Performance',
+      sort='-id')
+  return response.get('items', []) if response else []
 
-    Args:
-      bug_id: Bug ID number, as a string.
-      project_id: Monorial project ID.
-      urlsafe_keys: Comma-separated Alert keys in urlsafe format.
-      is_confirmed: Whether the user has confirmed that they really want
-          to associate the alerts with a bug even if it appears that the
-          revision ranges don't overlap.
-    """
-    # Validate bug ID.
-    try:
-      bug_id = int(bug_id)
-    except ValueError:
-      self.RenderHtml('bug_result.html',
-                      {'error': 'Invalid bug ID "%s".' % str(bug_id)})
-      return
 
-    # Get Anomaly entities and related TestMetadata entities.
-    alert_keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys.split(',')]
-    alert_entities = ndb.get_multi(alert_keys)
+def _AssociateAlertsWithBug(bug_id, project_id, urlsafe_keys, is_confirmed):
+  """Sets the bug ID for a set of alerts.
 
-    if not is_confirmed:
-      warning_msg = self._VerifyAnomaliesOverlap(alert_entities, bug_id,
-                                                 project_id)
-      if warning_msg:
-        self._ShowConfirmDialog('associate_alerts', warning_msg, {
-            'bug_id': bug_id,
-            'project_id': project_id,
-            'keys': urlsafe_keys,
-        })
+  This is done after the user enters and submits a bug ID.
+
+  Args:
+    bug_id: Bug ID number, as a string.
+    project_id: Monorial project ID.
+    urlsafe_keys: Comma-separated Alert keys in urlsafe format.
+    is_confirmed: Whether the user has confirmed that they really want
+        to associate the alerts with a bug even if it appears that the
+        revision ranges don't overlap.
+  """
+  # Validate bug ID.
+  try:
+    bug_id = int(bug_id)
+  except ValueError:
+    return request_handler.RequestHandlerRenderHtml(
+        'bug_result.html', {'error': 'Invalid bug ID "%s".' % str(bug_id)})
+
+  # Get Anomaly entities and related TestMetadata entities.
+  alert_keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys.split(',')]
+  alert_entities = ndb.get_multi(alert_keys)
+
+  if not is_confirmed:
+    warning_msg = _VerifyAnomaliesOverlap(alert_entities, bug_id, project_id)
+    if warning_msg:
+      return _ShowConfirmDialog('associate_alerts', warning_msg, {
+          'bug_id': bug_id,
+          'project_id': project_id,
+          'keys': urlsafe_keys,
+      })
+
+  AssociateAlerts(bug_id, project_id, alert_entities)
+
+  return request_handler.RequestHandlerRenderHtml('bug_result.html', {
+      'bug_id': bug_id,
+      'project_id': project_id,
+  })
+
+
+def _VerifyAnomaliesOverlap(alerts, bug_id, project_id):
+  """Checks whether the alerts' revision ranges intersect.
+
+  Args:
+    alerts: A list of Alert entities to verify.
+    bug_id: Bug ID number.
+    project_id: Monorail project ID.
+
+  Returns:
+    A string with warning message, or None if there's no warning.
+  """
+  if not utils.MinimumAlertRange(alerts):
+    return 'Selected alerts do not have overlapping revision range.'
+  alerts_with_bug, _, _ = anomaly.Anomaly.QueryAsync(
+      bug_id=bug_id, project_id=project_id, limit=500).get_result()
+
+  if not alerts_with_bug:
+    return None
+  if not utils.MinimumAlertRange(alerts_with_bug):
+    return ('Alerts in bug %s:%s do not have overlapping revision '
+            'range.' % (project_id, bug_id))
+  if not utils.MinimumAlertRange(alerts + alerts_with_bug):
+    return ('Selected alerts do not have overlapping revision '
+            'range with alerts in bug %s:%s.' % (project_id, bug_id))
+  return None
+
+
+def _ShowConfirmDialog(handler, message, parameters):
+  """Sends a HTML page with a form to confirm an action.
+
+  Args:
+    handler: Name of URL handler to submit confirm dialog.
+    message: Confirmation message.
+    parameters: Dictionary of request parameters to submit with confirm
+                dialog.
+  """
+  return request_handler.RequestHandlerRenderHtml(
+      'bug_result.html', {
+          'confirmation_required': True,
+          'handler': handler,
+          'message': message,
+          'parameters': parameters or {}
+      })
+
+
+if six.PY2:
+
+  class AssociateAlertsHandler(request_handler.RequestHandler):
+    """Associates alerts with a bug."""
+
+    def post(self):
+      """POST is the same as GET for this endpoint."""
+      self.get()
+
+    def get(self):
+      """Response handler for the page used to group an alert with a bug.
+
+      Request parameters:
+        bug_id: Bug ID number, as a string (when submitting the form).
+        project_id: Monorail project ID (when submitting the form).
+        keys: Comma-separated alert keys in urlsafe format.
+        confirm: If non-empty, associate alerts with a bug ID even if
+            it appears that the alerts already associated with that bug
+            have a non-overlapping revision range.
+
+      Outputs:
+        HTML with result.
+      """
+      if not utils.IsValidSheriffUser():
+        user = users.get_current_user()
+        self.ReportError('User "%s" not authorized.' % user, status=403)
         return
 
-    AssociateAlerts(bug_id, project_id, alert_entities)
+      urlsafe_keys = self.request.get('keys')
+      if not urlsafe_keys:
+        self.RenderHtml('bug_result.html',
+                        {'error': 'No alerts specified to add bugs to.'})
+        return
 
-    self.RenderHtml('bug_result.html', {
-        'bug_id': bug_id,
-        'project_id': project_id,
-    })
+      is_confirmed = bool(self.request.get('confirm'))
+      bug_id = self.request.get('bug_id')
+      if bug_id:
+        project_id = self.request.get('project_id', 'chromium')
+        self._AssociateAlertsWithBug(bug_id, project_id, urlsafe_keys,
+                                     is_confirmed)
+      else:
+        self._ShowCommentDialog(urlsafe_keys)
 
-  def _VerifyAnomaliesOverlap(self, alerts, bug_id, project_id):
-    """Checks whether the alerts' revision ranges intersect.
+    def _ShowCommentDialog(self, urlsafe_keys):
+      """Sends a HTML page with a form for selecting a bug number.
 
-    Args:
-      alerts: A list of Alert entities to verify.
-      bug_id: Bug ID number.
-      project_id: Monorail project ID.
+      Args:
+        urlsafe_keys: Comma-separated Alert keys in urlsafe format.
+      """
+      # Get information about Alert entities and related TestMetadata entities,
+      # so that they can be compared with recent bugs.
+      alert_keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys.split(',')]
+      alert_entities = ndb.get_multi(alert_keys)
+      ranges = [(a.start_revision, a.end_revision) for a in alert_entities]
 
-    Returns:
-      A string with warning message, or None if there's no warning.
-    """
-    if not utils.MinimumAlertRange(alerts):
-      return 'Selected alerts do not have overlapping revision range.'
-    alerts_with_bug, _, _ = anomaly.Anomaly.QueryAsync(
-        bug_id=bug_id, project_id=project_id, limit=500).get_result()
+      # Mark bugs that have overlapping revision ranges as potentially relevant.
+      # On the alerts page, alerts are only highlighted if the revision range
+      # overlaps with the revision ranges for all of the selected alerts; the
+      # same thing is done here.
+      bugs = _FetchBugs()
+      for bug in bugs:
+        this_range = _RevisionRangeFromSummary(bug['summary'])
+        bug['relevant'] = all(_RangesOverlap(this_range, r) for r in ranges)
 
-    if not alerts_with_bug:
-      return None
-    if not utils.MinimumAlertRange(alerts_with_bug):
-      return ('Alerts in bug %s:%s do not have overlapping revision '
-              'range.' % (project_id, bug_id))
-    if not utils.MinimumAlertRange(alerts + alerts_with_bug):
-      return ('Selected alerts do not have overlapping revision '
-              'range with alerts in bug %s:%s.' % (project_id, bug_id))
-    return None
+      self.RenderHtml(
+          'bug_result.html', {
+              'bug_associate_form': True,
+              'keys': urlsafe_keys,
+              'bugs': bugs,
+              'projects': utils.MONORAIL_PROJECTS
+          })
 
-  def _ShowConfirmDialog(self, handler, message, parameters):
-    """Sends a HTML page with a form to confirm an action.
+    def _AssociateAlertsWithBug(self, bug_id, project_id, urlsafe_keys,
+                                is_confirmed):
+      """Sets the bug ID for a set of alerts.
 
-    Args:
-      handler: Name of URL handler to submit confirm dialog.
-      message: Confirmation message.
-      parameters: Dictionary of request parameters to submit with confirm
-                  dialog.
-    """
-    self.RenderHtml(
-        'bug_result.html', {
-            'confirmation_required': True,
-            'handler': handler,
-            'message': message,
-            'parameters': parameters or {}
-        })
+      This is done after the user enters and submits a bug ID.
+
+      Args:
+        bug_id: Bug ID number, as a string.
+        project_id: Monorial project ID.
+        urlsafe_keys: Comma-separated Alert keys in urlsafe format.
+        is_confirmed: Whether the user has confirmed that they really want
+            to associate the alerts with a bug even if it appears that the
+            revision ranges don't overlap.
+      """
+      # Validate bug ID.
+      try:
+        bug_id = int(bug_id)
+      except ValueError:
+        self.RenderHtml('bug_result.html',
+                        {'error': 'Invalid bug ID "%s".' % str(bug_id)})
+        return
+
+      # Get Anomaly entities and related TestMetadata entities.
+      alert_keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys.split(',')]
+      alert_entities = ndb.get_multi(alert_keys)
+
+      if not is_confirmed:
+        warning_msg = _VerifyAnomaliesOverlap(alert_entities, bug_id,
+                                              project_id)
+        if warning_msg:
+          self._ShowConfirmDialog('associate_alerts', warning_msg, {
+              'bug_id': bug_id,
+              'project_id': project_id,
+              'keys': urlsafe_keys,
+          })
+          return
+
+      AssociateAlerts(bug_id, project_id, alert_entities)
+
+      self.RenderHtml('bug_result.html', {
+          'bug_id': bug_id,
+          'project_id': project_id,
+      })
+
+    def _ShowConfirmDialog(self, handler, message, parameters):
+      """Sends a HTML page with a form to confirm an action.
+
+      Args:
+        handler: Name of URL handler to submit confirm dialog.
+        message: Confirmation message.
+        parameters: Dictionary of request parameters to submit with confirm
+                    dialog.
+      """
+      self.RenderHtml(
+          'bug_result.html', {
+              'confirmation_required': True,
+              'handler': handler,
+              'message': message,
+              'parameters': parameters or {}
+          })
 
 
 def AssociateAlerts(bug_id, project_id, alerts):
