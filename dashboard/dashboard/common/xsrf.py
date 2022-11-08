@@ -68,7 +68,7 @@ def TokenRequiredFlask(handler_method):
   def CheckToken(*args, **kwargs):
     email = utils.GetEmail()
     token = str(request.values.get('xsrf_token'))
-    if not email or not _ValidateToken(token, email):
+    if not email or not _ValidateToken(six.ensure_binary(token), email):
       abort(403)
     return handler_method(*args, **kwargs)
 

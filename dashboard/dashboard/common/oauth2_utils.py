@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import base64
 import binascii
+import hashlib
 import hmac
 import logging
 import six
@@ -57,7 +58,8 @@ def GenerateXsrfToken(key, user_id, action_id='', when=None):
     Returns:
         A string XSRF protection token.
     """
-  digester = hmac.new(six.ensure_binary(key, encoding='utf-8'))
+  digester = hmac.new(
+      six.ensure_binary(key, encoding='utf-8'), digestmod=hashlib.md5)
   digester.update(six.ensure_binary(str(user_id), encoding='utf-8'))
   digester.update(XSRF_DELIMITER)
   digester.update(six.ensure_binary(action_id, encoding='utf-8'))
