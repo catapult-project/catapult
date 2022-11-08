@@ -12,6 +12,7 @@ except ModuleNotFoundError:
   # When running unit tests, we need to import from infra_libs.
   from infra_libs import ts_mon as gae_ts_mon
 import logging
+import six
 import time
 
 
@@ -52,7 +53,9 @@ class WallTimeLogger(object):
 class CpuTimeLogger(WallTimeLogger):
 
   def _Now(self):
-    return time.clock()
+    if six.PY2:
+      return time.clock()
+    return time.process_time()
 
   def _Suffix(self):
     return 'cpu'

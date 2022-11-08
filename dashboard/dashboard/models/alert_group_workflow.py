@@ -802,7 +802,6 @@ class AlertGroupWorkflow(object):
                                             alert.benchmark_name)
 
     alert_magnitude = alert.median_after_anomaly - alert.median_before_anomaly
-
     return pinpoint_service.MakeBisectionRequest(
         test=alert.test.get(),
         commit_range=pinpoint_service.CommitRange(
@@ -818,7 +817,7 @@ class AlertGroupWorkflow(object):
         priority=10,
         tags={
             'test_path': utils.TestPath(alert.test),
-            'alert': alert.key.urlsafe(),
+            'alert': six.ensure_str(alert.key.urlsafe()),
             'auto_bisection': 'true',
         },
     )

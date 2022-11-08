@@ -985,7 +985,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             issue=self._issue_tracker.issue,
         ))
     tags = json.loads(self._pinpoint.new_job_request['tags'])
-    self.assertEqual(anomalies[1].urlsafe(), tags['alert'])
+    self.assertEqual(six.ensure_str(anomalies[1].urlsafe()), tags['alert'])
 
     # Tags must be a dict of key/value string pairs.
     for k, v in tags.items():
@@ -1039,7 +1039,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             issue=self._issue_tracker.issue,
         ))
     tags = json.loads(self._pinpoint.new_job_request['tags'])
-    self.assertEqual(anomalies[0].urlsafe(), tags['alert'])
+    self.assertEqual(six.ensure_str(anomalies[0].urlsafe()), tags['alert'])
 
     # Tags must be a dict of key/value string pairs.
     for k, v in tags.items():
@@ -1094,7 +1094,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             issue=self._issue_tracker.issue,
         ))
     tags = json.loads(self._pinpoint.new_job_request['tags'])
-    self.assertEqual(anomalies[0].urlsafe(), tags['alert'])
+    self.assertEqual(six.ensure_str(anomalies[0].urlsafe()), tags['alert'])
 
 
   def testBisect_GroupTriaged_WithDefaultSignalQuality(self):
@@ -1145,7 +1145,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             issue=self._issue_tracker.issue,
         ))
     tags = json.loads(self._pinpoint.new_job_request['tags'])
-    self.assertEqual(anomalies[2].urlsafe(), tags['alert'])
+    self.assertEqual(six.ensure_str(anomalies[2].urlsafe()), tags['alert'])
 
     # Tags must be a dict of key/value string pairs.
     for k, v in tags.items():
@@ -1416,7 +1416,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             issue=self._issue_tracker.issue,
         ))
     self.assertEqual(
-        anomalies[1].urlsafe(),
+        six.ensure_str(anomalies[1].urlsafe()),
         json.loads(self._pinpoint.new_job_request['tags'])['alert'])
     self.assertEqual(['123456'], group.get().bisection_ids)
 
@@ -1466,7 +1466,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             issue=self._issue_tracker.issue,
         ))
     self.assertEqual(
-        anomalies[1].urlsafe(),
+        six.ensure_str(anomalies[1].urlsafe()),
         json.loads(self._pinpoint.new_job_request['tags'])['alert'])
     self.assertEqual(['123456'], group.get().bisection_ids)
 
@@ -1518,7 +1518,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             issue=self._issue_tracker.issue,
         ))
     self.assertEqual(
-        anomalies[1].urlsafe(),
+        six.ensure_str(anomalies[1].urlsafe()),
         json.loads(self._pinpoint.new_job_request['tags'])['alert'])
     self.assertEqual(['123456'], group.get().bisection_ids)
 
@@ -1567,9 +1567,9 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             issue=self._issue_tracker.issue,
         ))
     self.assertEqual(
-        anomalies[0].urlsafe(),
+        six.ensure_str(anomalies[0].urlsafe()),
         json.loads(self._pinpoint.new_job_request['tags'])['alert'])
-    self.assertItemsEqual(['abcdef', '123456'], group.get().bisection_ids)
+    six.assertCountEqual(self, ['abcdef', '123456'], group.get().bisection_ids)
 
   def testBisect_GroupTriaged_CrrevFailed(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
@@ -1816,8 +1816,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'send_email': False
     })
 
-    self.assertEqual(
-        self._issue_tracker.calls[3], {
+    six.assertCountEqual(
+        self, self._issue_tracker.calls[3], {
             'method': 'AddBugComment',
             'args': (42, None),
             'kwargs': {
@@ -1896,8 +1896,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                      self._issue_tracker.calls[2]['args'][1])
     self.assertIn('Alert group updated:',
                   self._issue_tracker.calls[2]['args'][1])
-    self.assertEqual(
-        self._issue_tracker.calls[2]['kwargs'], {
+    six.assertCountEqual(
+        self, self._issue_tracker.calls[2]['kwargs'], {
             'summary':
                 '[%s]: %d regressions in %s' % ('sheriff', 3, 'test_suite'),
             'labels': [
@@ -1963,8 +1963,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                      self._issue_tracker.calls[1]['args'][1])
     self.assertIn('Alert group updated:',
                   self._issue_tracker.calls[1]['args'][1])
-    self.assertEqual(
-        self._issue_tracker.calls[1]['kwargs'], {
+    six.assertCountEqual(
+        self, self._issue_tracker.calls[1]['kwargs'], {
             'summary':
                 '[%s]: %d regressions in %s' % ('sheriff', 3, 'test_suite'),
             'labels': [
@@ -2053,8 +2053,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'send_email': False
     })
 
-    self.assertEqual(
-        self._issue_tracker.calls[3], {
+    six.assertCountEqual(
+        self, self._issue_tracker.calls[3], {
             'method': 'AddBugComment',
             'args': (42, None),
             'kwargs': {
