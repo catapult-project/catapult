@@ -382,7 +382,7 @@ class UtilsTest(testing_common.TestCase):
     self.assertEqual('new_test', step)
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch('common.utils.discovery.build')
+  @mock.patch('apiclient.discovery.build')
   def testIsGroupMember_PositiveCase(self, mock_discovery_build):
     mock_request = mock.MagicMock()
     mock_request.execute = mock.MagicMock(return_value={'is_member': True})
@@ -395,7 +395,7 @@ class UtilsTest(testing_common.TestCase):
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch('logging.error')
-  @mock.patch('common.utils.discovery.build')
+  @mock.patch('apiclient.discovery.build')
   def testIsGroupMember_RequestFails_LogsErrorAndReturnsFalse(
       self, mock_discovery_build, mock_logging_error):
     mock_service = mock.MagicMock()

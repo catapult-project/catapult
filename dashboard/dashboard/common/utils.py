@@ -7,9 +7,12 @@ from __future__ import division
 from __future__ import absolute_import
 
 import collections
+import functools
 import logging
 import os
 import re
+import six
+import six.moves.urllib.parse
 import time
 
 from apiclient import discovery
@@ -23,8 +26,6 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 
 from dashboard.common import stored_object
-import six
-import six.moves.urllib.parse
 
 SHERIFF_DOMAINS_KEY = 'sheriff_domains_key'
 IP_ALLOWLIST_KEY = 'ip_whitelist'
@@ -295,7 +296,10 @@ def MostSpecificMatchingPattern(test, pattern_data_tuples):
     # 0 to indicate that we've found an equality.
     return 0
 
-  matching_patterns.sort(cmp=CmpPatterns)  # pylint: disable=using-cmp-argument
+  if six.PY2:
+    matching_patterns.sort(cmp=CmpPatterns)  # pylint: disable=using-cmp-argument
+  else:
+    matching_patterns.sort(key=functools.cmp_to_key(CmpPatterns))
 
   return matching_patterns[0][1]
 
