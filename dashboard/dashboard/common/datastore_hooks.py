@@ -67,7 +67,7 @@ def SetPrivilegedRequest(flask_flag=False):
         Default False.
   """
   if utils.IsRunningFlask() or flask_flag:
-    flask_global.privilege = True
+    flask_global.privileged = True
   else:
     request = webapp2.get_request()
     request.registry['privileged'] = True
@@ -124,7 +124,7 @@ def _IsServicingPrivilegedRequest(flask_flag=False):
       return True
     if path.startswith('/_ah/pipeline/'):
       return True
-    if 'privileged' in flask_global and flask_global.privilege:
+    if 'privileged' in flask_global and flask_global.privileged:
       return True
     if 'single_privileged' in flask_global and flask_global.single_privileged:
       flask_global.pop('single_privileged')
