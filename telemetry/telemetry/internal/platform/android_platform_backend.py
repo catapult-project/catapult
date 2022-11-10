@@ -172,6 +172,10 @@ class AndroidPlatformBackend(
   def device(self):
     return self._device
 
+  @property
+  def require_root(self):
+    return self._require_root
+
   def Initialize(self):
     self.EnsureBackgroundApkInstalled()
 

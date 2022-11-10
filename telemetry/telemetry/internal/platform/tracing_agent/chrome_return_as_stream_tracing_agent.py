@@ -62,6 +62,16 @@ class ChromeReturnAsStreamTracingAgent(chrome_tracing_agent.ChromeTracingAgent):
     assert not self._trace_config_file
     os_name = self._platform_backend.GetOSName()
     if os_name == 'android':
+      # The hard-coded trace config file path is not accessible on non-rooted
+      # devices. In theory it could be changed or made configurable via the
+      # --trace-config-file browser argument, but cursory attempts to do so ran
+      # into issues with Chrome being able to actually read the file if it was
+      # written to a publicly accessibly location. So, don't support startup
+      # tracing on non-rooted devices for now.
+      if not self._platform_backend.require_root:
+        logging.warning(
+            'Non-rooted Android devices do not support startup tracing')
+        return False
       self._trace_config_file = os.path.join(_CHROME_TRACE_CONFIG_DIR_ANDROID,
                                              _CHROME_TRACE_CONFIG_FILE_NAME)
       self._platform_backend.device.WriteFile(
