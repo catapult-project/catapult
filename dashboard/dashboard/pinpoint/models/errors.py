@@ -335,6 +335,8 @@ class JobRetryError(JobError):
     self.category = category
     self.wrapped_exc = wrapped_exc
 
+  def __str__(self):
+    return 'Job retry failed with: ' + self.message
 
 class JobRetryLimitExceededError(JobRetryError):
 
