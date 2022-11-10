@@ -24,6 +24,8 @@ IMAGE_MAP = {
     'atlas': ('chromebook-x64-release', 'sucrose_eng'),
 }
 
+_DEFAULT_EXEC_PREFIX = 'bin/run_'
+
 
 class RunWebEngineTelemetryTest(run_telemetry_test.RunTelemetryTest):
 
@@ -46,13 +48,19 @@ class RunWebEngineTelemetryTest(run_telemetry_test.RunTelemetryTest):
 
   @classmethod
   def _ComputeCommand(cls, arguments):
+    benchmark = arguments.get('benchmark')
     command = [
-        'luci-auth',
-        'context',
-        '--',
-        'vpython3',
-        '../../testing/scripts/run_performance_tests.py',
-        '../../content/test/gpu/run_telemetry_benchmark_fuchsia.py',
+        'luci-auth', 'context', '--', 'vpython3', '../../testing/test_env.py'
     ]
+    if benchmark in run_telemetry_test.GTEST_EXECUTABLE_NAME:
+      command.extend([
+          _DEFAULT_EXEC_PREFIX +
+          run_telemetry_test.GTEST_EXECUTABLE_NAME[benchmark]
+      ])
+    else:
+      command.extend([
+          '../../testing/scripts/run_performance_tests.py',
+          '../../content/test/gpu/run_telemetry_benchmark_fuchsia.py',
+      ])
     relative_cwd = arguments.get('relative_cwd', 'out/Release')
     return relative_cwd, command

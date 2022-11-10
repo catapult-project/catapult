@@ -40,6 +40,7 @@ _TELEMETRY_COMMAND = [
     'context',
     '--',
     'vpython3',
+    '../../testing/test_env.py',
     '../../testing/scripts/run_performance_tests.py',
     '../../content/test/gpu/run_telemetry_benchmark_fuchsia.py',
 ]

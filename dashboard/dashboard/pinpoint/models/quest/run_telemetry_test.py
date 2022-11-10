@@ -45,9 +45,9 @@ _WATERFALL_ENABLED_GTEST_NAMES = {
     'views_perftests': ['--xvfb']
 }
 
-# _GTEST_EXECUTABLE_NAME is based on the following link:
+# GTEST_EXECUTABLE_NAME is based on the following link:
 # https://source.chromium.org/chromium/chromium/src/+/main:tools/perf/core/bot_platforms.py;l=282
-_GTEST_EXECUTABLE_NAME = {
+GTEST_EXECUTABLE_NAME = {
     'base_perftests': 'base_perftests',
     'components_perftests': 'components_perftests',
     'dawn_perf_tests': 'dawn_perf_tests',
@@ -93,7 +93,7 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
       command = [
           'luci-auth', 'context', '--', 'vpython3', '../../testing/test_env.py',
           '../../testing/scripts/run_performance_tests.py',
-          _GTEST_EXECUTABLE_NAME[benchmark]
+          GTEST_EXECUTABLE_NAME[benchmark]
       ]
     else:
       command = [
