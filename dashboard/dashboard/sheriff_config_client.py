@@ -7,6 +7,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import six
+
 
 class InternalServerError(Exception):
   """An error indicating that something unexpected happens."""
@@ -56,8 +58,13 @@ class SheriffConfigClient(object):
     from google.auth import jwt
     # pylint: disable=import-outside-toplevel
     from google.auth.transport.requests import AuthorizedSession
-    credentials, _ = google.auth.default(
-        scopes=['https://www.googleapis.com/auth/userinfo.email'])
+    if six.PY2:
+      credentials, _ = google.auth.default(
+          scopes=['https://www.googleapis.com/auth/userinfo.email'])
+    else:
+      from google.auth import app_engine  # pylint: disable=import-outside-toplevel
+      credentials = app_engine.Credentials(
+          scopes=['https://www.googleapis.com/auth/userinfo.email'])
     jwt_credentials = jwt.Credentials.from_signing_credentials(
         credentials, 'sheriff-config-dot-chromeperf.appspot.com')
     self._session = AuthorizedSession(jwt_credentials)
