@@ -116,11 +116,13 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       if ('memory_dump_config' in recordingOptions) {
         traceConfigStr.memoryDumpConfig = recordingOptions.memory_dump_config;
       }
+      let format = recordingOptions.stream_format === 'json' ? 'json' : 'proto';
       let res = this.conn_.req(
           'Tracing.start',
           {
             traceConfig: traceConfigStr,
             transferMode: 'ReturnAsStream',
+            streamFormat: format,
             streamCompression: 'gzip',
             bufferUsageReportingInterval: 1000
           });
