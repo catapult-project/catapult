@@ -88,6 +88,6 @@ steps:
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'pinpoint',
-    '--splits=cloud-build-3a19f7a=.7,cloud-build-b26b298=.3'
+    '--splits=cloud-build-2a5acf5-py3=1'
   ]
 images: ['gcr.io/$PROJECT_ID/dashboard-base:latest']
