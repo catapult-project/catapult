@@ -737,6 +737,7 @@ class Job(ndb.Model):
     # we don't need to worry about duplicate tasks.
     # https://github.com/catapult-project/catapult/issues/3900
     task_name = str(uuid.uuid4())
+    logging.info('JobQueueDebug: Adding jobrun. ID: %s', self.job_id)
     try:
       task = taskqueue.add(
           queue_name='job-queue',
@@ -775,6 +776,7 @@ class Job(ndb.Model):
     self.exception_details = None  # In case the Job succeeds on retry.
     self.task = None  # In case an exception is thrown.
 
+    logging.info('JobQueueDebug: Starting jobrun. ID: %s', self.job_id)
     try:
       if scheduler.IsStopped(self):
         # When a user manually cancels a Pinpoint job, job.Cancel() is
@@ -802,6 +804,7 @@ class Job(ndb.Model):
         self._Complete()
         return
 
+      logging.info('JobQueueDebug: Scheduling jobrun. ID: %s', self.job_id)
       if not self._IsTryJob():
         self.state.Explore()
       work_left = self.state.ScheduleWork()
@@ -811,6 +814,8 @@ class Job(ndb.Model):
         self._Schedule()
       else:
         self._Complete()
+
+      logging.info('JobQueueDebug: Scheduled jobrun. ID: %s', self.job_id)
 
       self.retry_count = 0
     except errors.RecoverableError as e:
@@ -823,6 +828,7 @@ class Job(ndb.Model):
       self.Fail()
       raise
     finally:
+      logging.info('JobQueueDebug: Finishing jobrun. ID: %s', self.job_id)
       # Don't use `auto_now` for `updated`. When we do data migration, we need
       # to be able to modify the Job without changing the Job's completion time.
       self.updated = datetime.datetime.now()
@@ -850,6 +856,7 @@ class Job(ndb.Model):
         job.updated = datetime.datetime.now()
         job.put()
         raise
+      logging.info('JobQueueDebug: Done jobrun. ID: %s', self.job_id)
 
   def AsDict(self, options=None):
     def IsoFormatOrNone(attr):

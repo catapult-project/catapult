@@ -201,8 +201,10 @@ def _GetCloudStorageName(job_id):
 
 
 def GetCachedResults2(job):
+  logging.info('JobQueueDebug: Running result2. ID: %s', job.job_id)
   filename = _GetCloudStorageName(job.job_id)
   results = cloudstorage.listbucket(filename)
+  logging.info('JobQueueDebug: Finished result2. ID: %s', job.job_id)
 
   for _ in results:
     return 'https://storage.cloud.google.com' + filename
@@ -215,6 +217,7 @@ def ScheduleResults2Generation(job):
   try:
     # Don't want several tasks creating results2, so create task with specific
     # name to deduplicate.
+    logging.info('JobQueueDebug: Adding result2. ID: %s', job.job_id)
     task_name = 'results2-public-%s' % job.job_id
     taskqueue.add(
         queue_name='job-queue',
