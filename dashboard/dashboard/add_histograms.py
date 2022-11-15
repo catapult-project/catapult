@@ -95,6 +95,12 @@ def AddHistogramsProcessPost():
     return make_response(json.dumps({'error': str(e)}))
 
 
+def _GetCloudStorageBucket():
+  if utils.IsStagingEnvironment():
+    return 'chromeperf-staging-add-histograms-cache'
+  return 'add-histograms-cache'
+
+
 @api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
 def AddHistogramsPost():
   if utils.IsDevAppserver():
@@ -128,7 +134,7 @@ def AddHistogramsPost():
     raise api_request_handler.BadRequestError('Missing "data" parameter')
 
   filename = uuid.uuid4()
-  params = {'gcs_file_path': '/add-histograms-cache/%s' % filename}
+  params = {'gcs_file_path': '/%s/%s' % (_GetCloudStorageBucket(), filename)}
 
   gcs_file = cloudstorage.open(
       params['gcs_file_path'],
@@ -273,7 +279,9 @@ if six.PY2:
         raise api_request_handler.BadRequestError('Missing "data" parameter')
 
       filename = uuid.uuid4()
-      params = {'gcs_file_path': '/add-histograms-cache/%s' % filename}
+      params = {
+          'gcs_file_path': '/%s/%s' % (_GetCloudStorageBucket(), filename)
+      }
 
       gcs_file = cloudstorage.open(
           params['gcs_file_path'],
