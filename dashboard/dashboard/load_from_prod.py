@@ -25,6 +25,7 @@ from google.appengine.ext.ndb import model
 from dashboard import update_test_suites
 from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
+from dashboard.common import utils
 
 _DEV_APP_ID = 'dev~' + app_identity.get_application_id()
 
@@ -35,7 +36,7 @@ class LoadFromProdHandler(request_handler.RequestHandler):
   """Debugging handler to load data from the production instance."""
 
   def get(self):
-    logging.debug('crbug/1298177 - load_from_prod GET triggered')
+    utils.LogObsoleteHandlerUsage(self, 'GET')
     if 'Development' not in os.environ['SERVER_SOFTWARE']:
       self.RenderHtml('result.html', {
           'errors':
@@ -46,7 +47,7 @@ class LoadFromProdHandler(request_handler.RequestHandler):
 
   def post(self):
     """Loads the requested data from the production server."""
-    logging.debug('crbug/1298177 - load_from_prod POST triggered')
+    utils.LogObsoleteHandlerUsage(self, 'POST')
     if 'Development' not in os.environ['SERVER_SOFTWARE']:
       self.RenderHtml('result.html', {
           'errors':

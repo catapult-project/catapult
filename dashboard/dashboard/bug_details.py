@@ -7,7 +7,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
-import logging
 import re
 
 from dashboard.common import request_handler
@@ -23,7 +22,7 @@ class BugDetailsHandler(request_handler.RequestHandler):
 
   def post(self):
     """POST is the same as GET for this endpoint."""
-    logging.debug('crbug/1298177 - bug_details POST triggered')
+    utils.LogObsoleteHandlerUsage(self, 'POST')
     self.get()
 
   def get(self):
@@ -32,7 +31,7 @@ class BugDetailsHandler(request_handler.RequestHandler):
     Request parameters:
       bug_id: Bug ID number, as a string
     """
-    logging.debug('crbug/1298177 - bug_details POST triggered')
+    utils.LogObsoleteHandlerUsage(self, 'GET')
     bug_id = int(self.request.get('bug_id'), 0)
     if bug_id <= 0:
       self.ReportError('Invalid or no bug id specified.')

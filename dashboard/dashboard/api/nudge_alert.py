@@ -7,7 +7,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 from google.appengine.ext import ndb
-import logging
 
 from dashboard.api import api_request_handler
 from dashboard.common import utils
@@ -21,8 +20,8 @@ class NudgeAlertHandler(api_request_handler.ApiRequestHandler):
       raise api_request_handler.ForbiddenError()
 
   def Post(self, *args, **kwargs):
+    utils.LogObsoleteHandlerUsage(self, 'POST')
     del args, kwargs  # Unused.
-    logging.debug('crbug/1298177 - /api/nudge_alert handler triggered')
     keys = self.request.get_all('key')
     start = self.request.get('new_start_revision')
     end = self.request.get('new_end_revision')

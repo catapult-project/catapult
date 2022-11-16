@@ -12,7 +12,6 @@ from __future__ import absolute_import
 
 import base64
 import json
-import logging
 
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb import model
@@ -33,7 +32,7 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
 
   def get(self):
     """Handles dumping dashboard data."""
-    logging.debug('crbug/1298177 - dump_graph_json GET triggered')
+    utils.LogObsoleteHandlerUsage(self, 'GET')
     if self.request.get('sheriff'):
       self._DumpAnomalyDataForSheriff()
     elif self.request.get('test_path'):

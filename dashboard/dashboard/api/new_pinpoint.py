@@ -6,8 +6,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import logging
-
 from dashboard import pinpoint_request
 from dashboard.api import api_request_handler
 from dashboard.common import descriptor
@@ -26,8 +24,8 @@ class NewPinpointHandler(api_request_handler.ApiRequestHandler):
       raise api_request_handler.ForbiddenError()
 
   def Post(self, *args, **kwargs):
+    utils.LogObsoleteHandlerUsage(self, 'POST')
     del args, kwargs  # Unused.
-    logging.debug('crbug/1298177 - /api/new_pinpoint handler triggered')
     params = dict((a, self.request.get(a)) for a in self.request.arguments())
     desc = descriptor.Descriptor(params['suite'], params['measurement'],
                                  params['bot'], params.get('case'),

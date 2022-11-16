@@ -64,6 +64,7 @@ class SpeedReleasingHandler(request_handler.RequestHandler):
 
   def get(self, *args):  # pylint: disable=unused-argument
     """Renders the UI for the speed releasing page."""
+    utils.LogObsoleteHandlerUsage(self, 'GET')
     self.RenderStaticHtml('speed_releasing.html')
 
   def post(self, *args):
@@ -80,6 +81,7 @@ class SpeedReleasingHandler(request_handler.RequestHandler):
     Outputs:
       JSON for the /speed_releasing page XHR request.
     """
+    utils.LogObsoleteHandlerUsage(self, 'POST')
     anomalies = self.request.get('anomalies')
     if args[0] and not anomalies:
       self._OutputTableJSON(args[0])

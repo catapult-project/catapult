@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 import datetime
 import six
-import logging
 
 from dashboard.api import api_request_handler
 from dashboard.common import datastore_hooks
@@ -38,7 +37,7 @@ class TimeseriesHandler(api_request_handler.ApiRequestHandler):
       JSON timeseries data for the test_path, see README.md.
     """
     del kwargs  # unused.
-    logging.debug('crbug/1298177 - /api/timeseries handler triggered')
+    utils.LogObsoleteHandlerUsage(self, 'POST')
     try:
       days = int(self.request.get('num_days', 30))
     except ValueError as e:

@@ -11,8 +11,6 @@ from dashboard.api import utils as api_utils
 from dashboard.common import file_bug
 from dashboard.common import utils
 
-import logging
-
 # pylint: disable=abstract-method
 class NewBugHandler(api_request_handler.ApiRequestHandler):
 
@@ -21,8 +19,8 @@ class NewBugHandler(api_request_handler.ApiRequestHandler):
       raise api_request_handler.ForbiddenError()
 
   def Post(self, *args, **kwargs):
+    utils.LogObsoleteHandlerUsage(self, 'POST')
     del args, kwargs  # Unused.
-    logging.debug('crbug/1298177 - /api/new_bug handler triggered')
     owner = self.request.get('owner')
     cc = self.request.get('cc')
     summary = self.request.get('summary')

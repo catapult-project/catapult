@@ -885,3 +885,9 @@ def SanitizeArgs(args, key_name, default):
                     value, default)
     return default
   return value
+
+
+def LogObsoleteHandlerUsage(handler, method):
+  class_name = type(handler).__name__
+  logging.warning('Obsolete PY2 handler is called unexpectedly. %s:%s',
+                  class_name, method)

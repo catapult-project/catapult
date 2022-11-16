@@ -22,11 +22,12 @@ class CreateHealthReportHandler(request_handler.RequestHandler):
 
   def get(self):
     """Renders the UI with the form fields."""
+    utils.LogObsoleteHandlerUsage(self, 'GET')
     self.RenderStaticHtml('create_health_report.html')
 
   def post(self):
     """POSTS the data to the datastore."""
-
+    utils.LogObsoleteHandlerUsage(self, 'POST')
     user = users.get_current_user()
     if not user:
       self.response.out.write(json.dumps({'error': 'User not logged in.'}))
