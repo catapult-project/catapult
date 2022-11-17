@@ -51,7 +51,7 @@ if six.PY3:
   flask_app.wsgi_app = wrap_wsgi_app(flask_app.wsgi_app, use_deferred=True)
 
 
-@flask_app.route('/add_histograms', methods=['POST'])
+@flask_app.route('/add_histograms_flask', methods=['POST'])
 def AddHistogramsPost():
   return add_histograms.AddHistogramsPost()
 
@@ -66,7 +66,7 @@ def AddHistogramsQueuePost():
   return add_histograms_queue.AddHistogramsQueuePost()
 
 
-@flask_app.route('/add_point', methods=['POST'])
+@flask_app.route('/add_point_flask', methods=['POST'])
 def AddPointPost():
   return add_point.AddPointPost()
 
@@ -370,8 +370,12 @@ if six.PY2:
 # the incoming requests.
 _PATHS_HANDLED_BY_FLASK = [
     # '/alert_groups_update',
+    # '/add_histograms',
+    '/add_histograms_flask',
+    # '/add_histograms/process',
     # '/add_histograms_queue',
     # '/add_point',
+    '/add_point_flask',
     # '/add_point_queue',
     '/alerts',
     '/api/alerts',
@@ -380,10 +384,8 @@ _PATHS_HANDLED_BY_FLASK = [
     '/api/test_suites',
     '/api/timeseries2',
     '/associate_alerts',
-    # '/configs/update',
-    # '/add_histograms',
-    # '/add_histograms/process',
     '/buildbucket_job_status',
+    # '/configs/update',
     '/delete_expired_entities',
     '/edit_anomalies',
     '/edit_site_config',

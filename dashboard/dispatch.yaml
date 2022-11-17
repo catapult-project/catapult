@@ -31,6 +31,10 @@ dispatch:
     service: upload
   - url: "chromeperf.appspot.com/add_point"
     service: upload
+  - url: "chromeperf.appspot.com/add_histograms_flask"
+    service: upload
+  - url: "chromeperf.appspot.com/add_point_flask"
+    service: upload
 
   # API routing rules
   - url: "chromeperf.appspot.com/api/*"
