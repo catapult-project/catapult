@@ -56,8 +56,8 @@ def FileBugHandlerGet():
 
   if request.values.get('finish'):
     project_id = request.values.get('project_id', 'chromium')
-    labels = request.values.get_all('label')
-    components = request.values.get_all('component')
+    labels = request.values.getlist('label')
+    components = request.values.getlist('component')
     owner = request.values.get('owner')
     cc = request.values.get('cc')
     return _CreateBug(owner, cc, summary, description, project_id, labels,
@@ -137,8 +137,9 @@ if six.PY2:
     def get(self):
       """Either shows the form to file a bug, or if filled in, files the bug.
 
-      The form to file a bug is popped up from the triage-dialog polymer element.
-      The default summary, description and label strings are constructed there.
+      The form to file a bug is popped up from the triage-dialog polymer
+      element. The default summary, description and label strings are
+      constructed there.
 
       Request parameters:
         summary: Bug summary string.
