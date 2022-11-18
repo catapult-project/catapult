@@ -43,6 +43,10 @@ from dashboard.api import describe
 from dashboard.api import test_suites
 from dashboard.api import timeseries2
 
+if six.PY3:
+  import google.cloud.logging
+  google.cloud.logging.Client().setup_logging(log_level=logging.DEBUG)
+
 from flask import Flask
 flask_app = Flask(__name__)
 
@@ -423,7 +427,7 @@ def APP(environ, request):
   logging.info('Request path from environ: %s. Method: %s', path, method)
 
   if IsPathHandledByFlask(path) or six.PY3:
-    logging.debug('Handled by flask.')
+    logging.debug('Handled by flask. Python 3? %s', six.PY3)
     return flask_app(environ, request)
 
   logging.debug('Handled by webapp2')
