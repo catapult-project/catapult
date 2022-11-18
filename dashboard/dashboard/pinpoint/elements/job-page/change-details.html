@@ -119,7 +119,7 @@ found in the LICENSE file.
         </paper-tooltip>
       </h2>
 
-      <change-info change="[[changeState.change]]"></change-info>
+      <change-info change="[[changeState.change]]" args="[[extraArgs]]"></change-info>
 
       <p>There are <span class="emphasis">[[attemptCount(changeState)]]</span> repeats at this commit.</p>
 
@@ -212,6 +212,10 @@ found in the LICENSE file.
         attemptIndex: {
           type: Number,
           value: 0
+        },
+
+        extraArgs: {
+          type: String
         },
       },
 

@@ -169,11 +169,11 @@ found in the LICENSE file.
         </div>
         <div id="change-a">
           <div></div>
-          <change-details job="[[job]]" change-state="[[previousChangeState(job.state, changeIndex)]]"></change-details>
+          <change-details job="[[job]]" change-state="[[previousChangeState(job.state, changeIndex)]]" extra-args="[[getExtraArgs(job, 0)]]"></change-details>
         </div>
         <div id="change-b">
           <div></div>
-          <change-details job="[[job]]" change-state="[[changeState(job.state, changeIndex)]]"></change-details>
+          <change-details job="[[job]]" change-state="[[changeState(job.state, changeIndex)]]" extra-args="[[getExtraArgs(job, 1)]]"></change-details>
         </div>
       </div>
       <job-menu-fab job="[[job]]" auth-headers="[[authHeaders]]"></job-menu-fab>
@@ -194,6 +194,17 @@ found in the LICENSE file.
         changeIndex: {
           type: Number
         }
+      },
+
+      getExtraArgs(job, pos) {
+        if (!this.isTryJob(job)) {
+          return null;
+        }
+        let a = job.arguments;
+        if (pos === 0) {
+          return a.base_extra_args;
+        }
+        return a.experiment_extra_args;
       },
 
       _jobChanged() {
