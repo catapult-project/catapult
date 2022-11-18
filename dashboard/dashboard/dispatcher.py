@@ -373,7 +373,7 @@ if six.PY2:
 # The listed values will be used as *prefix* to match and redirect
 # the incoming requests.
 _PATHS_HANDLED_BY_FLASK = [
-    # '/alert_groups_update',
+    '/alert_groups_update',
     # '/add_histograms',
     '/add_histograms_flask',
     # '/add_histograms/process',
@@ -389,7 +389,7 @@ _PATHS_HANDLED_BY_FLASK = [
     '/api/timeseries2',
     '/associate_alerts',
     '/buildbucket_job_status',
-    # '/configs/update',
+    '/configs/update',
     '/delete_expired_entities',
     '/edit_anomalies',
     '/edit_site_config',
@@ -400,12 +400,12 @@ _PATHS_HANDLED_BY_FLASK = [
     '/group_report',
     '/list_tests',
     '/migrate_test_names',
-    # '/mark_recovered_alerts',
+    '/mark_recovered_alerts',
     '/navbar',
     '/pinpoint/new/bisect',
     '/pinpoint/new/perf_try',
     '/pinpoint/new/prefill',
-    # '/report',
+    '/report',
     '/short_uri',
     '/update_dashboard_stats',
     '/update_test_suites',
