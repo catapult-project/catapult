@@ -117,11 +117,17 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _StartCastStreamingShell(self, startup_args):
     browser_cmd = [
-        'run',
+        'component',
+        'run-legacy',
         'fuchsia-pkg://%s/cast_streaming_shell#meta/cast_streaming_shell.cmx' %
         self._managed_repo,
-        '--remote-debugging-port=0',
     ]
+
+    # Flags forwarded to the cast_streaming_shell component.
+    browser_cmd.extend([
+        '--',
+        '--remote-debugging-port=0',
+    ])
 
     # Use flags used on WebEngine in production devices.
     browser_cmd.extend([
@@ -137,7 +143,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     ])
     if startup_args:
       browser_cmd.extend(startup_args)
-    self._browser_process = self._command_runner.RunCommandPiped(
+    self._browser_process = self._command_runner.run_continuous_ffx_command(
         browser_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     self._browser_log_proc = self._browser_process
 
