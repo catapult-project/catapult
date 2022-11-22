@@ -58,7 +58,9 @@ class FromDictTest(unittest.TestCase):
     self.assertEqual(quest, expected)
 
   def testSettingDeviceTypeCorrectlySetsImageDir(self):
-    platforms = list(run_web_engine_telemetry_test.IMAGE_MAP.keys())
+    platforms = (
+        list(run_web_engine_telemetry_test.IMAGE_MAP.keys()) +
+        list(run_web_engine_telemetry_test.PB_IMAGE_MAP.keys()))
     for platform in platforms:
       # Set up new dimensions.
       new_args = dict(_BASE_ARGUMENTS)
@@ -76,13 +78,18 @@ class FromDictTest(unittest.TestCase):
       self.assertTrue(system_image_flag)
 
       # Assert components from IMAGE_MAP are found in the path.
-      path_parts = run_web_engine_telemetry_test.IMAGE_MAP[platform]
+      extra_args = _BASE_EXTRA_ARGS[:]
+      if platform in run_web_engine_telemetry_test.IMAGE_MAP:
+        path_parts = run_web_engine_telemetry_test.IMAGE_MAP[platform]
+        extra_args.append(run_web_engine_telemetry_test.IMAGE_FLAG +
+                          run_web_engine_telemetry_test.DEFAULT_IMAGE_PATH %
+                          path_parts)
+      elif platform in run_web_engine_telemetry_test.PB_IMAGE_MAP:
+        path_parts = (run_web_engine_telemetry_test.PB_IMAGE_MAP[platform],)
+        extra_args.append(run_web_engine_telemetry_test.IMAGE_FLAG +
+                          path_parts[0])
       for path_part in path_parts:
         self.assertIn(path_part, system_image_flag[0])
-
-      extra_args = _BASE_EXTRA_ARGS[:]
-      extra_args.append(run_web_engine_telemetry_test.DEFAULT_IMAGE_PATH %
-                        path_parts)
 
       expected = run_web_engine_telemetry_test.RunWebEngineTelemetryTest(
           'server', dimensions, extra_args, _BASE_SWARMING_TAGS,
