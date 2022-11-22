@@ -54,7 +54,7 @@ def _CheckUser():
   if utils.IsDevAppserver():
     return
   api_auth.Authorize()
-  if not utils.IsTryjobUser():
+  if not utils.IsInternalUser():
     raise api_request_handler.ForbiddenError()
 
 
