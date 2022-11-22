@@ -50,7 +50,12 @@ class RunWebEngineTelemetryTest(run_telemetry_test.RunTelemetryTest):
   def _ComputeCommand(cls, arguments):
     benchmark = arguments.get('benchmark')
     command = [
-        'luci-auth', 'context', '--', 'vpython3', '../../testing/test_env.py'
+        'luci-auth',
+        'context',
+        '--',
+        'vpython3',
+        '../../testing/test_env.py',
+        '../../testing/scripts/run_performance_tests.py',
     ]
     if benchmark in run_telemetry_test.GTEST_EXECUTABLE_NAME:
       command.extend([
@@ -59,7 +64,6 @@ class RunWebEngineTelemetryTest(run_telemetry_test.RunTelemetryTest):
       ])
     else:
       command.extend([
-          '../../testing/scripts/run_performance_tests.py',
           '../../content/test/gpu/run_telemetry_benchmark_fuchsia.py',
       ])
     relative_cwd = arguments.get('relative_cwd', 'out/Release')
