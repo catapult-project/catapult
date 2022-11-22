@@ -391,6 +391,7 @@ class FakeIssueTrackerService(object):
             'Blink>ServiceWorker',
             'Foo>Bar',
         ],
+        'mergedInto': {},
         'published': '2017-06-28T01:26:53',
         'updated': '2018-03-01T16:16:22',
     }

@@ -168,12 +168,7 @@ class AlertGroupWorkflow(object):
     if issue.get('status') != issue_tracker_service.STATUS_DUPLICATE:
       return None
 
-    merged_into = None
-    latest_id = 0
-    for comment in issue.get('comments', []):
-      if comment['updates'].get('mergedInto') and comment['id'] >= latest_id:
-        merged_into = int(comment['updates'].get('mergedInto'))
-        latest_id = comment['id']
+    merged_into = issue.get('mergedInto', {}).get('issueId', None)
     if not merged_into:
       return None
     logging.info('Found canonical issue for the groups\' issue: %d',
@@ -181,9 +176,8 @@ class AlertGroupWorkflow(object):
 
     query = alert_group.AlertGroup.query(
         alert_group.AlertGroup.active == True,
-        # It is impossible to merge bugs from different projects in monorail.
-        # So the canonical group bug is guarandeed to have the same project.
-        alert_group.AlertGroup.bug.project == self._group.bug.project,
+        alert_group.AlertGroup.bug.project == issue.get('mergedInto', {}).get(
+            'projectId', self._group.bug.project),
         alert_group.AlertGroup.bug.bug_id == merged_into)
     query_result = query.fetch(limit=1)
     if not query_result:

@@ -2253,18 +2253,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     base_anomaly = self._AddAnomaly()
 
     self._issue_tracker._bug_id_counter = 42
-    duplicate_issue = self._issue_tracker.GetIssue(
-        self._issue_tracker.NewBug(status='Duplicate',
-                                   state='closed')['bug_id'])
-    duplicate_group = self._AddAlertGroup(
-        base_anomaly,
-        issue=duplicate_issue,
-        status=alert_group.AlertGroup.Status.triaged,
-    )
-    anomalies = [
-        self._AddAnomaly(groups=[duplicate_group]),
-        self._AddAnomaly(groups=[duplicate_group])
-    ]
 
     canonical_issue = self._issue_tracker.GetIssue(
         self._issue_tracker.NewBug()['bug_id'])
@@ -2274,25 +2262,20 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         status=alert_group.AlertGroup.Status.triaged,
     )
 
-    self._issue_tracker.issue_comments.update({
-        ('chromium', duplicate_issue['id']): [
-            {
-                'id': 2,
-                'updates': {
-                    'status': 'Duplicate',
-                    # According to Monorail API documentation, mergedInto
-                    # has string type.
-                    'mergedInto': str(canonical_issue['id'])
-                },
-            },
-            {
-                'id': 1,
-                'updates': {
-                    'status': 'WontFix'
-                },
-            }
-        ]
-    })
+    duplicate_issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug(
+            status='Duplicate',
+            state='closed',
+            mergedInto={'issueId': canonical_issue['id']})['bug_id'])
+    duplicate_group = self._AddAlertGroup(
+        base_anomaly,
+        issue=duplicate_issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    anomalies = [
+        self._AddAnomaly(groups=[duplicate_group]),
+        self._AddAnomaly(groups=[duplicate_group])
+    ]
 
     w = alert_group_workflow.AlertGroupWorkflow(
         duplicate_group.get(),
