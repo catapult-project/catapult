@@ -374,11 +374,11 @@ if six.PY2:
 # the incoming requests.
 _PATHS_HANDLED_BY_FLASK = [
     '/alert_groups_update',
-    # '/add_histograms',
+    '/add_histograms',
     '/add_histograms_flask',
     # '/add_histograms/process',
     # '/add_histograms_queue',
-    # '/add_point',
+    '/add_point',
     '/add_point_flask',
     # '/add_point_queue',
     '/alerts',
