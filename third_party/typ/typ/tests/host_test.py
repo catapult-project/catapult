@@ -148,9 +148,10 @@ class TestHost(unittest.TestCase):
 
         class FakeStream(object):
 
-            def __init__(self):
+            def __init__(self, encoding='utf-8'):
                 self.contents = None
                 self.flush_called = False
+                self.encoding = encoding
 
             def write(self, m):
                 self.contents = m
@@ -167,6 +168,11 @@ class TestHost(unittest.TestCase):
         h.stdout = s
         h.print_('hello')
         self.assertEqual(s.contents, 'hello\n')
+
+        s = FakeStream(encoding='cp1252')
+        h.stdout = s
+        h.print_('\u0442\u0435\u0441\u0442')
+        self.assertEquals(s.contents, '\\u0442\\u0435\\u0441\\u0442\n')
 
         s = FakeStream()
         h.stdout = s

@@ -188,7 +188,11 @@ class FakeHost(object):
 
     def print_(self, msg='', end='\n', stream=None):
         stream = stream or self.stdout
-        stream.write(msg + end)
+        message = msg + end
+        encoding = stream.encoding or 'utf8'
+        stream.write(
+            message.encode(encoding,
+                           errors='backslashreplace').decode(encoding))
         stream.flush()
 
     def read_binary_file(self, *comps):
