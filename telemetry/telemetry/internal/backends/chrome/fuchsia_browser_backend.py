@@ -64,9 +64,11 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     def TryReadingPort():
       if not self._browser_log_proc.stderr:
         return None
-      line = self._browser_log_proc.stderr.readline()
-      tokens = re.search(search_regex, line)
-      self._browser_log += line
+      for line in self._browser_log_proc.stderr:
+        tokens = re.search(search_regex, line)
+        self._browser_log += line
+        if tokens:
+          break
       return int(tokens.group(1)) if tokens else None
     return py_utils.WaitFor(TryReadingPort, timeout=60)
 
