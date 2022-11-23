@@ -55,7 +55,13 @@ if six.PY3:
   flask_app.wsgi_app = wrap_wsgi_app(flask_app.wsgi_app, use_deferred=True)
 
 
+# Handler for testing partial traffic from fyi. Will remove.
 @flask_app.route('/add_histograms_flask', methods=['POST'])
+def AddHistogramsFlaskPost():
+  return add_histograms.AddHistogramsPost()
+
+
+@flask_app.route('/add_histograms', methods=['POST'])
 def AddHistogramsPost():
   return add_histograms.AddHistogramsPost()
 
@@ -70,7 +76,13 @@ def AddHistogramsQueuePost():
   return add_histograms_queue.AddHistogramsQueuePost()
 
 
+# Handler for testing partial traffic from fyi. Will remove.
 @flask_app.route('/add_point_flask', methods=['POST'])
+def AddPointFlaskPost():
+  return add_point.AddPointPost()
+
+
+@flask_app.route('/add_point', methods=['POST'])
 def AddPointPost():
   return add_point.AddPointPost()
 
