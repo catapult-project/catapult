@@ -44,8 +44,8 @@ steps:
     # TODO(wenbinzhang): deploy other services when migration to python3 is done.
     # api.yaml,
     # app.yaml,
-    # upload-processing.yaml,
-    # upload.yaml,
+    upload-processing-py3.yaml,
+    upload-py3.yaml,
     pinpoint-py3.yaml,
   ]
 # We check in the target versions to avoid unintended traffic changes.
