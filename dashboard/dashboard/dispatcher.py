@@ -55,7 +55,7 @@ if six.PY3:
   flask_app.wsgi_app = wrap_wsgi_app(flask_app.wsgi_app, use_deferred=True)
 
 
-# Handler for testing partial traffic from fyi. Will remove.
+# TODO(crbug/1393102): Handler for partial traffic from fyi. Will remove.
 @flask_app.route('/add_histograms_flask', methods=['POST'])
 def AddHistogramsFlaskPost():
   return add_histograms.AddHistogramsPost()
@@ -66,9 +66,21 @@ def AddHistogramsPost():
   return add_histograms.AddHistogramsPost()
 
 
+# TODO(crbug/1393102): Handler for partial traffic from fyi. Will remove.
+@flask_app.route('/add_histograms_flask/process', methods=['POST'])
+def AddHistogramsFlaskProcessPost():
+  return add_histograms.AddHistogramsProcessPost()
+
+
 @flask_app.route('/add_histograms/process', methods=['POST'])
 def AddHistogramsProcessPost():
   return add_histograms.AddHistogramsProcessPost()
+
+
+# TODO(crbug/1393102): Handler for partial traffic from fyi. Will remove.
+@flask_app.route('/add_histograms_queue_flask', methods=['GET', 'POST'])
+def AddHistogramsQueueFlaskPost():
+  return add_histograms_queue.AddHistogramsQueuePost()
 
 
 @flask_app.route('/add_histograms_queue', methods=['GET', 'POST'])
@@ -389,7 +401,9 @@ _PATHS_HANDLED_BY_FLASK = [
     '/add_histograms',
     '/add_histograms_flask',
     # '/add_histograms/process',
+    '/add_histograms_flask/process',
     # '/add_histograms_queue',
+    'add_histograms_queue_flask',
     '/add_point',
     '/add_point_flask',
     # '/add_point_queue',

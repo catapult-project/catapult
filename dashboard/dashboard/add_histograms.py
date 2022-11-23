@@ -80,7 +80,12 @@ def AddHistogramsProcessPost():
         histogram_dicts = _LoadHistogramList(decompressing_file)
 
       gcs_file.close()
-      ProcessHistogramSet(histogram_dicts, token)
+
+      logging.debug('flaskDebug: AddHistogramsProcessPost request path: %s',
+                    request.path)
+      force_flask = 'add_histograms_flask/process' in request.path
+
+      ProcessHistogramSet(histogram_dicts, token, force_flask)
     finally:
       cloudstorage.delete(gcs_file_path, retry_params=_RETRY_PARAMS)
 
@@ -150,11 +155,23 @@ def AddHistogramsPost():
   retry_options = taskqueue.TaskRetryOptions(
       task_retry_limit=_TASK_RETRY_LIMIT)
   queue = taskqueue.Queue('default')
-  queue.add(
-      taskqueue.Task(
-          url='/add_histograms/process',
-          payload=json.dumps(params),
-          retry_options=retry_options))
+
+  # TODO(crbug/1393102): it is a hack for temp testing. Will remove
+  # after migration is done.
+  logging.debug('flaskDebug: AddHistogramsPost request path: %s', request.path)
+  if 'add_histograms_flask' in request.path:
+    logging.debug('flaskDebug: adding task to default for process in flask')
+    queue.add(
+        taskqueue.Task(
+            url='/add_histograms_flask/process',
+            payload=json.dumps(params),
+            retry_options=retry_options))
+  else:
+    queue.add(
+        taskqueue.Task(
+            url='/add_histograms/process',
+            payload=json.dumps(params),
+            retry_options=retry_options))
   return token_info
 
 
@@ -343,7 +360,9 @@ def _LogDebugInfo(histograms):
     logging.info('No BUILD_URLS in data.')
 
 
-def ProcessHistogramSet(histogram_dicts, completion_token=None):
+def ProcessHistogramSet(histogram_dicts,
+                        completion_token=None,
+                        force_flask=False):
   if not isinstance(histogram_dicts, list):
     raise api_request_handler.BadRequestError(
         'HistogramSet JSON must be a list of dicts')
@@ -430,7 +449,8 @@ def ProcessHistogramSet(histogram_dicts, completion_token=None):
 
   with timing.WallTimeLogger('_CreateHistogramTasks'):
     tasks = _CreateHistogramTasks(suite_key.id(), histograms, revision,
-                                  benchmark_description, completion_token)
+                                  benchmark_description, completion_token,
+                                  force_flask)
 
   with timing.WallTimeLogger('_QueueHistogramTasks'):
     _QueueHistogramTasks(tasks)
@@ -452,7 +472,13 @@ def _QueueHistogramTasks(tasks):
     f.get_result()
 
 
-def _MakeTask(params):
+def _MakeTask(params, force_flask=False):
+  if force_flask:
+    logging.info('flaskDebug: _MakeTask for flask')
+    return taskqueue.Task(
+        url='/add_histograms_queue_flask',
+        payload=json.dumps(params),
+        _size_check=False)
   return taskqueue.Task(
       url='/add_histograms_queue',
       payload=json.dumps(params),
@@ -463,7 +489,8 @@ def _CreateHistogramTasks(suite_path,
                           histograms,
                           revision,
                           benchmark_description,
-                          completion_token=None):
+                          completion_token=None,
+                          force_flask=False):
   tasks = []
   duplicate_check = set()
   measurement_add_futures = []
@@ -486,7 +513,7 @@ def _CreateHistogramTasks(suite_path,
     # need for processing each histogram per task.
     task_dict = _MakeTaskDict(hist, test_path, revision, benchmark_description,
                               diagnostics, completion_token)
-    tasks.append(_MakeTask([task_dict]))
+    tasks.append(_MakeTask([task_dict], force_flask))
 
     if completion_token is not None:
       measurement_add_futures.append(
