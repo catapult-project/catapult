@@ -138,7 +138,7 @@ def AddHistogramsQueuePost():
       exception = f.get_exception()
       if exception is not None:
         operation_state = upload_completion_token.State.FAILED
-        error_message = exception.message
+        error_message = str(exception)
     token_state_futures.append(
         upload_completion_token.Measurement.UpdateStateByPathAsync(
             info.get('test_path'), info.get('token'), operation_state,
@@ -210,7 +210,7 @@ if six.PY2:
           exception = f.get_exception()
           if exception is not None:
             operation_state = upload_completion_token.State.FAILED
-            error_message = exception.message
+            error_message = str(exception)
         token_state_futures.append(
             upload_completion_token.Measurement.UpdateStateByPathAsync(
                 info.get('test_path'), info.get('token'), operation_state,
