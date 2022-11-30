@@ -147,6 +147,8 @@ class RunTestsCommand(command_line.OptparseCommand):
       runner.host.stdout = self.stream
     if hasattr(args, 'disable_resultsink'):
       runner.args.disable_resultsink = args.disable_resultsink
+    if hasattr(args, 'rdb_content_output_file'):
+      runner.args.rdb_content_output_file = args.rdb_content_output_file
     if hasattr(args, 'use_global_pool'):
       runner.args.use_global_pool = args.use_global_pool
 

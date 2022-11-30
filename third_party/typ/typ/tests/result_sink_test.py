@@ -161,6 +161,12 @@ class ResultSinkReporterTest(unittest.TestCase):
         rsr = result_sink.ResultSinkReporter(self._host)
         self.assertFalse(rsr.resultdb_supported)
 
+    def testNoLuciContextWithOutputFile(self):
+        if 'LUCI_CONTEXT' in self._host.env:
+            del self._host.env['LUCI_CONTEXT']
+        rsr = result_sink.ResultSinkReporter(self._host, output_file='/path')
+        self.assertTrue(rsr.resultdb_supported)
+
     def testExplicitDisable(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
         rsr = result_sink.ResultSinkReporter(self._host, True)
@@ -214,6 +220,48 @@ class ResultSinkReporterTest(unittest.TestCase):
         expected_result = CreateExpectedTestResult(status='ABORT', expected=False)
         self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[1]),
                          expected_result)
+
+    def testReportIndividualTestResultOutputFile(self):
+        output_filepath = '/tmp/output.json'
+        self.setLuciContextWithContent({})
+        rsr = ResultSinkReporterWithFakeSrc(
+                self._host, output_file=output_filepath)
+        result = CreateResult({
+            'name': 'test_name',
+            'actual': json_results.ResultType.Timeout,
+        })
+        retval = rsr.report_individual_test_result(
+                result, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
+                FAKE_TEST_LINE, 'test_name_prefix.')
+        self.assertEqual(retval, 0)
+        expected_result = CreateExpectedTestResult(status='ABORT',
+                                                   expected=False)
+        self.assertIn(output_filepath, self._host.files)
+        self.assertEqual(json.loads(self._host.files[output_filepath]),
+                         [expected_result])
+
+    def testReportIndividualTestResultOutputFileMultiplePosts(self):
+        output_filepath = '/tmp/output.json'
+        self.setLuciContextWithContent({})
+        rsr = ResultSinkReporterWithFakeSrc(
+                self._host, output_file=output_filepath)
+        result = CreateResult({
+            'name': 'test_name',
+            'actual': json_results.ResultType.Timeout,
+        })
+        retval = rsr.report_individual_test_result(
+                result, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
+                FAKE_TEST_LINE, 'test_name_prefix.')
+        self.assertEqual(retval, 0)
+        retval = rsr.report_individual_test_result(
+                result, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
+                FAKE_TEST_LINE, 'test_name_prefix.')
+        self.assertEqual(retval, 0)
+        expected_result = CreateExpectedTestResult(status='ABORT',
+                                                   expected=False)
+        self.assertIn(output_filepath, self._host.files)
+        self.assertEqual(json.loads(self._host.files[output_filepath]),
+                         [expected_result, expected_result])
 
     def testReportIndividualTestResultFailureReason(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)

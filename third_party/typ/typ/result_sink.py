@@ -52,42 +52,55 @@ SHA1_HEX_HASH_LENGTH = 40
 
 
 class ResultSinkReporter(object):
-    def __init__(self, host=None, disable=False):
+    def __init__(self, host=None, disable=False, output_file=None):
         """Class for interacting with ResultDB's ResultSink.
 
         Args:
             host: A typ_host.Host or host_fake.FakeHost instance.
             disable: Whether to explicitly disable ResultSink integration.
+            output_file: A string pointing to a filepath to write POST request
+                data to instead of actually POSTing to ResultSink. Note: this
+                makes no attempt at being thread-safe, as it is only intended
+                as a workaround for Skylab, and it is not expected to run tests
+                in parallel there.
         """
         self.host = host or typ_host.Host()
         self._sink = None
+        self._invocation_level_url = None
+        self._url = None
+        self._headers = None
+        self._session = None
         self._chromium_src_dir = None
+        self._output_file = output_file
         if disable:
             return
 
-        luci_context_file = self.host.getenv('LUCI_CONTEXT')
-        if not luci_context_file:
-            return
-        self._sink = json.loads(
-                self.host.read_text_file(luci_context_file)).get('result_sink')
-        if not self._sink:
-            return
+        if not output_file:
+            luci_context_file = self.host.getenv('LUCI_CONTEXT')
+            if not luci_context_file:
+                return
+            self._sink = json.loads(
+                    self.host.read_text_file(luci_context_file)).get(
+                            'result_sink')
+            if not self._sink:
+                return
 
-        self._invocation_level_url = ('http://%s/prpc/luci.resultsink.v1.Sink/ReportInvocationLevelArtifacts'
-                     % self._sink['address'])
+            self._invocation_level_url = ('http://%s/prpc/luci.resultsink.v1.Sink/ReportInvocationLevelArtifacts'
+                         % self._sink['address'])
 
-        self._url = ('http://%s/prpc/luci.resultsink.v1.Sink/ReportTestResults'
-                     % self._sink['address'])
-        self._headers = {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': 'ResultSink %s' % self._sink['auth_token']
-        }
-        self._session = requests.Session()
+            self._url = (
+                    'http://%s/prpc/luci.resultsink.v1.Sink/ReportTestResults'
+                    % self._sink['address'])
+            self._headers = {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': 'ResultSink %s' % self._sink['auth_token']
+            }
+            self._session = requests.Session()
 
     @property
     def resultdb_supported(self):
-        return self._sink is not None
+        return self._sink or self._output_file
 
     def report_invocation_level_artifacts(self, artifacts):
         """Uploads invocation-level artifacts to the ResultSink server.
@@ -292,11 +305,26 @@ class ResultSinkReporter(object):
         Returns:
             0 if the POST succeeded, otherwise 1.
         """
-        res = self._session.post(
-            url=url,
-            headers=self._headers,
-            data=content)
-        return 0 if res.ok else 1
+        if self._session:
+            res = self._session.post(
+                url=url,
+                headers=self._headers,
+                data=content)
+            ret = 0 if res.ok else 1
+        elif self._output_file:
+            if not self.host.isfile(self._output_file):
+                existing_content = []
+            else:
+                existing_content = json.loads(
+                        self.host.read_text_file(self._output_file))
+            assert isinstance(existing_content, list)
+            existing_content.extend(json.loads(content)['testResults'])
+            self.host.write_text_file(
+                    self._output_file, json.dumps(existing_content))
+            ret = 0
+        else:
+            raise RuntimeError('Called _post without a session or output file')
+        return ret
 
     def _convert_path_to_repo_path(self, filepath):
         """Converts an absolute file path to a repo relative file path.

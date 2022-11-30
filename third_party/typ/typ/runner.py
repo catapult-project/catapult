@@ -1006,6 +1006,7 @@ class _Child(object):
         self.artifact_output_dir = parent.artifact_output_dir
         self.result_sink_reporter = None
         self.disable_resultsink = parent.args.disable_resultsink
+        self.result_sink_output_file = parent.args.rdb_content_output_file
         self.jobs = parent.args.jobs
 
     def expectations_for(self, test_case):
@@ -1016,7 +1017,7 @@ class _Child(object):
 def _setup_process(host, worker_num, child):
     child.host = host
     child.result_sink_reporter = result_sink.ResultSinkReporter(
-            host, child.disable_resultsink)
+            host, child.disable_resultsink, child.result_sink_output_file)
     child.worker_num = worker_num
     # pylint: disable=protected-access
 
