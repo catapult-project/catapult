@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import six
 from six.moves import http_client
 import json
 import mock
@@ -17,7 +18,21 @@ from dashboard.common import testing_common
 from dashboard.services import issue_tracker_service
 
 
-@mock.patch('services.issue_tracker_service.discovery.build', mock.MagicMock())
+def PythonVersionsDecorator():
+
+  def Decorator(func):
+    if six.PY2:
+      return mock.patch('services.issue_tracker_service.discovery.build',
+                        mock.MagicMock())(
+                            func)
+    return mock.patch('issue_tracker_service.discovery.build',
+                      mock.MagicMock())(
+                          func)
+
+  return Decorator
+
+
+@PythonVersionsDecorator()
 class IssueTrackerServiceTest(testing_common.TestCase):
 
   def testAddBugComment_Basic(self):
@@ -190,7 +205,8 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     }
     service._ExecuteRequest = mock.Mock(
         side_effect=errors.HttpError(
-            mock.Mock(return_value={'status': 404}), json.dumps(error_content)))
+            mock.Mock(return_value={'status': 404}),
+            json.dumps(error_content).encode('utf-8')))
     response = service.NewBug('Bug title', 'body', owner='someone@chromium.org')
     self.assertEqual(1, service._ExecuteRequest.call_count)
     self.assertTrue('error' in response)
@@ -217,7 +233,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             'cc': mock.ANY,
             'projectId': 'chromium',
         }, 'chromium')
-    self.assertItemsEqual([
+    six.assertCountEqual(self, [
         {
             'name': 'somebody@chromium.org'
         },
@@ -244,7 +260,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             'cc': mock.ANY,
             'projectId': 'chromium',
         }, 'chromium')
-    self.assertItemsEqual([
+    six.assertCountEqual(self, [
         {
             'name': 'somebody@chromium.org'
         },
@@ -263,7 +279,8 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     }
     service._ExecuteRequest = mock.Mock(
         side_effect=errors.HttpError(
-            mock.Mock(return_value={'status': 404}), json.dumps(error_content)))
+            mock.Mock(return_value={'status': 404}),
+            json.dumps(error_content).encode('utf-8')))
     service.AddBugComment(12345, 'The comment', owner=['test@chromium.org'])
     self.assertEqual(2, service._ExecuteRequest.call_count)
 
@@ -277,7 +294,8 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     }
     service._ExecuteRequest = mock.Mock(
         side_effect=errors.HttpError(
-            mock.Mock(return_value={'status': 404}), json.dumps(error_content)))
+            mock.Mock(return_value={'status': 404}),
+            json.dumps(error_content).encode('utf-8')))
     service.AddBugComment(
         12345,
         'The comment',
@@ -295,7 +313,8 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     }
     service._ExecuteRequest = mock.Mock(
         side_effect=errors.HttpError(
-            mock.Mock(return_value={'status': 403}), json.dumps(error_content)))
+            mock.Mock(return_value={'status': 403}),
+            json.dumps(error_content).encode('utf-8')))
     comment_posted = service.AddBugComment(
         12345, 'The comment', owner='test@chromium.org')
     self.assertEqual(1, service._ExecuteRequest.call_count)

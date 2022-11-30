@@ -43,7 +43,8 @@ if __name__ == '__main__':
     # Before all tests are passing, we will run tests in some sub-folders.
     # This is a temporary solution which will exit if any sub-folder fails.
     root = [
-      'dashboard/pinpoint'
+      'dashboard/pinpoint',
+      'dashboard/services'
       ]
     for r in root:
       print('Running unit tests in %s', r)

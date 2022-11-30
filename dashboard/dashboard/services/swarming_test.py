@@ -48,8 +48,8 @@ class BotsTest(_SwarmingTest):
   def testList(self):
     response = swarming.Swarming('https://server').Bots().List(
         'CkMSPWoQ', {
+            'a': 'b',
             'pool': 'Chrome-perf',
-            'a': 'b'
         }, False, 1, True)
     self._AssertCorrectResponse(response)
 

@@ -19,7 +19,7 @@ from google.appengine.api import urlfetch_errors
 from dashboard.common import utils
 
 _CACHE_DURATION = 60 * 60 * 24 * 7  # 1 week.
-_VULNERABILITY_PREFIX = b")]}'\n"
+_VULNERABILITY_PREFIX = ")]}'\n"
 
 
 class RequestError(http_client.HTTPException):

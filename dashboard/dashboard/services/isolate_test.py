@@ -16,6 +16,7 @@ from dashboard.services import isolate
 
 _FILE_HASH = 'c6911f39564106542b28081c81bde61c43121bda'
 _ISOLATED_HASH = 'fc5e63011ae25b057b3097eba4413fc357c05cff'
+_FILE_CONTENTS_COMPRESSED = zlib.compress(b'file contents')
 
 
 @mock.patch('dashboard.services.request.Request')
@@ -28,10 +29,10 @@ class IsolateServiceTest(unittest.TestCase):
             'https://isolateserver.storage.googleapis.com/default-gzip/' +
             _FILE_HASH
     }
-    request.return_value = zlib.compress('file contents')
+    request.return_value = _FILE_CONTENTS_COMPRESSED
 
     file_contents = isolate.Retrieve('https://isolate.com', _FILE_HASH)
-    self.assertEqual(file_contents, 'file contents')
+    self.assertEqual(file_contents, b'file contents')
 
     url = 'https://isolate.com/_ah/api/isolateservice/v1/retrieve'
     body = {'namespace': {'namespace': 'default-gzip'}, 'digest': _FILE_HASH}
@@ -43,11 +44,11 @@ class IsolateServiceTest(unittest.TestCase):
 
   def testRetrieveContent(self, request_json, _):
     request_json.return_value = {
-        'content': base64.b64encode(zlib.compress('file contents'))
+        'content': base64.b64encode(_FILE_CONTENTS_COMPRESSED)
     }
 
     isolate_contents = isolate.Retrieve('https://isolate.com', _ISOLATED_HASH)
-    self.assertEqual(isolate_contents, 'file contents')
+    self.assertEqual(isolate_contents, b'file contents')
 
     url = 'https://isolate.com/_ah/api/isolateservice/v1/retrieve'
     body = {
