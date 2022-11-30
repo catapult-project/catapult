@@ -19,7 +19,7 @@ init_catapult() {
     # remove the requirement that the deployment script be running in a git
     # repository.
     mkdir -p /workspace/.git/hooks
-    pushd /workspace/dashboard/dashboard
+    pushd /workspace/dashboard
     make clean && make
     popd
   fi

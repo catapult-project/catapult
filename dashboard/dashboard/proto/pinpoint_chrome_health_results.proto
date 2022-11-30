@@ -5,7 +5,7 @@ syntax = "proto3";
 
 package dashboard;
 
-import "dims.proto";
+import "dashboard/proto/dims.proto";
 import "google/protobuf/timestamp.proto";
 
 

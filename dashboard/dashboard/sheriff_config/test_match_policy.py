@@ -9,7 +9,7 @@ from __future__ import print_function
 import unittest
 import match_policy
 import service_client
-import sheriff_config_pb2
+from proto import sheriff_config_pb2
 import sheriff_pb2
 from tests.utils import HttpMockSequenceWithDiscovery
 
