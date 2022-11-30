@@ -64,6 +64,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     def TryReadingPort():
       if not self._browser_log_proc.stderr:
         return None
+      tokens = None
       for line in self._browser_log_proc.stderr:
         tokens = re.search(search_regex, line)
         self._browser_log += line
