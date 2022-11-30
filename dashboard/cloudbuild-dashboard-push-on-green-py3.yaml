@@ -76,7 +76,7 @@ steps:
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'upload-processing',
-    '--splits=cloud-build-9da1075=.8,cloud-build-d7b50c8=.2'
+    '--splits=cloud-build-9da1075=.8,cloud-build-d7b50c8=.2',
     '--split-by=random'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
