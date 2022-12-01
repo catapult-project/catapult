@@ -94,7 +94,7 @@ def AddHistogramsProcessPost():
     return make_response('{}')
 
   except Exception as e:  # pylint: disable=broad-except
-    logging.error('Error processing histograms: %s', str(e))
+    logging.error('Error processing histograms: %s', str(e), exc_info=1)
     upload_completion_token.Token.UpdateObjectState(
         token, upload_completion_token.State.FAILED, str(e))
     return make_response(json.dumps({'error': str(e)}))
