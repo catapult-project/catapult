@@ -90,9 +90,9 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _StartWebEngineShell(self, startup_args):
     browser_cmd = [
-        'component',
-        'run-legacy',
-        'fuchsia-pkg://%s/web_engine_shell#meta/web_engine_shell.cmx' %
+        'test',
+        'run',
+        'fuchsia-pkg://%s/web_engine_shell#meta/web_engine_shell.cm' %
         self._managed_repo
     ]
 
@@ -249,6 +249,18 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     raise NotImplementedError
 
   def _CloseOnDeviceBrowsers(self):
+    if self.browser_type == WEB_ENGINE_SHELL:
+      if self._browser_process:
+        logging.info('Terminating web_engine_shell.cm')
+        # Send SIGTERM first since that gives `ffx test run` a chance to
+        # gracefully cancel the component under test.
+        self._browser_process.terminate()
+        try:
+          self._browser_process.wait(5)
+        except subprocess.TimeoutExpired:
+          logging.info('web_engine_shell.cm still running after 5s; killing it')
+          self._browser_process.kill()
+          self._browser_process.wait()
     if (self.browser_type == WEB_ENGINE_SHELL or
         self.browser_type == CAST_STREAMING_SHELL):
       close_cmd = ['killall', 'web_instance.cmx']
