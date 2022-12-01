@@ -409,7 +409,7 @@ class ReadBuffer(object):
 
     if self._buffer_future is None:
       self._request_next_buffer()
-    return ''.join(data_list)
+    return b''.join(data_list)
 
   def _remaining(self):
     return self._file_size - self._offset
