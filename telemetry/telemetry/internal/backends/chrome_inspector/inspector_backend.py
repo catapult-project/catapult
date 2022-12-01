@@ -24,6 +24,7 @@ from telemetry.internal.backends.chrome_inspector import inspector_runtime
 from telemetry.internal.backends.chrome_inspector import inspector_serviceworker
 from telemetry.internal.backends.chrome_inspector import inspector_storage
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
+from telemetry.internal.backends.chrome_inspector import websocket
 from telemetry.util import js_template
 
 import py_utils
@@ -740,6 +741,12 @@ class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
       return self._runtime.Evaluate(expression, context_id, timeout,
                                     user_gesture, promise)
     except inspector_websocket.WebSocketException as e:
+      if issubclass(e.websocket_error_type,
+                    websocket.WebSocketConnectionClosedException):
+        logging.error('Inspector connection lost.')
+        # Any attempt to send further requests (e.g., to crash processes as
+        # below) is guaranteed to fail, so simply propagate the exception.
+        raise e
       logging.error('Renderer process hung; forcibly crashing it and '
                     'GPU process. Note that GPU process minidumps '
                     'require --enable-gpu-benchmarking browser arg.')
