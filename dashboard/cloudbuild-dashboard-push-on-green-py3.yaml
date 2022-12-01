@@ -42,8 +42,8 @@ steps:
     # from this automation. This fails in production with the service account
     # used by cloud-build, so we've left it out for now.
     # TODO(wenbinzhang): deploy other services when migration to python3 is done.
-    # api.yaml,
-    # app.yaml,
+    api-py3.yaml,
+    app-py3.yaml,
     upload-processing-py3.yaml,
     upload-py3.yaml,
     pinpoint-py3.yaml,
