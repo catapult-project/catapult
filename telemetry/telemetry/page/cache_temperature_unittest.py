@@ -188,7 +188,9 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
   @decorators.Disabled('reference')
   @decorators.Enabled('has tabs')
   @decorators.Disabled('chromeos')  # crbug.com/840033
-  @decorators.Disabled('win')  # crbug.com/840033
+  @decorators.Disabled('win')       # crbug.com/840033
+  @decorators.Disabled('linux')     # crbug.com/1394993
+  @decorators.Disabled('mac')       # crbug.com/1394993
   def testEnsureWarmBrowser(self):
     with self.CaptureTraceMarkers():
       story_set = story.StorySet()
