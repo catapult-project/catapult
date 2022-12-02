@@ -688,11 +688,11 @@ class DecompressFileWrapper(object):
     temporary_buffer = self.decompressor.unconsumed_tail
     if len(temporary_buffer) < self.buffer_size / 2:
       raw_buffer = self.source_file.read(size)
-      if raw_buffer != '':
+      if raw_buffer:
         temporary_buffer += raw_buffer
 
     if len(temporary_buffer) == 0:
-      return u''
+      return b''
 
     decompressed_data = self.decompressor.decompress(temporary_buffer, size)
     return decompressed_data
