@@ -25,6 +25,7 @@ from dashboard import graph_json
 from dashboard import graph_revisions
 from dashboard import group_report
 from dashboard import layered_cache_delete_expired
+from dashboard import list_tests
 from dashboard import main
 from dashboard import migrate_test_names
 from dashboard import mark_recovered_alerts
@@ -308,7 +309,6 @@ if six.PY2:
   from dashboard import dump_graph_json
   from dashboard import get_diagnostics
   from dashboard import get_histogram
-  from dashboard import list_tests
   from dashboard import load_from_prod
   from dashboard import put_entities_task
   from dashboard import speed_releasing

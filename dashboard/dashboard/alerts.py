@@ -265,6 +265,6 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False):
 
 def _GetBisectStatusDict(anomalies):
   """Returns a dictionary of bug ID to bisect status string."""
-  bug_id_list = {a.bug_id for a in anomalies if a.bug_id > 0}
+  bug_id_list = {a.bug_id for a in anomalies if a.bug_id and a.bug_id > 0}
   bugs = ndb.get_multi(ndb.Key('Bug', b) for b in bug_id_list)
   return {b.key.id(): b.latest_bisect_status for b in bugs if b}
