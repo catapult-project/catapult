@@ -238,13 +238,13 @@ class ResultSinkReporterTest(unittest.TestCase):
                                                    expected=False)
         self.assertIn(output_filepath, self._host.files)
         self.assertEqual(json.loads(self._host.files[output_filepath]),
-                         [expected_result])
+                         expected_result)
 
     def testReportIndividualTestResultOutputFileMultiplePosts(self):
         output_filepath = '/tmp/output.json'
         self.setLuciContextWithContent({})
         rsr = ResultSinkReporterWithFakeSrc(
-                self._host, output_file=output_filepath)
+            self._host, output_file=output_filepath)
         result = CreateResult({
             'name': 'test_name',
             'actual': json_results.ResultType.Timeout,
@@ -260,8 +260,10 @@ class ResultSinkReporterTest(unittest.TestCase):
         expected_result = CreateExpectedTestResult(status='ABORT',
                                                    expected=False)
         self.assertIn(output_filepath, self._host.files)
-        self.assertEqual(json.loads(self._host.files[output_filepath]),
-                         [expected_result, expected_result])
+        got_results = [json.loads(
+                x) for x in self._host.files[output_filepath].rstrip(
+                '\n').split('\n')]
+        self.assertEqual(got_results, [expected_result, expected_result])
 
     def testReportIndividualTestResultFailureReason(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)

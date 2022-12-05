@@ -188,6 +188,9 @@ class Host(object):
     def time(self):
         return time.time()
 
+    def append_text_file(self, path, content):
+        return self._write(path, content, mode='a')
+
     def write_text_file(self, path, contents):
         return self._write(path, contents, mode='w')
 

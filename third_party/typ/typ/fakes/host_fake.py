@@ -241,6 +241,11 @@ class FakeHost(object):
     def write_text_file(self, path, contents):
         self._write(path, contents)
 
+    def append_text_file(self, path, contents):
+        full_path = self.abspath(path)
+        self.maybe_make_directory(self.dirname(full_path))
+        self.files[full_path] = self.files.get(full_path, '') + contents
+
     def _write(self, path, contents):
         full_path = self.abspath(path)
         self.maybe_make_directory(self.dirname(full_path))

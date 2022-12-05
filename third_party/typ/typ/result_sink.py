@@ -312,15 +312,12 @@ class ResultSinkReporter(object):
                 data=content)
             ret = 0 if res.ok else 1
         elif self._output_file:
-            if not self.host.isfile(self._output_file):
-                existing_content = []
-            else:
-                existing_content = json.loads(
-                        self.host.read_text_file(self._output_file))
-            assert isinstance(existing_content, list)
-            existing_content.extend(json.loads(content)['testResults'])
-            self.host.write_text_file(
-                    self._output_file, json.dumps(existing_content))
+            test_results = json.loads(content)['testResults']
+            # Append the test results to the jsonl file, where
+            # each line represents a test result in json string.
+            for t in test_results:
+                self.host.append_text_file(self._output_file,
+                                           '{}\n'.format(json.dumps(t)))
             ret = 0
         else:
             raise RuntimeError('Called _post without a session or output file')

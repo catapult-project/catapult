@@ -136,7 +136,9 @@ class ArgumentParser(argparse.ArgumentParser):
                               metavar='FILENAME',
                               action='store',
                               help=('Write ResultSink POST content to the '
-                                    'given file instead of actually POSTing. '
+                                    'given file in jsonl instead of actually '
+                                    'POSTing, where each test result is '
+                                    'represented as a json string in a new line.'
                                     'This is only intended as a workaround for '
                                     'Skylab where native ResultSink '
                                     'integration is not currently possible.'))
