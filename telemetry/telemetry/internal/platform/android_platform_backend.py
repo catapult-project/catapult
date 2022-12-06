@@ -592,7 +592,7 @@ class AndroidPlatformBackend(
       # the state clearing to finish, so sleep for now as a workaround. See
       # crbug.com/1383609 for more information.
       # This can be removed if ClearApplicationState is ever made synchronous.
-      time.sleep(5)
+      time.sleep(10)
     profile_dir = self.GetProfileDir(package)
     if not self._device.PathExists(profile_dir):
       return
