@@ -89,7 +89,8 @@ def AlertsHandlerPost():
       'anomaly_list': AnomalyDicts(anomalies),
       'anomaly_count': count,
       'sheriff_list': _GetSheriffList(),
-      'anomaly_cursor': (next_cursor.urlsafe() if next_cursor else None),
+      'anomaly_cursor':
+          (six.ensure_str(next_cursor.urlsafe()) if next_cursor else None),
       'show_more_anomalies': next_cursor != None,
   }
   request_handler.RequestHandlerGetDynamicVariables(values)
@@ -209,7 +210,7 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False):
       'dashboard_link': dashboard_link,
       'end_revision': anomaly_entity.end_revision,
       'improvement': anomaly_entity.is_improvement,
-      'key': anomaly_entity.key.urlsafe(),
+      'key': six.ensure_str(anomaly_entity.key.urlsafe()),
       'median_after_anomaly': anomaly_entity.median_after_anomaly,
       'median_before_anomaly': anomaly_entity.median_before_anomaly,
       'recovered': anomaly_entity.recovered,

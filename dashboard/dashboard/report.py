@@ -35,16 +35,11 @@ def ReportHandlerPost():
   chart_handler.GetDynamicVariablesFlask(values)
   return make_response(
       json.dumps({
-          'is_internal_user':
-              values['is_internal_user'],
-          'login_url':
-              values['login_url'],
-          'revision_info':
-              values['revision_info'],
-          'xsrf_token':
-              values['xsrf_token'],
-          'test_suites':
-              six.ensure_str(update_test_suites.FetchCachedTestSuites()),
+          'is_internal_user': values['is_internal_user'],
+          'login_url': values['login_url'],
+          'revision_info': values['revision_info'],
+          'xsrf_token': six.ensure_str(values['xsrf_token']),
+          'test_suites': update_test_suites.FetchCachedTestSuites(),
       }))
 
 

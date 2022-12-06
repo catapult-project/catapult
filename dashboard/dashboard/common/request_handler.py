@@ -73,7 +73,7 @@ def RequestHandlerGetDynamicVariables(template_values, request_path=None):
   if user:
     display_username = user.email()
     title = 'Switch user'
-    xsrf_token = xsrf.GenerateToken(user)
+    xsrf_token = six.ensure_str(xsrf.GenerateToken(user))
     is_admin = users.is_current_user_admin()
   try:
     login_url = users.create_login_url(request_path or request.full_path)
