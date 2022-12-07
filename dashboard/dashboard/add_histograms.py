@@ -128,6 +128,7 @@ def AddHistogramsPost():
       zlib.decompressobj().decompress(data_str, 100)
       logging.info('Received compressed data.')
     except zlib.error as e:
+      data_str = request.form['data']
       if not data_str:
         six.raise_from(
             api_request_handler.BadRequestError(
