@@ -201,21 +201,28 @@ def _DatastorePreHook(service, call, request, _):
   assert service == 'datastore_v3'
   if call != 'RunQuery':
     return
-  request_kind = request.kind() if six.PY2 else request.kind
-  if request_kind not in _INTERNAL_ONLY_KINDS:
-    return
   if IsUnalteredQueryPermitted():
     return
 
   # Add a filter for internal_only == False, because the user is external.
-  try:
-    external_filter = request.filter_list().add()
-  except AttributeError:
-    # This is required to support proto1, which may be used by the unit tests.
-    # Later, if we don't need to support proto1, then this can be removed.
-    external_filter = request.add_filter()
-  external_filter.set_op(datastore_pb.Query_Filter.EQUAL)
-  new_property = external_filter.add_property()
-  new_property.set_name('internal_only')
-  new_property.mutable_value().set_booleanvalue(False)
-  new_property.set_multiple(False)
+  if six.PY2:
+    if request.kind() not in _INTERNAL_ONLY_KINDS:
+      return
+    try:
+      external_filter = request.filter_list().add()
+    except AttributeError:
+      external_filter = request.add_filter()
+    external_filter.set_op(datastore_pb.Query_Filter.EQUAL)
+    new_property = external_filter.add_property()
+    new_property.set_name('internal_only')
+    new_property.mutable_value().set_booleanvalue(False)
+    new_property.set_multiple(False)
+  else:
+    if request.kind not in _INTERNAL_ONLY_KINDS:
+      return
+    query_filter = request.filter.add()
+    query_filter.op = datastore_pb.Query.Filter.EQUAL
+    filter_property = query_filter.property.add()
+    filter_property.name = 'internal_only'
+    filter_property.value.booleanValue = False
+    filter_property.multiple = False
