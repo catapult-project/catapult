@@ -19,7 +19,7 @@ from google.appengine.api import urlfetch_errors
 from dashboard.common import utils
 
 _CACHE_DURATION = 60 * 60 * 24 * 7  # 1 week.
-_VULNERABILITY_PREFIX = ")]}'\n"
+_VULNERABILITY_PREFIX = b")]}'\n"
 
 
 class RequestError(http_client.HTTPException):
@@ -42,7 +42,7 @@ def RequestJson(*args, **kwargs):
   See the documentation for Request() for details
   about the arguments and exceptions.
   """
-  content = Request(*args, **kwargs)
+  content = six.ensure_binary(Request(*args, **kwargs))
   if content.startswith(_VULNERABILITY_PREFIX):
     content = content[len(_VULNERABILITY_PREFIX):]
   return json.loads(content)
