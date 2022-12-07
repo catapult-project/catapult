@@ -33,14 +33,14 @@ found in the LICENSE file.
       <td>{{link(anomaly)}}{{anomaly.testsuite}}</a></td>
       <td>{{link(anomaly)}}{{anomaly.test}}</a></td>
       {% if show_bugs %}
-        {% if anomaly.bug_id > 0 and anomaly.bug_id != '' %}
+        {% if anomaly.bug_id | int > 0 and anomaly.bug_id != '' %}
           <td><a href="http://crbug.com/{{anomaly.bug_id}}"
                  target="_blank"
                  title="View bug"
                  class="change-table">{{anomaly.bug_id}}</a></td>
-        {% elif anomaly.bug_id == -1 %}
+        {% elif anomaly.bug_id | int == -1 %}
           <td>INVALID</td>
-        {% elif anomaly.bug_id == -2 %}
+        {% elif anomaly.bug_id | int == -2 %}
           <td>IGNORED</td>
         {% else %}
           <td>NONE</td>
