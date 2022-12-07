@@ -133,7 +133,7 @@ def AddHistogramsPost():
         six.raise_from(
             api_request_handler.BadRequestError(
                 'Missing or uncompressed data.'), e)
-      data_str = zlib.compress(data_str)
+      data_str = zlib.compress(six.ensure_binary(data_str))
       logging.info('Received uncompressed data.')
 
   if not data_str:
