@@ -37,8 +37,7 @@ SYSTEM_CONDITION_TAGS = frozenset([
     'android-pie', 'android-10', 'android-webview-google', 'reference',
     'android-chromium', 'ubuntu', 'android-kitkat', 'highsierra', 'sierra',
     'smart-display', 'web-engine-shell', 'mac-10.11', 'release', 'exact',
-    'debug', 'android-weblayer', 'win-laptop', 'android-pixel-4a',
-    'cast-streaming-shell',
+    'debug', 'win-laptop', 'android-pixel-4a', 'cast-streaming-shell',
 ])
 
 

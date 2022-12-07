@@ -447,7 +447,7 @@ class BrowserFinderOptions(optparse.Values):
     This check is used to sidestep any unnecessary work involved with searching
     for a browser that might not actually be needed. For example, this check
     could be used to prevent Telemetry from searching for a Clank browser if
-    browser_type is android-weblayer.
+    browser_type is android-webview.
     """
     return (browser_type == self.browser_type or
             self.browser_type in ('list', 'any',))

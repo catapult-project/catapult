@@ -674,7 +674,6 @@ SUFFIXES = {
     '_android_chrome',
     '_android_monochrome',
     '_android_monochrome_bundle',
-    '_android_weblayer',
     '_android_webview',
     '_android_clank_chrome',
     '_android_clank_monochrome',

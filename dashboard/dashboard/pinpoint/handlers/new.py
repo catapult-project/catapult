@@ -34,7 +34,6 @@ _ERROR_UNSUPPORTED = 'This benchmark (%s) is unsupported.'
 _ERROR_PRIORITY = 'Priority must be an integer.'
 
 REGULAR_TELEMETRY_TESTS = {
-    'performance_weblayer_test_suite',
     'performance_webview_test_suite',
 }
 SUFFIXED_REGULAR_TELEMETRY_TESTS = {
@@ -46,7 +45,6 @@ SUFFIXES = {
     '_android_chrome',
     '_android_monochrome',
     '_android_monochrome_bundle',
-    '_android_weblayer',
     '_android_webview',
     '_android_clank_chrome',
     '_android_clank_monochrome',

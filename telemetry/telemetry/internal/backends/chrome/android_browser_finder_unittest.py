@@ -211,21 +211,6 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
       self.assertIn('android',
                     possible_browser.GetTypExpectationsTags())
 
-  def testAndroidWeblayerTagInTypExpectationsTags(self):
-    self.finder_options.modules_to_install = ['base']
-    self.fs.CreateFile('foo_bundle')
-    with mock.patch.object(self.fake_platform,
-                           'GetTypExpectationsTags', return_value=['android']):
-      possible_browser = android_browser_finder.PossibleAndroidBrowser(
-          'android-weblayer', self.finder_options, self.fake_platform,
-          android_browser_backend_settings.ANDROID_WEBLAYER,
-          'foo_bundle')
-      self.assertIn('android-weblayer',
-                    possible_browser.GetTypExpectationsTags())
-      self.assertIn('android',
-                    possible_browser.GetTypExpectationsTags())
-
-
 
 def _MockPossibleBrowser(modified_at):
   m = mock.Mock(spec=android_browser_finder.PossibleAndroidBrowser)
