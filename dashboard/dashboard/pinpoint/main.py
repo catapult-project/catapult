@@ -13,7 +13,10 @@ import six
 if six.PY3:
   import logging
   import google.cloud.logging
+  from dashboard.common import datastore_hooks
+
   google.cloud.logging.Client().setup_logging(log_level=logging.DEBUG)
+  datastore_hooks.InstallHooks()
 
 from dashboard.pinpoint import dispatcher
 

@@ -46,7 +46,10 @@ from dashboard.api import timeseries2
 
 if six.PY3:
   import google.cloud.logging
+  from dashboard.common import datastore_hooks  # pylint: disable=ungrouped-imports
+
   google.cloud.logging.Client().setup_logging(log_level=logging.DEBUG)
+  datastore_hooks.InstallHooks()
 
 from flask import Flask
 flask_app = Flask(__name__)
