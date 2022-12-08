@@ -44,6 +44,7 @@ if __name__ == '__main__':
     # This is a temporary solution which will exit if any sub-folder fails.
     root = [
       'dashboard/common',
+      'dashboard/models',
       'dashboard/pinpoint',
       'dashboard/services'
       ]
