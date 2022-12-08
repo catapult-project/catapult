@@ -484,6 +484,22 @@ class UtilsTest(testing_common.TestCase):
     self.assertFalse(utils.IsMonitored(sheriff_client, 'test'))
 
 
+  def testConvertBytesBeforeJsonDumps(self):
+    none_obj = None
+    self.assertEqual(None, utils.ConvertBytesBeforeJsonDumps(none_obj),
+                     'Fail converting none object')
+
+    dict_obj = {'a': b'aa', 'b': [b'bb', 'cc']}
+    self.assertEqual('{"a": "aa", "b": ["bb", "cc"]}',
+                     json.dumps(utils.ConvertBytesBeforeJsonDumps(dict_obj)),
+                     'Fail converting dict object')
+
+    list_obj = [{'a': b'aa', 'b': b'bb'}, {'c': b'cc'}]
+    self.assertEqual('[{"a": "aa", "b": "bb"}, {"c": "cc"}]',
+                     json.dumps(utils.ConvertBytesBeforeJsonDumps(list_obj)),
+                     'Fail converting list object')
+
+
 def _MakeMockFetch(base64_encoded=True, status=200):
   """Returns a mock fetch object that returns a canned response."""
 

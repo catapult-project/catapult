@@ -894,3 +894,26 @@ def LogObsoleteHandlerUsage(handler, method):
   class_name = type(handler).__name__
   logging.warning('Obsolete PY2 handler is called unexpectedly. %s:%s',
                   class_name, method)
+
+
+def ConvertBytesBeforeJsonDumps(src):
+  """ convert a json object to safe to do json.dumps()
+
+  During the python 3 migration, we have seen multiple cases that raw data
+  is loaded as part of a json object but in bytes. This will fail the
+  json.dumps() calls on this object. We want to convert all the bytes to
+  avoid this situation.
+  """
+
+  if isinstance(src, dict):
+    for k, v in src.items():
+      if isinstance(v, bytes):
+        src[k] = six.ensure_str(v)
+      else:
+        src[k] = ConvertBytesBeforeJsonDumps(v)
+  elif isinstance(src, list):
+    for i, v in enumerate(src):
+      src[i] = ConvertBytesBeforeJsonDumps(v)
+  elif isinstance(src, bytes):
+    return six.ensure_str(src)
+  return src

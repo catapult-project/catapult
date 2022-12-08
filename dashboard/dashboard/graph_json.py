@@ -498,11 +498,11 @@ def _GetFlotJson(revision_map, tests):
       series_dict.setdefault(data_index, data_dict)
 
   return json.dumps(
-      {
+      utils.ConvertBytesBeforeJsonDumps({
           'data': cols,
           'annotations': flot_annotations,
           'error_bars': error_bars,
-      },
+      }),
       allow_nan=False)
 
 
