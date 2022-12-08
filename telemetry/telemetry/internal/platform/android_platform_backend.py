@@ -582,17 +582,11 @@ class AndroidPlatformBackend(
     # directory deletion afterwards on the off chance that we are somehow using
     # the non-default directory.
     if not self._require_root:
-      self._device.ClearApplicationState(package)
-      # State clearing is usually done basically immediately, but it seems that
-      # the underlying adb command returns immediately upon finding the correct
-      # package and sending of an intent to clear the data, i.e. the actual
-      # clearing is asynchronous. This can cause problems if we start trying to
-      # run a test, as it can cause issues like databases being deleted out from
-      # under the test. There does not appear to be a simple way to wait for
-      # the state clearing to finish, so sleep for now as a workaround. See
-      # crbug.com/1383609 for more information.
-      # This can be removed if ClearApplicationState is ever made synchronous.
-      time.sleep(10)
+      # We specify to wait for the asynchronous intent since there have been
+      # known problems with it deleting data out from under a test. See
+      # crbug.com/1383609 for an example.
+      self._device.ClearApplicationState(
+          package, wait_for_asynchronous_intent=True)
     profile_dir = self.GetProfileDir(package)
     if not self._device.PathExists(profile_dir):
       return
