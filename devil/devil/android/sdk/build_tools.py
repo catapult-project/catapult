@@ -9,6 +9,7 @@ from devil.utils import lazy
 
 with devil_env.SysPath(devil_env.DEPENDENCY_MANAGER_PATH):
   import dependency_manager  # pylint: disable=import-error
+  import dependency_manager.exceptions as exceptions
 
 
 def GetPath(build_tool):
@@ -40,7 +41,10 @@ def _PathInLocalSdk(build_tool):
 
 
 def _FindBuildTools():
-  android_sdk_path = devil_env.config.LocalPath('android_sdk')
+  try:
+    android_sdk_path = devil_env.config.LocalPath('android_sdk')
+  except exceptions.NoPathFoundError:
+    return None
   if not android_sdk_path:
     return None
 
