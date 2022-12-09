@@ -126,6 +126,28 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         browser_cmd, stdout=self._tmp_output_file, stderr=subprocess.STDOUT)
 
   def _StartCastStreamingShell(self, startup_args):
+    session_cmd = [
+      'session',
+      'launch',
+      'fuchsia-pkg://%s/smart_session#meta/smart_session.cm' %
+      self._managed_repo,
+    ]
+    logging.debug('Starting session: %s', ' '.join(session_cmd))
+    self._command_runner.run_ffx_command(
+        session_cmd,
+        stdout=self._tmp_output_file,
+        stderr=subprocess.STDOUT)
+
+    session_show_cmd = [
+      'session',
+      'show',
+    ]
+    logging.debug('Waiting for session: %s', ' '.join(session_show_cmd))
+    self._command_runner.run_ffx_command(
+        session_show_cmd,
+        stdout=self._tmp_output_file,
+        stderr=subprocess.STDOUT)
+
     browser_cmd = [
         'test',
         'run',
