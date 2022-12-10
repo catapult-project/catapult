@@ -49,6 +49,7 @@ if six.PY3:
   from dashboard.common import datastore_hooks  # pylint: disable=ungrouped-imports
 
   google.cloud.logging.Client().setup_logging(log_level=logging.DEBUG)
+  logging.getLogger("urllib3").setLevel(logging.INFO)
   datastore_hooks.InstallHooks()
 
 from flask import Flask
