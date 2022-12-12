@@ -343,6 +343,8 @@ def FindAllAvailableBrowsers(finder_options, device):
   if sys.platform == 'darwin':
     chromium_app_names.append('Chromium.app/Contents/MacOS/Chromium')
     chromium_app_names.append('Google Chrome.app/Contents/MacOS/Google Chrome')
+    chromium_app_names.append('Google Chrome for Testing.app/' +
+                              'Contents/MacOS/Google Chrome for Testing')
     content_shell_app_name = 'Content Shell.app/Contents/MacOS/Content Shell'
   elif sys.platform.startswith('linux'):
     chromium_app_names.append('chrome')
