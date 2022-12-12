@@ -52,7 +52,8 @@ def _AdditionalDetails(bug_id, project_id, alerts):
   """Returns a message with additional information to add to a bug."""
   base_url = '%s/group_report' % _GetServerURL()
   bug_page_url = '%s?bug_id=%s&project_id=%s' % (base_url, bug_id, project_id)
-  sid = short_uri.GetOrCreatePageState(json.dumps(_UrlsafeKeys(alerts)))
+  alert_keys = utils.ConvertBytesBeforeJsonDumps(_UrlsafeKeys(alerts))
+  sid = short_uri.GetOrCreatePageState(json.dumps(alert_keys))
   alerts_url = '%s?sid=%s' % (base_url, sid)
   comment = '<b>All graphs for this bug:</b>\n  %s\n\n' % bug_page_url
   comment += (
