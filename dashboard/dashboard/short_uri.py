@@ -119,7 +119,7 @@ def GetOrCreatePageState(state):
 
 def GenerateHash(state_string):
   """Generates a hash for a state string."""
-  return hashlib.sha256(state_string).hexdigest()
+  return hashlib.sha256(six.ensure_binary(state_string)).hexdigest()
 
 
 def _UpgradeChart(chart):
