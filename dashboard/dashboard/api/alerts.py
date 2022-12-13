@@ -14,6 +14,7 @@ from dashboard import alerts
 from dashboard.api import api_request_handler
 from dashboard.api import utils
 from dashboard.common import request_handler
+from dashboard.common import utils as dashboard_utils
 from dashboard.models import anomaly
 from dashboard.models import report_template
 
@@ -90,6 +91,7 @@ def AlertsPost():
 
   response['anomalies'] = alerts.AnomalyDicts(
       alert_list, utils.ParseBool(request.values.get('v2', None)))
+  response = dashboard_utils.ConvertBytesBeforeJsonDumps(response)
   return response
 
 

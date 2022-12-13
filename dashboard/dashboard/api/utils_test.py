@@ -6,13 +6,11 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-# import six
 import unittest
 
 from dashboard.api import utils
 
 
-# @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class ParseBoolTest(unittest.TestCase):
 
   def testTrueValues(self):

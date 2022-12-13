@@ -98,6 +98,9 @@ class TestCase(unittest.TestCase):
     if six.PY2:
       self.testapp = webtest.TestApp(webapp2.WSGIApplication(handlers))
 
+  def SetUpFlaskApp(self, flask_app):
+    self.testapp = webtest.TestApp(flask_app)
+
   def PatchEnviron(self, path):
     environ_patch = {'PATH_INFO': path}
     try:
