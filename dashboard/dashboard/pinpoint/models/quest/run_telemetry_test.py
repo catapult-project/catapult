@@ -41,6 +41,9 @@ _WATERFALL_ENABLED_GTEST_NAMES = {
         '--gtest_filter=*/TabCapturePerformanceTest.*:'
         '*/CastV2PerformanceTest.*',
     ],
+    'sync_performance_tests': [
+        '--test-launcher-jobs=1', '--test-launcher-retry-limit=0'
+    ],
     'tracing_perftests': [],
     'views_perftests': ['--xvfb']
 }
@@ -54,6 +57,7 @@ GTEST_EXECUTABLE_NAME = {
     'gpu_perftests': 'gpu_perftests',
     'load_library_perf_tests': 'load_library_perf_tests',
     'performance_browser_tests': 'browser_tests',
+    'sync_performance_tests': 'sync_performance_tests',
     'tracing_perftests': 'tracing_perftests',
     'views_perftests': 'views_perftests'
 }
