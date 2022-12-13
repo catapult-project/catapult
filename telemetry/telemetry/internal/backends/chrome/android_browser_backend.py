@@ -338,7 +338,9 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       logging.exception('Failed to store UI dump')
 
   def _StoreLogcatAsArtifact(self, suffix):
-    logcat = self.platform_backend.GetLogCat()
+    # Get more lines than the default since this is likely to be run after a
+    # failure, so this gives us a better chance of getting useful debug info.
+    logcat = self.platform_backend.GetLogCat(number_of_lines=3000)
     artifact_name = posixpath.join(
         self.DEBUG_ARTIFACT_PREFIX, 'logcat-%s.txt' % suffix)
     artifact_logger.CreateArtifact(artifact_name, logcat)

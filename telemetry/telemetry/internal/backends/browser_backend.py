@@ -307,7 +307,7 @@ class BrowserBackend(app_backend.AppBackend):
     logging.log(log_level,
                 'Found %d unsymbolized minidumps leftover from %s. Outputting '
                 'below: ', len(unsymbolized_paths), culprit_test)
-    self._SymbolizeAndLogMinidumps(log_level, debug_data.DebugData())
+    self.CollectDebugData(log_level)
     if fatal:
       raise RuntimeError(
           'Test left unsymbolized minidumps around after finishing.')
