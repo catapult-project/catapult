@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import datetime
 import json
+import six
 import unittest
 import uuid
 
@@ -32,6 +33,7 @@ _TEST_HISTOGRAM_DATA = {
 }
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class Timeseries2Test(testing_common.TestCase):
 
   def setUp(self):

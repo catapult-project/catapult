@@ -1,5 +1,13 @@
 version: "3"
 services:
+  my-compose:
+    image: dashboard-base:latest
+    volumes:
+      - ../..:/image/workspace:ro
+    command: [/bin/sh]
+    #entrypoint: /bin/sh
+    stdin_open: true
+    tty: true
   dashboard-base:
     build: .
     image: dashboard-base:latest

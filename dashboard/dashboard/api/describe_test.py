@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import six
 import unittest
 
 from dashboard import update_test_suite_descriptors
@@ -19,6 +20,7 @@ from dashboard.common import utils
 TEST_SUITE_NAME = 'test_suite'
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class DescribeTest(testing_common.TestCase):
 
   def setUp(self):

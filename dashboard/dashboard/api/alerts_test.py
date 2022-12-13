@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import datetime
 import json
+import six
 import unittest
 
 from dashboard.api import alerts
@@ -19,6 +20,7 @@ from dashboard.models import report_template
 from dashboard.models.subscription import Subscription
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class AlertsGeneralTest(testing_common.TestCase):
 
   def setUp(self):

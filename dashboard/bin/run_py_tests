@@ -43,6 +43,7 @@ if __name__ == '__main__':
     # Before all tests are passing, we will run tests in some sub-folders.
     # This is a temporary solution which will exit if any sub-folder fails.
     root = [
+      'dashboard/api',
       'dashboard/common',
       'dashboard/models',
       'dashboard/pinpoint',
