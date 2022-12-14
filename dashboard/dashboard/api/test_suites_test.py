@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from flask import Flask
 import json
 import six
 import unittest
@@ -18,15 +19,24 @@ from dashboard.common import namespaced_stored_object
 from dashboard.common import stored_object
 from dashboard.common import testing_common
 
+flask_app = Flask(__name__)
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+
+@flask_app.route('/api/test_suites', methods=['POST', 'OPTIONS'])
+def TestSuitesPost():
+  return test_suites.TestSuitesPost()
+
+
 class TestSuitesTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(TestSuitesTest, self).setUp()
-    self.SetUpApp([('/api/test_suites', test_suites.TestSuitesHandler)])
+    if six.PY2:
+      self.SetUpApp([('/api/test_suites', test_suites.TestSuitesHandler)])
+    else:
+      self.SetUpFlaskApp(flask_app)
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     external_key = namespaced_stored_object.NamespaceKey(
         update_test_suites.TEST_SUITES_2_CACHE_KEY, datastore_hooks.EXTERNAL)
