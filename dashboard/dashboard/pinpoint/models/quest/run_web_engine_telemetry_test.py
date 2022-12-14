@@ -20,11 +20,13 @@ IMAGE_FLAG = '--system-image-dir='
 DEFAULT_IMAGE_PATH = ('../../third_party/fuchsia-sdk/images-internal/%s/%s')
 IMAGE_MAP = {
     'astro': ('astro-release', 'smart_display_eng_arrested'),
+    'nelson': ('nelson-release', 'smart_display_m3_eng_paused'),
     'sherlock': ('sherlock-release', 'smart_display_max_eng_arrested'),
 }
 
 PB_IMAGE_MAP = {
     'atlas': 'workstation_eng.chromebook-x64',
+    'nuc': 'workstation_eng.x64',
 }
 
 _DEFAULT_EXEC_PREFIX = 'bin/run_'
