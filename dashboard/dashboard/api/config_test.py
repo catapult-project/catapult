@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from flask import Flask
 import json
 import six
 import unittest
@@ -17,15 +18,24 @@ from dashboard.common import namespaced_stored_object
 from dashboard.common import stored_object
 from dashboard.common import testing_common
 
+flask_app = Flask(__name__)
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+
+@flask_app.route(r'/api/config', methods=['POST'])
+def ConfigHandlerPost():
+  return config.ConfigHandlerPost()
+
+
 class ConfigTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(ConfigTest, self).setUp()
-    self.SetUpApp([(r'/api/config', config.ConfigHandler)])
+    if six.PY2:
+      self.SetUpApp([(r'/api/config', config.ConfigHandler)])
+    else:
+      self.SetUpFlaskApp(flask_app)
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     external_key = namespaced_stored_object.NamespaceKey(
         config.ALLOWLIST[0], datastore_hooks.EXTERNAL)
@@ -35,7 +45,9 @@ class ConfigTest(testing_common.TestCase):
     stored_object.Set(internal_key, datastore_hooks.INTERNAL)
 
   def _Post(self, suite):
-    return json.loads(self.Post('/api/config?key=' + suite).body)
+    if six.PY2:
+      return json.loads(self.Post('/api/config?key=' + suite).body)
+    return json.loads(self.Post('/api/config', {'key': suite}).body)
 
   def testNotInAllowlist(self):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)

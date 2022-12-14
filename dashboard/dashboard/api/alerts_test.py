@@ -28,7 +28,6 @@ def ApiAlertsPost():
   return alerts.AlertsPost()
 
 
-# @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class AlertsGeneralTest(testing_common.TestCase):
 
   def setUp(self):
