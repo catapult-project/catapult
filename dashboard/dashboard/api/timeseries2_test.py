@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import datetime
+from flask import Flask
 import json
 import six
 import unittest
@@ -32,15 +33,24 @@ _TEST_HISTOGRAM_DATA = {
     'unit': 'count'
 }
 
+flask_app = Flask(__name__)
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+
+@flask_app.route('/api/timeseries2', methods=['POST'])
+def TimeSeries2Post():
+  return timeseries2.TimeSeries2Post()
+
+
 class Timeseries2Test(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(Timeseries2Test, self).setUp()
-    self.SetUpApp([('/api/timeseries2', timeseries2.Timeseries2Handler)])
+    if six.PY2:
+      self.SetUpApp([('/api/timeseries2', timeseries2.Timeseries2Handler)])
+    else:
+      self.SetUpFlaskApp(flask_app)
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     self.SetCurrentUserOAuth(None)
 
