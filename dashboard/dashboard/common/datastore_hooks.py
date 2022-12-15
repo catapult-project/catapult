@@ -170,13 +170,13 @@ def IsUnalteredQueryPermitted(flask_flag=False):
   Returns:
     True for users with google.com emails and privileged requests.
   """
+  if _IsServicingPrivilegedRequest(flask_flag):
+    return True
   if utils.IsInternalUser():
     return True
-  if users.is_current_user_admin():
-    # It's possible to be an admin with a non-internal account; For example,
-    # the default login for dev appserver instances is test@example.com.
-    return True
-  return _IsServicingPrivilegedRequest(flask_flag)
+  # It's possible to be an admin with a non-internal account; For example,
+  # the default login for dev appserver instances is test@example.com.
+  return users.is_current_user_admin()
 
 
 def GetNamespace():
