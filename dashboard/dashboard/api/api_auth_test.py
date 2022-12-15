@@ -7,7 +7,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 import mock
-import six
 import unittest
 
 from dashboard.api import api_auth
@@ -16,7 +15,6 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class ApiAuthTest(testing_common.TestCase):
 
   def setUp(self):

@@ -117,7 +117,7 @@ class TestCase(unittest.TestCase):
         environ_patch['HTTP_AUTHORIZATION'] = ''
     except oauth.Error:
       pass
-    if six.PY3:
+    if six.PY3 and self.testapp:
       # In Python 3, the 'HTTP_AUTHORIZATION' is found removed in the handler.
       self.testapp.extra_environ.update(environ_patch)
     return mock.patch.dict(os.environ, environ_patch)
