@@ -16,7 +16,8 @@ from devil.utils import lazy
 
 _DEFAULT_TIMEOUT = 30
 _DEFAULT_RETRIES = 3
-_FLASH_TIMEOUT = _DEFAULT_TIMEOUT * 10
+_FLASH_TIMEOUT = _DEFAULT_TIMEOUT * 10  # 5 mins
+_FLASHALL_TIMEOUT = _FLASH_TIMEOUT * 6  # 30 mins
 
 
 class Fastboot(object):
@@ -43,44 +44,71 @@ class Fastboot(object):
     return self._device_serial
 
   @classmethod
-  def _RunFastbootCommand(cls, cmd):
+  def _BuildFastbootCommand(cls, args, device_serial):
+    if not isinstance(args, list):
+      raise TypeError('Command for _BuildFastbootCommand must be a list.')
+
+    cmd = []
+    cmd.append(cls._fastboot_path.read())
+    if device_serial is not None:
+      cmd.extend(['-s', device_serial])
+    cmd.extend(args)
+    return cmd
+
+  @classmethod
+  def _RunFastbootCommand(cls, args, device_serial=None, env=None):
     """Run a generic fastboot command.
 
     Args:
-      cmd: Command to run. Must be list of args, the first one being the command
+      args: A list of arguments to fastboot, the first one being the command.
+      device_serial: (Optional) the serial of the device.
+      env: (Optional) a dict containing environments needed to run the command.
 
     Returns:
       output of command.
 
     Raises:
-      TypeError: If cmd is not of type list.
+      TypeError: If args is not of type list.
     """
-    if isinstance(cmd, list):
-      cmd = [cls._fastboot_path.read()] + cmd
-    else:
-      raise TypeError('Command for _RunDeviceFastbootCommand must be a list.')
+    cmd = cls._BuildFastbootCommand(args, device_serial)
     # fastboot can't be trusted to keep non-error output out of stderr, so
     # capture stderr as part of stdout.
-    status, output = cmd_helper.GetCmdStatusAndOutput(cmd, merge_stderr=True)
+    status, output = cmd_helper.GetCmdStatusAndOutput(cmd,
+                                                      env=env,
+                                                      merge_stderr=True)
     if int(status) != 0:
       raise device_errors.FastbootCommandFailedError(cmd, output, status)
     return output
 
-  def _RunDeviceFastbootCommand(self, cmd):
+  def _RunDeviceFastbootCommand(self, args, env=None):
     """Run a fastboot command on the device associated with this object.
 
     Args:
-      cmd: Command to run. Must be list of args, the first one being the command
+      args: A list of arguments to fastboot, the first one being the command.
+      env: (Optional) a dict containing environments needed to run the command.
 
     Returns:
       output of command.
 
     Raises:
-      TypeError: If cmd is not of type list.
+      TypeError: If args is not of type list.
     """
-    if isinstance(cmd, list):
-      cmd = ['-s', self._device_serial] + cmd
-    return self._RunFastbootCommand(cmd)
+    return self._RunFastbootCommand(args,
+                                    device_serial=self._device_serial,
+                                    env=env)
+
+  def _IterDeviceFastbootCommand(self, args, env=None):
+    """Runs a fastboot command and returns an iterator over its output lines.
+
+    Args:
+      args: A list of arguments to fastboot, the first one being the command
+      env: (Optional) a dict containing environments needed to run the command.
+
+    Yields:
+      The output of the command line by line.
+    """
+    cmd = self._BuildFastbootCommand(args, self._device_serial)
+    return cmd_helper.IterCmdOutputLines(cmd, env=env, check_status=True)
 
   @decorators.WithTimeoutAndRetriesDefaults(_DEFAULT_TIMEOUT, _DEFAULT_RETRIES)
   def GetVar(self, variable, timeout=None, retries=None):
@@ -105,6 +133,32 @@ class Fastboot(object):
     """
     self._RunDeviceFastbootCommand(['flash', partition, image])
 
+  @decorators.WithTimeoutAndRetriesDefaults(_FLASHALL_TIMEOUT, 0)
+  def FlashAll(self,
+               directory,
+               force=False,
+               skip_reboot=False,
+               timeout=None,
+               retries=None):
+    """Flash all the image files from the given partition.
+
+    Args:
+      directory: Directory that contains all the images to flash with.
+      force: Force the flash operation, if set to true.
+      skip_reboot: Don't reboot the device after flash, if set to true.
+
+    Yields:
+      The output of the flashall command line by line.
+    """
+    env = {'ANDROID_PRODUCT_OUT': directory}
+    cmd = []
+    if force:
+      cmd.append('--force')
+    if skip_reboot:
+      cmd.append('--skip-reboot')
+    cmd.append('flashall')
+    return self._IterDeviceFastbootCommand(cmd, env=env)
+
   @classmethod
   @decorators.WithTimeoutAndRetriesDefaults(_DEFAULT_TIMEOUT, _DEFAULT_RETRIES)
   def Devices(cls, timeout=None, retries=None):
@@ -114,7 +168,8 @@ class Fastboot(object):
       List of Fastboot objects, one for each device in fastboot.
     """
     output = cls._RunFastbootCommand(['devices'])
-    return [Fastboot(line.split()[0]) for line in output.splitlines()]
+    # fastboot v33.0.3 returns an empty line at the end
+    return [Fastboot(line.split()[0]) for line in output.splitlines() if line]
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RebootBootloader(self, timeout=None, retries=None):

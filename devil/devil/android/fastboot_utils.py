@@ -5,11 +5,11 @@
 # pylint: disable=unused-argument
 
 import collections
-import contextlib
 import fnmatch
 import logging
 import os
 import re
+import subprocess
 
 from devil.android import decorators
 from devil.android import device_errors
@@ -22,52 +22,77 @@ logger = logging.getLogger(__name__)
 _DEFAULT_TIMEOUT = 30
 _DEFAULT_RETRIES = 3
 _FASTBOOT_REBOOT_TIMEOUT = 10 * _DEFAULT_TIMEOUT
-_KNOWN_PARTITIONS = collections.OrderedDict([
-    ('bootloader', {
-        'image': 'bootloader*.img',
-        'restart': True
-    }),
-    ('radio', {
-        'image': 'radio*.img',
-        'restart': True
-    }),
-    ('boot', {
-        'image': 'boot.img'
-    }),
-    # recovery.img moved into boot.img for A/B devices. See:
-    # https://source.android.com/devices/tech/ota/ab/ab_implement#recovery
-    ('recovery', {
-        'image': 'recovery.img',
-        'optional': lambda fu: fu.supports_ab
-    }),
-    ('system', {
-        'image': 'system.img'
-    }),
-    ('userdata', {
-        'image': 'userdata.img',
-        'wipe_only': True
-    }),
-    # cache.img deprecated for A/B devices. See:
-    # https://source.android.com/devices/tech/ota/ab/ab_implement#cache
-    ('cache', {
-        'image': 'cache.img',
-        'wipe_only': True,
-        'optional': lambda fu: fu.supports_ab
-    }),
-    ('vendor', {
-        'image': 'vendor*.img',
-        'optional': lambda _: True
-    }),
-    ('dtbo', {
-        'image': 'dtbo.img',
-        'optional': lambda fu: not fu.requires_dtbo
-    }),
-    ('vbmeta', {
-        'image': 'vbmeta.img',
-        'optional': lambda fu: not fu.requires_vbmeta
-    }),
+
+PartitionInfo = collections.namedtuple('PartitionInfo', [
+    'image',     # The image name to look for. Can contain *.
+    'optional',  # If this image is optional.
+    'restart',   # If to restart the device after flashing the image.
 ])
-ALL_PARTITIONS = _KNOWN_PARTITIONS.keys()
+
+# These partitions need to be flashed before calling flashall
+# so that the device can pass the requirement check.
+_VERIFICATION_PARTITIONS = collections.OrderedDict([
+    ('bootloader', PartitionInfo(
+        image='bootloader*.img',
+        optional=False,
+        restart=True,
+    )),
+    ('radio', PartitionInfo(
+        image='radio*.img',
+        optional=False,
+        restart=True,
+    )),
+])
+
+# This partitions will be flashed when wipe is set to true.
+_WIPE_PARTITIONS = collections.OrderedDict([
+    ('userdata', PartitionInfo(
+        image='userdata.img',
+        optional=False,
+        restart=False,
+    )),
+    ('cache', PartitionInfo(
+        image='cache.img',
+        optional=True,
+        restart=False,
+    )),
+])
+
+
+def _FindAndVerifyPartitionsAndImages(partitions, directory):
+  """Validate partitions and images.
+
+  Validate all partition names and partition directories. Cannot stop mid
+  flash so its important to validate everything first.
+
+  Args:
+    partitions: partitions to be tested.
+    directory: directory containing the images.
+
+  Returns:
+    Dictionary with exact partition, image name mapping.
+  """
+
+  files = os.listdir(directory)
+  return_dict = collections.OrderedDict()
+
+  def find_file(pattern):
+    for filename in files:
+      if fnmatch.fnmatch(filename, pattern):
+        return os.path.join(directory, filename)
+    return None
+
+  for partition, partition_info in partitions.items():
+    image_file = find_file(partition_info.image)
+    if image_file:
+      return_dict[partition] = image_file
+    elif not partition_info.optional:
+      raise device_errors.FastbootCommandFailedError(
+          [],
+          '',
+          message='Failed to flash device. Could not find image for %s.' %
+          partition_info.image)
+  return return_dict
 
 
 class FastbootUtils(object):
@@ -116,67 +141,8 @@ class FastbootUtils(object):
     self._default_timeout = default_timeout
     self._default_retries = default_retries
 
-    self._supports_ab = None
-    self._requires_dtbo = None
-    self._requires_vbmeta = None
-
-  @property
-  def supports_ab(self):
-    """returns boolean to indicate if a device supports A/B updates.
-
-    It appears that boards which support A/B updates have different partition
-    requirements when flashing.
-    """
-    if self._supports_ab is None:
-      if self.IsFastbootMode():
-        try:
-          # According to https://bit.ly/2XIuICQ, slot-count is used to
-          # determine if a device supports A/B updates.
-          slot_count = self.fastboot.GetVar('slot-count') or '0'
-          self._supports_ab = int(slot_count) >= 2
-        except device_errors.FastbootCommandFailedError:
-          self._supports_ab = False
-      else:
-        # According to https://bit.ly/2UlJkGa and https://bit.ly/2MG8CL0,
-        # the property 'ro.build.ab_update' will be defined if the device
-        # supports A/B system updates.
-        self._supports_ab = self._device.GetProp('ro.build.ab_update') == 'true'
-
-    return self._supports_ab
-
-  @property
-  def requires_dtbo(self):
-    if self._requires_dtbo is None:
-      if self.IsFastbootMode():
-        try:
-          self._requires_dtbo = self.fastboot.GetVar('has-slot:dtbo') == 'yes'
-        except device_errors.FastbootCommandFailedError:
-          self._requires_dtbo = False
-      else:
-        # This prop will be set when a device supports dtbo.
-        # See https://bit.ly/2VUjBp0.
-        # Checking if this prop has a non-empty value should be good enough.
-        self._requires_dtbo = len(self._device.GetProp('ro.boot.dtbo_idx')) > 0
-
-    return self._requires_dtbo
-
-  @property
-  def requires_vbmeta(self):
-    if self._requires_vbmeta is None:
-      if self.IsFastbootMode():
-        try:
-          self._requires_vbmeta = self.fastboot.GetVar(
-              'has-slot:vbmeta') == 'yes'
-        except device_errors.FastbootCommandFailedError:
-          self._requires_vbmeta = False
-      else:
-        # This prop will be set when a device uses Android Verified Boot (avb).
-        # See https://bit.ly/2CbsO5z.
-        # Checking if this prop has a non-empty value should be good enough.
-        self._requires_vbmeta = len(
-            self._device.GetProp('ro.boot.vbmeta.digest')) > 0
-
-    return self._requires_vbmeta
+  def __str__(self):
+    return self._serial
 
   def IsFastbootMode(self):
     return self._serial in (str(d) for d in self.fastboot.Devices())
@@ -257,14 +223,12 @@ class FastbootUtils(object):
 
     return False
 
-  def _FlashPartitions(self, partitions, directory, wipe=False, force=False):
-    """Flashes all given partiitons with all given images.
+  def _FlashPartitions(self, partitions, directory, force=False):
+    """Flashes all given partitions with all given images.
 
     Args:
-      partitions: List of partitions to flash.
+      partitions: An ordered dict of partitions to flash.
       directory: Directory where all partitions can be found.
-      wipe: If set to true, will automatically detect if cache and userdata
-          partitions are sent, and if so ignore them.
       force: boolean to decide to ignore board name safety checks.
 
     Raises:
@@ -282,93 +246,41 @@ class FastbootUtils(object):
             'device type. Run again with force=True to force flashing with an '
             'unverified board.')
 
-    flash_image_files = self._FindAndVerifyPartitionsAndImages(
-        partitions, directory)
-    partitions = flash_image_files.keys()
-    for partition in partitions:
-      if _KNOWN_PARTITIONS[partition].get('wipe_only') and not wipe:
-        logger.info('Not flashing in wipe mode. Skipping partition %s.',
-                    partition)
-      else:
-        logger.info('Flashing %s with %s', partition,
-                    flash_image_files[partition])
-        self.fastboot.Flash(partition, flash_image_files[partition])
-        if _KNOWN_PARTITIONS[partition].get('restart', False):
-          self.Reboot(bootloader=True)
+    flash_image_files = _FindAndVerifyPartitionsAndImages(partitions, directory)
+    for partition, image_files in flash_image_files.items():
+      logger.info('Flashing %s with %s', partition, image_files)
+      self.fastboot.Flash(partition, image_files)
+      if partitions[partition].restart:
+        self.Reboot(bootloader=True)
 
-  def _FindAndVerifyPartitionsAndImages(self, partitions, directory):
-    """Validate partitions and images.
-
-    Validate all partition names and partition directories. Cannot stop mid
-    flash so its important to validate everything first.
-
-    Args:
-      Partitions: partitions to be tested.
-      directory: directory containing the images.
-
-    Returns:
-      Dictionary with exact partition, image name mapping.
-    """
-
-    files = os.listdir(directory)
-    return_dict = collections.OrderedDict()
-
-    def find_file(pattern):
-      for filename in files:
-        if fnmatch.fnmatch(filename, pattern):
-          return os.path.join(directory, filename)
-      return None
-
-    for partition in partitions:
-      partition_info = _KNOWN_PARTITIONS[partition]
-      image_file = find_file(partition_info['image'])
-      if image_file:
-        return_dict[partition] = image_file
-      elif (not 'optional' in partition_info
-            or not partition_info['optional'](self)):
-        raise device_errors.FastbootCommandFailedError(
-            [],
-            '',
-            message='Failed to flash device%s. Could not find image for %s.' %
-            (' which supports A/B updates' if self.supports_ab else '',
-             partition_info['image']))
-    return return_dict
-
-  @contextlib.contextmanager
-  def FastbootMode(self, wait_for_reboot=True, timeout=None, retries=None):
-    """Context manager that enables fastboot mode, and reboots after.
-
-    Example usage:
-      with FastbootMode():
-        Flash Device
-      # Anything that runs after flashing.
-    """
-    self.EnableFastbootMode()
-    self.fastboot.SetOemOffModeCharge(False)
-    yield self
-    # If something went wrong while it was in fastboot mode (eg: a failed
-    # flash) rebooting may be harmful or cause boot loops. So only reboot if
-    # no exception was thrown.
-    self.fastboot.SetOemOffModeCharge(True)
-    self.Reboot(wait_for_reboot=wait_for_reboot)
-
-  def FlashDevice(self, directory, partitions=None, wipe=False):
+  def FlashDevice(self, directory, wipe=False):
     """Flash device with build in |directory|.
 
-    Directory must contain bootloader, radio, boot, recovery, system, userdata,
-    and cache .img files from an android build. This is a dangerous operation so
-    use with care.
+    Directory must contain bootloader, radio, and other necessary files from
+    an android build. This is a dangerous operation so use with care.
+
+    Note when wipe is set to true, we flash the partitions in _WIPE_PARTITIONS
+    to achieve the wipe purpose. We don't use the flag "-w" in flashall command
+    as it can cause old devices like Nexus 5X stuck on the encryption phrase.
 
     Args:
       directory: Directory with build files.
-      wipe: Wipes cache and userdata if set to true.
-      partitions: List of partitions to flash. Defaults to all.
+      wipe: Flash partitions in _WIPE_PARTITIONS if set to true.
     """
-    if partitions is None:
-      partitions = ALL_PARTITIONS
+
     # If a device is wiped, then it will no longer have adb keys so it cannot be
     # communicated with to verify that it is rebooted. It is up to the user of
     # this script to ensure that the adb keys are set on the device after using
     # this to wipe a device.
-    with self.FastbootMode(wait_for_reboot=not wipe):
-      self._FlashPartitions(partitions, directory, wipe=wipe)
+    self.EnableFastbootMode()
+    self._FlashPartitions(_VERIFICATION_PARTITIONS, directory)
+    try:
+      logger.info('Flashing all.')
+      for line in self.fastboot.FlashAll(directory, skip_reboot=True):
+        logger.info('  %s', line)
+    except subprocess.CalledProcessError as e:
+      raise device_errors.FastbootCommandFailedError(
+          [], '', message='Failed to flashall: %s' % str(e))
+    if wipe:
+      self._FlashPartitions(_WIPE_PARTITIONS, directory)
+    self.Reboot(wait_for_reboot=not wipe)
