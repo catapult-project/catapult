@@ -43,7 +43,7 @@ found in the LICENSE file.
     <div id="content">
       <iron-pages selected="[[page]]" attr-for-selected="name" fallback-selection="error" on-iron-select="onSelectedPage" on-iron-deselect="onDeselectedPage">
         <error-page name="error"></error-page>
-        <job-page name="job" route="{{subroute}}" auth-headers="[[authHeaders]]"></job-page>
+        <job-page name="job" route="{{subroute}}" auth-headers="[[authHeaders]]" user="[[user]]"></job-page>
         <jobs-page name="jobs" route="{{subroute}}" auth-headers="[[authHeaders]]" user="[[user]]"></jobs-page>
         <migrate-page name="migrate" auth-headers="[[authHeaders]]"></migrate-page>
         <stats-page name="stats"></stats-page>

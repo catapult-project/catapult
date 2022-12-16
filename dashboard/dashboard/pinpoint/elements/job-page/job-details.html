@@ -33,6 +33,12 @@ found in the LICENSE file.
     </style>
 
     <ul>
+      <template is="dom-if" if="[[getCABELink(user, job)]]">
+        <li>
+          <a href="https://colab.corp.google.com/google_src/files/head/depot/google3/chrome/engprod/perf/pinpoint/cabe-pinpoint-tryjob-results.ipynb#templateParams=%7B%22pinpoint_job_id%22%3A%22[[job.job_id]]%22%7D&sandboxMode=true" target="_blank">
+            CABE's analysis, including Cls
+          </a>
+      </template>
       <template is="dom-if" if="[[job.bug_id]]">
         <li>
           <a href="https://crbug.com/[[getProject(job)]]/[[job.bug_id]]" target="_blank">
@@ -70,6 +76,17 @@ found in the LICENSE file.
         job: {
           type: Object,
         },
+      },
+
+      isTryJob(job) {
+        if (!job) {
+          return false;
+        }
+        return !job.comparison_mode || job.comparison_mode === 'try';
+      },
+
+      getCABELink(user, job) {
+        return user.endsWith("@google.com") && this.isTryJob(job);
       },
 
       getProject(job) {
