@@ -203,6 +203,49 @@ wheel: <
 >
 
 wheel: <
+  name: "infra/python/wheels/ijson/${vpython_platform}"
+  version: "version:3.1.4"
+  match_tag: <
+    platform: "manylinux1_x86_64"
+  >
+>
+
+wheel: <
+  name: "infra/python/wheels/google-cloud-datastore-py3"
+  version: "version:2.1.6"
+>
+
+wheel: <
+  name: "infra/python/wheels/typing-extensions-py3"
+  version: "version:3.7.4.3"
+>
+
+wheel: <
+  name: "infra/python/wheels/typing-inspect-py3"
+  version: "version:0.7.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/libcst-py3"
+  version: "version:0.3.19"
+>
+
+wheel: <
+  name: "infra/python/wheels/pyyaml-py3"
+  version: "version:5.3.1"
+>
+
+wheel: <
+  name: "infra/python/wheels/mypy-extensions-py3"
+  version: "version:0.4.3"
+>
+
+wheel: <
+  name: "infra/python/wheels/flask-talisman-py2_py3"
+  version: "version:0.7.0"
+>
+
+wheel: <
   name: "infra/python/wheels/grpc-google-iam-v1-py3"
   version: "version:0.12.3"
 >
@@ -259,7 +302,7 @@ wheel: <
 #   build/android/pylib/local/emulator/avd.py
 wheel: <
   name: "infra/python/wheels/protobuf-py3"
-  version: "version:4.21.1"
+  version: "version:4.21.9"
 >
 
 # Used by:
@@ -280,7 +323,7 @@ wheel: <
 # //third_party/catapult/third_party/coverage/coverage/
 wheel: <
   name: "infra/python/wheels/coverage/${vpython_platform}"
-  version: "version:5.5.chromium.2"
+  version: "version:5.5.chromium.3"
 >
 
 # Common utilities.
@@ -291,7 +334,7 @@ wheel: <
 # use the newer version that's currently available in CIPD for now.
 wheel: <
   name: "infra/python/wheels/psutil/${vpython_platform}"
-  version: "version:5.8.0.chromium.2"
+  version: "version:5.8.0.chromium.3"
 >
 wheel: <
   name: "infra/python/wheels/requests-py2_py3"
