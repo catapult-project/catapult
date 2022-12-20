@@ -180,10 +180,12 @@ def UploadsInfoGet(token_id):
     logging.error('Upload completion token not found. Token id: %s', token_id)
     raise api_request_handler.NotFoundError
 
-  get_measurement_info = 'measurements' in request.values.get('additional_info')
-  get_dimensions_info = 'dimensions' in request.values.get('additional_info')
-  return _GenerateResponse(token, get_measurement_info,
-                                get_dimensions_info)
+  additional_info = request.values.get('additional_info')
+  if additional_info:
+    get_measurement_info = 'measurements' in additional_info
+    get_dimensions_info = 'dimensions' in additional_info
+    return _GenerateResponse(token, get_measurement_info, get_dimensions_info)
+  return _GenerateResponse(token)
 
 
 if six.PY2:
