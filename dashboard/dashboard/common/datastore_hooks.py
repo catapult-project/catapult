@@ -129,9 +129,9 @@ def _IsServicingPrivilegedRequest(flask_flag=False):
     if 'single_privileged' in flask_global and flask_global.single_privileged:
       flask_global.pop('single_privileged')
       return True
-    allowlist = utils.GetIpAllowlist()
-    if allowlist and hasattr(flask_request, 'remote_addr'):
-      return flask_request.remote_addr in allowlist
+    # We have been checking on utils.GetIpAllowlist() here. Though, the list
+    # has been empty and we are infinite recursive calls in crbug/1402197.
+    # Thus, we remove the check here.
   else:
     try:
       request = webapp2.get_request()
@@ -150,9 +150,6 @@ def _IsServicingPrivilegedRequest(flask_flag=False):
     if request.registry.get('single_privileged', False):
       request.registry['single_privileged'] = False
       return True
-    allowlist = utils.GetIpAllowlist()
-    if allowlist and hasattr(request, 'remote_addr'):
-      return request.remote_addr in allowlist
   return False
 
 

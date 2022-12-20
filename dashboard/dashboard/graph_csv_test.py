@@ -184,17 +184,6 @@ class GraphCsvTest(testing_common.TestCase):
     expected = [['revision', 'value']]
     self._CheckGet(query, expected, status=500)
 
-  def testGet_AllowlistedIPOnly(self):
-    self.PatchDatastoreHooksRequest('123.45.67.89')
-    self._AddMockInternalData()
-    self.UnsetCurrentUser()
-    datastore_hooks.InstallHooks()
-    testing_common.SetIpAllowlist(['123.45.67.89'])
-    query = '/graph_csv?test_path=ChromiumPerf/win7/dromaeo/dom&num_points=3'
-    expected = [['revision', 'value'], ['47', '94.0'], ['48', '96.0'],
-                ['49', '98.0']]
-    self._CheckGet(query, expected, allowlisted_ip='123.45.67.89')
-
   def testGet_NoTestPathGiven_GivesError(self):
     testing_common.SetIpAllowlist(['123.45.67.89'])
     self.testapp.get(
