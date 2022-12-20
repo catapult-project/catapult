@@ -299,9 +299,9 @@ def UpdateTestSuitesDescriptorsPost():
   return update_test_suite_descriptors.UpdateTestSuiteDescriptorsPost()
 
 
-@flask_app.route('/uploads')
-def UploadsInfoGet():
-  return uploads_info.UploadsInfoGet()
+@flask_app.route('/uploads/<token_id>')
+def UploadsInfoGet(token_id):
+  return uploads_info.UploadsInfoGet(token_id)
 
 
 if six.PY2:
@@ -440,7 +440,7 @@ _PATHS_HANDLED_BY_FLASK = [
     '/update_dashboard_stats',
     '/update_test_suites',
     '/update_test_suite_descriptors',
-    # '/uploads/',
+    '/uploads',
 ]
 
 
