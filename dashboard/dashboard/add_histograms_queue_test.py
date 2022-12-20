@@ -7,16 +7,14 @@ from __future__ import division
 from __future__ import absolute_import
 
 import copy
+from flask import Flask
 import json
-import unittest
-
 import mock
-import sys
-import uuid
-
 import six
 if six.PY2:
   import webapp2
+import sys
+import uuid
 import webtest
 
 from google.appengine.ext import ndb
@@ -80,8 +78,14 @@ TEST_OWNERS = {
     'type': 'GenericSet'
 }
 
+flask_app = Flask(__name__)
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+
+@flask_app.route('/add_histograms_queue', methods=['GET', 'POST'])
+def AddHistogramsQueuePost():
+  return add_histograms_queue.AddHistogramsQueuePost()
+
+
 class AddHistogramsQueueTest(testing_common.TestCase):
 
   def setUp(self):
@@ -94,6 +98,8 @@ class AddHistogramsQueueTest(testing_common.TestCase):
            add_histograms_queue.AddHistogramsQueueHandler)
       ])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
   def testPostHistogram(self):
@@ -620,7 +626,6 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.assertNotIn('a_tracing_uri', row_dict)
 
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 @mock.patch.object(SheriffConfigClient, '__init__',
                    mock.MagicMock(return_value=None))
 @mock.patch.object(SheriffConfigClient, 'Match',
@@ -637,6 +642,8 @@ class AddHistogramsQueueTestWithUploadCompletionToken(testing_common.TestCase):
            add_histograms_queue.AddHistogramsQueueHandler)
       ])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
     testing_common.SetIsInternalUser('foo@bar.com', True)
     self.SetCurrentUser('foo@bar.com')
 
