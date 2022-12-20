@@ -12,7 +12,7 @@ all: $(PY_PROTOS) ../tracing/tracing/proto/histogram_pb2.py
 
 .PHONY: clean ../tracing/tracing/proto/histogram_pb2.py
 
-%_pb2.py: dashboard/proto/%.proto
+%_pb2.py: dashboard/protobuf/%.proto
 	$(PROTOC) --python_out=. $<
 
 clean:
