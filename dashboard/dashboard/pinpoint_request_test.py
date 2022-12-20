@@ -8,9 +8,13 @@ from __future__ import absolute_import
 
 import itertools
 import json
+import unittest
+
+import six
 import mock
 
-import webapp2
+if six.PY2:
+  import webapp2
 import webtest
 
 from dashboard import pinpoint_request
@@ -57,18 +61,19 @@ def GenerateBisectRequestParams(params):
   return params
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class PinpointNewPrefillRequestHandlerTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(PinpointNewPrefillRequestHandlerTest, self).setUp()
-
-    app = webapp2.WSGIApplication([
-        (r'/pinpoint/new/prefill',
-         pinpoint_request.PinpointNewPrefillRequestHandler)
-    ])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([
+          (r'/pinpoint/new/prefill',
+           pinpoint_request.PinpointNewPrefillRequestHandler)
+      ])
+      self.testapp = webtest.TestApp(app)
 
   def testPost_UsesUnescapedStoryName(self):
     t = graph_data.TestMetadata(id='M/B/S/foo', unescaped_story_name='foo:bar')
@@ -78,17 +83,18 @@ class PinpointNewPrefillRequestHandlerTest(testing_common.TestCase):
     self.assertEqual({'story_filter': 'foo:bar'}, json.loads(response.body))
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(PinpointNewPerfTryRequestHandlerTest, self).setUp()
-
-    app = webapp2.WSGIApplication([
-        (r'/pinpoint/new', pinpoint_request.PinpointNewPerfTryRequestHandler)
-    ])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([
+          (r'/pinpoint/new', pinpoint_request.PinpointNewPerfTryRequestHandler)
+      ])
+      self.testapp = webtest.TestApp(app)
 
     self.SetCurrentUser('foo@chromium.org')
 
@@ -297,6 +303,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         repo='v8/v8')
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 @mock.patch.object(pinpoint_request, 'FindMagnitudeBetweenCommits',
                    mock.MagicMock(return_value=None))
 class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
@@ -305,11 +312,11 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(PinpointNewBisectRequestHandlerTest, self).setUp()
-
-    app = webapp2.WSGIApplication([
-        (r'/pinpoint/new', pinpoint_request.PinpointNewBisectRequestHandler)
-    ])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([
+          (r'/pinpoint/new', pinpoint_request.PinpointNewBisectRequestHandler)
+      ])
+      self.testapp = webtest.TestApp(app)
 
     self.SetCurrentUser('foo@chromium.org')
 

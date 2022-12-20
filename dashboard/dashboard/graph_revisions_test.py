@@ -10,7 +10,9 @@ import datetime
 import json
 import unittest
 
-import webapp2
+import six
+if six.PY2:
+  import webapp2
 import webtest
 
 from dashboard import graph_revisions
@@ -20,15 +22,17 @@ from dashboard.common import utils
 from dashboard.models import graph_data
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class GraphRevisionsTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(GraphRevisionsTest, self).setUp()
-    app = webapp2.WSGIApplication([('/graph_revisions',
-                                    graph_revisions.GraphRevisionsHandler)])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([('/graph_revisions',
+                                      graph_revisions.GraphRevisionsHandler)])
+      self.testapp = webtest.TestApp(app)
     self.PatchDatastoreHooksRequest()
 
   def _AddMockData(self):

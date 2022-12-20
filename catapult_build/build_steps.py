@@ -226,7 +226,7 @@ def main(args=None):
   args = parser.parse_args(args)
 
   dashboard_protos_folder = os.path.join(args.api_path_checkout, 'dashboard',
-                                       'dashboard', 'proto')
+                                       'dashboard', 'protobuf')
   dashboard_proto_files = [
       os.path.join(dashboard_protos_folder, p)
       for p in ['sheriff.proto', 'sheriff_config.proto']

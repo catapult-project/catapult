@@ -10,7 +10,9 @@ import itertools
 import json
 import unittest
 
-import webapp2
+import six
+if six.PY2:
+  import webapp2
 import webtest
 
 from google.appengine.ext import ndb
@@ -26,15 +28,17 @@ from dashboard.models import page_state
 from dashboard.models.subscription import Subscription
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class GroupReportTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(GroupReportTest, self).setUp()
-    app = webapp2.WSGIApplication([('/group_report',
-                                    group_report.GroupReportHandler)])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([('/group_report',
+                                      group_report.GroupReportHandler)])
+      self.testapp = webtest.TestApp(app)
 
   def _AddAnomalyEntities(self,
                           revision_ranges,

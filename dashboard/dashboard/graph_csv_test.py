@@ -9,8 +9,8 @@ from __future__ import absolute_import
 import csv
 import six
 import unittest
-
-import webapp2
+if six.PY2:
+  import webapp2
 import webtest
 
 from dashboard import graph_csv
@@ -20,14 +20,16 @@ from dashboard.common import utils
 from dashboard.models import graph_data
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class GraphCsvTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(GraphCsvTest, self).setUp()
-    app = webapp2.WSGIApplication([('/graph_csv', graph_csv.GraphCsvHandler)])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([('/graph_csv', graph_csv.GraphCsvHandler)])
+      self.testapp = webtest.TestApp(app)
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
   def _AddMockData(self):

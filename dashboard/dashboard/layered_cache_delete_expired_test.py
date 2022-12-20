@@ -8,7 +8,9 @@ from __future__ import absolute_import
 
 import unittest
 
-import webapp2
+import six
+if six.PY2:
+  import webapp2
 import webtest
 
 from dashboard import layered_cache_delete_expired
@@ -16,17 +18,19 @@ from dashboard.common import layered_cache
 from dashboard.common import testing_common
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class LayeredCacheDeleteExpiredTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(LayeredCacheDeleteExpiredTest, self).setUp()
-    app = webapp2.WSGIApplication([
-        ('/delete_expired_entities',
-         layered_cache_delete_expired.LayeredCacheDeleteExpiredHandler)
-    ])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([
+          ('/delete_expired_entities',
+           layered_cache_delete_expired.LayeredCacheDeleteExpiredHandler)
+      ])
+      self.testapp = webtest.TestApp(app)
     self.UnsetCurrentUser()
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)

@@ -9,11 +9,16 @@ from __future__ import absolute_import
 import base64
 import itertools
 import json
+import unittest
+
 import mock
 import random
 import string
 import sys
-import webapp2
+
+import six
+if six.PY2:
+  import webapp2
 import webtest
 import zlib
 
@@ -132,20 +137,20 @@ class BufferedFakeFile(object):
 
   def read(self, size=None):  # pylint: disable=invalid-name
     if self.position == len(self.data):
-      return ''
+      return b''
     if size is None or size < 0:
       result = self.data[self.position:]
       self.position = len(self.data)
-      return result
+      return six.ensure_binary(result)
     if size > len(self.data) + self.position:
       result = self.data[self.position:]
       self.position = len(self.data)
-      return result
+      return six.ensure_binary(result)
 
     current_position = self.position
     self.position += size
     result = self.data[current_position:self.position]
-    return result
+    return six.ensure_binary(result)
 
   def write(self, data):  # pylint: disable=invalid-name
     self.data += data
@@ -162,20 +167,23 @@ class BufferedFakeFile(object):
     return self
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class AddHistogramsBaseTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(AddHistogramsBaseTest, self).setUp()
-    app = webapp2.WSGIApplication([
-        ('/add_histograms', add_histograms.AddHistogramsHandler),
-        ('/add_histograms/process', add_histograms.AddHistogramsProcessHandler),
-        ('/add_histograms_queue',
-         add_histograms_queue.AddHistogramsQueueHandler),
-        ('/uploads/(.+)', uploads_info.UploadInfoHandler),
-    ])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([
+          ('/add_histograms', add_histograms.AddHistogramsHandler),
+          ('/add_histograms/process',
+           add_histograms.AddHistogramsProcessHandler),
+          ('/add_histograms_queue',
+           add_histograms_queue.AddHistogramsQueueHandler),
+          ('/uploads/(.+)', uploads_info.UploadInfoHandler),
+      ])
+      self.testapp = webtest.TestApp(app)
     testing_common.SetIsInternalUser('foo@bar.com', True)
     self.SetCurrentUser('foo@bar.com', is_admin=True)
     oauth_patcher = mock.patch.object(api_auth, 'oauth')
@@ -1910,11 +1918,11 @@ class DecompressFileWrapperTest(testing_common.TestCase):
     payload = ''.join(list(RandomChars(filesize)))
     random.seed(None)
     self.assertEqual(len(payload), filesize)
-    input_file = BufferedFakeFile(zlib.compress(payload))
+    input_file = BufferedFakeFile(zlib.compress(six.ensure_binary(payload)))
     retrieved_payload = str()
     with add_histograms.DecompressFileWrapper(input_file, 2048) as decompressor:
       while True:
-        chunk = decompressor.read(1024)
+        chunk = six.ensure_str(decompressor.read(1024))
         if len(chunk) == 0:
           break
         retrieved_payload += chunk
@@ -1933,7 +1941,7 @@ class DecompressFileWrapperTest(testing_common.TestCase):
     with self.assertRaises(zlib.error):
       with add_histograms.DecompressFileWrapper(input_file, 2048) as d:
         while True:
-          chunk = d.read(1024)
+          chunk = six.ensure_str(d.read(1024))
           if len(chunk) == 0:
             break
           retrieved_payload += chunk
@@ -1964,7 +1972,7 @@ class DecompressFileWrapperTest(testing_common.TestCase):
         reserved_infos.DEVICE_IDS.name, generic_set.GenericSet(['device_foo']))
 
     input_file_compressed = BufferedFakeFile(
-        zlib.compress(json.dumps(histograms.AsDicts())))
+        zlib.compress(six.ensure_binary(json.dumps(histograms.AsDicts()))))
     input_file_raw = BufferedFakeFile(json.dumps(histograms.AsDicts()))
 
     loaded_compressed_histograms = histogram_set.HistogramSet()
@@ -1981,9 +1989,9 @@ class DecompressFileWrapperTest(testing_common.TestCase):
         add_histograms._LoadHistogramList(input_file_raw))
     loaded_raw_histograms.DeduplicateDiagnostics()
 
-    self.assertEqual(
-        sorted(loaded_raw_histograms.AsDicts()),
-        sorted(loaded_compressed_histograms.AsDicts()))
+    raw_dicts = loaded_raw_histograms.AsDicts()
+    compressed_dicts = loaded_compressed_histograms.AsDicts()
+    six.assertCountEqual(self, raw_dicts, compressed_dicts)
 
   def testJSONFail(self):
     with BufferedFakeFile('Not JSON') as input_file:

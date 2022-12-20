@@ -14,7 +14,7 @@ NOTE: We should minimise the dependencies from this module.
 
 # NOTE: Whenever you update any of the default values below, please also make
 # the same updates at the following locations:
-# * AnomalyConfig defined in ../proto/sheriff.proto
+# * AnomalyConfig defined in ../protobuf/sheriff.proto
 # * anomaly_configs_defaults defined in
 #   https://chrome-internal.googlesource.com/infra/infra_internal/+/HEAD/infra/config/subprojects/chromeperf-sheriffs.star
 

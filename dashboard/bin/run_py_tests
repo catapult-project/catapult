@@ -33,27 +33,8 @@ if __name__ == '__main__':
 
   from catapult_build import run_with_typ
   import dashboard
-  if sys.version_info.major == 2:
-    root = 'dashboard'
-    return_code = run_with_typ.Run(
-      os.path.join(_DASHBOARD_PATH, root),
-      path=dashboard.PathsForTesting())
-  else:
-    # The root will be 'dashboard' when all tests are running on python 3.
-    # Before all tests are passing, we will run tests in some sub-folders.
-    # This is a temporary solution which will exit if any sub-folder fails.
-    root = [
-      'dashboard/api',
-      'dashboard/common',
-      'dashboard/models',
-      'dashboard/pinpoint',
-      'dashboard/services'
-      ]
-    for r in root:
-      print('Running unit tests in %s', r)
-      return_code = run_with_typ.Run(
-          os.path.join(_DASHBOARD_PATH, r),
-          path=dashboard.PathsForTesting())
-      if return_code:
-        break
+  root = 'dashboard'
+  return_code = run_with_typ.Run(
+    os.path.join(_DASHBOARD_PATH, root),
+    path=dashboard.PathsForTesting())
   sys.exit(return_code)

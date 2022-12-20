@@ -9,9 +9,14 @@ from __future__ import absolute_import
 
 import datetime
 import json
+import unittest
+
 import mock
 import sys
-import webapp2
+
+import six
+if six.PY2:
+  import webapp2
 import webtest
 
 from dashboard import file_bug
@@ -27,6 +32,7 @@ from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class FileBugTest(testing_common.TestCase):
 
   def setUp(self):
@@ -41,8 +47,9 @@ class FileBugTest(testing_common.TestCase):
     self.PatchObject(file_bug.file_bug.issue_tracker_service,
                      'IssueTrackerService',
                      lambda *_: self._issue_tracker_service)
-    app = webapp2.WSGIApplication([('/file_bug', file_bug.FileBugHandler)])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([('/file_bug', file_bug.FileBugHandler)])
+      self.testapp = webtest.TestApp(app)
 
   def tearDown(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.

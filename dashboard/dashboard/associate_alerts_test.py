@@ -9,7 +9,9 @@ from __future__ import absolute_import
 import unittest
 
 import mock
-import webapp2
+import six
+if six.PY2:
+  import webapp2
 import webtest
 
 from dashboard import associate_alerts
@@ -20,15 +22,17 @@ from dashboard.models.subscription import Subscription
 from dashboard.services import issue_tracker_service
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class AssociateAlertsTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(AssociateAlertsTest, self).setUp()
-    app = webapp2.WSGIApplication([('/associate_alerts',
-                                    associate_alerts.AssociateAlertsHandler)])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([('/associate_alerts',
+                                      associate_alerts.AssociateAlertsHandler)])
+      self.testapp = webtest.TestApp(app)
     testing_common.SetSheriffDomains(['chromium.org'])
     self.SetCurrentUser('foo@chromium.org', is_admin=True)
 

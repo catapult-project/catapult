@@ -12,10 +12,11 @@ from google.cloud import datastore
 import base64
 import collections
 import httplib2
-import sheriff_pb2
 import validator
 import matcher as matcher_module
 import utils
+
+from dashboard.protobuf import sheriff_pb2
 
 # The path which we will look for in projects.
 SHERIFF_CONFIG_PATH = 'chromeperf-sheriffs.cfg'

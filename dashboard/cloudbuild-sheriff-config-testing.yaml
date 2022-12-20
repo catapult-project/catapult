@@ -5,10 +5,10 @@ timeout: 1800s  # Wait for 30 minutes for the whole build to finish.
 steps:
   - name: 'gcr.io/chromeperf/protoc'
     args: [
-      '-I', 'dashboard/dashboard/proto',
+      '-I', 'dashboard/dashboard/protobuf',
       '--python_out', 'dashboard/dashboard/sheriff_config',
-      'dashboard/dashboard/proto/sheriff.proto',
-      'dashboard/dashboard/proto/sheriff_config.proto'
+      'dashboard/dashboard/protobuf/sheriff.proto',
+      'dashboard/dashboard/protobuf/sheriff_config.proto'
     ]
   - name: 'docker/compose:1.19.0'
     args: [

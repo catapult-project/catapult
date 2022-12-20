@@ -5,9 +5,8 @@ syntax = "proto3";
 
 package dashboard;
 
-import "dashboard/proto/dims.proto";
+import "dashboard/protobuf/dims.proto";
 import "google/protobuf/timestamp.proto";
-
 
 message CoreWebVitals {
   float largestContentfulPaint = 1;

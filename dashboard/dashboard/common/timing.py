@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 try:
   import gae_ts_mon
-except ModuleNotFoundError:
+except ImportError:
   # When running unit tests, we need to import from infra_libs.
   from infra_libs import ts_mon as gae_ts_mon
 import logging

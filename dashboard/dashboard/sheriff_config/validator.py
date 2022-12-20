@@ -12,8 +12,9 @@ from __future__ import absolute_import
 
 from google.protobuf import text_format
 import matcher
-import sheriff_pb2
-import re2
+import re
+
+from dashboard.protobuf import sheriff_pb2
 
 
 class Error(Exception):
@@ -128,7 +129,7 @@ def Validate(content):
                            'regex must not be empty', group)
     try:
       matcher.CompilePattern(pattern)
-    except re2.error as e:
+    except re.error as e:
       # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
       # pylint: disable=raise-missing-from
       raise InvalidPattern(result, index, pattern_idx, 'failed: %s' % (e,),

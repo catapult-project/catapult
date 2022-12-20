@@ -10,7 +10,9 @@ import mock
 import sys
 import unittest
 
-import webapp2
+import six
+if six.PY2:
+  import webapp2
 import webtest
 
 from dashboard import alerts
@@ -22,6 +24,7 @@ from dashboard.models.subscription import Subscription
 from dashboard.sheriff_config_client import SheriffConfigClient
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 @mock.patch.object(SheriffConfigClient, '__init__',
                    mock.MagicMock(return_value=None))
 class AlertsTest(testing_common.TestCase):
@@ -30,8 +33,9 @@ class AlertsTest(testing_common.TestCase):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(AlertsTest, self).setUp()
-    app = webapp2.WSGIApplication([('/alerts', alerts.AlertsHandler)])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([('/alerts', alerts.AlertsHandler)])
+      self.testapp = webtest.TestApp(app)
     testing_common.SetSheriffDomains(['chromium.org'])
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     self.SetCurrentUser('internal@chromium.org', is_admin=True)

@@ -6,9 +6,11 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import webapp2
+import six
 import sys
 import unittest
+if six.PY2:
+  import webapp2
 
 from dashboard import update_test_suites
 from dashboard import update_test_suite_descriptors
@@ -23,6 +25,7 @@ from tracing.value.diagnostics import reserved_infos
 from tracing.value.diagnostics import generic_set
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
 
   def setUp(self):

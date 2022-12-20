@@ -9,8 +9,10 @@ from __future__ import absolute_import
 import datetime
 from six.moves import http_client
 import mock
+import six
 import unittest
-import webapp2
+if six.PY2:
+  import webapp2
 import webtest
 
 from google.appengine.ext import ndb
@@ -70,6 +72,7 @@ def _FakeTasklet(*args):
   del args
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class UpdateDashboardStatsTest(test.TestCase):
 
   def setUp(self):

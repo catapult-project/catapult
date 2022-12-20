@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import six
 import unittest
 
 from google.appengine.ext import ndb
@@ -17,6 +18,7 @@ from dashboard.models import graph_data
 from dashboard.models import page_state
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class ShortUriTest(testing_common.TestCase):
 
   def setUp(self):

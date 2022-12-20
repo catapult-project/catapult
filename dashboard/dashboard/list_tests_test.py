@@ -9,7 +9,9 @@ from __future__ import absolute_import
 import json
 import unittest
 
-import webapp2
+import six
+if six.PY2:
+  import webapp2
 import webtest
 
 from google.appengine.ext import ndb
@@ -22,15 +24,17 @@ from dashboard.common import utils
 from dashboard.models import graph_data
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class ListTestsTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(ListTestsTest, self).setUp()
-    app = webapp2.WSGIApplication([('/list_tests', list_tests.ListTestsHandler)
-                                  ])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([('/list_tests',
+                                      list_tests.ListTestsHandler)])
+      self.testapp = webtest.TestApp(app)
     datastore_hooks.InstallHooks()
     self.UnsetCurrentUser()
     testing_common.SetIsInternalUser('internal@chromium.org', True)

@@ -8,7 +8,9 @@ from __future__ import absolute_import
 
 import unittest
 
-import webapp2
+import six
+if six.PY2:
+  import webapp2
 import webtest
 
 from dashboard import main
@@ -17,14 +19,16 @@ from dashboard.common import utils
 from dashboard.models import anomaly
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class MainTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(MainTest, self).setUp()
-    app = webapp2.WSGIApplication([('/', main.MainHandler)])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([('/', main.MainHandler)])
+      self.testapp = webtest.TestApp(app)
 
   def testGet_PageIsShown(self):
     response = self.testapp.get('/')

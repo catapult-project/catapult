@@ -11,7 +11,10 @@ import datetime
 
 import logging
 import unittest
-import webapp2
+
+import six
+if six.PY2:
+  import webapp2
 import webtest
 
 from dashboard import alert_groups
@@ -29,6 +32,7 @@ from dashboard.services import pinpoint_service
 _SERVICE_ACCOUNT_EMAIL = 'service-account@chromium.org'
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 @mock.patch.object(utils, 'ServiceAccountEmail',
                    lambda: _SERVICE_ACCOUNT_EMAIL)
 class GroupReportTestBase(testing_common.TestCase):
@@ -53,9 +57,10 @@ class GroupReportTestBase(testing_common.TestCase):
     # pylint: disable=super-with-arguments
     super(GroupReportTestBase, self).setUp()
     self.maxDiff = None
-    app = webapp2.WSGIApplication([('/alert_groups_update',
-                                    alert_groups.AlertGroupsHandler)])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([('/alert_groups_update',
+                                      alert_groups.AlertGroupsHandler)])
+      self.testapp = webtest.TestApp(app)
 
   def _CallHandler(self):
     result = self.testapp.get('/alert_groups_update')

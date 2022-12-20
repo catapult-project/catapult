@@ -10,7 +10,9 @@ import json
 import unittest
 
 import mock
-import webapp2
+import six
+if six.PY2:
+  import webapp2
 import webtest
 
 from google.appengine.api import users
@@ -22,15 +24,17 @@ from dashboard.common import xsrf
 from dashboard.models import anomaly
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class EditAnomaliesTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(EditAnomaliesTest, self).setUp()
-    app = webapp2.WSGIApplication([('/edit_anomalies',
-                                    edit_anomalies.EditAnomaliesHandler)])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([('/edit_anomalies',
+                                      edit_anomalies.EditAnomaliesHandler)])
+      self.testapp = webtest.TestApp(app)
     testing_common.SetSheriffDomains(['chromium.org'])
 
   def tearDown(self):

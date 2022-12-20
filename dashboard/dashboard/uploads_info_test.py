@@ -8,9 +8,11 @@ from __future__ import absolute_import
 
 import json
 import mock
+import six
 import unittest
 import uuid
-import webapp2
+if six.PY2:
+  import webapp2
 import webtest
 
 from dashboard import uploads_info
@@ -27,16 +29,18 @@ def SetInternalUserOAuth(mock_oauth):
   mock_oauth.get_client_id.return_value = api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0]
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class UploadInfo(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(UploadInfo, self).setUp()
-    app = webapp2.WSGIApplication([
-        ('/uploads/(.+)', uploads_info.UploadInfoHandler),
-    ])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([
+          ('/uploads/(.+)', uploads_info.UploadInfoHandler),
+      ])
+      self.testapp = webtest.TestApp(app)
 
     testing_common.SetIsInternalUser('foo@bar.com', True)
     self.SetCurrentUser('foo@bar.com')

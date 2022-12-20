@@ -8,7 +8,8 @@ from __future__ import division
 from __future__ import print_function
 
 import logging
-import sheriff_pb2
+
+from dashboard.protobuf import sheriff_pb2
 from utils import LRUCacheWithTTL
 
 

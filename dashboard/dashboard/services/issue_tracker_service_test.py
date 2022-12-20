@@ -25,7 +25,7 @@ def PythonVersionsDecorator():
       return mock.patch('services.issue_tracker_service.discovery.build',
                         mock.MagicMock())(
                             func)
-    return mock.patch('issue_tracker_service.discovery.build',
+    return mock.patch('services.issue_tracker_service.discovery.build',
                       mock.MagicMock())(
                           func)
 

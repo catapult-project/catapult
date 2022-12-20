@@ -10,7 +10,9 @@ import json
 import unittest
 
 import mock
-import webapp2
+import six
+if six.PY2:
+  import webapp2
 import webtest
 
 from google.appengine.ext import ndb
@@ -23,15 +25,17 @@ from dashboard.models import anomaly
 from dashboard.models import graph_data
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class GraphJsonTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(GraphJsonTest, self).setUp()
-    app = webapp2.WSGIApplication([('/graph_json', graph_json.GraphJsonHandler)
-                                  ])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([('/graph_json',
+                                      graph_json.GraphJsonHandler)])
+      self.testapp = webtest.TestApp(app)
     self.PatchDatastoreHooksRequest()
 
   def _AddTestColumns(self, start_rev=15000, end_rev=16500, step=3):
@@ -682,6 +686,7 @@ class GraphJsonTest(testing_common.TestCase):
     }, json.loads(response))
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
 
   def _HandlerWithMockRequestParams(self, **params):
@@ -694,7 +699,10 @@ class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
         }
     }
     request_params.update(params)
-    handler = graph_json.GraphJsonHandler()
+    if six.PY2:
+      handler = graph_json.GraphJsonHandler()
+    else:
+      handler = graph_json.GraphJsonPost()
     handler.request = mock.MagicMock()
     handler.request.get = mock.MagicMock(
         return_value=json.dumps(request_params))

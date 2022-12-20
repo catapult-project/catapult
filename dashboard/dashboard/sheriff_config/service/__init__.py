@@ -18,8 +18,8 @@ import luci_config
 import match_policy
 import os
 import service_client
-from proto import sheriff_config_pb2
-import sheriff_pb2
+
+from dashboard.protobuf import sheriff_config_pb2
 import validator
 import time
 

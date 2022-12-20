@@ -6,9 +6,10 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import six
 import unittest
-
-import webapp2
+if six.PY2:
+  import webapp2
 import webtest
 
 from dashboard import migrate_test_names
@@ -39,16 +40,18 @@ _MOCK_DATA = [['ChromiumPerf'], ['win7', 'mac'], {
 }]
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class MigrateTestNamesTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(MigrateTestNamesTest, self).setUp()
-    app = webapp2.WSGIApplication([
-        ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler)
-    ])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([
+          ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler)
+      ])
+      self.testapp = webtest.TestApp(app)
     # Make sure puts get split up into multiple calls.
     migrate_test_names._MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL = 30
     self.SetCurrentUser('internal@foo.bar')

@@ -12,7 +12,9 @@ import math
 import unittest
 
 import mock
-import webapp2
+import six
+if six.PY2:
+  import webapp2
 import webtest
 
 from google.appengine.api import datastore_errors
@@ -174,6 +176,7 @@ _UNITS_TO_DIRECTION_DICT = {
 
 
 #TODO(fancl): mocking Match to return some actuall result
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 @mock.patch.object(SheriffConfigClient, '__init__',
                    mock.MagicMock(return_value=None))
 @mock.patch.object(SheriffConfigClient, 'Match',
@@ -184,10 +187,11 @@ class AddPointTest(testing_common.TestCase):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(AddPointTest, self).setUp()
-    app = webapp2.WSGIApplication([('/add_point', add_point.AddPointHandler),
-                                   ('/add_point_queue',
-                                    add_point_queue.AddPointQueueHandler)])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([('/add_point', add_point.AddPointHandler),
+                                     ('/add_point_queue',
+                                      add_point_queue.AddPointQueueHandler)])
+      self.testapp = webtest.TestApp(app)
     units_to_direction.UpdateFromJson(_UNITS_TO_DIRECTION_DICT)
     self.SetCurrentUser(
         'foo-service-account@testing.gserviceaccount.com', is_admin=True)

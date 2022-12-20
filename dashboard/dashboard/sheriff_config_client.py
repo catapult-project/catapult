@@ -44,7 +44,7 @@ class SheriffConfigClient(object):
     # pylint: disable=import-outside-toplevel
     from google.protobuf import json_format
     # pylint: disable=import-outside-toplevel
-    from dashboard.proto import sheriff_config_pb2
+    from dashboard.protobuf import sheriff_config_pb2
     self._GetEmail = GetEmail  # pylint: disable=invalid-name
     SheriffConfigClient._Subscription = Subscription
     SheriffConfigClient._AnomalyConfig = AnomalyConfig

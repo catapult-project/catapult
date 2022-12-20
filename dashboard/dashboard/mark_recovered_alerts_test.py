@@ -6,10 +6,12 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import six
 import unittest
 
 import mock
-import webapp2
+if six.PY2:
+  import webapp2
 import webtest
 from datetime import datetime
 from datetime import timedelta
@@ -22,6 +24,7 @@ from dashboard.models import bug_data
 from dashboard.services import issue_tracker_service
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 @mock.patch('apiclient.discovery.build', mock.MagicMock())
 @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
 class MarkRecoveredAlertsTest(testing_common.TestCase):
@@ -30,11 +33,12 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(MarkRecoveredAlertsTest, self).setUp()
-    app = webapp2.WSGIApplication([
-        ('/mark_recovered_alerts',
-         mark_recovered_alerts.MarkRecoveredAlertsHandler)
-    ])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([
+          ('/mark_recovered_alerts',
+           mark_recovered_alerts.MarkRecoveredAlertsHandler)
+      ])
+      self.testapp = webtest.TestApp(app)
 
   def _AddTestData(self, series, improvement_direction=anomaly.UP):
     """Adds one sample TestMetadata and associated data.

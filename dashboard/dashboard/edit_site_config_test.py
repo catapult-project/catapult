@@ -8,7 +8,9 @@ from __future__ import absolute_import
 
 import unittest
 
-import webapp2
+import six
+if six.PY2:
+  import webapp2
 import webtest
 
 from google.appengine.api import users
@@ -20,15 +22,17 @@ from dashboard.common import testing_common
 from dashboard.common import xsrf
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class EditSiteConfigTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(EditSiteConfigTest, self).setUp()
-    app = webapp2.WSGIApplication([('/edit_site_config',
-                                    edit_site_config.EditSiteConfigHandler)])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([('/edit_site_config',
+                                      edit_site_config.EditSiteConfigHandler)])
+      self.testapp = webtest.TestApp(app)
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)
     self.SetCurrentUser('internal@chromium.org', is_admin=True)
@@ -145,8 +149,9 @@ class HelperFunctionTests(unittest.TestCase):
     self.assertEqual('- null\n+ ""', edit_site_config._DiffJson(None, ''))
 
   def testDiffJson_AddListItem(self):
-    self.assertEqual('  [\n    1, \n+   2, \n    3\n  ]',
-                     edit_site_config._DiffJson([1, 3], [1, 2, 3]))
+    self.assertEqual(
+        '  [\n    1,\n+   2,\n    3\n  ]',
+        edit_site_config._DiffJson([1, 3], [1, 2, 3]).replace(", ", ","))
 
 
 if __name__ == '__main__':
