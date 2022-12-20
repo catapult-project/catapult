@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 <html>
 <head>
+  <script src="/components/webcomponentsjs/webcomponents-lite.min.js"></script>
   <link rel="import" href="/dashboard/static/base.html">
   <link rel="import" href="/dashboard/elements/nav-bar.html">
   <title>Migrate Test Names</title>
@@ -88,6 +89,12 @@ found in the LICENSE file.
   <pre>  old_pattern: */*/blink_perf/Animation_*
   new_pattern: */*/blink_perf.animation/[Animation_]</pre>
 
+  <p>
+    <b>Troubleshooting:</b>
+    <ul>
+      <li><b>Old test still shows up in perf dashboard:</b> Please re-run the migration and all unmigrated data will be moved.</li>
+    </ul>
+  </p>
   <form method="POST">
     <table>
       <tr>
