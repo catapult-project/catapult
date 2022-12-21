@@ -137,11 +137,12 @@ class TestCase(unittest.TestCase):
     task_queue.FlushQueue(task_queue_name)
     responses = []
     for task in tasks:
-      responses.append(
-          self.Post(
-              handler_name,
-              six.moves.urllib.parse.unquote_plus(
-                  base64.b64decode(task['body']))))
+      # In python 3.8, unquote_plus() and unquote() accept string only. From
+      # python 3.9, unquote() accept bytes as well. For now, vpython is on
+      # 3.8 and thus we have to use six.ensure_str.
+      data = six.moves.urllib.parse.unquote_plus(
+          six.ensure_str(base64.b64decode(task['body'])))
+      responses.append(self.Post(handler_name, data))
       if recurse:
         responses.extend(
             self.ExecuteTaskQueueTasks(handler_name, task_queue_name))

@@ -7,18 +7,17 @@ from __future__ import division
 from __future__ import absolute_import
 
 import base64
+from flask import Flask
 import itertools
 import json
-import unittest
-
 import mock
 import random
-import string
-import sys
-
 import six
 if six.PY2:
   import webapp2
+import string
+import sys
+import unittest
 import webtest
 import zlib
 
@@ -131,7 +130,7 @@ def _CreateHistogram(name='hist',
 # pylint: disable=useless-object-inheritance
 class BufferedFakeFile(object):
 
-  def __init__(self, data=str()):
+  def __init__(self, data=b''):
     self.data = data
     self.position = 0
 
@@ -167,7 +166,29 @@ class BufferedFakeFile(object):
     return self
 
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+flask_app = Flask(__name__)
+
+
+@flask_app.route('/add_histograms', methods=['POST'])
+def AddHistogramsPost():
+  return add_histograms.AddHistogramsPost()
+
+
+@flask_app.route('/add_histograms/process', methods=['POST'])
+def AddHistogramsProcessPost():
+  return add_histograms.AddHistogramsProcessPost()
+
+
+@flask_app.route('/add_histograms_queue', methods=['GET', 'POST'])
+def AddHistogramsQueuePost():
+  return add_histograms_queue.AddHistogramsQueuePost()
+
+
+@flask_app.route('/uploads/<token_id>')
+def UploadsInfoGet(token_id):
+  return uploads_info.UploadsInfoGet(token_id)
+
+
 class AddHistogramsBaseTest(testing_common.TestCase):
 
   def setUp(self):
@@ -184,6 +205,8 @@ class AddHistogramsBaseTest(testing_common.TestCase):
           ('/uploads/(.+)', uploads_info.UploadInfoHandler),
       ])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
     testing_common.SetIsInternalUser('foo@bar.com', True)
     self.SetCurrentUser('foo@bar.com', is_admin=True)
     oauth_patcher = mock.patch.object(api_auth, 'oauth')
@@ -212,6 +235,7 @@ class AddHistogramsBaseTest(testing_common.TestCase):
     return r
 
   def PostAddHistogramProcess(self, data):
+    data = six.ensure_binary(data)
     mock_read = mock.MagicMock(wraps=BufferedFakeFile(zlib.compress(data)))
     self.mock_cloudstorage.open.return_value = mock_read
 
@@ -225,6 +249,7 @@ class AddHistogramsBaseTest(testing_common.TestCase):
 
 
 #TODO(fancl): mocking Match to return some actuall result
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 @mock.patch.object(SheriffConfigClient, '__init__',
                    mock.MagicMock(return_value=None))
 @mock.patch.object(SheriffConfigClient, 'Match',
@@ -281,7 +306,7 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
         commit_position=123,
         benchmark_description='Benchmark description.',
         samples=[1, 2, 3])
-    data = zlib.compress(json.dumps(hs.AsDicts()))
+    data = zlib.compress(six.ensure_binary(json.dumps(hs.AsDicts())))
 
     self.PostAddHistogram(data)
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
@@ -318,7 +343,7 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
         benchmark_description='Benchmark description.',
         samples=[1, 2, 3],
         build_url='http://foo')
-    data = zlib.compress(json.dumps(hs.AsDicts()))
+    data = zlib.compress(six.ensure_binary(json.dumps(hs.AsDicts())))
 
     self.PostAddHistogram(data)
     self.ExecuteTaskQueueTasks('/add_histograms_queue',
@@ -1605,6 +1630,7 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     self.assertEqual('No BUILD_URLS in data.', mock_log.call_args_list[1][0][0])
 
 
+@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 @mock.patch.object(SheriffConfigClient, '__init__',
                    mock.MagicMock(return_value=None))
 @mock.patch.object(SheriffConfigClient, 'Match',
