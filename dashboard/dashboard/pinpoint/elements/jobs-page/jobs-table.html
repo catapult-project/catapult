@@ -80,9 +80,10 @@ found in the LICENSE file.
             <td>
               <div class="status">
                 [[item.status]]
-                <template is="dom-if" if="[[canBeCancelled(item)]]">
+                <template is="dom-if" if="[[canBeCancelled(item, user)]]">
                   <cancel-job-dialog job="[[item]]"
-                    auth-headers="[[authHeaders]]"></cancel-job-dialog>
+                                     user="[[user]]"
+                                     client="{{client}}"></cancel-job-dialog>
                 </template>
               </div>
             </td>
@@ -227,8 +228,8 @@ found in the LICENSE file.
         return '/queue-stats/' + configuration;
       },
 
-      canBeCancelled(job) {
-        return job.status == 'Queued' || job.status == 'Running';
+      canBeCancelled(job, user) {
+        return (job.status == 'Queued' || job.status == 'Running') && user;
       },
 
       getProject(job) {

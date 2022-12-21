@@ -33,7 +33,7 @@ found in the LICENSE file.
     <app-location route="{{route}}"></app-location>
     <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
 
-    <navigation-bar auth-headers="{{authHeaders}}" user={{user}}></navigation-bar>
+    <navigation-bar user="{{user}}"></navigation-bar>
 
     <!--
     The <iron-pages> element can be used as a simple content switcher. We have a
@@ -43,9 +43,8 @@ found in the LICENSE file.
     <div id="content">
       <iron-pages selected="[[page]]" attr-for-selected="name" fallback-selection="error" on-iron-select="onSelectedPage" on-iron-deselect="onDeselectedPage">
         <error-page name="error"></error-page>
-        <job-page name="job" route="{{subroute}}" auth-headers="[[authHeaders]]" user="[[user]]"></job-page>
-        <jobs-page name="jobs" route="{{subroute}}" auth-headers="[[authHeaders]]" user="[[user]]"></jobs-page>
-        <migrate-page name="migrate" auth-headers="[[authHeaders]]"></migrate-page>
+        <job-page name="job" route="{{subroute}}" user="[[user]]" client="{{client}}"></job-page>
+        <jobs-page name="jobs" route="{{subroute}}" user="[[user]]" client="{{client}}"></jobs-page>
         <stats-page name="stats"></stats-page>
         <queue-stats-page name="queue-stats" route="{{subroute}}"></queue-stats-page>
       </iron-pages>
@@ -63,11 +62,45 @@ found in the LICENSE file.
           type: String,
           reflectToAttribute: true,
         },
+        client: {
+          type: Object,
+          value: {},
+          notify: true
+        },
       },
 
       observers: [
         '_routePageChanged(routeData.page)',
       ],
+
+      ready() {
+        var clientId = '';
+        if (window.location.href.includes('-stage') || window.location.href.hostname == 'localhost') {
+          clientId = '22573382977-u263jlijs2uiio0uq7qm7vso3vuh7ec5.apps.googleusercontent.com';
+        }
+        else {
+          clientId = '62121018386-aqdfougp0ddn93knqj6g79vvn42ajmrg.apps.googleusercontent.com';
+        }
+        this.client = google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: 'https://www.googleapis.com/auth/userinfo.email',
+          ux_mode: 'popup',
+          prompt: '',
+          callback: (response) => {
+            if (response && response.access_token) {
+              var scope = 'https://www.googleapis.com/auth/userinfo.email';
+              if (google.accounts.oauth2.hasGrantedAnyScope(response, scope)) {
+                this.client.authHeaders = {
+                  Authorization: response.token_type + ' ' + response.access_token
+                };
+                this.notifyPath('client.authHeaders');
+                this.client.open_dialog();
+              }
+            }
+          },
+        });
+        this.client.authHeaders = {};
+      },
 
       onDeselectedPage(e) {
         const page = e.detail.item;

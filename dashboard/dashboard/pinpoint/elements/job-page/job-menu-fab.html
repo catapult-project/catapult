@@ -42,8 +42,8 @@ found in the LICENSE file.
 
     <div class="root">
       <div class="fabs" opened$="[[showing]]">
-        <patch-job-fab job="[[job]]" auth-headers="[[authHeaders]]"></patch-job-fab>
-        <new-job-fab submenu job="[[job]]" auth-headers="[[authHeaders]]"></new-job-fab>
+        <patch-job-fab job="[[job]]" user="[[user]]" client="{{client}}"></patch-job-fab>
+        <new-job-fab submenu job="[[job]]" user="[[user]]" client="{{client}}"></new-job-fab>
       </div>
       <paper-fab id="expandButton" icon="add" on-tap="toggleMenu"></paper-fab>
     </div>
@@ -55,7 +55,6 @@ found in the LICENSE file.
       is: 'job-menu-fab',
 
       properties: {
-        authHeaders: Object,
         job: Object,
         showing: {
           type: Boolean,
