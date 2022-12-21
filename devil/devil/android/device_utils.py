@@ -276,7 +276,7 @@ _PARCEL_RESULT_RE = re.compile(
 _WAIT_FOR_DEVICE_TIMEOUT_STR = 'timeout expired while waiting for device'
 
 _WEBVIEW_SYSUPDATE_CURRENT_PKG_RE = re.compile(
-    r'Current WebView package.*:.*\(([a-z.]*),')
+    r'Current WebView package.*:.*\(([a-z.]*),\s+(\d+\.\d+\.\d+\.\d+)\)')
 _WEBVIEW_SYSUPDATE_NULL_PKG_RE = re.compile(r'Current WebView package is null')
 _WEBVIEW_SYSUPDATE_FALLBACK_LOGIC_RE = re.compile(
     r'Fallback logic enabled: (true|false)')
@@ -3597,6 +3597,7 @@ class DeviceUtils(object):
       A dictionary with these possible entries:
         FallbackLogicEnabled: True|False
         CurrentWebViewPackage: "package name" or None
+        CurrentWebViewVersion: Version of the current WebView provider
         MinimumWebViewVersionCode: int
         WebViewPackages: Dict of installed WebView providers, mapping "package
             name" to "reason it's valid/invalid."
@@ -3623,6 +3624,7 @@ class DeviceUtils(object):
       match = re.search(_WEBVIEW_SYSUPDATE_CURRENT_PKG_RE, line)
       if match:
         result['CurrentWebViewPackage'] = match.group(1)
+        result['CurrentWebViewVersion'] = match.group(2)
       match = re.search(_WEBVIEW_SYSUPDATE_NULL_PKG_RE, line)
       if match:
         result['CurrentWebViewPackage'] = None

@@ -3635,6 +3635,7 @@ class DeviceUtilsGetWebViewUpdateServiceDumpTest(DeviceUtilsTest):
         update = self.device.GetWebViewUpdateServiceDump()
         self.assertTrue(update['FallbackLogicEnabled'])
         self.assertEqual('com.android.chrome', update['CurrentWebViewPackage'])
+        self.assertEqual('61.0.3163.98', update['CurrentWebViewVersion'])
         self.assertEqual(12345, update['MinimumWebViewVersionCode'])
         # Order isn't really important, and we shouldn't have duplicates, so we
         # convert to sets.
