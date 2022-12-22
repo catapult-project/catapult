@@ -6,11 +6,11 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from flask import Flask
 import json
-import unittest
-
 import mock
 import six
+import unittest
 if six.PY2:
   import webapp2
 import webtest
@@ -23,8 +23,14 @@ from dashboard.common import utils
 from dashboard.common import xsrf
 from dashboard.models import anomaly
 
+flask_app = Flask(__name__)
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+
+@flask_app.route('/edit_anomalies', methods=['POST'])
+def EditAnomaliesPost():
+  return edit_anomalies.EditAnomaliesPost()
+
+
 class EditAnomaliesTest(testing_common.TestCase):
 
   def setUp(self):
@@ -35,6 +41,8 @@ class EditAnomaliesTest(testing_common.TestCase):
       app = webapp2.WSGIApplication([('/edit_anomalies',
                                       edit_anomalies.EditAnomaliesHandler)])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
     testing_common.SetSheriffDomains(['chromium.org'])
 
   def tearDown(self):
@@ -71,8 +79,12 @@ class EditAnomaliesTest(testing_common.TestCase):
     anomaly_keys = self._AddAnomaliesToDataStore()
     self.testapp.post(
         '/edit_anomalies', {
-            'keys': json.dumps([anomaly_keys[0].urlsafe()]),
-            'bug_id': 31337,
+            'keys':
+                json.dumps(
+                    utils.ConvertBytesBeforeJsonDumps(
+                        [anomaly_keys[0].urlsafe()])),
+            'bug_id':
+                31337,
         },
         status=403)
     self.assertIsNone(anomaly_keys[0].get().bug_id)
@@ -83,9 +95,14 @@ class EditAnomaliesTest(testing_common.TestCase):
     self.SetCurrentUser('foo@bar.com')
     self.testapp.post(
         '/edit_anomalies', {
-            'keys': json.dumps([anomaly_keys[0].urlsafe()]),
-            'bug_id': 31337,
-            'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
+            'keys':
+                json.dumps(
+                    utils.ConvertBytesBeforeJsonDumps(
+                        [anomaly_keys[0].urlsafe()])),
+            'bug_id':
+                31337,
+            'xsrf_token':
+                xsrf.GenerateToken(users.get_current_user()),
         },
         status=403)
     self.assertIsNone(anomaly_keys[0].get().bug_id)
@@ -95,9 +112,14 @@ class EditAnomaliesTest(testing_common.TestCase):
     self.SetCurrentUser('sullivan@chromium.org')
     self.testapp.post(
         '/edit_anomalies', {
-            'keys': json.dumps([anomaly_keys[0].urlsafe()]),
-            'bug_id': 31337,
-            'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
+            'keys':
+                json.dumps(
+                    utils.ConvertBytesBeforeJsonDumps(
+                        [anomaly_keys[0].urlsafe()])),
+            'bug_id':
+                31337,
+            'xsrf_token':
+                xsrf.GenerateToken(users.get_current_user()),
         })
     self.assertEqual(31337, anomaly_keys[0].get().bug_id)
 
@@ -109,9 +131,14 @@ class EditAnomaliesTest(testing_common.TestCase):
     a.put()
     self.testapp.post(
         '/edit_anomalies', {
-            'keys': json.dumps([anomaly_keys[0].urlsafe()]),
-            'bug_id': 'REMOVE',
-            'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
+            'keys':
+                json.dumps(
+                    utils.ConvertBytesBeforeJsonDumps(
+                        [anomaly_keys[0].urlsafe()])),
+            'bug_id':
+                'REMOVE',
+            'xsrf_token':
+                xsrf.GenerateToken(users.get_current_user()),
         })
     self.assertIsNone(anomaly_keys[0].get().bug_id)
 
@@ -123,9 +150,14 @@ class EditAnomaliesTest(testing_common.TestCase):
     a.put()
     response = self.testapp.post(
         '/edit_anomalies', {
-            'keys': json.dumps([anomaly_keys[0].urlsafe()]),
-            'bug_id': 'a',
-            'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
+            'keys':
+                json.dumps(
+                    utils.ConvertBytesBeforeJsonDumps(
+                        [anomaly_keys[0].urlsafe()])),
+            'bug_id':
+                'a',
+            'xsrf_token':
+                xsrf.GenerateToken(users.get_current_user()),
         })
     self.assertEqual({'error': 'Invalid bug ID a'}, json.loads(response.body))
     self.assertEqual(12345, anomaly_keys[0].get().bug_id)
@@ -147,10 +179,16 @@ class EditAnomaliesTest(testing_common.TestCase):
     self.SetCurrentUser('sullivan@chromium.org')
     self.testapp.post(
         '/edit_anomalies', {
-            'keys': json.dumps([anomaly_keys[0].urlsafe()]),
-            'new_start_revision': '123450',
-            'new_end_revision': '123455',
-            'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
+            'keys':
+                json.dumps(
+                    utils.ConvertBytesBeforeJsonDumps(
+                        [anomaly_keys[0].urlsafe()])),
+            'new_start_revision':
+                '123450',
+            'new_end_revision':
+                '123455',
+            'xsrf_token':
+                xsrf.GenerateToken(users.get_current_user()),
         })
     self.assertEqual(123450, anomaly_keys[0].get().start_revision)
     self.assertEqual(123455, anomaly_keys[0].get().end_revision)
@@ -162,10 +200,16 @@ class EditAnomaliesTest(testing_common.TestCase):
     end = anomaly_keys[0].get().end_revision
     response = self.testapp.post(
         '/edit_anomalies', {
-            'keys': json.dumps([anomaly_keys[0].urlsafe()]),
-            'new_start_revision': 'a',
-            'new_end_revision': 'b',
-            'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
+            'keys':
+                json.dumps(
+                    utils.ConvertBytesBeforeJsonDumps(
+                        [anomaly_keys[0].urlsafe()])),
+            'new_start_revision':
+                'a',
+            'new_end_revision':
+                'b',
+            'xsrf_token':
+                xsrf.GenerateToken(users.get_current_user()),
         })
     self.assertEqual(start, anomaly_keys[0].get().start_revision)
     self.assertEqual(end, anomaly_keys[0].get().end_revision)
@@ -177,9 +221,14 @@ class EditAnomaliesTest(testing_common.TestCase):
     self.SetCurrentUser('sullivan@chromium.org')
     response = self.testapp.post(
         '/edit_anomalies', {
-            'keys': json.dumps([anomaly_keys[0].urlsafe()]),
-            'new_start_revision': '123',
-            'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
+            'keys':
+                json.dumps(
+                    utils.ConvertBytesBeforeJsonDumps(
+                        [anomaly_keys[0].urlsafe()])),
+            'new_start_revision':
+                '123',
+            'xsrf_token':
+                xsrf.GenerateToken(users.get_current_user()),
         })
     self.assertEqual({'error': 'No bug ID or new revision specified.'},
                      json.loads(response.body))
