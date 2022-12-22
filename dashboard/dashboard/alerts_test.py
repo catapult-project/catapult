@@ -6,13 +6,13 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from flask import Flask
 import mock
-import sys
-import unittest
-
 import six
 if six.PY2:
   import webapp2
+import sys
+import unittest
 import webtest
 
 from dashboard import alerts
@@ -23,8 +23,19 @@ from dashboard.models import bug_data
 from dashboard.models.subscription import Subscription
 from dashboard.sheriff_config_client import SheriffConfigClient
 
+flask_app = Flask(__name__)
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+
+@flask_app.route('/alerts', methods=['GET'])
+def AlertsHandlerGet():
+  return alerts.AlertsHandlerGet()
+
+
+@flask_app.route('/alerts', methods=['POST'])
+def AlertsHandlerPost():
+  return alerts.AlertsHandlerPost()
+
+
 @mock.patch.object(SheriffConfigClient, '__init__',
                    mock.MagicMock(return_value=None))
 class AlertsTest(testing_common.TestCase):
@@ -36,6 +47,8 @@ class AlertsTest(testing_common.TestCase):
     if six.PY2:
       app = webapp2.WSGIApplication([('/alerts', alerts.AlertsHandler)])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
     testing_common.SetSheriffDomains(['chromium.org'])
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     self.SetCurrentUser('internal@chromium.org', is_admin=True)
@@ -153,8 +166,8 @@ class AlertsTest(testing_common.TestCase):
     ).put().get()
     actual = alerts.GetAnomalyDict(alert, v2=True)
     del actual['dashboard_link']
-    self.assertEqual(
-        {
+    six.assertCountEqual(
+        self, {
             'bug_components': ['component'],
             'bug_id': 10,
             'project_id': 'chromium',
@@ -180,7 +193,7 @@ class AlertsTest(testing_common.TestCase):
   def testGet(self):
     response = self.testapp.get('/alerts')
     self.assertEqual('text/html', response.content_type)
-    self.assertIn('Chrome Performance Alerts', response.body)
+    self.assertIn(b'Chrome Performance Alerts', response.body)
 
   def testPost_NoParametersSet_UntriagedAlertsListed(self):
     key_map = self._AddAlertsToDataStore()
@@ -203,7 +216,7 @@ class AlertsTest(testing_common.TestCase):
     for alert in anomaly_list:
       self.assertEqual(expected_end_rev, alert['end_revision'])
       self.assertEqual(expected_end_rev - 5, alert['start_revision'])
-      self.assertEqual(key_map[expected_end_rev], alert['key'])
+      self.assertEqual(six.ensure_str(key_map[expected_end_rev]), alert['key'])
       self.assertEqual('ChromiumGPU', alert['master'])
       self.assertEqual('linux-release', alert['bot'])
       self.assertEqual('scrolling-benchmark', alert['testsuite'])
