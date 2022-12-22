@@ -80,9 +80,9 @@ def EditSiteConfigHandlerPost():
   if not key:
     return request_handler.RequestHandlerRenderHtml('edit_site_config.html', {})
 
-  new_value_json = request.values.get('value').strip()
-  new_external_value_json = request.values.get('external_value').strip()
-  new_internal_value_json = request.values.get('internal_value').strip()
+  new_value_json = request.values.get('value', '').strip()
+  new_external_value_json = request.values.get('external_value', '').strip()
+  new_internal_value_json = request.values.get('internal_value', '').strip()
 
   template_params = {
       'key': key,

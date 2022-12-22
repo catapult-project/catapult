@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from flask import Flask
 import unittest
 
 import six
@@ -21,8 +22,19 @@ from dashboard.common import stored_object
 from dashboard.common import testing_common
 from dashboard.common import xsrf
 
+flask_app = Flask(__name__)
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+
+@flask_app.route('/edit_site_config', methods=['GET'])
+def EditSiteConfigHandlerGet():
+  return edit_site_config.EditSiteConfigHandlerGet()
+
+
+@flask_app.route('/edit_site_config', methods=['POST'])
+def EditSiteConfigHandlerPost():
+  return edit_site_config.EditSiteConfigHandlerPost()
+
+
 class EditSiteConfigTest(testing_common.TestCase):
 
   def setUp(self):
@@ -33,6 +45,8 @@ class EditSiteConfigTest(testing_common.TestCase):
       app = webapp2.WSGIApplication([('/edit_site_config',
                                       edit_site_config.EditSiteConfigHandler)])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)
     self.SetCurrentUser('internal@chromium.org', is_admin=True)
@@ -45,15 +59,15 @@ class EditSiteConfigTest(testing_common.TestCase):
     stored_object.Set('foo', 'XXXYYY')
     response = self.testapp.get('/edit_site_config?key=foo')
     self.assertEqual(1, len(response.html('form')))
-    self.assertIn('XXXYYY', response.body)
+    self.assertIn(b'XXXYYY', response.body)
 
   def testGet_WithNamespacedKey_ShowsPageWithBothVersions(self):
     namespaced_stored_object.Set('foo', 'XXXYYY')
     namespaced_stored_object.SetExternal('foo', 'XXXinternalYYY')
     response = self.testapp.get('/edit_site_config?key=foo')
     self.assertEqual(1, len(response.html('form')))
-    self.assertIn('XXXYYY', response.body)
-    self.assertIn('XXXinternalYYY', response.body)
+    self.assertIn(b'XXXYYY', response.body)
+    self.assertIn(b'XXXinternalYYY', response.body)
 
   def testPost_NoXsrfToken_ReturnsErrorStatus(self):
     self.testapp.post(
@@ -70,7 +84,7 @@ class EditSiteConfigTest(testing_common.TestCase):
             'value': '[1, 2, 3]',
             'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
         })
-    self.assertIn('Only internal users', response.body)
+    self.assertIn(b'Only internal users', response.body)
 
   def testPost_WithKey_UpdatesNonNamespacedValues(self):
     self.testapp.post(
@@ -89,7 +103,7 @@ class EditSiteConfigTest(testing_common.TestCase):
             'value': '[1, 2, this is not json',
             'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
         })
-    self.assertIn('Invalid JSON', response.body)
+    self.assertIn(b'Invalid JSON', response.body)
     self.assertEqual('XXX', stored_object.Get('foo'))
 
   def testPost_WithKey_UpdatesNamespacedValues(self):
@@ -122,25 +136,47 @@ class EditSiteConfigTest(testing_common.TestCase):
                      messages[0].to)
     self.assertEqual('Config "foo" changed by internal@chromium.org',
                      messages[0].subject)
-    self.assertIn(
-        'Non-namespaced value diff:\n'
-        '  null\n'
-        '\n'
-        'Externally-visible value diff:\n'
-        '  {\n'
-        '-   "x": 10, \n'
-        '?         -\n'
-        '\n'
-        '+   "x": 1, \n'
-        '    "y": 2\n'
-        '  }\n'
-        '\n'
-        'Internal-only value diff:\n'
-        '  {\n'
-        '    "x": 1, \n'
-        '+   "y": 2, \n'
-        '    "z": 3\n'
-        '  }\n', str(messages[0].body))
+    if six.PY2:
+      self.assertIn(
+          'Non-namespaced value diff:\n'
+          '  null\n'
+          '\n'
+          'Externally-visible value diff:\n'
+          '  {\n'
+          '-   "x": 10, \n'
+          '?         -\n'
+          '\n'
+          '+   "x": 1, \n'
+          '    "y": 2\n'
+          '  }\n'
+          '\n'
+          'Internal-only value diff:\n'
+          '  {\n'
+          '    "x": 1, \n'
+          '+   "y": 2, \n'
+          '    "z": 3\n'
+          '  }\n', str(messages[0].body))
+    else:
+      # the body in python3 has no space after comma
+      self.assertIn(
+          'Non-namespaced value diff:\n'
+          '  null\n'
+          '\n'
+          'Externally-visible value diff:\n'
+          '  {\n'
+          '-   "x": 10,\n'
+          '?         -\n'
+          '\n'
+          '+   "x": 1,\n'
+          '    "y": 2\n'
+          '  }\n'
+          '\n'
+          'Internal-only value diff:\n'
+          '  {\n'
+          '    "x": 1,\n'
+          '+   "y": 2,\n'
+          '    "z": 3\n'
+          '  }\n', str(messages[0].body))
 
 
 class HelperFunctionTests(unittest.TestCase):
