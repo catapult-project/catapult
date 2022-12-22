@@ -249,7 +249,6 @@ class AddHistogramsBaseTest(testing_common.TestCase):
 
 
 #TODO(fancl): mocking Match to return some actuall result
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 @mock.patch.object(SheriffConfigClient, '__init__',
                    mock.MagicMock(return_value=None))
 @mock.patch.object(SheriffConfigClient, 'Match',
@@ -413,7 +412,7 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     data = json.dumps(hs.AsDicts())
 
     response = self.PostAddHistogramProcess(data)
-    self.assertIn('Illegal slash', response.body)
+    self.assertIn(b'Illegal slash', response.body)
 
   def testPost_IllegalBotName_Fails(self):
     hs = _CreateHistogram(
@@ -421,7 +420,7 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     data = json.dumps(hs.AsDicts())
 
     response = self.PostAddHistogramProcess(data)
-    self.assertIn('Illegal slash', response.body)
+    self.assertIn(b'Illegal slash', response.body)
 
   def testPost_IllegalSuiteName_Fails(self):
     hs = _CreateHistogram(
@@ -429,7 +428,7 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     data = json.dumps(hs.AsDicts())
 
     response = self.PostAddHistogramProcess(data)
-    self.assertIn('Illegal slash', response.body)
+    self.assertIn(b'Illegal slash', response.body)
 
   def testPost_DuplicateHistogram_Fails(self):
     hs1 = _CreateHistogram(
@@ -440,7 +439,7 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     data = json.dumps(hs.AsDicts())
 
     response = self.PostAddHistogramProcess(data)
-    self.assertIn('Duplicate histogram detected', response.body)
+    self.assertIn(b'Duplicate histogram detected', response.body)
 
   @mock.patch.object(add_histograms_queue.graph_revisions,
                      'AddRowsToCacheAsync')
@@ -522,6 +521,7 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
                                add_histograms.TASK_QUEUE_NAME)
     self.assertTrue(mock_process_test.called)
 
+  @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
   @mock.patch.object(add_histograms_queue.graph_revisions,
                      'AddRowsToCacheAsync', mock.MagicMock())
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
@@ -826,6 +826,7 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     for k in expected.keys():
       self.assertFalse(expected[k])
 
+  @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
   def testPost_OutOfOrder_SuiteLevel(self):
     self._AddAtCommit(1, 'd1', 'o1')
     self._AddAtCommit(10, 'd1', 'o1')
@@ -840,6 +841,7 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     }
     self._CheckOutOfOrderExpectations(expected)
 
+  @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
   def testPost_OutOfOrder_HistogramLevel(self):
     self._AddAtCommit(1, 'd1', 'o1')
     self._AddAtCommit(10, 'd1', 'o1')
