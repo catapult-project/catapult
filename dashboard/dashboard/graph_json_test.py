@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from flask import Flask
 import json
 import unittest
 
@@ -25,7 +26,14 @@ from dashboard.models import anomaly
 from dashboard.models import graph_data
 
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+flask_app = Flask(__name__)
+
+
+@flask_app.route('/graph_json', methods=['POST'])
+def GraphJsonPost():
+  return graph_json.GraphJsonPost()
+
+
 class GraphJsonTest(testing_common.TestCase):
 
   def setUp(self):
@@ -36,6 +44,8 @@ class GraphJsonTest(testing_common.TestCase):
       app = webapp2.WSGIApplication([('/graph_json',
                                       graph_json.GraphJsonHandler)])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
     self.PatchDatastoreHooksRequest()
 
   def _AddTestColumns(self, start_rev=15000, end_rev=16500, step=3):
@@ -526,7 +536,8 @@ class GraphJsonTest(testing_common.TestCase):
     self.assertEqual(15000, anomaly_one_annotation['end_revision'])
     self.assertEqual('100.0%', anomaly_one_annotation['percent_changed'])
     self.assertIsNone(anomaly_one_annotation['bug_id'])
-    self.assertEqual(key1.urlsafe(), anomaly_one_annotation['key'])
+    self.assertEqual(
+        six.ensure_str(key1.urlsafe()), anomaly_one_annotation['key'])
     self.assertTrue(anomaly_one_annotation['improvement'])
 
     # Verify key fields of the annotation dictionary for the second anomaly.
@@ -535,12 +546,14 @@ class GraphJsonTest(testing_common.TestCase):
     self.assertEqual(15006, anomaly_two_annotation['end_revision'])
     self.assertEqual('50.0%', anomaly_two_annotation['percent_changed'])
     self.assertEqual(12345, anomaly_two_annotation['bug_id'])
-    self.assertEqual(key2.urlsafe(), anomaly_two_annotation['key'])
+    self.assertEqual(
+        six.ensure_str(key2.urlsafe()), anomaly_two_annotation['key'])
     self.assertFalse(anomaly_two_annotation['improvement'])
 
     # Verify the key for the third anomaly.
     anomaly_three_annotation = annotations['0']['3']['g_anomaly']
-    self.assertEqual(key3.urlsafe(), anomaly_three_annotation['key'])
+    self.assertEqual(
+        six.ensure_str(key3.urlsafe()), anomaly_three_annotation['key'])
 
     # Verify the tracing link annotations
     self.assertEqual('http://trace/15000',
@@ -686,8 +699,9 @@ class GraphJsonTest(testing_common.TestCase):
     }, json.loads(response))
 
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
-class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
+@unittest.skipIf(six.PY3,
+                 'Skipping webapp2 handler implementation for python 3.')
+class GraphJsonParseRequestArgumentsTestPY2(testing_common.TestCase):
 
   def _HandlerWithMockRequestParams(self, **params):
     """Returns a GraphJsonHandler object with canned request parameters."""
@@ -699,10 +713,7 @@ class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
         }
     }
     request_params.update(params)
-    if six.PY2:
-      handler = graph_json.GraphJsonHandler()
-    else:
-      handler = graph_json.GraphJsonPost()
+    handler = graph_json.GraphJsonHandler()
     handler.request = mock.MagicMock()
     handler.request.get = mock.MagicMock(
         return_value=json.dumps(request_params))
@@ -789,6 +800,116 @@ class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
     actual = handler._ParseRequestArguments()
     actual['test_paths'].sort()
     self.assertEqual(expected, actual)
+
+
+@unittest.skipIf(six.PY2, 'Flask implementation only for python 3.')
+class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
+
+  def testParseRequestArguments(self):
+    # The numerical arguments get converted to integers, and the
+    # unspecified arguments get set to None.
+    params = {
+        'test_path_dict': {
+            'Master/b1/scrolling/frame_times/about.com': [],
+            'Master/b2/scrolling/frame_times/about.com': [],
+            'Master/linux/dromaeo.domcoremodify/dom': [],
+        }
+    }
+    params.update(rev='12345', num_points='123')
+    expected = {
+        'test_paths': [
+            'Master/b1/scrolling/frame_times/about.com',
+            'Master/b2/scrolling/frame_times/about.com',
+            'Master/linux/dromaeo.domcoremodify/dom'
+        ],
+        'rev': 12345,
+        'num_points': 123,
+        'start_rev': None,
+        'end_rev': None,
+        'is_selected': None,
+    }
+    actual = graph_json._ParseRequestArguments(json.dumps(params))
+    six.assertCountEqual(self, expected, actual)
+
+  def testParseRequestArguments_TestPathListSpecified(self):
+    params = {
+        'test_path_dict': {
+            'Master/b1/scrolling/frame_times/about.com': [],
+            'Master/b2/scrolling/frame_times/about.com': [],
+            'Master/linux/dromaeo.domcoremodify/dom': [],
+        }
+    }
+    params.update(
+        test_path_dict=None,
+        test_path_list=[
+            'Master/b1/scrolling/frame_times/about.com',
+            'Master/b2/scrolling/frame_times/about.com',
+            'Master/linux/dromaeo.domcoremodify/dom'
+        ])
+
+    expected = {
+        'test_paths': [
+            'Master/b1/scrolling/frame_times/about.com',
+            'Master/b2/scrolling/frame_times/about.com',
+            'Master/linux/dromaeo.domcoremodify/dom'
+        ],
+        'rev': None,
+        'num_points': 150,
+        'start_rev': None,
+        'end_rev': None,
+        'is_selected': None,
+    }
+    actual = graph_json._ParseRequestArguments(json.dumps(params))
+    six.assertCountEqual(self, expected, actual)
+
+  def testParseRequestArguments_OnlyTestPathDictSpecified(self):
+    # No revision or number of points is specified, so they're set to None.
+    params = {
+        'test_path_dict': {
+            'Master/b1/scrolling/frame_times/about.com': [],
+            'Master/b2/scrolling/frame_times/about.com': [],
+            'Master/linux/dromaeo.domcoremodify/dom': [],
+        }
+    }
+    expected = {
+        'test_paths': [
+            'Master/b1/scrolling/frame_times/about.com',
+            'Master/b2/scrolling/frame_times/about.com',
+            'Master/linux/dromaeo.domcoremodify/dom',
+        ],
+        'rev': None,
+        'num_points': graph_json._DEFAULT_NUM_POINTS,
+        'start_rev': None,
+        'end_rev': None,
+        'is_selected': None,
+    }
+    actual = graph_json._ParseRequestArguments(json.dumps(params))
+    six.assertCountEqual(self, expected, actual)
+
+  def testParseRequestArguments_NegativeRevision(self):
+    # Negative revision is invalid; it's the same as no revision.
+    params = {
+        'test_path_dict': {
+            'Master/b1/scrolling/frame_times/about.com': [],
+            'Master/b2/scrolling/frame_times/about.com': [],
+            'Master/linux/dromaeo.domcoremodify/dom': [],
+        }
+    }
+    params.update(rev='-1')
+    expected = {
+        'test_paths': [
+            'Master/b1/scrolling/frame_times/about.com',
+            'Master/b2/scrolling/frame_times/about.com',
+            'Master/linux/dromaeo.domcoremodify/dom',
+        ],
+        'rev': None,
+        'num_points': graph_json._DEFAULT_NUM_POINTS,
+        'start_rev': None,
+        'end_rev': None,
+        'is_selected': None,
+    }
+    actual = graph_json._ParseRequestArguments(json.dumps(params))
+    six.assertCountEqual(self, expected, actual)
 
 
 class GraphJsonHelperFunctionTest(testing_common.TestCase):

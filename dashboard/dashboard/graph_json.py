@@ -48,7 +48,8 @@ _BETTER_DICT = {
 
 
 def GraphJsonPost():
-  arguments = _ParseRequestArguments()
+  graphs = request.values.get('graphs')
+  arguments = _ParseRequestArguments(graphs)
   if not arguments:
     resp = request_handler.RequestHandlerReportError('Bad Graph JSON Request')
   else:
@@ -57,7 +58,7 @@ def GraphJsonPost():
   return resp
 
 
-def _ParseRequestArguments():
+def _ParseRequestArguments(graphs):
   """Parses parameters from a request and checks for errors.
 
   The post request is expected to pass one parameter, called 'graphs',
@@ -67,7 +68,6 @@ def _ParseRequestArguments():
     A dict of arguments that can be given to GetGraphJson, or None if
     no valid dict of arguments can be constructed.
   """
-  graphs = request.values.get('graphs')
   if graphs is None:
     logging.error('No graph names specified')
     return None
