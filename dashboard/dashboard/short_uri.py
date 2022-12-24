@@ -176,4 +176,4 @@ def _Upgrade(statejson):
       'chartSections': [_UpgradeChart(chart) for chart in state['charts']],
   }
   statejson = json.dumps(state)
-  return statejson
+  return six.ensure_binary(statejson)

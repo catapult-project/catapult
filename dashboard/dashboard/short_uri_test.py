@@ -6,9 +6,11 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from flask import Flask
 import json
 import six
 import unittest
+import webtest
 
 from google.appengine.ext import ndb
 
@@ -17,15 +19,30 @@ from dashboard.common import testing_common
 from dashboard.models import graph_data
 from dashboard.models import page_state
 
+flask_app = Flask(__name__)
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+
+@flask_app.route('/short_uri', methods=['GET'])
+def ShortUriHandlerGet():
+  return short_uri.ShortUriHandlerGet()
+
+
+@flask_app.route('/short_uri', methods=['POST'])
+def ShortUriHandlerPost():
+  return short_uri.ShortUriHandlerPost()
+
+
+# @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class ShortUriTest(testing_common.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(ShortUriTest, self).setUp()
-    self.SetUpApp([('/short_uri', short_uri.ShortUriHandler)])
+    if six.PY2:
+      self.SetUpApp([('/short_uri', short_uri.ShortUriHandler)])
+    else:
+      self.testapp = webtest.TestApp(flask_app)
 
   def testUpgradeOld(self):
     t = graph_data.TestMetadata(
@@ -34,10 +51,11 @@ class ShortUriTest(testing_common.TestCase):
     t.put()
     page_state.PageState(
         id='test_sid',
-        value=json.dumps(
-            {'charts': [[
-                ['master/bot/suite/measurement', ['all']],
-            ],]})).put()
+        value=six.ensure_binary(
+            json.dumps(
+                {'charts': [[
+                    ['master/bot/suite/measurement', ['all']],
+                ],]}))).put()
     response = self.testapp.get('/short_uri', {'sid': 'test_sid', 'v2': 'true'})
     expected = {
         'testSuites': ['suite'],
@@ -57,13 +75,14 @@ class ShortUriTest(testing_common.TestCase):
     t.put()
     page_state.PageState(
         id='test_sid',
-        value=json.dumps({
-            'charts': [{
-                'seriesGroups': [
-                    ['master/bot/suite/measurement', ['measurement']],
-                ],
-            },],
-        })).put()
+        value=six.ensure_binary(
+            json.dumps({
+                'charts': [{
+                    'seriesGroups': [
+                        ['master/bot/suite/measurement', ['measurement']],
+                    ],
+                },],
+            }))).put()
     response = self.testapp.get('/short_uri', {'sid': 'test_sid', 'v2': 'true'})
     expected = {
         'testSuites': ['suite'],
