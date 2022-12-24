@@ -58,8 +58,8 @@ def FileBugHandlerGet():
     project_id = request.values.get('project_id', 'chromium')
     labels = request.values.getlist('label')
     components = request.values.getlist('component')
-    owner = request.values.get('owner')
-    cc = request.values.get('cc')
+    owner = request.values.get('owner', '')
+    cc = request.values.get('cc', '')
     return _CreateBug(owner, cc, summary, description, project_id, labels,
                       components, keys)
   return _ShowBugDialog(summary, description, keys)

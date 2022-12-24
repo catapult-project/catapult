@@ -40,7 +40,6 @@ def UpdateTestSuitesPost():
   return update_test_suites.UpdateTestSuitesPost()
 
 
-# @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class ReportTest(testing_common.TestCase):
 
   def setUp(self):

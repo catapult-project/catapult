@@ -32,7 +32,6 @@ def ShortUriHandlerPost():
   return short_uri.ShortUriHandlerPost()
 
 
-# @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class ShortUriTest(testing_common.TestCase):
 
   def setUp(self):
