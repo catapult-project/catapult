@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from flask import Flask
 import json
 import six
 import unittest
@@ -21,8 +22,25 @@ from dashboard import update_test_suites
 from dashboard.common import testing_common
 from dashboard.models import page_state
 
+flask_app = Flask(__name__)
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+
+@flask_app.route('/report', methods=['GET'])
+def ReportHandlerGet():
+  return report.ReportHandlerGet()
+
+
+@flask_app.route('/report', methods=['POST'])
+def ReportHandlerPost():
+  return report.ReportHandlerPost()
+
+
+@flask_app.route('/update_test_suites', methods=['GET', 'POST'])
+def UpdateTestSuitesPost():
+  return update_test_suites.UpdateTestSuitesPost()
+
+
+# @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class ReportTest(testing_common.TestCase):
 
   def setUp(self):
@@ -35,6 +53,8 @@ class ReportTest(testing_common.TestCase):
           ('/update_test_suites', update_test_suites.UpdateTestSuitesHandler)
       ])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
 
   def _AddTestSuites(self):
     """Adds sample data and sets the list of test suites."""
@@ -111,7 +131,8 @@ class ReportTest(testing_common.TestCase):
   def testGet(self):
     response = self.testapp.get('/report')
     self.assertEqual('text/html', response.content_type)
-    self.assertIn('Chrome Performance Dashboard', response.body)
+
+    self.assertIn(b'Chrome Performance Dashboard', response.body)
 
   def testGet_OldUri(self):
     expected_state = {
@@ -140,7 +161,8 @@ class ReportTest(testing_common.TestCase):
     state_id = location.split('sid=')[1]
     state = ndb.Key(page_state.PageState, state_id).get()
     self.assertEqual(
-        json.dumps(expected_state, separators=(',', ':')), state.value)
+        six.ensure_binary(json.dumps(expected_state, separators=(',', ':'))),
+        state.value)
 
   def testGet_OldUriMissingTestParam(self):
     response = self.testapp.get('/report'
@@ -175,7 +197,8 @@ class ReportTest(testing_common.TestCase):
     state_id = location.split('sid=')[1]
     state = ndb.Key(page_state.PageState, state_id).get()
     self.assertEqual(
-        json.dumps(expected_state, separators=(',', ':')), state.value)
+        six.ensure_binary(json.dumps(expected_state, separators=(',', ':'))),
+        state.value)
 
   def testGet_OldUriWithRevisionParams(self):
     response = self.testapp.get(
@@ -211,7 +234,8 @@ class ReportTest(testing_common.TestCase):
     state_id = location.split('sid=')[1]
     state = ndb.Key(page_state.PageState, state_id).get()
     self.assertEqual(
-        json.dumps(expected_state, separators=(',', ':')), state.value)
+        six.ensure_binary(json.dumps(expected_state, separators=(',', ':'))),
+        state.value)
 
 
 if __name__ == '__main__':

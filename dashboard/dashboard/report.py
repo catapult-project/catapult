@@ -71,7 +71,7 @@ def _GetQueryStringForOldUri():
 
   # Save page state.
   if not ndb.Key(page_state.PageState, state_id).get():
-    page_state.PageState(id=state_id, value=state_json).put()
+    page_state.PageState(id=state_id, value=six.ensure_binary(state_json)).put()
 
   query_string = 'sid=' + state_id
   if request.values.get('start_rev'):
