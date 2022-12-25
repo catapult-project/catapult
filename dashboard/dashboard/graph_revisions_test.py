@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import datetime
+from flask import Flask
 import json
 import unittest
 
@@ -21,8 +22,14 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import graph_data
 
+flask_app = Flask(__name__)
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+
+@flask_app.route('/graph_revisions', methods=['POST'])
+def GraphRevisionsPost():
+  return graph_revisions.GraphRevisionsPost()
+
+
 class GraphRevisionsTest(testing_common.TestCase):
 
   def setUp(self):
@@ -33,6 +40,8 @@ class GraphRevisionsTest(testing_common.TestCase):
       app = webapp2.WSGIApplication([('/graph_revisions',
                                       graph_revisions.GraphRevisionsHandler)])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
     self.PatchDatastoreHooksRequest()
 
   def _AddMockData(self):

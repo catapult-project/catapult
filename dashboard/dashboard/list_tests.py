@@ -59,7 +59,7 @@ def ListTestsHandlerPost():
     suite_name = request.values.get('suite')
     bot_names = request.values.get('bots').split(',')
     test_dict = GetSubTests(suite_name, bot_names)
-    return make_response(test_dict, headers)
+    return make_response(json.dumps(test_dict), headers)
 
   if list_type == 'pattern':
     pattern = request.values.get('p')

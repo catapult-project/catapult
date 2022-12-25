@@ -7,7 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import unittest
-
+from flask import Flask
 import six
 if six.PY2:
   import webapp2
@@ -17,8 +17,14 @@ from dashboard import layered_cache_delete_expired
 from dashboard.common import layered_cache
 from dashboard.common import testing_common
 
+flask_app = Flask(__name__)
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+
+@flask_app.route('/delete_expired_entities')
+def LayeredCacheDeleteExpiredGet():
+  return layered_cache_delete_expired.LayeredCacheDeleteExpiredGet()
+
+
 class LayeredCacheDeleteExpiredTest(testing_common.TestCase):
 
   def setUp(self):
@@ -31,6 +37,8 @@ class LayeredCacheDeleteExpiredTest(testing_common.TestCase):
            layered_cache_delete_expired.LayeredCacheDeleteExpiredHandler)
       ])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
     self.UnsetCurrentUser()
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)
