@@ -6,9 +6,9 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import unittest
-
+from flask import Flask
 import six
+import unittest
 if six.PY2:
   import webapp2
 import webtest
@@ -18,8 +18,14 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 
+flask_app = Flask(__name__)
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+
+@flask_app.route('/')
+def MainHandlerGet():
+  return main.MainHandlerGet()
+
+
 class MainTest(testing_common.TestCase):
 
   def setUp(self):
@@ -29,10 +35,12 @@ class MainTest(testing_common.TestCase):
     if six.PY2:
       app = webapp2.WSGIApplication([('/', main.MainHandler)])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
 
   def testGet_PageIsShown(self):
     response = self.testapp.get('/')
-    self.assertIn('<html>', response.body)
+    self.assertIn(b'<html>', response.body)
 
   def testGetColorClass(self):
     self.assertEqual('over-50', main._GetColorClass(95))

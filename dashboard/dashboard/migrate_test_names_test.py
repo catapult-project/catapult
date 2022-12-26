@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from flask import Flask
 import six
 import unittest
 if six.PY2:
@@ -39,8 +40,19 @@ _MOCK_DATA = [['ChromiumPerf'], ['win7', 'mac'], {
     },
 }]
 
+flask_app = Flask(__name__)
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+
+@flask_app.route('/migrate_test_names', methods=['GET'])
+def MigrateTestNamesGet():
+  return migrate_test_names.MigrateTestNamesGet()
+
+
+@flask_app.route('/migrate_test_names', methods=['POST'])
+def MigrateTestNamesPost():
+  return migrate_test_names.MigrateTestNamesPost()
+
+
 class MigrateTestNamesTest(testing_common.TestCase):
 
   def setUp(self):
@@ -52,6 +64,8 @@ class MigrateTestNamesTest(testing_common.TestCase):
           ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler)
       ])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
     # Make sure puts get split up into multiple calls.
     migrate_test_names._MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL = 30
     self.SetCurrentUser('internal@foo.bar')

@@ -276,7 +276,8 @@ def _ValidateAndGetNewTestPath(old_path, new_pattern):
   old_path_parts = old_path.split('/')
   new_pattern_parts = new_pattern.split('/')
   new_path_parts = []
-  for old_part, new_part in map(None, old_path_parts, new_pattern_parts):
+  for old_part, new_part in six.moves.zip_longest(old_path_parts,
+                                                  new_pattern_parts):
     if not new_part:
       break  # In this case, the new path is shorter than the old.
     if new_part == '*':
