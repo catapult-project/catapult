@@ -6,9 +6,9 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from flask import Flask
 import itertools
 import json
-import unittest
 
 import six
 import mock
@@ -33,6 +33,23 @@ _DEFAULT_TEST_ARGS = ''
 _DEFAULT_BUG_ID = 1
 _DEFAULT_PIN = ''
 _DEFAULT_BISECT_MODE = 'performance'
+
+flask_app = Flask(__name__)
+
+
+@flask_app.route('/pinpoint/new/bisect', methods=['POST'])
+def PinpointNewBisectPost():
+  return pinpoint_request.PinpointNewBisectPost()
+
+
+@flask_app.route('/pinpoint/new/perf_try', methods=['POST'])
+def PinpointNewPerfTryPost():
+  return pinpoint_request.PinpointNewPerfTryPost()
+
+
+@flask_app.route('/pinpoint/new/prefill', methods=['POST'])
+def PinpointNewPrefillPost():
+  return pinpoint_request.PinpointNewPrefillPost()
 
 
 def GenerateTryRequestParams(params):
@@ -61,7 +78,6 @@ def GenerateBisectRequestParams(params):
   return params
 
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class PinpointNewPrefillRequestHandlerTest(testing_common.TestCase):
 
   def setUp(self):
@@ -74,6 +90,8 @@ class PinpointNewPrefillRequestHandlerTest(testing_common.TestCase):
            pinpoint_request.PinpointNewPrefillRequestHandler)
       ])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
 
   def testPost_UsesUnescapedStoryName(self):
     t = graph_data.TestMetadata(id='M/B/S/foo', unescaped_story_name='foo:bar')
@@ -83,7 +101,6 @@ class PinpointNewPrefillRequestHandlerTest(testing_common.TestCase):
     self.assertEqual({'story_filter': 'foo:bar'}, json.loads(response.body))
 
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
 
   def setUp(self):
@@ -92,9 +109,12 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     super(PinpointNewPerfTryRequestHandlerTest, self).setUp()
     if six.PY2:
       app = webapp2.WSGIApplication([
-          (r'/pinpoint/new', pinpoint_request.PinpointNewPerfTryRequestHandler)
+          (r'/pinpoint/new/perf_try',
+           pinpoint_request.PinpointNewPerfTryRequestHandler)
       ])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
 
     self.SetCurrentUser('foo@chromium.org')
 
@@ -110,7 +130,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(utils, 'IsValidSheriffUser',
                      mock.MagicMock(return_value=False))
   def testPost_NotSheriff(self):
-    response = self.testapp.post('/pinpoint/new')
+    response = self.testapp.post('/pinpoint/new/perf_try')
     self.assertEqual({u'error': u'User "foo@chromium.org" not authorized.'},
                      json.loads(response.body))
 
@@ -119,7 +139,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
   def testPost_NoStoryFilter(self):
     params = GenerateTryRequestParams(
         {'test_path': 'ChromiumPerf/android-webview-nexus5x/system_health/foo'})
-    response = self.testapp.post('/pinpoint/new', params=params)
+    response = self.testapp.post('/pinpoint/new/perf_try', params=params)
     self.assertEqual({u'error': u'Story is required.'},
                      json.loads(response.body))
 
@@ -132,7 +152,7 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
     mock_pinpoint.return_value = {'foo': 'bar'}
     self.SetCurrentUser('foo@chromium.org')
     params = {'a': 'b', 'c': 'd'}
-    response = self.testapp.post('/pinpoint/new', params)
+    response = self.testapp.post('/pinpoint/new/perf_try', params)
 
     expected_args = mock.call({'test': 'result'})
     self.assertEqual([expected_args], mock_pinpoint.call_args_list)
@@ -303,7 +323,6 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
         repo='v8/v8')
 
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 @mock.patch.object(pinpoint_request, 'FindMagnitudeBetweenCommits',
                    mock.MagicMock(return_value=None))
 class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
@@ -314,9 +333,12 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     super(PinpointNewBisectRequestHandlerTest, self).setUp()
     if six.PY2:
       app = webapp2.WSGIApplication([
-          (r'/pinpoint/new', pinpoint_request.PinpointNewBisectRequestHandler)
+          (r'/pinpoint/new/bisect',
+           pinpoint_request.PinpointNewBisectRequestHandler)
       ])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
 
     self.SetCurrentUser('foo@chromium.org')
 
@@ -332,7 +354,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
   @mock.patch.object(utils, 'IsValidSheriffUser',
                      mock.MagicMock(return_value=False))
   def testPost_NotSheriff(self):
-    response = self.testapp.post('/pinpoint/new')
+    response = self.testapp.post('/pinpoint/new/bisect')
     self.assertEqual({u'error': u'User "foo@chromium.org" not authorized.'},
                      json.loads(response.body))
 
@@ -345,7 +367,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     mock_pinpoint.return_value = {'error': 'something'}
     self.SetCurrentUser('foo@chromium.org')
     params = {'a': 'b', 'c': 'd'}
-    response = self.testapp.post('/pinpoint/new', params)
+    response = self.testapp.post('/pinpoint/new/bisect', params)
 
     expected_args = mock.call({'test': 'result'})
     self.assertEqual([expected_args], mock_pinpoint.call_args_list)
@@ -360,7 +382,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     mock_pinpoint.return_value = {'foo': 'bar'}
     self.SetCurrentUser('foo@chromium.org')
     params = {'a': 'b', 'c': 'd'}
-    response = self.testapp.post('/pinpoint/new', params)
+    response = self.testapp.post('/pinpoint/new/bisect', params)
 
     expected_args = mock.call({'test': 'result'})
     self.assertEqual([expected_args], mock_pinpoint.call_args_list)
@@ -388,11 +410,16 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     anomaly_entity.put()
 
     params = {
-        'a': 'b',
-        'c': 'd',
-        'alerts': json.dumps([anomaly_entity.key.urlsafe()])
+        'a':
+            'b',
+        'c':
+            'd',
+        'alerts':
+            json.dumps(
+                utils.ConvertBytesBeforeJsonDumps(
+                    [anomaly_entity.key.urlsafe()]))
     }
-    response = self.testapp.post('/pinpoint/new', params)
+    response = self.testapp.post('/pinpoint/new/bisect', params)
 
     expected_args = mock.call({'test': 'result'})
     self.assertEqual([expected_args], mock_pinpoint.call_args_list)
@@ -414,11 +441,16 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     anomaly_entity.put()
 
     params = {
-        'a': 'b',
-        'c': 'd',
-        'alerts': json.dumps([anomaly_entity.key.urlsafe()])
+        'a':
+            'b',
+        'c':
+            'd',
+        'alerts':
+            json.dumps(
+                utils.ConvertBytesBeforeJsonDumps(
+                    [anomaly_entity.key.urlsafe()]))
     }
-    response = self.testapp.post('/pinpoint/new', params)
+    response = self.testapp.post('/pinpoint/new/bisect', params)
 
     expected_args = mock.call({'test': 'result'})
     self.assertEqual([expected_args], mock_pinpoint.call_args_list)
@@ -442,15 +474,21 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
     anomaly_entity.put()
 
     params = GenerateBisectRequestParams({
-        'test_path': 'ChromiumPerf/mac/cc_perftests/foo',
-        'story_filter': 'required',
-        'alerts': json.dumps([anomaly_entity.key.urlsafe()])
+        'test_path':
+            'ChromiumPerf/mac/cc_perftests/foo',
+        'story_filter':
+            'required',
+        'alerts':
+            json.dumps(
+                utils.ConvertBytesBeforeJsonDumps(
+                    [anomaly_entity.key.urlsafe()]))
     })
     results = pinpoint_request.PinpointParamsFromBisectParams(params)
 
     self.assertEqual(9, results['comparison_magnitude'])
-    self.assertEqual(anomaly_entity.key.urlsafe(),
-                     json.loads(results['tags'])['alert'])
+    self.assertEqual(
+        six.ensure_str(anomaly_entity.key.urlsafe()),
+        json.loads(results['tags'])['alert'])
 
   @mock.patch.object(utils, 'IsValidSheriffUser',
                      mock.MagicMock(return_value=True))

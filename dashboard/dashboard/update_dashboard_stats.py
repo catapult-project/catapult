@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import collections
 import datetime
+from flask import make_response
 from six.moves import http_client
 import logging
 import six
@@ -39,6 +40,7 @@ def UpdateDashboardStatsGet():
   deferred.defer(_ProcessAlerts)
   deferred.defer(_ProcessPinpointStats)
   deferred.defer(_ProcessPinpointJobs)
+  return make_response('Dashboard stats updated', 200)
 
 
 if six.PY2:

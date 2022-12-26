@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from flask import Flask
 import six
 import unittest
 if six.PY2:
@@ -22,8 +23,14 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import graph_data
 
+flask_app = Flask(__name__)
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+
+@flask_app.route('/update_test_suites', methods=['GET', 'POST'])
+def UpdateTestSuitesPost():
+  return update_test_suites.UpdateTestSuitesPost()
+
+
 class ListTestSuitesTest(testing_common.TestCase):
 
   def setUp(self):
@@ -35,6 +42,8 @@ class ListTestSuitesTest(testing_common.TestCase):
           ('/update_test_suites', update_test_suites.UpdateTestSuitesHandler)
       ])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     self.UnsetCurrentUser()
     stored_object.Set(descriptor.PARTIAL_TEST_SUITES_KEY, [

@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import datetime
+from flask import Flask
 from six.moves import http_client
 import mock
 import six
@@ -33,6 +34,13 @@ _RESULTS_BY_CHANGE = {
     'chromium@aaaaaaa': [1, 1, 1, 1],
     'chromium@bbbbbbb': [5, 5, 5, 5]
 }
+
+flask_app = Flask(__name__)
+
+
+@flask_app.route('/update_dashboard_stats')
+def UpdateDashboardStatsGet():
+  return update_dashboard_stats.UpdateDashboardStatsGet()
 
 
 class _QuestStub(quest.Quest):
@@ -72,18 +80,20 @@ def _FakeTasklet(*args):
   del args
 
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 class UpdateDashboardStatsTest(test.TestCase):
 
   def setUp(self):
     # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
     # pylint: disable=super-with-arguments
     super(UpdateDashboardStatsTest, self).setUp()
-    app = webapp2.WSGIApplication([
-        ('/update_dashboard_stats',
-         update_dashboard_stats.UpdateDashboardStatsHandler)
-    ])
-    self.testapp = webtest.TestApp(app)
+    if six.PY2:
+      app = webapp2.WSGIApplication([
+          ('/update_dashboard_stats',
+           update_dashboard_stats.UpdateDashboardStatsHandler)
+      ])
+      self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
 
   def _CreateJob(self,
                  hash1,
