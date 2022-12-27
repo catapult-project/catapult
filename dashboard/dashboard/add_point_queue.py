@@ -55,8 +55,12 @@ def AddPointQueuePost():
     except datastore_errors.BadRequestError as e:
       logging.info('While trying to store %s', row_dict)
       logging.error('Datastore request failed: %s.', str(e))
-      return request_handler.RequestHandlerReportError(
-          'Datastore request failed: %s.' % str(e), status=400)
+      # We should return a response with more information. We kept an
+      # empty response here to align with the webapp2 implementation.
+      # A possible option:
+      #   return request_handler.RequestHandlerReportError(
+      #     'Datastore request failed: %s.' % str(e), status=400)
+      return make_response('')
 
   ndb.Future.wait_all(all_put_futures)
 
