@@ -98,6 +98,8 @@ def _GenerateResponse(token,
     result['measurements'].append(future.get_result())
   return result
 
+
+@api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
 def UploadsInfoGet(token_id):
   """Returns json, that describes state of the token.
 
@@ -174,7 +176,6 @@ def UploadsInfoGet(token_id):
     logging.error('Upload completion token id is not valid. Token id: %s',
                   token_id)
     raise ValueError
-
   token = upload_completion_token.Token.get_by_id(token_id)
   if token is None:
     logging.error('Upload completion token not found. Token id: %s', token_id)

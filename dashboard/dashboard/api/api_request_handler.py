@@ -59,7 +59,7 @@ def RequestHandlerDecoratorFactory(user_checker):
 
   def RequestHandlerDecorator(request_handler):
 
-    def Wrapper():
+    def Wrapper(*args):
       if request.method == 'OPTIONS':
         response = make_response()
         _SetCorsHeadersIfAppropriate(request, response)
@@ -76,7 +76,7 @@ def RequestHandlerDecoratorFactory(user_checker):
       # Allow oauth.Error to manifest as HTTP 500.
 
       try:
-        results = request_handler()
+        results = request_handler(*args)
       except NotFoundError as e:
         return _WriteErrorMessage(str(e), 404)
       except (BadRequestError, KeyError, TypeError, ValueError) as e:
