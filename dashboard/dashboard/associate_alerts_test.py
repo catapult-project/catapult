@@ -6,10 +6,10 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import unittest
-
+from flask import Flask
 import mock
 import six
+import unittest
 if six.PY2:
   import webapp2
 import webtest
@@ -22,7 +22,14 @@ from dashboard.models.subscription import Subscription
 from dashboard.services import issue_tracker_service
 
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+flask_app = Flask(__name__)
+
+
+@flask_app.route('/associate_alerts', methods=['GET', 'POST'])
+def AssociateAlertsHandlerPost():
+  return associate_alerts.AssociateAlertsHandlerPost()
+
+
 class AssociateAlertsTest(testing_common.TestCase):
 
   def setUp(self):
@@ -33,6 +40,8 @@ class AssociateAlertsTest(testing_common.TestCase):
       app = webapp2.WSGIApplication([('/associate_alerts',
                                       associate_alerts.AssociateAlertsHandler)])
       self.testapp = webtest.TestApp(app)
+    else:
+      self.testapp = webtest.TestApp(flask_app)
     testing_common.SetSheriffDomains(['chromium.org'])
     self.SetCurrentUser('foo@chromium.org', is_admin=True)
 
@@ -69,7 +78,7 @@ class AssociateAlertsTest(testing_common.TestCase):
           subscriptions=[subscription],
           subscription_names=[subscription.name],
       ).put()
-      key_map[end_rev] = anomaly_key.urlsafe()
+      key_map[end_rev] = six.ensure_str(anomaly_key.urlsafe())
 
     # Add an anomaly that overlaps.
     anomaly_key = anomaly.Anomaly(
@@ -81,7 +90,7 @@ class AssociateAlertsTest(testing_common.TestCase):
         subscriptions=[subscription],
         subscription_names=[subscription.name],
     ).put()
-    key_map[9996] = anomaly_key.urlsafe()
+    key_map[9996] = six.ensure_str(anomaly_key.urlsafe())
 
     # Add an anomaly that overlaps and has bug ID.
     anomaly_key = anomaly.Anomaly(
@@ -94,12 +103,12 @@ class AssociateAlertsTest(testing_common.TestCase):
         subscriptions=[subscription],
         subscription_names=[subscription.name],
     ).put()
-    key_map[9997] = anomaly_key.urlsafe()
+    key_map[9997] = six.ensure_str(anomaly_key.urlsafe())
     return key_map
 
   def testGet_NoKeys_ShowsError(self):
     response = self.testapp.get('/associate_alerts')
-    self.assertIn('<div class="error">', response.body)
+    self.assertIn(b'<div class="error">', response.body)
 
   def testGet_SameAsPost(self):
     get_response = self.testapp.get('/associate_alerts')
@@ -110,8 +119,8 @@ class AssociateAlertsTest(testing_common.TestCase):
     key_map = self._AddAnomalies()
     response = self.testapp.get('/associate_alerts?keys=%s&bug_id=foo' %
                                 key_map[9996])
-    self.assertIn('<div class="error">', response.body)
-    self.assertIn('Invalid bug ID', response.body)
+    self.assertIn(b'<div class="error">', response.body)
+    self.assertIn(b'Invalid bug ID', response.body)
 
   # Mocks fetching bugs from issue tracker.
   @mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())
@@ -147,10 +156,11 @@ class AssociateAlertsTest(testing_common.TestCase):
     # A HTML form is shown for the user to input a bug number.
     key_map = self._AddAnomalies()
     response = self.testapp.get('/associate_alerts?keys=%s' % key_map[10000])
+
     # The response contains a table of recent bugs and a form.
-    self.assertIn('12345', response.body)
-    self.assertIn('13579', response.body)
-    self.assertIn('<form', response.body)
+    self.assertIn(b'12345', response.body)
+    self.assertIn(b'13579', response.body)
+    self.assertIn(b'<form', response.body)
 
   def testGet_WithBugId_AlertIsAssociatedWithBugId(self):
     # When the bug ID is given and the alerts overlap, then the Anomaly
@@ -159,8 +169,9 @@ class AssociateAlertsTest(testing_common.TestCase):
     response = self.testapp.get(
         '/associate_alerts?keys=%s,%s&bug_id=12345&project_id=test_project' %
         (key_map[9996], key_map[10000]))
+
     # The response page should have a bug number.
-    self.assertIn('12345', response.body)
+    self.assertIn(b'12345', response.body)
     # The Anomaly entities should be updated.
     for anomaly_entity in anomaly.Anomaly.query().fetch():
       if anomaly_entity.end_revision in (10000, 9996):
@@ -176,8 +187,9 @@ class AssociateAlertsTest(testing_common.TestCase):
     key_map = self._AddAnomalies()
     response = self.testapp.get('/associate_alerts?keys=%s,%s&bug_id=12345' %
                                 (key_map[9996], key_map[10000]))
+
     # The response page should have a bug number.
-    self.assertIn('12345', response.body)
+    self.assertIn(b'12345', response.body)
     # The Anomaly entities should be updated.
     for anomaly_entity in anomaly.Anomaly.query().fetch():
       if anomaly_entity.end_revision in (10000, 9996):
@@ -192,8 +204,9 @@ class AssociateAlertsTest(testing_common.TestCase):
     key_map = self._AddAnomalies()
     response = self.testapp.get('/associate_alerts?keys=%s,%s&bug_id=578' %
                                 (key_map[9996], key_map[10000]))
+
     # The response page should have a bug number.
-    self.assertIn('578', response.body)
+    self.assertIn(b'578', response.body)
     # The Anomaly entities should be updated.
     self.assertEqual(
         578,
@@ -210,8 +223,9 @@ class AssociateAlertsTest(testing_common.TestCase):
     key_map = self._AddAnomalies()
     response = self.testapp.get('/associate_alerts?keys=%s,%s&bug_id=12345' %
                                 (key_map[10000], key_map[10010]))
+
     # The response page should show confirmation page.
-    self.assertIn('Do you want to continue?', response.body)
+    self.assertIn(b'Do you want to continue?', response.body)
     # The Anomaly entities should not be updated.
     for anomaly_entity in anomaly.Anomaly.query().fetch():
       if anomaly_entity.end_revision != 9997:
@@ -225,8 +239,9 @@ class AssociateAlertsTest(testing_common.TestCase):
     response = self.testapp.get(
         '/associate_alerts?confirm=true&keys=%s,%s&bug_id=12345&'
         'project_id=test_project' % (key_map[10000], key_map[10010]))
+
     # The response page should have the bug number.
-    self.assertIn('12345', response.body)
+    self.assertIn(b'12345', response.body)
     # The Anomaly entities should be updated.
     for anomaly_entity in anomaly.Anomaly.query().fetch():
       if anomaly_entity.end_revision in (10000, 10010):
@@ -241,6 +256,7 @@ class AssociateAlertsTest(testing_common.TestCase):
     self.assertEqual((10000, 10500),
                      associate_alerts._RevisionRangeFromSummary(
                          '1% regression in bot/my_suite/test at 10000:10500'))
+
     # Otherwise None is returned.
     self.assertIsNone(
         associate_alerts._RevisionRangeFromSummary(

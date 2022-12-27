@@ -265,7 +265,7 @@ This template contains HTML for the following things:
       <p>Do you want to continue?</p>
       <form action="/{{handler}}" method="POST">
         <input type="hidden" name="confirm" value="true">
-        {% for key, value in parameters.iteritems() %}
+        {% for key, value in parameters.items() %}
           <input type="hidden" name="{{key}}" value="{{value}}">
         {% endfor %}
         <button onclick="window.history.go(-1); return false;">Back</button>

@@ -9,7 +9,6 @@ from __future__ import absolute_import
 from flask import request
 import re
 import six
-import logging
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
@@ -34,7 +33,6 @@ def AssociateAlertsHandlerPost():
   Outputs:
     HTML with result.
   """
-  logging.info('DDEBUG: assoo')
   if not utils.IsValidSheriffUser():
     user = utils.GetGaeCurrentUser()
     return request_handler.RequestHandlerReportError(
@@ -48,11 +46,9 @@ def AssociateAlertsHandlerPost():
   is_confirmed = bool(request.values.get('confirm'))
   bug_id = request.values.get('bug_id')
   if bug_id:
-    logging.info('DDEBUG: assoo with BUG')
     project_id = request.values.get('project_id', 'chromium')
     return _AssociateAlertsWithBug(bug_id, project_id, urlsafe_keys,
                                    is_confirmed)
-  logging.info('DDEBUG: assoo with NONE')
   return _ShowCommentDialog(urlsafe_keys)
 
 
