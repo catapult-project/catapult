@@ -84,9 +84,7 @@ def UseWebViewProvider(device, apk, expected_package=''):
       if system_paths:
         # app is system app, use ReplaceSystemApp to install
         with system_app.ReplaceSystemApp(
-            device,
-            replacement_apk=apk,
-            install_timeout=_WEBVIEW_INSTALL_TIMEOUT):
+            device, apk, install_timeout=_WEBVIEW_INSTALL_TIMEOUT):
           _SetWebViewProvider(device, package_name)
           yield
       else:

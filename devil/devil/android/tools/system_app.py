@@ -100,12 +100,8 @@ def InstallPrivilegedApps(device, apk_tuples):
     device.RunShellCommand(['am', 'restart'])
 
 
-# TODO(crbug.com/1298252): Remove the package_name arg and set replacement_apk
-# back to a non-default argument
 @contextlib.contextmanager
-def ReplaceSystemApp(device,
-                     replacement_apk=None,
-                     install_timeout=None):
+def ReplaceSystemApp(device, replacement_apk, install_timeout=None):
   """A context manager that replaces the given system app while in scope.
 
   Args:
@@ -378,7 +374,7 @@ def main(raw_args):
 
   @contextlib.contextmanager
   def replace_system_app(device, args):
-    with ReplaceSystemApp(device, replacement_apk=args.replace_with):
+    with ReplaceSystemApp(device, args.replace_with):
       yield
 
   replace_parser = subparsers.add_parser('replace')

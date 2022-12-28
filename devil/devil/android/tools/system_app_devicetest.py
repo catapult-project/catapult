@@ -81,7 +81,7 @@ class SystemAppDeviceTest(device_test_case.DeviceTestCase):
     self._check_preconditions()
     replacement = devil_env.config.FetchPath(
         'empty_system_webview', device=self._device)
-    with system_app.ReplaceSystemApp(self._device, replacement_apk=replacement):
+    with system_app.ReplaceSystemApp(self._device, replacement):
       replaced_paths = self._device.GetApplicationPaths(self.PACKAGE)
       self.assertNotEqual(self._original_paths, replaced_paths)
     restored_paths = self._device.GetApplicationPaths(self.PACKAGE)
