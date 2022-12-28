@@ -521,7 +521,9 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
                                add_histograms.TASK_QUEUE_NAME)
     self.assertTrue(mock_process_test.called)
 
-  @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+  @unittest.skipIf(six.PY3, '''
+    http requests after ExecuteTaskQueueTasks are not routed correctly for py3.
+    ''')
   @mock.patch.object(add_histograms_queue.graph_revisions,
                      'AddRowsToCacheAsync', mock.MagicMock())
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
@@ -826,7 +828,9 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     for k in expected.keys():
       self.assertFalse(expected[k])
 
-  @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+  @unittest.skipIf(six.PY3, '''
+    http requests after ExecuteTaskQueueTasks are not routed correctly for py3.
+    ''')
   def testPost_OutOfOrder_SuiteLevel(self):
     self._AddAtCommit(1, 'd1', 'o1')
     self._AddAtCommit(10, 'd1', 'o1')
@@ -841,7 +845,9 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     }
     self._CheckOutOfOrderExpectations(expected)
 
-  @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
+  @unittest.skipIf(six.PY3, '''
+    http requests after ExecuteTaskQueueTasks are not routed correctly for py3.
+    ''')
   def testPost_OutOfOrder_HistogramLevel(self):
     self._AddAtCommit(1, 'd1', 'o1')
     self._AddAtCommit(10, 'd1', 'o1')
@@ -1632,7 +1638,6 @@ class AddHistogramsTest(AddHistogramsBaseTest):
     self.assertEqual('No BUILD_URLS in data.', mock_log.call_args_list[1][0][0])
 
 
-@unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
 @mock.patch.object(SheriffConfigClient, '__init__',
                    mock.MagicMock(return_value=None))
 @mock.patch.object(SheriffConfigClient, 'Match',
@@ -1822,6 +1827,7 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
 
   # (crbug/1298177) The setup for Flask is not ready yet. We will force the test
   # to run in the old setup for now.
+  @unittest.skipIf(six.PY3, 'DevAppserver not ready yet for python 3.')
   @mock.patch.object(utils, 'IsRunningFlask',
                      mock.MagicMock(return_value=False))
   @mock.patch.object(utils, 'IsDevAppserver', mock.MagicMock(return_value=True))
@@ -1883,6 +1889,9 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     ]
     mock_log.assert_has_calls(log_calls, any_order=True)
 
+  @unittest.skipIf(six.PY3, '''
+    http requests after ExecuteTaskQueueTasks are not routed correctly for py3.
+    ''')
   def testFullCycle_Success(self):
     token_info = self.PostAddHistogram({'data': self.histogram_data})
 
@@ -1917,6 +1926,9 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     self.assertEqual(measurement['state'], 'COMPLETED')
     self.assertEqual(len(measurement['dimensions']), 5)
 
+  @unittest.skipIf(six.PY3, '''
+    http requests after ExecuteTaskQueueTasks are not routed correctly for py3.
+    ''')
   @mock.patch.object(add_histograms_queue.find_anomalies, 'ProcessTestsAsync',
                      mock.MagicMock(side_effect=Exception('Test error')))
   def testFullCycle_MeasurementFails(self):

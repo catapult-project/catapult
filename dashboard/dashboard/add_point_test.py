@@ -953,7 +953,9 @@ class AddPointTest(testing_common.TestCase):
   # handler of /add_point_queue. Haven't figured out the reason yet. Will
   # disable the test on RevisionTooLow_Rejected and RevisionTooHigh_Rejected
   # for now.
-  @unittest.skipIf(six.PY3, 'Need fix on the flask route.')
+  @unittest.skipIf(six.PY3, '''
+    http requests after ExecuteTaskQueueTasks are not routed correctly for py3.
+    ''')
   def testPost_RevisionTooLow_Rejected(self):
     # If a point's ID is much lower than the last one, it should be rejected
     # because this indicates that the revision type was accidentally changed.
@@ -971,7 +973,9 @@ class AddPointTest(testing_common.TestCase):
     rows = graph_data.Row.query().fetch()
     self.assertEqual(1, len(rows))
 
-  @unittest.skipIf(six.PY3, 'Need fix on the flask route.')
+  @unittest.skipIf(six.PY3, '''
+    http requests after ExecuteTaskQueueTasks are not routed correctly for py3.
+    ''')
   def testPost_RevisionTooHigh_Rejected(self):
     # First add one point; it's accepted because it's the first in the series.
     point = copy.deepcopy(_SAMPLE_POINT)
