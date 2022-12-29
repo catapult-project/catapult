@@ -19,6 +19,12 @@ if six.PY3:
   logging.getLogger("urllib3").setLevel(logging.INFO)
   datastore_hooks.InstallHooks()
 
+  try:
+    import googleclouddebugger  # pylint: disable=ungrouped-imports
+    googleclouddebugger.enable(breakpoint_enable_canary=True)
+  except ImportError:
+    pass
+
 from dashboard.pinpoint import dispatcher
 
 APP = dispatcher.APP

@@ -1,6 +1,6 @@
 service: pinpoint
 
-runtime: python39
+runtime: python38
 entrypoint: gunicorn -b:$PORT dashboard.pinpoint.main:APP --worker-class gthread --threads 10 --timeout 300
 app_engine_apis: true
 # 2048MB Memory, 2.4GHz CPU limit, support auto scaling.

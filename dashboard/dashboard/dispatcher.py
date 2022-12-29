@@ -55,6 +55,12 @@ if six.PY3:
   logging.getLogger("urllib3").setLevel(logging.INFO)
   datastore_hooks.InstallHooks()
 
+  try:
+    import googleclouddebugger
+    googleclouddebugger.enable(breakpoint_enable_canary=True)
+  except ImportError:
+    pass
+
 from flask import Flask
 flask_app = Flask(__name__)
 

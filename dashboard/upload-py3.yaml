@@ -1,6 +1,6 @@
 service: upload
 
-runtime: python39
+runtime: python38
 entrypoint: gunicorn -b:$PORT dashboard.dispatcher:APP --worker-class gthread --threads 10 --timeout 60
 app_engine_apis: true
 instance_class: F2
