@@ -70,5 +70,7 @@ class CustomFormatter(logging.Formatter):
     msg = logging.Formatter.format(self, record)
     if 'MainThread' in msg[:19]:
       msg = msg.replace('MainThread', 'Main', 1)
-    timediff = time.time() - self._creation_time
-    return '%s %8.3fs %s' % (record.levelname[0], timediff, msg)
+    timelocal = time.strftime("%H:%M:%S", time.localtime(record.created))
+    timelocal = "%s.%03d" % (timelocal, record.msecs)
+    timediff = record.created - self._creation_time
+    return '%s %s %8.3fs %s' % (record.levelname[0], timelocal, timediff, msg)
