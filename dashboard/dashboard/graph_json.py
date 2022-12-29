@@ -338,7 +338,10 @@ def _PointInfoDict(row, anomaly_annotation_map):
 def _IsMarkdownLink(value):
   """Checks whether |value| is a markdown link."""
   if not isinstance(value, str):
-    return False
+    if six.PY3 and isinstance(value, bytes):
+      value = six.ensure_str(value)
+    else:
+      return False
   return re.match(r'\[.+?\]\(.+?\)', value)
 
 
