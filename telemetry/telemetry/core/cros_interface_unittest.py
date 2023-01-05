@@ -64,7 +64,7 @@ class CrOSInterfaceTest(unittest.TestCase):
         # the dump.
         ts = abs(time_offset) + 1
         remote_path = '/tmp/dumps/'
-        cri.MINIDUMP_DIR = remote_path
+        cri.CROS_MINIDUMP_DIR = remote_path
         cri.RunCmdOnDevice(['mkdir', '-p', remote_path])
         # Set the mtime to one second after the epoch
         cri.RunCmdOnDevice(
@@ -92,7 +92,7 @@ class CrOSInterfaceTest(unittest.TestCase):
         # the dump.
         ts = abs(time_offset) + 1
         remote_path = '/tmp/dumps/'
-        cri.MINIDUMP_DIR = remote_path
+        cri.CROS_MINIDUMP_DIR = remote_path
         cri.RunCmdOnDevice(['mkdir', '-p', remote_path])
         # Set the mtime to one second after the epoch
         cri.RunCmdOnDevice(
@@ -119,7 +119,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     try:
       with self._GetCRI() as cri:
         remote_path = '/tmp/dumps/'
-        cri.MINIDUMP_DIR = remote_path
+        cri.CROS_MINIDUMP_DIR = remote_path
         cri.RunCmdOnDevice(['mkdir', '-p', remote_path + 'test_dir'])
         # Set the mtime to one second after the epoch
         cri.RunCmdOnDevice(['touch', remote_path + 'test_dump'])
@@ -139,7 +139,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     try:
       with self._GetCRI() as cri:
         remote_path = '/tmp/dumps/'
-        cri.MINIDUMP_DIR = remote_path
+        cri.CROS_MINIDUMP_DIR = remote_path
         cri.RunCmdOnDevice(['mkdir', '-p', remote_path])
         cri.RunCmdOnDevice(
             ['touch', remote_path + 'test_dump'])
@@ -165,7 +165,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     try:
       with self._GetCRI() as cri:
         remote_path = '/tmp/dumps/'
-        cri.MINIDUMP_DIR = remote_path
+        cri.CROS_MINIDUMP_DIR = remote_path
         cri.RunCmdOnDevice(['mkdir', '-p', remote_path])
         cri.RunCmdOnDevice(
             ['touch', remote_path + 'test_dump'])
@@ -193,7 +193,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     try:
       with self._GetCRI() as cri:
         remote_path = '/tmp/dumps/'
-        cri.MINIDUMP_DIR = remote_path
+        cri.CROS_MINIDUMP_DIR = remote_path
         cri.RunCmdOnDevice(['mkdir', '-p', remote_path])
         cri.RunCmdOnDevice(
             ['touch', remote_path + 'test_dump'])
