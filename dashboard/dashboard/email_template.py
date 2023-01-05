@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import logging
 import re
+import six
 import six.moves.urllib.parse
 
 from google.appengine.api import urlfetch
@@ -178,7 +179,8 @@ def _GetSheriffOnDutyEmail(subscription):
     logging.error('Response %d from %s for %s.', response.status_code,
                   subscription.rotation_url, subscription.name)
     return None
-  match = re.match(r'document\.write\(\'(.*)\'\)', response.content)
+  match = re.match(r'document\.write\(\'(.*)\'\)',
+                   six.ensure_str(response.content))
   if not match:
     logging.error('Could not parse response from subscription URL %s: %s',
                   subscription.rotation_url, response.content)

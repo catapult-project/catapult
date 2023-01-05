@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import logging
+import os
 import six
 
 from google.appengine.ext import deferred
@@ -144,7 +145,21 @@ def _UpdateDescriptor(master,
                len(measurements), len(bots), len(cases))
   # This function always runs in the taskqueue as an anonymous user.
   if namespace == datastore_hooks.INTERNAL:
-    datastore_hooks.SetPrivilegedRequest(flask_flag=six.PY3)
+    try:
+      datastore_hooks.SetPrivilegedRequest(flask_flag=six.PY3)
+    except RuntimeError:
+      # _UpdateDescriptor is called from deferred queue, and the value of
+      # PATH_INFO, '/_ah/queue/deferred', will qualify the request as
+      # privileged. We should be safe to skip the SetPrivilegedRequest here.
+      path_info = os.environ.get('PATH_INFO', None)
+      if path_info:
+        logging.info(
+            'No flask context found. Privileged request check will rely on PATH_INFO: %s',
+            path_info)
+      else:
+        logging.error(
+            'Failed to set privileged request for internal descriptor update.')
+        return
 
   measurements = set(measurements)
   bots = set(bots)

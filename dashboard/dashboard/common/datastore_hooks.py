@@ -10,18 +10,19 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from flask import g as flask_global
+from flask import request as flask_request
+import logging
+import os
+import six
+if six.PY2:
+  import webapp2
+
 from google.appengine.api import apiproxy_stub_map
 from google.appengine.api import users
 from google.appengine.datastore import datastore_pb
 
 from dashboard.common import utils
-import six
-
-from flask import g as flask_global
-from flask import request as flask_request
-
-if not utils.IsRunningFlask():
-  import webapp2
 
 # The list below contains all kinds that have an internal_only property.
 # IMPORTANT: any new data types with internal_only properties must be added
@@ -114,20 +115,26 @@ def _IsServicingPrivilegedRequest(flask_flag=False):
   """
   if utils.IsRunningFlask() or flask_flag:
     try:
+      if 'privileged' in flask_global and flask_global.privileged:
+        return True
+      if 'single_privileged' in flask_global and flask_global.single_privileged:
+        flask_global.pop('single_privileged')
+        return True
       path = flask_request.path
     except RuntimeError:
-      # This happens in unit tests, when code gets called outside of a request.
-      return False
+      # This happens in defer queue and unit tests, when code gets called
+      # without any context of a flask request.
+      try:
+        path = os.environ['PATH_INFO']
+      except KeyError:
+        logging.error(
+            'Cannot tell whether a request is privileged without request path.')
+        return False
     if path.startswith('/mapreduce'):
       return True
     if path.startswith('/_ah/queue/deferred'):
       return True
     if path.startswith('/_ah/pipeline/'):
-      return True
-    if 'privileged' in flask_global and flask_global.privileged:
-      return True
-    if 'single_privileged' in flask_global and flask_global.single_privileged:
-      flask_global.pop('single_privileged')
       return True
     # We have been checking on utils.GetIpAllowlist() here. Though, the list
     # has been empty and we are infinite recursive calls in crbug/1402197.

@@ -6,6 +6,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import six
+
 from google.appengine.ext import ndb
 
 from dashboard.common import namespaced_stored_object
@@ -44,7 +46,8 @@ def GetRangeRevisionInfo(test_key, start, end):
     if k not in revision_start or k not in revision_end:
       continue
     url = info.get('url', '')
-    info['url'] = url.replace('{{R1}}', revision_start[k]).replace(
-        '{{R2}}', revision_end[k]).replace('{{n}}', '1000')
+    info['url'] = url.replace(
+        '{{R1}}', six.ensure_str(revision_start[k])).replace(
+            '{{R2}}', six.ensure_str(revision_end[k])).replace('{{n}}', '1000')
     infos.append(info)
   return infos

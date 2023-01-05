@@ -260,7 +260,7 @@ class AlertGroupWorkflow(object):
     # anomalies list.
     if (not update.anomalies and self._group.anomalies
         and self._group.group_type != alert_group.AlertGroup.Type.reserved):
-      logging.error('No anomailes detected. Skipping this run.')
+      logging.error('No anomalies detected. Skipping this run.')
       return self._group.key
 
     # Process input before we start processing the group.

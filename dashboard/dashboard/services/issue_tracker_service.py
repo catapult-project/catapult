@@ -12,6 +12,7 @@ import logging
 
 from apiclient import discovery
 from apiclient import errors
+from dashboard.common import utils
 
 _DISCOVERY_URI = ('https://monorail-prod.appspot.com'
                   '/_ah/api/discovery/v1/apis/{api}/{apiVersion}/rest')
@@ -321,7 +322,8 @@ class IssueTrackerService(object):
     Returns:
       The response if there was one, or else None.
     """
-    response = request.execute(num_retries=MAX_REQUEST_RETRIES)
+    response = request.execute(
+        num_retries=MAX_REQUEST_RETRIES, http=utils.ServiceAccountHttp())
     return response
 
 
