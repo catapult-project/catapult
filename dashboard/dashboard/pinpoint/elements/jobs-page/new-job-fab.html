@@ -118,13 +118,13 @@ found in the LICENSE file.
         <template is="dom-if" if="[[error]]">
           <p class="error">Base and Experiment Git hashes must both be populated! If they are, this error may help: [[error]]
         </template>
-        <iron-ajax method="post" auto url="/api/config" loading="{{configLoading}}" last-response="{{config}}"></iron-ajax>
-        <iron-ajax method="post" auto url="{{generateChromeperfUrl('/api/test_suites')}}" loading="{{suitesLoading}}" last-response="{{testSuites}}"></iron-ajax>
+        <iron-ajax method="post" headers="[[client.authHeaders]]" auto url="/api/config" loading="{{configLoading}}" last-response="{{config}}"></iron-ajax>
+        <iron-ajax method="post" headers="[[client.authHeaders]]" auto url="{{generateChromeperfUrl('/api/test_suites')}}" loading="{{suitesLoading}}" last-response="{{testSuites}}"></iron-ajax>
         <template is="dom-if" if="{{validBenchmark(benchmark)}}">
-          <iron-ajax method="post" auto url="{{generateChromeperfUrl('/api/describe')}}" params="{{describeParams(benchmark)}}" loading="{{benchmarkConfigLoading}}" last-response="{{benchmarkConfig}}"></iron-ajax>
+          <iron-ajax method="post" headers="[[client.authHeaders]]" auto url="{{generateChromeperfUrl('/api/describe')}}" params="{{describeParams(benchmark)}}" loading="{{benchmarkConfigLoading}}" last-response="{{benchmarkConfig}}"></iron-ajax>
         </template>
         <template is="dom-if" if="[[hasJob(job)]]">
-          <iron-ajax method="post" auto url="/api/commits" params="{{commitsParams(job)}}" loading="{{commitRangeLoading}}" last-response="{{commitsList}}"></iron-ajax>
+          <iron-ajax method="post" headers="[[client.authHeaders]]" auto url="/api/commits" params="{{commitsParams(job)}}" loading="{{commitRangeLoading}}" last-response="{{commitsList}}"></iron-ajax>
         </template>
 
         <iron-form id="try_form" headers="[[client.authHeaders]]"  on-iron-form-error="handleError" on-iron-form-response="handleResponse">
@@ -252,12 +252,14 @@ found in the LICENSE file.
                                 value="{{base_git_hash}}"
                                 label="Base Git Hash"
                                 items="[[commitsListItems(commitsList)]]"
+                                headers="[[client.authHeaders]]"
                                 required disabled="[[isBisectJob(comparisonMode)]]"></commit-details>
                 <commit-details class="column rightPad"
                                 project="{{project}}"
                                 value="{{end_git_hash}}"
                                 label="Exp Git Hash"
                                 items="[[commitsListItems(commitsList)]]"
+                                headers="[[client.authHeaders]]"
                                 required disabled="[[isBisectJob(comparisonMode)]]"></commit-details>
               </div>
               <div class="horizontal">
@@ -277,12 +279,14 @@ found in the LICENSE file.
                                   value="{{start_git_hash}}"
                                   label="Start Git Hash"
                                   items="[[commitsListItems(commitsList)]]"
+                                  headers="[[client.authHeaders]]"
                                   required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
                   <commit-details class="column"
                                   project="{{project}}"
                                   value="{{end_git_hash}}"
                                   label="End Git Hash"
                                   items="[[commitsListItems(commitsList)]]"
+                                  headers="[[client.authHeaders]]"
                                   required disabled="[[!isBisectJob(comparisonMode)]]"></commit-details>
               </div>
             </template>
