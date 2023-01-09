@@ -185,6 +185,10 @@ class TestCase(unittest.TestCase):
     self.testbed.setup_env(
         user_is_admin='0', user_email='', user_id='', overwrite=True)
 
+  def SetUserGroupMembership(self, user_email, group_name, is_member):
+    """Sets the group membership of the user"""
+    utils.SetCachedIsGroupMember(user_email, group_name, is_member)
+
   def GetEmbeddedVariable(self, response, var_name):
     """Gets a variable embedded in a script element in a response.
 

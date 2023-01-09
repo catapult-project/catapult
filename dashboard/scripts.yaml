@@ -69,7 +69,7 @@ handlers:
 
 - url: /migrate_test_names
   script: dashboard.dispatcher.APP
-  login: admin
+  login: required
   secure: always
 
 - url: /pinpoint/.*

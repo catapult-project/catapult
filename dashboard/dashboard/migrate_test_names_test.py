@@ -70,6 +70,8 @@ class MigrateTestNamesTest(testing_common.TestCase):
     migrate_test_names._MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL = 30
     self.SetCurrentUser('internal@foo.bar')
     testing_common.SetIsInternalUser('internal@foo.bar', True)
+    self.SetUserGroupMembership('internal@foo.bar',
+                                migrate_test_names._ACCESS_GROUP_NAME, True)
 
   def _AddMockData(self):
     """Adds sample TestMetadata, Row, and Anomaly entities."""
@@ -407,6 +409,21 @@ class MigrateTestNamesTest(testing_common.TestCase):
     self.assertRaises(migrate_test_names.BadInputPatternError,
                       migrate_test_names._ValidateAndGetNewTestPath, 'A/b/c/d',
                       'A/b/c/d*')
+
+  def testGet_UnauthorizedAccess(self):
+    self.SetUserGroupMembership('internal@foo.bar',
+                                migrate_test_names._ACCESS_GROUP_NAME, False)
+    response = self.testapp.get('/migrate_test_names')
+    self.assertIsNotNone(response)
+    self.assertIn('Unauthorized', response)
+
+  def testPost_UnauthorizedAccess(self):
+    self.SetUserGroupMembership('internal@foo.bar',
+                                migrate_test_names._ACCESS_GROUP_NAME, False)
+
+    # Expect a 401 response for post calls
+    response = self.testapp.post('/migrate_test_names', status=401)
+    self.assertIsNotNone(response)
 
 
 if __name__ == '__main__':
