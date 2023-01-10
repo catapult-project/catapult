@@ -72,7 +72,6 @@ found in the LICENSE file.
       auto
       params="[[computeParams(prev_cursor, next_cursor, user, user_view)]]"
       url="/api/jobs"
-      headers="[[client.authHeaders]]"
       response="{{jobs}}">
       <div class="pagination">
         <a hidden$=[[!jobs.next]] on-click="nextPage">Next &gt;</a>
