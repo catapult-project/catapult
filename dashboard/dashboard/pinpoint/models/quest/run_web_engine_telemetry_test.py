@@ -14,7 +14,7 @@ import six
 
 _DEFAULT_EXTRA_ARGS = [
     '-d',
-    '--os-check=check',
+    '--os-check=update',
 ]
 IMAGE_FLAG = '--system-image-dir='
 DEFAULT_IMAGE_PATH = ('../../third_party/fuchsia-sdk/images-internal/%s/%s')
