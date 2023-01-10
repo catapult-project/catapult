@@ -388,7 +388,7 @@ def FindAllAvailableBrowsers(finder_options, device):
   # Add local builds
   for build_path in path_module.GetBuildDirectories(finder_options.chrome_root):
     # TODO(agrieve): Extract browser_type from args.gn's is_debug.
-    browser_type = os.path.basename(build_path).lower()
+    browser_type = os.path.basename(build_path.rstrip(os.sep)).lower()
     for chromium_app_name in chromium_app_names:
       AddIfFound(browser_type, build_path, chromium_app_name, False)
     AddIfFound('content-shell-' + browser_type, build_path,
