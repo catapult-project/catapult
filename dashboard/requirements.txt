@@ -18,19 +18,14 @@ itsdangerous==1.1.0
 Jinja2==2.11.3
 MarkupSafe==1.1.1
 
-# https://pypi.org/project/oauth2client/
-# Deprecated: need to find replacement
-# The latest version is 4.1.3 but it has dependency conflict with google-auth.
-# It is no longer an issue in pinpoint as we excluded google-auth. Though, it
-# may be an issue in chromeperf. V1.5.2 is an option which fixed some python 3
-# compatibility issue, but has issue when talking to BQ.
-oauth2client==4.1.3
-
 protobuf~=3.19.0
 PyCryptodome==3.14.1
 
 #https://pypi.org/project/pyparsing/
 pyparsing==3.0.9
 
+six==1.15.0
+
 uritemplate==3.0.1
+urllib3==1.26.6
 Werkzeug==1.0.1
