@@ -171,6 +171,11 @@ class Fastboot(object):
     # fastboot v33.0.3 returns an empty line at the end
     return [Fastboot(line.split()[0]) for line in output.splitlines() if line]
 
+  @decorators.WithTimeoutAndRetriesDefaults(_FLASH_TIMEOUT, 0)
+  def Erase(self, partition, timeout=None, retries=None):
+    """Erase partition."""
+    self._RunDeviceFastbootCommand(['erase', partition])
+
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RebootBootloader(self, timeout=None, retries=None):
     """Reboot from fastboot, into fastboot."""

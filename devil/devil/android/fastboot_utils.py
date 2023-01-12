@@ -44,13 +44,8 @@ _VERIFICATION_PARTITIONS = collections.OrderedDict([
     )),
 ])
 
-# This partitions will be flashed when wipe is set to true.
+# These partitions will be flashed when wipe is set to true.
 _WIPE_PARTITIONS = collections.OrderedDict([
-    ('userdata', PartitionInfo(
-        image='userdata.img',
-        optional=False,
-        restart=False,
-    )),
     ('cache', PartitionInfo(
         image='cache.img',
         optional=True,
@@ -259,13 +254,15 @@ class FastbootUtils(object):
     Directory must contain bootloader, radio, and other necessary files from
     an android build. This is a dangerous operation so use with care.
 
-    Note when wipe is set to true, we flash the partitions in _WIPE_PARTITIONS
-    to achieve the wipe purpose. We don't use the flag "-w" in flashall command
-    as it can cause old devices like Nexus 5X stuck on the encryption phrase.
+    Note when wipe is set to true, we erase "userdata" partition, and flash the
+    partitions in _WIPE_PARTITIONS to achieve the wipe purpose. We don't use
+    the flag "-w" in flashall command as it can cause old devices like Nexus 5X
+    stuck on the encryption phrase.
 
     Args:
       directory: Directory with build files.
-      wipe: Flash partitions in _WIPE_PARTITIONS if set to true.
+      wipe: If set to true, wipe the device data by erasing "userdata"
+        partitions and flash partitions in _WIPE_PARTITIONS.
     """
 
     # If a device is wiped, then it will no longer have adb keys so it cannot be
@@ -282,5 +279,10 @@ class FastbootUtils(object):
       raise device_errors.FastbootCommandFailedError(
           [], '', message='Failed to flashall: %s' % str(e))
     if wipe:
+      # Flashing the default userdata.img will cause the device to have only
+      # 10GB of internal storage. To avoid this, we directly erase it and rely
+      # on the recovery to auto format it.
+      logger.info('Erasing "userdata" partition.')
+      self.fastboot.Erase('userdata')
       self._FlashPartitions(_WIPE_PARTITIONS, directory)
     self.Reboot(wait_for_reboot=not wipe)

@@ -50,7 +50,7 @@ _IMAGES = collections.OrderedDict([
 ])
 _IMAGE_FILES = ['bootloader.img', 'radio.img']
 _IMAGE_FILES_WITH_WIPE = [
-    'bootloader.img', 'radio.img', 'userdata.img', 'cache.img'
+    'bootloader.img', 'radio.img', 'cache.img'
 ]
 _VALID_FILES = [_BOARD + '.zip', 'android-info.txt']
 _INVALID_FILES = ['test.zip', 'android-info.txt']
@@ -272,6 +272,7 @@ class FastbootUtilsFlashDevice(FastbootUtilsTest):
           self.call.fastboot.EnableFastbootMode(),
           (self.call.fastboot._VerifyBoard('test'), True),
           (self.call.fastboot.fastboot.FlashAll('test', skip_reboot=True), []),
+          self.call.fastboot.fastboot.Erase('userdata'),
           (self.call.fastboot._VerifyBoard('test'), True)):
         self.fastboot.FlashDevice('test', wipe=True)
 
