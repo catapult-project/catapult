@@ -14,6 +14,7 @@ if six.PY2:
 import webtest
 
 from dashboard import migrate_test_names
+from dashboard import migrate_test_names_tasks
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -53,6 +54,11 @@ def MigrateTestNamesPost():
   return migrate_test_names.MigrateTestNamesPost()
 
 
+@flask_app.route('/migrate_test_names_tasks', methods=['POST'])
+def MigrateTestNamesTasksPost():
+  return migrate_test_names_tasks.MigrateTestNamesTasksPost()
+
+
 class MigrateTestNamesTest(testing_common.TestCase):
 
   def setUp(self):
@@ -61,13 +67,15 @@ class MigrateTestNamesTest(testing_common.TestCase):
     super(MigrateTestNamesTest, self).setUp()
     if six.PY2:
       app = webapp2.WSGIApplication([
-          ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler)
+          ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler),
+          ('/migrate_test_names_tasks',
+            migrate_test_names_tasks.MigrateTestNamesTasksHandler),
       ])
       self.testapp = webtest.TestApp(app)
     else:
       self.testapp = webtest.TestApp(flask_app)
     # Make sure puts get split up into multiple calls.
-    migrate_test_names._MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL = 30
+    migrate_test_names_tasks._MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL = 30
     self.SetCurrentUser('internal@foo.bar')
     testing_common.SetIsInternalUser('internal@foo.bar', True)
     self.SetUserGroupMembership('internal@foo.bar',
@@ -165,8 +173,8 @@ class MigrateTestNamesTest(testing_common.TestCase):
         'old_pattern': '*/*/*/*/t',
         'new_pattern': '*/*/*/*/time',
     })
-    self.ExecuteTaskQueueTasks('/migrate_test_names',
-                               migrate_test_names._TASK_QUEUE_NAME)
+    self.ExecuteTaskQueueTasks('/migrate_test_names_tasks',
+                               migrate_test_names_tasks._TASK_QUEUE_NAME)
     expected_tests = [
         'SunSpider',
         'SunSpider/3d-cube',
@@ -189,8 +197,8 @@ class MigrateTestNamesTest(testing_common.TestCase):
         'old_pattern': '*/*/*/*/t_*',
         'new_pattern': '*/*/*/*/t_ref',
     })
-    self.ExecuteTaskQueueTasks('/migrate_test_names',
-                               migrate_test_names._TASK_QUEUE_NAME)
+    self.ExecuteTaskQueueTasks('/migrate_test_names_tasks',
+                               migrate_test_names_tasks._TASK_QUEUE_NAME)
     expected_tests = [
         'SunSpider',
         'SunSpider/3d-cube',
@@ -216,8 +224,8 @@ class MigrateTestNamesTest(testing_common.TestCase):
             'new_pattern': '*/*/Sun*/*/time',
         },
         status=400)
-    self.ExecuteTaskQueueTasks('/migrate_test_names',
-                               migrate_test_names._TASK_QUEUE_NAME)
+    self.ExecuteTaskQueueTasks('/migrate_test_names_tasks',
+                               migrate_test_names_tasks._TASK_QUEUE_NAME)
     # Nothing was renamed since there was an error.
     expected_tests = [
         'SunSpider',
@@ -241,8 +249,8 @@ class MigrateTestNamesTest(testing_common.TestCase):
             'old_pattern': '*/*/SunSpider/Total',
             'new_pattern': '*/*/SunSpider/OverallScore',
         })
-    self.ExecuteTaskQueueTasks('/migrate_test_names',
-                               migrate_test_names._TASK_QUEUE_NAME)
+    self.ExecuteTaskQueueTasks('/migrate_test_names_tasks',
+                               migrate_test_names_tasks._TASK_QUEUE_NAME)
 
     self._CheckRows('ChromiumPerf/mac/SunSpider/OverallScore/t')
     self._CheckAnomalies('ChromiumPerf/mac/SunSpider/OverallScore/t')
@@ -268,8 +276,8 @@ class MigrateTestNamesTest(testing_common.TestCase):
         'old_pattern': '*/*/SunSpider',
         'new_pattern': '*/*/SunSpider1.0',
     })
-    self.ExecuteTaskQueueTasks('/migrate_test_names',
-                               migrate_test_names._TASK_QUEUE_NAME)
+    self.ExecuteTaskQueueTasks('/migrate_test_names_tasks',
+                               migrate_test_names_tasks._TASK_QUEUE_NAME)
 
     self._CheckRows('ChromiumPerf/mac/SunSpider1.0/Total/t')
     self._CheckAnomalies('ChromiumPerf/mac/SunSpider1.0/Total/t')
@@ -296,8 +304,8 @@ class MigrateTestNamesTest(testing_common.TestCase):
             'old_pattern': '*/*/SunSpider/Total/t',
             'new_pattern': '*/*/SunSpider/Total',
         })
-    self.ExecuteTaskQueueTasks('/migrate_test_names',
-                               migrate_test_names._TASK_QUEUE_NAME)
+    self.ExecuteTaskQueueTasks('/migrate_test_names_tasks',
+                               migrate_test_names_tasks._TASK_QUEUE_NAME)
 
     # The Row and Anomaly entities have been moved.
     self._CheckRows('ChromiumPerf/mac/SunSpider/Total')
@@ -337,8 +345,8 @@ class MigrateTestNamesTest(testing_common.TestCase):
             'old_pattern': '*/*/moz/read_op_b/r_op_b',
             'new_pattern': '*/*/moz/read_operations_browser',
         })
-    self.ExecuteTaskQueueTasks('/migrate_test_names',
-                               migrate_test_names._TASK_QUEUE_NAME)
+    self.ExecuteTaskQueueTasks('/migrate_test_names_tasks',
+                               migrate_test_names_tasks._TASK_QUEUE_NAME)
 
     # Check the emails that were sent.
     messages = self.mail_stub.get_sent_messages()
@@ -365,50 +373,56 @@ class MigrateTestNamesTest(testing_common.TestCase):
   def testGetNewTestPath_WithAsterisks(self):
     self.assertEqual(
         'A/b/c/X',
-        migrate_test_names._ValidateAndGetNewTestPath('A/b/c/d', '*/*/*/X'))
+        migrate_test_names_tasks._ValidateAndGetNewTestPath('A/b/c/d',
+            '*/*/*/X'))
     self.assertEqual(
         'A/b/c/d',
-        migrate_test_names._ValidateAndGetNewTestPath('A/b/c/d', '*/*/*/*'))
+        migrate_test_names_tasks._ValidateAndGetNewTestPath('A/b/c/d',
+            '*/*/*/*'))
     self.assertEqual(
         'A/b/c',
-        migrate_test_names._ValidateAndGetNewTestPath('A/b/c/d', '*/*/*'))
+        migrate_test_names_tasks._ValidateAndGetNewTestPath('A/b/c/d',
+            '*/*/*'))
 
   def testGetNewTestPath_WithBrackets(self):
     # Brackets are just used to delete parts of names, no other functionality.
     self.assertEqual(
         'A/b/c/x',
-        migrate_test_names._ValidateAndGetNewTestPath('A/b/c/xxxx',
+        migrate_test_names_tasks._ValidateAndGetNewTestPath('A/b/c/xxxx',
                                                       '*/*/*/[xxx]'))
     self.assertEqual(
         'A/b/c',
-        migrate_test_names._ValidateAndGetNewTestPath('A/b/c/xxxx',
+        migrate_test_names_tasks._ValidateAndGetNewTestPath('A/b/c/xxxx',
                                                       '*/*/*/[xxxx]'))
     self.assertEqual(
         'A/b/c/x',
-        migrate_test_names._ValidateAndGetNewTestPath('A/b/c/x', '*/*/*/[]'))
+        migrate_test_names_tasks._ValidateAndGetNewTestPath('A/b/c/x',
+            '*/*/*/[]'))
     self.assertEqual(
         'A/b/c/d',
-        migrate_test_names._ValidateAndGetNewTestPath('AA/bb/cc/dd',
+        migrate_test_names_tasks._ValidateAndGetNewTestPath('AA/bb/cc/dd',
                                                       '[A]/[b]/[c]/[d]'))
 
   def testGetNewTestPath_NewPathHasDifferentLength(self):
     self.assertEqual(
         'A/b/c',
-        migrate_test_names._ValidateAndGetNewTestPath('A/b/c/d', 'A/*/c'))
+        migrate_test_names_tasks._ValidateAndGetNewTestPath('A/b/c/d',
+            'A/*/c'))
     self.assertEqual(
         'A/b/c/d',
-        migrate_test_names._ValidateAndGetNewTestPath('A/b/c', 'A/*/c/d'))
-    self.assertRaises(migrate_test_names.BadInputPatternError,
-                      migrate_test_names._ValidateAndGetNewTestPath, 'A/b/c',
-                      'A/b/c/*')
+        migrate_test_names_tasks._ValidateAndGetNewTestPath('A/b/c',
+            'A/*/c/d'))
+    self.assertRaises(migrate_test_names_tasks.BadInputPatternError,
+                      migrate_test_names_tasks._ValidateAndGetNewTestPath,
+                      'A/b/c', 'A/b/c/*')
 
   def testGetNewTestPath_InvalidArgs(self):
     self.assertRaises(AssertionError,
-                      migrate_test_names._ValidateAndGetNewTestPath, 'A/b/*/d',
-                      'A/b/c/d')
-    self.assertRaises(migrate_test_names.BadInputPatternError,
-                      migrate_test_names._ValidateAndGetNewTestPath, 'A/b/c/d',
-                      'A/b/c/d*')
+                      migrate_test_names_tasks._ValidateAndGetNewTestPath,
+                      'A/b/*/d', 'A/b/c/d')
+    self.assertRaises(migrate_test_names_tasks.BadInputPatternError,
+                      migrate_test_names_tasks._ValidateAndGetNewTestPath,
+                      'A/b/c/d', 'A/b/c/d*')
 
   def testGet_UnauthorizedAccess(self):
     self.SetUserGroupMembership('internal@foo.bar',

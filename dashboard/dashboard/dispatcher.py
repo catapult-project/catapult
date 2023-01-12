@@ -31,6 +31,7 @@ from dashboard import layered_cache_delete_expired
 from dashboard import list_tests
 from dashboard import main
 from dashboard import migrate_test_names
+from dashboard import migrate_test_names_tasks
 from dashboard import mark_recovered_alerts
 from dashboard import navbar
 from dashboard import pinpoint_request
@@ -248,6 +249,11 @@ def MigrateTestNamesPost():
   return migrate_test_names.MigrateTestNamesPost()
 
 
+@flask_app.route('/migrate_test_names_tasks', methods=['POST'])
+def MigrateTestNamesTasksPost():
+  return migrate_test_names_tasks.MigrateTestNamesTasksPost()
+
+
 @flask_app.route('/navbar', methods=['POST'])
 def NavbarHandlerPost():
   return navbar.NavbarHandlerPost()
@@ -384,6 +390,8 @@ if six.PY2:
       ('/mark_recovered_alerts',
        mark_recovered_alerts.MarkRecoveredAlertsHandler),
       ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler),
+      ('/migrate_test_names_tasks',
+       migrate_test_names_tasks.MigrateTestNamesTasksHandler),
       ('/navbar', navbar.NavbarHandler),
       ('/pinpoint/new/bisect',
        pinpoint_request.PinpointNewBisectRequestHandler),
