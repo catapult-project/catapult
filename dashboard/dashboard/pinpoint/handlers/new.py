@@ -25,6 +25,7 @@ from dashboard.pinpoint.models import scheduler
 from dashboard.pinpoint.models import task as task_module
 from dashboard.pinpoint.models.tasks import performance_bisection
 from dashboard.pinpoint.models.tasks import read_value
+
 if utils.IsRunningFlask():
   from flask import request
 
@@ -32,6 +33,9 @@ _ERROR_BUG_ID = 'Bug ID must be an integer.'
 _ERROR_TAGS_DICT = 'Tags must be a dict of key/value string pairs.'
 _ERROR_UNSUPPORTED = 'This benchmark (%s) is unsupported.'
 _ERROR_PRIORITY = 'Priority must be an integer.'
+
+_EXTRA_BROWSER_ARGS_PREFIX = '--extra-browser-args'
+_ENABLE_FEATURES_PREFIX = '--enable-features'
 
 REGULAR_TELEMETRY_TESTS = {
     'performance_webview_test_suite',
@@ -63,7 +67,6 @@ for test in SUFFIXED_REGULAR_TELEMETRY_TESTS:
   for suffix in SUFFIXES:
     REGULAR_TELEMETRY_TESTS_WITH_FALLBACKS[test + suffix] = test
 
-
 if utils.IsRunningFlask():
 
   def _CheckUser():
@@ -72,6 +75,7 @@ if utils.IsRunningFlask():
     api_auth.Authorize()
     if not utils.IsTryjobUser():
       raise api_request_handler.ForbiddenError()
+
 
   @api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
   def NewHandlerPost():
@@ -262,14 +266,27 @@ def _ParseExtraArgs(args):
       extra_args = json.loads(args)
     except ValueError:
       extra_args = shlex.split(args)
+  _RearrangeExtraArgs(extra_args)
   return extra_args
+
+
+def _RearrangeExtraArgs(extra_args):
+  n = len(extra_args)
+  for i in range(n):
+    if extra_args[i].startswith(_ENABLE_FEATURES_PREFIX):
+      if i == 0 or extra_args[i-1] != _EXTRA_BROWSER_ARGS_PREFIX:
+        extra_args[i] = _EXTRA_BROWSER_ARGS_PREFIX + '=' + extra_args[i]
 
 
 def _ArgumentsWithConfiguration(original_arguments):
   # "configuration" is a special argument that maps to a list of preset
   # arguments. Pull any arguments from the specified "configuration", if any.
   new_arguments = original_arguments.copy()
-
+  provided_args = new_arguments.get('extra_test_args', '')
+  extra_test_args = []
+  if provided_args:
+    extra_test_args = _ParseExtraArgs(provided_args)
+  new_arguments['extra_test_args'] = json.dumps(extra_test_args)
   configuration = original_arguments.get('configuration')
   if configuration:
     try:
@@ -286,14 +303,6 @@ def _ArgumentsWithConfiguration(original_arguments):
         # we can respect the value set in bot_configurations in addition to
         # those provided from the UI.
         if k == 'extra_test_args':
-          # First, parse whatever is already there. We'll canonicalise the
-          # inputs as a JSON list of strings.
-          provided_args = new_arguments.get('extra_test_args', '')
-          extra_test_args = []
-
-          if provided_args:
-            extra_test_args = _ParseExtraArgs(provided_args)
-
           configured_args = _ParseExtraArgs(v)
           new_arguments['extra_test_args'] = json.dumps(
               extra_test_args + configured_args,)
@@ -552,7 +561,7 @@ def _ValidateTags(tags):
 
   for k, v in tags_dict.items():
     if not isinstance(k, six.string_types) or \
-       not isinstance(v, six.string_types):
+        not isinstance(v, six.string_types):
       raise ValueError(_ERROR_TAGS_DICT)
 
   return tags_dict
