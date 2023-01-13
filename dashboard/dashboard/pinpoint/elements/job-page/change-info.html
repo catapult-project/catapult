@@ -20,6 +20,9 @@ found in the LICENSE file.
     <p><a href="[[url(change)]]" target="_blank">[[subject(change)]]</a></p>
     <p class="commit">[[commit(change)]]</p>
     <p class="byline">By [[author(change)]]</p>
+    <template is="dom-if" if="[[args]]">
+      <p class="byline">Extra Args: [[args]]</p>
+    </template>
   </template>
 
   <script>
