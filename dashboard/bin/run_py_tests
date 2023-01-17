@@ -1,4 +1,4 @@
-#!/usr/bin/env vpython
+#!/usr/bin/env vpython3
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     install.InstallHooks()
 
   # PYTHONPATH points to a out-of-date cipd package.
-  if sys.version_info.major == 3 and 'PYTHONPATH' in os.environ:
+  if 'PYTHONPATH' in os.environ:
     os.environ.pop('PYTHONPATH')
 
   from catapult_build import run_with_typ
