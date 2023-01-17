@@ -332,6 +332,15 @@ class BaseApkHelper(object):
     except KeyError:
       return []
 
+  def GetLibraryVersion(self):
+    """Returns the version of the <static-library> or None if not applicable."""
+    manifest_info = self._GetManifest()
+    try:
+      application = manifest_info['manifest'][0]['application'][0]
+      return int(application['static-library'][0]['android:version'], 16)
+    except KeyError:
+      return None
+
   def GetVersionCode(self):
     """Returns the versionCode as an integer, or None if not available."""
     manifest_info = self._GetManifest()

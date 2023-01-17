@@ -84,12 +84,16 @@ class _MockApkHelper(object):
     self.splits = splits if splits else []
     self.abis = [abis.ARM]
     self.version_code = None
+    self.library_version = None
 
   def GetPackageName(self):
     return self.package_name
 
   def GetPermissions(self):
     return self.perms
+
+  def GetLibraryVersion(self):
+    return self.library_version
 
   def GetVersionCode(self):
     return self.version_code
@@ -450,52 +454,51 @@ class DeviceUtilsIsApplicationInstalledTest(DeviceUtilsTest):
       self.assertTrue(self.device.IsApplicationInstalled('some.installed.app'))
 
   def testIsApplicationInstalled_notInstalled(self):
-    with self.assertCalls(
-        (self.call.device.RunShellCommand(
-            ['pm', 'list', 'packages', 'not.installed.app'], check_return=True),
-         ''),
-        (self.call.device.RunShellCommand(
-            ['dumpsys', 'package'], check_return=True, large_output=True), [])):
+    with self.assertCalls((self.call.device.RunShellCommand(
+        ['pm', 'list', 'packages', 'not.installed.app'],
+        check_return=True), ''), (self.call.device.RunShellCommand(
+            ['dumpsys', 'package', 'not.installed.app'],
+            check_return=True,
+            large_output=True), [])):
       self.assertFalse(self.device.IsApplicationInstalled('not.installed.app'))
 
   def testIsApplicationInstalled_substringMatch(self):
     with self.assertCalls(
         (self.call.device.RunShellCommand(
             ['pm', 'list', 'packages', 'substring.of.package'],
-            check_return=True),
-         [
-             'package:first.substring.of.package',
-             'package:second.substring.of.package',
-         ]),
-        (self.call.device.RunShellCommand(
-            ['dumpsys', 'package'], check_return=True, large_output=True), [])):
+            check_return=True), [
+                'package:first.substring.of.package',
+                'package:second.substring.of.package',
+            ]), (self.call.device.RunShellCommand(
+                ['dumpsys', 'package', 'substring.of.package'],
+                check_return=True,
+                large_output=True), [])):
       self.assertFalse(
           self.device.IsApplicationInstalled('substring.of.package'))
 
   def testIsApplicationInstalled_dumpsysFallback(self):
-    with self.assertCalls(
-        (self.call.device.RunShellCommand(
-            ['pm', 'list', 'packages', 'some.installed.app'],
-            check_return=True), []),
-        (self.call.device.RunShellCommand(
-            ['dumpsys', 'package'], check_return=True, large_output=True),
-         ['Package [some.installed.app] (a12345):'])):
+    with self.assertCalls((self.call.device.RunShellCommand(
+        ['pm', 'list', 'packages', 'some.installed.app'],
+        check_return=True), []), (self.call.device.RunShellCommand(
+            ['dumpsys', 'package', 'some.installed.app'],
+            check_return=True,
+            large_output=True), ['Package [some.installed.app] (a12345):'])):
       self.assertTrue(self.device.IsApplicationInstalled('some.installed.app'))
 
   def testIsApplicationInstalled_dumpsysFallbackVersioned(self):
-    with self.assertCalls(
-        (self.call.device.RunShellCommand(
-            ['dumpsys', 'package'], check_return=True, large_output=True),
-         ['Package [some.installed.app_1234] (a12345):'])):
+    with self.assertCalls((self.call.device.RunShellCommand(
+        ['dumpsys', 'package', 'some.installed.app_1234'],
+        check_return=True,
+        large_output=True), ['Package [some.installed.app_1234] (a1245):'])):
       self.assertTrue(
           self.device.IsApplicationInstalled('some.installed.app', 1234))
 
-  def testIsApplicationInstalled_dumpsysFallbackVersionNotNeeded(self):
-    with self.assertCalls(
-        (self.call.device.RunShellCommand(
-            ['dumpsys', 'package'], check_return=True, large_output=True),
-         ['Package [some.installed.app] (a12345):'])):
-      self.assertTrue(
+  def testIsApplicationInstalled_dumpsysFallbackVersionNotInstalled(self):
+    with self.assertCalls((self.call.device.RunShellCommand(
+        ['dumpsys', 'package', 'some.installed.app_1234'],
+        check_return=True,
+        large_output=True), ['Package [some.installed.app_2000] (a1245):'])):
+      self.assertFalse(
           self.device.IsApplicationInstalled('some.installed.app', 1234))
 
 

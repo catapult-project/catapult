@@ -134,6 +134,16 @@ _NO_NAMESPACE_MANIFEST_DUMP = """E: manifest (line=1)
     A: http://schemas.android.com/apk/res/android:targetPackage(0x01010021)="org.chromium.random_package" (Raw:"org.chromium.random_pacakge")
 """
 
+_STATIC_LIBRARY_DUMP = """N: android=http://schemas.android.com/apk/res/android
+  E: manifest (line=1)
+    A: android:versionCode(0x0101021b)=(type 0x10)0x210cffc7
+    A: package="com.google.android.trichromelibrary.debug" (Raw: "com.google.android.trichromelibrary.debug")
+    E: application (line=9)
+      E: static-library (line=10)
+        A: android:name(0x01010003)="com.google.android.trichromelibrary.debug" (Raw: "com.google.android.trichromelibrary.debug")
+        A: android:version(0x01010519)=(type 0x10)0x210cffc3
+"""
+
 # pylint: enable=line-too-long
 
 
@@ -298,6 +308,16 @@ class ApkHelperTest(mock_calls.TestCase):
       helper = apk_helper.ApkHelper('')
       self.assertEqual([('name1', 'value1'), ('name2', 'value2')],
                        helper.GetAllMetadata())
+
+  def testGetLibraryVersion(self):
+    with _MockAaptDump(_STATIC_LIBRARY_DUMP):
+      helper = apk_helper.ApkHelper('')
+      self.assertEqual(554500035, helper.GetLibraryVersion())
+
+  def testGetLibraryVersion_normalApk(self):
+    with _MockAaptDump(_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper('')
+      self.assertEqual(None, helper.GetLibraryVersion())
 
   def testGetVersionCode(self):
     with _MockAaptDump(_MANIFEST_DUMP):

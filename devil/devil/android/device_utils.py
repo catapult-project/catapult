@@ -298,7 +298,7 @@ _EMULATOR_RE = re.compile(r'^(generic_|emulator64_).*$')
 # Matches lines like "Package [com.google.android.youtube] (c491050):".
 # or "Package [org.chromium.trichromelibrary_425300033] (e476383):"
 _DUMPSYS_PACKAGE_RE_STR =\
-    r'^\s*Package\s*\[%s(_(?P<version_code>\d*))?\]\s*\(\w*\):$'
+    r'^\s*Package\s*\[%s(_(?P<library_version>\d*))?\]\s*\(\w*\):$'
 
 PS_COLUMNS = ('name', 'pid', 'ppid')
 ProcessInfo = collections.namedtuple('ProcessInfo', PS_COLUMNS)
@@ -770,14 +770,17 @@ class DeviceUtils(object):
     raise device_errors.CommandFailedError('Unable to fetch IMEI.')
 
   @decorators.WithTimeoutAndRetriesFromInstance()
-  def IsApplicationInstalled(
-      self, package, version_code=None, timeout=None, retries=None):
+  def IsApplicationInstalled(self,
+                             package,
+                             library_version=None,
+                             timeout=None,
+                             retries=None):
     """Determines whether a particular package is installed on the device.
 
     Args:
       package: Name of the package.
-      version_code: The version of the package to check for as an int, if
-          applicable. Only used for static shared libraries, otherwise ignored.
+      library_version: Required for shared-library apks. The version of the
+          package to check for as an int.
 
     Returns:
       True if the application is installed, False otherwise.
@@ -785,7 +788,7 @@ class DeviceUtils(object):
     # `pm list packages` doesn't include the version code, so if it was
     # provided, skip this since we can't guarantee that the installed
     # version is the requested version.
-    if version_code is None:
+    if library_version is None:
       # `pm list packages` allows matching substrings, but we want exact matches
       # only.
       matching_packages = self.RunShellCommand(
@@ -798,20 +801,21 @@ class DeviceUtils(object):
     # Some packages do not properly show up via `pm list packages`, so fall back
     # to checking via `dumpsys package`.
     matcher = re.compile(_DUMPSYS_PACKAGE_RE_STR % package)
+    # If the package exists, only its information is outputted. Otherwise, all
+    # packages are output making for very large output.
+    package_with_version = package
+    if library_version:
+      package_with_version += '_' + str(library_version)
     dumpsys_output = self.RunShellCommand(
-        ['dumpsys', 'package'], check_return=True, large_output=True)
+        ['dumpsys', 'package', package_with_version],
+        check_return=True,
+        large_output=True)
     for line in dumpsys_output:
       match = matcher.match(line)
-      # We should have one of these cases:
-      # 1. The package is a regular app, in which case it will show up without
-      #    its version code in the line we're filtering for.
-      # 2. The package is a static shared library, in which case one or more
-      #    entries with the version code can show up, but not one without the
-      #    version code.
       if match:
-        installed_version_code = match.groupdict().get('version_code')
-        if (installed_version_code is None
-            or installed_version_code == str(version_code)):
+        installed_version = match.groupdict().get('library_version')
+        if (installed_version is None
+            or installed_version == str(library_version)):
           return True
     return False
 
@@ -1543,11 +1547,11 @@ class DeviceUtils(object):
     # There have been cases of APKs not being detected after being explicitly
     # installed, so perform a sanity check now and fail early if the
     # installation somehow failed.
-    apk_version = apk.GetVersionCode()
-    if not self.IsApplicationInstalled(package_name, apk_version):
+    library_version = apk.GetLibraryVersion()
+    if not self.IsApplicationInstalled(package_name, library_version):
       raise device_errors.CommandFailedError(
           'Package %s with version %s not installed on device after explicit '
-          'install attempt.' % (package_name, apk_version))
+          'install attempt.' % (package_name, library_version))
 
     if (permissions is None
         and self.build_version_sdk >= version_codes.MARSHMALLOW):
