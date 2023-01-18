@@ -54,6 +54,7 @@ def Request(url,
             use_cache=False,
             use_auth=True,
             scope=utils.EMAIL_SCOPE,
+            use_adc=False,
             **parameters):
   """Fetch a URL while authenticated as the service account.
 
@@ -99,13 +100,15 @@ def Request(url,
       return content
 
   try:
-    content = _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs)
+    content = _RequestAndProcessHttpErrors(url, use_auth, scope, use_adc,
+                                           **kwargs)
   except NotFoundError:
     raise
   except (http_client.HTTPException, socket.error,
           urlfetch_errors.InternalTransientError):
     # Retry once.
-    content = _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs)
+    content = _RequestAndProcessHttpErrors(url, use_auth, scope, use_adc,
+                                           **kwargs)
 
   if use_cache:
     try:
@@ -117,10 +120,10 @@ def Request(url,
   return content
 
 
-def _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs):
+def _RequestAndProcessHttpErrors(url, use_auth, scope, use_adc=False, **kwargs):
   """Requests a URL, converting HTTP errors to Python exceptions."""
   if use_auth:
-    http = utils.ServiceAccountHttp(timeout=60, scope=scope)
+    http = utils.ServiceAccountHttp(timeout=60, scope=scope, use_adc=use_adc)
   else:
     http = httplib2.Http(timeout=60)
   logging.info('url: %s; use_auth: %s; kwargs: %s', url, use_auth, kwargs)

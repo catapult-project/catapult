@@ -24,16 +24,20 @@ def NewJob(params):
 def _Request(endpoint, params):
   """Sends a request to an endpoint and returns JSON data."""
   assert datastore_hooks.IsUnalteredQueryPermitted()
-
   try:
     return request.RequestJson(
-        endpoint, method='POST', use_cache=False, use_auth=True, **params)
+        endpoint,
+        method='POST',
+        use_cache=False,
+        use_auth=True,
+        use_adc=True,
+        **params)
   except request.RequestError as e:
     try:
       return json.loads(e.content)
     except ValueError:
       # for errors.SwarmingNoBots()
-      return {"error":str(e)}
+      return {"error": str(e)}
 
 
 class CommitRange(collections.namedtuple('CommitRange', ['start', 'end'])):

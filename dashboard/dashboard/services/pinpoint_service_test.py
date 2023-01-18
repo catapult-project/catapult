@@ -40,6 +40,7 @@ class PinpointServiceTest(unittest.TestCase):
         foo='bar',
         use_cache=False,
         use_auth=True,
+        use_adc=True,
         method='POST')
 
   def testRequest_Unprivileged_Asserts(self):

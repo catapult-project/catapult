@@ -41,7 +41,7 @@ class SuccessTest(_RequestTest):
     self._request.return_value = ({'status': '200'}, 'response')
     response = request.Request('https://example.com')
     self._service_account_http.assert_called_once_with(
-        scope=utils.EMAIL_SCOPE, timeout=60)
+        scope=utils.EMAIL_SCOPE, timeout=60, use_adc=False)
     self._request.assert_called_once_with('https://example.com', method='GET')
     self.assertEqual(response, 'response')
 
