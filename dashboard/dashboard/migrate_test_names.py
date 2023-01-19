@@ -42,7 +42,8 @@ def IsRequestAllowed():
     is_allowed = True
   else:
     user_email = utils.GetEmail()
-    is_allowed = utils.IsGroupMember(user_email, _ACCESS_GROUP_NAME)
+    is_allowed = user_email and utils.IsGroupMember(user_email,
+                                                    _ACCESS_GROUP_NAME)
 
   return is_allowed
 

@@ -439,6 +439,12 @@ class MigrateTestNamesTest(testing_common.TestCase):
     response = self.testapp.post('/migrate_test_names', status=401)
     self.assertIsNotNone(response)
 
+  def testGet_no_user(self):
+    self.SetCurrentUser("")
+    response = self.testapp.get('/migrate_test_names')
+    self.assertIsNotNone(response)
+    self.assertIn('Unauthorized', response)
+
 
 if __name__ == '__main__':
   unittest.main()
