@@ -20,6 +20,7 @@ from dashboard import alert_groups
 from dashboard import alerts
 from dashboard import associate_alerts
 from dashboard import buildbucket_job_status
+from dashboard import dump_graph_json
 from dashboard import edit_anomalies
 from dashboard import edit_site_config
 from dashboard import file_bug
@@ -29,6 +30,7 @@ from dashboard import graph_revisions
 from dashboard import group_report
 from dashboard import layered_cache_delete_expired
 from dashboard import list_tests
+from dashboard import load_from_prod
 from dashboard import main
 from dashboard import migrate_test_names
 from dashboard import migrate_test_names_tasks
@@ -68,6 +70,11 @@ flask_app = Flask(__name__)
 if six.PY3:
   from google.appengine.api import wrap_wsgi_app
   flask_app.wsgi_app = wrap_wsgi_app(flask_app.wsgi_app, use_deferred=True)
+
+
+@flask_app.route('/')
+def MainHandlerGet():
+  return main.MainHandlerGet()
 
 
 # TODO(crbug/1393102): Handler for partial traffic from fyi. Will remove.
@@ -174,6 +181,11 @@ def LayeredCacheDeleteExpiredGet():
   return layered_cache_delete_expired.LayeredCacheDeleteExpiredGet()
 
 
+@flask_app.route('/dump_graph_json', methods=['GET'])
+def DumpGraphJsonHandler():
+  return dump_graph_json.DumpGraphJsonHandlerGet()
+
+
 @flask_app.route('/edit_anomalies', methods=['POST'])
 def EditAnomaliesPost():
   return edit_anomalies.EditAnomaliesPost()
@@ -229,9 +241,9 @@ def ListTestsHandlerPost():
   return list_tests.ListTestsHandlerPost()
 
 
-@flask_app.route('/')
-def MainHandlerGet():
-  return main.MainHandlerGet()
+@flask_app.route('/load_from_prod', methods=['GET', 'POST'])
+def LoadFromProdHandler():
+  return load_from_prod.LoadFromProdHandlerGetPost()
 
 
 @flask_app.route('/mark_recovered_alerts', methods=['POST'])
@@ -325,10 +337,8 @@ if six.PY2:
   # pylint: disable=ungrouped-imports
   from dashboard import bug_details
   from dashboard import create_health_report
-  from dashboard import dump_graph_json
   from dashboard import get_diagnostics
   from dashboard import get_histogram
-  from dashboard import load_from_prod
   from dashboard import put_entities_task
   from dashboard import speed_releasing
   from dashboard.api import bugs
@@ -438,6 +448,7 @@ _PATHS_HANDLED_BY_FLASK = [
     '/buildbucket_job_status',
     '/configs/update',
     '/delete_expired_entities',
+    '/dump_graph_json',
     '/edit_anomalies',
     '/edit_site_config',
     '/file_bug',
@@ -446,6 +457,7 @@ _PATHS_HANDLED_BY_FLASK = [
     '/graph_revisions',
     '/group_report',
     '/list_tests',
+    '/load_from_prod',
     '/migrate_test_names',
     '/mark_recovered_alerts',
     '/navbar',

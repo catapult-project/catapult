@@ -11,7 +11,9 @@ from __future__ import division
 from __future__ import absolute_import
 
 import base64
+from flask import request, make_response
 import json
+import six
 
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb import model
@@ -27,137 +29,170 @@ _DEFAULT_MAX_POINTS = 500
 _DEFAULT_MAX_ANOMALIES = 30
 
 
-class DumpGraphJsonHandler(request_handler.RequestHandler):
-  """Handler for extracting entities from datastore."""
+def DumpGraphJsonHandlerGet():
+  if request.values.get('sheriff'):
+    sheriff_name = request.values.get('sheriff')
+    num_points = int(request.values.get('num_points', _DEFAULT_MAX_POINTS))
+    num_anomalies = int(
+        request.values.get('num_alerts', _DEFAULT_MAX_ANOMALIES))
 
-  def get(self):
-    """Handles dumping dashboard data."""
-    utils.LogObsoleteHandlerUsage(self, 'GET')
-    if self.request.get('sheriff'):
-      self._DumpAnomalyDataForSheriff()
-    elif self.request.get('test_path'):
-      self._DumpTestData()
-    else:
-      self.ReportError('No parameters specified.')
+    protobuf_json = _DumpAnomalyDataForSheriff(sheriff_name, num_points,
+                                               num_anomalies)
 
-  def _DumpTestData(self):
-    """Dumps data for the requested test.
+    return make_response(protobuf_json)
+  if request.values.get('test_path'):
+    test_path = request.values.get('test_path')
+    num_points = int(request.values.get('num_points', _DEFAULT_MAX_POINTS))
+    end_rev = request.values.get('end_rev')
 
-    Request parameters:
-      test_path: A single full test path, including master/bot.
-      num_points: Max number of Row entities (optional).
-      end_rev: Ending revision number, inclusive (optional).
+    protobuf_json = _DumpTestData(test_path, num_points, end_rev)
 
-    Outputs:
-      JSON array of encoded protobuf messages, which encode all of
-      the datastore entities relating to one test (including Master, Bot,
-      TestMetadata, Row, Anomaly and Sheriff entities).
-    """
-    test_path = self.request.get('test_path')
-    num_points = int(self.request.get('num_points', _DEFAULT_MAX_POINTS))
-    end_rev = self.request.get('end_rev')
-    test_key = utils.TestKey(test_path)
-    if not test_key or test_key.kind() != 'TestMetadata':
-      # Bad test_path passed in.
-      self.response.out.write(json.dumps([]))
-      return
+    return make_response(protobuf_json)
+  return request_handler.RequestHandlerReportError('No parameters specified.')
 
-    # List of datastore entities that will be dumped.
-    entities = []
 
-    entities.extend(self._GetTestAncestors([test_key]))
+if six.PY2:
 
-    # Get the Row entities.
+  class DumpGraphJsonHandler(request_handler.RequestHandler):
+    """Handler for extracting entities from datastore."""
+
+    def get(self):
+      """Handles dumping dashboard data."""
+      utils.LogObsoleteHandlerUsage(self, 'GET')
+      if self.request.get('sheriff'):
+        sheriff_name = self.request.get('sheriff')
+        num_points = int(self.request.get('num_points', _DEFAULT_MAX_POINTS))
+        num_anomalies = int(
+            self.request.get('num_alerts', _DEFAULT_MAX_ANOMALIES))
+
+        protobuf_json = _DumpAnomalyDataForSheriff(sheriff_name, num_points,
+                                                   num_anomalies)
+
+        self.response.out.write(protobuf_json)
+      elif self.request.get('test_path'):
+        test_path = self.request.get('test_path')
+        num_points = int(self.request.get('num_points', _DEFAULT_MAX_POINTS))
+        end_rev = self.request.get('end_rev')
+
+        protobuf_json = _DumpTestData(test_path, num_points, end_rev)
+
+        self.response.out.write(protobuf_json)
+      else:
+        self.ReportError('No parameters specified.')
+
+
+def _DumpTestData(test_path, num_points, end_rev):
+  """Dumps data for the requested test.
+
+  Request parameters:
+    test_path: A single full test path, including master/bot.
+    num_points: Max number of Row entities (optional).
+    end_rev: Ending revision number, inclusive (optional).
+
+  Outputs:
+    JSON array of encoded protobuf messages, which encode all of
+    the datastore entities relating to one test (including Master, Bot,
+    TestMetadata, Row, Anomaly and Sheriff entities).
+  """
+  test_key = utils.TestKey(test_path)
+  if not test_key or test_key.kind() != 'TestMetadata':
+    # Bad test_path passed in.
+    return json.dumps([])
+
+  # List of datastore entities that will be dumped.
+  entities = []
+
+  entities.extend(_GetTestAncestors([test_key]))
+
+  # Get the Row entities.
+  q = graph_data.Row.query()
+  q = q.filter(graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
+  if end_rev:
+    q = q.filter(graph_data.Row.revision <= int(end_rev))
+  q = q.order(-graph_data.Row.revision)  # pylint: disable=invalid-unary-operand-type
+  entities += q.fetch(limit=num_points)
+
+  # Get the Anomaly and Sheriff entities.
+  alerts, _, _ = anomaly.Anomaly.QueryAsync(test=test_key).get_result()
+  subscriptions = [s for a in alerts for s in a.subscriptions]
+  entities += alerts
+  entities += subscriptions
+
+  # Convert the entities to protobuf message strings and output as JSON.
+  protobuf_strings = list(map(EntityToBinaryProtobuf, entities))
+  return json.dumps(protobuf_strings)
+
+
+def _DumpAnomalyDataForSheriff(sheriff_name, num_points, num_anomalies):
+  """Dumps Anomaly data for all sheriffs.
+
+  Request parameters:
+    sheriff: Sheriff name.
+    num_points: Max number of Row entities (optional).
+    num_alerts: Max number of Anomaly entities (optional).
+
+  Outputs:
+    JSON array of encoded protobuf messages, which encode all of
+    the datastore entities relating to one test (including Master, Bot,
+    TestMetadata, Row, Anomaly and Sheriff entities).
+  """
+  anomalies, _, _ = anomaly.Anomaly.QueryAsync(
+      subscriptions=[sheriff_name], limit=num_anomalies).get_result()
+  test_keys = [a.GetTestMetadataKey() for a in anomalies]
+
+  # List of datastore entities that will be dumped.
+  entities = []
+
+  entities.extend(_GetTestAncestors(test_keys))
+
+  # Get the Row entities.
+  entities.extend(_FetchRowsAsync(test_keys, num_points))
+
+  # Add the Anomaly and Sheriff entities.
+  entities += anomalies
+  subscriptions = [s for a in anomalies for s in a.subscriptions]
+  entities += subscriptions
+
+  # Convert the entities to protobuf message strings and output as JSON.
+  protobuf_strings = list(map(EntityToBinaryProtobuf, entities))
+  return json.dumps(protobuf_strings)
+
+
+def _GetTestAncestors(test_keys):
+  """Gets the TestMetadata, Bot, and Master entities preceding in path."""
+  entities = []
+  added_parents = set()
+  for test_key in test_keys:
+    if test_key.kind() != 'TestMetadata':
+      continue
+    parts = utils.TestPath(test_key).split('/')
+    for index, _, in enumerate(parts):
+      test_path = '/'.join(parts[:index + 1])
+      if test_path in added_parents:
+        continue
+      added_parents.add(test_path)
+      if index == 0:
+        entities.append(ndb.Key('Master', parts[0]).get())
+      elif index == 1:
+        entities.append(ndb.Key('Master', parts[0], 'Bot', parts[1]).get())
+      else:
+        entities.append(ndb.Key('TestMetadata', test_path).get())
+  return [e for e in entities if e is not None]
+
+
+def _FetchRowsAsync(test_keys, num_points):
+  """Fetches recent Row asynchronously across all 'test_keys'."""
+  rows = []
+  futures = []
+  for test_key in test_keys:
     q = graph_data.Row.query()
     q = q.filter(graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
-    if end_rev:
-      q = q.filter(graph_data.Row.revision <= int(end_rev))
     q = q.order(-graph_data.Row.revision)  # pylint: disable=invalid-unary-operand-type
-    entities += q.fetch(limit=num_points)
-
-    # Get the Anomaly and Sheriff entities.
-    alerts, _, _ = anomaly.Anomaly.QueryAsync(test=test_key).get_result()
-    subscriptions = [s for a in alerts for s in a.subscriptions]
-    entities += alerts
-    entities += subscriptions
-
-    # Convert the entities to protobuf message strings and output as JSON.
-    protobuf_strings = list(map(EntityToBinaryProtobuf, entities))
-    self.response.out.write(json.dumps(protobuf_strings))
-
-  def _DumpAnomalyDataForSheriff(self):
-    """Dumps Anomaly data for all sheriffs.
-
-    Request parameters:
-      sheriff: Sheriff name.
-      num_points: Max number of Row entities (optional).
-      num_alerts: Max number of Anomaly entities (optional).
-
-    Outputs:
-      JSON array of encoded protobuf messages, which encode all of
-      the datastore entities relating to one test (including Master, Bot,
-      TestMetadata, Row, Anomaly and Sheriff entities).
-    """
-    sheriff_name = self.request.get('sheriff')
-    num_points = int(self.request.get('num_points', _DEFAULT_MAX_POINTS))
-    num_anomalies = int(self.request.get('num_alerts', _DEFAULT_MAX_ANOMALIES))
-
-    anomalies, _, _ = anomaly.Anomaly.QueryAsync(
-        subscriptions=[sheriff_name], limit=num_anomalies).get_result()
-    test_keys = [a.GetTestMetadataKey() for a in anomalies]
-
-    # List of datastore entities that will be dumped.
-    entities = []
-
-    entities.extend(self._GetTestAncestors(test_keys))
-
-    # Get the Row entities.
-    entities.extend(self._FetchRowsAsync(test_keys, num_points))
-
-    # Add the Anomaly and Sheriff entities.
-    entities += anomalies
-    subscriptions = [s for a in anomalies for s in a.subscriptions]
-    entities += subscriptions
-
-    # Convert the entities to protobuf message strings and output as JSON.
-    protobuf_strings = list(map(EntityToBinaryProtobuf, entities))
-    self.response.out.write(json.dumps(protobuf_strings))
-
-  def _GetTestAncestors(self, test_keys):
-    """Gets the TestMetadata, Bot, and Master entities preceding in path."""
-    entities = []
-    added_parents = set()
-    for test_key in test_keys:
-      if test_key.kind() != 'TestMetadata':
-        continue
-      parts = utils.TestPath(test_key).split('/')
-      for index, _, in enumerate(parts):
-        test_path = '/'.join(parts[:index + 1])
-        if test_path in added_parents:
-          continue
-        added_parents.add(test_path)
-        if index == 0:
-          entities.append(ndb.Key('Master', parts[0]).get())
-        elif index == 1:
-          entities.append(ndb.Key('Master', parts[0], 'Bot', parts[1]).get())
-        else:
-          entities.append(ndb.Key('TestMetadata', test_path).get())
-    return [e for e in entities if e is not None]
-
-  def _FetchRowsAsync(self, test_keys, num_points):
-    """Fetches recent Row asynchronously across all 'test_keys'."""
-    rows = []
-    futures = []
-    for test_key in test_keys:
-      q = graph_data.Row.query()
-      q = q.filter(
-          graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
-      q = q.order(-graph_data.Row.revision)  # pylint: disable=invalid-unary-operand-type
-      futures.append(q.fetch_async(limit=num_points))
-    ndb.Future.wait_all(futures)
-    for future in futures:
-      rows.extend(future.get_result())
-    return rows
+    futures.append(q.fetch_async(limit=num_points))
+  ndb.Future.wait_all(futures)
+  for future in futures:
+    rows.extend(future.get_result())
+  return rows
 
 
 def EntityToBinaryProtobuf(entity):
