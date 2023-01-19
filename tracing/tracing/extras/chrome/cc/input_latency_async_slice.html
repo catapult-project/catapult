@@ -294,7 +294,7 @@ tr.exportTo('tr.e.cc', function() {
 
         // Do not follow ScheduledActionSendBeginMainFrame because the real
         // main thread BeginMainFrame is already traced by LatencyInfo flow.
-        if (slice.title === 'ThreadProxy::ScheduledActionSendBeginMainFrame') {
+        if (slice.title === 'ProxyImpl::ScheduledActionSendBeginMainFrame') {
           return;
         }
 

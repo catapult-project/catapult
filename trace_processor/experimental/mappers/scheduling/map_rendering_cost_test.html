@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
         type: ThreadSlice,
         start: 5,
         duration: 2,
-        title: 'ThreadProxy::BeginMainFrame'
+        title: 'ProxyMain::BeginMainFrame'
       }));
 
       // Two slices that only partially overlaps the loading phase. Both
@@ -43,14 +43,14 @@ tr.b.unittest.testSuite(function() {
         type: ThreadSlice,
         start: -5,
         duration: 10,
-        title: 'ThreadProxy::BeginMainFrame'
+        title: 'ProxyMain::BeginMainFrame'
       }));
 
       mainThread.sliceGroup.pushSlice(TestUtils.newSliceEx({
         type: ThreadSlice,
         start: 8,
         duration: 10,
-        title: 'ThreadProxy::BeginMainFrame'
+        title: 'ProxyMain::BeginMainFrame'
       }));
     });
 

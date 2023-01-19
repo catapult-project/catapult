@@ -60,7 +60,7 @@ tr.exportTo('pie', function() {
           totalCost += eventCost(event);
 
           var beginMainFrame =
-              event.findDescendentSlice('ThreadProxy::BeginMainFrame');
+              event.findDescendentSlice('ProxyMain::BeginMainFrame');
           if (beginMainFrame) {
             beginMainFrameCount++;
             beginMainFrameCost += eventCost(beginMainFrame);

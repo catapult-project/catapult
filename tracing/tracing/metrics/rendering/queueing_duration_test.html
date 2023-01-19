@@ -22,22 +22,22 @@ tr.b.unittest.testSuite(function() {
       const compositor = model.getOrCreateProcess(1).getOrCreateThread(1);
       compositor.name = 'Compositor';
       compositor.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
-          { title: 'ThreadProxy::ScheduledActionSendBeginMainFrame',
+          { title: 'ProxyImpl::ScheduledActionSendBeginMainFrame',
             start: 3, end: 3,
             args: { begin_frame_id: 2 }}));
       compositor.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
-          { title: 'ThreadProxy::ScheduledActionSendBeginMainFrame',
+          { title: 'ProxyImpl::ScheduledActionSendBeginMainFrame',
             start: 4, end: 4,
             args: { begin_frame_id: 1 }}));
 
       const main = model.getOrCreateProcess(1).getOrCreateThread(0);
       main.name = 'CrRendererMain';
       main.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
-          { title: 'ThreadProxy::BeginMainFrame',
+          { title: 'ProxyMain::BeginMainFrame',
             start: 5, end: 5,
             args: { begin_frame_id: 1 }}));
       main.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
-          { title: 'ThreadProxy::BeginMainFrame',
+          { title: 'ProxyMain::BeginMainFrame',
             start: 6, end: 6,
             args: { begin_frame_id: 2 }}));
     });

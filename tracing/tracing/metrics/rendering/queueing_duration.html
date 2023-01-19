@@ -27,9 +27,9 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.metrics.rendering', function() {
   // Various tracing events.
-  const BEGIN_MAIN_FRAME_EVENT = 'ThreadProxy::BeginMainFrame';
+  const BEGIN_MAIN_FRAME_EVENT = 'ProxyMain::BeginMainFrame';
   const SEND_BEGIN_FRAME_EVENT =
-      'ThreadProxy::ScheduledActionSendBeginMainFrame';
+      'ProxyImpl::ScheduledActionSendBeginMainFrame';
 
   function getEventTimesByBeginFrameId_(thread, title, ranges) {
     const out = new Map();
@@ -39,7 +39,7 @@ tr.exportTo('tr.metrics.rendering', function() {
       const id = slice.args.begin_frame_id;
       if (id === undefined) throw new Error('Event is missing begin_frame_id');
       // If we've already seen an even with this name, we only track the first.
-      // Multiple ThreadProxy::BeginMainFrames can occur when OOPIF share the
+      // Multiple ProxyMain::BeginMainFrames can occur when OOPIF share the
       // same origin and get routed to the same RendererMain.
       if (out.has(id) && out[id] <= slice.start) {
           continue;
