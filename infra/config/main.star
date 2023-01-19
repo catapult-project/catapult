@@ -146,14 +146,12 @@ def try_builder(
         name = "catapult",
         cipd_package = "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
         use_bbagent = True,
-        use_python3 = True,
     )
     if is_presubmit:
         executable = luci.recipe(
             name = "run_presubmit",
             cipd_package = "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
             use_bbagent = True,
-            use_python3 = True,
         )
         props["repo_name"] = "catapult"
     if is_dashboard:
@@ -189,16 +187,16 @@ def try_builder(
         **verifier_kwargs
     )
 
-try_builder("Catapult Linux Tryserver", "Ubuntu", properties = {"use_python3": True})
+try_builder("Catapult Linux Tryserver", "Ubuntu")
 
-try_builder("Catapult Windows Tryserver", "Windows-10", properties = {"use_python3": True})
+try_builder("Catapult Windows Tryserver", "Windows-10")
 
-try_builder("Catapult Mac Tryserver", "Mac", dimensions = {"cpu": "x86-64"}, properties = {"use_python3": True})
+try_builder("Catapult Mac Tryserver", "Mac", dimensions = {"cpu": "x86-64"})
 
-try_builder("Catapult Mac M1 Tryserver", "Mac", dimensions = {"cpu": "arm"}, properties = {"use_python3": True})
+try_builder("Catapult Mac M1 Tryserver", "Mac", dimensions = {"cpu": "arm"})
 
-try_builder("Catapult Android Tryserver", "Android", dimensions = {"device_type": "bullhead"}, properties = {"platform": "android", "use_python3": True})
+try_builder("Catapult Android Tryserver", "Android", dimensions = {"device_type": "bullhead"}, properties = {"platform": "android"})
 
 try_builder("Catapult Presubmit", "Ubuntu", is_presubmit = True)
 
-try_builder("Dashboard Linux Tryserver Py3", "Ubuntu", is_dashboard = True, properties = {"use_python3": True})
+try_builder("Dashboard Linux Tryserver", "Ubuntu", is_dashboard = True)

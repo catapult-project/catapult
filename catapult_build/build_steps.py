@@ -17,8 +17,6 @@ import sys
 #   environment.
 # disabled (optional): List of platforms the test is disabled on. May contain
 #   'win', 'mac', 'linux', or 'android'.
-# python_versions (optional): A list of ints specifying the Python versions to
-#   run on. May contain "2" or "3". Defaults to running on both.
 # outputs_presentation_json (optional): If True, pass in --presentation-json
 #   argument to the test executable to allow it to update the buildbot status
 #   page. More details here:
@@ -218,11 +216,6 @@ def main(args=None):
       default=False,
       help='Run only the Dashboard and Pinpoint tests',
       action='store_true')
-  parser.add_argument(
-      '--use_python3',
-      default=False,
-      help='Run Catapult Tests using vpython3',
-      action='store_true')
   args = parser.parse_args(args)
 
   dashboard_protos_folder = os.path.join(args.api_path_checkout, 'dashboard',
@@ -346,26 +339,13 @@ def main(args=None):
     if args.platform in test.get('disabled', []):
       continue
 
-    python_version = 3 if args.use_python3 else 2
-    if python_version not in test.get('python_versions', [2, 3]):
-      continue
-
-    # The test "Devil Python Tests" has two executables, run_py_tests and
-    # run_py3_tests. Those scripts define the vpython interpreter on shebang,
-    # and will quit when running on unexpected version. This script assumes one
-    # path for each test and thus we will conditionally replace the script name
-    # until python 2 is fully dropped.
-    # here,
     test_path = test['path']
-    if args.use_python3 and test['name'] == 'Devil Python Tests':
+    if test['name'] == 'Devil Python Tests':
       test_path = 'devil/bin/run_py3_tests'
 
     step = {'name': test['name'], 'env': {}}
 
-    if args.use_python3:
-      vpython_executable = "vpython3"
-    else:
-      vpython_executable = "vpython"
+    vpython_executable = "vpython3"
 
     if sys.platform == 'win32':
       vpython_executable += '.bat'
@@ -385,13 +365,7 @@ def main(args=None):
       step['env']['CHROME_DEVEL_SANDBOX'] = '/opt/chromium/chrome_sandbox'
     if test.get('outputs_presentation_json'):
       step['outputs_presentation_json'] = True
-    # TODO(crbug/1221663):
-    # Before python 3 conversion is finished, the try jobs with use_python3 are
-    # experimental. We want to see all possible failure and thus we don't want
-    # to try job to quit before all tests are finished.
-    # This condition will be removed when the python 3 conversion is done.
-    if args.use_python3:
-      step['always_run'] = True
+    step['always_run'] = True
     steps.append(step)
 
   with open(args.output_json, 'w') as outfile:
