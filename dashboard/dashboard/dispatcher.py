@@ -9,8 +9,16 @@ from __future__ import absolute_import
 import pickle
 pickle.HIGHEST_PROTOCOL = 2
 
-import six
+from flask import Flask, request as flask_request, make_response
 import logging
+
+from google.appengine.api import wrap_wsgi_app
+import google.cloud.logging
+try:
+  import googleclouddebugger
+  googleclouddebugger.enable(breakpoint_enable_canary=True)
+except ImportError:
+  pass
 
 from dashboard import add_histograms
 from dashboard import add_histograms_queue
@@ -49,27 +57,16 @@ from dashboard.api import config
 from dashboard.api import describe
 from dashboard.api import test_suites
 from dashboard.api import timeseries2
+from dashboard.common import datastore_hooks
 
-if six.PY3:
-  import google.cloud.logging
-  from dashboard.common import datastore_hooks  # pylint: disable=ungrouped-imports
+google.cloud.logging.Client().setup_logging(log_level=logging.DEBUG)
+logging.getLogger("urllib3").setLevel(logging.INFO)
 
-  google.cloud.logging.Client().setup_logging(log_level=logging.DEBUG)
-  logging.getLogger("urllib3").setLevel(logging.INFO)
-  datastore_hooks.InstallHooks()
+datastore_hooks.InstallHooks()
 
-  try:
-    import googleclouddebugger
-    googleclouddebugger.enable(breakpoint_enable_canary=True)
-  except ImportError:
-    pass
-
-from flask import Flask
 flask_app = Flask(__name__)
 
-if six.PY3:
-  from google.appengine.api import wrap_wsgi_app
-  flask_app.wsgi_app = wrap_wsgi_app(flask_app.wsgi_app, use_deferred=True)
+flask_app.wsgi_app = wrap_wsgi_app(flask_app.wsgi_app, use_deferred=True)
 
 
 @flask_app.route('/')
@@ -331,163 +328,55 @@ def UploadsInfoGet(token_id):
   return uploads_info.UploadsInfoGet(token_id)
 
 
-if six.PY2:
-  import webapp2
+# Some handlers were identified as obsolete during the python 3 migration and
+# thus were deleted. Though, we want to be aware of any client calls to those
+# deleted endpoints in the future by adding logs here.
+@flask_app.route(
+    '/bug_details', endpoint='/bug_details', methods=['GET', 'POST'])
+@flask_app.route(
+    '/create_health_report',
+    endpoint='/create_health_report',
+    methods=['GET', 'POST'])
+@flask_app.route(
+    '/get_diagnostics', endpoint='/get_diagnostics', methods=['POST'])
+@flask_app.route('/get_histogram', endpoint='/get_histogram', methods=['POST'])
+@flask_app.route(
+    '/put_entities_task', endpoint='/put_entities_task', methods=['POST'])
+@flask_app.route(
+    '/speed_releasing', endpoint='/speed_releasing', methods=['GET', 'POST'])
+@flask_app.route('/api/bugs/<bug_id>', endpoint='/api/bugs', methods=['POST'])
+@flask_app.route(
+    '/api/bugs/p/<bug_id>/<project_id>',
+    endpoint='/api/bugs/p',
+    methods=['POST'])
+@flask_app.route(
+    '/api/existing_bug', endpoint='/api/existing_bug', methods=['POST'])
+@flask_app.route(
+    '/api/list_timeseries/', endpoint='/api/list_timeseries', methods=['POST'])
+@flask_app.route('/api/new_bug', endpoint='/api/new_bug', methods=['POST'])
+@flask_app.route(
+    '/api/new_pinpoint', endpoint='/api/new_pinpoint', methods=['POST'])
+@flask_app.route(
+    '/api/nudge_alert', endpoint='/api/nudge_alert', methods=['POST'])
+@flask_app.route(
+    '/api/report/generate', endpoint='/api/report/generate', methods=['POST'])
+@flask_app.route(
+    '/api/report/names', endpoint='/api/report/names', methods=['POST'])
+@flask_app.route(
+    '/api/report/template', endpoint='/api/report/template', methods=['POST'])
+@flask_app.route(
+    '/api/timeseries/', endpoint='/api/timeseries', methods=['POST'])
+def ObsoleteEndpointsHandler(bug_id=None, project_id=None):
+  del bug_id, project_id
+  obsolete_endpoint = flask_request.endpoint
+  logging.error(
+      'Request on deleted endpoint: %s. It was considered obsolete in Python 3 migration.',
+      obsolete_endpoint)
 
-  # pylint: disable=ungrouped-imports
-  from dashboard import bug_details
-  from dashboard import create_health_report
-  from dashboard import get_diagnostics
-  from dashboard import get_histogram
-  from dashboard import put_entities_task
-  from dashboard import speed_releasing
-  from dashboard.api import bugs
-  from dashboard.api import list_timeseries
-  from dashboard.api import new_bug
-  from dashboard.api import new_pinpoint
-  from dashboard.api import existing_bug
-  from dashboard.api import nudge_alert
-  from dashboard.api import report_generate
-  from dashboard.api import report_names
-  from dashboard.api import report_template
-  from dashboard.api import timeseries
-
-  _URL_MAPPING = [
-      ('/add_histograms', add_histograms.AddHistogramsHandler),
-      ('/add_histograms/process', add_histograms.AddHistogramsProcessHandler),
-      ('/add_histograms_queue', add_histograms_queue.AddHistogramsQueueHandler),
-      ('/add_point', add_point.AddPointHandler),
-      ('/add_point_queue', add_point_queue.AddPointQueueHandler),
-      ('/alerts', alerts.AlertsHandler),
-      (r'/api/alerts', api_alerts.AlertsHandler),
-      (r'/api/bugs/p/(.+)/(.+)', bugs.BugsWithProjectHandler),
-      (r'/api/bugs/(.*)', bugs.BugsHandler),
-      (r'/api/config', config.ConfigHandler),
-      (r'/api/describe', describe.DescribeHandler),
-      (r'/api/list_timeseries/(.*)', list_timeseries.ListTimeseriesHandler),
-      (r'/api/new_bug', new_bug.NewBugHandler),
-      (r'/api/new_pinpoint', new_pinpoint.NewPinpointHandler),
-      (r'/api/existing_bug', existing_bug.ExistingBugHandler),
-      (r'/api/nudge_alert', nudge_alert.NudgeAlertHandler),
-      (r'/api/report/generate', report_generate.ReportGenerateHandler),
-      (r'/api/report/names', report_names.ReportNamesHandler),
-      (r'/api/report/template', report_template.ReportTemplateHandler),
-      (r'/api/test_suites', test_suites.TestSuitesHandler),
-      (r'/api/timeseries/(.*)', timeseries.TimeseriesHandler),
-      (r'/api/timeseries2', timeseries2.Timeseries2Handler),
-      ('/associate_alerts', associate_alerts.AssociateAlertsHandler),
-      ('/alert_groups_update', alert_groups.AlertGroupsHandler),
-      ('/bug_details', bug_details.BugDetailsHandler),
-      (r'/buildbucket_job_status/(\d+)',
-       buildbucket_job_status.BuildbucketJobStatusHandler),
-      ('/create_health_report', create_health_report.CreateHealthReportHandler),
-      ('/configs/update', sheriff_config_poller.ConfigsUpdateHandler),
-      ('/delete_expired_entities',
-       layered_cache_delete_expired.LayeredCacheDeleteExpiredHandler),
-      ('/dump_graph_json', dump_graph_json.DumpGraphJsonHandler),
-      ('/edit_anomalies', edit_anomalies.EditAnomaliesHandler),
-      ('/edit_site_config', edit_site_config.EditSiteConfigHandler),
-      ('/file_bug', file_bug.FileBugHandler),
-      ('/get_diagnostics', get_diagnostics.GetDiagnosticsHandler),
-      ('/get_histogram', get_histogram.GetHistogramHandler),
-      ('/graph_csv', graph_csv.GraphCsvHandler),
-      ('/graph_json', graph_json.GraphJsonHandler),
-      ('/graph_revisions', graph_revisions.GraphRevisionsHandler),
-      ('/group_report', group_report.GroupReportHandler),
-      ('/list_tests', list_tests.ListTestsHandler),
-      ('/load_from_prod', load_from_prod.LoadFromProdHandler),
-      ('/', main.MainHandler),
-      ('/mark_recovered_alerts',
-       mark_recovered_alerts.MarkRecoveredAlertsHandler),
-      ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler),
-      ('/migrate_test_names_tasks',
-       migrate_test_names_tasks.MigrateTestNamesTasksHandler),
-      ('/navbar', navbar.NavbarHandler),
-      ('/pinpoint/new/bisect',
-       pinpoint_request.PinpointNewBisectRequestHandler),
-      ('/pinpoint/new/perf_try',
-       pinpoint_request.PinpointNewPerfTryRequestHandler),
-      ('/pinpoint/new/prefill',
-       pinpoint_request.PinpointNewPrefillRequestHandler),
-      ('/put_entities_task', put_entities_task.PutEntitiesTaskHandler),
-      ('/report', report.ReportHandler),
-      ('/short_uri', short_uri.ShortUriHandler),
-      (r'/speed_releasing/(.*)', speed_releasing.SpeedReleasingHandler),
-      ('/speed_releasing', speed_releasing.SpeedReleasingHandler),
-      ('/update_dashboard_stats',
-       update_dashboard_stats.UpdateDashboardStatsHandler),
-      ('/update_test_suites', update_test_suites.UpdateTestSuitesHandler),
-      ('/update_test_suite_descriptors',
-       update_test_suite_descriptors.UpdateTestSuiteDescriptorsHandler),
-      ('/uploads/(.+)', uploads_info.UploadInfoHandler)
-  ]
-
-  webapp2_app = webapp2.WSGIApplication(_URL_MAPPING, debug=False)
-
-# After a handler is migrated to flask, add its handled url here.
-# The listed values will be used as *prefix* to match and redirect
-# the incoming requests.
-_PATHS_HANDLED_BY_FLASK = [
-    '/alert_groups_update',
-    '/add_histograms',
-    '/add_histograms_flask',
-    '/add_histograms/process',
-    '/add_histograms_flask/process',
-    '/add_histograms_queue',
-    'add_histograms_queue_flask',
-    '/add_point',
-    '/add_point_flask',
-    '/add_point_queue',
-    '/alerts',
-    '/api/alerts',
-    '/api/config',
-    '/api/describe',
-    '/api/test_suites',
-    '/api/timeseries2',
-    '/associate_alerts',
-    '/buildbucket_job_status',
-    '/configs/update',
-    '/delete_expired_entities',
-    '/dump_graph_json',
-    '/edit_anomalies',
-    '/edit_site_config',
-    '/file_bug',
-    '/graph_csv',
-    '/graph_json',
-    '/graph_revisions',
-    '/group_report',
-    '/list_tests',
-    '/load_from_prod',
-    '/migrate_test_names',
-    '/mark_recovered_alerts',
-    '/navbar',
-    '/pinpoint/new/bisect',
-    '/pinpoint/new/perf_try',
-    '/pinpoint/new/prefill',
-    '/report',
-    '/short_uri',
-    '/update_dashboard_stats',
-    '/update_test_suites',
-    '/update_test_suite_descriptors',
-    '/uploads',
-]
-
-
-def IsPathHandledByFlask(path):
-  # the main hanlder cannot use startswith(). Full match here.
-  if path == '/':
-    return True
-  return any(path.startswith(p) for p in _PATHS_HANDLED_BY_FLASK)
+  return make_response(
+      'This endpoint is obsolete: %s. Please contact browser-perf-engprod@google.com for more info.'
+      % obsolete_endpoint, 404)
 
 
 def APP(environ, request):
-  path = environ.get('PATH_INFO', '')
-  method = environ.get('REQUEST_METHOD', '')
-  logging.info('Request path from environ: %s. Method: %s', path, method)
-
-  if IsPathHandledByFlask(path) or six.PY3:
-    logging.debug('Handled by flask. Python 3? %s', six.PY3)
-    return flask_app(environ, request)
-
-  logging.debug('Handled by webapp2')
-  return webapp2_app(environ, request)
+  return flask_app(environ, request)
