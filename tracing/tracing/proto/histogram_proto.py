@@ -3,24 +3,34 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
-try:
-  # Note: from tracing.proto import histogram_pb2 would make more sense here,
-  # but unfortunately protoc does not generate __init__.py files if you specify
-  # an out package (at least for the gn proto_library rule).
-  import histogram_pb2
-  HAS_PROTO = True
-except ImportError as e:
+import os.path
+import sys
+
+if os.path.basename(sys.modules['__main__'].__file__) == 'print_python_deps.py':
+  # The module is being loaded by the app that calculates Python dependencies.
+  # Don't try to load histogram_pb2, as that module exists in some environments
+  # and is missing in some other environments. Loading it would cause the
+  # dependency list to become nondeterministic.
+  HAS_PROTO = False
+else:
   try:
-    # crbug/1234919
-    # Catapult put the generated histogram_pb2.py in the same source folder,
-    # while the others (e.g., webrtc) put it in output path. By default we
-    # try to import from the sys.path. Here allows to try import from the
-    # source folder as well.
-    # TODO(wenbinzhang): Clean up import paths to work consistently.
-    from . import histogram_pb2
+    # Note: from tracing.proto import histogram_pb2 would make more sense here,
+    # but unfortunately protoc does not generate __init__.py files if you
+    # specify an out package (at least for the gn proto_library rule).
+    import histogram_pb2
     HAS_PROTO = True
-  except ImportError:
-    HAS_PROTO = False
+  except ImportError as e:
+    try:
+      # crbug/1234919
+      # Catapult put the generated histogram_pb2.py in the same source folder,
+      # while the others (e.g., webrtc) put it in output path. By default we
+      # try to import from the sys.path. Here allows to try import from the
+      # source folder as well.
+      # TODO(wenbinzhang): Clean up import paths to work consistently.
+      from . import histogram_pb2
+      HAS_PROTO = True
+    except ImportError:
+      HAS_PROTO = False
 
 
 def _EnsureProto():
