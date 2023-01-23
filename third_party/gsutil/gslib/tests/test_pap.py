@@ -30,10 +30,20 @@ class TestPublicAccessPrevention(testcase.GsUtilIntegrationTestCase):
   _set_pap_cmd = ['pap', 'set']
   _get_pap_cmd = ['pap', 'get']
 
+  def _verify_public_access_prevention_unspecified(self, bucket_uri):
+    # TODO(b/201683262) Replace all calls to this method
+    # with self.VerifyPublicAccessPreventionValue(bucket_uri, 'inherited')
+    # once the backend rollout is completed.
+    stdout = self.RunGsUtil(['publicaccessprevention', 'get',
+                             suri(bucket_uri)],
+                            return_stdout=True)
+    self.assertRegex(stdout,
+                     r'%s:\s+(unspecified|inherited)' % suri(bucket_uri))
+
   @SkipForXML('Public access prevention only runs on GCS JSON API')
   def test_off_on_default_buckets(self):
     bucket_uri = self.CreateBucket()
-    self.VerifyPublicAccessPreventionValue(bucket_uri, 'unspecified')
+    self._verify_public_access_prevention_unspecified(bucket_uri)
 
   @SkipForXML('Public access prevention only runs on GCS JSON API')
   def test_turning_off_on_enabled_buckets(self):
@@ -42,7 +52,7 @@ class TestPublicAccessPrevention(testcase.GsUtilIntegrationTestCase):
     self.VerifyPublicAccessPreventionValue(bucket_uri, 'enforced')
 
     self.RunGsUtil(self._set_pap_cmd + ['unspecified', suri(bucket_uri)])
-    self.VerifyPublicAccessPreventionValue(bucket_uri, 'unspecified')
+    self._verify_public_access_prevention_unspecified(bucket_uri)
 
   @SkipForXML('Public access prevention only runs on GCS JSON API')
   def test_turning_on(self):
@@ -59,7 +69,7 @@ class TestPublicAccessPrevention(testcase.GsUtilIntegrationTestCase):
     self.VerifyPublicAccessPreventionValue(bucket_uri, 'enforced')
 
     self.RunGsUtil(self._set_pap_cmd + ['unspecified', suri(bucket_uri)])
-    self.VerifyPublicAccessPreventionValue(bucket_uri, 'unspecified')
+    self._verify_public_access_prevention_unspecified(bucket_uri)
 
   @SkipForXML('Public access prevention only runs on GCS JSON API')
   def test_multiple_buckets(self):
@@ -69,8 +79,10 @@ class TestPublicAccessPrevention(testcase.GsUtilIntegrationTestCase):
         self._get_pap_cmd +
         [suri(bucket_uri1), suri(bucket_uri2)],
         return_stdout=True)
-    self.assertRegex(stdout, r'%s:\s+unspecified' % suri(bucket_uri1))
-    self.assertRegex(stdout, r'%s:\s+unspecified' % suri(bucket_uri2))
+    self.assertRegex(stdout,
+                     r'%s:\s+(unspecified|inherited)' % suri(bucket_uri1))
+    self.assertRegex(stdout,
+                     r'%s:\s+(unspecified|inherited)' % suri(bucket_uri2))
 
   @SkipForJSON('Testing XML only behavior')
   def test_xml_fails(self):

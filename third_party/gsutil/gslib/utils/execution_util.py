@@ -21,6 +21,8 @@ from __future__ import unicode_literals
 
 import subprocess
 
+from gslib import exception
+
 
 def ExecuteExternalCommand(command_and_flags):
   """Runs external terminal command.
@@ -46,6 +48,6 @@ def ExecuteExternalCommand(command_and_flags):
     command_stderr = command_stderr.decode()
 
   if command_process.returncode != 0:
-    raise OSError(command_stderr)
+    raise exception.ExternalBinaryError(command_stderr)
 
   return command_stdout, command_stderr

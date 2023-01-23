@@ -23,67 +23,37 @@ from gslib.help_provider import HelpProvider
 
 _DETAILED_HELP_TEXT = ("""
 <B>DESCRIPTION</B>
-  gsutil supports URI wildcards. For example, the command:
+  gsutil supports URI wildcards for files, buckets, and objects. For
+  example, the command:
 
     gsutil cp gs://bucket/data/abc* .
 
   copies all objects that start with gs://bucket/data/abc followed by any
   number of characters within that subdirectory.
 
-  NOTE: Some command shells expand wildcard matches prior to running the
-  gsutil command; however, most shells do not support recursive wildcards
-  (``**``). You can skip command shell wildcard expansion and instead use
-  gsutil's wildcarding support in such shells by single-quoting (on Linux)
-  or double-quoting (on Windows) the argument. For example:
-  
-    gsutil cp 'data/abc**' gs://bucket
+<B>WILDCARD CHARACTERS</B>
+  gsutil uses the following wildcards:
+
+  *
+    Match any number of characters within the current directory level. For
+    example, ``gs://my-bucket/abc/d*`` matches the object ``abc/def.txt``
+    but not the object ``abc/def/g.txt``.
+
+  **
+    Match any number of characters across directory boundaries. When used
+    as part of a local file path, the ``**`` wildcard should always be
+    immediately preceded by a directory delimiter. For example,
+    ``my-directory/**.txt`` is valid, but ``my-directory/abc**`` is not.
     
-
-<B>DIRECTORY BY DIRECTORY VS RECURSIVE WILDCARDS</B>
-  The ``*`` wildcard only matches up to the end of a path within
-  a subdirectory. For example, if your bucket contains objects
-  named gs://bucket/data/abcd, gs://bucket/data/abcdef,
-  and gs://bucket/data/abcxyx, as well as an object in a sub-directory
-  (gs://bucket/data/abc/def) the above gsutil cp command would match the
-  first 3 object names but not the last one.
-
-  If you want matches to span directory boundaries, use a ``**`` wildcard:
-
-    gsutil cp gs://bucket/data/abc** .
-
-  matches all four objects above.
-
-  Note that gsutil supports the same wildcards for both object and file names.
-  Thus, for example:
-
-    gsutil cp data/abc* gs://bucket
-
-  matches all names in the local file system. 
-
-<B>BUCKET WILDCARDS</B>
-  You can specify wildcards for bucket names within a single project. For
-  example:
-
-    gsutil ls gs://data*.example.com
-
-  lists the contents of all buckets whose name starts with ``data`` and
-  ends with ``.example.com`` in the default project. The -p option can be
-  used to specify a project other than the default.  For example:
-
-    gsutil ls -p other-project gs://data*.example.com
-
-  You can also combine bucket and object name wildcards. For example, this
-  command removes all ``.txt`` files in any of your Google Cloud Storage
-  buckets in the default project:
-
-    gsutil rm gs://*/**.txt
-
-
-<B>OTHER WILDCARD CHARACTERS</B>
-  In addition to ``*``, you can use these wildcards:
+    NOTE: Some command shells expand wildcard matches prior to running the
+    gsutil command; however, most shells do not support recursive
+    wildcards (``**``). You can skip command shell wildcard expansion and
+    instead use gsutil's wildcarding support in such shells by
+    single-quoting (on Linux) or double-quoting (on Windows) the argument.
+    For example: ``gsutil cp 'data/**' gs://bucket``
 
   ?
-    Matches a single character. For example "gs://bucket/??.txt"
+    Match a single character. For example ``gs://bucket/??.txt``
     only matches objects with two characters followed by .txt.
 
   [chars]
@@ -98,14 +68,32 @@ _DETAILED_HELP_TEXT = ("""
 
   You can combine wildcards to provide more powerful matches, for example:
 
-    gs://bucket/[a-m]??.j*g
+    gs://*/[a-m]??.j*g
 
+  Note that unless your command includes a flag to return `noncurrent
+  object versions
+  <https://cloud.google.com/storage/docs/object-versioning>`_ in the
+  results, these wildcards only match live object versions.
+
+  gsutil supports the same wildcards for both object and file names. Thus,
+  for example:
+
+    gsutil cp data/abc* gs://bucket
+    
+  matches all files that start with ``abc`` in the ``data`` directory of
+  the local file system.
 
 <B>POTENTIALLY SURPRISING BEHAVIOR WHEN USING WILDCARDS</B>
   There are a couple of ways that using wildcards can result in surprising
   behavior:
 
-  1. Shells (like bash and zsh) can attempt to expand wildcards before passing
+  1. When using wildcards in bucket names, matches are limited to buckets in
+     the `project <https://cloud.google.com/storage/docs/projects>`_
+     specified in the ``-p`` flag. Some commands, such as ``gsutil rm``, do
+     not support the ``-p`` flag. If the ``-p`` flag is not or cannot be used
+     in a command, matches are limited to buckets in the default project.
+
+  2. Shells (like bash and zsh) can attempt to expand wildcards before passing
      the arguments to gsutil. If the wildcard was supposed to refer to a cloud
      object, this can result in surprising "Not found" errors (e.g., if the
      shell tries to expand the wildcard ``gs://my-bucket/*`` on the local
@@ -122,7 +110,7 @@ _DETAILED_HELP_TEXT = ("""
      To avoid these problems, surround the wildcarded expression with single
      quotes (on Linux) or double quotes (on Windows).
 
-  2. Attempting to specify a filename that contains wildcard characters won't
+  3. Attempting to specify a filename that contains wildcard characters won't
      work, because gsutil tries to expand the wildcard characters rather
      than using them as literal characters. For example, running the command:
 

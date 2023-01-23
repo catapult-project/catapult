@@ -115,9 +115,10 @@ class GsUtilIntegrationTestCase(base.GsUtilTestCase):
   GROUP_TEST_ADDRESS = 'gs-discussion@googlegroups.com'
   GROUP_TEST_ID = (
       '00b4903a97d097895ab58ef505d535916a712215b79c3e54932c2eb502ad97f5')
-  USER_TEST_ADDRESS = 'gsutiltestuser@gmail.com'
+  USER_TEST_ADDRESS = 'gsutiltesting123@gmail.com'
+  # This is the legacy CanonicalID for the above email.
   USER_TEST_ID = (
-      '00b4903a97b201e40d2a5a3ddfe044bb1ab79c75b2e817cbe350297eccc81c84')
+      '00b4903a97f0baa2680740f5adb90b2dcf9c8b878abd84ba1bdba653de949619')
   DOMAIN_TEST = 'google.com'
   # No one can create this bucket without owning the gmail.com domain, and we
   # won't create this bucket, so it shouldn't exist.
@@ -939,6 +940,7 @@ class GsUtilIntegrationTestCase(base.GsUtilTestCase):
     self.assertEqual(expected_value, value)
 
   def VerifyPublicAccessPreventionValue(self, bucket_uri, value):
+    # TODO: Delete this method in favor of VerifyCommandGet
     stdout = self.RunGsUtil(['publicaccessprevention', 'get',
                              suri(bucket_uri)],
                             return_stdout=True)
@@ -948,6 +950,15 @@ class GsUtilIntegrationTestCase(base.GsUtilTestCase):
     public_access_prevention_val = public_access_prevention_match.group(
         'pap_val')
     self.assertEqual(str(value), public_access_prevention_val)
+
+  def VerifyCommandGet(self, bucket_uri, command, expected):
+    """Verifies if <command> get returns the expected value."""
+    stdout = self.RunGsUtil([command, 'get', suri(bucket_uri)],
+                            return_stdout=True)
+    output_regex = re.compile('{}: (?P<actual>.+)$'.format(suri(bucket_uri)))
+    output_match = re.search(output_regex, stdout)
+    actual = output_match.group('actual')
+    self.assertEqual(actual, expected)
 
   def RunGsUtil(self,
                 cmd,
@@ -1287,6 +1298,8 @@ class KmsTestingResources(object):
   # its IAM policy bindings once it's initialized the first time.
   CONSTANT_KEY_NAME = 'key-for-gsutil-integration-tests'
   CONSTANT_KEY_NAME2 = 'key-for-gsutil-integration-tests2'
+  # This key should not be authorized so it can be used for failure cases.
+  CONSTANT_KEY_NAME_DO_NOT_AUTHORIZE = 'key-for-gsutil-no-auth'
   # Pattern used for keys that should only be operated on by one tester at a
   # time. Because multiple integration test invocations can run at the same
   # time, we want to minimize the risk of them operating on each other's key,

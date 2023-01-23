@@ -43,18 +43,30 @@ from six.moves import mock
 class TestPerfDiag(testcase.GsUtilIntegrationTestCase):
   """Integration tests for perfdiag command."""
 
-  # We want to test that perfdiag works both when connecting to the standard gs
-  # endpoint, and when connecting to a specific IP or host while setting the
-  # host header. For the 2nd case we resolve gs_host (normally
-  # storage.googleapis.com) to a specific IP and connect to that explicitly.
-  _gs_host = boto.config.get('Credentials', 'gs_host',
-                             boto.gs.connection.GSConnection.DefaultHost)
-  _gs_ip = socket.gethostbyname(_gs_host)
-  _custom_endpoint_flags = [
-      '-o', 'Credentials:gs_host=' + _gs_ip, '-o',
-      'Credentials:gs_host_header=' + _gs_host, '-o',
-      'Boto:https_validate_certificates=False'
-  ]
+  @classmethod
+  def setUpClass(cls):
+    super(TestPerfDiag, cls).setUpClass()
+    # We want to test that perfdiag works both when connecting to the standard
+    # gs endpoint, and when connecting to a specific IP or host while setting
+    # the host header. For the 2nd case we resolve gs_host (normally
+    # storage.googleapis.com) to a specific IP and connect to that explicitly.
+    gs_host = boto.config.get('Credentials', 'gs_host',
+                              boto.gs.connection.GSConnection.DefaultHost)
+    gs_ip = None
+    for address_tuple in socket.getaddrinfo(gs_host, None):
+      # Index 0 holds IP version. AF_INET = IPv4.
+      if address_tuple[0].name in ('AF_INET', 'AF_INET6'):
+        # Index 4 holds IP tuple, where first item is IP.
+        gs_ip = address_tuple[4][0]
+        break
+    if not gs_ip:
+      raise ConnectionError('Count not find IP for ' + gs_host)
+
+    cls._custom_endpoint_flags = [
+        '-o', 'Credentials:gs_host=' + gs_ip, '-o',
+        'Credentials:gs_host_header=' + gs_host, '-o',
+        'Boto:https_validate_certificates=False'
+    ]
 
   def _should_run_with_custom_endpoints(self):
     # Host headers are only supported for XML, and not when

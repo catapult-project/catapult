@@ -20,6 +20,10 @@ set GsutilRepoDir="T:\src\github\src\gsutil"
 set "PyExePath=C:\python%PYMAJOR%%PYMINOR%\python.exe"
 set "PipPath=C:\python%PYMAJOR%%PYMINOR%\Scripts\pip.exe"
 
+if not exist %PyExePath% (
+  choco install python -y --no-progress --version=%PYMAJOR%.%PYMINOR%.0
+)
+
 PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& '%GsutilRepoDir%\test\ci\kokoro\windows\config_generator.ps1' 'T:\src\keystore\74008_gsutil_kokoro_service_key' '%API%' '%BOTO_CONFIG%'"
 type %BOTO_CONFIG%
 

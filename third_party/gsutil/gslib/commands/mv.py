@@ -87,7 +87,8 @@ _DETAILED_HELP_TEXT = ("""
 <B>OPTIONS</B>
   All options that are available for the gsutil cp command are also available
   for the gsutil mv command (except for the -R flag, which is implied by the
-  ``gsutil mv`` command). Please see the OPTIONS sections of "gsutil help cp"
+  ``gsutil mv`` command). Please see the
+  <a href="/storage/docs/gsutil/commands/cp#options">Options section for cp</a>
   for more information.
 
 """)

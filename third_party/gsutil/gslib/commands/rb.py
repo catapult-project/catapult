@@ -38,8 +38,7 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>DESCRIPTION</B>
-  The rb command deletes a bucket. Buckets must be empty before you can delete
-  them.
+  Delete one or more buckets. Buckets must be empty before you can delete them.
 
   Be certain you want to delete a bucket before you do so, as once it is
   deleted the name becomes available and another user may create a bucket with

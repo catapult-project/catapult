@@ -55,6 +55,7 @@ import time
 import six
 from six.moves import urllib
 from six.moves import http_client
+from boto import config
 from boto import UserAgent
 from boto.connection import AWSAuthConnection
 from boto.exception import ResumableTransferDisposition
@@ -126,7 +127,8 @@ class BotoResumableUpload(object):
         not parse_result.netloc):
       raise InvalidUrlError('Invalid upload URL (%s)' % url)
     self.upload_url = url
-    self.upload_url_host = parse_result.netloc
+    self.upload_url_host = (config.get('Credentials', 'gs_host', None) or
+                            parse_result.netloc)
     self.upload_url_path = '%s?%s' % (parse_result.path, parse_result.query)
     self.service_has_bytes = 0
 

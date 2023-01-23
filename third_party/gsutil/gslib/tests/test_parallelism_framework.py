@@ -27,13 +27,13 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import functools
-import mock
 import os
 import signal
 import six
 import threading
 import textwrap
 import time
+from unittest import mock
 
 import boto
 from boto.storage_uri import BucketStorageUri

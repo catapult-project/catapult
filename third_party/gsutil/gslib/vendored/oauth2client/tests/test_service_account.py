@@ -66,6 +66,36 @@ class ServiceAccountCredentialsTests(unittest.TestCase):
         crypt.Signer = self.orig_signer
         crypt.Verifier = self.orig_verifier
 
+    @mock.patch('oauth2client.crypt.Signer.from_string', return_value=object())
+    @mock.patch('oauth2client.crypt.make_signed_jwt', return_value=object())
+    @mock.patch('time.time')
+    def test__generate_assertion(self, time, mock_signed_jwt, _):
+        now = 123456
+        time.return_value = now
+        payload1 = {
+            'type': client.SERVICE_ACCOUNT,
+            'client_id': 'id123',
+            'client_email': 'foo@bar.com',
+            'private_key_id': 'pkid456',
+            'private_key': 's3kr3tz',
+        }
+        creds = self._from_json_keyfile_name_helper(payload1,
+                                                    scopes=['foo', 'bar'],
+                                                    token_uri='baz',
+                                                    revoke_uri='qux')
+        creds._generate_assertion()
+
+        payload2 = {
+            'aud': 'https://oauth2.googleapis.com/token',
+            'scope': 'foo bar',
+            'iat': now,
+            'exp': now + creds.MAX_TOKEN_LIFETIME_SECS,
+            'iss': 'foo@bar.com',
+        }
+        mock_signed_jwt.assert_called_once_with(creds._signer,
+                                                payload2,
+                                                key_id='pkid456')
+
     def test__to_json_override(self):
         signer = object()
         creds = service_account.ServiceAccountCredentials(

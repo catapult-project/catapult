@@ -16,9 +16,9 @@ The build configs found in this repository under the `gsutil/test/ci/kokoro` dir
 ### Test Matrix
 -----
 
-We currently support Gsutil on Windows, Mac, and Linux, using Python versoins 2.7, 3.5, 3.6, 3.7, and any future 3.x versions. Additionally, integration tests need to be run separately for each API, both XML and JSON.
+We currently support Gsutil on Windows, Mac, and Linux, using Python versoins 3.5, 3.6, 3.7, and any future 3.x versions. Additionally, integration tests need to be run separately for each API, both XML and JSON.
 
-Each of these 24 combinations of `(OS / Python version / API)` is run on a separate VM managed by Kokoro, all running in parallel.
+Each of these 12+ combinations of `(OS / Python version / API)` is run on a separate VM managed by Kokoro, all running in parallel.
 
 These tests launch every time a PR is submitted by a trusted author (Googler in the GoogleCloudPlatform org), or when a trusted author manually invokes tests on an external contributer's PR by applying the `kokoro:run` label.
 

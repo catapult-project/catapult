@@ -561,7 +561,7 @@ class NotificationCommand(Command):
             raise CommandException(
                 'Custom attributes specified with -m should be of the form '
                 'key:value')
-          key, value = a.split(':')
+          key, value = a.split(':', 1)
           custom_attributes[key] = value
         elif o == '-p':
           object_name_prefix = a

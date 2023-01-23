@@ -31,7 +31,7 @@ _DETAILED_HELP_TEXT = ("""
     gsutil -m cp -p file gs://bucket/obj
 
   the -m option applies to gsutil, while the -p option applies to the cp
-  sub-command.
+  sub-command. Test
 
 
 <B>OPTIONS</B>
@@ -149,8 +149,8 @@ _DETAILED_HELP_TEXT = ("""
               running gsutil from a cron job that logs its output to a file, for
               which the only information desired in the log is failures.
 
-  -u          Allows you to specify a user project to be billed for the request.
-              For example:
+  -u          Allows you to specify the ID or number of a user project to be
+              billed for the request. For example:
 
                 gsutil -u "bill-this-project" cp ...
 """)
@@ -164,7 +164,7 @@ class CommandOptions(HelpProvider):
       help_name='options',
       help_name_aliases=['arg', 'args', 'cli', 'opt', 'opts'],
       help_type='additional_help',
-      help_one_line_summary='Top-Level Command-Line Options',
+      help_one_line_summary='Global Command Line Options',
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={},
   )

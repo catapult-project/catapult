@@ -20,8 +20,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 from random import randint
-import mock
-import unittest
+from unittest import mock
 
 from gslib.cloud_api import AccessDeniedException
 from gslib.project_id import PopulateProjectId
@@ -209,7 +208,7 @@ class TestKmsUnitTests(testcase.GsUtilUnitTestCase):
                 suri(bucket_uri)],
         return_stdout=True)
     self.assertIn('Setting default KMS key for bucket', stdout)
-    mock_patch_bucket.assert_called()
+    self.assertTrue(mock_patch_bucket.called)
 
   @mock.patch(
       'gslib.cloud_api_delegator.CloudApiDelegator.GetProjectServiceAccount')
@@ -229,7 +228,7 @@ class TestKmsUnitTests(testcase.GsUtilUnitTestCase):
                 suri(bucket_uri)],
         return_stdout=True)
     self.assertIn('Setting default KMS key for bucket', stdout)
-    mock_patch_bucket.assert_called()
+    self.assertTrue(mock_patch_bucket.called)
 
   @mock.patch(
       'gslib.cloud_api_delegator.CloudApiDelegator.GetProjectServiceAccount')

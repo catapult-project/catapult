@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 import os
 import re
 import stat
+import sys
 
 from gslib.exception import InvalidUrlError
 from gslib.utils import system_util
@@ -101,6 +102,28 @@ class StorageUrl(object):
     """
     raise NotImplementedError('CreatePrefixUrl not overridden')
 
+  def _WarnIfUnsupportedDoubleWildcard(self):
+    """Warn if ** use may lead to undefined results."""
+    # Accepted 'url_string' values with '**', where '^' = start, and '$' = end.
+    # - ^**$
+    # - ^**/
+    # - /**$
+    # - /**/
+    if not self.object_name:
+      return
+    delimiter_bounded_url = self.delim + self.object_name + self.delim
+    split_url = delimiter_bounded_url.split(
+        '{delim}**{delim}'.format(delim=self.delim))
+    removed_correct_double_wildcards_url_string = ''.join(split_url)
+    if '**' in removed_correct_double_wildcards_url_string:
+      # Found a center '**' not in the format '/**/'.
+      # Not using logger.warning b/c it's too much overhead to pass the logger
+      # object to every StorageUrl.
+      sys.stderr.write(
+          '** behavior is undefined if directly preceeded or followed by'
+          ' with characters other than / in the cloud and {} locally.'.format(
+              os.sep))
+
   @property
   def url_string(self):
     raise NotImplementedError('url_string not overridden')
@@ -146,6 +169,8 @@ class _FileUrl(StorageUrl):
     self.generation = None
     self.is_stream = is_stream
     self.is_fifo = is_fifo
+
+    self._WarnIfUnsupportedDoubleWildcard()
 
   def Clone(self):
     return _FileUrl(self.url_string)
@@ -232,6 +257,8 @@ class _CloudUrl(StorageUrl):
       raise InvalidUrlError(
           'Cloud URL scheme should be followed by colon and two slashes: "://".'
           ' Found: "{}"'.format(url_string))
+
+    self._WarnIfUnsupportedDoubleWildcard()
 
   def Clone(self):
     return _CloudUrl(self.url_string)

@@ -374,7 +374,7 @@ class ServiceAccountCredentials(client.AssertionCredentials):
         """Generate the assertion that will be used in the request."""
         now = int(time.time())
         payload = {
-            'aud': self.token_uri,
+            'aud': oauth2client.GOOGLE_TOKEN_URI,
             'scope': self._scopes,
             'iat': now,
             'exp': now + self.MAX_TOKEN_LIFETIME_SECS,

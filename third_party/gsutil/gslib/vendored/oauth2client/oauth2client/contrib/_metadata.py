@@ -29,8 +29,17 @@ from oauth2client import client
 from oauth2client import transport
 
 
+# GCE_METADATA_HOST was originally named GCE_METADATA_ROOT.
+# Check the new variable first and fall back to the old one
+# if it is not present.
+_GCE_METADATA_HOST = os.getenv('GCE_METADATA_HOST')
+if not _GCE_METADATA_HOST:
+    _GCE_METADATA_HOST = os.getenv(
+        'GCE_METADATA_ROOT', "metadata.google.internal"
+    )
+
 METADATA_ROOT = 'http://{}/computeMetadata/v1/'.format(
-    os.getenv('GCE_METADATA_ROOT', 'metadata.google.internal'))
+    _GCE_METADATA_HOST)
 METADATA_HEADERS = {'Metadata-Flavor': 'Google'}
 
 

@@ -67,7 +67,8 @@ _CREATE_DESCRIPTION = """
 <B>CREATE OPTIONS</B>
   The ``create`` sub-command has the following option
 
-  -p <project_id>             Specify a project in which to create a key.
+  -p <project>                Specify the ID or number of the project in which
+                              to create a key.
 """
 
 _DELETE_DESCRIPTION = """
@@ -80,9 +81,10 @@ _DELETE_DESCRIPTION = """
   deleted.
 
 <B>DELETE OPTIONS</B>
-  The "delete" sub-command has the following option
+  The ``delete`` sub-command has the following option
 
-  -p <project_id>             Specify a project from which to delete a key.
+  -p <project>                Specify the ID or number of the project from which to
+                              delete a key.
 """
 
 _GET_DESCRIPTION = """
@@ -97,7 +99,8 @@ _GET_DESCRIPTION = """
 <B>GET OPTIONS</B>
   The ``get`` sub-command has the following option
 
-  -p <project_id>             Specify a project from which to get a key.
+  -p <project>                Specify the ID or number of the project from which to
+                              get a key.
 """
 
 _LIST_DESCRIPTION = """
@@ -115,7 +118,8 @@ _LIST_DESCRIPTION = """
   -l                          Use long listing format. Shows each key's full
                               metadata excluding the secret.
 
-  -p <project_id>             Specify a project from which to list keys.
+  -p <project>                Specify the ID or number of the project from
+                              which to list keys.
 
   -u <service_account_email>  Filter keys for a single service account.
 """
@@ -140,7 +144,8 @@ _UPDATE_DESCRIPTION = """
                               if the specified etag matches the etag of the
                               stored key.
 
-  -p <project_id>             Specify a project in which to update a key.
+  -p <project>                Specify the ID or number of the project in
+                              which to update a key.
 """
 
 _SYNOPSIS = (_CREATE_SYNOPSIS + _DELETE_SYNOPSIS.lstrip('\n') +

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2021 Google Inc. All Rights Reserved.
+# Copyright 2021 Google LLC All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""This module provides the pap command to gsutil."""
+"""This module provides the autoclass command to gsutil."""
 
 from __future__ import absolute_import
 from __future__ import print_function
@@ -27,67 +27,50 @@ from gslib.exception import CommandException
 from gslib.exception import NO_URLS_MATCHED_TARGET
 from gslib.help_provider import CreateHelpText
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
+from gslib.utils import text_util
 from gslib.utils.constants import NO_MAX
 
 _SET_SYNOPSIS = """
-  gsutil pap set (enforced|unspecified) gs://<bucket_name>...
+  gsutil autoclass set (on|off) gs://<bucket_name>...
 """
 
 _GET_SYNOPSIS = """
-  gsutil pap get gs://<bucket_name>...
+  gsutil autoclass get gs://<bucket_name>...
 """
 
 _SYNOPSIS = _SET_SYNOPSIS + _GET_SYNOPSIS.lstrip('\n')
 
 _SET_DESCRIPTION = """
 <B>SET</B>
-  The ``pap set`` command configures public access prevention
-  for Cloud Storage buckets. If you set a bucket to be
-  ``unspecified``, it uses public access prevention only if
-  the bucket is subject to the `public access prevention
-  <https://cloud.google.com/storage/docs/org-policy-constraints#public-access-prevention>`_
-  organization policy.
-
-<B>SET EXAMPLES</B>
-  Configure ``redbucket`` and ``bluebucket`` to use public
-  access prevention:
-
-    gsutil pap set enforced gs://redbucket gs://bluebucket
+  The "set" sub-command requires an additional sub-command, either "on" or
+  "off", which will enable or disable autoclass for the specified bucket(s).
 """
 
 _GET_DESCRIPTION = """
 <B>GET</B>
-  The ``pap get`` command returns public access prevention
-  values for the specified Cloud Storage buckets.
-
-<B>GET EXAMPLES</B>
-  Check if ``redbucket`` and ``bluebucket`` are using public
-  access prevention:
-
-    gsutil pap get gs://redbucket gs://bluebucket
+  The "get" sub-command gets the current autoclass configuration for a
+  Bucket. The returned configuration will have following fields:
+     enabled: a boolean field indicating whether the feature is on or off.
+     toggleTime: a timestamp indicating when the enabled field was set.
 """
 
 _DESCRIPTION = """
-  The ``pap`` command is used to retrieve or configure the
-  `public access prevention
-  <https://cloud.google.com/storage/docs/public-access-prevention>`_ setting of
-  Cloud Storage buckets. This command has two sub-commands: ``get`` and ``set``.
+  The Autoclass feature automatically selects the best storage class for
+  objects based on access patterns. This command has two sub-commands:
+  ``get`` and ``set``.
 """ + _GET_DESCRIPTION + _SET_DESCRIPTION
 
 _DETAILED_HELP_TEXT = CreateHelpText(_SYNOPSIS, _DESCRIPTION)
 _set_help_text = CreateHelpText(_SET_SYNOPSIS, _SET_DESCRIPTION)
 _get_help_text = CreateHelpText(_GET_SYNOPSIS, _GET_DESCRIPTION)
 
-# Aliases to make these more likely to fit enforced one line.
-IamConfigurationValue = apitools_messages.Bucket.IamConfigurationValue
 
-
-class PapCommand(Command):
-  """Implements the gsutil pap command."""
+class AutoclassCommand(Command):
+  """Implements the gsutil autoclass command."""
 
   command_spec = Command.CreateCommandSpec(
-      'pap',
-      command_name_aliases=['publicaccessprevention'],
+      'autoclass',
+      command_name_aliases=[],
       usage_synopsis=_SYNOPSIS,
       min_args=2,
       max_args=NO_MAX,
@@ -100,17 +83,16 @@ class PapCommand(Command):
       argparse_arguments={
           'get': [CommandArgument.MakeNCloudURLsArgument(1),],
           'set': [
-              CommandArgument('mode',
-                              choices=['enforced', 'unspecified', 'inherited']),
+              CommandArgument('mode', choices=['on', 'off']),
               CommandArgument.MakeZeroOrMoreCloudBucketURLsArgument()
           ],
       })
   # Help specification. See help_provider.py for documentation.
   help_spec = Command.HelpSpec(
-      help_name='pap',
-      help_name_aliases=['publicaccessprevention'],
+      help_name='autoclass',
+      help_name_aliases=[],
       help_type='command_help',
-      help_one_line_summary='Configure public access prevention',
+      help_one_line_summary='Configure autoclass feature',
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={
           'get': _get_help_text,
@@ -118,58 +100,60 @@ class PapCommand(Command):
       },
   )
 
-  def _ValidateBucketListingRefAndReturnBucketName(self, blr):
-    if blr.storage_url.scheme != 'gs':
-      raise CommandException(
-          'The %s command can only be used with gs:// bucket URLs.' %
-          self.command_name)
-
-  def _GetPublicAccessPrevention(self, blr):
-    """Gets the public access prevention setting for a bucket."""
+  def _get_autoclass(self, blr):
+    """Gets the autoclass setting for a bucket."""
     bucket_url = blr.storage_url
 
     bucket_metadata = self.gsutil_api.GetBucket(bucket_url.bucket_name,
-                                                fields=['iamConfiguration'],
+                                                fields=['autoclass'],
                                                 provider=bucket_url.scheme)
-    iam_config = bucket_metadata.iamConfiguration
-    public_access_prevention = iam_config.publicAccessPrevention or 'unspecified'
     bucket = str(bucket_url).rstrip('/')
-    print('%s: %s' % (bucket, public_access_prevention))
+    if bucket_metadata.autoclass:
+      enabled = getattr(bucket_metadata.autoclass, 'enabled', False)
+      toggle_time = getattr(bucket_metadata.autoclass, 'toggleTime', None)
+    else:
+      enabled = False
+      toggle_time = None
+    print('{}:\n'
+          '  Enabled: {}\n'
+          '  Toggle Time: {}'.format(bucket, enabled, toggle_time))
 
-  def _SetPublicAccessPrevention(self, blr, setting_arg):
-    """Sets the Public Access Prevention setting for a bucket enforced or unspecified."""
+  def _set_autoclass(self, blr, setting_arg):
+    """Turns autoclass on or off for a bucket."""
     bucket_url = blr.storage_url
 
-    iam_config = IamConfigurationValue()
-    iam_config.publicAccessPrevention = setting_arg
+    autoclass_config = apitools_messages.Bucket.AutoclassValue()
+    autoclass_config.enabled = (setting_arg == 'on')
 
-    bucket_metadata = apitools_messages.Bucket(iamConfiguration=iam_config)
+    bucket_metadata = apitools_messages.Bucket(autoclass=autoclass_config)
 
-    print('Setting Public Access Prevention %s for %s' %
+    print('Setting Autoclass %s for %s' %
           (setting_arg, str(bucket_url).rstrip('/')))
 
     self.gsutil_api.PatchBucket(bucket_url.bucket_name,
                                 bucket_metadata,
-                                fields=['iamConfiguration'],
+                                fields=['autoclass'],
                                 provider=bucket_url.scheme)
     return 0
 
-  def _Pap(self):
-    """Handles pap command on Cloud Storage buckets."""
+  def _autoclass(self):
+    """Handles autoclass command on Cloud Storage buckets."""
     subcommand = self.args.pop(0)
 
     if subcommand not in ('get', 'set'):
-      raise CommandException('pap only supports get|set')
+      raise CommandException('autoclass only supports get|set')
 
     subcommand_func = None
     subcommand_args = []
     setting_arg = None
 
     if subcommand == 'get':
-      subcommand_func = self._GetPublicAccessPrevention
+      subcommand_func = self._get_autoclass
     elif subcommand == 'set':
-      subcommand_func = self._SetPublicAccessPrevention
+      subcommand_func = self._set_autoclass
       setting_arg = self.args.pop(0)
+      text_util.InsistOnOrOff(setting_arg,
+                              'Only on and off values allowed for set option')
       subcommand_args.append(setting_arg)
 
     if self.gsutil_api.GetApiSelector('gs') != ApiSelector.JSON:
@@ -200,14 +184,14 @@ class PapCommand(Command):
     return 0
 
   def RunCommand(self):
-    """Command entry point for the pap command."""
+    """Command entry point for the autoclass command."""
     action_subcommand = self.args[0]
     self.ParseSubOpts(check_args=True)
 
     if action_subcommand == 'get' or action_subcommand == 'set':
       metrics.LogCommandParams(sub_opts=self.sub_opts)
       metrics.LogCommandParams(subcommands=[action_subcommand])
-      self._Pap()
+      return self._autoclass()
     else:
       raise CommandException('Invalid subcommand "%s", use get|set instead.' %
                              action_subcommand)

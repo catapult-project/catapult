@@ -26,6 +26,7 @@ import os
 from boto import config
 
 import gslib
+from gslib import exception
 from gslib.utils import execution_util
 
 # Maintain a single context configuration.
@@ -220,7 +221,7 @@ class _ContextConfig(object):
         f.write(sections['CERTIFICATE'])
         f.write(sections['ENCRYPTED PRIVATE KEY'])
       self.client_cert_password = sections['PASSPHRASE'].splitlines()[1]
-    except OSError as e:
+    except (exception.ExternalBinaryError, OSError) as e:
       raise CertProvisionError(e)
     except KeyError as e:
       raise CertProvisionError(
@@ -262,5 +263,4 @@ def get_context_config():
   Returns:
     ContextConfig or None if global singleton doesn't exist.
   """
-  global _singleton_config
   return _singleton_config

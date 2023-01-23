@@ -40,17 +40,25 @@ def GetUserAgent(args, metrics_off=True):
   if len(args) > 0:
     user_agent += ' command/%s' % args[0]
 
-    if args[0] in ['cp', 'mv', 'rsync'] and len(args) > 2:
-      # Any cp, mv or rsync commands that use daisy chain mode should be noted
-      # as that represents a unique use case that may be better served by the
-      # storage transfer service.
-      try:
-        src = StorageUrlFromString(six.ensure_text(args[-2]))
-        dst = StorageUrlFromString(six.ensure_text(args[-1]))
-        if src.IsCloudUrl() and dst.IsCloudUrl() and src.scheme != dst.scheme:
-          user_agent += '-DaisyChain'
-      except InvalidUrlError:
-        pass
+    if len(args) > 2:
+      if args[0] in ['cp', 'mv', 'rsync']:
+        # Any cp, mv or rsync commands that use daisy chain mode should be noted
+        # as that represents a unique use case that may be better served by the
+        # storage transfer service.
+        try:
+          src = StorageUrlFromString(six.ensure_text(args[-2]))
+          dst = StorageUrlFromString(six.ensure_text(args[-1]))
+          if src.IsCloudUrl() and dst.IsCloudUrl() and src.scheme != dst.scheme:
+            user_agent += '-DaisyChain'
+        except InvalidUrlError:
+          pass
+      elif args[0] == 'rewrite':
+        if '-k' in args:
+          # Rewrite encryption key.
+          user_agent += '-k'
+        if '-s' in args:
+          # Rewrite storage class.
+          user_agent += '-s'
 
   if system_util.InvokedViaCloudSdk():
     user_agent += ' google-cloud-sdk'

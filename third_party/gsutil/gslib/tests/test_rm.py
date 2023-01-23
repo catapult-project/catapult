@@ -402,6 +402,26 @@ class TestRm(testcase.GsUtilIntegrationTestCase):
     if self.multiregional_buckets:
       self.AssertNObjectsInBucket(bucket_uri, 2, versioned=True)
     self._RunRemoveCommandAndCheck(
+        ['rm', '-r', '%s' % suri(bucket_uri, '*')],
+        objects_to_remove=[
+            '%s#%s' % (suri(key_uri), urigen(key_uri)),
+            '%s#%s' % (suri(folder_uri), urigen(folder_uri))
+        ])
+    self.AssertNObjectsInBucket(bucket_uri, 0, versioned=True)
+    # Bucket should not be deleted (Should not get ServiceException).
+    bucket_uri.get_location(validate=False)
+
+  def test_folder_objects_deleted_with_double_wildcard(self):
+    """Test for 'rm -r' of a folder with a dir_$folder$ marker."""
+    bucket_uri = self.CreateVersionedBucket()
+    key_uri = self.StorageUriCloneReplaceName(bucket_uri, 'abc/o1')
+    self.StorageUriSetContentsFromString(key_uri, 'foobar')
+    folder_uri = self.StorageUriCloneReplaceName(bucket_uri, 'abc_$folder$')
+    self.StorageUriSetContentsFromString(folder_uri, '')
+
+    if self.multiregional_buckets:
+      self.AssertNObjectsInBucket(bucket_uri, 2, versioned=True)
+    self._RunRemoveCommandAndCheck(
         ['rm', '-r', '%s' % suri(bucket_uri, '**')],
         objects_to_remove=[
             '%s#%s' % (suri(key_uri), urigen(key_uri)),

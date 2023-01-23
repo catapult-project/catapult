@@ -40,8 +40,7 @@ class TestPsc(testcase.GsUtilIntegrationTestCase):
   def test_persists_custom_endpoint_through_json_sliced_download(self):
     gs_host = config.get('Credentials', 'gs_json_host', DEFAULT_HOST)
     if gs_host == DEFAULT_HOST:
-      # Captures case where user may have manually set gs_json_host to the
-      # value of DEFAULT_HOST.
+      # Skips test when run without a custom endpoint configured.
       return
 
     temporary_directory = self.CreateTempDir()
@@ -65,8 +64,7 @@ class TestPsc(testcase.GsUtilIntegrationTestCase):
   def test_persists_custom_endpoint_through_xml_sliced_download(self):
     gs_host = config.get('Credentials', 'gs_host', DEFAULT_HOST)
     if gs_host == DEFAULT_HOST:
-      # Captures case where user may have manually set gs_host to the
-      # value of DEFAULT_HOST.
+      # Skips test when run without a custom endpoint configured.
       return
 
     temporary_directory = self.CreateTempDir()
@@ -92,8 +90,7 @@ class TestPsc(testcase.GsUtilIntegrationTestCase):
       self):
     gs_host = config.get('Credentials', 'gs_json_host', DEFAULT_HOST)
     if gs_host == DEFAULT_HOST:
-      # Captures case where user may have manually set gs_host to the
-      # value of DEFAULT_HOST.
+      # Skips test when run without a custom endpoint configured.
       return
 
     temporary_file = self.CreateTempFile(contents=b'foo')
@@ -116,8 +113,7 @@ class TestPsc(testcase.GsUtilIntegrationTestCase):
   def test_persists_custom_endpoint_through_xml_parallel_composite_upload(self):
     gs_host = config.get('Credentials', 'gs_host', DEFAULT_HOST)
     if gs_host == DEFAULT_HOST:
-      # Captures case where user may have manually set gs_host to the
-      # value of DEFAULT_HOST.
+      # Skips test when run without a custom endpoint configured.
       return
 
     temporary_file = self.CreateTempFile(contents=b'foo')
@@ -125,6 +121,27 @@ class TestPsc(testcase.GsUtilIntegrationTestCase):
         ('GSUtil', 'parallel_composite_upload_threshold', '1B'),
         ('GSUtil', 'parallel_composite_upload_component_size', '1B')
     ]):
+      bucket_uri = self.CreateBucket()
+      stdout, stderr = self.RunGsUtil(
+          ['-D', 'cp', temporary_file,
+           ObjectToURI(bucket_uri)],
+          return_stdout=True,
+          return_stderr=True)
+
+    output = stdout + stderr
+    self.assertIn(gs_host, output)
+    self.assertNotIn('hostname=' + DEFAULT_HOST, output)
+
+  @integration_testcase.SkipForJSON('XML test.')
+  @integration_testcase.SkipForS3('Custom endpoints not available for S3.')
+  def test_persists_custom_endpoint_through_resumable_upload(self):
+    gs_host = config.get('Credentials', 'gs_host', DEFAULT_HOST)
+    if gs_host == DEFAULT_HOST:
+      # Skips test when run without a custom endpoint configured.
+      return
+
+    temporary_file = self.CreateTempFile(contents=b'foo')
+    with SetBotoConfigForTest([('GSUtil', 'resumable_threshold', '1')]):
       bucket_uri = self.CreateBucket()
       stdout, stderr = self.RunGsUtil(
           ['-D', 'cp', temporary_file,

@@ -19,8 +19,8 @@ from sys import version_info
 
 # Key:   Int, supported Python major version
 # Value: Int, min supported Python minor version
-# We currently support Python ==2.7 and >=3.5
-MIN_SUPPORTED_PYTHON_VERSION = {2: 7, 3: 5}
+# We currently support Python >=3.5
+MIN_SUPPORTED_PYTHON_VERSION = {3: 5}
 
 
 def check_python_version_support():

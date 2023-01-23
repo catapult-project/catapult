@@ -25,10 +25,16 @@ import uuid
 
 import boto
 
+from gslib.cloud_api_delegator import CloudApiDelegator
 import gslib.tests.testcase as testcase
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import unittest
 from gslib.utils.retry_util import Retry
+
+from six import add_move, MovedModule
+
+add_move(MovedModule('mock', 'mock', 'unittest.mock'))
+from six.moves import mock
 
 
 def _LoadNotificationUrl():
@@ -36,6 +42,30 @@ def _LoadNotificationUrl():
 
 
 NOTIFICATION_URL = _LoadNotificationUrl()
+
+
+class TestNotificationUnit(testcase.GsUtilUnitTestCase):
+
+  @mock.patch.object(CloudApiDelegator,
+                     'CreateNotificationConfig',
+                     autospec=True)
+  def test_notification_splits_dash_m_value_correctly(self,
+                                                      mock_create_notification):
+    bucket_uri = self.CreateBucket(bucket_name='foo_notification')
+    stdout = self.RunCommand(
+        'notification',
+        ['create', '-f', 'none', '-s', '-m', 'foo:bar:baz',
+         suri(bucket_uri)],
+        return_stdout=True)
+    mock_create_notification.assert_called_once_with(
+        mock.ANY,  # Client instance.
+        'foo_notification',
+        pubsub_topic=mock.ANY,
+        payload_format=mock.ANY,
+        custom_attributes={'foo': 'bar:baz'},
+        event_types=None,
+        object_name_prefix=mock.ANY,
+        provider=mock.ANY)
 
 
 class TestNotification(testcase.GsUtilIntegrationTestCase):

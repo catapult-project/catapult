@@ -91,6 +91,12 @@ _DESCRIPTION_TEXT = """
   all text files from a bucket to your current directory:
 
     gsutil cp gs://my-bucket/*.txt .
+  
+  You can use the ``-n`` option to prevent overwriting the content of
+  existing files. The following example downloads text files from a bucket
+  without clobbering the data in your directory:
+
+    gsutil cp -n gs://my-bucket/*.txt .
 
   Use the ``-r`` option to copy an entire directory tree.
   For example, to upload the directory tree ``dir``:
@@ -323,31 +329,15 @@ _RETRY_HANDLING_TEXT = """
 
 _RESUMABLE_TRANSFERS_TEXT = """
 <B>RESUMABLE TRANSFERS</B>
-  gsutil automatically performs a resumable upload whenever you use the ``cp``
-  command to upload an object that is larger than 8 MiB. If your upload is
-  interrupted, you can restart the upload by running the same ``cp`` command that
-  you used to start the upload. If your upload includes multiple files, you should
-  use the ``-n`` flag when restarting the upload in order to prevent re-uploading
-  files that have already completed successfully. You can adjust the minimum size
-  for performing resumable uploads by changing the ``resumable_threshold``
-  parameter in the boto configuration file.
+  gsutil automatically resumes interrupted downloads and interrupted `resumable
+  uploads <https://cloud.google.com/storage/docs/resumable-uploads#gsutil>`_,
+  except when performing streaming transfers. In the case of an interrupted
+  download, a partially downloaded temporary file is visible in the destination
+  directory. Upon completion, the original file is deleted and replaced with the
+  downloaded contents.
 
-  Until the upload has completed successfully, it is not visible at the destination
-  object and does not supersede any existing object the upload is intended to
-  replace. However, `parallel composite uploads
-  <https://cloud.google.com/storage/docs/uploads-downloads#parallel-composite-uploads>`_
-  may leave temporary component objects in place during the upload process.
-
-  Similarly, gsutil automatically performs resumable downloads using standard
-  HTTP Range GET operations whenever you use the ``cp`` command, unless the
-  destination is a stream. In this case, a partially downloaded temporary file
-  is visible in the destination directory. Upon completion, the original
-  file is deleted and replaced with the downloaded contents.
-
-  Resumable uploads and downloads store state information in files under
-  ~/.gsutil, named by the destination object or file. If you attempt to resume a
-  transfer from a machine with a different directory, the transfer starts
-  over from scratch.
+  Resumable transfers store state information in files under
+  ~/.gsutil, named by the destination object or file.
 
   See "gsutil help prod" for details on using resumable transfers
   in production.
@@ -355,28 +345,18 @@ _RESUMABLE_TRANSFERS_TEXT = """
 
 _STREAMING_TRANSFERS_TEXT = """
 <B>STREAMING TRANSFERS</B>
-  Use '-' in place of src_url or dst_url to perform a streaming
-  transfer. For example:
-
-    long_running_computation | gsutil cp - gs://my-bucket/obj
+  Use '-' in place of src_url or dst_url to perform a `streaming transfer
+  <https://cloud.google.com/storage/docs/streaming>`_.
 
   Streaming uploads using the `JSON API
   <https://cloud.google.com/storage/docs/request-endpoints#gsutil>`_ are buffered
-  in memory part-way back into the file and can thus retry in the event of network
-  or service problems.
+  in memory part-way back into the file and can thus sometimes resume in the event
+  of network or service problems.
 
-  Streaming transfers using the XML API do not support resumable
-  uploads or downloads. If you have a large amount of data to upload or download,
-  over 100 MiB for example, we recommend that you write the data to a local file and
-  copy that file rather than streaming it.
-
-  CAUTION: When performing a streaming transfer to or from Cloud Storage,
-  neither Cloud Storage nor gsutil compute a checksum. If you require data
-  validation, use a non-streaming transfer, which performs integrity checking
-  automatically.
-
-  NOTE: Streaming transfers are not allowed when the top-level gsutil ``-m`` flag
-  is used.
+  gsutil does not support resuming streaming uploads using the XML API or
+  resuming streaming downloads for either JSON or XML. If you have a large amount
+  of data to transfer in these cases, we recommend that you write the data to a
+  local file and copy that file rather than streaming it.
 """
 
 _SLICED_OBJECT_DOWNLOADS_TEXT = """
@@ -401,13 +381,10 @@ _SLICED_OBJECT_DOWNLOADS_TEXT = """
   of slices is set small to avoid this problem, you can disable sliced object
   download if necessary by setting the "sliced_object_download_threshold"
   variable in the ``.boto`` config file to 0.
-
-
 """
 
 _PARALLEL_COMPOSITE_UPLOADS_TEXT = """
 <B>PARALLEL COMPOSITE UPLOADS</B>
-
   gsutil can automatically use
   `object composition <https://cloud.google.com/storage/docs/composite-objects>`_
   to perform uploads in parallel for large, local files being uploaded to
@@ -679,6 +656,9 @@ _OPTIONS_TEXT = """
                  CAUTION: If some of the source files don't compress well, such
                  as binary data, using this option may result in files taking up
                  more space in the cloud than they would if left uncompressed.
+
+  --stet         If the STET binary can be found in boto or PATH, cp will
+                 use the split-trust encryption tool for end-to-end encryption.
 """
 
 _DETAILED_HELP_TEXT = '\n\n'.join([
@@ -756,7 +736,7 @@ class CpCommand(Command):
       gs_default_api=ApiSelector.JSON,
       # Unfortunately, "private" args are the only way to support non-single
       # character flags.
-      supported_private_args=['testcallbackfile='],
+      supported_private_args=['stet', 'testcallbackfile='],
       argparse_arguments=[
           CommandArgument.MakeZeroOrMoreCloudOrFileURLsArgument(),
       ],
@@ -1256,6 +1236,8 @@ class CpCommand(Command):
         elif o == '-Z':
           gzip_local = True
           gzip_arg_all = GZIP_ALL_FILES
+        elif o == '--stet':
+          self.use_stet = True
 
     if preserve_acl and canned_acl:
       raise CommandException(

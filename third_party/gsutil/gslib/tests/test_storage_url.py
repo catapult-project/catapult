@@ -20,13 +20,20 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import os
+import sys
 
 from gslib import storage_url
 from gslib.exception import InvalidUrlError
-import gslib.tests.testcase as testcase
+from gslib.tests.testcase import base
+
+from unittest import mock
+
+_UNSUPPORTED_DOUBLE_WILDCARD_WARNING_TEXT = (
+    '** behavior is undefined if directly preceeded or followed by'
+    ' with characters other than / in the cloud and {} locally.'.format(os.sep))
 
 
-class TestStorageUrl(testcase.GsUtilUnitTestCase):
+class TestStorageUrl(base.GsUtilTestCase):
   """Unit tests for storage URLs."""
 
   def setUp(self):
@@ -68,3 +75,47 @@ class TestStorageUrl(testcase.GsUtilUnitTestCase):
 
     with self.assertRaises(InvalidUrlError):
       storage_url.StorageUrlFromString('gs://////')
+
+  @mock.patch.object(sys.stderr, 'write', autospec=True)
+  def test_does_not_warn_if_supported_double_wildcard(self, mock_stderr):
+    storage_url.StorageUrlFromString('**')
+    storage_url.StorageUrlFromString('gs://bucket/**')
+
+    storage_url.StorageUrlFromString('**' + os.sep)
+    storage_url.StorageUrlFromString('gs://bucket/**/')
+
+    storage_url.StorageUrlFromString(os.sep + '**')
+    storage_url.StorageUrlFromString('gs://bucket//**')
+
+    storage_url.StorageUrlFromString(os.sep + '**' + os.sep)
+
+    mock_stderr.assert_not_called()
+
+  @mock.patch.object(sys.stderr, 'write', autospec=True)
+  def test_warns_if_unsupported_double_wildcard(self, mock_stderr):
+    storage_url.StorageUrlFromString('abc**')
+    storage_url.StorageUrlFromString('gs://bucket/object**')
+
+    storage_url.StorageUrlFromString('**abc')
+    storage_url.StorageUrlFromString('gs://bucket/**object')
+
+    storage_url.StorageUrlFromString('abc**' + os.sep)
+    storage_url.StorageUrlFromString('gs://bucket/object**/')
+
+    storage_url.StorageUrlFromString(os.sep + '**abc')
+    storage_url.StorageUrlFromString('gs://bucket//**object')
+
+    storage_url.StorageUrlFromString(os.sep + '**' + os.sep + 'abc**')
+    storage_url.StorageUrlFromString('gs://bucket/**/abc**')
+
+    storage_url.StorageUrlFromString('abc**' + os.sep + 'abc')
+    storage_url.StorageUrlFromString('gs://bucket/abc**/abc')
+
+    storage_url.StorageUrlFromString(os.sep + 'abc**' + os.sep + '**')
+    storage_url.StorageUrlFromString('gs://bucket/abc**/**')
+
+    storage_url.StorageUrlFromString('gs://b**')
+    storage_url.StorageUrlFromString('gs://**b')
+
+    mock_stderr.assert_has_calls(
+        [mock.call(_UNSUPPORTED_DOUBLE_WILDCARD_WARNING_TEXT)] * 14)

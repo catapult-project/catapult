@@ -107,6 +107,24 @@ class TestUserAgentHelper(testcase.GsUtilUnitTestCase):
         GetUserAgent(['cp', '-r', '-Z', 'bad://src', 's3://dst']),
         r"command/cp$")
 
+  @mock.patch.object(system_util, 'InvokedViaCloudSdk')
+  def testRewriteEncryptionKey(self, mock_invoked):
+    mock_invoked.return_value = False
+    self.assertRegexpMatches(GetUserAgent(['rewrite', '-k', 'gs://dst']),
+                             r"command/rewrite-k$")
+
+  @mock.patch.object(system_util, 'InvokedViaCloudSdk')
+  def testRewriteStorageClass(self, mock_invoked):
+    mock_invoked.return_value = False
+    self.assertRegexpMatches(GetUserAgent(['rewrite', '-s', 'gs://dst']),
+                             r"command/rewrite-s$")
+
+  @mock.patch.object(system_util, 'InvokedViaCloudSdk')
+  def testRewriteEncryptionKeyAndStorageClass(self, mock_invoked):
+    mock_invoked.return_value = False
+    self.assertRegexpMatches(GetUserAgent(['rewrite', '-k', '-s', 'gs://dst']),
+                             r"command/rewrite-k-s$")
+
   @mock.patch.object(system_util, 'CloudSdkVersion')
   @mock.patch.object(system_util, 'InvokedViaCloudSdk')
   def testCloudSdk(self, mock_invoked, mock_version):

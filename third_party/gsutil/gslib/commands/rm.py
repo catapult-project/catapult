@@ -62,42 +62,28 @@ _DETAILED_HELP_TEXT = ("""
   <https://cloud.google.com/storage/pricing>`_.
 
   The gsutil rm command removes objects and/or buckets.
-  For example, the command:
+  For example, the following command removes the object ``kitten.png``:
 
-    gsutil rm gs://bucket/subdir/*
+    gsutil rm gs://bucket/kitten.png
 
-  will remove all objects in gs://bucket/subdir, but not in any of its
-  sub-directories. In contrast:
+  Use the -r option to specify recursive object deletion. For example, the
+  following command removes gs://bucket/subdir and all objects and
+  subdirectories under it:
 
-    gsutil rm gs://bucket/subdir/**
-
-  will remove all objects under gs://bucket/subdir or any of its
-  subdirectories.
-
-  You can also use the -r option to specify recursive object deletion. Thus, for
-  example, either of the following two commands will remove gs://bucket/subdir
-  and all objects and subdirectories under it:
-
-    gsutil rm gs://bucket/subdir**
     gsutil rm -r gs://bucket/subdir
 
-  The -r option will also delete all object versions in the subdirectory for
-  versioning-enabled buckets, whereas the ** command will only delete the live
-  version of each object in the subdirectory.
+  When working with versioning-enabled buckets, note that the -r option removes
+  all object versions in the subdirectory. To remove only the live version of
+  each object in the subdirectory, use the `** wildcard
+  <https://cloud.google.com/storage/docs/gsutil/addlhelp/WildcardNames>`_.
 
-  Running gsutil rm -r on a bucket will delete all versions of all objects in
-  the bucket, and then delete the bucket:
+  The following command removes all versions of all objects in a bucket, and
+  then deletes the bucket:
 
     gsutil rm -r gs://bucket
 
-  If you want to delete all objects in the bucket, but not the bucket itself,
-  this command will work:
-
-    gsutil rm gs://bucket/**
-
-  If you have a large number of objects to remove you might want to use the
-  gsutil -m option, to perform parallel (multi-threaded/multi-processing)
-  removes:
+  If you have a large number of objects to remove, use the ``gsutil -m`` option,
+  which enables multi-threading/multi-processing:
 
     gsutil -m rm -r gs://my_bucket/subdir
 
@@ -109,8 +95,8 @@ _DETAILED_HELP_TEXT = ("""
 
   The contents of stdin can name cloud URLs and wildcards of cloud URLs.
 
-  Note that gsutil rm will refuse to remove files from the local
-  file system. For example this will fail:
+  Note that ``gsutil rm`` refuses to remove files from the local file system.
+  For example, this fails:
 
     gsutil rm *.txt
 
@@ -142,7 +128,9 @@ _DETAILED_HELP_TEXT = ("""
               URL (like gs://bucket), after deleting objects and subdirectories
               gsutil deletes the bucket. This option implies the -a option and
               deletes all object versions. If you only want to delete live
-              object versions, use the '**' wildcard instead of -r.
+              object versions, use the `** wildcard
+              <https://cloud.google.com/storage/docs/gsutil/addlhelp/WildcardNames>`_
+              instead of -r.
 
   -a          Delete all versions of an object.
 """)
@@ -346,7 +334,7 @@ class RmCommand(Command):
       for url_str in url_strs:
         url = StorageUrlFromString(url_str)
         if url.IsObject():
-          folder_object_wildcards.append('%s**_$folder$' % url_str)
+          folder_object_wildcards.append(url_str.rstrip('*') + '*_$folder$')
       if folder_object_wildcards:
         self.continue_on_error = True
         try:

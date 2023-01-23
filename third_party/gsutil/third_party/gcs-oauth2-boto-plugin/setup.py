@@ -29,8 +29,12 @@ for the machine in a thread- and process-safe fashion.
 """
 
 requires = [
+<<<<<<< HEAD
     # rsa>4, from oauth2client (deprecated), does not support python 2 and 3.4.
     'rsa<=4.0; python_version < "3.5"',
+=======
+    'rsa==4.7.2',
+>>>>>>> 592997714 (Upgrade gsutil from v4.46 to v5.6)
     'boto>=2.29.1',
     'google-reauth>=0.1.0',
     'httplib2>=0.18',
@@ -49,7 +53,11 @@ extras_require = {
 
 setup(
     name='gcs-oauth2-boto-plugin',
+<<<<<<< HEAD
     version='2.7',
+=======
+    version='3.0',
+>>>>>>> 592997714 (Upgrade gsutil from v4.46 to v5.6)
     url='https://developers.google.com/storage/docs/gspythonlibrary',
     download_url=('https://github.com/GoogleCloudPlatform'
                   '/gcs-oauth2-boto-plugin'),

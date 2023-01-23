@@ -299,7 +299,7 @@ def main(args=None):
             'name':
                 'Android: Recover Devices',
             'cmd': [
-                'python',
+                'vpython3',
                 os.path.join(args.api_path_checkout, 'devil', 'devil',
                              'android', 'tools', 'device_recovery.py')
             ],
@@ -308,7 +308,7 @@ def main(args=None):
             'name':
                 'Android: Provision Devices',
             'cmd': [
-                'python',
+                'vpython3',
                 os.path.join(args.api_path_checkout, 'devil', 'devil',
                              'android', 'tools', 'provision_devices.py')
             ],
@@ -317,7 +317,7 @@ def main(args=None):
             'name':
                 'Android: Device Status',
             'cmd': [
-                'python',
+                'vpython3',
                 os.path.join(args.api_path_checkout, 'devil', 'devil',
                              'android', 'tools', 'device_status.py')
             ],

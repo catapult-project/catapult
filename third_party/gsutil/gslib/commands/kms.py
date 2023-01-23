@@ -73,7 +73,7 @@ _AUTHORIZE_DESCRIPTION = """
                 the following form:
                 ``projects/[project-id]/locations/[location]/keyRings/[key-ring]/cryptoKeys/[my-key]``
      
-  -p <project>  The project being authorized to use the Cloud
+  -p <project>  The ID or number of the project being authorized to use the Cloud
                 KMS key. If this flag is not included, your
                 default project is authorized.
 
@@ -134,8 +134,8 @@ _SERVICEACCOUNT_DESCRIPTION = """
     gsutil kms serviceaccount -p my-project
 
 <B>SERVICEACCOUNT OPTIONS</B>
-  -p <project>  The project whose Cloud Storage service agent
-                is being requested. If this flag is not
+  -p <project>  The ID or number of the project whose Cloud Storage service
+                agent is being requested. If this flag is not
                 included, your default project is used.
 
 """

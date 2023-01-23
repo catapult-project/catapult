@@ -2348,6 +2348,17 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     self.assertIn('Copying file:', stderr)
     self.AssertNObjectsInBucket(bucket_uri, 1)
 
+  def test_upload_does_not_raise_with_content_md5_and_check_hashes_never(self):
+    fpath1 = self.CreateTempFile(file_name=('foo'))
+    bucket_uri = self.CreateBucket()
+    with SetBotoConfigForTest([('GSUtil', 'check_hashes', 'never')]):
+      stderr = self.RunGsUtil(
+          ['-h', 'Content-MD5: invalid-md5', 'cp', fpath1,
+           suri(bucket_uri)],
+          return_stderr=True)
+      self.assertIn('Copying file:', stderr)
+    self.AssertNObjectsInBucket(bucket_uri, 1)
+
   @SequentialAndParallelTransfer
   def test_cp_object_ending_with_slash(self):
     """Tests that cp works with object names ending with slash."""

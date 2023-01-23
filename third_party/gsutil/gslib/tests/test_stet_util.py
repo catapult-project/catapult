@@ -29,7 +29,7 @@ from gslib.tests.util import unittest
 from gslib.utils import execution_util
 from gslib.utils import stet_util
 
-import mock
+from unittest import mock
 
 
 class TestStetUtil(testcase.GsUtilUnitTestCase):

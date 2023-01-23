@@ -528,6 +528,14 @@ content_language = en
 # If this option is not supplied, those tests will be skipped.
 #test_notification_url = https://yourdomain.url/notification-endpoint
 
+# Used in conjunction with --stet flag on cp command for end-to-end encryption.
+# STET binary path. If not specified, gsutil checks PATH for "stet".
+#stet_binary_path = <Path to binary "/usr/local/bin/stet">
+
+# STET config path. If not specified, the STET binary will run with its default
+# settings.
+#stet_config_path = ~/.config/my_config.yaml
+
 """ % {
     'hash_fast_else_fail': CHECK_HASH_IF_FAST_ELSE_FAIL,
     'hash_fast_else_skip': CHECK_HASH_IF_FAST_ELSE_SKIP,

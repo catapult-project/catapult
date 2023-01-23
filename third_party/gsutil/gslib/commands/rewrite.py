@@ -74,19 +74,11 @@ _DETAILED_HELP_TEXT = ("""
   The -k flag is supported to add, rotate, or remove encryption keys on
   objects.  For example, the command:
 
-    gsutil rewrite -k gs://bucket/**
+    gsutil rewrite -k -r gs://bucket
 
-  will update all objects in gs://bucket with the current encryption key
+  updates all objects in gs://bucket with the current encryption key
   from your boto config file, which may either be a base64-encoded CSEK or the
   fully-qualified name of a Cloud KMS key.
-
-  You can also use the -r option to specify recursive object transform; this is
-  synonymous with the ** wildcard. Thus, either of the following two commands
-  will perform encryption key transforms on gs://bucket/subdir and all objects
-  and subdirectories under it:
-
-    gsutil rewrite -k gs://bucket/subdir**
-    gsutil rewrite -k -r gs://bucket/subdir
 
   The rewrite command acts only on live object versions, so specifying a
   URL with a generation number fails. If you want to rewrite a noncurrent
@@ -100,37 +92,37 @@ _DETAILED_HELP_TEXT = ("""
 
     gsutil rewrite -s nearline gs://bucket/foo
 
-  will rewrite the object, changing its storage class to nearline.
+  rewrites the object, changing its storage class to nearline.
 
   If you specify the -k option and you have an encryption key set in your boto
-  configuration file, the rewrite command will skip objects that are already
+  configuration file, the rewrite command skips objects that are already
   encrypted with the specified key.  For example, if you run:
 
-    gsutil rewrite -k gs://bucket/**
+    gsutil rewrite -k -r gs://bucket
 
   and gs://bucket contains objects encrypted with the key specified in your boto
-  configuration file, gsutil will skip rewriting those objects and only rewrite
+  configuration file, gsutil skips rewriting those objects and only rewrites
   objects that are not encrypted with the specified key. This avoids the cost of
   performing redundant rewrite operations.
 
   If you specify the -k option and you do not have an encryption key set in your
-  boto configuration file, gsutil will always rewrite each object, without
+  boto configuration file, gsutil always rewrites each object, without
   explicitly specifying an encryption key. This results in rewritten objects
   being encrypted with either the bucket's default KMS key (if one is set) or
   Google-managed encryption (no CSEK or CMEK). Gsutil does not attempt to
   determine whether the operation is redundant (and thus skippable) because
-  gsutil cannot be sure how the object will be encrypted after the rewrite. Note
-  that if your goal is to encrypt objects with a bucket's default KMS key, you
-  can avoid redundant rewrite costs by specifying the bucket's default KMS key
-  in your boto configuration file; this allows gsutil to perform an accurate
+  gsutil cannot be sure how the object is encrypted after the rewrite. Note that
+  if your goal is to encrypt objects with a bucket's default KMS key, you can
+  avoid redundant rewrite costs by specifying the bucket's default KMS key in
+  your boto configuration file; this allows gsutil to perform an accurate
   comparison of the objects' current and desired encryption configurations and
   skip rewrites for objects already encrypted with that key.
 
   If have an encryption key set in your boto configuration file and specify
-  multiple transformations, gsutil will only skip those that would not change
+  multiple transformations, gsutil only skips those that would not change
   the object's state. For example, if you run:
 
-    gsutil rewrite -s nearline -k gs://bucket/**
+    gsutil rewrite -s nearline -k -r gs://bucket
 
   and gs://bucket contains objects that already match the encryption
   configuration but have a storage class of standard, the only transformation
@@ -145,19 +137,19 @@ _DETAILED_HELP_TEXT = ("""
   The contents of stdin can name cloud URLs and wildcards of cloud URLs.
 
   The rewrite command requires OWNER permissions on each object to preserve
-  object ACLs. You can bypass this by using the -O flag, which will cause
+  object ACLs. You can bypass this by using the -O flag, which causes
   gsutil not to read the object's ACL and instead apply the default object ACL
   to the rewritten object:
 
-    gsutil rewrite -k -O gs://bucket/**
+    gsutil rewrite -k -O -r gs://bucket
 
 
 <B>OPTIONS</B>
   -f            Continues silently (without printing error messages) despite
                 errors when rewriting multiple objects. If some of the objects
-                could not be rewritten, gsutil's exit status will be non-zero
-                even if this flag is set. This option is implicitly set when
-                running "gsutil -m rewrite ...".
+                could not be rewritten, gsutil's exit status is non-zero even
+                if this flag is set. This option is implicitly set when running
+                "gsutil -m rewrite ...".
 
   -I            Causes gsutil to read the list of objects to rewrite from stdin.
                 This allows you to run a program that generates the list of
@@ -172,7 +164,7 @@ _DETAILED_HELP_TEXT = ("""
                 encryption, if no default KMS key is set.
 
   -O            When a bucket has uniform bucket-level access (UBLA) enabled,
-                the -O flag is required and will skip all ACL checks. When a
+                the -O flag is required and skips all ACL checks. When a
                 bucket has UBLA disabled, the -O flag rewrites objects with the
                 bucket's default object ACL instead of the existing object ACL.
                 This is needed if you do not have OWNER permission on the

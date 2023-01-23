@@ -30,6 +30,7 @@ import time
 import six
 from six.moves import input
 import boto
+from boto import config
 from boto.storage_uri import BucketStorageUri
 import gslib
 from gslib import metrics

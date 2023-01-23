@@ -83,9 +83,9 @@ _CH_SYNOPSIS = """
   conditions to a policy or to change the policy of a resource that already
   contains conditions. See additional details below.
 
-  NOTE: The "gsutil iam" command does not allow using project convenience groups
-  (projectOwner, projectEditor, projectViewer) as the first segment of a binding
-  because these groups go against the principle of least privilege.
+  NOTE: The "gsutil iam" command does not allow you to add convenience values
+  (projectOwner, projectEditor, projectViewer), but you can remove existing
+  ones.
 
 """
 
@@ -151,8 +151,8 @@ _CH_DESCRIPTION = """
 <B>CH</B>
   The ``iam ch`` command incrementally updates Cloud IAM policies. You can specify
   multiple access grants or removals in a single command. The access changes are
-  applied as a batch to each url in the order in which they appear in the
-  command line arguments. Each access change specifies a member and a role that
+  applied as a batch to each url in the order in which they appear in the command
+  line arguments. Each access change specifies a principal and a role that
   is either granted or revoked.
 
   You can use gsutil ``-m`` to handle object-level operations in parallel.
@@ -167,7 +167,7 @@ _CH_DESCRIPTION = """
 <B>CH EXAMPLES</B>
   Examples for the ``ch`` sub-command:
 
-  To grant a single role to a single member for some targets:
+  To grant a single role to a single principal for some targets:
 
     gsutil iam ch user:john.doe@example.com:objectCreator gs://ex-bucket
 
@@ -180,12 +180,12 @@ _CH_DESCRIPTION = """
     gsutil iam ch user:john.doe@example.com:objectCreator \\
                   domain:www.my-domain.org:objectViewer gs://ex-bucket
 
-  To specify more than one role for a particular member:
+  To specify more than one role for a particular principal:
 
     gsutil iam ch user:john.doe@example.com:objectCreator,objectViewer \\
                   gs://ex-bucket
 
-  To specify a custom role for a particular member:
+  To specify a custom role for a particular principal:
 
     gsutil iam ch user:john.doe@example.com:roles/customRoleName gs://ex-bucket
 
@@ -201,7 +201,7 @@ _CH_DESCRIPTION = """
 <B>CH OPTIONS</B>
   The ``ch`` sub-command has the following options:
 
-  -d          Removes roles granted to the specified member.
+  -d          Removes roles granted to the specified principal.
 
   -R, -r      Performs ``iam ch`` recursively to all objects under the
               specified bucket.

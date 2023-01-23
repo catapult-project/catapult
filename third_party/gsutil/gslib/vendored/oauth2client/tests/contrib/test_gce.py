@@ -173,3 +173,19 @@ class AppAssertionCredentialsTests(unittest.TestCase):
         self.assertEqual(http.requests, 1)
         expected_uri = 'http://{}/computeMetadata/v1/'.format(fake_metadata_root)
         self.assertEqual(http.uri, expected_uri)
+
+    def test_new_custom_metadata_host_from_env(self):
+        headers = {'content-type': 'application/json'}
+        http = http_mock.HttpMock(headers=headers, data='{}')
+        fake_metadata_root = 'another.metadata.service'
+        os.environ['GCE_METADATA_HOST'] = fake_metadata_root
+        reload_module(_metadata)
+        try:
+            _metadata.get(http, '')
+        finally:
+            del os.environ['GCE_METADATA_HOST']
+            reload_module(_metadata)
+        # Verify mock.
+        self.assertEqual(http.requests, 1)
+        expected_uri = 'http://{}/computeMetadata/v1/'.format(fake_metadata_root)
+        self.assertEqual(http.uri, expected_uri)

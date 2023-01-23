@@ -107,9 +107,15 @@ _DETAILED_HELP_TEXT = ("""
   Enterprise SUSE
   -----------------
 
-  To compile and install crcmod:
+  To compile and install crcmod when using Enterprise SUSE for SAP 12:
 
     sudo zypper install gcc python-devel
+    sudo pip uninstall crcmod
+    sudo pip install --no-cache-dir -U crcmod
+    
+  To compile and install crcmod when using Enterprise SUSE for SAP 15:
+
+    sudo zypper install gcc python3-devel
     sudo pip uninstall crcmod
     sudo pip install --no-cache-dir -U crcmod
 

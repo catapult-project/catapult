@@ -53,23 +53,23 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>DESCRIPTION</B>
-  The hash command calculates hashes on a local file that can be used to compare
-  with gsutil ls -L output. If a specific hash option is not provided, this
-  command calculates all gsutil-supported hashes for the file.
+  Calculate hashes on local files, which can be used to compare with
+  ``gsutil ls -L`` output. If a specific hash option is not provided, this
+  command calculates all gsutil-supported hashes for the files.
 
   Note that gsutil automatically performs hash validation when uploading or
   downloading files, so this command is only needed if you want to write a
-  script that separately checks the hash for some reason.
+  script that separately checks the hash.
 
-  If you calculate a CRC32c hash for the file without a precompiled crcmod
+  If you calculate a CRC32c hash for files without a precompiled crcmod
   installation, hashing will be very slow. See "gsutil help crcmod" for details.
 
 <B>OPTIONS</B>
-  -c          Calculate a CRC32c hash for the file.
+  -c          Calculate a CRC32c hash for the specified files.
 
   -h          Output hashes in hex format. By default, gsutil uses base64.
 
-  -m          Calculate a MD5 hash for the file.
+  -m          Calculate a MD5 hash for the specified files.
 """)
 
 
