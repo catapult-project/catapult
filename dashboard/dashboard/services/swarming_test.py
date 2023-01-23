@@ -27,7 +27,10 @@ class _SwarmingTest(unittest.TestCase):
 
   def _AssertRequestMadeOnce(self, path, *args, **kwargs):
     self._request_json.assert_called_once_with(
-        'https://server/_ah/api/swarming/v1/' + path, *args, **kwargs)
+        'https://server/_ah/api/swarming/v1/' + path,
+        use_adc=True,
+        *args,
+        **kwargs)
 
 
 class BotTest(_SwarmingTest):

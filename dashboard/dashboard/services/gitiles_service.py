@@ -36,7 +36,8 @@ def CommitInfo(repository_url, git_hash):
       url,
       use_cache=IsHash(git_hash),
       use_auth=True,
-      scope=gerrit_service.GERRIT_SCOPE)
+      scope=gerrit_service.GERRIT_SCOPE,
+      use_adc=True)
 
 
 def CommitRange(repository_url, first_git_hash, last_git_hash):
@@ -67,7 +68,8 @@ def CommitRange(repository_url, first_git_hash, last_git_hash):
         url,
         use_cache=use_cache,
         use_auth=True,
-        scope=gerrit_service.GERRIT_SCOPE)
+        scope=gerrit_service.GERRIT_SCOPE,
+        use_adc=True)
     commits += response['log']
     last_git_hash = response.get('next')
   return commits
@@ -93,7 +95,8 @@ def FileContents(repository_url, git_hash, path):
       url,
       use_cache=IsHash(git_hash),
       use_auth=True,
-      scope=gerrit_service.GERRIT_SCOPE)
+      scope=gerrit_service.GERRIT_SCOPE,
+      use_adc=True)
   return six.ensure_str(base64.b64decode(response))
 
 

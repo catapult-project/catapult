@@ -45,4 +45,5 @@ class CrrevServiceTest(unittest.TestCase):
         repo='chromium/src',
         number='498032',
         numbering_type='COMMIT_POSITION',
-        numbering_identifier='refs/heads/master')
+        numbering_identifier='refs/heads/master',
+        use_adc=True)

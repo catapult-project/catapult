@@ -137,7 +137,13 @@ def _RequestAndProcessHttpErrors(url, use_auth, scope, use_adc=False, **kwargs):
         response, content)
   if not response['status'].startswith('2'):
     logging.debug('Response headers: %s, body: %s', response, content)
-    raise RequestError(
-        'Failure in request for `%s`; HTTP status code %s: %s' %
-        (url, response['status'], repr(content[0:200])), response, content)
+    if use_adc and response['status'] in ['401', '403']:
+      logging.info(
+          'Received unauthorized with ADC account. Retrying with the legacy account.'
+      )
+      _RequestAndProcessHttpErrors(url, use_auth, scope, False, **kwargs)
+    else:
+      raise RequestError(
+          'Failure in request for `%s`; HTTP status code %s: %s' %
+          (url, response['status'], repr(content[0:200])), response, content)
   return content

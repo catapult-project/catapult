@@ -62,6 +62,7 @@ class GitilesTest(unittest.TestCase):
         'https://chromium.googlesource.com/repo/+/commit_hash?format=JSON',
         use_cache=False,
         use_auth=True,
+        use_adc=True,
         scope=gerrit_service.GERRIT_SCOPE)
 
   def testCommitRange(self):
@@ -111,6 +112,7 @@ class GitilesTest(unittest.TestCase):
         'commit_0_hash..commit_2_hash?format=JSON',
         use_cache=False,
         use_auth=True,
+        use_adc=True,
         scope=gerrit_service.GERRIT_SCOPE)
 
   def testCommitRangePaginated(self):
@@ -152,6 +154,7 @@ class GitilesTest(unittest.TestCase):
         'https://chromium.googlesource.com/repo/+/commit_hash/path?format=TEXT',
         use_cache=False,
         use_auth=True,
+        use_adc=True,
         scope=gerrit_service.GERRIT_SCOPE)
 
   def testCache(self):
@@ -166,6 +169,7 @@ class GitilesTest(unittest.TestCase):
         '%s/+/%s?format=JSON' % (repository, git_hash),
         use_cache=True,
         use_auth=True,
+        use_adc=True,
         scope=gerrit_service.GERRIT_SCOPE)
 
     gitiles_service.CommitRange(repository, git_hash, git_hash)
@@ -173,6 +177,7 @@ class GitilesTest(unittest.TestCase):
         '%s/+log/%s..%s?format=JSON' % (repository, git_hash, git_hash),
         use_cache=True,
         use_auth=True,
+        use_adc=True,
         scope=gerrit_service.GERRIT_SCOPE)
 
     gitiles_service.FileContents(repository, git_hash, 'path')
@@ -180,4 +185,5 @@ class GitilesTest(unittest.TestCase):
         '%s/+/%s/path?format=TEXT' % (repository, git_hash),
         use_cache=True,
         use_auth=True,
+        use_adc=True,
         scope=gerrit_service.GERRIT_SCOPE)
