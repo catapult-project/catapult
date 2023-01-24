@@ -29,20 +29,15 @@ class Error(Exception):
 class FetchError(Error):
 
   def __init__(self, error):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(FetchError,
-          self).__init__('Failed fetching project configs: {}'.format(error))
+    super().__init__('Failed fetching project configs: {}'.format(error))
     self.error = error
 
 
 class InvalidConfigError(Error):
 
   def __init__(self, config, fields):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(InvalidConfigError, self).__init__(
-        'Config (%r) missing required fields: %r' % (config, fields))
+    super().__init__('Config (%r) missing required fields: %r' %
+                     (config, fields))
     self.fields = fields
     self.config = config
 
@@ -50,10 +45,7 @@ class InvalidConfigError(Error):
 class InvalidContentError(Error):
 
   def __init__(self, error, config):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(InvalidContentError, self).__init__(
-        'Config (%r) content decoding error: %s' % (config, error))
+    super().__init__('Config (%r) content decoding error: %s' % (config, error))
     self.config = config
     self.error = error
 

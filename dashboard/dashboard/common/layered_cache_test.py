@@ -22,9 +22,7 @@ from dashboard.common import testing_common
 class LayeredCacheTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(LayeredCacheTest, self).setUp()
+    super().setUp()
     self.UnsetCurrentUser()
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)

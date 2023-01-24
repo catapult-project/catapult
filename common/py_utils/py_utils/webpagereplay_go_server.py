@@ -48,9 +48,7 @@ class ReplayNotFoundError(ReplayError):
       path: A string of the path in this error.
 
     """
-    # TODO(https://crbug.com/1262295): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(ReplayNotFoundError, self).__init__()
+    super().__init__()
     self.args = (label, path)
 
   def __str__(self):

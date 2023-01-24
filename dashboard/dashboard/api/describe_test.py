@@ -31,13 +31,8 @@ def DescribeHandlerPost():
 class DescribeTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(DescribeTest, self).setUp()
-    if six.PY2:
-      self.SetUpApp([(r'/api/describe', describe.DescribeHandler)])
-    else:
-      self.SetUpFlaskApp(flask_app)
+    super().setUp()
+    self.SetUpFlaskApp(flask_app)
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
 
     external_key = update_test_suite_descriptors.CacheKey(

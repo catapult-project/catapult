@@ -91,9 +91,7 @@ def get_config(options):
 
 class AtraceFromFileAgent(tracing_agents.TracingAgent):
   def __init__(self, options):
-    # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(AtraceFromFileAgent, self).__init__()
+    super().__init__()
     self._filename = os.path.expanduser(options.from_file)
     self._trace_data = False
 

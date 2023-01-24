@@ -7,10 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 from flask import Flask
-import six
 import unittest
-if six.PY2:
-  import webapp2
 import webtest
 
 from dashboard import migrate_test_names
@@ -62,18 +59,8 @@ def MigrateTestNamesTasksPost():
 class MigrateTestNamesTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(MigrateTestNamesTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([
-          ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler),
-          ('/migrate_test_names_tasks',
-            migrate_test_names_tasks.MigrateTestNamesTasksHandler),
-      ])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
     # Make sure puts get split up into multiple calls.
     migrate_test_names_tasks._MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL = 30
     self.SetCurrentUser('internal@foo.bar')

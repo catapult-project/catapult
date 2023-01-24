@@ -9,10 +9,7 @@ from __future__ import absolute_import
 from flask import Flask
 import json
 import mock
-import six
 import unittest
-if six.PY2:
-  import webapp2
 import webtest
 
 from google.appengine.api import users
@@ -34,21 +31,12 @@ def EditAnomaliesPost():
 class EditAnomaliesTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(EditAnomaliesTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([('/edit_anomalies',
-                                      edit_anomalies.EditAnomaliesHandler)])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
     testing_common.SetSheriffDomains(['chromium.org'])
 
   def tearDown(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(EditAnomaliesTest, self).tearDown()
+    super().tearDown()
     self.UnsetCurrentUser()
 
   def _AddAnomaliesToDataStore(self):

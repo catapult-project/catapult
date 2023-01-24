@@ -25,9 +25,7 @@ if six.PY2:  # obsolete
   class EditConfigHandlerTest(testing_common.TestCase):
 
     def setUp(self):
-      # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-      # pylint: disable=super-with-arguments
-      super(EditConfigHandlerTest, self).setUp()
+      super().setUp()
       app = webapp2.WSGIApplication([
           ('/put_entities_task', put_entities_task.PutEntitiesTaskHandler)
       ])

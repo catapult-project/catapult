@@ -13,8 +13,6 @@ import json
 import mock
 import random
 import six
-if six.PY2:
-  import webapp2
 import string
 import sys
 import unittest
@@ -192,21 +190,8 @@ def UploadsInfoGet(token_id):
 class AddHistogramsBaseTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(AddHistogramsBaseTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([
-          ('/add_histograms', add_histograms.AddHistogramsHandler),
-          ('/add_histograms/process',
-           add_histograms.AddHistogramsProcessHandler),
-          ('/add_histograms_queue',
-           add_histograms_queue.AddHistogramsQueueHandler),
-          ('/uploads/(.+)', uploads_info.UploadInfoHandler),
-      ])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
     testing_common.SetIsInternalUser('foo@bar.com', True)
     self.SetCurrentUser('foo@bar.com', is_admin=True)
     oauth_patcher = mock.patch.object(api_auth, 'oauth')
@@ -1645,10 +1630,7 @@ class AddHistogramsTest(AddHistogramsBaseTest):
 class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(AddHistogramsUploadCompleteonTokenTest, self).setUp()
-
+    super().setUp()
     self._TrunOnUploadCompletionTokenExperiment()
     hs = _CreateHistogram(
         master='master',

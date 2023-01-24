@@ -30,9 +30,7 @@ class SlotsMetaclassUnittest(unittest.TestCase):
         __slots__ = ()
 
         def __init__(self, naughty):
-          # TODO(https://crbug.com/1262295): Change to super() after Python2 trybots retire.
-          # pylint: disable=super-with-arguments
-          super(NaughtyClass2, self).__init__(42)
+          super().__init__(42)
           self._naughty = naughty  # pylint: disable=assigning-non-slot
 
       # SlotsMetaclass is happy that __slots__ is defined, but python won't be

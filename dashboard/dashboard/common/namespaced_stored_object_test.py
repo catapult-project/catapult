@@ -16,16 +16,12 @@ from dashboard.common import testing_common
 class NamespacedStoredObjectTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(NamespacedStoredObjectTest, self).setUp()
+    super().setUp()
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)
 
   def tearDown(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(NamespacedStoredObjectTest, self).tearDown()
+    super().tearDown()
     self.UnsetCurrentUser()
 
   def testSet_InternalUser_InternalVersionSet(self):

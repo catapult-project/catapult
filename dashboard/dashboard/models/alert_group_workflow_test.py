@@ -28,9 +28,7 @@ _SERVICE_ACCOUNT_EMAIL = 'service-account@chromium.org'
 class AlertGroupWorkflowTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(AlertGroupWorkflowTest, self).setUp()
+    super().setUp()
     self.maxDiff = None
     self._issue_tracker = testing_common.FakeIssueTrackerService()
     self._sheriff_config = testing_common.FakeSheriffConfigClient()

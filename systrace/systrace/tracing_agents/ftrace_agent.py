@@ -136,9 +136,7 @@ class FtraceAgent(tracing_agents.TracingAgent):
       config: The command-line config.
       categories: The trace categories to capture.
     """
-    # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(FtraceAgent, self).__init__()
+    super().__init__()
     self._fio = fio
     self._config = None
     self._categories = None

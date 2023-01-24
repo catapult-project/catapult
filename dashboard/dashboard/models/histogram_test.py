@@ -20,9 +20,7 @@ class SparseDiagnosticTest(testing_common.TestCase):
   """Test case for functions in SparseDiagnostic."""
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(SparseDiagnosticTest, self).setUp()
+    super().setUp()
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
   def _AddMockData(self, test_key):

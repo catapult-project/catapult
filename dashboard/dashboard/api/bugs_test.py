@@ -107,9 +107,7 @@ if six.PY2:
   class BugsTest(testing_common.TestCase):
 
     def setUp(self):
-      # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-      # pylint: disable=super-with-arguments
-      super(BugsTest, self).setUp()
+      super().setUp()
       self.SetUpApp([
           (r'/api/bugs/p/(.+)/(.+)', bugs.BugsWithProjectHandler),
           (r'/api/bugs/(.*)', bugs.BugsHandler),
@@ -123,9 +121,7 @@ if six.PY2:
       self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
 
     def tearDown(self):
-      # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-      # pylint: disable=super-with-arguments
-      super(BugsTest, self).tearDown()
+      super().tearDown()
       bugs.issue_tracker_service.IssueTrackerService = self.original_service
 
     @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())

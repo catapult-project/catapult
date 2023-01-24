@@ -10,9 +10,6 @@ from flask import Flask
 import json
 import six
 import unittest
-
-if six.PY2:
-  import webapp2
 import webtest
 
 from google.appengine.ext import ndb
@@ -43,17 +40,8 @@ def UpdateTestSuitesPost():
 class ReportTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(ReportTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([
-          ('/report', report.ReportHandler),
-          ('/update_test_suites', update_test_suites.UpdateTestSuitesHandler)
-      ])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
 
   def _AddTestSuites(self):
     """Adds sample data and sets the list of test suites."""

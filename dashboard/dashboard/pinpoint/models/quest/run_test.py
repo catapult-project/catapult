@@ -264,9 +264,7 @@ class _RunTestExecution(execution_module.Execution):
                command=None,
                relative_cwd='out/Release',
                execution_timeout_secs=None):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(_RunTestExecution, self).__init__()
+    super().__init__()
     self._quest = containing_quest
     self._bot_id = None
     self._command = command

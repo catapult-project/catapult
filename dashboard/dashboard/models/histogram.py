@@ -68,15 +68,8 @@ class HistogramRevisionRecord(ndb.Model):
 class ErrorTolerantJsonProperty(ndb.BlobProperty):
   # Adapted from
   # https://googleapis.dev/python/python-ndb/latest/_modules/google/cloud/ndb/model.html#JsonProperty
-  def __init__(
-      self,
-      compressed=None
-  ):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(ErrorTolerantJsonProperty, self).__init__(
-        compressed=compressed
-    )
+  def __init__(self, compressed=None):
+    super().__init__(compressed=compressed)
 
   def _to_base_type(self, value):
     as_str = json.dumps(value, separators=(",", ":"), ensure_ascii=True)

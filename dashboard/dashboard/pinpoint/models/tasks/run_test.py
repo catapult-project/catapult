@@ -287,9 +287,7 @@ class UpdateEvaluator(object):
 class Evaluator(evaluators.SequenceEvaluator):
 
   def __init__(self, job):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(Evaluator, self).__init__(
+    super().__init__(
         evaluators=(
             evaluators.FilteringEvaluator(
                 predicate=evaluators.All(evaluators.TaskTypeEq('run_test'),),
@@ -364,9 +362,7 @@ def ReportError(task, _, accumulator):
 class Validator(evaluators.FilteringEvaluator):
 
   def __init__(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(Validator, self).__init__(
+    super().__init__(
         predicate=evaluators.TaskTypeEq('run_test'), delegate=ReportError)
 
 
@@ -410,9 +406,7 @@ def TestSerializer(task, _, accumulator):
 class Serializer(evaluators.FilteringEvaluator):
 
   def __init__(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(Serializer, self).__init__(
+    super().__init__(
         predicate=evaluators.TaskTypeEq('run_test'), delegate=TestSerializer)
 
 

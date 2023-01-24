@@ -29,9 +29,7 @@ class FakeRequest(object):
 class DatastoreHooksTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(DatastoreHooksTest, self).setUp()
+    super().setUp()
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)
     self._AddDataToDatastore()
@@ -39,9 +37,7 @@ class DatastoreHooksTest(testing_common.TestCase):
     self.PatchDatastoreHooksRequest()
 
   def tearDown(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(DatastoreHooksTest, self).tearDown()
+    super().tearDown()
     self.UnsetCurrentUser()
 
   def _AddDataToDatastore(self):

@@ -36,9 +36,7 @@ DIMENSIONS = [
 class EvaluatorTest(test.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(EvaluatorTest, self).setUp()
+    super().setUp()
     self.maxDiff = None
     with mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
                     mock.MagicMock(return_value=["a"])):
@@ -527,9 +525,7 @@ AttributeError: 'Namespace' object has no attribute 'benchmark_names'"""
 class ValidatorTest(test.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(ValidatorTest, self).setUp()
+    super().setUp()
     self.maxDiff = None
 
   def testMissingDependency(self):

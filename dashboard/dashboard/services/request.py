@@ -25,9 +25,7 @@ _VULNERABILITY_PREFIX = b")]}'\n"
 class RequestError(http_client.HTTPException):
 
   def __init__(self, msg, headers, content):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(RequestError, self).__init__(msg)
+    super().__init__(msg)
     self.headers = headers
     self.content = content
 
@@ -82,8 +80,8 @@ def Request(url,
         del parameters[key]
       if isinstance(value, bool):
         parameters[key] = str(value).lower()
-    url += '?' + six.moves.urllib.parse.urlencode(  # pylint: disable=too-many-function-args
-        sorted(parameters.items()), True)
+    params = sorted(parameters.items())
+    url += '?' + six.moves.urllib.parse.urlencode(params, True)
 
   kwargs = {'method': method}
   if body:

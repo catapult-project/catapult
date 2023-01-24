@@ -35,9 +35,7 @@ def UpdateTask(job, task_id, new_state, _):
 class PopulateTests(test.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(PopulateTests, self).setUp()
+    super().setUp()
     self.maxDiff = None
 
   def testPopulateAndEvaluateAdderGraph(self):
@@ -245,9 +243,7 @@ def TransitionEvaluator(job, task, event, accumulator):
 class EvaluateTest(test.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(EvaluateTest, self).setUp()
+    super().setUp()
     self.maxDiff = None
     with mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
                     mock.MagicMock(return_value=["a"])):

@@ -28,9 +28,7 @@ HELPER_DUMP_JSON = '/data/local/tmp/procdump.json'
 
 class AtraceProcessDumpAgent(tracing_agents.TracingAgent):
   def __init__(self):
-    # TODO(https://crbug.com/1262296): Update this after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(AtraceProcessDumpAgent, self).__init__()
+    super().__init__()
     self._device = None
     self._dump = None
     self._clock_sync_markers = {}

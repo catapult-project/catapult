@@ -35,13 +35,8 @@ def ShortUriHandlerPost():
 class ShortUriTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(ShortUriTest, self).setUp()
-    if six.PY2:
-      self.SetUpApp([('/short_uri', short_uri.ShortUriHandler)])
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
 
   def testUpgradeOld(self):
     t = graph_data.TestMetadata(

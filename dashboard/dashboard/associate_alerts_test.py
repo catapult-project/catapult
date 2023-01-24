@@ -10,8 +10,6 @@ from flask import Flask
 import mock
 import six
 import unittest
-if six.PY2:
-  import webapp2
 import webtest
 
 from dashboard import associate_alerts
@@ -33,15 +31,8 @@ def AssociateAlertsHandlerPost():
 class AssociateAlertsTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(AssociateAlertsTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([('/associate_alerts',
-                                      associate_alerts.AssociateAlertsHandler)])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
     testing_common.SetSheriffDomains(['chromium.org'])
     self.SetCurrentUser('foo@chromium.org', is_admin=True)
 

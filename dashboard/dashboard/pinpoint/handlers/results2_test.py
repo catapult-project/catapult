@@ -18,9 +18,7 @@ from dashboard.pinpoint import test
 class _Results2Test(test.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(_Results2Test, self).setUp()
+    super().setUp()
 
     self._job_from_id = mock.MagicMock()
     patcher = mock.patch.object(results2.job_module, 'JobFromId',

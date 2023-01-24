@@ -16,31 +16,22 @@ class UnsupportedConfigFormatError(ValueError):
     else:
       message = ('The json file at %s has config type %s, which is unsupported '
                  'by the dependency manager.' % (config_file, config_type))
-    # TODO(https://crbug.com/1262289): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(UnsupportedConfigFormatError, self).__init__(message)
+    super().__init__(message)
 
 
 class EmptyConfigError(ValueError):
   def __init__(self, file_path):
-    # TODO(https://crbug.com/1262289): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(EmptyConfigError, self).__init__('Empty config at %s.' % file_path)
+    super().__init__('Empty config at %s.' % file_path)
 
-# TODO(https://crbug.com/1262289): Rename this after Python2 trybots retire.
-# pylint: disable=redefined-builtin
-class FileNotFoundError(Exception):
+
+class FileNotFoundAtError(Exception):
   def __init__(self, file_path):
-    # TODO(https://crbug.com/1262289): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(FileNotFoundError, self).__init__('No file found at %s' % file_path)
+    super().__init__('No file found at %s' % file_path)
 
 
 class NoPathFoundError(Exception):
   def __init__(self, dependency, platform):
-    # TODO(https://crbug.com/1262289): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(NoPathFoundError, self).__init__(
+    super().__init__(
         'No file could be found locally, and no file to download from cloud '
         'storage for %s on platform %s' % (dependency, platform))
 
@@ -51,9 +42,7 @@ class ReadWriteError(Exception):
 
 class CloudStorageUploadConflictError(CloudStorageError):
   def __init__(self, bucket, path):
-    # TODO(https://crbug.com/1262289): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(CloudStorageUploadConflictError, self).__init__(
+    super().__init__(
         'File location %s already exists in bucket %s' % (path, bucket))
 
 

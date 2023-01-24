@@ -10,10 +10,7 @@ import datetime
 from flask import Flask
 from six.moves import http_client
 import mock
-import six
 import unittest
-if six.PY2:
-  import webapp2
 import webtest
 
 from google.appengine.ext import ndb
@@ -59,9 +56,7 @@ class _QuestStub(quest.Quest):
 class ExecutionResults(execution_test._ExecutionStub):
 
   def __init__(self, c):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(ExecutionResults, self).__init__()
+    super().__init__()
     self._result_for_test = _RESULTS_BY_CHANGE[str(c)]
 
   def _Poll(self):
@@ -83,17 +78,8 @@ def _FakeTasklet(*args):
 class UpdateDashboardStatsTest(test.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(UpdateDashboardStatsTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([
-          ('/update_dashboard_stats',
-           update_dashboard_stats.UpdateDashboardStatsHandler)
-      ])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
 
   def _CreateJob(self,
                  hash1,

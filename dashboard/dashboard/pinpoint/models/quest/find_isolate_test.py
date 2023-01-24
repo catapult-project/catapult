@@ -75,9 +75,7 @@ class FindIsolateQuestTest(unittest.TestCase):
 class _FindIsolateExecutionTest(test.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(_FindIsolateExecutionTest, self).setUp()
+    super().setUp()
 
     change = change_test.Change(123)
     isolate.Put((('Mac Builder', change, 'telemetry_perf_tests',
@@ -144,8 +142,8 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
     self.assertEqual(execution.AsDict(), expected_as_dict)
 
   def testIsolateLookupWaterfallAlias(self):
-    quest = find_isolate.FindIsolate('Linux Builder Perf', 'telemetry_perf_tests',
-                                     'luci.bucket')
+    quest = find_isolate.FindIsolate('Linux Builder Perf',
+                                     'telemetry_perf_tests', 'luci.bucket')
 
     # Propagate a thing that looks like a job.
     quest.PropagateJob(

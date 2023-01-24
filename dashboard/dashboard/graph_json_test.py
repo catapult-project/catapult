@@ -12,8 +12,6 @@ import unittest
 
 import mock
 import six
-if six.PY2:
-  import webapp2
 import webtest
 
 from google.appengine.ext import ndb
@@ -37,15 +35,8 @@ def GraphJsonPost():
 class GraphJsonTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(GraphJsonTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([('/graph_json',
-                                      graph_json.GraphJsonHandler)])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
     self.PatchDatastoreHooksRequest()
 
   def _AddTestColumns(self, start_rev=15000, end_rev=16500, step=3):

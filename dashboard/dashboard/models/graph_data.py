@@ -265,9 +265,7 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
     # Truncate the "description" property if necessary.
     description = kwargs.get('description') or ''
     kwargs['description'] = description[:_MAX_STRING_LENGTH]
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(TestMetadata, self).__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
 
   @ndb.synctasklet
   def UpdateSheriff(self):

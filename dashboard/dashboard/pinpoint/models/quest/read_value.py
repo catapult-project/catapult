@@ -114,9 +114,7 @@ class ReadValueExecution(execution.Execution):
   def __init__(self, results_filename, results_path, metric, grouping_label,
                trace_or_story, statistic, chart, isolate_server, isolate_hash,
                cas_root_ref=None):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(ReadValueExecution, self).__init__()
+    super().__init__()
     self._results_filename = results_filename
     self._results_path = results_path
     self._metric = metric
@@ -514,9 +512,7 @@ class _ReadHistogramsJsonValueExecution(execution.Execution):
 
   def __init__(self, results_filename, hist_name, grouping_label,
                trace_or_story, statistic, isolate_server, isolate_hash):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(_ReadHistogramsJsonValueExecution, self).__init__()
+    super().__init__()
     self._results_filename = results_filename
     self._hist_name = hist_name
     self._grouping_label = grouping_label
@@ -630,9 +626,7 @@ class _ReadGraphJsonValueExecution(execution.Execution):
 
   def __init__(self, results_filename, chart, trace, isolate_server,
                isolate_hash):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(_ReadGraphJsonValueExecution, self).__init__()
+    super().__init__()
     self._results_filename = results_filename
     self._chart = chart
     self._trace = trace

@@ -8,9 +8,6 @@ from __future__ import absolute_import
 
 import six
 import unittest
-
-if six.PY2:
-  import webapp2
 import webtest
 
 from flask import Flask
@@ -42,12 +39,7 @@ def PostFlask():
 class XsrfTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(XsrfTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([('/example', ExampleHandler)])
-      self.testapp = webtest.TestApp(app)
+    super().setUp()
     self.flask_testapp = webtest.TestApp(flask_app)
 
   def testGenerateToken_CanBeValidatedWithSameUser(self):

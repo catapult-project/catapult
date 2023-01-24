@@ -10,10 +10,6 @@ import datetime
 from flask import Flask
 import json
 import unittest
-
-import six
-if six.PY2:
-  import webapp2
 import webtest
 
 from dashboard import graph_revisions
@@ -33,15 +29,8 @@ def GraphRevisionsPost():
 class GraphRevisionsTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(GraphRevisionsTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([('/graph_revisions',
-                                      graph_revisions.GraphRevisionsHandler)])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
     self.PatchDatastoreHooksRequest()
 
   def _AddMockData(self):

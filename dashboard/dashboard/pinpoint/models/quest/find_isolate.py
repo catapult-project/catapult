@@ -127,9 +127,7 @@ class _FindIsolateExecution(execution.Execution):
                build_tags,
                fallback_target,
                comparison_mode='performance'):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(_FindIsolateExecution, self).__init__()
+    super().__init__()
     self._quest = containing_quest
     self._builder_name = builder_name
     self._target = target
@@ -197,7 +195,8 @@ class _FindIsolateExecution(execution.Execution):
       True iff the isolate was found, meaning the execution is completed.
     """
     try:
-      builder_name = builder_name_override if builder_name_override else self._builder_name
+      builder_name = builder_name_override if builder_name_override \
+        else self._builder_name
       isolate_server, isolate_hash = isolate.Get(builder_name, self._change,
                                                  self._target)
     except KeyError as e:
@@ -222,7 +221,8 @@ class _FindIsolateExecution(execution.Execution):
       logging.debug('Execute older complete execution method in find_isolate')
       self._Complete(result_arguments=result_arguments)
     else:
-      self._quest.CompleteExecutions(self._change, self._index, result_arguments)
+      self._quest.CompleteExecutions(self._change, self._index,
+                                     result_arguments)
     return True
 
   def _IsTryJob(self):

@@ -110,9 +110,7 @@ class ConfigurationQueue(ndb.Model):
     ]
     if len(self.samples) > 50:
       self.samples = random.sample(self.samples, 50)
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(ConfigurationQueue, self).put()
+    super().put()
 
 
 class Error(Exception):

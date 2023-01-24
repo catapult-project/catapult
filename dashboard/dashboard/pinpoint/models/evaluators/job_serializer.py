@@ -67,9 +67,7 @@ class Serializer(evaluators.DispatchByTaskType):
   """
 
   def __init__(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(Serializer, self).__init__({
+    super().__init__({
         'find_isolate':
             evaluators.SequenceEvaluator(
                 [find_isolate.Serializer(), TaskTransformer]),
@@ -91,9 +89,7 @@ class Serializer(evaluators.DispatchByTaskType):
     # single context. This way the transformers can output a canonical set
     # of transformations to build up the (global) context.
     local_context = {}
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(Serializer, self).__call__(task, event, local_context)
+    super().__call__(task, event, local_context)
 
     # What we expect to see in the local context is data in the following
     # form:

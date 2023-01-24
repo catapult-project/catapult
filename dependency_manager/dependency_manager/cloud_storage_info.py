@@ -79,7 +79,7 @@ class CloudStorageInfo():
         self._cs_remote_path, self._download_path, self._cs_bucket,
         self._cs_hash)
     if not os.path.exists(dependency_path):
-      raise exceptions.FileNotFoundError(dependency_path)
+      raise exceptions.FileNotFoundAtError(dependency_path)
 
     if self.has_archive_info:
       dependency_path = self._archive_info.GetUnzippedPath()

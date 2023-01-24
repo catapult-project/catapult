@@ -34,9 +34,7 @@ if six.PY2:
   class SpeedReleasingTest(testing_common.TestCase):
 
     def setUp(self):
-      # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-      # pylint: disable=super-with-arguments
-      super(SpeedReleasingTest, self).setUp()
+      super().setUp()
       app = webapp2.WSGIApplication([(r'/speed_releasing/(.*)',
                                       speed_releasing.SpeedReleasingHandler)])
       self.testapp = webtest.TestApp(app)
@@ -45,9 +43,7 @@ if six.PY2:
       self.SetCurrentUser('internal@chromium.org', is_admin=True)
 
     def tearDown(self):
-      # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-      # pylint: disable=super-with-arguments
-      super(SpeedReleasingTest, self).tearDown()
+      super().tearDown()
       self.UnsetCurrentUser()
 
     def _AddInternalBotsToDataStore(self):

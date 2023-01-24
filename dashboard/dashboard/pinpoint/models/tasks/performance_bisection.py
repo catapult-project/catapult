@@ -613,9 +613,7 @@ class FindCulprit(collections.namedtuple('FindCulprit', ('job'))):
 class Evaluator(evaluators.FilteringEvaluator):
 
   def __init__(self, job):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(Evaluator, self).__init__(
+    super().__init__(
         predicate=evaluators.All(
             evaluators.TaskTypeEq('find_culprit'),
             evaluators.Not(evaluators.TaskStatusIn({'completed', 'failed'}))),
@@ -647,9 +645,7 @@ def AnalysisSerializer(task, _, accumulator):
 class Serializer(evaluators.FilteringEvaluator):
 
   def __init__(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(Serializer, self).__init__(
+    super().__init__(
         predicate=evaluators.All(
             evaluators.TaskTypeEq('find_culprit'),
             evaluators.TaskStatusIn(

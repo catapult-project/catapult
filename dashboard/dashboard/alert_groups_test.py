@@ -11,8 +11,6 @@ import datetime
 from flask import Flask
 import logging
 import six
-if six.PY2:
-  import webapp2
 import unittest
 import webtest
 
@@ -43,9 +41,7 @@ def AlertGroupsGet():
                    lambda: _SERVICE_ACCOUNT_EMAIL)
 class GroupReportTestBase(testing_common.TestCase):
   def __init__(self, *args, **kwargs):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(GroupReportTestBase, self).__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
     self.fake_issue_tracker = testing_common.FakeIssueTrackerService()
     self.fake_issue_tracker.comments.append({
         'id': 1,
@@ -59,16 +55,9 @@ class GroupReportTestBase(testing_common.TestCase):
         infos={}, revisions={})
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(GroupReportTestBase, self).setUp()
+    super().setUp()
     self.maxDiff = None
-    if six.PY2:
-      app = webapp2.WSGIApplication([('/alert_groups_update',
-                                      alert_groups.AlertGroupsHandler)])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    self.testapp = webtest.TestApp(flask_app)
 
   def _CallHandler(self):
     result = self.testapp.get('/alert_groups_update')
@@ -631,9 +620,7 @@ class GroupReportTest(GroupReportTestBase):
 @mock.patch('dashboard.sheriff_config_client.GetSheriffConfigClient')
 class RecoveredAlertsTests(GroupReportTestBase):
   def __init__(self, *args, **kwargs):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(RecoveredAlertsTests, self).__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
     self.anomalies = []
 
   def InitAfterMocks(self):

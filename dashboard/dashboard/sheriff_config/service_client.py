@@ -18,19 +18,14 @@ class Error(Exception):
 class DiscoveryError(Error):
 
   def __init__(self, error):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(DiscoveryError,
-          self).__init__('Service discovery failed: {}'.format(error))
+    super().__init__('Service discovery failed: {}'.format(error))
     self.error = error
 
 
 class BadArgumentError(Error):
 
   def __init__(self, err_str):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(BadArgumentError, self).__init__('Bad Argument: {}'.format(err_str))
+    super().__init__('Bad Argument: {}'.format(err_str))
 
 
 def CreateServiceClient(api_root, api, version, http=None, credentials=None):

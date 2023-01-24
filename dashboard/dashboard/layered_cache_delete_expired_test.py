@@ -8,9 +8,6 @@ from __future__ import absolute_import
 
 import unittest
 from flask import Flask
-import six
-if six.PY2:
-  import webapp2
 import webtest
 
 from dashboard import layered_cache_delete_expired
@@ -28,17 +25,8 @@ def LayeredCacheDeleteExpiredGet():
 class LayeredCacheDeleteExpiredTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(LayeredCacheDeleteExpiredTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([
-          ('/delete_expired_entities',
-           layered_cache_delete_expired.LayeredCacheDeleteExpiredHandler)
-      ])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
     self.UnsetCurrentUser()
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)

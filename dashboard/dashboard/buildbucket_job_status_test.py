@@ -11,8 +11,6 @@ import json
 import unittest
 
 import mock
-import six
-import webapp2
 import webtest
 
 from dashboard import common
@@ -115,101 +113,49 @@ def BuildbucketJobStatusGet(job_id):
 class BuildbucketJobStatusTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(BuildbucketJobStatusTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([
-          (r'/buildbucket_job_status/(\d+)',
-           buildbucket_job_status.BuildbucketJobStatusHandler)
-      ])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
 
-  if six.PY2:
-
-    @mock.patch.object(
-        buildbucket_job_status.buildbucket_service, 'GetJobStatus',
-        mock.MagicMock(return_value=json.loads(r"""{"status": "SUCCESS"}""")))
-    @mock.patch.object(buildbucket_job_status.BuildbucketJobStatusHandler,
-                       'RenderHtml')
-    def testGet_ExistingJob(self, render):
+  @mock.patch.object(
+      services.buildbucket_service, 'GetJobStatus',
+      mock.MagicMock(return_value=json.loads(r"""{"status": "SUCCESS"}""")))
+  def testGet_ExistingJob(self):
+    with mock.patch.object(
+        common.request_handler,
+        'RequestHandlerRenderHtml',
+        return_value=Response()) as render:
       self.testapp.get('/buildbucket_job_status/12345')
-      render.assert_called_once_with(
-          'buildbucket_job_status.html', {
-              'job_id': '12345',
-              'status_text': 'DATA:{\n    "status": "SUCCESS"\n}',
-              'build': {
-                  "status": "SUCCESS"
-              },
-              'error': None,
-              'original_response': {
-                  "status": "SUCCESS"
-              }
-          })
+    render.assert_called_once_with(
+        'buildbucket_job_status.html', {
+            'job_id': '12345',
+            'status_text': 'DATA:{\n    "status": "SUCCESS"\n}',
+            'build': {
+                "status": "SUCCESS"
+            },
+            'error': None,
+            'original_response': {
+                "status": "SUCCESS"
+            }
+        })
 
-    @mock.patch.object(buildbucket_job_status.buildbucket_service,
-                       'GetJobStatus',
-                       mock.MagicMock(
-                           side_effect=request.NotFoundError(
-                               'oops', {'x-prpc-grpc-code': '5'}, 'Error msg.'))
-                      )
-    @mock.patch.object(buildbucket_job_status.BuildbucketJobStatusHandler,
-                       'RenderHtml')
-    def testGet_JobNotFound(self, render):
+  @mock.patch.object(services.buildbucket_service, 'GetJobStatus',
+                     mock.MagicMock(
+                         side_effect=request.NotFoundError(
+                             'oops', {'x-prpc-grpc-code': '5'}, 'Error msg.')))
+  def testGet_JobNotFound(self):
+    with mock.patch.object(
+        common.request_handler,
+        'RequestHandlerRenderHtml',
+        return_value=Response()) as render:
       self.testapp.get('/buildbucket_job_status/12345')
-      render.assert_called_once_with(
-          'buildbucket_job_status.html', {
-              'job_id': '12345',
-              'status_text': 'DATA:Error msg.',
-              'build': None,
-              'error': 'gRPC code: 5',
-              'original_response': 'Error msg.'
-          })
-  else:
-
-    @mock.patch.object(
-        services.buildbucket_service, 'GetJobStatus',
-        mock.MagicMock(return_value=json.loads(r"""{"status": "SUCCESS"}""")))
-    def testGet_ExistingJob(self):
-      with mock.patch.object(
-          common.request_handler,
-          'RequestHandlerRenderHtml',
-          return_value=Response()) as render:
-        self.testapp.get('/buildbucket_job_status/12345')
-      render.assert_called_once_with(
-          'buildbucket_job_status.html', {
-              'job_id': '12345',
-              'status_text': 'DATA:{\n    "status": "SUCCESS"\n}',
-              'build': {
-                  "status": "SUCCESS"
-              },
-              'error': None,
-              'original_response': {
-                  "status": "SUCCESS"
-              }
-          })
-
-    @mock.patch.object(services.buildbucket_service, 'GetJobStatus',
-                       mock.MagicMock(
-                           side_effect=request.NotFoundError(
-                               'oops', {'x-prpc-grpc-code': '5'}, 'Error msg.'))
-                      )
-    def testGet_JobNotFound(self):
-      with mock.patch.object(
-          common.request_handler,
-          'RequestHandlerRenderHtml',
-          return_value=Response()) as render:
-        self.testapp.get('/buildbucket_job_status/12345')
-      render.assert_called_once_with(
-          'buildbucket_job_status.html', {
-              'job_id': '12345',
-              'status_text': 'DATA:Error msg.',
-              'build': None,
-              'error': 'gRPC code: 5',
-              'original_response': 'Error msg.'
-          })
+    render.assert_called_once_with(
+        'buildbucket_job_status.html', {
+            'job_id': '12345',
+            'status_text': 'DATA:Error msg.',
+            'build': None,
+            'error': 'gRPC code: 5',
+            'original_response': 'Error msg.'
+        })
 
 
 if __name__ == '__main__':

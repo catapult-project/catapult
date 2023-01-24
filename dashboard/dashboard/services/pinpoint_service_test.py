@@ -17,9 +17,7 @@ from dashboard.services import pinpoint_service
 class PinpointServiceTest(unittest.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(PinpointServiceTest, self).setUp()
+    super().setUp()
 
     patcher = mock.patch.object(datastore_hooks, 'IsUnalteredQueryPermitted')
     self.addCleanup(patcher.stop)

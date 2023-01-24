@@ -12,9 +12,6 @@ import mock
 import six
 import unittest
 import uuid
-if six.PY2:
-  import webapp2
-import webtest
 
 from dashboard import uploads_info
 from dashboard.api import api_auth
@@ -41,16 +38,8 @@ def UploadsInfoGet(token_id):
 class UploadInfo(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(UploadInfo, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([
-          ('/uploads/(.+)', uploads_info.UploadInfoHandler),
-      ])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.SetUpFlaskApp(flask_app)
+    super().setUp()
+    self.SetUpFlaskApp(flask_app)
 
     testing_common.SetIsInternalUser('foo@bar.com', True)
     self.SetCurrentUser('foo@bar.com')

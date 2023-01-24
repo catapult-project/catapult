@@ -127,6 +127,4 @@ class BugsWithProjectHandler(BugsHandler):
     if len(args) != 2:
       raise api_request_handler.BadRequestError(
           'Must have two non-empty arguments to URI.')
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    return super(BugsWithProjectHandler, self).Post(args[1], project=args[0])
+    return super().Post(args[1], project=args[0])

@@ -30,7 +30,5 @@ class DummyExceptionImpl2(_PrivateDummyException):
 
 class DummyExceptionWithParameterImpl1(_PrivateDummyException):
   def __init__(self, parameter):
-    # TODO(https://crbug.com/1262295): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(DummyExceptionWithParameterImpl1, self).__init__()
+    super().__init__()
     del parameter

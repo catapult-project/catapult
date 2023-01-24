@@ -8,9 +8,6 @@ from __future__ import absolute_import
 
 from flask import Flask
 import mock
-import six
-if six.PY2:
-  import webapp2
 import sys
 import unittest
 import webtest
@@ -41,14 +38,8 @@ def AlertsHandlerPost():
 class AlertsTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(AlertsTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([('/alerts', alerts.AlertsHandler)])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
     testing_common.SetSheriffDomains(['chromium.org'])
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     self.SetCurrentUser('internal@chromium.org', is_admin=True)
@@ -166,8 +157,8 @@ class AlertsTest(testing_common.TestCase):
     ).put().get()
     actual = alerts.GetAnomalyDict(alert, v2=True)
     del actual['dashboard_link']
-    six.assertCountEqual(
-        self, {
+    self.assertCountEqual(
+        {
             'bug_components': ['component'],
             'bug_id': 10,
             'project_id': 'chromium',
@@ -216,7 +207,7 @@ class AlertsTest(testing_common.TestCase):
     for alert in anomaly_list:
       self.assertEqual(expected_end_rev, alert['end_revision'])
       self.assertEqual(expected_end_rev - 5, alert['start_revision'])
-      self.assertEqual(six.ensure_str(key_map[expected_end_rev]), alert['key'])
+      self.assertEqual(key_map[expected_end_rev].decode(), alert['key'])
       self.assertEqual('ChromiumGPU', alert['master'])
       self.assertEqual('linux-release', alert['bot'])
       self.assertEqual('scrolling-benchmark', alert['testsuite'])

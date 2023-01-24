@@ -202,9 +202,7 @@ class RetryTest(test.TestCase):
 class BugCommentTest(test.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(BugCommentTest, self).setUp()
+    super().setUp()
     self.add_bug_comment = mock.MagicMock()
     self.get_issue = mock.MagicMock()
     patcher = mock.patch('dashboard.services.issue_tracker_service.'

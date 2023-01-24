@@ -13,10 +13,7 @@ import json
 
 import mock
 import sys
-
 import six
-if six.PY2:
-  import webapp2
 import webtest
 
 from dashboard import file_bug
@@ -42,9 +39,7 @@ def FileBugHandlerGet():
 class FileBugTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(FileBugTest, self).setUp()
+    super().setUp()
     testing_common.SetSheriffDomains(['chromium.org'])
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)
@@ -53,16 +48,10 @@ class FileBugTest(testing_common.TestCase):
     self.PatchObject(file_bug.file_bug.issue_tracker_service,
                      'IssueTrackerService',
                      lambda *_: self._issue_tracker_service)
-    if six.PY2:
-      app = webapp2.WSGIApplication([('/file_bug', file_bug.FileBugHandler)])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    self.testapp = webtest.TestApp(flask_app)
 
   def tearDown(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(FileBugTest, self).tearDown()
+    super().tearDown()
     self.UnsetCurrentUser()
 
   def _AddSampleAlerts(self, master='ChromiumPerf', has_commit_positions=True):

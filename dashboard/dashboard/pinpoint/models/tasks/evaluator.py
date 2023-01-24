@@ -24,9 +24,7 @@ class ExecutionEngine(evaluators.SequenceEvaluator):
 
   def __init__(self, job):
     # We gather all the evaluators from the modules we know.
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(ExecutionEngine, self).__init__(evaluators=[
+    super().__init__(evaluators=[
         evaluators.DispatchByTaskType({
             'find_isolate': find_isolate.Evaluator(job),
             'find_culprit': performance_bisection.Evaluator(job),

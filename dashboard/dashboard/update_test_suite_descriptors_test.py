@@ -8,11 +8,8 @@ from __future__ import absolute_import
 
 from flask import Flask
 import mock
-import six
 import sys
 import unittest
-if six.PY2:
-  import webapp2
 import webtest
 
 from dashboard import update_test_suites
@@ -38,14 +35,8 @@ def UpdateTestSuitesDescriptorsPost():
 class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(UpdateTestSuiteDescriptorsTest, self).setUp()
-    if six.PY2:
-      handler = update_test_suite_descriptors.UpdateTestSuiteDescriptorsHandler
-      self.SetUpApp([('/update_test_suite_descriptors', handler)])
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     self.UnsetCurrentUser()
     stored_object.Set(descriptor.PARTIAL_TEST_SUITES_KEY, [
@@ -76,30 +67,12 @@ class UpdateTestSuiteDescriptorsTest(testing_common.TestCase):
     test.internal_only = True
     test.put()
 
-    if six.PY2:
-      self.Post('/update_test_suite_descriptors?internal_only=true')
+    self.Post('/update_test_suite_descriptors', {'internal_only': 'true'})
 
-      # deferred.Defer() packages up the function call and arguments, not changes
-      # to global state like SetPrivilegedRequest, so set privileged=False as the
-      # taskqueue does, and test that UpdateDescriptor sets it back to True so
-      # that it gets the internal TestMetadata.
-      # TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-      # pylint: disable=useless-object-inheritance
-      class FakeRequest(object):
-
-        def __init__(self):
-          self.registry = {'privileged': False}
-
-      webapp2._local.request = FakeRequest()
-      self.ExecuteDeferredTasks('default')
-
-    else:
-      self.Post('/update_test_suite_descriptors', {'internal_only': 'true'})
-
-      with mock.patch.object(
-          datastore_hooks, 'IsUnalteredQueryPermitted', return_value=True):
-        with mock.patch.object(datastore_hooks, 'SetPrivilegedRequest'):
-          self.ExecuteDeferredTasks('default')
+    with mock.patch.object(
+        datastore_hooks, 'IsUnalteredQueryPermitted', return_value=True):
+      with mock.patch.object(datastore_hooks, 'SetPrivilegedRequest'):
+        self.ExecuteDeferredTasks('default')
 
     expected = {
         'measurements': ['measurement'],

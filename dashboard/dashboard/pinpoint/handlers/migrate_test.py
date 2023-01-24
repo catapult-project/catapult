@@ -22,9 +22,7 @@ from dashboard.pinpoint import test
 class MigrateAuthTest(test.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(MigrateAuthTest, self).setUp()
+    super().setUp()
 
     patcher = mock.patch.object(migrate, 'datetime', _DatetimeStub())
     self.addCleanup(patcher.stop)
@@ -58,9 +56,7 @@ class MigrateAuthTest(test.TestCase):
 class MigrateTest(MigrateAuthTest):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(MigrateTest, self).setUp()
+    super().setUp()
 
     print('MigrateTest')
     self._SetupCredentials(testing_common.INTERNAL_USER,

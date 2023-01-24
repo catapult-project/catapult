@@ -9,10 +9,6 @@ from __future__ import absolute_import
 from flask import Flask
 import json
 import unittest
-
-import six
-if six.PY2:
-  import webapp2
 import webtest
 
 from google.appengine.ext import ndb
@@ -35,15 +31,8 @@ def ListTestsHandlerPost():
 class ListTestsTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(ListTestsTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([('/list_tests',
-                                      list_tests.ListTestsHandler)])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
     datastore_hooks.InstallHooks()
     self.UnsetCurrentUser()
     testing_common.SetIsInternalUser('internal@chromium.org', True)

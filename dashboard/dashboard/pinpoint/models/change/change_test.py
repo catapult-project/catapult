@@ -308,9 +308,7 @@ class CustomUnpickler(pickle.Unpickler):
 class PickleTest(test.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(PickleTest, self).setUp()
+    super().setUp()
     self.maxDiff = None
 
   def testBackwardsCompatibility(self):
@@ -334,9 +332,7 @@ class PickleTest(test.TestCase):
 class MidpointTest(test.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(MidpointTest, self).setUp()
+    super().setUp()
 
     def _FileContents(repository_url, git_hash, path):
       del path

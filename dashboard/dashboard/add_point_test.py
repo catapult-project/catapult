@@ -14,8 +14,6 @@ import unittest
 
 import mock
 import six
-if six.PY2:
-  import webapp2
 import webtest
 
 from google.appengine.api import datastore_errors
@@ -197,16 +195,8 @@ def AddPointQueuePost():
 class AddPointTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(AddPointTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([('/add_point', add_point.AddPointHandler),
-                                     ('/add_point_queue',
-                                      add_point_queue.AddPointQueueHandler)])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
     units_to_direction.UpdateFromJson(_UNITS_TO_DIRECTION_DICT)
     self.SetCurrentUser(
         'foo-service-account@testing.gserviceaccount.com', is_admin=True)

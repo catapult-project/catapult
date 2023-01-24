@@ -10,8 +10,6 @@ import csv
 from flask import Flask
 import six
 import unittest
-if six.PY2:
-  import webapp2
 import webtest
 
 from dashboard import graph_csv
@@ -36,14 +34,8 @@ def GraphCSVHandlerPost():
 class GraphCsvTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(GraphCsvTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([('/graph_csv', graph_csv.GraphCsvHandler)])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
   def _AddMockData(self):

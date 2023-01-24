@@ -12,9 +12,6 @@ import json
 
 import six
 import mock
-
-if six.PY2:
-  import webapp2
 import webtest
 
 from dashboard import pinpoint_request
@@ -81,17 +78,8 @@ def GenerateBisectRequestParams(params):
 class PinpointNewPrefillRequestHandlerTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(PinpointNewPrefillRequestHandlerTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([
-          (r'/pinpoint/new/prefill',
-           pinpoint_request.PinpointNewPrefillRequestHandler)
-      ])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
 
   def testPost_UsesUnescapedStoryName(self):
     t = graph_data.TestMetadata(id='M/B/S/foo', unescaped_story_name='foo:bar')
@@ -104,17 +92,8 @@ class PinpointNewPrefillRequestHandlerTest(testing_common.TestCase):
 class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(PinpointNewPerfTryRequestHandlerTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([
-          (r'/pinpoint/new/perf_try',
-           pinpoint_request.PinpointNewPerfTryRequestHandler)
-      ])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
 
     self.SetCurrentUser('foo@chromium.org')
 
@@ -328,17 +307,8 @@ class PinpointNewPerfTryRequestHandlerTest(testing_common.TestCase):
 class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(PinpointNewBisectRequestHandlerTest, self).setUp()
-    if six.PY2:
-      app = webapp2.WSGIApplication([
-          (r'/pinpoint/new/bisect',
-           pinpoint_request.PinpointNewBisectRequestHandler)
-      ])
-      self.testapp = webtest.TestApp(app)
-    else:
-      self.testapp = webtest.TestApp(flask_app)
+    super().setUp()
+    self.testapp = webtest.TestApp(flask_app)
 
     self.SetCurrentUser('foo@chromium.org')
 
@@ -812,10 +782,7 @@ class PinpointNewBisectRequestHandlerTest(testing_common.TestCase):
 class PinpointNewBisectComparisonMagnitude(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(PinpointNewBisectComparisonMagnitude, self).setUp()
-
+    super().setUp()
     self.SetCurrentUser('foo@chromium.org')
 
     namespaced_stored_object.Set('repositories', {

@@ -38,17 +38,13 @@ class BadRequestError(Exception):
 class ForbiddenError(Exception):
 
   def __init__(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(ForbiddenError, self).__init__('Access denied')
+    super().__init__('Access denied')
 
 
 class NotFoundError(Exception):
 
   def __init__(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(NotFoundError, self).__init__('Not found')
+    super().__init__('Not found')
 
 
 def SafeOriginRegex(prefix, origin):

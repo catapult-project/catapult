@@ -245,7 +245,5 @@ class Selector(FilteringEvaluator):
         matches |= predicate(task, event, accumulator)
       return matches
 
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(Selector, self).__init__(
+    super().__init__(
         predicate=Predicate, delegate=TaskPayloadLiftingEvaluator(**kwargs))

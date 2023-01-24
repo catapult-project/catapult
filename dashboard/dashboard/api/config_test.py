@@ -29,13 +29,8 @@ def ConfigHandlerPost():
 class ConfigTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(ConfigTest, self).setUp()
-    if six.PY2:
-      self.SetUpApp([(r'/api/config', config.ConfigHandler)])
-    else:
-      self.SetUpFlaskApp(flask_app)
+    super().setUp()
+    self.SetUpFlaskApp(flask_app)
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     external_key = namespaced_stored_object.NamespaceKey(
         config.ALLOWLIST[0], datastore_hooks.EXTERNAL)

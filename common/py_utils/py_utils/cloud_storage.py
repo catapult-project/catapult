@@ -80,9 +80,7 @@ class CloudStorageError(Exception):
 class PermissionError(CloudStorageError):
 
   def __init__(self):
-    # TODO(https://crbug.com/1262295): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(PermissionError, self).__init__(
+    super().__init__(
         'Attempted to access a file from Cloud Storage but you don\'t '
         'have permission. ' + self._GetConfigInstructions())
 
@@ -90,9 +88,7 @@ class PermissionError(CloudStorageError):
 class CredentialsError(CloudStorageError):
 
   def __init__(self):
-    # TODO(https://crbug.com/1262295): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(CredentialsError, self).__init__(
+    super().__init__(
         'Attempted to access a file from Cloud Storage but you have no '
         'configured credentials. ' + self._GetConfigInstructions())
 

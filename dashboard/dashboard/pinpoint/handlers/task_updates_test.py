@@ -88,9 +88,7 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
 
   def setUp(self):
     self.maxDiff = None
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(ExecutionEngineTaskUpdatesTest, self).setUp()
+    super().setUp()
 
   def testHandlerGoodCase(self, buildbucket_getjobstatus, buildbucket_put):
     buildbucket_put.return_value = {'build': {'id': '92384098123'}}

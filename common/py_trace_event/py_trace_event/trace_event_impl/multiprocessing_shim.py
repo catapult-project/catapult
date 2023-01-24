@@ -12,10 +12,11 @@ __all__ = []
 
 class ProcessSubclass(_RealProcess):
   def __init__(self, shim, *args, **kwards):
+    multiprocessing.get_context("forkserver")
     _RealProcess.__init__(self, *args, **kwards)
     self._shim = shim
 
-  def run(self,*args,**kwargs):
+  def run(self, *args, **kwargs):
     from . import log
     log._disallow_tracing_control()
     try:

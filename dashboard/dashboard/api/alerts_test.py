@@ -9,7 +9,6 @@ from __future__ import absolute_import
 import datetime
 from flask import Flask
 import json
-import six
 import unittest
 
 from dashboard.api import alerts
@@ -31,13 +30,8 @@ def ApiAlertsPost():
 class AlertsGeneralTest(testing_common.TestCase):
 
   def setUp(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(AlertsGeneralTest, self).setUp()
-    if six.PY2:
-      self.SetUpApp([('/api/alerts', alerts.AlertsHandler)])
-    else:
-      self.SetUpFlaskApp(flask_app)
+    super().setUp()
+    self.SetUpFlaskApp(flask_app)
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
 
   def _Post(self, **params):

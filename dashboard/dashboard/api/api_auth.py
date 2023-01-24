@@ -56,25 +56,19 @@ class ApiAuthException(Exception):
 class OAuthError(ApiAuthException):
 
   def __init__(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(OAuthError, self).__init__('User authentication error')
+    super().__init__('User authentication error')
 
 
 class NotLoggedInError(ApiAuthException):
 
   def __init__(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(NotLoggedInError, self).__init__('User not authenticated')
+    super().__init__('User not authenticated')
 
 
 class InternalOnlyError(ApiAuthException):
 
   def __init__(self):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(InternalOnlyError, self).__init__('User does not have access')
+    super().__init__('User does not have access')
 
 
 def Authorize():

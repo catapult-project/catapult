@@ -45,9 +45,7 @@ if six.PY2:  # obsolete
   class CreateHealthReportTest(testing_common.TestCase):
 
     def setUp(self):
-      # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-      # pylint: disable=super-with-arguments
-      super(CreateHealthReportTest, self).setUp()
+      super().setUp()
       app = webapp2.WSGIApplication([
           ('/create_health_report',
            create_health_report.CreateHealthReportHandler)
@@ -58,9 +56,7 @@ if six.PY2:  # obsolete
       self.SetCurrentUser('internal@chromium.org', is_admin=True)
 
     def tearDown(self):
-      # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-      # pylint: disable=super-with-arguments
-      super(CreateHealthReportTest, self).tearDown()
+      super().tearDown()
       self.UnsetCurrentUser()
 
     def _AddInternalBotsToDataStore(self):

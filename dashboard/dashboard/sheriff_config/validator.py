@@ -35,9 +35,7 @@ class MissingFields(Error):
   """
 
   def __init__(self, message, index, field):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(MissingFields, self).__init__()
+    super().__init__()
     self.message = message
     self.index = index
     self.field = field
@@ -51,27 +49,21 @@ class MissingEmail(MissingFields):
   """Raised when a subscription is missing a contact_email field."""
 
   def __init__(self, message, index):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(MissingEmail, self).__init__(message, index, 'contact_email')
+    super().__init__(message, index, 'contact_email')
 
 
 class MissingName(MissingFields):
   """Raised when a subscription is missing a name."""
 
   def __init__(self, message, index):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(MissingName, self).__init__(message, index, 'name')
+    super().__init__(message, index, 'name')
 
 
 class MissingPatterns(MissingFields):
   """Raised when a subscription has no patterns."""
 
   def __init__(self, message, index):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(MissingPatterns, self).__init__(message, index, 'patterns')
+    super().__init__(message, index, 'patterns')
 
 
 class InvalidPattern(MissingFields):
@@ -83,9 +75,7 @@ class InvalidPattern(MissingFields):
   """
 
   def __init__(self, message, index, pattern_index, reason, group):
-    # TODO(https://crbug.com/1262292): Change to super() after Python2 trybots retire.
-    # pylint: disable=super-with-arguments
-    super(InvalidPattern, self).__init__(message, index, 'patterns')
+    super().__init__(message, index, 'patterns')
     self.pattern_index = pattern_index
     self.reason = reason
     self.group = group
