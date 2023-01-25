@@ -64,40 +64,6 @@ def TimeSeries2Post():
   return result
 
 
-if six.PY2:
-  # pylint: disable=abstract-method
-  class Timeseries2Handler(api_request_handler.ApiRequestHandler):
-
-    def _CheckUser(self):
-      pass
-
-    def Post(self, *args, **kwargs):
-      logging.debug('crbug/1298177 - /api/timeseries2 handler triggered')
-      del args, kwargs  # Unused.
-      desc = descriptor.Descriptor(
-          test_suite=self.request.get('test_suite'),
-          measurement=self.request.get('measurement'),
-          bot=self.request.get('bot'),
-          test_case=self.request.get('test_case'),
-          statistic=self.request.get('statistic', None),
-          build_type=self.request.get('build_type'))
-      min_revision = self.request.get('min_revision')
-      min_revision = int(min_revision) if min_revision else None
-      max_revision = self.request.get('max_revision')
-      max_revision = int(max_revision) if max_revision else None
-      query = TimeseriesQuery(
-          desc,
-          self.request.get('columns').split(','), min_revision, max_revision,
-          api_utils.ParseISO8601(self.request.get('min_timestamp', None)),
-          api_utils.ParseISO8601(self.request.get('max_timestamp', None)))
-      try:
-        result = query.FetchSync()
-      except AssertionError as e:
-        # The caller has requested internal-only data but is not authorized.
-        six.raise_from(api_request_handler.NotFoundError, e)
-      return result
-
-
 # TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
 # pylint: disable=useless-object-inheritance
 class TimeseriesQuery(object):

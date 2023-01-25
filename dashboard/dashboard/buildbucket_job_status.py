@@ -9,7 +9,6 @@ from __future__ import absolute_import
 import json
 import time
 
-import six
 from dashboard.common import request_handler
 from dashboard.services import buildbucket_service
 from dashboard.services import request
@@ -38,38 +37,6 @@ def BuildbucketJobStatusGet(job_id):
           'error': ('gRPC code: %s' % error_code) if error else None,
           'original_response': original_status,
       })
-
-
-if six.PY2:
-  class BuildbucketJobStatusHandler(request_handler.RequestHandler):
-    """Handler for requests of the form /buildbucket_job_status/01234567...
-
-    This displays information regarding the status of the buildbucket job in a
-    human-readable format.
-    """
-    def get(self, job_id):
-      error, error_code = False, None
-      try:
-        original_status = buildbucket_service.GetJobStatus(job_id)
-        # The _ParseJsonKeys and _ConvertTimes should be no longer needed in
-        # buildbucket V2 as no fields in the current proto has those suffixes.
-        status_text = json.dumps(original_status, sort_keys=True, indent=4)
-      except (request.NotFoundError, request.RequestError) as e:
-        error = True
-        original_status = e.content
-        status_text = original_status
-        error_code = e.headers.get('x-prpc-grpc-code', None)
-
-      # In V2, the error_reason (e.g., BUILD_NOT_FOUND) is no longer part of the
-      # response. We have a numeric value 'x-prpc-grpc-code' in the header.
-      self.RenderHtml(
-          'buildbucket_job_status.html', {
-              'job_id': job_id,
-              'status_text': 'DATA:' + status_text,
-              'build': None if error else original_status,
-              'error': ('gRPC code: %s' % error_code) if error else None,
-              'original_response': original_status,
-          })
 
 
 def _ConvertTimes(dictionary):

@@ -5,7 +5,6 @@
 from __future__ import absolute_import
 
 import logging
-import six
 import uuid
 
 from google.appengine.ext import ndb
@@ -187,101 +186,3 @@ def UploadsInfoGet(token_id):
     get_dimensions_info = 'dimensions' in additional_info
     return _GenerateResponse(token, get_measurement_info, get_dimensions_info)
   return _GenerateResponse(token)
-
-
-if six.PY2:
-  # pylint: disable=abstract-method
-  class UploadInfoHandler(api_request_handler.ApiRequestHandler):
-    """Request handler to get information about upload completion tokens."""
-
-    def _CheckUser(self):
-      self._CheckIsInternalUser()
-
-    def Get(self, *args):
-      """Returns json, that describes state of the token.
-
-      Can be called by get request to /uploads/<token_id>. Measurements info can
-      be requested with GET parameter ?additional_info=measurements. If dimensions
-      info is also required use ?additional_info=measurements,dimensions.
-
-      Response is json of the form:
-      {
-        "token": "...",
-        "file": "...",
-        "created": "...",
-        "lastUpdated": "...",
-        "state": "PENDING|PROCESSING|FAILED|COMPLETED",
-        "error_message": "...",
-        "measurements": [
-          {
-            "name": "...",
-            "state": "PROCESSING|FAILED|COMPLETED",
-            "monitored": True|False,
-            "lastUpdated": "...",
-            "error_message": "...",
-            "dimensions": [
-              {
-                "name": "...",
-                "values": ["...", ...]
-              },
-              ...
-            ]
-          },
-          ...
-        ]
-      }
-      Description of the fields:
-        - token: Token id from the request.
-        - file: Temporary staging file path, where /add_histogram request data is
-          stored during the PENDING stage. For more information look at
-          /add_histogram api.
-        - created: Date and time of creation.
-        - lastUpdated: Date and time of last update.
-        - state: Aggregated state of the token and all associated measurements.
-        - error_message: If historgam upload failed on token level (during
-          /add_histogram) will contain addition information about failure.
-          Absent otherwise.
-        - measurements: List of json objects, that describes measurements
-          associated with the token. If there are no such measurements, the field
-          will be absent. This field may be absent if full information is not
-          requested.
-          - name: The path  of the measurement. It is a fully-qualified path in
-            the Dashboard.
-          - state: State of the measurement.
-          - error_message: If state is FAILED, contains addition information
-            about failure. Absent otherwise.
-          - monitored: A boolean indicating whether the path is monitored by a
-            sheriff configuration.
-          - lastUpdated: Date and time of last update.
-          - dimensions: List of relevant for /add_histogram api diagnostics,
-            associated to the histogram, that is represented by the measurement.
-            This field will be present in response only after the histogram has
-            been added to Datastore. This field may be absent if full information
-            is not requested.
-            - name: Name of the diagnostic.
-            - values: List of values, stored in the GenericSet diagnostic.
-
-      Meaning of some common error codes:
-        - 400: Invalid format of the token id.
-        - 403: The user is not authorized to check on the status of an upload.
-        - 404: Token could not be found. It is either expired or was never
-          created.
-      """
-      logging.debug('crbug/1298177 - uploads_info GET triggered')
-      assert len(args) == 1
-
-      token_id = args[0]
-      if not _IsValidUuid(token_id):
-        logging.error('Upload completion token id is not valid. Token id: %s',
-                      token_id)
-        raise ValueError
-
-      token = upload_completion_token.Token.get_by_id(token_id)
-      if token is None:
-        logging.error('Upload completion token not found. Token id: %s', token_id)
-        raise api_request_handler.NotFoundError
-
-      get_measurement_info = 'measurements' in self.request.get('additional_info')
-      get_dimensions_info = 'dimensions' in self.request.get('additional_info')
-      return _GenerateResponse(token, get_measurement_info,
-                                    get_dimensions_info)

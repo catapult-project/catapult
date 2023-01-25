@@ -7,7 +7,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
-import six
 
 from dashboard.common import request_handler
 from dashboard import revision_info_client
@@ -31,23 +30,3 @@ def GetDynamicVariablesFlask(template_values, request_path=None):
 
 def _GetChartValues():
   return {'revision_info': revision_info_client.GetRevisionInfoConfig()}
-
-
-if six.PY2:
-
-  class ChartHandler(request_handler.RequestHandler):
-    """Base class for requests which display a chart."""
-
-    def RenderHtml(self, template_file, template_values, status=200):
-      """Fills in template values for pages that show charts."""
-      template_values.update(self._GetChartValues())
-      template_values['revision_info'] = json.dumps(
-          template_values['revision_info'])
-      return super().RenderHtml(template_file, template_values, status)
-
-    def GetDynamicVariables(self, template_values, request_path=None):
-      template_values.update(self._GetChartValues())
-      super().GetDynamicVariables(template_values, request_path)
-
-    def _GetChartValues(self):
-      return {'revision_info': revision_info_client.GetRevisionInfoConfig()}

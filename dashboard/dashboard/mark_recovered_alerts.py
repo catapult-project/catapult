@@ -9,14 +9,12 @@ from __future__ import absolute_import
 import logging
 from datetime import datetime
 from datetime import timedelta
-import six
 
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from dashboard import find_anomalies
 from dashboard.common import math_utils
-from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.common import datastore_hooks
 from dashboard.models import anomaly
@@ -233,60 +231,3 @@ def CheckRecoveredAlertsForBug(bug_id, project_id):
             'project_id': project_id,
         },
         queue_name=_TASK_QUEUE_NAME)
-
-
-if six.PY2:
-
-  class MarkRecoveredAlertsHandler(request_handler.RequestHandler):
-    """URL endpoint for a cron job to automatically triage anomalies and bugs."""
-
-    def get(self):
-      """A get request is the same a post request for this endpoint."""
-      self.post()
-
-    def post(self):
-      """Checks if alerts have recovered, and marks them if so.
-
-      This includes checking untriaged alerts, as well as alerts associated with
-      open bugs..
-      """
-      datastore_hooks.SetPrivilegedRequest()
-
-      # Handle task queue requests.
-      bug_id = self.request.get('bug_id')
-      project_id = self.request.get('project_id')
-      if bug_id:
-        bug_id = int(bug_id)
-      if not project_id:
-        project_id = 'chromium'
-      if self.request.get('check_alert'):
-        MarkAlertAndBugIfRecovered(
-            self.request.get('alert_key'), bug_id, project_id)
-        return
-      if self.request.get('check_bug'):
-        CheckRecoveredAlertsForBug(bug_id, project_id)
-        return
-
-      # Kick off task queue jobs for untriaged anomalies.
-      alerts = _FetchUntriagedAnomalies()
-      logging.info('Kicking off tasks for %d alerts', len(alerts))
-      for alert in alerts:
-        taskqueue.add(
-            url='/mark_recovered_alerts',
-            params={
-                'check_alert': 1,
-                'alert_key': alert.key.urlsafe()
-            },
-            queue_name=_TASK_QUEUE_NAME)
-
-      # Kick off task queue jobs for open bugs.
-      bugs = _FetchOpenBugs()
-      logging.info('Kicking off tasks for %d bugs', len(bugs))
-      for bug in bugs:
-        taskqueue.add(
-            url='/mark_recovered_alerts',
-            params={
-                'check_bug': 1,
-                'bug_id': bug['id']
-            },
-            queue_name=_TASK_QUEUE_NAME)

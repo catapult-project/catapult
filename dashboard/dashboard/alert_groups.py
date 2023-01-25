@@ -7,11 +7,9 @@ from __future__ import division
 from __future__ import absolute_import
 
 import logging
-import six
 
 from flask import make_response
 
-from dashboard.common import request_handler
 from dashboard.models import alert_group
 from dashboard.models import alert_group_workflow
 from google.appengine.ext import deferred
@@ -106,30 +104,3 @@ def AlertGroupsGet():
       _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0),
   )
   return make_response('OK')
-
-
-if six.PY2:
-  class AlertGroupsHandler(request_handler.RequestHandler):
-    """Create and Update AlertGroups.
-
-    All active groups are fetched and updated in every iteration. Auto-Triage
-    and Auto-Bisection are triggered based on configuration in matching
-    subscriptions.
-
-    If an anomaly is associated with a special group named Ungrouped, all
-    missing groups related to this anomaly will be created. Newly created groups
-    won't be updated until next iteration.
-
-    Groups will be archived after a time window passes and in status:
-    - Untriaged: Only improvements in the group or auto-triage not enabled.
-    - Closed: Issue closed.
-    """
-    def get(self):
-      logging.info('Queueing task for deferred processing.')
-      # Do not retry failed tasks.
-      deferred.defer(
-          ProcessAlertGroups,
-          _queue='update-alert-group-queue',
-          _retry_options=taskqueue.TaskRetryOptions(task_retry_limit=0),
-      )
-      self.response.write('OK')

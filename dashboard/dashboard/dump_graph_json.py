@@ -13,7 +13,6 @@ from __future__ import absolute_import
 import base64
 from flask import request, make_response
 import json
-import six
 
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb import model
@@ -49,36 +48,6 @@ def DumpGraphJsonHandlerGet():
 
     return make_response(protobuf_json)
   return request_handler.RequestHandlerReportError('No parameters specified.')
-
-
-if six.PY2:
-
-  class DumpGraphJsonHandler(request_handler.RequestHandler):
-    """Handler for extracting entities from datastore."""
-
-    def get(self):
-      """Handles dumping dashboard data."""
-      utils.LogObsoleteHandlerUsage(self, 'GET')
-      if self.request.get('sheriff'):
-        sheriff_name = self.request.get('sheriff')
-        num_points = int(self.request.get('num_points', _DEFAULT_MAX_POINTS))
-        num_anomalies = int(
-            self.request.get('num_alerts', _DEFAULT_MAX_ANOMALIES))
-
-        protobuf_json = _DumpAnomalyDataForSheriff(sheriff_name, num_points,
-                                                   num_anomalies)
-
-        self.response.out.write(protobuf_json)
-      elif self.request.get('test_path'):
-        test_path = self.request.get('test_path')
-        num_points = int(self.request.get('num_points', _DEFAULT_MAX_POINTS))
-        end_rev = self.request.get('end_rev')
-
-        protobuf_json = _DumpTestData(test_path, num_points, end_rev)
-
-        self.response.out.write(protobuf_json)
-      else:
-        self.ReportError('No parameters specified.')
 
 
 def _DumpTestData(test_path, num_points, end_rev):

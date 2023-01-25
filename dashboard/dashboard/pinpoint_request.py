@@ -14,7 +14,6 @@ from google.appengine.ext import ndb
 
 from dashboard.common import descriptor
 from dashboard.common import math_utils
-from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.common import defaults
 from dashboard.models import anomaly
@@ -54,25 +53,6 @@ def PinpointNewPerfTryPost():
   return json.dumps(pinpoint_service.NewJob(pinpoint_params))
 
 
-if six.PY2:
-  class PinpointNewPrefillRequestHandler(request_handler.RequestHandler):
-
-    def post(self):
-      logging.debug('crbug/1298177 - pinpoint_request prefill POST triggered')
-      t = utils.TestKey(self.request.get('test_path')).get()
-      self.response.write(json.dumps({'story_filter': t.unescaped_story_name}))
-
-
-  class PinpointNewBisectRequestHandler(request_handler.RequestHandler):
-
-    def post(self):
-      logging.debug(
-          'crbug/1298177 - pinpoint_request new bisect POST triggered')
-      job_params = dict(
-          (a, self.request.get(a)) for a in self.request.arguments())
-      self.response.write(json.dumps(NewPinpointBisect(job_params)))
-
-
 def NewPinpointBisect(job_params):
   logging.info('Job Params: %s', job_params)
 
@@ -94,22 +74,6 @@ def NewPinpointBisect(job_params):
       alert.put()
 
   return results
-
-
-if six.PY2:
-  class PinpointNewPerfTryRequestHandler(request_handler.RequestHandler):
-
-    def post(self):
-      job_params = dict(
-          (a, self.request.get(a)) for a in self.request.arguments())
-
-      try:
-        pinpoint_params = PinpointParamsFromPerfTryParams(job_params)
-      except InvalidParamsError as e:
-        self.response.write(json.dumps({'error': str(e)}))
-        return
-
-      self.response.write(json.dumps(pinpoint_service.NewJob(pinpoint_params)))
 
 
 def _GitHashToCommitPosition(commit_position):

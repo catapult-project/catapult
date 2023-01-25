@@ -17,7 +17,6 @@ from dashboard import list_tests
 from dashboard import update_test_suites
 from dashboard.common import datastore_hooks
 from dashboard.common import namespaced_stored_object
-from dashboard.common import request_handler
 from dashboard.common import stored_object
 from dashboard.common import utils
 from dashboard.models import graph_data
@@ -70,24 +69,6 @@ def UpdateTestSuiteDescriptorsPost():
     namespace = datastore_hooks.INTERNAL
   UpdateTestSuiteDescriptors(namespace)
   return make_response('')
-
-
-if six.PY2:
-
-  class UpdateTestSuiteDescriptorsHandler(request_handler.RequestHandler):
-
-    def get(self):
-      logging.debug(
-          'crbug/1298177 - update_test_suites_descriptors GET triggered')
-      self.post()
-
-    def post(self):
-      logging.debug(
-          'crbug/1298177 - update_test_suites_descriptors POST triggered')
-      namespace = datastore_hooks.EXTERNAL
-      if self.request.get('internal_only') == 'true':
-        namespace = datastore_hooks.INTERNAL
-      UpdateTestSuiteDescriptors(namespace)
 
 
 def UpdateTestSuiteDescriptors(namespace):

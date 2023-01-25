@@ -14,14 +14,11 @@ import six
 import sys
 import uuid
 import zlib
-if six.PY2:
+try:
+  import cloudstorage.cloudstorage as cloudstorage
+except ImportError:
+  # This is a work around to fix the discrepency on file tree in tests.
   import cloudstorage
-else:
-  try:
-    import cloudstorage.cloudstorage as cloudstorage
-  except ImportError:
-    # This is a work around to fix the discrepency on file tree in tests.
-    import cloudstorage
 
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
@@ -31,7 +28,6 @@ from dashboard.api import api_auth
 from dashboard.api import api_request_handler
 from dashboard.common import datastore_hooks
 from dashboard.common import histogram_helpers
-from dashboard.common import request_handler
 from dashboard.common import timing
 from dashboard.common import utils
 from dashboard.models import graph_data
@@ -212,115 +208,6 @@ def _LoadHistogramList(input_file):
     six.raise_from(ValueError('Failed to parse JSON: %s' % (e)), e)
 
   return objects
-
-
-if six.PY2:
-  class AddHistogramsProcessHandler(request_handler.RequestHandler):
-
-    def post(self):
-      logging.debug('crbug/1298177 - add_histograms POST triggered')
-      datastore_hooks.SetPrivilegedRequest()
-      token = None
-
-      try:
-        params = json.loads(self.request.body)
-        gcs_file_path = params['gcs_file_path']
-
-        token_id = params.get('upload_completion_token')
-        if token_id is not None:
-          token = upload_completion_token.Token.get_by_id(token_id)
-          upload_completion_token.Token.UpdateObjectState(
-              token, upload_completion_token.State.PROCESSING)
-
-        try:
-          logging.debug('Loading %s', gcs_file_path)
-          gcs_file = cloudstorage.open(
-              gcs_file_path, 'r', retry_params=_RETRY_PARAMS)
-          with DecompressFileWrapper(gcs_file) as decompressing_file:
-            histogram_dicts = _LoadHistogramList(decompressing_file)
-
-          gcs_file.close()
-
-          ProcessHistogramSet(histogram_dicts, token)
-        finally:
-          cloudstorage.delete(gcs_file_path, retry_params=_RETRY_PARAMS)
-
-        upload_completion_token.Token.UpdateObjectState(
-            token, upload_completion_token.State.COMPLETED)
-
-      except Exception as e:  # pylint: disable=broad-except
-        logging.error('Error processing histograms: %s', str(e))
-        self.response.out.write(json.dumps({'error': str(e)}))
-
-        upload_completion_token.Token.UpdateObjectState(
-            token, upload_completion_token.State.FAILED, str(e))
-
-
-  # pylint: disable=abstract-method
-  class AddHistogramsHandler(api_request_handler.ApiRequestHandler):
-
-    def _CheckUser(self):
-      self._CheckIsInternalUser()
-
-    def Post(self, *args, **kwargs):
-      del args, kwargs  # Unused.
-      if utils.IsDevAppserver():
-        # Don't require developers to zip the body.
-        # In prod, the data will be written to cloud storage and processed on
-        # the taskqueue, so the caller will not see any errors. In
-        # dev_appserver, process the data immediately so the caller will see
-        # errors. Also, always create upload completion token for such requests.
-        token, token_info = _CreateUploadCompletionToken()
-        ProcessHistogramSet(
-            _LoadHistogramList(six.StringIO(self.request.body)), token)
-        token.UpdateState(upload_completion_token.State.COMPLETED)
-        return token_info
-
-      with timing.WallTimeLogger('decompress'):
-        try:
-          data_str = self.request.body
-
-          # Try to decompress at most 100 bytes from the data, only to determine
-          # if we've been given compressed payload.
-          zlib.decompressobj().decompress(data_str, 100)
-          logging.info('Received compressed data.')
-        except zlib.error as e:
-          data_str = self.request.get('data')
-          if not data_str:
-            six.raise_from(
-                api_request_handler.BadRequestError(
-                    'Missing or uncompressed data.'), e)
-          data_str = zlib.compress(data_str)
-          logging.info('Received uncompressed data.')
-
-      if not data_str:
-        raise api_request_handler.BadRequestError('Missing "data" parameter')
-
-      filename = uuid.uuid4()
-      params = {
-          'gcs_file_path': '/%s/%s' % (_GetCloudStorageBucket(), filename)
-      }
-
-      gcs_file = cloudstorage.open(
-          params['gcs_file_path'],
-          'w',
-          content_type='application/octet-stream',
-          retry_params=_RETRY_PARAMS)
-      gcs_file.write(data_str)
-      gcs_file.close()
-
-      _, token_info = _CreateUploadCompletionToken(params['gcs_file_path'])
-      params['upload_completion_token'] = token_info['token']
-
-      retry_options = taskqueue.TaskRetryOptions(
-          task_retry_limit=_TASK_RETRY_LIMIT)
-      queue = taskqueue.Queue('default')
-      queue.add(
-          taskqueue.Task(
-              url='/add_histograms/process',
-              payload=json.dumps(params),
-              retry_options=retry_options))
-      return token_info
 
 
 def _CreateUploadCompletionToken(temporary_staging_file_path=None):

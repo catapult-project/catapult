@@ -62,53 +62,6 @@ def ShortUriHandlerPost():
   return make_response(json.dumps({'sid': state_id}))
 
 
-if six.PY2:
-
-  class ShortUriHandler(request_handler.RequestHandler):
-    """Handles short URI."""
-
-    def get(self):
-      """Handles getting page states."""
-      state_id = self.request.get('sid')
-
-      if not state_id:
-        self.ReportError('Missing required parameters.', status=400)
-        return
-
-      state = ndb.Key(page_state.PageState, state_id).get()
-
-      if not state:
-        self.ReportError('Invalid sid.', status=400)
-        return
-
-      if self.request.get('v2', None) is None:
-        self.response.out.write(state.value)
-        return
-
-      if state.value_v2 is None:
-        state.value_v2 = _Upgrade(state.value)
-        # If the user is not signed in, then they won't be able to see
-        # internal_only TestMetadata, so value_v2 will be incomplete.
-        # If the user is signed in, then value_v2 is complete, so it's safe to
-        # store it.
-        if datastore_hooks.IsUnalteredQueryPermitted():
-          state.put()
-      self.response.out.write(state.value_v2)
-
-    def post(self):
-      """Handles saving page states and getting state id."""
-
-      state = self.request.get('page_state')
-
-      if not state:
-        self.ReportError('Missing required parameters.', status=400)
-        return
-
-      state_id = GetOrCreatePageState(state)
-
-      self.response.out.write(json.dumps({'sid': state_id}))
-
-
 def GetOrCreatePageState(state):
   state = state.encode('utf-8')
   state_id = GenerateHash(state)

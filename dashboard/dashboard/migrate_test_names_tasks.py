@@ -133,42 +133,6 @@ def MigrateTestNamesTasksPost():
   return make_response('')
 
 
-if six.PY2:
-
-  class MigrateTestNamesTasksHandler(request_handler.RequestHandler):
-    """Migrates the data for a test which has been renamed on the buildbots."""
-
-    def post(self):
-      """Performs migration of old TestMetadata entity names to new ones.
-
-      The request has the the parameters old_test_key and new_test_key,
-      which should both be keys of TestMetadata entities in urlsafe form.
-      """
-      logging.info('Test Migration Request details:%s',
-          self.request.params.items())
-
-      datastore_hooks.SetPrivilegedRequest()
-
-      status = self.request.get('status')
-
-      if not status:
-        error = 'Missing required parameters of /migrate_test_names_tasks.'
-        self.ReportError('Error: %s' % error, status=400)
-      elif status:
-        if status == _MIGRATE_TEST_LOOKUP_PATTERNS:
-          old_pattern = self.request.get('old_pattern')
-          new_pattern = self.request.get('new_pattern')
-          _MigrateTestLookupPatterns(old_pattern, new_pattern)
-        elif status == _MIGRATE_TEST_CREATE:
-          old_test_key = ndb.Key(urlsafe=self.request.get('old_test_key'))
-          new_test_key = ndb.Key(urlsafe=self.request.get('new_test_key'))
-          _MigrateTestCreateTest(old_test_key, new_test_key)
-        elif status == _MIGRATE_TEST_COPY_DATA:
-          old_test_key = ndb.Key(urlsafe=self.request.get('old_test_key'))
-          new_test_key = ndb.Key(urlsafe=self.request.get('new_test_key'))
-          _MigrateTestCopyData(old_test_key, new_test_key)
-
-
 def MigrateTestBegin(old_pattern, new_pattern):
   _ValidateTestPatterns(old_pattern, new_pattern)
 

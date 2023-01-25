@@ -22,7 +22,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 import logging
-import six
 
 from dashboard import migrate_test_names_tasks
 from dashboard.common import datastore_hooks
@@ -93,51 +92,3 @@ def MigrateTestNamesPost():
   except migrate_test_names_tasks.BadInputPatternError as error:
     return request_handler.RequestHandlerReportError(
         'Error: %s' % str(error), status=400)
-
-
-if six.PY2:
-
-  class MigrateTestNamesHandler(request_handler.RequestHandler):
-    """Migrates the data for a test which has been renamed on the buildbots."""
-
-    def get(self):
-      """Displays a simple UI form to kick off migrations."""
-
-      is_allowed = IsRequestAllowed()
-      if not is_allowed:
-        # Display the unauthorized access page
-        return self.RenderHtml(
-            'migrate_test_names_unauthorized.html', {})
-
-      # Display the migration tool page
-      return self.RenderHtml('migrate_test_names.html', {})
-
-    def post(self):
-      """Starts migration of old TestMetadata entity names to new ones.
-
-      The form that's used to kick off migrations will give the parameters
-      old_pattern and new_pattern, which are both test path pattern strings.
-
-      """
-      is_allowed = IsRequestAllowed()
-      user_email = utils.GetEmail()
-      logging.info('Test Migration request from %s. Request details:%s',
-                   user_email, self.request.params.items())
-
-      if not is_allowed:
-        logging.error('Unauthorized access: User %s', user_email)
-        self.ReportError(
-            'Unauthorized access to the test migration tool. ' +
-            'Please contact browser-perf-engprod@google.com for access.',
-            status=401)
-      else:
-        datastore_hooks.SetPrivilegedRequest()
-
-        try:
-          old_pattern = self.request.get('old_pattern')
-          new_pattern = self.request.get('new_pattern')
-          migrate_test_names_tasks.MigrateTestBegin(old_pattern, new_pattern)
-          self.RenderHtml('result.html',
-                            {'headline': 'Test name migration task started.'})
-        except migrate_test_names_tasks.BadInputPatternError as error:
-          self.ReportError('Error: %s' % str(error), status=400)
