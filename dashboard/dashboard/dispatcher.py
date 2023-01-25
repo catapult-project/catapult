@@ -74,21 +74,9 @@ def MainHandlerGet():
   return main.MainHandlerGet()
 
 
-# TODO(crbug/1393102): Handler for partial traffic from fyi. Will remove.
-@flask_app.route('/add_histograms_flask', methods=['POST'])
-def AddHistogramsFlaskPost():
-  return add_histograms.AddHistogramsPost()
-
-
 @flask_app.route('/add_histograms', methods=['POST'])
 def AddHistogramsPost():
   return add_histograms.AddHistogramsPost()
-
-
-# TODO(crbug/1393102): Handler for partial traffic from fyi. Will remove.
-@flask_app.route('/add_histograms_flask/process', methods=['POST'])
-def AddHistogramsFlaskProcessPost():
-  return add_histograms.AddHistogramsProcessPost()
 
 
 @flask_app.route('/add_histograms/process', methods=['POST'])
@@ -96,21 +84,9 @@ def AddHistogramsProcessPost():
   return add_histograms.AddHistogramsProcessPost()
 
 
-# TODO(crbug/1393102): Handler for partial traffic from fyi. Will remove.
-@flask_app.route('/add_histograms_queue_flask', methods=['GET', 'POST'])
-def AddHistogramsQueueFlaskPost():
-  return add_histograms_queue.AddHistogramsQueuePost()
-
-
 @flask_app.route('/add_histograms_queue', methods=['GET', 'POST'])
 def AddHistogramsQueuePost():
   return add_histograms_queue.AddHistogramsQueuePost()
-
-
-# Handler for testing partial traffic from fyi. Will remove.
-@flask_app.route('/add_point_flask', methods=['POST'])
-def AddPointFlaskPost():
-  return add_point.AddPointPost()
 
 
 @flask_app.route('/add_point', methods=['POST'])

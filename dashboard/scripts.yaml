@@ -21,12 +21,6 @@ handlers:
   login: admin
   secure: always
 
-# crbug/1393102
-- url: /add_histograms_queue_flask
-  script: dashboard.dispatcher.APP
-  login: admin
-  secure: always
-
 - url: /add_point_queue
   script: dashboard.dispatcher.APP
   login: admin
