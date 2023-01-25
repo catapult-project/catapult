@@ -833,5 +833,5 @@ def _IssueTracker():
   # pylint: disable=protected-access
   if not hasattr(_IssueTracker, '_client'):
     _IssueTracker._client = issue_tracker_service.IssueTrackerService(
-        utils.ServiceAccountHttp())
+        utils.ServiceAccountHttp(use_adc=True))
   return _IssueTracker._client

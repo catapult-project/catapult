@@ -30,7 +30,7 @@ class NewBugHandler(api_request_handler.ApiRequestHandler):
     components = self.request.get_all('component')
     keys = self.request.get_all('key')
     bisect = api_utils.ParseBool(self.request.get('bisect', 'true'))
-    http = utils.ServiceAccountHttp()
+    http = utils.ServiceAccountHttp(use_adc=True)
 
     return file_bug.FileBug(http, owner, cc, summary, description, project,
                             labels, components, keys, bisect)

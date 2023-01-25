@@ -42,7 +42,7 @@ class BugsHandler(api_request_handler.ApiRequestHandler):
     bug_id = args[0]
 
     service = issue_tracker_service.IssueTrackerService(
-        utils.ServiceAccountHttp())
+        utils.ServiceAccountHttp(use_adc=True))
     project = kwargs.get('project', 'chromium')
 
     if bug_id == 'recent':

@@ -323,7 +323,8 @@ class IssueTrackerService(object):
       The response if there was one, or else None.
     """
     response = request.execute(
-        num_retries=MAX_REQUEST_RETRIES, http=utils.ServiceAccountHttp())
+        num_retries=MAX_REQUEST_RETRIES,
+        http=utils.ServiceAccountHttp(use_adc=True))
     return response
 
 

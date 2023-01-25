@@ -37,7 +37,7 @@ class BugDetailsHandler(request_handler.RequestHandler):
       self.ReportError('Invalid or no bug id specified.')
       return
 
-    http = utils.ServiceAccountHttp()
+    http = utils.ServiceAccountHttp(use_adc=True)
     self.response.out.write(json.dumps(GetBugDetails(bug_id, http)))
 
 
