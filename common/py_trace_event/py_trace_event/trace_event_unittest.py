@@ -20,6 +20,12 @@ from py_trace_event.trace_event_impl import multiprocessing_shim
 from py_utils import tempfile_ext
 
 
+# Moving out for pickle serialization.
+def child(resp):
+  # test tracing is not controllable in the child
+  resp.put(trace_event.is_tracing_controllable())
+
+
 class TraceEventTests(unittest.TestCase):
 
   @contextlib.contextmanager
@@ -32,10 +38,6 @@ class TraceEventTests(unittest.TestCase):
       finally:
         if disable:
           trace_event.trace_disable()
-
-  def child(resp):
-    # test tracing is not controllable in the child
-    resp.put(trace_event.is_tracing_controllable())
 
   def testNoImpl(self):
     orig_impl = trace_event.trace_event_impl
@@ -400,12 +402,10 @@ class TraceEventTests(unittest.TestCase):
         self.assertEquals(parent_close['ph'], 'E')
 
   @unittest.skipIf(sys.platform == 'win32', 'crbug.com/945819')
-  @unittest.skipIf(sys.version_info[0] == 3, 'Python3 pickle issue')
-  # TODO: Upgrade PY3 version and activate it
   def testTracingControlDisabledInChildButNotInParent(self):
     with self._test_trace():
       q = multiprocessing.Queue()
-      p = multiprocessing.Process(target=self.child, args=[q])
+      p = multiprocessing.Process(target=child, args=[q])
       p.start()
       # test tracing is controllable in the parent
       self.assertTrue(trace_event.is_tracing_controllable())
