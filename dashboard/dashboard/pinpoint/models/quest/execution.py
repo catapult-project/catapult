@@ -19,9 +19,7 @@ else:
   TokenRefreshError = exceptions.RefreshError
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class Execution(object):
+class Execution:
   """Object tracking the execution of a Quest.
 
   An Execution object is created for each Quest when it starts running.
@@ -141,10 +139,6 @@ class Execution(object):
       if hasattr(e, 'task_output'):
         tb += '\n%s' % getattr(e, 'task_output')
       self._exception = {'message': str(e), 'traceback': tb}
-    # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
-    except:  # pylint: disable=try-except-raise
-      # All other exceptions must be propagated.
-      raise
 
   def _Poll(self):
     raise NotImplementedError()

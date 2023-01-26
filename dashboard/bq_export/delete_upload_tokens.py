@@ -37,9 +37,7 @@ class TokenSelectionOptions(PipelineOptions):
     return _SelectionProvider(self.max_lifetime, self.reference_time)
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class _SelectionProvider(object):
+class _SelectionProvider:
 
   def __init__(self, max_lifetime, reference_time):
     self._max_lifetime = max_lifetime

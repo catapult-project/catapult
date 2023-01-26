@@ -437,10 +437,8 @@ class GroupReportTest(GroupReportTestBase):
                              'Type-Bug-Regression', 'Chromeperf-Auto-Triaged'
                          ])
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
-    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
-    # pylint: disable=deprecated-method
-    self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
-                             r'Top 1 affected measurements in bot:')
+    self.assertRegex(self.fake_issue_tracker.new_bug_args[1],
+                     r'Top 1 affected measurements in bot:')
     self.assertEqual(a.get().bug_id, 12345)
     self.assertEqual(group.bug.bug_id, 12345)
     # Make sure we don't file the issue again for this alert group.
@@ -487,18 +485,12 @@ class GroupReportTest(GroupReportTestBase):
                              'Type-Bug-Regression', 'Chromeperf-Auto-Triaged'
                          ])
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
-    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
-    # pylint: disable=deprecated-method
-    self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
-                             r'Top 4 affected measurements in bot:')
-    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
-    # pylint: disable=deprecated-method
-    self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
-                             r'Top 1 affected in test_suite:')
-    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
-    # pylint: disable=deprecated-method
-    self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
-                             r'Top 1 affected in other_test_suite:')
+    self.assertRegex(self.fake_issue_tracker.new_bug_args[1],
+                     r'Top 4 affected measurements in bot:')
+    self.assertRegex(self.fake_issue_tracker.new_bug_args[1],
+                     r'Top 1 affected in test_suite:')
+    self.assertRegex(self.fake_issue_tracker.new_bug_args[1],
+                     r'Top 1 affected in other_test_suite:')
     self.assertEqual(a.get().bug_id, 12345)
     self.assertEqual(group.bug.bug_id, 12345)
     # Make sure we don't file the issue again for this alert group.
@@ -576,10 +568,8 @@ class GroupReportTest(GroupReportTestBase):
     six.assertCountEqual(
         self, self.fake_issue_tracker.add_comment_kwargs['components'],
         ['Foo>Bar'])
-    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
-    # pylint: disable=deprecated-method
-    self.assertRegexpMatches(self.fake_issue_tracker.add_comment_args[1],
-                             r'Top 2 affected measurements in bot:')
+    self.assertRegex(self.fake_issue_tracker.add_comment_args[1],
+                     r'Top 2 affected measurements in bot:')
 
   def testMultipleAltertsNonoverlapThreshold(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
@@ -653,10 +643,8 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self.InitAfterMocks()
     self._CallHandler()
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
-    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
-    # pylint: disable=deprecated-method
-    self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
-                             r'Top 1 affected measurements in bot:')
+    self.assertRegex(self.fake_issue_tracker.new_bug_args[1],
+                     r'Top 1 affected measurements in bot:')
 
   def testClosesIssueOnAllRecovered(self, mock_get_sheriff_client):
     # Ensure that we close the issue if all regressions in the group have been
@@ -665,19 +653,15 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self.InitAfterMocks()
     self._CallHandler()
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
-    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
-    # pylint: disable=deprecated-method
-    self.assertRegexpMatches(self.fake_issue_tracker.new_bug_args[1],
-                             r'Top 1 affected measurements in bot:')
+    self.assertRegex(self.fake_issue_tracker.new_bug_args[1],
+                     r'Top 1 affected measurements in bot:')
     # Mark one of the anomalies recovered.
     recovered_anomaly = self.anomalies[0].get()
     recovered_anomaly.recovered = True
     recovered_anomaly.put()
     self._CallHandler()
     self.assertEqual(self.fake_issue_tracker.issue['state'], 'closed')
-    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
-    # pylint: disable=deprecated-method
-    self.assertRegexpMatches(
+    self.assertRegex(
         self.fake_issue_tracker.add_comment_args[1],
         r'All regressions for this issue have been marked recovered; closing.')
 
@@ -697,15 +681,11 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self._CallHandler()
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.add_comment_args[1])
     self.assertEqual(self.fake_issue_tracker.issue["state"], 'open')
-    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
-    # pylint: disable=deprecated-method
-    self.assertRegexpMatches(
+    self.assertRegex(
         self.fake_issue_tracker.add_comment_args[1],
         r'Reopened due to new regressions detected for this alert group:')
-    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
-    # pylint: disable=deprecated-method
-    self.assertRegexpMatches(self.fake_issue_tracker.add_comment_args[1],
-                             r'test_suite/measurement/other_test_case')
+    self.assertRegex(self.fake_issue_tracker.add_comment_args[1],
+                     r'test_suite/measurement/other_test_case')
 
   def testManualClosedIssuesWithNewRegressions(self, mock_get_sheriff_client):
     # pylint: disable=no-value-for-parameter
@@ -730,10 +710,8 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self._CallHandler()
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.add_comment_args[1])
     self.assertEqual(self.fake_issue_tracker.issue["state"], 'closed')
-    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
-    # pylint: disable=deprecated-method
-    self.assertRegexpMatches(self.fake_issue_tracker.add_comment_args[1],
-                             r'test_suite/measurement/other_test_case')
+    self.assertRegex(self.fake_issue_tracker.add_comment_args[1],
+                     r'test_suite/measurement/other_test_case')
 
   def testStartAutoBisection(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)

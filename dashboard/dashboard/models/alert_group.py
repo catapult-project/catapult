@@ -44,9 +44,7 @@ class AlertGroup(ndb.Model):
   created = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
   updated = ndb.DateTimeProperty(indexed=False, auto_now_add=True)
 
-  # TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-  # pylint: disable=useless-object-inheritance
-  class Status(object):
+  class Status:
     unknown = 0
     untriaged = 1
     triaged = 2
@@ -55,9 +53,7 @@ class AlertGroup(ndb.Model):
 
   status = ndb.IntegerProperty(indexed=False)
 
-  # TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-  # pylint: disable=useless-object-inheritance
-  class Type(object):
+  class Type:
     test_suite = 0
     logical = 1
     reserved = 2

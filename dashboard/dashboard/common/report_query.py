@@ -26,9 +26,7 @@ def TableRowDescriptors(table_row):
         yield descriptor.Descriptor(test_suite, table_row['measurement'], bot)
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class ReportQuery(object):
+class ReportQuery:
   """Take a template and revisions. Return a report.
 
   Templates look like this: {

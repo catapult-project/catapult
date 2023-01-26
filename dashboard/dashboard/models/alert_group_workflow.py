@@ -93,9 +93,7 @@ class InvalidPinpointRequest(Exception):
   pass
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class AlertGroupWorkflow(object):
+class AlertGroupWorkflow:
   """Workflow used to manipulate the AlertGroup.
 
   Workflow will assume the group passed from caller is same as the group in

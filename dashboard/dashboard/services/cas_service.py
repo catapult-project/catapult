@@ -23,9 +23,7 @@ def GetRBECASService():
   return GetRBECASService._client
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class RBECASService(object):
+class RBECASService:
 
   def __init__(self):
     """Initializes an object for retrieving files and directories from RBE-CAS.

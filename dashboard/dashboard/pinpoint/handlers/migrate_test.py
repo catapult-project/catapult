@@ -120,13 +120,10 @@ def _JobStateSetState(self, state):
   self._new_field = 'new value'
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class _DatetimeStub(object):
+class _DatetimeStub:
 
-  # TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-  # pylint: disable=useless-object-inheritance,invalid-name
-  class datetime(object):
+  # pylint: disable=invalid-name
+  class datetime:
 
     def isoformat(self):
       return 'Date Time'

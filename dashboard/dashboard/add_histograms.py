@@ -515,9 +515,7 @@ def _CheckRequest(condition, msg):
     raise api_request_handler.BadRequestError(msg)
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class DecompressFileWrapper(object):
+class DecompressFileWrapper:
   """A file-like object implementing inline decompression.
 
   This class wraps a file-like object and does chunk-based decoding of the data.

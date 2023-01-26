@@ -9,9 +9,7 @@ from __future__ import absolute_import
 import re
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class BisectJob(object):
+class BisectJob:
   """A buildbot bisect job started and monitored through buildbucket."""
 
   def __init__(self,

@@ -18,9 +18,7 @@ from dashboard.common import utils
 from dashboard.models import graph_data
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class FakeRequest(object):
+class FakeRequest:
 
   def __init__(self):
     self.registry = {}

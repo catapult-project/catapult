@@ -33,9 +33,7 @@ class TestListHandler(webapp2.RequestHandler):
     return self.response.write(tests_as_json)
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class DashboardDevServerConfig(object):
+class DashboardDevServerConfig:
 
   def __init__(self):
     self.project = dashboard_project.DashboardProject()

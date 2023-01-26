@@ -99,9 +99,7 @@ class BuildbucketServiceTest(unittest.TestCase):
     self._AssertRequestMadeOnce('GetBuild', method='POST', body=expected_body)
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class FakeJob(object):
+class FakeJob:
 
   def GetBuildParameters(self):
     return _BUILD_PARAMETERS

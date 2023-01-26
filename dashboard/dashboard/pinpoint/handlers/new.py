@@ -312,8 +312,6 @@ def _ArgumentsWithConfiguration(original_arguments):
   return new_arguments
 
 
-# TODO(https://crbug.com/1262292): raise directly after Python2 trybots retire.
-# pylint: disable=inconsistent-return-statements
 def _ValidateBugId(bug_id, project):
   if not bug_id:
     return None, None
@@ -325,11 +323,9 @@ def _ValidateBugId(bug_id, project):
     # the inputs are valid.
     return int(bug_id), project
   except ValueError as e:
-    six.raise_from(ValueError(_ERROR_BUG_ID), e)
+    raise ValueError(_ERROR_BUG_ID) from e
 
 
-# TODO(https://crbug.com/1262292): raise directly after Python2 trybots retire.
-# pylint: disable=inconsistent-return-statements
 def _ValidatePriority(priority):
   if not priority:
     return None
@@ -337,7 +333,7 @@ def _ValidatePriority(priority):
   try:
     return int(priority)
   except ValueError as e:
-    six.raise_from(ValueError(_ERROR_PRIORITY), e)
+    raise ValueError(_ERROR_PRIORITY) from e
 
 
 def _ValidateChangesForTry(arguments):
@@ -401,8 +397,6 @@ def _ValidateChangesForTry(arguments):
   return change_1, change_2
 
 
-# TODO(https://crbug.com/1262292): raise directly after Python2 trybots retire.
-# pylint: disable=inconsistent-return-statements
 def _ValidateChanges(comparison_mode, arguments):
   try:
     changes = arguments.get('changes')
@@ -445,7 +439,7 @@ def _ValidateChanges(comparison_mode, arguments):
 
     return change_1, change_2
   except errors.BuildGerritURLInvalid as e:
-    six.raise_from(ValueError(str(e)), e)
+    raise ValueError(str(e)) from e
 
 
 def _ValidatePatch(patch_data):

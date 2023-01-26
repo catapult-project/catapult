@@ -47,9 +47,7 @@ def _IsFilenameATest(x):
   return False
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class DashboardProject(object):
+class DashboardProject:
   catapult_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
   catapult_third_party_path = os.path.join(catapult_path, 'third_party')

@@ -124,9 +124,7 @@ def _CreateHistogram(name='hist',
   return histograms
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class BufferedFakeFile(object):
+class BufferedFakeFile:
 
   def __init__(self, data=b''):
     self.data = data

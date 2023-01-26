@@ -55,9 +55,7 @@ def FindAllSheriffConfigs(client):
   try:
     configs = client.get_project_configs(path=SHERIFF_CONFIG_PATH).execute()
   except (errors.HttpError, httplib2.HttpLib2Error) as e:
-    # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
-    # pylint: disable=raise-missing-from
-    raise FetchError(e)
+    raise FetchError(e) from e
   return configs
 
 
@@ -109,9 +107,7 @@ def StoreConfigs(client, configs):
       sheriff_config = validator.Validate(
           base64.standard_b64decode(config['content']))
     except validator.Error as error:
-      # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
-      # pylint: disable=raise-missing-from
-      raise InvalidContentError(error, config)
+      raise InvalidContentError(error, config) from error
 
     entity = datastore.Entity(
         key=key, exclude_from_indexes=['sheriff_config', 'url'])
@@ -148,9 +144,7 @@ def StoreConfigs(client, configs):
     client.put_multi(list(entities.values()) + [subscription_index])
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class Matcher(object):
+class Matcher:
 
   def __init__(self, subscription):
     self._match_subscription = matcher_module.CompileRules(

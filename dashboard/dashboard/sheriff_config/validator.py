@@ -100,9 +100,8 @@ def Validate(content):
   try:
     result = text_format.Parse(content, sheriff_pb2.SheriffConfig())
   except text_format.ParseError as error:
-    # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
-    # pylint: disable=raise-missing-from
-    raise InvalidConfig('SheriffConfig Validation Error: %s' % (error))
+    raise InvalidConfig('SheriffConfig Validation Error: %s' %
+                        (error)) from error
 
   # Go through each of the subscriptions, and ensure we find the semantically
   # required fields.
@@ -120,10 +119,8 @@ def Validate(content):
     try:
       matcher.CompilePattern(pattern)
     except re.error as e:
-      # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
-      # pylint: disable=raise-missing-from
       raise InvalidPattern(result, index, pattern_idx, 'failed: %s' % (e,),
-                           group)
+                           group) from e
 
   for (index, subscription) in enumerate(result.subscriptions):
     if subscription.contact_email is None or len(

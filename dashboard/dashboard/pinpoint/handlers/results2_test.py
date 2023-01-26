@@ -94,15 +94,11 @@ class Results2GeneratorPostTest(_Results2Test):
     self.assertIn(b'foo', response.body)
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class _TaskStub(object):
+class _TaskStub:
   pass
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class _JobStub(object):
+class _JobStub:
 
   def __init__(self, job_id, started=True, task=None):
     self.job_id = job_id

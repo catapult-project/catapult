@@ -197,9 +197,7 @@ class ScheduleWorkTest(unittest.TestCase):
     expected_regexp = ('.*7/10.*\n%s: Expected error for testing.$' %
                        exception_name)
     self.assertTrue(state.ScheduleWork())
-    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
-    # pylint: disable=deprecated-method
-    with self.assertRaisesRegexp(Exception, expected_regexp):
+    with self.assertRaisesRegex(Exception, expected_regexp):
       self.assertFalse(state.ScheduleWork())
 
   def testAbortAfterNChanges(self):
@@ -210,9 +208,7 @@ class ScheduleWorkTest(unittest.TestCase):
       state.AddChange(change_test.Change(i))
     self.assertEqual(len(state._changes), n)
     expected_regexp = ('Bisected max number of times: %d.+' % n)
-    # TODO(https://crbug.com/1262295): Update this after Python2 trybots retire.
-    # pylint: disable=deprecated-method
-    with self.assertRaisesRegexp(Exception, expected_regexp):
+    with self.assertRaisesRegex(Exception, expected_regexp):
       state.AddChange(change_test.Change(123))
 
 

@@ -189,7 +189,8 @@ class ReadValueExecution(execution.Execution):
         result_values = self._ParseGraphJson(json_data)
         self._mode = 'graphjson'
         logging.debug('Succeess.')
-      # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
+      # We're catching a subset of InformationalError here. The latest version
+      # of pylint will handle this use case.
       # pylint: disable=try-except-raise
       except (errors.ReadValueChartNotFound, errors.ReadValueTraceNotFound,
               errors.FatalError):
@@ -210,10 +211,8 @@ class ReadValueExecution(execution.Execution):
         histograms.ImportDicts(json_data)
       elif proto_data is not None:
         histograms.ImportProto(proto_data)
-    except BaseException:
-      # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
-      # pylint: disable=raise-missing-from
-      raise errors.ReadValueUnknownFormat(self._results_filename)
+    except BaseException as e:
+      raise errors.ReadValueUnknownFormat(self._results_filename) from e
 
     self._trace_urls = FindTraceUrls(histograms)
     histograms_by_path = CreateHistogramSetByTestPathDict(histograms)

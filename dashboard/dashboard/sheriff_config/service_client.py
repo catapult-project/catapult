@@ -71,7 +71,5 @@ def CreateServiceClient(api_root, api, version, http=None, credentials=None):
           http=http,
           cache_discovery=False)
   except (errors.HttpError, errors.UnknownApiNameOrVersion) as e:
-    # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
-    # pylint: disable=raise-missing-from}
-    raise DiscoveryError(e)
+    raise DiscoveryError(e) from e
   return client

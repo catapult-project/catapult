@@ -73,9 +73,7 @@ ONE_TWO_TEST_SUITES_KEY = 'one_two_test_suites'
 COMPLEX_CASES_TEST_SUITES_KEY = 'complex_cases_test_suites'
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class Descriptor(object):
+class Descriptor:
   """Describe a timeseries by its characteristics.
 
   Supports partial test paths (e.g. test suite paths) by allowing some

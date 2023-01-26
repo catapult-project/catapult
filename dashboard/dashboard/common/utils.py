@@ -550,8 +550,6 @@ class GroupMemberAuthFailed(Exception):
   pass
 
 
-# TODO(https://crbug.com/1262292): raise directly after Python2 trybots retire.
-# pylint: disable=inconsistent-return-statements
 def IsGroupMember(identity, group):
   """Checks if a user is a group member of using chrome-infra-auth.appspot.com.
 
@@ -583,7 +581,7 @@ def IsGroupMember(identity, group):
     return is_member
   except (errors.HttpError, KeyError, AttributeError) as e:
     logging.error('Failed to check membership of %s: %s', identity, str(e))
-    six.raise_from(GroupMemberAuthFailed('Failed to authenticate user.'), e)
+    raise GroupMemberAuthFailed('Failed to authenticate user.') from e
 
 
 def GetCachedIsGroupMember(identity, group):

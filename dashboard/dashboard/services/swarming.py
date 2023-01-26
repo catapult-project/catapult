@@ -19,9 +19,7 @@ from dashboard.services import request
 _API_PATH = '_ah/api/swarming/v1'
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class Swarming(object):
+class Swarming:
 
   def __init__(self, server):
     self._server = server
@@ -39,9 +37,7 @@ class Swarming(object):
     return Tasks(self._server)
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class Bot(object):
+class Bot:
 
   def __init__(self, server, bot_id):
     self._server = server
@@ -63,9 +59,7 @@ class Bot(object):
     return request.RequestJson(url, use_adc=True, **kwargs)
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class Bots(object):
+class Bots:
 
   def __init__(self, server):
     self._server = server
@@ -92,9 +86,7 @@ class Bots(object):
         use_adc=True)
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class Task(object):
+class Task:
 
   def __init__(self, server, task_id):
     self._server = server
@@ -129,9 +121,7 @@ class Task(object):
     return request.RequestJson(url, use_adc=True, **kwargs)
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class Tasks(object):
+class Tasks:
 
   def __init__(self, server):
     self._server = server

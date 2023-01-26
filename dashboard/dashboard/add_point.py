@@ -695,8 +695,6 @@ def _IsAcceptableRowId(row_id, last_row_id):
   return True
 
 
-# TODO(https://crbug.com/1262292): raise directly after Python2 trybots retire.
-# pylint: disable=inconsistent-return-statements
 def GetAndValidateRowId(row_dict):
   """Returns the integer ID for a new Row.
 
@@ -717,8 +715,8 @@ def GetAndValidateRowId(row_dict):
   try:
     return int(row_dict['revision'])
   except (ValueError, TypeError) as e:
-    six.raise_from(
-        BadRequestError('Bad value for "revision", should be numerical.'), e)
+    raise BadRequestError(
+        'Bad value for "revision", should be numerical.') from e
 
 
 def GetAndValidateRowProperties(row):

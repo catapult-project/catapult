@@ -22,9 +22,7 @@ from dashboard.services import request
 FAILURE_MAPPING = {'FAILURE': 'failed', 'CANCELLED': 'cancelled'}
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class ScheduleBuildAction(object):
+class ScheduleBuildAction:
   """Action to schedule a build via BuildBucket.
 
   This action will schedule a build via the BuildBucket API, and ensure that
@@ -264,9 +262,7 @@ class UpdateBuildStatusAction(
                                                           self.task.id)
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class InitiateEvaluator(object):
+class InitiateEvaluator:
 
   def __init__(self, job):
     self.job = job
@@ -315,9 +311,7 @@ class InitiateEvaluator(object):
     return None
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class UpdateEvaluator(object):
+class UpdateEvaluator:
 
   def __init__(self, job):
     self.job = job

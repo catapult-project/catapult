@@ -1273,9 +1273,7 @@ class FakePatch(
     }
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class _AttemptFake(object):
+class _AttemptFake:
 
   def __init__(self, attempt):
     self._attempt = attempt
@@ -1289,9 +1287,7 @@ class _AttemptFake(object):
     return '%s' % (self._attempt,)
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class _JobStateFake(object):
+class _JobStateFake:
 
   def __init__(self, attempts):
     self._attempts = {
@@ -1317,9 +1313,7 @@ class _JobStateFake(object):
     return list(Pairwise(list(self._attempts.keys())))
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class _JobStub(object):
+class _JobStub:
 
   def __init__(self,
                job_dict,

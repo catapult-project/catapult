@@ -16,9 +16,7 @@ import six
 import time
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class WallTimeLogger(object):
+class WallTimeLogger:
 
   def __init__(self, label, description=''):
     """Initialize a context manager labeled `label` that measures the wall time

@@ -35,9 +35,7 @@ TRY = 'try'
 COMPARISON_MODES = (FUNCTIONAL, PERFORMANCE, TRY)
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class JobState(object):
+class JobState:
   """The internal state of a Job.
 
   Wrapping the entire internal state of a Job in a PickleProperty allows us to

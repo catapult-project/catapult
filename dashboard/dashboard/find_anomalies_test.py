@@ -116,9 +116,7 @@ def _MakeSampleChangePoint(x_value, median_before, median_after):
   )
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class EndRevisionMatcher(object):
+class EndRevisionMatcher:
   """Custom matcher to test if an anomaly matches a given end rev."""
 
   def __init__(self, end_revision):
@@ -137,9 +135,7 @@ class EndRevisionMatcher(object):
     return hash(self._end_revision)
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class ModelMatcher(object):
+class ModelMatcher:
   """Custom matcher to check if two ndb entity names match."""
 
   def __init__(self, name):

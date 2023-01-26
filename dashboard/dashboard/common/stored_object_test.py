@@ -12,9 +12,7 @@ from dashboard.common import stored_object
 from dashboard.common import testing_common
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class SampleSerializableClass(object):
+class SampleSerializableClass:
 
   def __init__(self, data):
     self.data = data

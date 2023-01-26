@@ -198,9 +198,7 @@ class GerritPatch(
       patch_info = gerrit_service.GetChange(
           server, change, fields=('ALL_REVISIONS',))
     except gerrit_service.NotFoundError as e:
-      # TODO(https://crbug.com/1262292): use `faise from` when Python2 trybots retire.
-      # pylint: disable=raise-missing-from
-      raise KeyError(str(e))
+      raise KeyError(str(e)) from e
     change = patch_info['id']
 
     # Revision can be a revision ID or numeric patch number.

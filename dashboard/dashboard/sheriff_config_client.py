@@ -25,9 +25,7 @@ def GetSheriffConfigClient():
   return GetSheriffConfigClient._client
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class SheriffConfigClient(object):
+class SheriffConfigClient:
   """Wrapping of sheriff-config HTTP API."""
 
   _Subscription = None

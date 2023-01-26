@@ -6,8 +6,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import six
-
 from dashboard.api import api_request_handler
 from dashboard.pinpoint.models import change
 from dashboard.common import utils
@@ -18,8 +16,6 @@ if utils.IsRunningFlask():
   def _CheckUser():
     pass
 
-  # TODO(https://crbug.com/1262292): raise directly after Python2 trybots retire.
-  # pylint: disable=inconsistent-return-statements
   @api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
   def CommitHandlerPost():
     repository = utils.SanitizeArgs(
@@ -33,9 +29,8 @@ if utils.IsRunningFlask():
       })
       return c.AsDict()
     except KeyError as e:
-      six.raise_from(
-          api_request_handler.BadRequestError('Unknown git hash: %s' %
-                                              git_hash), e)
+      raise api_request_handler.BadRequestError('Unknown git hash: %s' %
+                                                git_hash) from e
 else:
   class Commit(api_request_handler.ApiRequestHandler):
     # pylint: disable=abstract-method
@@ -43,8 +38,6 @@ else:
     def _CheckUser(self):
       pass
 
-    # TODO(https://crbug.com/1262292): raise directly after Python2 trybots retire.
-    # pylint: disable=inconsistent-return-statements
     def Post(self, *args, **kwargs):
       del args, kwargs  # Unused.
       repository = self.request.get('repository', 'chromium')
@@ -56,6 +49,5 @@ else:
         })
         return c.AsDict()
       except KeyError as e:
-        six.raise_from(
-            api_request_handler.BadRequestError('Unknown git hash: %s' %
-                                                git_hash), e)
+        raise api_request_handler.BadRequestError('Unknown git hash: %s' %
+                                                  git_hash) from e

@@ -7,9 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class Quest(object):
+class Quest:
   """A description of work to do on a Change.
 
   Examples include building a binary or running a test. The concept is borrowed

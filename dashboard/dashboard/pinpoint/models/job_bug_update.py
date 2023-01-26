@@ -70,9 +70,7 @@ def ComputeLabelUpdates(labels):
   return list(label_updates)
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class JobUpdateBuilder(object):
+class JobUpdateBuilder:
   """Builder for job issue updates.
 
   The builder lets us collect the useful information for filing an update on an
@@ -105,9 +103,7 @@ class JobUpdateBuilder(object):
     return _BugUpdateInfo(comment_text, None, None, labels, None)
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class DifferencesFoundBugUpdateBuilder(object):
+class DifferencesFoundBugUpdateBuilder:
   """Builder for bug updates about differences found in a metric.
 
   Accumulate the found differences into this with AddDifference(), then call
@@ -280,9 +276,7 @@ class DifferencesFoundBugUpdateBuilder(object):
     return owner, cc_list, why_text
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class _Difference(object):
+class _Difference:
 
   # Define this as a class attribute so that accessing it never fails with
   # AttributeError, even if working with a serialized version of _Difference

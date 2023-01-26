@@ -171,9 +171,7 @@ class CachedResults2(ndb.Model):
   job_id = ndb.StringProperty()
 
 
-# TODO(https://crbug.com/1262292): Update after Python2 trybots retire.
-# pylint: disable=useless-object-inheritance
-class _GcsFileStream(object):
+class _GcsFileStream:
   """Wraps a gcs file providing a FileStream like api."""
 
   # pylint: disable=invalid-name
