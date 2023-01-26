@@ -6,9 +6,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import pickle
-pickle.HIGHEST_PROTOCOL = 2
-
 from flask import Flask, request as flask_request, make_response
 import logging
 
@@ -346,12 +343,13 @@ def ObsoleteEndpointsHandler(bug_id=None, project_id=None):
   del bug_id, project_id
   obsolete_endpoint = flask_request.endpoint
   logging.error(
-      'Request on deleted endpoint: %s. It was considered obsolete in Python 3 migration.',
-      obsolete_endpoint)
+      'Request on deleted endpoint: %s. '
+      'It was considered obsolete in Python 3 migration.', obsolete_endpoint)
 
   return make_response(
-      'This endpoint is obsolete: %s. Please contact browser-perf-engprod@google.com for more info.'
-      % obsolete_endpoint, 404)
+      'This endpoint is obsolete: %s. '
+      'Please contact browser-perf-engprod@google.com for more info.' %
+      obsolete_endpoint, 404)
 
 
 def APP(environ, request):
