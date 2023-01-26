@@ -289,8 +289,20 @@ found in the LICENSE file.
                 <paper-input class="column" name="experiment_patch" value="{{experiment_patch}}" label="Exp Patch (optional, Gerrit URL)" disabled="[[isBisectJob(comparisonMode)]]"></paper-input>
               </div>
               <div class="horizontal">
-                <paper-input class="column" name="base_extra_args" value="{{base_extra_args}}" label="Extra arguments on base commit (optional)" disabled="[[isBisectJob(comparisonMode)]]"></paper-input>
-                <paper-input class="column" name="experiment_extra_args" value="{{experiment_extra_args}}" label="Extra arguments on experiment commit (optional)" disabled="[[isBisectJob(comparisonMode)]]"></paper-input>
+                <paper-input always-float-label
+                             class="column"
+                             disabled="[[isBisectJob(comparisonMode)]]"
+                             label="Example: --enable-features=ignore-gpu-blocklist,enable-quic"
+                             name="base_extra_args"
+                             placeholder="Extra arguments on base commit (optional)"
+                             value="{{base_extra_args}}"></paper-input>
+                <paper-input always-float-label
+                             class="column"
+                             disabled="[[isBisectJob(comparisonMode)]]"
+                             label="Example: --enable-features=ignore-gpu-blocklist,enable-quic"
+                             name="experiment_extra_args"
+                             placeholder="Extra arguments on experiment commit (optional)"
+                             value="{{experiment_extra_args}}" ></paper-input>
               </div>
             </template>
 
