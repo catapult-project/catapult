@@ -93,7 +93,8 @@ class WprArchiveInfo():
     def download_if_needed(path):
       try:
         cloud_storage.GetIfChanged(path, self._bucket)
-      except (cloud_storage.CredentialsError, cloud_storage.PermissionError):
+      except (cloud_storage.CredentialsError,
+              cloud_storage.CloudStoragePermissionError):
         if os.path.exists(path):
           # If the archive exists, assume the user recorded their own and warn
           # them that they do not have the proper credentials to download.

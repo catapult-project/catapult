@@ -472,8 +472,8 @@ class DependencyManagerTest(fake_filesystem_unittest.TestCase):
     self.assertRaises(cloud_storage.CloudStorageError,
                       dep_manager.FetchPath, 'dep', 'platform')
 
-    cs_path_mock.side_effect = cloud_storage.PermissionError
-    self.assertRaises(cloud_storage.PermissionError,
+    cs_path_mock.side_effect = cloud_storage.CloudStoragePermissionError
+    self.assertRaises(cloud_storage.CloudStoragePermissionError,
                       dep_manager.FetchPath, 'dep', 'platform')
 
   def testLocalPath(self):

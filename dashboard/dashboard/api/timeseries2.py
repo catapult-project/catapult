@@ -7,7 +7,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 import six
-import logging
 
 from google.appengine.ext import ndb
 
@@ -39,7 +38,6 @@ def _CheckUser():
 
 @api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
 def TimeSeries2Post():
-  logging.debug('crbug/1298177 - /api/timeseries2 POST triggered by flask')
   desc = descriptor.Descriptor(
       test_suite=request.values.get('test_suite'),
       measurement=request.values.get('measurement'),

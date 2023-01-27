@@ -74,7 +74,8 @@ class CloudStorageFakeFsUnitTest(BaseFakeFsUnitTest):
 
   def testRunCommandPermissionError(self):
     strs = ['status=403', 'status 403', '403 Forbidden']
-    self._AssertRunCommandRaisesError(strs, cloud_storage.PermissionError)
+    self._AssertRunCommandRaisesError(
+      strs, cloud_storage.CloudStoragePermissionError)
 
   def testRunCommandNotFoundError(self):
     strs = ['InvalidUriError', 'No such object', 'No URLs matched',
@@ -472,4 +473,4 @@ class CloudStorageErrorHandlingTest(unittest.TestCase):
                           cloud_storage.CredentialsError)
     self.assertIsInstance(cloud_storage.GetErrorObjectForCloudStorageStderr(
         '403 Caller does not have storage.objects.list access to bucket '
-        'chrome-telemetry'), cloud_storage.PermissionError)
+        'chrome-telemetry'), cloud_storage.CloudStoragePermissionError)

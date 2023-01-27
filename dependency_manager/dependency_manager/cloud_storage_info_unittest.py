@@ -224,8 +224,8 @@ class TestGetRemotePath(fake_filesystem_unittest.TestCase):
     self.assertRaises(cloud_storage.NotFoundError,
                       self.cs_info.GetRemotePath)
 
-    cs_get_mock.side_effect = cloud_storage.PermissionError
-    self.assertRaises(cloud_storage.PermissionError,
+    cs_get_mock.side_effect = cloud_storage.CloudStoragePermissionError
+    self.assertRaises(cloud_storage.CloudStoragePermissionError,
                       self.cs_info.GetRemotePath)
 
     cs_get_mock.side_effect = cloud_storage.CredentialsError

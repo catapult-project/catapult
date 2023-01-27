@@ -169,7 +169,6 @@ def UploadsInfoGet(token_id):
     - 404: Token could not be found. It is either expired or was never
       created.
   """
-  logging.debug('crbug/1298177 - uploads_info GET triggered')
 
   if not _IsValidUuid(token_id):
     logging.error('Upload completion token id is not valid. Token id: %s',

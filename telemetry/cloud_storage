@@ -39,7 +39,7 @@ def _FindFilesInCloudStorage(files):
   for bucket in BUCKETS:
     try:
       bucket_contents[bucket] = cloud_storage.List(bucket)
-    except (cloud_storage.PermissionError, cloud_storage.CredentialsError):
+    except (cloud_storage.CloudStoragePermissionError, cloud_storage.CredentialsError):
       pass
 
   # Check if each file is in the bucket contents.

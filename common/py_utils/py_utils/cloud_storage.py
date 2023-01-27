@@ -75,9 +75,8 @@ class CloudStorageError(Exception):
             '  2. If you have a @google.com account, use that account.\n'
             '  3. For the project-id, just enter 0.' % command)
 
-# TODO(https://crbug.com/1262295): Rename this after Python2 trybots retire.
-# pylint: disable=redefined-builtin
-class PermissionError(CloudStorageError):
+
+class CloudStoragePermissionError(CloudStorageError):
 
   def __init__(self):
     super().__init__(
@@ -168,7 +167,7 @@ def GetErrorObjectForCloudStorageStderr(stderr):
   if ('status=403' in stderr or 'status 403' in stderr or
       '403 Forbidden' in stderr or
       re.match('.*403.*does not have .* access to .*', stderr)):
-    return PermissionError()
+    return CloudStoragePermissionError()
   if (stderr.startswith('InvalidUriError') or 'No such object' in stderr or
       'No URLs matched' in stderr or 'One or more URLs matched no' in stderr):
     return NotFoundError(stderr)

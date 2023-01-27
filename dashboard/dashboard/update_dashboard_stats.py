@@ -10,7 +10,6 @@ import collections
 import datetime
 from flask import make_response
 from six.moves import http_client
-import logging
 import time
 
 from google.appengine.ext import deferred
@@ -33,7 +32,6 @@ _MAX_JOBS_TO_FETCH = 100
 
 def UpdateDashboardStatsGet():
   """A simple request handler to refresh the cached test suites info."""
-  logging.debug('crbug/1298177 - update_dashboard_stats GET triggered')
   datastore_hooks.SetPrivilegedRequest()
   deferred.defer(_ProcessAlerts)
   deferred.defer(_ProcessPinpointStats)

@@ -34,8 +34,6 @@ from .dependency_info import DependencyInfo
 from .exceptions import CloudStorageError
 from .exceptions import CloudStorageUploadConflictError
 from .exceptions import EmptyConfigError
-# TODO(https://crbug.com/1262289): Rename this after Python2 trybots retire.
-# pylint: disable=redefined-builtin
 from .exceptions import FileNotFoundAtError
 from .exceptions import NoPathFoundError
 from .exceptions import ReadWriteError
