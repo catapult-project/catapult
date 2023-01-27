@@ -34,7 +34,7 @@ _MAX_JOBS_TO_FETCH = 100
 def UpdateDashboardStatsGet():
   """A simple request handler to refresh the cached test suites info."""
   logging.debug('crbug/1298177 - update_dashboard_stats GET triggered')
-  datastore_hooks.SetPrivilegedRequest(flask_flag=True)
+  datastore_hooks.SetPrivilegedRequest()
   deferred.defer(_ProcessAlerts)
   deferred.defer(_ProcessPinpointStats)
   deferred.defer(_ProcessPinpointJobs)

@@ -127,7 +127,7 @@ def _UpdateDescriptor(master,
   # This function always runs in the taskqueue as an anonymous user.
   if namespace == datastore_hooks.INTERNAL:
     try:
-      datastore_hooks.SetPrivilegedRequest(flask_flag=six.PY3)
+      datastore_hooks.SetPrivilegedRequest()
     except RuntimeError:
       # _UpdateDescriptor is called from deferred queue, and the value of
       # PATH_INFO, '/_ah/queue/deferred', will qualify the request as

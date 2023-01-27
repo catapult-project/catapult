@@ -104,7 +104,7 @@ def AddHistogramsQueuePost():
     test_path: the test path to which this diagnostic or histogram should be
         attached.
   """
-  datastore_hooks.SetPrivilegedRequest(flask_flag=True)
+  datastore_hooks.SetPrivilegedRequest()
 
   params = json.loads(request.get_data())
 

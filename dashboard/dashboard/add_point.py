@@ -122,7 +122,7 @@ def AddPointPost():
     400 response with error message if required data is invalid.
     500 with error message otherwise.
   """
-  datastore_hooks.SetPrivilegedRequest(flask_flag=True)
+  datastore_hooks.SetPrivilegedRequest()
   try:
     api_auth.Authorize()
   except api_auth.ApiAuthException as error:

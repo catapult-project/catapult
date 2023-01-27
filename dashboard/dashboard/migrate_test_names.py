@@ -81,7 +81,7 @@ def MigrateTestNamesPost():
         'Please contact browser-perf-engprod@google.com for access.',
         status=401)
 
-  datastore_hooks.SetPrivilegedRequest(flask_flag=True)
+  datastore_hooks.SetPrivilegedRequest()
 
   try:
     old_pattern = request.values.get('old_pattern')

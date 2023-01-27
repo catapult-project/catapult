@@ -36,7 +36,7 @@ def GraphRevisionsPost():
   test_path = request.values.get('test_path')
   rows = namespaced_stored_object.Get(_CACHE_KEY % test_path)
   if not rows:
-    rows = _UpdateCache(utils.TestKey(test_path), flask_flag=True)
+    rows = _UpdateCache(utils.TestKey(test_path))
 
   # TODO(simonhatch): Need to filter out NaN values.
   # https://github.com/catapult-project/catapult/issues/3474
@@ -51,25 +51,24 @@ def GraphRevisionsPost():
 
 
 @ndb.synctasklet
-def SetCache(test_path, rows, flask_flag=False):
+def SetCache(test_path, rows):
   """Sets the saved graph revisions data for a test.
 
   Args:
     test_path: A test path string.
     rows: A list of [revision, value, timestamp] triplets.
-    :param flask_flag: determine if flask is enabled in SetCacheAsync
   """
-  yield SetCacheAsync(test_path, rows, flask_flag=flask_flag)
+  yield SetCacheAsync(test_path, rows)
 
 
 @ndb.tasklet
-def SetCacheAsync(test_path, rows, flask_flag=False):
+def SetCacheAsync(test_path, rows):
   # This first set generally only sets the internal-only cache.
   futures = [namespaced_stored_object.SetAsync(_CACHE_KEY % test_path, rows)]
 
   # If this is an internal_only query for externally available data,
   # set the cache for that too.
-  if datastore_hooks.IsUnalteredQueryPermitted(flask_flag=flask_flag):
+  if datastore_hooks.IsUnalteredQueryPermitted():
     test = utils.TestKey(test_path).get()
     if test and not test.internal_only:
       futures.append(
@@ -90,7 +89,7 @@ def DeleteCacheAsync(test_path):
   yield namespaced_stored_object.DeleteAsync(_CACHE_KEY % test_path)
 
 
-def _UpdateCache(test_key, flask_flag=False):
+def _UpdateCache(test_key):
   """Queries Rows for a test then updates the cache.
 
   Args:
@@ -103,7 +102,7 @@ def _UpdateCache(test_key, flask_flag=False):
   if not test:
     return []
   assert utils.IsInternalUser() or not test.internal_only
-  datastore_hooks.SetSinglePrivilegedRequest(flask_flag=flask_flag)
+  datastore_hooks.SetSinglePrivilegedRequest()
 
   # A projection query queries just for the values of particular properties;
   # this is faster than querying for whole entities.
@@ -115,8 +114,8 @@ def _UpdateCache(test_key, flask_flag=False):
   rows = list(map(_MakeTriplet, query.iter(batch_size=1000)))
   # Note: Unit tests do not call datastore_hooks with the above query, but
   # it is called in production and with more recent SDK.
-  datastore_hooks.CancelSinglePrivilegedRequest(flask_flag=flask_flag)
-  SetCache(utils.TestPath(test_key), rows, flask_flag=flask_flag)
+  datastore_hooks.CancelSinglePrivilegedRequest()
+  SetCache(utils.TestPath(test_key), rows)
   return rows
 
 
@@ -176,6 +175,5 @@ def AddRowsToCacheAsync(row_entities):
   futures = []
   for test_key in test_key_to_rows:
     graph_rows = test_key_to_rows[test_key]
-    futures.append(SetCacheAsync(
-        utils.TestPath(test_key), graph_rows, flask_flag=False))
+    futures.append(SetCacheAsync(utils.TestPath(test_key), graph_rows))
   yield futures

@@ -55,65 +55,51 @@ def InstallHooks():
                                                     'datastore_v3')
 
 
-def SetPrivilegedRequest(flask_flag=False):
+def SetPrivilegedRequest():
   """Allows the current request to act as a privileged user.
 
   This should ONLY be called for handlers that are restricted from end users
   by some other mechanism (IP allowlist, admin-only pages).
 
   This should be set once per request, before accessing the data store.
-
-  Args:
-    flask_flag - Determines if running on flask handlers when routing from URL.
-        Default False.
   """
-  if utils.IsRunningFlask() or flask_flag:
+  if utils.IsRunningFlask():
     flask_global.privileged = True
   else:
     request = webapp2.get_request()
     request.registry['privileged'] = True
 
 
-def SetSinglePrivilegedRequest(flask_flag=False):
+def SetSinglePrivilegedRequest():
   """Allows the current request to act as a privileged user only ONCE.
 
   This should be called ONLY by handlers that have checked privilege immediately
   before making a query. It will be automatically unset when the next query is
   made.
-
-  Args:
-    flask_flag - Determines if running on flask handlers when routing from URL.
-        Default False.
   """
-  if utils.IsRunningFlask() or flask_flag:
+  if utils.IsRunningFlask():
     flask_global.single_privileged = True
   else:
     request = webapp2.get_request()
     request.registry['single_privileged'] = True
 
 
-def CancelSinglePrivilegedRequest(flask_flag=False):
+def CancelSinglePrivilegedRequest():
   """Disallows the current request to act as a privileged user only.
 
-  Args:
-    flask_flag - Determines if running on flask handlers when routing from URL.
-        Default False.
   """
-  if utils.IsRunningFlask() or flask_flag:
+  if utils.IsRunningFlask():
     flask_global.single_privileged = False
   else:
     request = webapp2.get_request()
     request.registry['single_privileged'] = False
 
 
-def _IsServicingPrivilegedRequest(flask_flag=False):
+def _IsServicingPrivilegedRequest():
   """Checks whether the request is considered privileged.
 
-  Args:
-    flask_flag - Determines if running on flask handlers when routing from URL.
-        Default False.
   """
-  if utils.IsRunningFlask() or flask_flag:
+  if utils.IsRunningFlask():
     try:
       if 'privileged' in flask_global and flask_global.privileged:
         return True
@@ -160,21 +146,17 @@ def _IsServicingPrivilegedRequest(flask_flag=False):
   return False
 
 
-def IsUnalteredQueryPermitted(flask_flag=False):
+def IsUnalteredQueryPermitted():
   """Checks if the current user is internal, or the request is privileged.
 
   "Internal users" are users whose email address belongs to a certain
   privileged domain; but some privileged requests, such as task queue tasks,
   are also considered privileged.
 
-  Args:
-    flask_flag - Determines if running on flask handlers when routing from URL.
-        Default False.
-
   Returns:
     True for users with google.com emails and privileged requests.
   """
-  if _IsServicingPrivilegedRequest(flask_flag):
+  if _IsServicingPrivilegedRequest():
     return True
   if utils.IsInternalUser():
     return True

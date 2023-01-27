@@ -33,7 +33,7 @@ def AddPointQueuePost():
         one point to add. For each dict, one Row entity will be added, and
         any required TestMetadata or Master or Bot entities will be created.
   """
-  datastore_hooks.SetPrivilegedRequest(flask_flag=True)
+  datastore_hooks.SetPrivilegedRequest()
 
   data = json.loads(request.values.get('data'))
   _PrewarmGets(data)

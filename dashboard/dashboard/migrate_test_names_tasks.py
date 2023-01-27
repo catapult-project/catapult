@@ -109,7 +109,7 @@ def MigrateTestNamesTasksPost():
 
   logging.info('Test Migration Request details:%s', request.values.items())
 
-  datastore_hooks.SetPrivilegedRequest(flask_flag=True)
+  datastore_hooks.SetPrivilegedRequest()
 
   status = request.values.get('status')
 

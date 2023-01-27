@@ -46,9 +46,8 @@ def GraphCSVGet():
 
   test_key = utils.TestKey(test_path)
   test = test_key.get()
-  assert (datastore_hooks.IsUnalteredQueryPermitted(True)
-          or not test.internal_only)
-  datastore_hooks.SetSinglePrivilegedRequest(True)
+  assert (datastore_hooks.IsUnalteredQueryPermitted() or not test.internal_only)
+  datastore_hooks.SetSinglePrivilegedRequest()
   q = graph_data.Row.query()
   q = q.filter(graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
   if rev:

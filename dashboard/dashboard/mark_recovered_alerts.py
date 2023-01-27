@@ -42,7 +42,7 @@ def MarkRecoveredAlertsPost():
   This includes checking untriaged alerts, as well as alerts associated with
   open bugs..
   """
-  datastore_hooks.SetPrivilegedRequest(flask_flag=True)
+  datastore_hooks.SetPrivilegedRequest()
 
   # Handle task queue requests.
   bug_id = request.values.get('bug_id')

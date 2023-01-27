@@ -7,7 +7,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 from flask import Flask
-import six
 import unittest
 
 from google.appengine.ext import ndb
@@ -162,39 +161,18 @@ class DatastoreHooksTest(testing_common.TestCase):
     self.SetCurrentUser('internal@chromium.org')
     self._CheckQueryResults(True)
 
-  @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
   def testQuery_PrivilegedRequest_InternalOnlyFetched(self):
-    self.UnsetCurrentUser()
-    datastore_hooks.SetPrivilegedRequest()
-    self._CheckQueryResults(True)
-
-  @unittest.skipIf(six.PY2, 'Setup flask context only for python 3.')
-  def testQuery_PrivilegedRequest_InternalOnlyFetched_Flask(self):
     app = Flask(__name__)
     with app.test_request_context('dummy/path', 'GET'):
       self.UnsetCurrentUser()
-      datastore_hooks.SetPrivilegedRequest(flask_flag=True)
+      datastore_hooks.SetPrivilegedRequest()
       self._CheckQueryResults(True)
 
-  @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
   def testQuery_SinglePrivilegedRequest_InternalOnlyFetched(self):
-    self.UnsetCurrentUser()
-    datastore_hooks.SetSinglePrivilegedRequest()
-    # Not using _CheckQueryResults because this only affects a single query.
-    # First query has internal results.
-    bots = graph_data.Bot.query().fetch()
-    self.assertEqual(2, len(bots))
-
-    # Second query does not.
-    bots = graph_data.Bot.query().fetch()
-    self.assertEqual(1, len(bots))
-
-  @unittest.skipIf(six.PY2, 'Setup flask context only for python 3.')
-  def testQuery_SinglePrivilegedRequest_InternalOnlyFetched_Flask(self):
     app = Flask(__name__)
     with app.test_request_context('dummy/path', 'GET'):
       self.UnsetCurrentUser()
-      datastore_hooks.SetSinglePrivilegedRequest(flask_flag=True)
+      datastore_hooks.SetSinglePrivilegedRequest()
       # Not using _CheckQueryResults because this only affects a single query.
       # First query has internal results.
       bots = graph_data.Bot.query().fetch()
@@ -245,18 +223,11 @@ class DatastoreHooksTest(testing_common.TestCase):
     self.SetCurrentUser('foo@chromium.org', is_admin=True)
     self._CheckGet(include_internal=True)
 
-  @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
   def testGet_PrivilegedRequest(self):
-    self.UnsetCurrentUser()
-    datastore_hooks.SetPrivilegedRequest()
-    self._CheckGet(include_internal=True)
-
-  @unittest.skipIf(six.PY2, 'Setup flask context only for python 3.')
-  def testGet_PrivilegedRequest_Flask(self):
     app = Flask(__name__)
     with app.test_request_context('dummy/path', 'GET'):
       self.UnsetCurrentUser()
-      datastore_hooks.SetPrivilegedRequest(flask_flag=True)
+      datastore_hooks.SetPrivilegedRequest()
       self._CheckGet(include_internal=True)
 
 

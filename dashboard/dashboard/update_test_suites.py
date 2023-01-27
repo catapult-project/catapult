@@ -54,7 +54,7 @@ def UpdateTestSuitesPost():
   if request.values.get('internal_only') == 'true':
     logging.info('Going to update internal-only test suites data.')
     # Update internal-only test suites data.
-    datastore_hooks.SetPrivilegedRequest(flask_flag=True)
+    datastore_hooks.SetPrivilegedRequest()
     UpdateTestSuites(datastore_hooks.INTERNAL)
   else:
     logging.info('Going to update externally-visible test suites data.')
