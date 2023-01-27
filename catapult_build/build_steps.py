@@ -71,7 +71,7 @@ _CATAPULT_TESTS = [
     },
     {
         'name': 'Devil Python Tests',
-        'path': 'devil/bin/run_py_tests',
+        'path': 'devil/bin/run_py3_tests',
         'disabled': ['mac', 'win'],
     },
     {
@@ -340,8 +340,6 @@ def main(args=None):
       continue
 
     test_path = test['path']
-    if test['name'] == 'Devil Python Tests':
-      test_path = 'devil/bin/run_py3_tests'
 
     step = {'name': test['name'], 'env': {}}
 
