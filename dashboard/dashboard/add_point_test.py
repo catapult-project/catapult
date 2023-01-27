@@ -906,12 +906,7 @@ class AddPointTest(testing_common.TestCase):
     row = graph_data.Row.query().get()
     self.assertFalse(hasattr(row, key))
 
-  # crbug/1403845
-  # The update of crrev.com/c/3559289 allows keeping a truncated value if the
-  # value type is str, which breaks the assumption of this test. Will skip for
-  # now.
-  @unittest.skipIf(six.PY3, 'Handling long annotation needs fix.')
-  def testPost_LongSupplementalAnnotation_ColumnDropped(self):
+  def testPost_LongSupplementalAnnotation_ColumnTruncated(self):
     point = copy.deepcopy(_SAMPLE_POINT)
     point['supplemental_columns'] = {
         'a_one': 'z' * (add_point._STRING_COLUMN_MAX_LENGTH + 1),
@@ -921,7 +916,8 @@ class AddPointTest(testing_common.TestCase):
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     # Row properties with names that are too long are not added.
     row = graph_data.Row.query().get()
-    self.assertFalse(hasattr(row, 'a_one'))
+    self.assertTrue(hasattr(row, 'a_one'))
+    self.assertTrue(len(row.a_one), add_point._STRING_COLUMN_MAX_LENGTH)
     self.assertEqual('hello', row.a_two)
 
   def testPost_BadSupplementalDataColumn_ColumnDropped(self):
