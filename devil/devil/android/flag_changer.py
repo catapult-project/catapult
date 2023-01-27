@@ -24,7 +24,7 @@ def CustomCommandLineFlags(device, cmdline_name, flags):
 
   Example:
 
-      with flag_changer.TemporaryCommandLineFlags(device, name, flags):
+      with flag_changer.CustomCommandLineFlags(device, name, flags):
         # Launching Chrome will use the provided flags.
 
       # Previous set of flags on the device is now restored.
