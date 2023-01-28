@@ -192,10 +192,7 @@ class FileBugTest(testing_common.TestCase):
     response = self.testapp.get('/file_bug?summary=s&description=d&keys=%s' %
                                 six.ensure_str(alert_keys[0].urlsafe()))
     self.assertEqual(1, len(response.html('form')))
-    if six.PY2:
-      expected = '<input name="cc" type="text" value="foo@chromium.org">'
-    else:
-      expected = '<input name="cc" type="text" value="foo@chromium.org"/>'
+    expected = '<input name="cc" type="text" value="foo@chromium.org"/>'
     self.assertIn(expected, str(response.html('form')[0]))
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())

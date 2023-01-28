@@ -55,6 +55,7 @@ class FaultyClient():
 
 
 class ReraiseTests(unittest.TestCase):
+
   def assertLogMatches(self, pattern):
     self.assertRegex(
         sys.stderr.getvalue(), pattern)  # pylint: disable=no-member
@@ -174,4 +175,4 @@ class ReraiseTests(unittest.TestCase):
     self.assertLogMatches('FakeDisconnectionError')
     self.assertLogMatches('FakeCleanupError')
     self.assertCountEqual(worker.called,
-                              ['Process', 'Disconnect', 'Cleanup'])
+                          ['Process', 'Disconnect', 'Cleanup'])

@@ -126,10 +126,7 @@ def _ChooseTest(anomalies):
   """
   if not anomalies:
     return None
-  if six.PY2:
-    anomalies.sort(cmp=_CompareAnomalyBisectability)
-  else:
-    anomalies.sort(key=functools.cmp_to_key(_CompareAnomalyBisectability))
+  anomalies.sort(key=functools.cmp_to_key(_CompareAnomalyBisectability))
   found_excluded_domain = False
   for anomaly_entity in anomalies:
     if can_bisect.IsValidTestForBisect(

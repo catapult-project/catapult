@@ -9,7 +9,6 @@ from __future__ import absolute_import
 from flask import Flask
 import unittest
 
-import six
 import webtest
 
 from google.appengine.api import users
@@ -127,47 +126,26 @@ class EditSiteConfigTest(testing_common.TestCase):
                      messages[0].to)
     self.assertEqual('Config "foo" changed by internal@chromium.org',
                      messages[0].subject)
-    if six.PY2:
-      self.assertIn(
-          'Non-namespaced value diff:\n'
-          '  null\n'
-          '\n'
-          'Externally-visible value diff:\n'
-          '  {\n'
-          '-   "x": 10, \n'
-          '?         -\n'
-          '\n'
-          '+   "x": 1, \n'
-          '    "y": 2\n'
-          '  }\n'
-          '\n'
-          'Internal-only value diff:\n'
-          '  {\n'
-          '    "x": 1, \n'
-          '+   "y": 2, \n'
-          '    "z": 3\n'
-          '  }\n', str(messages[0].body))
-    else:
-      # the body in python3 has no space after comma
-      self.assertIn(
-          'Non-namespaced value diff:\n'
-          '  null\n'
-          '\n'
-          'Externally-visible value diff:\n'
-          '  {\n'
-          '-   "x": 10,\n'
-          '?         -\n'
-          '\n'
-          '+   "x": 1,\n'
-          '    "y": 2\n'
-          '  }\n'
-          '\n'
-          'Internal-only value diff:\n'
-          '  {\n'
-          '    "x": 1,\n'
-          '+   "y": 2,\n'
-          '    "z": 3\n'
-          '  }\n', str(messages[0].body))
+
+    self.assertIn(
+        'Non-namespaced value diff:\n'
+        '  null\n'
+        '\n'
+        'Externally-visible value diff:\n'
+        '  {\n'
+        '-   "x": 10,\n'
+        '?         -\n'
+        '\n'
+        '+   "x": 1,\n'
+        '    "y": 2\n'
+        '  }\n'
+        '\n'
+        'Internal-only value diff:\n'
+        '  {\n'
+        '    "x": 1,\n'
+        '+   "y": 2,\n'
+        '    "z": 3\n'
+        '  }\n', str(messages[0].body))
 
 
 class HelperFunctionTests(unittest.TestCase):

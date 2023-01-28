@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 import json
 import mock
-import six
 
 from dashboard.api import api_auth
 from dashboard.common import datastore_hooks
@@ -22,10 +21,7 @@ from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import quest as quest_module
 from dashboard.pinpoint.models.change import change_test
 
-if six.PY2:
-  _JOB_URL_HOST = 'https://testbed.example.com'
-else:
-  _JOB_URL_HOST = 'https://localhost:80'
+_JOB_URL_HOST = 'https://localhost:80'
 
 # All arguments must have string values.
 _BASE_REQUEST = {

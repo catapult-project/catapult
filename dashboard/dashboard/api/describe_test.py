@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 from flask import Flask
 import json
-import six
 import unittest
 
 from dashboard import update_test_suite_descriptors
@@ -83,8 +82,6 @@ class DescribeTest(testing_common.TestCase):
         })
 
   def _Post(self, suite):
-    if six.PY2:
-      return json.loads(self.Post('/api/describe?test_suite=' + suite).body)
     return json.loads(self.Post('/api/describe', {'test_suite': suite}).body)
 
   def testInternal(self):

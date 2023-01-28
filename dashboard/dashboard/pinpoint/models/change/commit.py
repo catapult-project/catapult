@@ -11,14 +11,11 @@ import datetime
 import re
 import six
 
-if six.PY2:
+try:
+  from depot_tools.depot_tools import gclient_eval
+except ImportError:
+  # This is a work around to fix the discrepency on file tree in tests.
   from depot_tools import gclient_eval
-else:
-  try:
-    from depot_tools.depot_tools import gclient_eval
-  except ImportError:
-    # This is a work around to fix the discrepency on file tree in tests.
-    from depot_tools import gclient_eval
 
 from google.appengine.ext import deferred
 
@@ -69,14 +66,21 @@ def ParseDateWithUTCOffset(date_string):
 class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
   """A git repository pinned to a particular commit."""
 
+  def __init__(self, *args, **kwargs):
+    super().__init__()
+    print(args, kwargs)  #  hard to bypass pylint here
+    self._repository_url = None
+
   def __new__(cls, *args, **kwargs):
     self = super(Commit, cls).__new__(cls, *args, **kwargs)
-    self._repository_url = None
     return self
 
   def __str__(self):
     """Returns an informal short string representation of this Commit."""
     return self.repository + '@' + self.git_hash[:7]
+
+  def SetRepository_url(self, repository_url):
+    self._repository_url = repository_url
 
   @property
   def id_string(self):
@@ -88,7 +92,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     """The HTTPS URL of the repository as passed to `git clone`."""
     cached_url = getattr(self, '_repository_url', None)
     if not cached_url:
-      self._repository_url = repository_module.RepositoryUrl(self.repository)  # pylint: disable=attribute-defined-outside-init
+      self.SetRepository_url(repository_module.RepositoryUrl(self.repository))
     return self._repository_url
 
   def Deps(self):
@@ -191,7 +195,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     if repository in utils.GetRepositoryExclusions():
       return None
     commit = cls(repository, str(dep.git_hash).strip())
-    commit._repository_url = dep.repository_url  # pylint: disable=attribute-defined-outside-init
+    commit.SetRepository_url(dep.repository_url)
     return commit
 
   @classmethod
@@ -259,7 +263,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
       six.raise_from(KeyError(str(e)), e)
 
     commit = cls(repository, git_hash)
-    commit._repository_url = repository_url  # pylint: disable=attribute-defined-outside-init
+    commit.SetRepository_url(repository_url)
 
     # IF this is something like HEAD, cache this for a short time so that we
     # avoid hammering gitiles.

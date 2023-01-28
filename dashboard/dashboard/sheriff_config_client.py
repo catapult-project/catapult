@@ -7,7 +7,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import six
+from google.auth import app_engine
 
 
 class InternalServerError(Exception):
@@ -51,18 +51,11 @@ class SheriffConfigClient:
 
   def _InitSession(self):
     # pylint: disable=import-outside-toplevel
-    import google.auth
-    # pylint: disable=import-outside-toplevel
     from google.auth import jwt
     # pylint: disable=import-outside-toplevel
     from google.auth.transport.requests import AuthorizedSession
-    if six.PY2:
-      credentials, _ = google.auth.default(
-          scopes=['https://www.googleapis.com/auth/userinfo.email'])
-    else:
-      from google.auth import app_engine  # pylint: disable=import-outside-toplevel
-      credentials = app_engine.Credentials(
-          scopes=['https://www.googleapis.com/auth/userinfo.email'])
+    credentials = app_engine.Credentials(
+        scopes=['https://www.googleapis.com/auth/userinfo.email'])
     jwt_credentials = jwt.Credentials.from_signing_credentials(
         credentials, 'sheriff-config-dot-chromeperf.appspot.com')
     self._session = AuthorizedSession(jwt_credentials)

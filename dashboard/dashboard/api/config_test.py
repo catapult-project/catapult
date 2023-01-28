@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 from flask import Flask
 import json
-import six
 import unittest
 
 from dashboard.api import api_auth
@@ -40,8 +39,6 @@ class ConfigTest(testing_common.TestCase):
     stored_object.Set(internal_key, datastore_hooks.INTERNAL)
 
   def _Post(self, suite):
-    if six.PY2:
-      return json.loads(self.Post('/api/config?key=' + suite).body)
     return json.loads(self.Post('/api/config', {'key': suite}).body)
 
   def testNotInAllowlist(self):

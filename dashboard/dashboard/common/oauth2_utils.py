@@ -14,22 +14,13 @@ import logging
 import six
 import time
 
-if six.PY2:
-  from oauth2client.client import GoogleCredentials
-else:
-  import google.auth
+import google.auth
 
 XSRF_DELIMITER = b':'
 XSRF_DEFAULT_TIMEOUT_SECS = 60 * 60
 
 
 def GetAppDefaultCredentials(scope=None):
-  if six.PY2:
-    credentials = GoogleCredentials.get_application_default()
-    if scope and credentials.create_scoped_required():
-      credentials = credentials.create_scoped(scope)
-    return credentials
-
   try:
     credentials, _ = google.auth.default()
     if scope and credentials.requires_scopes:

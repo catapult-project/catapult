@@ -11,12 +11,8 @@ import traceback
 from dashboard.pinpoint.models import errors
 import six
 
-if six.PY2:
-  from oauth2client import client
-  TokenRefreshError = client.AccessTokenRefreshError
-else:
-  from google.auth import exceptions
-  TokenRefreshError = exceptions.RefreshError
+from google.auth import exceptions
+TokenRefreshError = exceptions.RefreshError
 
 
 class Execution:

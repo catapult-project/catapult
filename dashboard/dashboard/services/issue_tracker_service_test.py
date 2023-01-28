@@ -21,10 +21,6 @@ from dashboard.services import issue_tracker_service
 def PythonVersionsDecorator():
 
   def Decorator(func):
-    if six.PY2:
-      return mock.patch('services.issue_tracker_service.discovery.build',
-                        mock.MagicMock())(
-                            func)
     return mock.patch('services.issue_tracker_service.discovery.build',
                       mock.MagicMock())(
                           func)

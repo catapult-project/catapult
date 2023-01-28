@@ -35,8 +35,6 @@ def GenerateToken(email):
 
 def _GenerateNewSecretKey():
   """Returns a random XSRF secret key."""
-  if six.PY2:
-    return os.urandom(16).encode('hex')
   return os.urandom(16).hex()
 
 

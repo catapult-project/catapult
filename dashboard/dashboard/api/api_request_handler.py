@@ -10,13 +10,10 @@ import json
 import logging
 import re
 import traceback
-import six
 
 from dashboard.api import api_auth
 from dashboard.common import utils
 from flask import make_response, request
-if six.PY2:
-  import webapp2
 
 _ALLOWED_ORIGINS = [
     'chromeperf.appspot.com',
@@ -111,110 +108,3 @@ def _SetCorsHeadersIfAppropriate(req, resp):
 def _WriteErrorMessage(message, status):
   logging.error(traceback.format_exc())
   return make_response(json.dumps({'error': message}), status)
-
-
-if six.PY2:
-
-  class ApiRequestHandler(webapp2.RequestHandler):
-    """API handler for api requests.
-
-    Convenience methods handling authentication errors and surfacing them.
-    """
-
-    def _CheckUser(self):
-      """Checks whether the user has permission to make requests.
-
-      This method must be overridden by subclasses to perform access control.
-
-      Raises:
-        api_auth.NotLoggedInError: The user was not logged in,
-            and must be to be to make this request.
-        api_auth.OAuthError: The request was not a valid OAuth request,
-            or the client ID was not in the allowlist.
-        ForbiddenError: The user does not have permission to make this request.
-      """
-      raise NotImplementedError()
-
-    def _CheckIsInternalUser(self):
-      if utils.IsDevAppserver():
-        return
-      self._CheckIsLoggedIn()
-      if not utils.IsInternalUser():
-        raise ForbiddenError()
-
-    def _CheckIsLoggedIn(self):
-      if utils.IsDevAppserver():
-        return
-      api_auth.Authorize()
-
-    def post(self, *args):
-      """Returns alert data in response to API requests.
-
-      Outputs:
-        JSON results.
-      """
-      self._Respond(self.Post, *args)
-
-    def get(self, *args):
-      self._Respond(self.Get, *args)
-
-    def _Respond(self, cb, *args):
-      self._SetCorsHeadersIfAppropriate()
-
-      try:
-        self._CheckUser()
-      except api_auth.NotLoggedInError as e:
-        self.WriteErrorMessage(str(e), 401)
-        return
-      except api_auth.OAuthError as e:
-        self.WriteErrorMessage(str(e), 403)
-        return
-      except ForbiddenError as e:
-        self.WriteErrorMessage(str(e), 403)
-        return
-      # Allow oauth.Error to manifest as HTTP 500.
-
-      try:
-        results = cb(*args)
-        self.response.out.write(json.dumps(results))
-      except NotFoundError as e:
-        self.WriteErrorMessage(str(e), 404)
-      except (BadRequestError, KeyError, TypeError, ValueError) as e:
-        self.WriteErrorMessage(str(e), 400)
-      except ForbiddenError as e:
-        self.WriteErrorMessage(str(e), 403)
-
-    def options(self, *_):  # pylint: disable=invalid-name
-      self._SetCorsHeadersIfAppropriate()
-
-    def Get(self, *_):
-      raise NotImplementedError()
-
-    def Post(self, *args, **kwargs):
-      del args, kwargs  # Unused.
-      raise NotImplementedError()
-
-    def _SetCorsHeadersIfAppropriate(self):
-      self.response.headers['Content-Type'] = 'application/json; charset=utf-8'
-      set_cors_headers = False
-      origin = self.request.headers.get('Origin', '')
-      for allowed in _ALLOWED_ORIGINS:
-        dev_pattern = SafeOriginRegex(r'https://[A-Za-z0-9-]+-dot-', allowed)
-        prod_pattern = SafeOriginRegex(r'https://', allowed)
-        if dev_pattern.match(origin) or prod_pattern.match(origin):
-          set_cors_headers = True
-      if not set_cors_headers:
-        return
-      self.response.headers.add_header('Access-Control-Allow-Origin', origin)
-      self.response.headers.add_header('Access-Control-Allow-Credentials',
-                                       'true')
-      self.response.headers.add_header('Access-Control-Allow-Methods',
-                                       'GET,OPTIONS,POST')
-      self.response.headers.add_header('Access-Control-Allow-Headers',
-                                       'Accept,Authorization,Content-Type')
-      self.response.headers.add_header('Access-Control-Max-Age', '3600')
-
-    def WriteErrorMessage(self, message, status):
-      logging.error(traceback.format_exc())
-      self.response.set_status(status)
-      self.response.out.write(json.dumps({'error': message}))

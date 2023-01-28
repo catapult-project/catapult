@@ -41,9 +41,8 @@ OAUTH_SCOPES = ('https://www.googleapis.com/auth/userinfo.email',)
 OAUTH_ENDPOINTS = ['/api/', '/add_histograms', '/add_point', '/uploads']
 # testing endpoints for flask
 OAUTH_ENDPOINTS += ['/add_histograms_flask', '/add_point_flask']
-LEGACY_SERVICE_ACCOUNT = (
-    '425761728072-pa1bs18esuhp2cp2qfa1u9vb6p1v6kfu@developer.gserviceaccount.com'
-)
+LEGACY_SERVICE_ACCOUNT = ('425761728072-pa1bs18esuhp2cp2qfa1u9vb6p1v6kfu'
+                          '@developer.gserviceaccount.com')
 _CACHE_TIME = 60*60*2 # 2 hours
 
 _AUTOROLL_DOMAINS = (
@@ -300,10 +299,7 @@ def MostSpecificMatchingPattern(test, pattern_data_tuples):
     # 0 to indicate that we've found an equality.
     return 0
 
-  if six.PY2:
-    matching_patterns.sort(cmp=CmpPatterns)  # pylint: disable=using-cmp-argument
-  else:
-    matching_patterns.sort(key=functools.cmp_to_key(CmpPatterns))
+  matching_patterns.sort(key=functools.cmp_to_key(CmpPatterns))
 
   return matching_patterns[0][1]
 
@@ -619,38 +615,24 @@ def ServiceAccountHttp(scope=EMAIL_SCOPE, timeout=None, use_adc=False):
 
   assert scope, "ServiceAccountHttp scope must not be None."
 
-  if six.PY2:
-    from oauth2client import client  # pylint: disable=import-outside-toplevel
-    import httplib2  # pylint: disable=import-outside-toplevel
-    client.logger.setLevel(logging.WARNING)
-    if use_adc:
-      credentials = oauth2_utils.GetAppDefaultCredentials(scope)
-    else:
-      credentials = client.SignedJwtAssertionCredentials(
-          service_account_name=account_details['client_email'],
-          private_key=account_details['private_key'],
-          scope=scope)
-    http = httplib2.Http(timeout=timeout)
-    credentials.authorize(http)
+  from google.auth import crypt  # pylint: disable=import-outside-toplevel
+  from google.oauth2 import service_account  # pylint: disable=import-outside-toplevel
+  import google_auth_httplib2  # pylint: disable=import-outside-toplevel
+
+  if use_adc:
+    credentials = oauth2_utils.GetAppDefaultCredentials(scope)
   else:
-    from google.auth import crypt  # pylint: disable=import-outside-toplevel
-    from google.oauth2 import service_account  # pylint: disable=import-outside-toplevel
-    import google_auth_httplib2  # pylint: disable=import-outside-toplevel
+    signer = crypt.RSASigner.from_string(account_details['private_key'])
+    default_token_uri = 'https://accounts.google.com/o/oauth2/token'
+    credentials = service_account.Credentials(
+        signer=signer,
+        service_account_email=account_details['client_email'],
+        token_uri=default_token_uri,
+        scopes=[scope])
 
-    if use_adc:
-      credentials = oauth2_utils.GetAppDefaultCredentials(scope)
-    else:
-      signer = crypt.RSASigner.from_string(account_details['private_key'])
-      default_token_uri = 'https://accounts.google.com/o/oauth2/token'
-      credentials = service_account.Credentials(
-          signer=signer,
-          service_account_email=account_details['client_email'],
-          token_uri=default_token_uri,
-          scopes=[scope])
-
-    http = google_auth_httplib2.AuthorizedHttp(credentials)
-    if timeout:
-      http.timeout = timeout
+  http = google_auth_httplib2.AuthorizedHttp(credentials)
+  if timeout:
+    http.timeout = timeout
   return http
 
 

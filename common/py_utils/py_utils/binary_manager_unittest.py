@@ -5,7 +5,6 @@
 from __future__ import absolute_import
 import json
 import os
-import six
 
 from pyfakefs import fake_filesystem_unittest
 from dependency_manager import exceptions
@@ -14,12 +13,6 @@ from py_utils import binary_manager
 
 class BinaryManagerTest(fake_filesystem_unittest.TestCase):
   # TODO(aiolos): disable cloud storage use during this test.
-
-  def assertCountEqualPy23(self, expected, actual):
-    if six.PY2:
-      self.assertItemsEqual(expected, actual)
-    else:
-      self.assertCountEqual(expected, actual)
 
   def setUp(self):
     self.setUpPyfakefs()
@@ -179,7 +172,7 @@ class BinaryManagerTest(fake_filesystem_unittest.TestCase):
     with self.assertRaises(ValueError):
       manager = binary_manager.BinaryManager(self.base_config)
     manager = binary_manager.BinaryManager([self.base_config])
-    self.assertCountEqualPy23(self.expected_dependencies,
+    self.assertCountEqual(self.expected_dependencies,
                               manager._dependency_manager._lookup_dict)
 
   def testSuccessfulFetchPathNoOsVersion(self):

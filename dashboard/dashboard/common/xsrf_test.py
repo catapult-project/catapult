@@ -13,19 +13,8 @@ import webtest
 from flask import Flask
 from google.appengine.api import users
 
-from dashboard.common import request_handler
 from dashboard.common import testing_common
 from dashboard.common import xsrf
-
-if six.PY2:
-
-  class ExampleHandler(request_handler.RequestHandler):
-    """Example request handler that uses a XSRF token."""
-
-    @xsrf.TokenRequired
-    def post(self):
-      pass
-
 
 flask_app = Flask(__name__)
 

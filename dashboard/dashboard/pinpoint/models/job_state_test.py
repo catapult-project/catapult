@@ -10,7 +10,6 @@ import logging
 import math
 import unittest
 import sys
-import six
 
 from dashboard.pinpoint import test
 from dashboard.pinpoint.models import job_state
@@ -190,10 +189,7 @@ class ScheduleWorkTest(unittest.TestCase):
     ]
     state = job_state.JobState(quests)
     state.AddChange(change_test.Change(123))
-    if six.PY2:
-      exception_name = 'InformationalError'
-    else:
-      exception_name = 'dashboard.pinpoint.models.errors.InformationalError'
+    exception_name = 'dashboard.pinpoint.models.errors.InformationalError'
     expected_regexp = ('.*7/10.*\n%s: Expected error for testing.$' %
                        exception_name)
     self.assertTrue(state.ScheduleWork())

@@ -17,14 +17,11 @@ import json
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
-if six.PY2:
+try:
+  import cloudstorage.cloudstorage as cloudstorage
+except ImportError:
+  # This is a work around to fix the discrepency on file tree in tests.
   import cloudstorage
-else:
-  try:
-    import cloudstorage.cloudstorage as cloudstorage
-  except ImportError:
-    # This is a work around to fix the discrepency on file tree in tests.
-    import cloudstorage
 from apiclient.discovery import build
 from dashboard.common import utils
 from dashboard.common import oauth2_utils
@@ -258,7 +255,8 @@ def GenerateResults2(job):
                 filename, filename)
 
   # Only save A/B tests to the Chrome Health BigQuery
-  if job.comparison_mode != job_state.FUNCTIONAL and job.comparison_mode != job_state.PERFORMANCE:
+  if job.comparison_mode != job_state.FUNCTIONAL and \
+      job.comparison_mode != job_state.PERFORMANCE:
     try:
       _SaveJobToChromeHealthBigQuery(job)
     except Exception as e:  # pylint: disable=broad-except

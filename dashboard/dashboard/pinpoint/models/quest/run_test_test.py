@@ -11,7 +11,6 @@ import json
 import mock
 import unittest
 import logging
-import six
 
 from dashboard.pinpoint.models.change import change
 from dashboard.pinpoint.models import errors
@@ -601,10 +600,7 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
     last_exception_line = execution.exception['traceback'].splitlines()[-1]
-    if six.PY2:
-      expected_exception = 'SwarmingTaskError'
-    else:
-      expected_exception = 'dashboard.pinpoint.models.errors.SwarmingTaskError'
+    expected_exception = 'dashboard.pinpoint.models.errors.SwarmingTaskError'
     self.assertTrue(last_exception_line.startswith(expected_exception))
 
   @mock.patch('dashboard.services.swarming.IsBotAlive',
