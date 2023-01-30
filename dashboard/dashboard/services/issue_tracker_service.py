@@ -322,7 +322,7 @@ class IssueTrackerService:
     """
     response = request.execute(
         num_retries=MAX_REQUEST_RETRIES,
-        http=utils.ServiceAccountHttp(use_adc=True))
+        http=utils.ServiceAccountHttp(use_adc=False))
     return response
 
 
