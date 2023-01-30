@@ -19,8 +19,6 @@ import sys
 import unittest
 import six
 import six.moves.urllib.parse
-if six.PY2:
-  import webapp2
 import webtest
 
 from google.appengine.api import oauth
@@ -90,10 +88,6 @@ class TestCase(unittest.TestCase):
     self.logger.addHandler(self.stream_handler)
     self.addCleanup(self.logger.removeHandler, self.stream_handler)
 
-  def SetUpApp(self, handlers):
-    if six.PY2:
-      self.testapp = webtest.TestApp(webapp2.WSGIApplication(handlers))
-
   def SetUpFlaskApp(self, flask_app):
     self.testapp = webtest.TestApp(flask_app)
 
@@ -113,7 +107,7 @@ class TestCase(unittest.TestCase):
         environ_patch['HTTP_AUTHORIZATION'] = ''
     except oauth.Error:
       pass
-    if six.PY3 and self.testapp:
+    if self.testapp:
       # In Python 3, the 'HTTP_AUTHORIZATION' is found removed in the handler.
       self.testapp.extra_environ.update(environ_patch)
     return mock.patch.dict(os.environ, environ_patch)
@@ -578,8 +572,6 @@ class FakeCASClient:
     digests = [self._NormalizeDigest(d) for d in digests]
 
     def EncodeData(data):
-      if six.PY2:
-        return base64.b64encode(data)
       return base64.b64encode(data.encode('utf-8')).decode()
 
     return {

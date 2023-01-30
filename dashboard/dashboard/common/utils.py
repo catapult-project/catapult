@@ -118,7 +118,7 @@ def GetEmail():
 
 
 def GetGaeCurrentUser():
-  return users.GetCurrentUser() if six.PY3 else users.get_current_user()
+  return users.GetCurrentUser()
 
 
 def TestPath(key):

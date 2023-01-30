@@ -504,6 +504,7 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
                                add_histograms.TASK_QUEUE_NAME)
     self.assertTrue(mock_process_test.called)
 
+  # (crbug/1403845): Routing is broken after ExecuteTaskQueueTasks is called.
   @unittest.skipIf(six.PY3, '''
     http requests after ExecuteTaskQueueTasks are not routed correctly for py3.
     ''')
@@ -811,6 +812,7 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     for k in expected.keys():
       self.assertFalse(expected[k])
 
+  # (crbug/1403845): Routing is broken after ExecuteTaskQueueTasks is called.
   @unittest.skipIf(six.PY3, '''
     http requests after ExecuteTaskQueueTasks are not routed correctly for py3.
     ''')
@@ -828,6 +830,7 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     }
     self._CheckOutOfOrderExpectations(expected)
 
+  # (crbug/1403845): Routing is broken after ExecuteTaskQueueTasks is called.
   @unittest.skipIf(six.PY3, '''
     http requests after ExecuteTaskQueueTasks are not routed correctly for py3.
     ''')
@@ -1869,6 +1872,7 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     ]
     mock_log.assert_has_calls(log_calls, any_order=True)
 
+  # (crbug/1403845): Routing is broken after ExecuteTaskQueueTasks is called.
   @unittest.skipIf(six.PY3, '''
     http requests after ExecuteTaskQueueTasks are not routed correctly for py3.
     ''')
@@ -1906,6 +1910,7 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
     self.assertEqual(measurement['state'], 'COMPLETED')
     self.assertEqual(len(measurement['dimensions']), 5)
 
+  # (crbug/1403845): Routing is broken after ExecuteTaskQueueTasks is called.
   @unittest.skipIf(six.PY3, '''
     http requests after ExecuteTaskQueueTasks are not routed correctly for py3.
     ''')

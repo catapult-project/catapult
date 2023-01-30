@@ -959,6 +959,7 @@ class AddPointTest(testing_common.TestCase):
     rows = graph_data.Row.query().fetch()
     self.assertEqual(1, len(rows))
 
+  # (crbug/1403845): Routing is broken after ExecuteTaskQueueTasks is called.
   @unittest.skipIf(six.PY3, '''
     http requests after ExecuteTaskQueueTasks are not routed correctly for py3.
     ''')

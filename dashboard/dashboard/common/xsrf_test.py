@@ -6,7 +6,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import six
 import unittest
 import webtest
 
@@ -42,31 +41,16 @@ class XsrfTest(testing_common.TestCase):
     self.SetCurrentUser('foo@other.com', user_id='y')
     self.assertFalse(xsrf._ValidateToken(token, users.get_current_user()))
 
-  @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
-  def testTokenRequired_NoToken_Returns403(self):
-    self.testapp.post('/example', {}, status=403)
 
-  def testTokenRequired_NoToken_Returns403_Flask(self):
+  def testTokenRequired_NoToken_Returns403(self):
     self.flask_testapp.post('/example', {}, status=403)
 
-  @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
   def testTokenRequired_BogusToken_Returns403(self):
-    self.testapp.post(
-        '/example', {'xsrf_token': 'abcdefghijklmnopqrstuvwxyz0123456789'},
-        status=403)
-
-  def testTokenRequired_BogusToken_Returns403_Flask(self):
     self.flask_testapp.post(
         '/example', {'xsrf_token': 'abcdefghijklmnopqrstuvwxyz0123456789'},
         status=403)
 
-  @unittest.skipIf(six.PY3, 'Skipping webapp2 handler tests for python 3.')
   def testTokenRequired_CorrectToken_Success(self):
-    self.SetCurrentUser('foo@bar.com')
-    token = xsrf.GenerateToken(users.get_current_user())
-    self.testapp.post('/example', {'xsrf_token': token})
-
-  def testTokenRequired_CorrectToken_Success_Flask(self):
     self.SetCurrentUser('foo@bar.com')
     token = xsrf.GenerateToken(users.get_current_user())
     self.flask_testapp.post('/example', {'xsrf_token': token})

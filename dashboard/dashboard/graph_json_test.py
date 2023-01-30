@@ -8,10 +8,8 @@ from __future__ import absolute_import
 
 from flask import Flask
 import json
-import unittest
-
-import mock
 import six
+import unittest
 import webtest
 
 from google.appengine.ext import ndb
@@ -690,110 +688,6 @@ class GraphJsonTest(testing_common.TestCase):
     }, json.loads(response))
 
 
-@unittest.skipIf(six.PY3,
-                 'Skipping webapp2 handler implementation for python 3.')
-class GraphJsonParseRequestArgumentsTestPY2(testing_common.TestCase):
-
-  def _HandlerWithMockRequestParams(self, **params):
-    """Returns a GraphJsonHandler object with canned request parameters."""
-    request_params = {
-        'test_path_dict': {
-            'Master/b1/scrolling/frame_times/about.com': [],
-            'Master/b2/scrolling/frame_times/about.com': [],
-            'Master/linux/dromaeo.domcoremodify/dom': [],
-        }
-    }
-    request_params.update(params)
-    handler = graph_json.GraphJsonHandler()
-    handler.request = mock.MagicMock()
-    handler.request.get = mock.MagicMock(
-        return_value=json.dumps(request_params))
-    return handler
-
-  def testParseRequestArguments(self):
-    # The numerical arguments get converted to integers, and the
-    # unspecified arguments get set to None.
-    handler = self._HandlerWithMockRequestParams(rev='12345', num_points='123')
-    expected = {
-        'test_paths': [
-            'Master/b1/scrolling/frame_times/about.com',
-            'Master/b2/scrolling/frame_times/about.com',
-            'Master/linux/dromaeo.domcoremodify/dom'
-        ],
-        'rev': 12345,
-        'num_points': 123,
-        'start_rev': None,
-        'end_rev': None,
-        'is_selected': None,
-    }
-    actual = handler._ParseRequestArguments()
-    actual['test_paths'].sort()
-    self.assertEqual(expected, actual)
-
-  def testParseRequestArguments_TestPathListSpecified(self):
-    handler = self._HandlerWithMockRequestParams(
-        test_path_dict=None,
-        test_path_list=[
-            'Master/b1/scrolling/frame_times/about.com',
-            'Master/b2/scrolling/frame_times/about.com',
-            'Master/linux/dromaeo.domcoremodify/dom'
-        ])
-
-    expected = {
-        'test_paths': [
-            'Master/b1/scrolling/frame_times/about.com',
-            'Master/b2/scrolling/frame_times/about.com',
-            'Master/linux/dromaeo.domcoremodify/dom'
-        ],
-        'rev': None,
-        'num_points': 150,
-        'start_rev': None,
-        'end_rev': None,
-        'is_selected': None,
-    }
-    actual = handler._ParseRequestArguments()
-    self.assertEqual(expected, actual)
-
-  def testParseRequestArguments_OnlyTestPathDictSpecified(self):
-    # No revision or number of points is specified, so they're set to None.
-    handler = self._HandlerWithMockRequestParams()
-    expected = {
-        'test_paths': [
-            'Master/b1/scrolling/frame_times/about.com',
-            'Master/b2/scrolling/frame_times/about.com',
-            'Master/linux/dromaeo.domcoremodify/dom',
-        ],
-        'rev': None,
-        'num_points': graph_json._DEFAULT_NUM_POINTS,
-        'start_rev': None,
-        'end_rev': None,
-        'is_selected': None,
-    }
-    actual = handler._ParseRequestArguments()
-    actual['test_paths'].sort()
-    self.assertEqual(expected, actual)
-
-  def testParseRequestArguments_NegativeRevision(self):
-    # Negative revision is invalid; it's the same as no revision.
-    handler = self._HandlerWithMockRequestParams(rev='-1')
-    expected = {
-        'test_paths': [
-            'Master/b1/scrolling/frame_times/about.com',
-            'Master/b2/scrolling/frame_times/about.com',
-            'Master/linux/dromaeo.domcoremodify/dom',
-        ],
-        'rev': None,
-        'num_points': graph_json._DEFAULT_NUM_POINTS,
-        'start_rev': None,
-        'end_rev': None,
-        'is_selected': None,
-    }
-    actual = handler._ParseRequestArguments()
-    actual['test_paths'].sort()
-    self.assertEqual(expected, actual)
-
-
-@unittest.skipIf(six.PY2, 'Flask implementation only for python 3.')
 class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
 
   def testParseRequestArguments(self):
@@ -820,7 +714,7 @@ class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
         'is_selected': None,
     }
     actual = graph_json._ParseRequestArguments(json.dumps(params))
-    six.assertCountEqual(self, expected, actual)
+    self.assertCountEqual(expected, actual)
 
   def testParseRequestArguments_TestPathListSpecified(self):
     params = {
@@ -851,7 +745,7 @@ class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
         'is_selected': None,
     }
     actual = graph_json._ParseRequestArguments(json.dumps(params))
-    six.assertCountEqual(self, expected, actual)
+    self.assertCountEqual(expected, actual)
 
   def testParseRequestArguments_OnlyTestPathDictSpecified(self):
     # No revision or number of points is specified, so they're set to None.
@@ -875,7 +769,7 @@ class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
         'is_selected': None,
     }
     actual = graph_json._ParseRequestArguments(json.dumps(params))
-    six.assertCountEqual(self, expected, actual)
+    self.assertCountEqual(expected, actual)
 
   def testParseRequestArguments_NegativeRevision(self):
     # Negative revision is invalid; it's the same as no revision.
@@ -900,7 +794,7 @@ class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
         'is_selected': None,
     }
     actual = graph_json._ParseRequestArguments(json.dumps(params))
-    six.assertCountEqual(self, expected, actual)
+    self.assertCountEqual(expected, actual)
 
 
 class GraphJsonHelperFunctionTest(testing_common.TestCase):

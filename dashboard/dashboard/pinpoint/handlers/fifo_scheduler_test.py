@@ -251,7 +251,7 @@ class FifoSchedulerTest(test.TestCase):
 
 
 # TODO(dberris): Need to mock *all* of the back-end services that the various
-# "live" bisection operations will be looking into.
+#  "live" bisection operations will be looking into.
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 @unittest.skipIf(sys.version_info.major == 3,

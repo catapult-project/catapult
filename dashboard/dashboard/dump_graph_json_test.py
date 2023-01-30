@@ -30,7 +30,7 @@ def DumpGraphJsonHandler():
 
 
 @unittest.skipIf(six.PY3,
-                 'Testing endpoint for dev_appservier only in Python 2.')
+                 'Testing endpoint for dev_appserver only in Python 2.')
 class DumpGraphJsonTest(testing_common.TestCase):
 
   def setUp(self):
