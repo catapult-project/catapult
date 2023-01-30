@@ -24,29 +24,28 @@ steps:
 - name: 'gcr.io/$PROJECT_ID/docker-compose'
   dir: 'dashboard/dev_dockerfiles'
   args: [
-    'run', 'python-unittest-dashboard-py3'
+    'run', 'python-unittest-dashboard'
   ]
 # We need to provide the auth token that the service account is using to the
 # container from which we're going to deploy the Dashboard services.
 - name: 'gcr.io/$PROJECT_ID/docker-compose'
   dir: 'dashboard/dev_dockerfiles'
   args: [
-    'run', 'cloudbuild-prepare-deployment-py3'
+    'run', 'cloudbuild-prepare-deployment'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   dir: 'deploy-dashboard'
   args: [
-    app, deploy, '--no-promote', '--version', 'cloud-build-${SHORT_SHA}-py3',
+    app, deploy, '--no-promote', '--version', 'cloud-build-${SHORT_SHA}',
     # We enumerate the files we need to deploy just for the dashboard.
     # TODO(dberris): Figure out how we can include cron.yaml and dispatch.yaml
     # from this automation. This fails in production with the service account
     # used by cloud-build, so we've left it out for now.
-    # TODO(wenbinzhang): deploy other services when migration to python3 is done.
-    api-py3.yaml,
-    app-py3.yaml,
-    upload-processing-py3.yaml,
-    upload-py3.yaml,
-    pinpoint-py3.yaml,
+    api.yaml,
+    app.yaml,
+    upload-processing.yaml,
+    upload.yaml,
+    pinpoint.yaml,
   ]
 # We check in the target versions to avoid unintended traffic changes.
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -76,7 +75,7 @@ steps:
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'upload-processing',
-    '--splits=cloud-build-eb2613d-py3=.8,cloud-build-1ef5b9a-py3=.2'
+    '--splits=cloud-build-eb2613d-py3=.8,cloud-build-1ef5b9a-py3=.2',
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   id: 'Set traffic for pinpoint service'

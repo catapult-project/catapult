@@ -68,23 +68,18 @@ THIRD_PARTY_LIBRARIES_PY3 = THIRD_PARTY_LIBRARIES
 # Files and directories in catapult/dashboard.
 DASHBOARD_FILES = [
     'api.yaml',
-    'api-py3.yaml',  # remove after py3 migration is finalized.
     'app.yaml',
-    'app-py3.yaml',  # remove after py3 migration is finalized.
     'appengine_config.py',
     'cron.yaml',
     'dashboard',
     'dispatch.yaml',
     'index.yaml',
     'pinpoint.yaml',
-    'pinpoint-py3.yaml',  # remove after py3 migration is finalized.
     'queue.yaml',
     'requirements.txt',
     'scripts.yaml',
     'upload-processing.yaml',
-    'upload-processing-py3.yaml',  # remove after py3 migration is finalized.
     'upload.yaml',
-    'upload-py3.yaml',  # remove after py3 migration is finalized.
 ]
 
 TRACING_PATHS = [

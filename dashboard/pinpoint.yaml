@@ -1,17 +1,13 @@
 service: pinpoint
 
-runtime: python27
-api_version: 1
-threadsafe: true
+runtime: python38
+entrypoint: gunicorn -b:$PORT dashboard.pinpoint.main:APP --worker-class gthread --threads 10 --timeout 300
+app_engine_apis: true
+# 2048MB Memory, 2.4GHz CPU limit, support auto scaling.
 instance_class: F4_1G
 
-libraries:
-- name: jinja2
-  version: "2.6"
-- name: pycrypto
-  version: "2.6"
-- name: webapp2
-  version: "2.5.2"
+automatic_scaling:
+  min_instances: 10
 
 builtins:
 - deferred: on
@@ -19,31 +15,30 @@ builtins:
 handlers:
 
 - url: /api/migrate
-  script: dashboard.pinpoint.dispatcher.APP
+  script: auto
   secure: always
 
 - url: /api/generate-results2/.*
-  script: dashboard.pinpoint.dispatcher.APP
+  script: auto
   login: admin
   secure: always
 
 - url: /api/run/.*
-  script: dashboard.pinpoint.dispatcher.APP
+  script: auto
   login: admin
   secure: always
 
 - url: /api/.*
-  script: dashboard.pinpoint.dispatcher.APP
+  script: auto
   secure: always
 
 - url: /cron/.*
-  script: dashboard.pinpoint.dispatcher.APP
+  script: auto
   secure: always
 
 - url: /dashboard/static/
   static_dir: dashboard/static/
   secure: always
-  application_readable: true
 
 - url: /static
   static_dir: dashboard/pinpoint/static
@@ -52,12 +47,11 @@ handlers:
 - url: /vulcanized_histograms_viewer/
   static_dir: vulcanized_histograms_viewer/
   secure: always
-  application_readable: true
 
 # Require auth for receiving push messages from Cloud Pub/Sub.
 - url: /_ah/push-handlers/.*
   secure: always
-  script: dashboard.pinpoint.dispatcher.APP
+  script: auto
   login: admin
 
 - url: /dashboard/elements/(.*\.html)$
@@ -73,4 +67,3 @@ handlers:
   static_files: bundled/dashboard/pinpoint/index/index.html
   upload: bundled/dashboard/pinpoint/index/index.html
   secure: always
-

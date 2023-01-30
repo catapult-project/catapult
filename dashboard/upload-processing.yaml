@@ -1,11 +1,9 @@
 service: upload-processing
-runtime: python27
-api_version: 1
-instance_class: F4
 
-# A single upload can consume a lot of memory, so threadsafe:false prevents
-# handling multiple uploads simultaneously in order to stay under memory limit.
-threadsafe: false
+runtime: python38
+entrypoint: gunicorn -b:$PORT dashboard.dispatcher:APP --worker-class gthread --threads 10 --timeout 60
+app_engine_apis: true
+instance_class: F4
 
 automatic_scaling:
   max_concurrent_requests: 5
@@ -14,22 +12,8 @@ automatic_scaling:
   min_instances: 24
   target_cpu_utilization: 0.8
 
-libraries:
-- name: jinja2
-  version: "2.6"
-- name: pycrypto
-  version: "2.6"
-- name: webapp2
-  version: "2.5.2"
-- name: ssl
-  version: latest
-
 env_variables:
   GAE_USE_SOCKETS_HTTPLIB: 'true'
-
-builtins:
-- appstats: on
-- deferred: on
 
 handlers:
 - url: /.*
