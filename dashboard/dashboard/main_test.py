@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 from flask import Flask
 import unittest
+import six
 import webtest
 
 from dashboard import main
@@ -61,8 +62,9 @@ class MainTest(testing_common.TestCase):
         'start_revision': 14999,
         'end_revision': 15000,
         'key': anomaly_key.urlsafe(),
-        'dashboard_link': ('https://chromeperf.appspot.com'
-                           '/group_report?keys=%s' % anomaly_key.urlsafe()),
+        'dashboard_link':
+            ('https://chromeperf.appspot.com'
+             '/group_report?keys=%s' % six.ensure_str(anomaly_key.urlsafe())),
         'percent_changed': '100.0%',
         'color_class': 'over-50',
         'improvement': False,

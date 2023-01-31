@@ -218,7 +218,7 @@ def GetGroupReportPageLink(alert):
   # Entities only have a key if they have already been put().
   if alert and alert.key:
     link_template = 'https://chromeperf.appspot.com/group_report?keys=%s'
-    return link_template % alert.key.urlsafe()
+    return link_template % six.ensure_str(alert.key.urlsafe())
   # If we can't make the above link, fall back to the /report page.
   test_path = utils.TestPath(alert.GetTestMetadataKey())
   return GetReportPageLink(test_path, rev=alert.end_revision)
