@@ -26,45 +26,6 @@ THIRD_PARTY_LIBRARIES = [
     'redux/redux.min.js',
 ]
 
-# Add third party libraries needed *copying* for python 2. When running in
-# python 3, those libraries should be installed either by pip or vpython.
-THIRD_PARTY_LIBRARIES_PY2 = THIRD_PARTY_LIBRARIES + [
-    'apiclient',
-    'beautifulsoup4',
-    'cachetools',
-    'certifi',
-    'chardet',
-    'click',
-    'flask',
-    'google-auth',
-    'graphy',
-    'html5lib-python',
-    'httplib2/python2/httplib2',
-    'idna',
-    'ijson',
-    'itsdangerous',
-    'jinja2',
-    'mapreduce',
-    'markupsafe',
-    'mock',
-    'oauth2client',
-    'pipeline',
-    'pyasn1',
-    'pyasn1_modules',
-    'pyparsing',
-    'requests',
-    'requests_toolbelt',
-    'rsa',
-    'six',
-    'uritemplate',
-    'urllib3',
-    'webapp2',
-    'webtest',
-    'werkzeug',
-]
-
-THIRD_PARTY_LIBRARIES_PY3 = THIRD_PARTY_LIBRARIES
-
 # Files and directories in catapult/dashboard.
 DASHBOARD_FILES = [
     'api.yaml',
@@ -148,23 +109,14 @@ def _AllSdkThirdPartyLibraryPaths():
 
   try:
     # pylint: disable=import-outside-toplevel
-    if sys.version_info.major == 2:
-      import dev_appserver
-    else:
-      # dev_appserver is not ready for python 3. Try import google.appengine
-      # for validation purpose.
-      import google.appengine  # pylint: disable=unused-import
+    import google.appengine  # pylint: disable=unused-import
   except ImportError:
     # TODO: Put the Cloud SDK in the path with the binary dependency manager.
     # https://github.com/catapult-project/catapult/issues/2135
     print('This script requires the Google Cloud SDK to be in PYTHONPATH.')
-    print(
-        'See https://chromium.googlesource.com/catapult/+/HEAD/dashboard/README.md'
-    )
+    print('See https://chromium.googlesource.com/catapult/'
+          '+/HEAD/dashboard/README.md')
     sys.exit(1)
-
-  if sys.version_info.major == 2:
-    paths.extend(dev_appserver.EXTRA_PATHS)
   return paths
 
 
@@ -174,10 +126,7 @@ def _CatapultThirdPartyLibraryPaths():
   paths.append(
       os.path.join(_CATAPULT_PATH, 'common', 'node_runner', 'node_runner',
                    'node_modules', '@chopsui'))
-  third_party_libraries = (
-      THIRD_PARTY_LIBRARIES_PY3 if sys.version_info.major == 3
-      else THIRD_PARTY_LIBRARIES_PY2)
-  for library in third_party_libraries:
+  for library in THIRD_PARTY_LIBRARIES:
     paths.append(os.path.join(_CATAPULT_PATH, 'third_party', library))
   return paths
 

@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 import logging
 import os
-import sys
 import six
 
 import jinja2
@@ -46,13 +45,8 @@ def RequestHandlerRenderHtml(template_file, template_values, status=200):
 
 def RequestHandlerRenderStaticHtml(filename):
   filename = os.path.join(_DASHBOARD_PYTHON_DIR, 'static', filename)
-  if sys.version_info.major == 3:
-    with open(filename, 'r', encoding='utf-8') as contents:
-      return make_response(contents.read())
-  else:
-    # Running in py2 runtime, encoding not a valid argument
-    with open(filename, 'r') as contents:
-      return make_response(contents.read())
+  with open(filename, 'r', encoding='utf-8') as contents:
+    return make_response(contents.read())
 
 
 def RequestHandlerGetDynamicVariables(template_values, request_path=None):

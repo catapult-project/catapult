@@ -8,7 +8,6 @@ from __future__ import division
 from __future__ import absolute_import
 
 import mock
-import sys
 import unittest
 
 from dashboard.common import namespaced_stored_object
@@ -252,10 +251,9 @@ class FifoSchedulerTest(test.TestCase):
 
 # TODO(dberris): Need to mock *all* of the back-end services that the various
 #  "live" bisection operations will be looking into.
+@unittest.skip("Delete it when removing execution engine")
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
-@unittest.skipIf(sys.version_info.major == 3,
-                 'Skipping as execution Engine setup not ready for python 3.')
 class FifoSchedulerExecutionEngineTest(bisection_test_util.BisectionTestBase):
 
   def setUp(self):
