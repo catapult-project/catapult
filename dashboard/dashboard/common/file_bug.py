@@ -346,7 +346,7 @@ def FileBug(http,
   # Add the bug comment with the service account, so that there are no
   # permissions issues.
   dashboard_issue_tracker_service = issue_tracker_service.IssueTrackerService(
-      utils.ServiceAccountHttp(use_adc=False))
+      utils.ServiceAccountHttp(use_adc=True))
   dashboard_issue_tracker_service.AddBugComment(bug_id, comment_body,
                                                 project_id)
   template_params = {'bug_id': bug_id, 'project_id': project_id}

@@ -81,7 +81,7 @@ def _ShowCommentDialog(urlsafe_keys):
 
 
 def _FetchBugs():
-  http = utils.ServiceAccountHttp(use_adc=False)
+  http = utils.ServiceAccountHttp(use_adc=True)
   issue_tracker = issue_tracker_service.IssueTrackerService(http)
   response = issue_tracker.List(
       q='opened-after:today-5',

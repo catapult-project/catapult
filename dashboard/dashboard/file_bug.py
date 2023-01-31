@@ -115,7 +115,7 @@ def _CreateBug(owner, cc, summary, description, project_id, labels, components,
                 project_domain
         })
 
-  http = utils.ServiceAccountHttp(use_adc=False)
+  http = utils.ServiceAccountHttp(use_adc=True)
   template_params = file_bug.FileBug(http, owner, cc, summary, description,
                                      project_id, labels, components,
                                      urlsafe_keys.split(','))

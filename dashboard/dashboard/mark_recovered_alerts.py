@@ -110,7 +110,7 @@ def _FetchUntriagedAnomalies():
 def _FetchOpenBugs():
   """Fetches a list of open bugs on all sheriffing labels."""
   issue_tracker = issue_tracker_service.IssueTrackerService(
-      utils.ServiceAccountHttp(use_adc=False))
+      utils.ServiceAccountHttp(use_adc=True))
   bugs = issue_tracker.List(
       can='open',
       q='Performance=Sheriff OR Performance=Sheriff-V8',
@@ -147,7 +147,7 @@ def MarkAlertAndBugIfRecovered(alert_key_urlsafe, bug_id, project_id):
       comment = 'Automatic message: All alerts recovered.\nGraphs: %s' % (
           'https://chromeperf.appspot.com/group_report?bug_id=%s' % bug_id)
       issue_tracker = issue_tracker_service.IssueTrackerService(
-          utils.ServiceAccountHttp(use_adc=False))
+          utils.ServiceAccountHttp(use_adc=True))
       issue_tracker.AddBugComment(
           bug_id,
           comment,
@@ -178,7 +178,7 @@ def _IsAlertRecovered(alert_entity, bug_id, project_id):
       alert_entity.put()
       if bug_id:
         issue_tracker = issue_tracker_service.IssueTrackerService(
-            utils.ServiceAccountHttp(use_adc=False))
+            utils.ServiceAccountHttp(use_adc=True))
         issue_tracker.AddBugComment(bug_id, comment, project=project_id)
     return alert_entity.recovered
   config = anomaly_config.GetAnomalyConfigDict(test)

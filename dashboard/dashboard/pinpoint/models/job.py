@@ -956,7 +956,7 @@ def _PostBugCommentDeferred(bug_id, *args, **kwargs):
     return
 
   issue_tracker = issue_tracker_service.IssueTrackerService(
-      utils.ServiceAccountHttp(use_adc=False))
+      utils.ServiceAccountHttp(use_adc=True))
   issue_tracker.AddBugComment(bug_id, *args, **kwargs)
 
 

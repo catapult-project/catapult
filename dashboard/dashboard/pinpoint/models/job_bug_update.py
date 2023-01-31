@@ -405,7 +405,7 @@ def UpdatePostAndMergeDeferred(bug_update_builder, bug_id, tags, url, project,
                   bug_id)
   bug_update = bug_update_builder.BuildUpdate(tags, url, improvement_dir)
   issue_tracker = issue_tracker_service.IssueTrackerService(
-      utils.ServiceAccountHttp(use_adc=False))
+      utils.ServiceAccountHttp(use_adc=True))
   merge_details, cc_list = _ComputePostMergeDetails(
       issue_tracker,
       commit_cache_key,
