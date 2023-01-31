@@ -7,9 +7,9 @@ from __future__ import division
 from __future__ import absolute_import
 
 import datetime
+from flask import Flask
 import mock
 import sys
-import unittest
 
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
@@ -332,8 +332,6 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  @unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping tests under models/tasks for python 3.')
   def testCompletedMergeIntoExisting(self, differences, result_values,
                                      commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
@@ -453,8 +451,6 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
-  @unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping tests under models/tasks for python 3.')
   def testCompletedWithCommitAndDocs(self, differences, result_values,
                                      commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
@@ -483,7 +479,9 @@ class BugCommentTest(test.TestCase):
         test=utils.TestKey('master/bot/benchmark'))
     diag.put()
     scheduler.Schedule(j)
-    j.Run()
+    app = Flask(__name__)
+    with app.test_request_context('dummy/path', 'GET'):
+      j.Run()
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
@@ -1027,8 +1025,6 @@ class BugCommentTest(test.TestCase):
             mock.MagicMock(return_value=["a"]))
 class GetImprovementDirectionTest(testing_common.TestCase):
 
-  @unittest.skipIf(sys.version_info.major == 3,
-                   'Skipping tests under models/tasks for python 3.')
   def testGetImprovementDirection(self):
     # create metric and improvement directions
     t = graph_data.TestMetadata(id='ChromiumPerf/win7/dromaeo/down',)
@@ -1042,14 +1038,17 @@ class GetImprovementDirectionTest(testing_common.TestCase):
 
     # test _getImprovementDirection
     self.PatchDatastoreHooksRequest()
-    j = job.Job.New((), (),
-                    tags={'test_path': "ChromiumPerf/win7/dromaeo/down"})
-    self.assertEqual(j._GetImprovementDirection(), anomaly.DOWN)
-    j = job.Job.New((), (), tags={'test_path': "ChromiumPerf/win7/dromaeo/up"})
-    self.assertEqual(j._GetImprovementDirection(), anomaly.UP)
-    j = job.Job.New((), (),
-                    tags={'test_path': "ChromiumPerf/win7/dromaeo/unknown"})
-    self.assertEqual(j._GetImprovementDirection(), anomaly.UNKNOWN)
+    app = Flask(__name__)
+    with app.test_request_context('dummy/path', 'GET'):
+      j = job.Job.New((), (),
+                      tags={'test_path': "ChromiumPerf/win7/dromaeo/down"})
+      self.assertEqual(j._GetImprovementDirection(), anomaly.DOWN)
+      j = job.Job.New((), (),
+                      tags={'test_path': "ChromiumPerf/win7/dromaeo/up"})
+      self.assertEqual(j._GetImprovementDirection(), anomaly.UP)
+      j = job.Job.New((), (),
+                      tags={'test_path': "ChromiumPerf/win7/dromaeo/unknown"})
+      self.assertEqual(j._GetImprovementDirection(), anomaly.UNKNOWN)
 
 
 class GetIterationCountTest(test.TestCase):
