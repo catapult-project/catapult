@@ -1,4 +1,4 @@
-# Copyright 2022 The Chromium Authors
+# Copyright 2023 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -14,24 +14,26 @@ from telemetry.internal.forwarders import forwarder_utils
 import py_utils
 
 
-class LinuxBasedForwarderFactory(forwarders.ForwarderFactory):
+class CrOsForwarderFactory(forwarders.ForwarderFactory):
 
-  def __init__(self, interface):
+  def __init__(self, cri):
     super().__init__()
-    self._interface = interface
+    self._cri = cri
 
   def Create(self, local_port, remote_port, reverse=False):
-    if self._interface.local:
+    if self._cri.local:
       return do_nothing_forwarder.DoNothingForwarder(local_port, remote_port)
-    return LinuxBasedSshForwarder(
-        self._interface, local_port, remote_port, port_forward=not reverse)
+    return CrOsSshForwarder(self._cri,
+                            local_port,
+                            remote_port,
+                            port_forward=not reverse)
 
 
-class LinuxBasedSshForwarder(forwarders.Forwarder):
+class CrOsSshForwarder(forwarders.Forwarder):
 
-  def __init__(self, interface, local_port, remote_port, port_forward):
+  def __init__(self, cri, local_port, remote_port, port_forward):
     super().__init__()
-    self._interface = interface
+    self._cri = cri
     self._proc = None
 
     if port_forward:
@@ -44,20 +46,17 @@ class LinuxBasedSshForwarder(forwarders.Forwarder):
 
     forwarding_args = [
         # Ensure SSH is at least verbose enough to print the allocated port
-        '-o',
-        'LogLevel=INFO'
+        '-o', 'LogLevel=INFO'
     ]
-    forwarding_args.extend(
-        forwarder_utils.GetForwardingArgs(local_port, remote_port, self.host_ip,
-                                          port_forward))
+    forwarding_args.extend(forwarder_utils.GetForwardingArgs(
+        local_port, remote_port, self.host_ip, port_forward))
 
     # TODO(crbug.com/793256): Consider avoiding the extra tempfile and
     # read stderr directly from the subprocess instead.
     with tempfile.NamedTemporaryFile() as stderr_file:
       self._proc = subprocess.Popen(
-          self._interface.FormSSHCommandLine(['-NT'],
-                                             forwarding_args,
-                                             port_forward=port_forward),
+          self._cri.FormSSHCommandLine(['-NT'], forwarding_args,
+                                       port_forward=port_forward),
           stdout=subprocess.PIPE,
           stderr=stderr_file,
           stdin=subprocess.PIPE,
@@ -69,7 +68,7 @@ class LinuxBasedSshForwarder(forwarders.Forwarder):
     py_utils.WaitFor(self._IsConnectionReady, timeout=60)
 
   def _IsConnectionReady(self):
-    return self._interface.IsHTTPServerRunningOnPort(self.remote_port)
+    return self._cri.IsHTTPServerRunningOnPort(self.remote_port)
 
   def Close(self):
     if self._proc:
