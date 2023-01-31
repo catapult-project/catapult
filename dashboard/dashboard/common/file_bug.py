@@ -300,8 +300,7 @@ def AssignBugToCLAuthor(bug_id,
   )
 
 
-def FileBug(http,
-            owner,
+def FileBug(owner,
             cc,
             summary,
             description,
@@ -320,7 +319,7 @@ def FileBug(http,
   if milestone_label:
     labels.append(milestone_label)
 
-  user_issue_tracker_service = issue_tracker_service.IssueTrackerService(http)
+  user_issue_tracker_service = issue_tracker_service.IssueTrackerService()
   new_bug_response = user_issue_tracker_service.NewBug(
       summary,
       description,
@@ -345,8 +344,7 @@ def FileBug(http,
 
   # Add the bug comment with the service account, so that there are no
   # permissions issues.
-  dashboard_issue_tracker_service = issue_tracker_service.IssueTrackerService(
-      utils.ServiceAccountHttp(use_adc=True))
+  dashboard_issue_tracker_service = issue_tracker_service.IssueTrackerService()
   dashboard_issue_tracker_service.AddBugComment(bug_id, comment_body,
                                                 project_id)
   template_params = {'bug_id': bug_id, 'project_id': project_id}

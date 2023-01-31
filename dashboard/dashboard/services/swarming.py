@@ -56,7 +56,7 @@ class Bot:
 
   def _Request(self, path, **kwargs):
     url = '%s/%s/bot/%s/%s' % (self._server, _API_PATH, self._bot_id, path)
-    return request.RequestJson(url, use_adc=True, **kwargs)
+    return request.RequestJson(url, **kwargs)
 
 
 class Bots:
@@ -82,8 +82,7 @@ class Bots:
         dimensions=dimensions,
         is_dead=is_dead,
         limit=limit,
-        quarantined=quarantined,
-        use_adc=True)
+        quarantined=quarantined)
 
 
 class Task:
@@ -118,7 +117,7 @@ class Task:
 
   def _Request(self, path, **kwargs):
     url = '%s/%s/task/%s/%s' % (self._server, _API_PATH, self._task_id, path)
-    return request.RequestJson(url, use_adc=True, **kwargs)
+    return request.RequestJson(url, **kwargs)
 
 
 class Tasks:
@@ -134,7 +133,7 @@ class Tasks:
     in the task request.
     """
     url = '%s/%s/tasks/new' % (self._server, _API_PATH)
-    return request.RequestJson(url, method='POST', body=body, use_adc=True)
+    return request.RequestJson(url, method='POST', body=body)
 
 
 def _IsAlive(response):

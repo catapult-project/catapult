@@ -135,7 +135,6 @@ class FileBugTest(testing_common.TestCase):
   @mock.patch('google.appengine.api.app_identity.get_default_version_hostname',
               mock.MagicMock(return_value='chromeperf.appspot.com'))
   def testBisectDisabled(self):
-    http = utils.ServiceAccountHttp()
     owner = ''
     cc = 'you@chromium.org'
     summary = 'test'
@@ -148,7 +147,7 @@ class FileBugTest(testing_common.TestCase):
     subscription = Subscription(name='Sheriff',)
     keys = [self._AddAnomaly(10, 20, test_key, subscription).urlsafe()]
     bisect = False
-    result = file_bug.file_bug.FileBug(http, owner, cc, summary, description,
+    result = file_bug.file_bug.FileBug(owner, cc, summary, description,
                                        project_id, labels, components, keys,
                                        bisect)
     self.assertNotIn('bisect_error', result)
@@ -158,7 +157,6 @@ class FileBugTest(testing_common.TestCase):
   @mock.patch('google.appengine.api.app_identity.get_default_version_hostname',
               mock.MagicMock(return_value='chromeperf.appspot.com'))
   def testSupportsCCList(self):
-    http = utils.ServiceAccountHttp()
     owner = ''
     cc = 'you@chromium.org,me@chromium.org,other@chromium.org,,'
     summary = 'test'
@@ -171,7 +169,7 @@ class FileBugTest(testing_common.TestCase):
     subscription = Subscription(name='Sheriff',)
     keys = [self._AddAnomaly(10, 20, test_key, subscription).urlsafe()]
     bisect = False
-    result = file_bug.file_bug.FileBug(http, owner, cc, summary, description,
+    result = file_bug.file_bug.FileBug(owner, cc, summary, description,
                                        project_id, labels, components, keys,
                                        bisect)
     self.assertNotIn('bisect_error', result)

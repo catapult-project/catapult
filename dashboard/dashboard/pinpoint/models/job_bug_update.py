@@ -404,8 +404,7 @@ def UpdatePostAndMergeDeferred(bug_update_builder, bug_id, tags, url, project,
     logging.debug('UpdatePostAndMergeDeferred: commit_cache_key is None. Bug: "%s"',
                   bug_id)
   bug_update = bug_update_builder.BuildUpdate(tags, url, improvement_dir)
-  issue_tracker = issue_tracker_service.IssueTrackerService(
-      utils.ServiceAccountHttp(use_adc=True))
+  issue_tracker = issue_tracker_service.IssueTrackerService()
   merge_details, cc_list = _ComputePostMergeDetails(
       issue_tracker,
       commit_cache_key,

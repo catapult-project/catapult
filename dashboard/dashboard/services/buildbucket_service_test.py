@@ -39,7 +39,7 @@ class BuildbucketServiceTest(unittest.TestCase):
 
   def _AssertRequestMadeOnce(self, path, *args, **kwargs):
     self._request_json.assert_called_once_with(
-        buildbucket_service.API_BASE_URL2 + path, use_adc=True, *args, **kwargs)
+        buildbucket_service.API_BASE_URL2 + path, *args, **kwargs)
 
 
   def testPut_badBucketName(self):

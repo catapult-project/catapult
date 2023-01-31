@@ -30,7 +30,6 @@ def _Request(endpoint, params):
         method='POST',
         use_cache=False,
         use_auth=True,
-        use_adc=True,
         **params)
   except request.RequestError as e:
     try:

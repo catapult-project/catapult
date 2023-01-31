@@ -82,7 +82,7 @@ def Put(bucket, tags, parameters):
   logging.info("bbv2 Put body: \n%s\n", json.dumps(body))
 
   return request.RequestJson(
-      API_BASE_URL2 + 'ScheduleBuild', method='POST', body=body, use_adc=True)
+      API_BASE_URL2 + 'ScheduleBuild', method='POST', body=body)
 
 
 # TODO: Rename to Get().
@@ -91,7 +91,7 @@ def GetJobStatus(job_id):
   body = {'id': job_id}
   logging.info("bbv2 GetJobStatus body: \n%s\n", json.dumps(body))
   return request.RequestJson(
-      API_BASE_URL2 + 'GetBuild', method='POST', body=body, use_adc=True)
+      API_BASE_URL2 + 'GetBuild', method='POST', body=body)
 
 
 # TODO(robertocn): Implement CancelJobByID

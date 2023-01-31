@@ -20,7 +20,6 @@ from google.appengine.ext import ndb
 from google.appengine.runtime import apiproxy_errors
 
 from dashboard.common import datastore_hooks
-from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.pinpoint.models import change as change_module
@@ -955,8 +954,7 @@ def _PostBugCommentDeferred(bug_id, *args, **kwargs):
   if not bug_id:
     return
 
-  issue_tracker = issue_tracker_service.IssueTrackerService(
-      utils.ServiceAccountHttp(use_adc=True))
+  issue_tracker = issue_tracker_service.IssueTrackerService()
   issue_tracker.AddBugComment(bug_id, *args, **kwargs)
 
 

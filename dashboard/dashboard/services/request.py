@@ -52,7 +52,6 @@ def Request(url,
             use_cache=False,
             use_auth=True,
             scope=utils.EMAIL_SCOPE,
-            use_adc=False,
             **parameters):
   """Fetch a URL while authenticated as the service account.
 
@@ -98,15 +97,13 @@ def Request(url,
       return content
 
   try:
-    content = _RequestAndProcessHttpErrors(url, use_auth, scope, use_adc,
-                                           **kwargs)
+    content = _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs)
   except NotFoundError:
     raise
   except (http_client.HTTPException, socket.error,
           urlfetch_errors.InternalTransientError):
     # Retry once.
-    content = _RequestAndProcessHttpErrors(url, use_auth, scope, use_adc,
-                                           **kwargs)
+    content = _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs)
 
   if use_cache:
     try:
@@ -118,10 +115,10 @@ def Request(url,
   return content
 
 
-def _RequestAndProcessHttpErrors(url, use_auth, scope, use_adc=False, **kwargs):
+def _RequestAndProcessHttpErrors(url, use_auth, scope, **kwargs):
   """Requests a URL, converting HTTP errors to Python exceptions."""
   if use_auth:
-    http = utils.ServiceAccountHttp(timeout=60, scope=scope, use_adc=use_adc)
+    http = utils.ServiceAccountHttp(timeout=60, scope=scope)
   else:
     http = httplib2.Http(timeout=60)
   logging.info('url: %s; use_auth: %s; kwargs: %s', url, use_auth, kwargs)
@@ -135,13 +132,7 @@ def _RequestAndProcessHttpErrors(url, use_auth, scope, use_adc=False, **kwargs):
         response, content)
   if not response['status'].startswith('2'):
     logging.debug('Response headers: %s, body: %s', response, content)
-    if use_adc and response['status'] in ['401', '403']:
-      logging.info(
-          'Received unauthorized with ADC account. Retrying with the legacy account.'
-      )
-      _RequestAndProcessHttpErrors(url, use_auth, scope, False, **kwargs)
-    else:
-      raise RequestError(
-          'Failure in request for `%s`; HTTP status code %s: %s' %
-          (url, response['status'], repr(content[0:200])), response, content)
+    raise RequestError(
+        'Failure in request for `%s`; HTTP status code %s: %s' %
+        (url, response['status'], repr(content[0:200])), response, content)
   return content

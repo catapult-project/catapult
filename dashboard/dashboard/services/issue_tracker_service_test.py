@@ -32,7 +32,7 @@ def PythonVersionsDecorator():
 class IssueTrackerServiceTest(testing_common.TestCase):
 
   def testAddBugComment_Basic(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     service._MakeCommentRequest = mock.Mock()
     self.assertTrue(service.AddBugComment(12345, 'The comment'))
     self.assertEqual(1, service._MakeCommentRequest.call_count)
@@ -45,7 +45,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
         send_email=True)
 
   def testAddBugComment_Basic_EmptyProject(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     service._MakeCommentRequest = mock.Mock()
     self.assertTrue(service.AddBugComment(12345, 'The comment', project=''))
     self.assertEqual(1, service._MakeCommentRequest.call_count)
@@ -58,7 +58,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
         send_email=True)
 
   def testAddBugComment_Basic_ProjectIsNone(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     service._MakeCommentRequest = mock.Mock()
     self.assertTrue(service.AddBugComment(12345, 'The comment', project=None))
     self.assertEqual(1, service._MakeCommentRequest.call_count)
@@ -71,13 +71,13 @@ class IssueTrackerServiceTest(testing_common.TestCase):
         send_email=True)
 
   def testAddBugComment_WithNoBug_ReturnsFalse(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     service._MakeCommentRequest = mock.Mock()
     self.assertFalse(service.AddBugComment(None, 'Some comment'))
     self.assertFalse(service.AddBugComment(-1, 'Some comment'))
 
   def testAddBugComment_WithOptionalParameters(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     service._MakeCommentRequest = mock.Mock()
     self.assertTrue(
         service.AddBugComment(
@@ -100,7 +100,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
         send_email=True)
 
   def testAddBugComment_MergeBug(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     service._MakeCommentRequest = mock.Mock()
     self.assertTrue(service.AddBugComment(12345, 'Dupe', merge_issue=54321))
     self.assertEqual(1, service._MakeCommentRequest.call_count)
@@ -117,14 +117,14 @@ class IssueTrackerServiceTest(testing_common.TestCase):
 
   @mock.patch('logging.error')
   def testAddBugComment_Error(self, mock_logging_error):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     service._ExecuteRequest = mock.Mock(return_value=None)
     self.assertFalse(service.AddBugComment(12345, 'My bug comment'))
     self.assertEqual(1, service._ExecuteRequest.call_count)
     self.assertEqual(1, mock_logging_error.call_count)
 
   def testNewBug_Success_NewBugReturnsId(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     service._ExecuteRequest = mock.Mock(return_value={'id': 333})
     response = service.NewBug('Bug title', 'body', owner='someone@chromium.org')
     bug_id = response['bug_id']
@@ -132,7 +132,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     self.assertEqual(333, bug_id)
 
   def testNewBug_Success_SupportNonChromium(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     service._ExecuteRequest = mock.Mock(return_value={
         'id': 333,
         'projectId': 'non-chromium'
@@ -149,7 +149,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     self.assertEqual('non-chromium', project_id)
 
   def testNewBug_Success_ProjectIsEmpty(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     service._ExecuteRequest = mock.Mock(return_value={
         'id': 333,
         'projectId': 'chromium'
@@ -163,7 +163,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     self.assertEqual('chromium', project_id)
 
   def testNewBug_Success_ProjectIsNone(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     service._ExecuteRequest = mock.Mock(return_value={
         'id': 333,
         'projectId': 'chromium'
@@ -177,7 +177,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     self.assertEqual('chromium', project_id)
 
   def testNewBug_Failure_HTTPException(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     service._ExecuteRequest = mock.Mock(
         side_effect=http_client.HTTPException('reason'))
     response = service.NewBug('Bug title', 'body', owner='someone@chromium.org')
@@ -185,14 +185,14 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     self.assertIn('error', response)
 
   def testNewBug_Failure_NewBugReturnsError(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     service._ExecuteRequest = mock.Mock(return_value={})
     response = service.NewBug('Bug title', 'body', owner='someone@chromium.org')
     self.assertEqual(1, service._ExecuteRequest.call_count)
     self.assertTrue('error' in response)
 
   def testNewBug_HttpError_NewBugReturnsError(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     error_content = {
         'error': {
             'message': 'The user does not exist: test@chromium.org',
@@ -208,7 +208,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     self.assertTrue('error' in response)
 
   def testNewBug_UsesExpectedParams(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     service._MakeCreateRequest = mock.Mock()
     service.NewBug(
         'Bug title',
@@ -239,7 +239,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     ], service._MakeCreateRequest.call_args[0][0].get('cc'))
 
   def testNewBug_UsesExpectedParamsSansOwner(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     service._MakeCreateRequest = mock.Mock()
     service.NewBug(
         'Bug title',
@@ -266,7 +266,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     ], service._MakeCreateRequest.call_args[0][0].get('cc'))
 
   def testMakeCommentRequest_UserCantOwn_RetryMakeCommentRequest(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     error_content = {
         'error': {
             'message': 'Issue owner must be a project member',
@@ -281,7 +281,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     self.assertEqual(2, service._ExecuteRequest.call_count)
 
   def testMakeCommentRequest_UserDoesNotExist_RetryMakeCommentRequest(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     error_content = {
         'error': {
             'message': 'The user does not exist: test@chromium.org',
@@ -300,7 +300,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     self.assertEqual(2, service._ExecuteRequest.call_count)
 
   def testMakeCommentRequest_IssueDeleted_ReturnsTrue(self):
-    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service = issue_tracker_service.IssueTrackerService()
     error_content = {
         'error': {
             'message': 'User is not allowed to view this issue 12345',

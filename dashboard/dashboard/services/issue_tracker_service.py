@@ -25,7 +25,7 @@ MAX_REQUEST_RETRIES = 5
 class IssueTrackerService:
   """Class for updating bug issues."""
 
-  def __init__(self, http):
+  def __init__(self):
     """Initializes an object for adding and updating bugs on the issue tracker.
 
     This object can be re-used to make multiple requests without calling
@@ -38,6 +38,7 @@ class IssueTrackerService:
       http: A Http object that requests will be made through; this should be an
           Http object that's already authenticated via OAuth2.
     """
+    http = utils.ServiceAccountHttp()
     http.timeout = 30
 
     # Retry connecting at least 3 times.
@@ -321,8 +322,7 @@ class IssueTrackerService:
       The response if there was one, or else None.
     """
     response = request.execute(
-        num_retries=MAX_REQUEST_RETRIES,
-        http=utils.ServiceAccountHttp(use_adc=True))
+        num_retries=MAX_REQUEST_RETRIES, http=utils.ServiceAccountHttp())
     return response
 
 

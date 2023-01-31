@@ -29,8 +29,7 @@ class _SwarmingTest(unittest.TestCase):
     self.assertEqual(content, {'content': {}})
 
   def _AssertRequestMadeOnce(self, url, *args, **kwargs):
-    self._request_json.assert_called_once_with(
-        url, use_adc=True, *args, **kwargs)
+    self._request_json.assert_called_once_with(url, *args, **kwargs)
 
   def testGetChange(self):
     server = 'https://chromium-review.googlesource.com'
@@ -62,5 +61,4 @@ class _SwarmingTest(unittest.TestCase):
         scope=gerrit_service.GERRIT_SCOPE,
         use_cache=False,
         method='POST',
-        use_auth=True,
-        use_adc=True)
+        use_auth=True)

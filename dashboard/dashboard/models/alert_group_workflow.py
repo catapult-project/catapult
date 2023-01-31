@@ -830,6 +830,5 @@ def _IssueTracker():
   """Get a cached IssueTracker instance."""
   # pylint: disable=protected-access
   if not hasattr(_IssueTracker, '_client'):
-    _IssueTracker._client = issue_tracker_service.IssueTrackerService(
-        utils.ServiceAccountHttp(use_adc=True))
+    _IssueTracker._client = issue_tracker_service.IssueTrackerService()
   return _IssueTracker._client
