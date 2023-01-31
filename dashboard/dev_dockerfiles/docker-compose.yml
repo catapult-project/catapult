@@ -32,7 +32,7 @@ services:
     volumes:
       - ../..:/workspace
     working_dir: /workspace/dashboard
-    command: [./bin/deploy-py3, --dry_run, --target_dir, /workspace/deploy-dashboard, --copy_files]
+    command: [./bin/deploy, --dry_run, --target_dir, /workspace/deploy-dashboard, --copy_files]
 networks:
   default:
     external:
