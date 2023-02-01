@@ -454,6 +454,7 @@ class UtilsTest(testing_common.TestCase):
   def testIsNotAdministrator(self):
     self.assertFalse(utils.IsAdministrator())
 
+  @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=False))
   @mock.patch.object(utils, 'GetEmail',
                      mock.MagicMock(return_value='internal@chromium.org'))
   def testShouldTurnOnUploadCompletionTokenExperiment_NotGroupMember(self):
