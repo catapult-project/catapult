@@ -309,6 +309,13 @@ ROCK960_DEVICE_LIST = [
 ]
 
 
+# Namespaces for settings
+class SettingsNamespace:
+  GLOBAL = 'global'
+  SECURE = 'secure'
+  SYSTEM = 'system'
+
+
 @decorators.WithExplicitTimeoutAndRetries(_DEFAULT_TIMEOUT, _DEFAULT_RETRIES)
 def GetAVDs():
   """Returns a list of Android Virtual Devices.
@@ -3435,6 +3442,24 @@ class DeviceUtils(object):
       processes.append(ProcessInfo(**row))
     return processes
 
+  def _GetSettings(self, namespace):
+    """Return a dictionary containing global settings
+
+    Args:
+      namespace: Category of settings. Can be either 'system', 'global'
+        or 'secure'.
+
+    Returns:
+      A dictionary mapping settings to their values.
+    """
+    if namespace not in (SettingsNamespace.SECURE, SettingsNamespace.GLOBAL,
+                         SettingsNamespace.SYSTEM):
+      raise ValueError('Unsupported namespace: %s' % namespace)
+    output_lines = self.RunShellCommand(['settings', 'list', namespace],
+                                        check_return=True,
+                                        large_output=True)
+    return dict(map(lambda line: line.split('=', 1), output_lines))
+
   def _GetDumpsysOutput(self, extra_args, pattern=None):
     """Runs |dumpsys| command on the device and returns its output.
 
@@ -3592,6 +3617,22 @@ class DeviceUtils(object):
     self.RunShellCommand(['setenforce', '1' if int(enabled) else '0'],
                          as_root=True,
                          check_return=True)
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def GetWebViewProvider(self, timeout=None, retries=None):
+    """Returns the webview_provider setting from global settings.
+    More information on WebView providers can be found at
+    //android_webview/docs/webview-providers.md
+
+    Args:
+      timeout: Timeout for method.
+      retries: Number of maximum retries for the function if the
+        function fails
+
+    Returns:
+      The value for the webview_provider setting in global settings."""
+    self._CheckSdkLevel(version_codes.NOUGAT)
+    return self._GetSettings(SettingsNamespace.GLOBAL).get('webview_provider')
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetWebViewUpdateServiceDump(self, timeout=None, retries=None):
