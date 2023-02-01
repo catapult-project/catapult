@@ -1811,8 +1811,6 @@ class AddHistogramsUploadCompleteonTokenTest(AddHistogramsBaseTest):
   # (crbug/1298177) The setup for Flask is not ready yet. We will force the test
   # to run in the old setup for now.
   @unittest.skipIf(six.PY3, 'DevAppserver not ready yet for python 3.')
-  @mock.patch.object(utils, 'IsRunningFlask',
-                     mock.MagicMock(return_value=False))
   @mock.patch.object(utils, 'IsDevAppserver', mock.MagicMock(return_value=True))
   def testPost_DevAppserverSucceeds(self):
     token_info = self.PostAddHistogram(self.histogram_data)

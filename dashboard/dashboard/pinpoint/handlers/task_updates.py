@@ -12,12 +12,13 @@ import json
 import logging
 import six
 
+from flask import make_response, request
+
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import task as task_module
 from dashboard.pinpoint.models import event as event_module
 from dashboard.pinpoint.models.tasks import evaluator
 from dashboard.pinpoint.models import errors
-from dashboard.common import utils
 
 
 def HandleTaskUpdate(request_body):
@@ -151,30 +152,11 @@ def HandleTaskUpdate(request_body):
     raise
 
 
-if utils.IsRunningFlask():
-  from flask import make_response, request
+def TaskUpdatesHandler():
+  """Handle updates received from Pub/Sub on Swarming Tasks."""
+  try:
+    HandleTaskUpdate(request.data)
+  except (ValueError, binascii.Error) as error:
+    logging.error('Failed: %s', error)
 
-  def TaskUpdatesHandler():
-    """Handle updates received from Pub/Sub on Swarming Tasks."""
-    try:
-      HandleTaskUpdate(request.data)
-    except (ValueError, binascii.Error) as error:
-      logging.error('Failed: %s', error)
-
-    return make_response('', 204)
-
-else:
-  import webapp2
-
-  class TaskUpdates(webapp2.RequestHandler):
-    """Handle updates received from Pub/Sub on Swarming Tasks."""
-
-    def post(self):
-      """Handle push messages including information about the swarming task."""
-      try:
-        HandleTaskUpdate(self.request.body)
-      except (ValueError, binascii.Error) as error:
-        logging.error('Failed: %s', error)
-
-      self.response.status = 204
-      self.response.write('')
+  return make_response('', 204)

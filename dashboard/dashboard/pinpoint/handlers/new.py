@@ -12,6 +12,8 @@ import shlex
 import six
 import uuid
 
+from flask import request
+
 from dashboard.api import api_request_handler
 from dashboard.api import api_auth
 from dashboard.common import bot_configurations
@@ -25,9 +27,6 @@ from dashboard.pinpoint.models import scheduler
 from dashboard.pinpoint.models import task as task_module
 from dashboard.pinpoint.models.tasks import performance_bisection
 from dashboard.pinpoint.models.tasks import read_value
-
-if utils.IsRunningFlask():
-  from flask import request
 
 _ERROR_BUG_ID = 'Bug ID must be an integer.'
 _ERROR_TAGS_DICT = 'Tags must be a dict of key/value string pairs.'
@@ -67,64 +66,35 @@ for test in SUFFIXED_REGULAR_TELEMETRY_TESTS:
   for suffix in SUFFIXES:
     REGULAR_TELEMETRY_TESTS_WITH_FALLBACKS[test + suffix] = test
 
-if utils.IsRunningFlask():
 
-  def _CheckUser():
-    if utils.IsDevAppserver():
-      return
-    api_auth.Authorize()
-    if not utils.IsTryjobUser():
-      raise api_request_handler.ForbiddenError()
+def _CheckUser():
+  if utils.IsDevAppserver():
+    return
+  api_auth.Authorize()
+  if not utils.IsTryjobUser():
+    raise api_request_handler.ForbiddenError()
 
 
-  @api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
-  def NewHandlerPost():
-    # TODO(dberris): Validate the inputs based on the type of job requested.
-    job = _CreateJob(request)
+@api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
+def NewHandlerPost():
+  # TODO(dberris): Validate the inputs based on the type of job requested.
+  job = _CreateJob(request)
 
-    # We apply the cost-based scheduling at job creation time, so that we can
-    # roll out the feature as jobs come along.
-    scheduler.Schedule(job, scheduler.Cost(job))
+  # We apply the cost-based scheduling at job creation time, so that we can
+  # roll out the feature as jobs come along.
+  scheduler.Schedule(job, scheduler.Cost(job))
 
-    job.PostCreationUpdate()
+  job.PostCreationUpdate()
 
-    return {
-        'jobId': job.job_id,
-        'jobUrl': job.url,
-    }
-else:
-  class New(api_request_handler.ApiRequestHandler):
-    # pylint: disable=abstract-method
-    """Handler that cooks up a fresh Pinpoint job."""
-
-    def _CheckUser(self):
-      self._CheckIsLoggedIn()
-      if not utils.IsTryjobUser():
-        raise api_request_handler.ForbiddenError()
-
-    def Post(self, *args, **kwargs):
-      del args, kwargs  # Unused.
-      # TODO(dberris): Validate the inputs based on the type of job requested.
-      job = _CreateJob(self.request)
-
-      # We apply the cost-based scheduling at job creation time, so that we can
-      # roll out the feature as jobs come along.
-      scheduler.Schedule(job, scheduler.Cost(job))
-
-      job.PostCreationUpdate()
-
-      return {
-          'jobId': job.job_id,
-          'jobUrl': job.url,
-      }
+  return {
+      'jobId': job.job_id,
+      'jobUrl': job.url,
+  }
 
 
 def _CreateJob(req):
   """Creates a new Pinpoint job from WebOb request arguments."""
-  if utils.IsRunningFlask():
-    original_arguments = utils.RequestParamsMixed(req)
-  else:
-    original_arguments = req.params.mixed()
+  original_arguments = utils.RequestParamsMixed(req)
   logging.debug('Received Params: %s', original_arguments)
 
   # This call will fail if some of the required arguments are not in the

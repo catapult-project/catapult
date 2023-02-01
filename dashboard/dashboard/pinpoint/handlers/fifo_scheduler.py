@@ -16,25 +16,17 @@ from __future__ import absolute_import
 
 import logging
 
+from flask import make_response
+
 from dashboard.pinpoint.models import job as job_model
 from dashboard.pinpoint.models import scheduler
-from dashboard.common import utils
 
 DEFAULT_BUDGET = 1.0
 
-if utils.IsRunningFlask():
-  from flask import make_response
 
-  def FifoSchedulerHandler():
-    _ProcessFIFOQueues()
-    return make_response('', 200)
-else:
-  import webapp2
-
-  class FifoScheduler(webapp2.RequestHandler):
-
-    def get(self):
-      _ProcessFIFOQueues()
+def FifoSchedulerHandler():
+  _ProcessFIFOQueues()
+  return make_response('', 200)
 
 
 def _ProcessFIFOQueues():

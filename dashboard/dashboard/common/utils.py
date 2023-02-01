@@ -17,7 +17,7 @@ import time
 
 from apiclient import discovery
 from apiclient import errors
-import flask
+
 from google.appengine.api import app_identity
 from google.appengine.api import memcache
 from google.appengine.api import oauth
@@ -836,10 +836,6 @@ def RequestParamsMixed(req):
     else:
       result[key] = value
   return result
-
-
-def IsRunningFlask():
-  return flask.has_request_context() or six.PY3
 
 
 def SanitizeArgs(args, key_name, default):

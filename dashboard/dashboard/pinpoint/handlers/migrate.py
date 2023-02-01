@@ -9,6 +9,8 @@ from __future__ import absolute_import
 import datetime
 import logging
 
+from flask import request
+
 from google.appengine.api import datastore_errors
 from google.appengine.datastore import datastore_query
 from google.appengine.ext import deferred
@@ -22,48 +24,27 @@ from dashboard.pinpoint.models import job
 _BATCH_SIZE = 50
 _STATUS_KEY = 'job_migration_status'
 
-if utils.IsRunningFlask():
-  from flask import request
 
-  def _CheckUser():
-    if utils.IsDevAppserver():
-      return
-    api_auth.Authorize()
-    if not utils.IsAdministrator():
-      raise api_request_handler.ForbiddenError()
+def _CheckUser():
+  if utils.IsDevAppserver():
+    return
+  api_auth.Authorize()
+  if not utils.IsAdministrator():
+    raise api_request_handler.ForbiddenError()
 
-  @api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
-  def MigrateHandler():
-    if request.method == 'GET':
-      return stored_object.Get(_STATUS_KEY) or {}
 
-    if request.method == 'POST':
-      status = stored_object.Get(_STATUS_KEY)
+@api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
+def MigrateHandler():
+  if request.method == 'GET':
+    return stored_object.Get(_STATUS_KEY) or {}
 
-      if not status:
-        _Start()
-      return stored_object.Get(_STATUS_KEY) or {}
-    return {}
+  if request.method == 'POST':
+    status = stored_object.Get(_STATUS_KEY)
 
-else:
-
-  class Migrate(api_request_handler.ApiRequestHandler):
-
-    def _CheckUser(self):
-      self._CheckIsLoggedIn()
-      if not utils.IsAdministrator():
-        raise api_request_handler.ForbiddenError()
-
-    def Get(self, *_):
-      return stored_object.Get(_STATUS_KEY) or {}
-
-    def Post(self, *args, **kwargs):
-      del args, kwargs  # Unused.
-      status = stored_object.Get(_STATUS_KEY)
-
-      if not status:
-        _Start()
-      return self.Get()
+    if not status:
+      _Start()
+    return stored_object.Get(_STATUS_KEY) or {}
+  return {}
 
 
 def _Start():
