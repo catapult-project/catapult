@@ -2014,7 +2014,7 @@ class DecompressFileWrapperTest(testing_common.TestCase):
 
     raw_dicts = loaded_raw_histograms.AsDicts()
     compressed_dicts = loaded_compressed_histograms.AsDicts()
-    six.assertCountEqual(self, raw_dicts, compressed_dicts)
+    self.assertCountEqual(raw_dicts, compressed_dicts)
 
   def testJSONFail(self):
     with BufferedFakeFile('Not JSON') as input_file:

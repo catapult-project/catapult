@@ -1567,7 +1567,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(
         six.ensure_str(anomalies[0].urlsafe()),
         json.loads(self._pinpoint.new_job_request['tags'])['alert'])
-    six.assertCountEqual(self, ['abcdef', '123456'], group.get().bisection_ids)
+    self.assertCountEqual(['abcdef', '123456'], group.get().bisection_ids)
 
   def testBisect_GroupTriaged_CrrevFailed(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
@@ -1814,8 +1814,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'send_email': False
     })
 
-    six.assertCountEqual(
-        self, self._issue_tracker.calls[3], {
+    self.assertCountEqual(
+        self._issue_tracker.calls[3], {
             'method': 'AddBugComment',
             'args': (42, None),
             'kwargs': {
@@ -1894,8 +1894,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                      self._issue_tracker.calls[2]['args'][1])
     self.assertIn('Alert group updated:',
                   self._issue_tracker.calls[2]['args'][1])
-    six.assertCountEqual(
-        self, self._issue_tracker.calls[2]['kwargs'], {
+    self.assertCountEqual(
+        self._issue_tracker.calls[2]['kwargs'], {
             'summary':
                 '[%s]: %d regressions in %s' % ('sheriff', 3, 'test_suite'),
             'labels': [
@@ -1961,8 +1961,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                      self._issue_tracker.calls[1]['args'][1])
     self.assertIn('Alert group updated:',
                   self._issue_tracker.calls[1]['args'][1])
-    six.assertCountEqual(
-        self, self._issue_tracker.calls[1]['kwargs'], {
+    self.assertCountEqual(
+        self._issue_tracker.calls[1]['kwargs'], {
             'summary':
                 '[%s]: %d regressions in %s' % ('sheriff', 3, 'test_suite'),
             'labels': [
@@ -2051,8 +2051,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'send_email': False
     })
 
-    six.assertCountEqual(
-        self, self._issue_tracker.calls[3], {
+    self.assertCountEqual(
+        self._issue_tracker.calls[3], {
             'method': 'AddBugComment',
             'args': (42, None),
             'kwargs': {

@@ -9,7 +9,6 @@ from __future__ import absolute_import
 from flask import Flask
 import json
 import mock
-import six
 import unittest
 import uuid
 
@@ -168,7 +167,7 @@ class UploadInfo(testing_common.TestCase):
         ]
     }
     response = self.GetFullInfoRequest(token_id)
-    six.assertCountEqual(self, expected, response)
+    self.assertCountEqual(expected, response)
 
   def testGet_SuccessWithMeasurementsAndAssociatedHistogram(self):
     owners_diagnostic = generic_set.GenericSet(['owner_name'])
@@ -258,7 +257,7 @@ class UploadInfo(testing_common.TestCase):
         },]
     }
     response = self.GetFullInfoRequest(token_id)
-    six.assertCountEqual(self, expected, response)
+    self.assertCountEqual(expected, response)
 
   def testGet_SuccessLimitedInfo(self):
     token_id = str(uuid.uuid4())

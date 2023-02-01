@@ -10,7 +10,6 @@ import mock
 import datetime
 from flask import Flask
 import logging
-import six
 import unittest
 import webtest
 
@@ -161,8 +160,8 @@ class GroupReportTest(GroupReportTestBase):
         for g in alert_group.AlertGroup.Get(
             'test_suite', alert_group.AlertGroup.Type.test_suite)
     }
-    six.assertCountEqual(self, groups['master'].anomalies, [a1, a2, a4])
-    six.assertCountEqual(self, groups['other'].anomalies, [a3])
+    self.assertCountEqual(groups['master'].anomalies, [a1, a2, a4])
+    self.assertCountEqual(groups['other'].anomalies, [a3])
 
   def testMultipleAltertsGroupingDifferentDomain_AfterGroupCreated(
       self, mock_get_sheriff_client):
@@ -188,8 +187,8 @@ class GroupReportTest(GroupReportTestBase):
         for g in alert_group.AlertGroup.Get(
             'test_suite', alert_group.AlertGroup.Type.test_suite)
     }
-    six.assertCountEqual(self, groups['master'].anomalies, [a1, a2, a4])
-    six.assertCountEqual(self, groups['other'].anomalies, [a3])
+    self.assertCountEqual(groups['master'].anomalies, [a1, a2, a4])
+    self.assertCountEqual(groups['other'].anomalies, [a3])
 
   def testMultipleAltertsGroupingDifferentBot(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
@@ -208,7 +207,7 @@ class GroupReportTest(GroupReportTestBase):
         'test_suite',
         alert_group.AlertGroup.Type.test_suite,
     )[0]
-    six.assertCountEqual(self, group.anomalies, [a1, a2, a3, a4])
+    self.assertCountEqual(group.anomalies, [a1, a2, a3, a4])
 
   def testMultipleAltertsGroupingDifferentSuite(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
@@ -227,12 +226,12 @@ class GroupReportTest(GroupReportTestBase):
         'test_suite',
         alert_group.AlertGroup.Type.test_suite,
     )[0]
-    six.assertCountEqual(self, group.anomalies, [a1, a2, a4])
+    self.assertCountEqual(group.anomalies, [a1, a2, a4])
     group = alert_group.AlertGroup.Get(
         'other',
         alert_group.AlertGroup.Type.test_suite,
     )[0]
-    six.assertCountEqual(self, group.anomalies, [a3])
+    self.assertCountEqual(group.anomalies, [a3])
 
   def testMultipleAltertsGroupingOverrideSuite(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
@@ -262,22 +261,22 @@ class GroupReportTest(GroupReportTestBase):
         'test_suite',
         alert_group.AlertGroup.Type.test_suite,
     )[0]
-    six.assertCountEqual(self, group.anomalies, [a1, a2])
+    self.assertCountEqual(group.anomalies, [a1, a2])
     group = alert_group.AlertGroup.Get(
         'test_suite',
         alert_group.AlertGroup.Type.logical,
     )[0]
-    six.assertCountEqual(self, group.anomalies, [a3])
+    self.assertCountEqual(group.anomalies, [a3])
     group = alert_group.AlertGroup.Get(
         'test_suite_other1',
         alert_group.AlertGroup.Type.logical,
     )[0]
-    six.assertCountEqual(self, group.anomalies, [a3, a4])
+    self.assertCountEqual(group.anomalies, [a3, a4])
     group = alert_group.AlertGroup.Get(
         'test_suite_other2',
         alert_group.AlertGroup.Type.logical,
     )[0]
-    six.assertCountEqual(self, group.anomalies, [a4])
+    self.assertCountEqual(group.anomalies, [a4])
 
   def testMultipleAltertsGroupingMultipleSheriff(self,
                                                  mock_get_sheriff_client):
@@ -327,11 +326,11 @@ class GroupReportTest(GroupReportTestBase):
         for g in alert_group.AlertGroup.Get(
             'test_suite', alert_group.AlertGroup.Type.test_suite)
     }
-    six.assertCountEqual(self, list(groups.keys()),
-                         ['sheriff1', 'sheriff2', 'sheriff3'])
-    six.assertCountEqual(self, groups['sheriff1'].anomalies, [a1, a2])
-    six.assertCountEqual(self, groups['sheriff2'].anomalies, [a1, a3])
-    six.assertCountEqual(self, groups['sheriff3'].anomalies, [a3])
+    self.assertCountEqual(
+        list(groups.keys()), ['sheriff1', 'sheriff2', 'sheriff3'])
+    self.assertCountEqual(groups['sheriff1'].anomalies, [a1, a2])
+    self.assertCountEqual(groups['sheriff2'].anomalies, [a1, a3])
+    self.assertCountEqual(groups['sheriff3'].anomalies, [a3])
 
   def testMultipleAltertsGroupingPointRange(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
@@ -348,7 +347,7 @@ class GroupReportTest(GroupReportTestBase):
         'test_suite',
         alert_group.AlertGroup.Type.test_suite,
     )[0]
-    six.assertCountEqual(self, group.anomalies, [a1, a2])
+    self.assertCountEqual(group.anomalies, [a1, a2])
 
   def testArchiveAltertsGroup(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
@@ -428,14 +427,12 @@ class GroupReportTest(GroupReportTestBase):
         alert_group.AlertGroup.Type.test_suite,
     )[0]
     self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
-    six.assertCountEqual(self,
-                         self.fake_issue_tracker.new_bug_kwargs['components'],
-                         ['Foo>Bar'])
-    six.assertCountEqual(self, self.fake_issue_tracker.new_bug_kwargs['labels'],
-                         [
-                             'Pri-2', 'Restrict-View-Google',
-                             'Type-Bug-Regression', 'Chromeperf-Auto-Triaged'
-                         ])
+    self.assertCountEqual(self.fake_issue_tracker.new_bug_kwargs['components'],
+                          ['Foo>Bar'])
+    self.assertCountEqual(self.fake_issue_tracker.new_bug_kwargs['labels'], [
+        'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
+        'Chromeperf-Auto-Triaged'
+    ])
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
     self.assertRegex(self.fake_issue_tracker.new_bug_args[1],
                      r'Top 1 affected measurements in bot:')
@@ -476,14 +473,12 @@ class GroupReportTest(GroupReportTestBase):
         alert_group.AlertGroup.Type.test_suite,
     )[0]
     self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
-    six.assertCountEqual(self,
-                         self.fake_issue_tracker.new_bug_kwargs['components'],
-                         ['Foo>Bar'])
-    six.assertCountEqual(self, self.fake_issue_tracker.new_bug_kwargs['labels'],
-                         [
-                             'Pri-2', 'Restrict-View-Google',
-                             'Type-Bug-Regression', 'Chromeperf-Auto-Triaged'
-                         ])
+    self.assertCountEqual(self.fake_issue_tracker.new_bug_kwargs['components'],
+                          ['Foo>Bar'])
+    self.assertCountEqual(self.fake_issue_tracker.new_bug_kwargs['labels'], [
+        'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
+        'Chromeperf-Auto-Triaged'
+    ])
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
     self.assertRegex(self.fake_issue_tracker.new_bug_args[1],
                      r'Top 4 affected measurements in bot:')
@@ -526,14 +521,12 @@ class GroupReportTest(GroupReportTestBase):
         alert_group.AlertGroup.Type.test_suite,
     )[0]
     self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
-    six.assertCountEqual(self,
-                         self.fake_issue_tracker.new_bug_kwargs['components'],
-                         ['Foo>Bar'])
-    six.assertCountEqual(self, self.fake_issue_tracker.new_bug_kwargs['labels'],
-                         [
-                             'Pri-2', 'Restrict-View-Google',
-                             'Type-Bug-Regression', 'Chromeperf-Auto-Triaged'
-                         ])
+    self.assertCountEqual(self.fake_issue_tracker.new_bug_kwargs['components'],
+                          ['Foo>Bar'])
+    self.assertCountEqual(self.fake_issue_tracker.new_bug_kwargs['labels'], [
+        'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
+        'Chromeperf-Auto-Triaged'
+    ])
     self.assertEqual(a.get().bug_id, 12345)
 
   def testAddAlertsAfterTriage(self, mock_get_sheriff_client):
@@ -565,9 +558,8 @@ class GroupReportTest(GroupReportTestBase):
       self.assertEqual(a.get().bug_id, 12345)
     logging.debug('Rendered:\n%s', self.fake_issue_tracker.add_comment_args[1])
     self.assertEqual(self.fake_issue_tracker.add_comment_args[0], 12345)
-    six.assertCountEqual(
-        self, self.fake_issue_tracker.add_comment_kwargs['components'],
-        ['Foo>Bar'])
+    self.assertCountEqual(
+        self.fake_issue_tracker.add_comment_kwargs['components'], ['Foo>Bar'])
     self.assertRegex(self.fake_issue_tracker.add_comment_args[1],
                      r'Top 2 affected measurements in bot:')
 
@@ -602,7 +594,7 @@ class GroupReportTest(GroupReportTestBase):
     anomaly_groups = [group.anomalies for group in groups]
     expected_anomaly_groups = [[a1, a5], [a2, a5], [a4], [a6, a7]]
 
-    six.assertCountEqual(self, anomaly_groups, expected_anomaly_groups)
+    self.assertCountEqual(anomaly_groups, expected_anomaly_groups)
 
 
 @mock.patch.object(utils, 'ServiceAccountEmail',
@@ -747,7 +739,7 @@ class RecoveredAlertsTests(GroupReportTestBase):
         'test_suite',
         alert_group.AlertGroup.Type.test_suite,
     )[0]
-    six.assertCountEqual(self, group.bisection_ids, ['123456'])
+    self.assertCountEqual(group.bisection_ids, ['123456'])
 
 
 @mock.patch.object(utils, 'ServiceAccountEmail',
@@ -796,15 +788,14 @@ class NonChromiumAutoTriage(GroupReportTestBase):
         alert_group.AlertGroup.Type.test_suite,
     )
     self.assertEqual(2, len(groups))
-    six.assertCountEqual(self, ['chromium', 'v8'],
-                         [g.project_id for g in groups])
+    self.assertCountEqual(['chromium', 'v8'], [g.project_id for g in groups])
     for group in groups:
       group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
       group.put()
 
     # And that we've filed two issues.
     self._CallHandler()
-    six.assertCountEqual(self, [{
+    self.assertCountEqual([{
         'method': 'NewBug',
         'args': (mock.ANY, mock.ANY),
         'kwargs': {
@@ -847,7 +838,7 @@ class NonChromiumAutoTriage(GroupReportTestBase):
       group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
       group.put()
     self._CallHandler()
-    six.assertCountEqual(self, [{
+    self.assertCountEqual([{
         'method': 'NewBug',
         'args': (mock.ANY, mock.ANY),
         'kwargs': {

@@ -10,7 +10,6 @@ import json
 import unittest
 
 import mock
-import six
 
 from dashboard import auto_bisect
 from dashboard.common import namespaced_stored_object
@@ -100,7 +99,7 @@ class StartNewBisectForBugTest(testing_common.TestCase):
         'issue_url': 'http://pinpoint/123'
     }, result)
     self.assertEqual('123', a.get().pinpoint_bisects[0])
-    six.assertCountEqual(self, {
+    self.assertCountEqual({
         'alert': a.urlsafe(),
         'test_path': test_key.id()
     }, json.loads(mock_new.call_args[0][0]['tags']))

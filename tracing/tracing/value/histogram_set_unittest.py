@@ -4,7 +4,6 @@
 
 import math
 import unittest
-import six
 
 from tracing.proto import histogram_proto
 from tracing.value import histogram
@@ -282,10 +281,10 @@ class HistogramSetUnittest(unittest.TestCase):
 
     # The order of the histograms isn't guaranteed.
     self.assertEqual(len(hists), 2)
-    six.assertCountEqual(
-        self, [hists[0].name, hists[1].name], ['metric1', 'metric2'])
-    six.assertCountEqual(
-        self, [hists[0].unit, hists[1].unit], ['tsMs', 'sigma_biggerIsBetter'])
+    self.assertCountEqual([hists[0].name, hists[1].name],
+                          ['metric1', 'metric2'])
+    self.assertCountEqual([hists[0].unit, hists[1].unit],
+                          ['tsMs', 'sigma_biggerIsBetter'])
 
   def testSimpleFieldsFromProto(self):
     hist_set = histogram_proto.Pb2().HistogramSet()

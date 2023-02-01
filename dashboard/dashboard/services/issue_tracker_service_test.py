@@ -6,7 +6,6 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import six
 from six.moves import http_client
 import json
 import mock
@@ -229,7 +228,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             'cc': mock.ANY,
             'projectId': 'chromium',
         }, 'chromium')
-    six.assertCountEqual(self, [
+    self.assertCountEqual([
         {
             'name': 'somebody@chromium.org'
         },
@@ -256,7 +255,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             'cc': mock.ANY,
             'projectId': 'chromium',
         }, 'chromium')
-    six.assertCountEqual(self, [
+    self.assertCountEqual([
         {
             'name': 'somebody@chromium.org'
         },

@@ -6,7 +6,6 @@
 
 import os
 import unittest
-import six
 
 from py_utils import cloud_storage
 import mock
@@ -1548,7 +1547,7 @@ class BaseConfigTest(unittest.TestCase):
     for dep_info in config.IterDependencyInfo():
       deps_seen.append(dep_info)
     dep_info_mock.assert_call_args(expected_calls)
-    six.assertCountEqual(self, expected_dep_info, deps_seen)
+    self.assertCountEqual(expected_dep_info, deps_seen)
 
   @mock.patch('dependency_manager.base_config.json')
   @mock.patch('os.path.exists')
@@ -1584,4 +1583,4 @@ class BaseConfigTest(unittest.TestCase):
         cs_info = dep_info.cloud_storage_info
         actual_glob = cs_info._archive_info._stale_unzip_path_glob
         actual_matches = set(fake_glob.glob(actual_glob))
-        six.assertCountEqual(self, should_match, actual_matches)
+        self.assertCountEqual(should_match, actual_matches)
