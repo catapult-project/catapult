@@ -26,26 +26,20 @@ def _InitBeautifulSoup():
   catapult_path = os.path.abspath(
       os.path.join(os.path.dirname(__file__),
                    os.path.pardir, os.path.pardir, os.path.pardir))
-  if six.PY3:
-    # Filter out warnings related to soupsieve from beautifulsoup.
-    # We do not need it and it generates unnecessary warnings during build.
-    warnings.filterwarnings('ignore', message='.*soupsieve.*',
-        category=UserWarning, module='bs4')
-    bs_path = os.path.join(catapult_path, 'third_party', 'beautifulsoup4-4.9.3', 'py3k')
-  else:
-    bs_path = os.path.join(catapult_path, 'third_party', 'beautifulsoup4')
+  # Filter out warnings related to soupsieve from beautifulsoup.
+  # We do not need it and it generates unnecessary warnings during build.
+  warnings.filterwarnings('ignore', message='.*soupsieve.*',
+      category=UserWarning, module='bs4')
+  bs_path = os.path.join(catapult_path, 'third_party', 'beautifulsoup4-4.9.3',
+                         'py3k')
   _AddToPathIfNeeded(bs_path)
 
-  if six.PY3:
-    html5lib_path = os.path.join(catapult_path, 'third_party', 'html5lib-1.1')
-  else:
-    html5lib_path = os.path.join(catapult_path, 'third_party', 'html5lib-python')
+  html5lib_path = os.path.join(catapult_path, 'third_party', 'html5lib-1.1')
   _AddToPathIfNeeded(html5lib_path)
 
-  if six.PY3:
-    webencodings_path = os.path.join(
-        catapult_path, 'third_party', 'webencodings-0.5.1')
-    _AddToPathIfNeeded(webencodings_path)
+  webencodings_path = os.path.join(
+      catapult_path, 'third_party', 'webencodings-0.5.1')
+  _AddToPathIfNeeded(webencodings_path)
 
   six_path = os.path.join(catapult_path, 'third_party', 'six')
   _AddToPathIfNeeded(six_path)

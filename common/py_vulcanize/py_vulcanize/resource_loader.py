@@ -6,11 +6,9 @@
 
 from __future__ import absolute_import
 import codecs
+import functools
 import os
 import six
-import sys
-if six.PY3:
-  import functools
 
 from py_vulcanize import module
 from py_vulcanize import style_sheet as style_sheet_module
@@ -64,10 +62,8 @@ class ResourceLoader(object):
       return None
 
     # Sort by length. Longest match wins.
-    if six.PY3:
-      sorted(candidate_paths, key=functools.cmp_to_key(lambda x, y: len(x) - len(y)), reverse=True)
-    else:
-      candidate_paths.sort(lambda x, y: len(x) - len(y))
+    sorted(candidate_paths,
+           key=functools.cmp_to_key(lambda x, y: len(x) - len(y)), reverse=True)
     longest_candidate = candidate_paths[-1]
     return resource_module.Resource(longest_candidate, absolute_path, binary)
 

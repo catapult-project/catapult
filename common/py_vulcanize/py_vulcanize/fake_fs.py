@@ -6,16 +6,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import builtins
 import codecs
 import collections
 import os
 import six
-import sys
 
 from io import BytesIO
 
-if six.PY3:
-  import builtins
 
 class WithableStringIO(six.StringIO):
 
@@ -43,10 +41,7 @@ class FakeFS(object):
 
     self._bound = False
     self._real_codecs_open = codecs.open
-    if six.PY3:
-      self._real_open = builtins.open
-    else:
-      self._real_open = sys.modules['__builtin__'].open
+    self._real_open = builtins.open
 
     self._real_abspath = os.path.abspath
     self._real_exists = os.path.exists
@@ -63,10 +58,7 @@ class FakeFS(object):
   def Bind(self):
     assert not self._bound
     codecs.open = self._FakeCodecsOpen
-    if six.PY3:
-      builtins.open = self._FakeOpen
-    else:
-      sys.modules['__builtin__'].open = self._FakeOpen
+    builtins.open = self._FakeOpen
     os.path.abspath = self._FakeAbspath
     os.path.exists = self._FakeExists
     os.walk = self._FakeWalk
@@ -76,10 +68,7 @@ class FakeFS(object):
   def Unbind(self):
     assert self._bound
     codecs.open = self._real_codecs_open
-    if six.PY3:
-      builtins.open = self._real_open
-    else:
-      sys.modules['__builtin__'].open = self._real_open
+    builtins.open = self._real_open
     os.path.abspath = self._real_abspath
     os.path.exists = self._real_exists
     os.walk = self._real_walk
