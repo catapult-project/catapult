@@ -29,6 +29,8 @@ _PP_TO_PERF_BUILDER_MAP = {
         'android-builder-perf',
     'Android arm64 Compile Perf':
         'android_arm64-builder-perf',
+    'Android arm64 High End Compile Perf':
+        'android_arm64_high_end-builder-perf',
     'Mac Builder Perf':
         'mac-builder-perf',
     'Mac arm Builder Perf':
