@@ -2410,6 +2410,22 @@ class DeviceUtilsBroadcastIntentTest(DeviceUtilsTest):
       self.device.BroadcastIntent(test_intent)
 
 
+class DeviceUtilGetCurrentUserTest(DeviceUtilsTest):
+  def testGetCurrentUser(self):
+    user_id = 10
+    with self.assertCall(self.call.adb.Shell('am get-current-user'),
+                         str(user_id)):
+      self.assertEqual(user_id, self.device.GetCurrentUser())
+
+
+class DeviceUtilSwitchUserTest(DeviceUtilsTest):
+  def testSwitchUser(self):
+    user_id = 10
+    with self.assertCall(self.call.adb.Shell('am switch-user %s' % user_id),
+                         ''):
+      self.device.SwitchUser(user_id)
+
+
 class DeviceUtilsGoHomeTest(DeviceUtilsTest):
   def testGoHome_popupsExist(self):
     with self.assertCalls(

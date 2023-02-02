@@ -1956,6 +1956,38 @@ class DeviceUtils(object):
     self.RunShellCommand(cmd, check_return=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
+  def GetCurrentUser(self, timeout=None, retries=None):
+    """Return an integer representing the id of the current foreground user.
+
+    Args:
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Raises:
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+    """
+    cmd = ['am', 'get-current-user']
+    user_id = self.RunShellCommand(cmd, single_line=True, check_return=True)
+    return int(user_id)
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def SwitchUser(self, user_id, timeout=None, retries=None):
+    """Switch to user with the given user id and put the user in the foreground.
+
+    Args:
+      user_id: An integer representing the user id to switch to.
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Raises:
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+    """
+    cmd = ['am', 'switch-user', str(user_id)]
+    self.RunShellCommand(cmd, check_return=True)
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
   def GoHome(self, timeout=None, retries=None):
     """Return to the home screen and obtain launcher focus.
 
