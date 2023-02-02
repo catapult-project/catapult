@@ -18,7 +18,7 @@ from dashboard.common import xsrf
 from flask import request, make_response
 
 
-@xsrf.TokenRequiredFlask
+@xsrf.TokenRequired
 def EditAnomaliesPost():
   """Allows adding or resetting bug IDs and invalid statuses to Alerts.
 

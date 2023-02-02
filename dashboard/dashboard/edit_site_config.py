@@ -65,7 +65,7 @@ def EditSiteConfigHandlerGet():
   return res
 
 
-@xsrf.TokenRequiredFlask
+@xsrf.TokenRequired
 def EditSiteConfigHandlerPost():
   """Accepts posted values, makes changes, and shows the form again."""
   key = request.values.get('key')

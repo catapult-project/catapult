@@ -50,19 +50,6 @@ def _GetSecretKey():
 def TokenRequired(handler_method):
   """A decorator to require that the XSRF token be validated for the handler."""
 
-  def CheckToken(self, *args, **kwargs):
-    email = utils.GetEmail()
-    token = str(self.request.get('xsrf_token'))
-    if not email or not _ValidateToken(token, email):
-      self.abort(403)
-    handler_method(self, *args, **kwargs)
-
-  return CheckToken
-
-
-def TokenRequiredFlask(handler_method):
-  """A decorator to require that the XSRF token be validated for the handler."""
-
   def CheckToken(*args, **kwargs):
     email = utils.GetEmail()
     token = str(request.values.get('xsrf_token'))

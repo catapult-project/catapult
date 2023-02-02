@@ -19,7 +19,7 @@ flask_app = Flask(__name__)
 
 
 @flask_app.route('/example', methods=['POST'])
-@xsrf.TokenRequiredFlask
+@xsrf.TokenRequired
 def PostFlask():
   return '<p>HTML</p>'
 
