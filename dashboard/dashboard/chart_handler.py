@@ -12,7 +12,7 @@ from dashboard.common import request_handler
 from dashboard import revision_info_client
 
 
-def RenderHtmlFlask(template_file, template_values, status=200):
+def RenderHtml(template_file, template_values, status=200):
   """Fills in template values for pages that show charts."""
   template_values.update(_GetChartValues())
   template_values['revision_info'] = json.dumps(
@@ -21,7 +21,7 @@ def RenderHtmlFlask(template_file, template_values, status=200):
                                                   template_values, status)
 
 
-def GetDynamicVariablesFlask(template_values, request_path=None):
+def GetDynamicVariables(template_values, request_path=None):
   template_values['revision_info'] = \
     revision_info_client.GetRevisionInfoConfig()
   request_handler.RequestHandlerGetDynamicVariables(template_values,

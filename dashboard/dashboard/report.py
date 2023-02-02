@@ -32,7 +32,7 @@ def ReportHandlerGet():
 def ReportHandlerPost():
   """Gets dynamic data for selecting graphs"""
   values = {}
-  chart_handler.GetDynamicVariablesFlask(values)
+  chart_handler.GetDynamicVariables(values)
   return make_response(
       json.dumps({
           'is_internal_user': values['is_internal_user'],

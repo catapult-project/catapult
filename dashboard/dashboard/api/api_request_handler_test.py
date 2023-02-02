@@ -30,7 +30,7 @@ def CheckIsInternalUser():
 
 
 @flask_app.route('/api/test', methods=['POST', 'OPTIONS'])
-def ApiTestPostFlask():
+def ApiTestPost():
   return ApiTestPostHandler()
 
 
@@ -40,7 +40,7 @@ def ApiTestPostHandler():
 
 
 @flask_app.route('/api/forbidden', methods=['POST'])
-def ApiForbiddenPostFlask():
+def ApiForbiddenPost():
   return ApiForbiddenPostHandler()
 
 
@@ -50,7 +50,7 @@ def ApiForbiddenPostHandler():
 
 
 @flask_app.route('/api/badrequest', methods=['POST'])
-def ApiBadRequestPostFlask():
+def ApiBadRequestPost():
   return ApiFBadRequestPostHandler()
 
 
@@ -88,7 +88,7 @@ class ApiRequestHandlerTest(testing_common.TestCase):
 
 
   @mock.patch.object(api_auth, 'Authorize')
-  def testPost_BadRequest_400_Flask(self, _):
+  def testPost_BadRequest_400(self, _):
     self.SetCurrentUserOAuth(testing_common.INTERNAL_USER)
     self.SetCurrentClientIdOAuth(api_auth.OAUTH_CLIENT_ID_ALLOWLIST[0])
     response = self.Post('/api/badrequest', status=400)

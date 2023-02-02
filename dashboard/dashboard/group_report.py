@@ -95,7 +95,7 @@ def GroupReportPost():
       values['project_id'] = project_id
     if keys:
       values['selected_keys'] = keys
-    chart_handler.GetDynamicVariablesFlask(values)
+    chart_handler.GetDynamicVariables(values)
 
     return make_response(json.dumps(values))
   except request_handler.InvalidInputError as error:
