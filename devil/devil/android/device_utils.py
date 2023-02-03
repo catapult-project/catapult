@@ -184,7 +184,6 @@ _CURRENT_FOCUS_CRASH_RE = re.compile(
 _GETPROP_RE = re.compile(r'\[(.*?)\]: \[(.*?)\]')
 _VERSION_CODE_SDK_RE = re.compile(
     r'\s*versionCode=(\d+).*minSdk=(\d+).*targetSdk=(.*)\s*')
-_USER_ID_RE = re.compile(r'.*userId=')
 
 # Regex to parse the long (-l) output of 'ls' command, c.f.
 # https://github.com/landley/toybox/blob/master/toys/posix/ls.c#L446
@@ -908,21 +907,10 @@ class DeviceUtils(object):
       A string with the version name or None if the package is not found
       on the device.
     """
-    output = self.RunShellCommand(['dumpsys', 'package', package],
-                                  check_return=True)
-    if not output:
-      return None
-    for line in output:
-      line = line.strip()
-      if line.startswith('versionName='):
-        return line[len('versionName='):]
-      # From Android N onwards, we will still get a response back and have to
-      # search through it to confirm that the package didn't
-      # exist
-      if 'Unable to find package: %s' % package in line:
-        return None
-    raise device_errors.CommandFailedError(
-        'Version name for %s not found on dumpsys output' % package, str(self))
+    return self._GetPackageDetailFromDumpsys(package,
+                                             'versionName=',
+                                             timeout=timeout,
+                                             retries=retries)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetApplicationTargetSdk(self, package, timeout=None, retries=None):
@@ -3481,8 +3469,7 @@ class DeviceUtils(object):
         return []
       raise
 
-  @decorators.WithTimeoutAndRetriesFromInstance()
-  def GetUidForPackage(self, package_name, timeout=None, retries=None):
+  def GetUidForPackage(self, package_name):
     """Get user id for package name on device
 
     Args:
@@ -3495,17 +3482,34 @@ class DeviceUtils(object):
     Raises:
       CommandFailedError if dumpsys does not return any output
     """
-    dumpsys_output = self._GetDumpsysOutput(
-        ['package', package_name], 'userId=')
+    return self._GetPackageDetailFromDumpsys(package_name, 'userId=')
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def _GetPackageDetailFromDumpsys(self,
+                                   package_name,
+                                   pattern,
+                                   timeout=None,
+                                   retries=None):
+    """Get detail for a package installed on device from it's dumpsys
+
+    Args:
+      package_name: Package name installed on device
+      pattern: Pattern for the detail to get from the dumpsys
+
+    Returns:
+      A string containing the detail.
+
+    Raises:
+      CommandFailedError if dumpsys does not return any output
+    """
+    dumpsys_output = self._GetDumpsysOutput(['package', package_name], pattern)
 
     if not dumpsys_output:
       raise device_errors.CommandFailedError(
           'No output was received from dumpsys')
 
-    user_id = _USER_ID_RE.sub('', dumpsys_output[0])
-    if user_id:
-      return user_id
-    return None
+    return (re.compile('.*{}'.format(pattern)).sub('', dumpsys_output[0])
+            or None)
 
   # TODO(#4103): Remove after migrating clients to ListProcesses.
   @decorators.WithTimeoutAndRetriesFromInstance()

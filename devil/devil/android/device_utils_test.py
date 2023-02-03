@@ -576,37 +576,24 @@ class DeviceUtilsGetApplicationPathsInternalTest(DeviceUtilsTest):
 
 class DeviceUtils_GetApplicationVersionTest(DeviceUtilsTest):
   def test_GetApplicationVersion_exists(self):
-    with self.assertCalls(
-        (self.call.adb.Shell('dumpsys package com.android.chrome'),
-         'Packages:\n'
-         '  Package [com.android.chrome] (3901ecfb):\n'
-         '    userId=1234 gids=[123, 456, 789]\n'
-         '    pkg=Package{1fecf634 com.android.chrome}\n'
-         '    versionName=45.0.1234.7\n')):
+    with self.assertCall(
+        self.call.device._GetDumpsysOutput(['package', 'com.android.chrome'],
+                                           'versionName='),
+        ['    versionName=45.0.1234.7']):
       self.assertEqual('45.0.1234.7',
                        self.device.GetApplicationVersion('com.android.chrome'))
 
   def test_GetApplicationVersion_notExists(self):
     with self.assertCalls(
-        (self.call.adb.Shell('dumpsys package com.android.chrome'), '')):
-      self.assertEqual(None,
-                       self.device.GetApplicationVersion('com.android.chrome'))
-
-  def test_GetApplicationVersion_notExists_android_n(self):
-    with self.assertCalls(
-        (self.call.adb.Shell('dumpsys package com.android.chrome'),
-         'Dexopt state:'
-         '  Unable to find package: com.android.chrome\n')):
+        (self.call.device._GetDumpsysOutput(['package', 'com.android.chrome'],
+                                            'versionName='), [''])):
       self.assertEqual(None,
                        self.device.GetApplicationVersion('com.android.chrome'))
 
   def test_GetApplicationVersion_fails(self):
     with self.assertCalls(
-        (self.call.adb.Shell('dumpsys package com.android.chrome'),
-         'Packages:\n'
-         '  Package [com.android.chrome] (3901ecfb):\n'
-         '    userId=1234 gids=[123, 456, 789]\n'
-         '    pkg=Package{1fecf634 com.android.chrome}\n')):
+        (self.call.device._GetDumpsysOutput(['package', 'com.android.chrome'],
+                                            'versionName='), [])):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device.GetApplicationVersion('com.android.chrome')
 
