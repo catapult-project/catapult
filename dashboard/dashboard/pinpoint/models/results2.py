@@ -13,6 +13,7 @@ import uuid
 import six
 import sys
 import json
+import statistics
 
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
@@ -390,15 +391,12 @@ def _SaveJobToChromeHealthBigQuery(job):
   for h in _FetchHistograms(job):
     if "sampleValues" not in h.histogram:
       continue
-    if len(h.histogram["sampleValues"]) != 1:
-      # We don't support analysis of metrics with more than one sample.
-      continue
     rk = RowKey(h.metadata.change, h.metadata.attempt_number)
     if rk not in rows:
       rows[rk] = _PopulateMetadata(job, h)
       rows[rk]["measures"] = _GetEmptyMeasures()
     rows[rk] = _PopulateMetric(rows[rk], h.histogram["name"],
-                               h.histogram["sampleValues"][0])
+                               h.histogram["sampleValues"])
   empty_measures = _GetEmptyMeasures()
   rows_with_measures = [
       r for r in rows.values() if r["measures"] != empty_measures
@@ -417,10 +415,14 @@ def _GetEmptyMeasures():
   return measures
 
 
-def _PopulateMetric(data, name, value):
+def _PopulateMetric(data, name, values):
   if name in _METRIC_MAP:
     loc = _METRIC_MAP[name]
-    data["measures"][loc[0]][loc[1]] = float(value)
+    if len(values) == 1 or loc[0] == 'speedometer2':
+      data["measures"][loc[0]][loc[1]] = statistics.fmean(values)
+    else:
+      logging.warning('Benchmark %s and story %s have array values', loc[0],
+                      name)
 
   return data
 
