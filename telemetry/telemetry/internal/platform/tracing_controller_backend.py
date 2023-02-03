@@ -74,6 +74,9 @@ class _TraceDataDiscarder():
     logging.info('Ignoring exception while flushing to TraceDataDiscarder:\n%s',
                  ''.join(traceback.format_exception(*sys.exc_info())))
 
+  def IterTraceParts(self):
+    yield '_TraceDataDiscarder', 'discarded'
+
 
 class _TracingState():
 
