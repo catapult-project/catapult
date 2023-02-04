@@ -11,6 +11,8 @@ import datetime
 import re
 import six
 
+
+
 try:
   from depot_tools.depot_tools import gclient_eval
 except ImportError:
@@ -19,6 +21,7 @@ except ImportError:
 
 from google.appengine.ext import deferred
 
+from dashboard import pinpoint_request
 from dashboard.pinpoint.models.change import commit_cache
 from dashboard.pinpoint.models.change import repository as repository_module
 from dashboard.services import gitiles_service
@@ -257,6 +260,11 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
         # don't go resolving the data from the gitiles service.
         result = commit_cache.Get(git_hash)
       except KeyError:
+        try:
+          # Try with commit position
+          git_hash = pinpoint_request.ResolveToGitHash(git_hash)
+        except ValueError:
+          pass
         result = gitiles_service.CommitInfo(repository_url, git_hash)
         git_hash = result['commit']
     except gitiles_service.NotFoundError as e:

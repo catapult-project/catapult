@@ -110,7 +110,7 @@ def FindMagnitudeBetweenCommits(test_key, start_commit, end_commit):
   return median_after - median_before
 
 
-def ResolveToGitHash(commit_position, suite, crrev=None):
+def ResolveToGitHash(commit_position, suite=None, crrev=None):
   crrev = crrev or crrev_service
   try:
     int(commit_position)

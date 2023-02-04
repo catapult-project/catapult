@@ -272,14 +272,14 @@ found in the LICENSE file.
                 <commit-details class="column rightPad"
                                 project="{{project}}"
                                 value="{{base_git_hash}}"
-                                label="Base Git Hash"
+                                label="Base Git Hash/Commit Position"
                                 items="[[commitsListItems(commitsList)]]"
                                 headers="[[client.authHeaders]]"
                                 required disabled="[[isBisectJob(comparisonMode)]]"></commit-details>
                 <commit-details class="column rightPad"
                                 project="{{project}}"
                                 value="{{end_git_hash}}"
-                                label="Exp Git Hash"
+                                label="Exp Git Hash/Commit Position"
                                 items="[[commitsListItems(commitsList)]]"
                                 headers="[[client.authHeaders]]"
                                 required disabled="[[isBisectJob(comparisonMode)]]"></commit-details>
