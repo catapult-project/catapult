@@ -524,6 +524,7 @@ class BrowserFinderOptions(optparse.Values):
         # as the persistent shell doesn't work until the emulator is already
         # running.
         self.use_persistent_shell = False
+        self.emulator_debug_tags = None
 
     avd_args = AvdArgs(self.avd_config)
     BrowserFinderOptions.emulator_environment =\
