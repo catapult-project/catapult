@@ -307,6 +307,8 @@ ROCK960_DEVICE_LIST = [
     'rk3399', 'rk3399-all', 'rk3399-box'
 ]
 
+_USER_LRU_RE = re.compile(r"^\s*mUserLru:\s*\[([\d\s,]+)\]$")
+
 
 # Namespaces for settings
 class SettingsNamespace:
@@ -1967,9 +1969,26 @@ class DeviceUtils(object):
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
+    # Android older than Nougat does not support get-current-user.
+    # Use dumpsys instead.
+    if self.build_version_sdk < version_codes.NOUGAT:
+      return self._GetCurrentUserDumpsys()
     cmd = ['am', 'get-current-user']
     user_id = self.RunShellCommand(cmd, single_line=True, check_return=True)
     return int(user_id)
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def _GetCurrentUserDumpsys(self, timeout=None, retries=None):
+    # mUserLru is a LRU list of history of current users.
+    # Most recently current is at the end.
+    lines = self._GetDumpsysOutput(['activity'], 'mUserLru:')
+    for line in lines:
+      m = _USER_LRU_RE.match(line)
+      if m:
+        user_ids = [user_id.strip() for user_id in m.group(1).split(',')]
+        return int(user_ids[-1])
+    raise device_errors.CommandFailedError(
+        'mUserLru not found on dumpsys output')
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def SwitchUser(self, user_id, timeout=None, retries=None):

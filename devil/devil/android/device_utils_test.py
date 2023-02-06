@@ -2411,11 +2411,36 @@ class DeviceUtilsBroadcastIntentTest(DeviceUtilsTest):
 
 
 class DeviceUtilGetCurrentUserTest(DeviceUtilsTest):
-  def testGetCurrentUser(self):
+  def testGetCurrentUser_Nougat(self):
     user_id = 10
-    with self.assertCall(self.call.adb.Shell('am get-current-user'),
-                         str(user_id)):
+    with self.assertCalls(
+        (self.call.device.GetProp('ro.build.version.sdk', cache=True), '24'),
+        (self.call.adb.Shell('am get-current-user'), str(user_id))):
       self.assertEqual(user_id, self.device.GetCurrentUser())
+
+  def testGetCurrentUser_PreNougat_SingleUser(self):
+    user_id = 0
+    with self.assertCalls(
+        (self.call.device.GetProp('ro.build.version.sdk', cache=True), '23'),
+        (self.call.device._GetDumpsysOutput(
+            ['activity'], 'mUserLru:'), ['  mUserLru: [%s]' % user_id])):
+      self.assertEqual(user_id, self.device.GetCurrentUser())
+
+  def testGetCurrentUser_PreNougat_MultipleUsers(self):
+    user_id = 10
+    with self.assertCalls(
+        (self.call.device.GetProp('ro.build.version.sdk', cache=True), '23'),
+        (self.call.device._GetDumpsysOutput(
+            ['activity'], 'mUserLru:'), ['  mUserLru: [0, %s]' % user_id])):
+      self.assertEqual(user_id, self.device.GetCurrentUser())
+
+  def testGetCurrentUser_PreNougat_Fails(self):
+    user_id = 0
+    with self.assertCalls(
+        (self.call.device.GetProp('ro.build.version.sdk', cache=True), '23'),
+        (self.call.device._GetDumpsysOutput(['activity'], 'mUserLru:'), [])):
+      with self.assertRaises(device_errors.CommandFailedError):
+        self.assertEqual(user_id, self.device.GetCurrentUser())
 
 
 class DeviceUtilSwitchUserTest(DeviceUtilsTest):
