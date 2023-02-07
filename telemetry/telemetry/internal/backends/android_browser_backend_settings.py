@@ -331,7 +331,7 @@ ANDROID_CHROMIUM = GenericChromeBackendSettings(
 ANDROID_CHROMIUM_BUNDLE = GenericChromeBundleBackendSettings(
     browser_type='android-chromium-bundle',
     package='org.chromium.chrome',
-    apk_name='chrome_modern_public_bundle')
+    apk_name='monochrome_public_bundle')
 
 ANDROID_CHROMIUM_MONOCHROME = GenericChromeBackendSettings(
     browser_type='android-chromium-monochrome',
@@ -347,7 +347,7 @@ ANDROID_CHROMIUM_BETA = GenericChromeBackendSettings(
 ANDROID_CHROMIUM_BUNDLE_BETA = GenericChromeBundleBackendSettings(
     browser_type='android-chromium-bundle.beta',
     package='org.chromium.chrome.beta',
-    apk_name='chrome_modern_public_bundle')
+    apk_name='monochrome_public_bundle')
 
 ANDROID_CHROMIUM_MONOCHROME_BETA = GenericChromeBackendSettings(
     browser_type='android-chromium-monochrome.beta',
@@ -363,7 +363,7 @@ ANDROID_CHROMIUM_CANARY = GenericChromeBackendSettings(
 ANDROID_CHROMIUM_BUNDLE_CANARY = GenericChromeBundleBackendSettings(
     browser_type='android-chromium-bundle.canary',
     package='org.chromium.chrome.canary',
-    apk_name='chrome_modern_public_bundle')
+    apk_name='monochrome_public_bundle')
 
 ANDROID_CHROMIUM_MONOCHROME_CANARY = GenericChromeBackendSettings(
     browser_type='android-chromium-monochrome.canary',
@@ -379,7 +379,7 @@ ANDROID_CHROMIUM_DEV = GenericChromeBackendSettings(
 ANDROID_CHROMIUM_BUNDLE_DEV = GenericChromeBundleBackendSettings(
     browser_type='android-chromium-bundle.dev',
     package='org.chromium.chrome.dev',
-    apk_name='chrome_modern_public_bundle')
+    apk_name='monochrome_public_bundle')
 
 ANDROID_CHROMIUM_MONOCHROME_DEV = GenericChromeBackendSettings(
     browser_type='android-chromium-monochrome.dev',
