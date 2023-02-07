@@ -8,6 +8,7 @@ import logging
 import os
 import posixpath
 import uuid
+import re
 import sys
 import tempfile
 import threading
@@ -23,6 +24,24 @@ from telemetry.internal.backends import app_backend
 from telemetry.internal.browser import web_contents
 from telemetry.internal.results import artifact_logger
 from telemetry.util import screenshot
+
+
+# Looks for "Thread X (crashed)", where X is an integer
+CRASHED_THREAD_HEADER_REGEX = re.compile(
+    r'^\s*Thread \d+ \(crashed\)\s*$', re.MULTILINE)
+# Looks for a hexadecimal RetAddr followed by several hexadecimal arguments
+# that come before the call site/function name.
+WINDOWS_STACK_FRAME_REGEX = re.compile(
+    # Optional leading whitespace.
+    r'^\s*'
+    # RetAddr.
+    r'[\dabcdef]{8}`[\dabcdef]{8} : '
+    # Args to child.
+    r'[\dabcdef]{8}`[\dabcdef]{8} [\dabcdef]{8}`[\dabcdef]{8} '
+    r'[\dabcdef]{8}`[\dabcdef]{8} [\dabcdef]{8}`[\dabcdef]{8} : '
+    # Call Site.
+    r'(.*)$', re.MULTILINE)
+STACK_FRAMES_PER_SUMMARY = 3
 
 
 class ExtensionsNotSupportedException(Exception):
@@ -307,10 +326,26 @@ class BrowserBackend(app_backend.AppBackend):
     logging.log(log_level,
                 'Found %d unsymbolized minidumps leftover from %s. Outputting '
                 'below: ', len(unsymbolized_paths), culprit_test)
-    self.CollectDebugData(log_level)
+    dd = self.CollectDebugData(log_level)
     if fatal:
+      # Try to include the files/function names of the first couple stack frames
+      # in the error. This can help users see what the issue is at a glance and
+      # also helps automated tooling differentiate between different root
+      # causes for this error.
+      stack_summaries = _GetStackSummaries(dd.symbolized_minidumps)
+      string_summaries = []
+      for s in stack_summaries:
+        if s is None:
+          string_summaries.append('<unparsable stack>')
+        else:
+          # Flip the order since the summary starts with the crashing frame, but
+          # we want to report the functions in the order that they were called.
+          s.reverse()
+          string_summaries.append(' > '.join(s))
       raise RuntimeError(
-          'Test left unsymbolized minidumps around after finishing.')
+          'Test left %d unsymbolized minidumps around after finishing. Stack '
+          'summaries: %s' % (len(unsymbolized_paths),
+                             ', '.join(string_summaries)))
 
   def IgnoreMinidump(self, path):
     """Ignores the given minidump, treating it as already symbolized.
@@ -468,3 +503,122 @@ class BrowserBackend(app_backend.AppBackend):
   def SetWindowBounds(
       self, window_id, bounds): # pylint: disable=unused-argument
     raise exceptions.StoryActionError('Set Window Bounds not supported')
+
+
+def _GetStackSummaries(symbolized_minidumps):
+  """Attempts to summarize the most relevant parts of the given minidumps.
+
+  As an example, if one of the given minidumps' crash was due to the function
+  calls A -> B -> C where C is the crashing function, then the summary for that
+  minidump/stack would be ['C', 'B', 'A'].
+
+  Args:
+    symbolized_minidumps: A list of strings, each string containing a
+        symbolized minidump.
+
+  Returns:
+    A list of either lists of strings or None. The element at index i
+    corresponds to the ith element of |symbolized_minidumps|. A None element
+    indicates that a stack summary could not be generated for some reason. A
+    list of strings element contains the stack summary in stack order, i.e. the
+    first element is the crashing function.
+  """
+  stack_summaries = []
+  for sm in symbolized_minidumps:
+    # Windows has a unique stack format that must be handled separately.
+    # Realistically we would never have a mix of different stack types, but
+    # there isn't a technical reason why we shouldn't be able to parse both at
+    # the same time.
+    if WINDOWS_STACK_FRAME_REGEX.search(sm):
+      stack_summaries.append(_GetWindowsStackSummary(sm))
+      continue
+
+    # Symbolized minidumps consist of the following in the given order:
+    #   * A header containing device information, crash reason, etc.
+    #   * A stack for the crashed thread with the header "Thread X (crashed)"
+    #   * Stacks for non-crashed threads
+    # So, start by chopping off the header so we can look at the crashed thread.
+    matches = CRASHED_THREAD_HEADER_REGEX.findall(sm)
+    if not matches:
+      logging.info('Unable to find crashed thread header')
+      stack_summaries.append(None)
+      continue
+    start_index = sm.find(matches[0])
+    if start_index == -1:
+      logging.info('Unable to find index of crashed thread header')
+      stack_summaries.append(None)
+      continue
+    sm = sm[start_index:]
+
+    # Now look for the first X stack frames, whose first line is in the
+    # following format when symbolized:
+    #   frame_number file!namespace::function(arg_types...) + offset
+    # or the following format when not symbolized
+    #   frame_number file + offset
+    # In the former case, we just want everything up through the function, but
+    # not the argument types (for brevity). In the latter case, we want just the
+    # file name.
+    frames = []
+    for line in sm.splitlines():
+      line = line.strip()
+      if not line:
+        continue
+      split_line = line.split(maxsplit=1)
+      if not split_line[0].isdigit():
+        # No frame number, line isn't of interest.
+        continue
+      function_or_filename = split_line[1]
+      # It's possible for the filename to have a space, so look for a + and
+      # assume everything before that is the filename + function. If a + is not
+      # found, then assume that there is no offset and we care about everything.
+      # The lack of offset is rare but possible, e.g. if the crash involves the
+      # kernel.
+      if '+' in function_or_filename:
+        function_or_filename = function_or_filename.split('+')[0].rstrip()
+      if '(' in function_or_filename:
+        # Actual function with argument types.
+        frames.append(function_or_filename.split('(')[0])
+      else:
+        # Just the filename.
+        frames.append(function_or_filename)
+      if len(frames) == STACK_FRAMES_PER_SUMMARY:
+        break
+
+    if not frames:
+      logging.info('Unable to parse any stack frames')
+      stack_summaries.append(None)
+      continue
+    stack_summaries.append(frames)
+
+  return stack_summaries
+
+
+def _GetWindowsStackSummary(symbolized_minidump):
+  """Helper for getting a stack summary for a Windows stack summary.
+
+  Windows minidumps get symbolized to a different format than ones from
+  Unix-like OSes.
+
+  Args:
+    symbolized_minidump: A string containing a symbolized Windows minidump.
+
+  Returns:
+    A list of strings or None. None indicates that a stack summary could not be
+    generated for some reason. A list of strings contains the stack summary
+    in stack order, i.e. the first element is the crashing function.
+  """
+  call_sites = []
+  for call_site in WINDOWS_STACK_FRAME_REGEX.findall(symbolized_minidump):
+    # If there is an offset, strip that off. Otherwise, append the entire call
+    # site.
+    if '+' in call_site:
+      call_sites.append(call_site.split('+')[0])
+    else:
+      call_sites.append(call_site)
+    if len(call_sites) == STACK_FRAMES_PER_SUMMARY:
+      break
+
+  if not call_sites:
+    logging.info('Unable to parse any call sites')
+    return None
+  return call_sites
