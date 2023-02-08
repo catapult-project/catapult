@@ -13,6 +13,10 @@
   border-bottom: 1px solid #8e8e8e;
   border-top: 1px solid white;
   font-size: 75%;
+  /* keep process header visible while scrolled within that process */
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .process-track-name {
