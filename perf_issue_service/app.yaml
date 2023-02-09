@@ -1,0 +1,10 @@
+service: perf-issue-service
+
+runtime: python
+env: flex
+
+runtime_config:
+  # As of Q1 2023, the latest python supported by Appengine flexible is 3.7.9.
+  python_version: 3.7
+
+entrypoint: gunicorn -b:$PORT main:APP 
