@@ -246,7 +246,7 @@ def main(args=None):
           'name':
               'Remove Stale files',
           'cmd': [
-              'python',
+              'python3',
               os.path.join(args.api_path_checkout, 'catapult_build',
                            'remove_stale_files.py'),
               args.api_path_checkout,
