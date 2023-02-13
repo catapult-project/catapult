@@ -2651,47 +2651,13 @@ class DeviceUtilsClearApplicationStateTest(DeviceUtilsTest):
     with self.assertCalls(
         (self.call.device.GetProp('ro.build.version.sdk', cache=True), '18'),
         (self.call.device.RunShellCommand(
-            ['logcat', '--format=year', '-t', '1'], check_return=True),
-         ['--------- beginning of main', '12-08 04:41:18.500 some log']),
-        (self.call.device.RunShellCommand(
             ['pm', 'clear', 'this.package.exists'],
-            check_return=True), ['Success']),
-        # First call only includes a log that isn't new enough, so we expect
-        # it to be retried.
-        (self.call.device.RunShellCommand([
-            'logcat', '-d', '-s', '--format=year',
-            '--regex=End Intent.*android.intent.action.PACKAGE_DATA_CLEARED.*'
-            'this.package.exists', 'MediaProvider:I'
-        ],
-                                          check_return=True),
-         [
-             '--------- beginning of main', '12-08 04:41:17.543  3479  4356 I '
-             'MediaProvider: End Intent { '
-             'act=android.intent.action.PACKAGE_DATA_CLEARED '
-             'dat=package:org.chromium.chrome flg=0x1000010 '
-             'cmp=com.google.android.providers.media.module/'
-             'com.android.providers.media.MediaService (has extras) }'
-         ]),
-        (self.call.device.RunShellCommand([
-            'logcat', '-d', '-s', '--format=year',
-            '--regex=End Intent.*android.intent.action.PACKAGE_DATA_CLEARED.*'
-            'this.package.exists', 'MediaProvider:I'
-        ],
-                                          check_return=True),
-         [
-             '--------- beginning of main', '12-08 04:41:17.543  3479  4356 I '
-             'MediaProvider: End Intent { '
-             'act=android.intent.action.PACKAGE_DATA_CLEARED '
-             'dat=package:org.chromium.chrome flg=0x1000010 '
-             'cmp=com.google.android.providers.media.module/'
-             'com.android.providers.media.MediaService (has extras) }',
-             '12-08 04:41:19.543  3479  4356 I '
-             'MediaProvider: End Intent { '
-             'act=android.intent.action.PACKAGE_DATA_CLEARED '
-             'dat=package:org.chromium.chrome flg=0x1000010 '
-             'cmp=com.google.android.providers.media.module/'
-             'com.android.providers.media.MediaService (has extras) }'
-         ])):
+            check_return=True), ['Success']), (self.call.device.RunShellCommand(
+                [
+                    'content', 'call', '--uri', 'content://media/external/file',
+                    '--method', 'wait_for_idle'
+                ],
+                check_return=True), ['Result: null'])):
       self.device.ClearApplicationState('this.package.exists',
                                         wait_for_asynchronous_intent=True)
 

@@ -2125,22 +2125,6 @@ class DeviceUtils(object):
     # may never return.
     if ((self.build_version_sdk >= version_codes.JELLY_BEAN_MR2)
         or self._GetApplicationPathsInternal(package)):
-      last_timestamp = None
-      if wait_for_asynchronous_intent:
-        # Figure out what the last log line's timestamp was so we can be sure we
-        # wait for the right thing later.
-        logcat_output = self.RunShellCommand(
-            ['logcat', '--format=year', '-t', '1'], check_return=True)
-        # We only request one line, but logcat outputs a line indicating where
-        # output is coming from first, so don't assume the first line is
-        # actually what we want.
-        last_timestamp = logcat_output[-1]
-        # Logcat format as requested is "YYYY-MM-DD HH:MM:SS.MS ...", so we only
-        # care about the first two space-separated fields.
-        split_timestamp = last_timestamp.split()
-        # We could convert this to an actual timestamp, but string comparison
-        # should work fine for our purposes.
-        last_timestamp = '%s %s' % (split_timestamp[0], split_timestamp[1])
 
       self.RunShellCommand(['pm', 'clear', package], check_return=True)
       self.GrantPermissions(package, permissions)
@@ -2148,39 +2132,26 @@ class DeviceUtils(object):
       if wait_for_asynchronous_intent:
 
         def intent_test():
-          # We look for a MediaProvider intent end related to clearing our
-          # package that's newer than the last timestamp before we requested the
-          # clear.
-          # LogcatMonitor already has a WaitFor that accepts a regex, but it
-          # does not work well for this since we need to ensure that the found
-          # line is new.
-          # Sample line that we expect back as a result (line breaks added for
-          # readability):
-          # 12-08 04:41:18.543  3479  4356 I MediaProvider: End Intent {
-          #   act=android.intent.action.PACKAGE_DATA_CLEARED
-          #   dat=package:org.chromium.chrome
-          #   flg=0x1000010
-          #   cmp=com.google.android.providers.media.module/
-          #     com.android.providers.media.MediaService (has extras) }
-          intent_end_regex = (
-              r'End Intent.*android.intent.action.PACKAGE_DATA_CLEARED.*' +
-              package)
-          logcat_output = self.RunShellCommand([
-              'logcat',
-              '-d',
-              '-s',
-              '--format=year',
-              '--regex=%s' % intent_end_regex,
-              'MediaProvider:I',
+          # This command should block until any outstanding external media file
+          # modification (in this case deletion) is finished.
+          output = self.RunShellCommand([
+              'content',
+              'call',
+              '--uri',
+              'content://media/external/file',
+              '--method',
+              'wait_for_idle',
           ],
-                                               check_return=True)
-          for line in logcat_output:
-            # Avoid any non-log output like "--------- beginning of main".
-            if 'MediaProvider' in line and line > last_timestamp:
-              return True
+                                        check_return=True)
+          # We check output instead of relying on check_return since the return
+          # value appears to be 0 even if there's an error.
+          output = ''.join(output)
+          if 'Result: null' in output:
+            return True
+          logging.warning('Received unexpected wait_for_idle output %s', output)
           return False
 
-        timeout_retry.WaitFor(intent_test, wait_period=2, max_tries=15)
+        timeout_retry.WaitFor(intent_test, wait_period=30, max_tries=1)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def SendKeyEvent(self, keycode, timeout=None, retries=None):
