@@ -41,7 +41,7 @@ class PsUtilTest(unittest.TestCase):
 
   def testWaitForSubProcAndKillTimeout(self):
     args = [
-        'python',
+        sys.executable,
         '-c',
         'import time; time.sleep(10)'
     ]
