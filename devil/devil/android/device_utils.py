@@ -1974,8 +1974,8 @@ class DeviceUtils(object):
     if self.build_version_sdk < version_codes.NOUGAT:
       return self._GetCurrentUserDumpsys()
     cmd = ['am', 'get-current-user']
-    user_id = self.RunShellCommand(cmd, single_line=True, check_return=True)
-    return int(user_id)
+    # Only actual user id is extracted. Warning is skipped if it exists.
+    return int(self.RunShellCommand(cmd, check_return=True)[-1])
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def _GetCurrentUserDumpsys(self, timeout=None, retries=None):
