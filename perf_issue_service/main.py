@@ -3,24 +3,22 @@
 # found in the LICENSE file.
 """Dispatches requests to request handler classes."""
 
-from flask import Flask, request as flask_request, make_response
-import logging
+# from flask import Flask, request, make_response
 
+import logging
 import google.cloud.logging
+google.cloud.logging.Client().setup_logging(log_level=logging.DEBUG)
+
 try:
   import googleclouddebugger
   googleclouddebugger.enable(breakpoint_enable_canary=True)
 except ImportError:
   pass
 
-google.cloud.logging.Client().setup_logging(log_level=logging.DEBUG)
-
-APP = Flask(__name__)
+from application import app
 
 
-@APP.route('/')
-def DummyHandler():
-  return make_response('welcome')
+APP = app.create_app()
 
 if __name__ == '__main__':
   # This is used when running locally only.

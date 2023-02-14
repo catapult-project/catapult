@@ -1,4 +1,14 @@
 Flask==2.2.2
-gunicorn==20.1.0
+
+google-api-python-client==2.51.0
+
+google-auth==2.12.0
+
+google-auth-httplib2==0.1.0
 
 google-cloud-logging==3.1.2
+
+# The debugger is being deprecated Q2 2023
+google-python-cloud-debugger==3.2
+
+gunicorn==20.1.0
