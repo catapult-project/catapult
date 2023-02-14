@@ -551,6 +551,15 @@ found in the LICENSE file.
 
       benchmarkChanged(benchmark) {
         this.benchmarkConfig = null;
+        // recommended iterations for press benchmarks
+        if (benchmark.toLowerCase() == 'speedometer2' || benchmark.toLowerCase() == 'jetstream2') {
+          this.initial_attempt_count = 30;
+        // MotionMark
+        } else if (benchmark.toLowerCase().startsWith('rendering')) {
+          this.initial_attempt_count = 60;
+        } else {
+          this.initial_attempt_count = 10;
+        }
       },
 
       commitsParams(job) {
