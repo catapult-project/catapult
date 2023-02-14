@@ -69,6 +69,16 @@ _MAP_TO_USER_FRIENDLY_DEVICE_NAMES = {
     'AOSP on Shamu': 'nexus 6',
     'AOSP on BullHead': 'nexus 5x'
 }
+_NON_ROOT_OVERRIDES = {
+    # The Samsung A23 uses the legacy sdcardfs which allows us to read/remove
+    # the profile directory directly without root. This allows the device to
+    # use the same code path as a rooted device as long as a particular public
+    # directory is used. See crbug.com/1383609 for more background on this.
+    'SM-A235M': {
+        'profile_dir': '/sdcard/Android/data',
+        'clear_application_state': False,
+    },
+}
 _DEVICE_COPY_SCRIPT_FILE = os.path.abspath(os.path.join(
     os.path.dirname(__file__), 'efficient_android_directory_copy.sh'))
 _DEVICE_COPY_SCRIPT_LOCATION = (
@@ -581,7 +591,8 @@ class AndroidPlatformBackend(
     # wiping the application state. We still go through the regular profile
     # directory deletion afterwards on the off chance that we are somehow using
     # the non-default directory.
-    if not self._require_root:
+    if not self._require_root and _NON_ROOT_OVERRIDES.get(
+        self.GetDeviceTypeName(), {}).get('clear_application_state', True):
       # We specify to wait for the asynchronous intent since there have been
       # known problems with it deleting data out from under a test. See
       # crbug.com/1383609 for an example.
@@ -613,7 +624,9 @@ class AndroidPlatformBackend(
     # work. If the package directory doesn't exist, then Chromium ends up
     # defaulting to /data/data/package/ instead. If the directory does exist,
     # Chromium ends up segfaulting somewhere.
-    return '/sdcard/Download/%s/' % package
+    profile_dir = _NON_ROOT_OVERRIDES.get(
+        self.GetDeviceTypeName(), {}).get('profile_dir', '/sdcard/Download')
+    return posixpath.join(profile_dir, package) + '/'
 
   def GetDumpLocation(self, package):
     """Returns the location where crash dumps should be written to.
