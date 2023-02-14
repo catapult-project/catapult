@@ -42,6 +42,11 @@ WINDOWS_STACK_FRAME_REGEX = re.compile(
     # Call Site.
     r'(.*)$', re.MULTILINE)
 STACK_FRAMES_PER_SUMMARY = 3
+# Stack frames that we omit from stack summaries, likely because they are not
+# descriptive of the actual issue.
+OMITTED_STACK_SUMMARY_FRAMES = frozenset([
+    'libc.so.6',
+])
 
 
 class ExtensionsNotSupportedException(Exception):
@@ -577,9 +582,8 @@ def _GetStackSummaries(symbolized_minidumps):
         function_or_filename = function_or_filename.split('+')[0].rstrip()
       if '(' in function_or_filename:
         # Actual function with argument types.
-        frames.append(function_or_filename.split('(')[0])
-      else:
-        # Just the filename.
+        function_or_filename = function_or_filename.split('(')[0]
+      if function_or_filename not in OMITTED_STACK_SUMMARY_FRAMES:
         frames.append(function_or_filename)
       if len(frames) == STACK_FRAMES_PER_SUMMARY:
         break

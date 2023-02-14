@@ -170,6 +170,39 @@ Thread 1 (crashed)
     summaries = browser_backend._GetStackSummaries([minidump])
     self.assertEqual(summaries, [None])
 
+  def testLessThanMaxFrames(self):
+    """Tests that everything works if there are fewer than the max frames."""
+    minidump = """\
+some header
+Thread 1 (crashed)
+ 0 some_file!A::B(function arguments) + offset
+   extra information
+ 1 some_file + offset
+   extra information
+"""
+    summaries = browser_backend._GetStackSummaries([minidump])
+    self.assertEqual(summaries, [['some_file!A::B', 'some_file']])
+
+  def testOmittedFrames(self):
+    """Tests that explicitly omitted frames are not included in the summary."""
+    minidump = """\
+some header
+Thread 1 (crashed)
+ 0 libc.so.6 + offset
+   extra information
+ 1 some_file!A::B(function arguments) + offset
+   extra information
+ 2 libc.so.6 + offset
+   extra information
+ 3 some_file + offset
+   extra information
+ 4 another_file + offset
+   extra information
+"""
+    summaries = browser_backend._GetStackSummaries([minidump])
+    self.assertEqual(
+        summaries, [['some_file!A::B', 'some_file', 'another_file']])
+
   def testLinuxStack(self):
     """Tests stack summary with a real Linux minidump sample."""
     # pylint: disable=line-too-long
