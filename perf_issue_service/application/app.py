@@ -5,8 +5,10 @@
 from flask import Flask
 
 from application.api.dummy import dummy
+from application.api.issues import issues
 
 def create_app():
     app = Flask(__name__)
     app.register_blueprint(dummy, url_prefix='/')
+    app.register_blueprint(issues, url_prefix='/issues')
     return app
