@@ -116,7 +116,9 @@ _SUPPORTED_PLATFORMS = (
 
 def get_latest_wpr_go_commit_hash():
   return subprocess.check_output(
-    ['git', 'log', '-n', '1', '--pretty=format:%H', _WPR_GO_DIR]).strip()
+      ['git', 'log', '-n', '1', '--pretty=format:%H', _WPR_GO_DIR],
+      text=True).strip()
+
 
 
 def BuildAndUpdateGoBinary(binary_name, os_name, arch_name):
