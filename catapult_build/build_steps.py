@@ -50,6 +50,14 @@ _DASHBOARD_TESTS = [
     },
 ]
 
+_PERF_ISSUE_SERVICE_TESTS = [
+    {
+        'name': 'Perf Issue Service Python Tests',
+        'path': 'perf_issue_service/tests/bin/run_py_tests',
+        'disabled': ['android', 'win', 'mac'],
+    }
+]
+
 _CATAPULT_TESTS = [
     {
         'name': 'Build Python Tests',
@@ -216,6 +224,11 @@ def main(args=None):
       default=False,
       help='Run only the Dashboard and Pinpoint tests',
       action='store_true')
+  parser.add_argument(
+      '--perf_issue_service_only',
+      default=False,
+      help='Run only the Perf Issue Service tests',
+      action='store_true')
   args = parser.parse_args(args)
 
   dashboard_protos_folder = os.path.join(args.api_path_checkout, 'dashboard',
@@ -327,8 +340,11 @@ def main(args=None):
   tests = None
   if args.dashboard_only:
     tests = _DASHBOARD_TESTS
+  elif args.perf_issue_service_only:
+    tests = _PERF_ISSUE_SERVICE_TESTS
   else:
     tests = _CATAPULT_TESTS
+
   for test in tests:
     if args.platform == 'android' and not args.run_android_tests:
       # Remove all the steps for the Android configuration if we're asked to not

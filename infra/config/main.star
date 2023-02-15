@@ -104,11 +104,15 @@ luci.cq_group(
 # Matches any file under the 'dashboard' root directory.
 DASHBOARD_RE = "dashboard/.+"
 
+# Matches any file under the 'perf_issue_service' root directory.
+PERF_ISSUE_SERVICE_RE = "perf_issue_service/.+"
+
 def try_builder(
         name,
         os,
         is_dashboard = False,
         is_presubmit = False,
+        is_perf_issue_service = False,
         experiment = None,
         properties = None,
         dimensions = None):
@@ -120,6 +124,8 @@ def try_builder(
       os: The swarming `os` dimension.
       is_dashboard: True if this only processes
         the 'dashboard' portion of catapult.
+      is_perf_issue_service: True if this only processes
+        the 'perf_issue_service' portion of catapult.
       is_presubmit: True if this runs PRESUBMIT.
       experiment: Value 0-100 for the cq experiment %.
       properties: {key: value} dictionary for extra properties.
@@ -156,6 +162,8 @@ def try_builder(
         props["repo_name"] = "catapult"
     if is_dashboard:
         props["dashboard_only"] = True
+    if is_perf_issue_service:
+        props["perf_issue_service_only"] = True
 
     luci.builder(
         name = name,
@@ -170,12 +178,17 @@ def try_builder(
 
     verifier_kwargs = {}
 
+    # dashboard/ and perf_issue_service are individual services where
+    # changes should not affect the other Catapult modules. Thus, the
+    # Catapult Tryservers should *not* run if changes are only in
+    # /dashboard or /perf_issue_service.
     # Presubmit sees all changes
     if not is_presubmit:
-        if not is_dashboard:
+        if not is_dashboard and not is_perf_issue_service:
             verifier_kwargs["location_filters"] = [
                 cq.location_filter(path_regexp = ".*"),
                 cq.location_filter(path_regexp = DASHBOARD_RE, exclude = True),
+                cq.location_filter(path_regexp = PERF_ISSUE_SERVICE_RE, exclude = True),
             ]
     if experiment != None:
         verifier_kwargs["experiment_percentage"] = experiment
@@ -200,3 +213,5 @@ try_builder("Catapult Android Tryserver", "Android", dimensions = {"device_type"
 try_builder("Catapult Presubmit", "Ubuntu", is_presubmit = True)
 
 try_builder("Dashboard Linux Tryserver", "Ubuntu", is_dashboard = True)
+
+try_builder("Perf Issue Service Linux Tryserver", "Ubuntu", is_perf_issue_service = True, experiment = 100)
