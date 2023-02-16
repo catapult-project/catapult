@@ -23,7 +23,7 @@ def ValidateJSONFormat(file_path):
    raise Exception(
        'Reformat your JSON file by running: %s --format %s' %
        (__file__, file_path))
- print >> sys.stdout, ('%s passes the JSON format validation' % file_path)
+ print('%s passes the JSON format validation' % file_path)
 
 
 def Format(file_path):

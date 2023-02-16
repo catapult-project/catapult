@@ -37,7 +37,7 @@ def _ValidateDependenciesFile(input_api, output_api, dependencies_path):
     if not f.AbsoluteLocalPath() == dependencies_path:
       continue
     out, return_code = _RunArgs([
-        input_api.python_executable,
+        input_api.python3_executable,
         input_api.os_path.join(telemetry_dir, 'json_format'),
         dependencies_path], input_api)
     if return_code:
@@ -46,7 +46,7 @@ def _ValidateDependenciesFile(input_api, output_api, dependencies_path):
               'Validating %s failed:' % dependencies_path, long_text=out))
       break
     out, return_code = _RunArgs([
-        input_api.python_executable,
+        input_api.python3_executable,
         input_api.os_path.join(telemetry_dir, 'validate_binary_dependencies'),
         dependencies_path], input_api)
     if return_code:

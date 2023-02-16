@@ -23,12 +23,11 @@ def ValidateCloudStorageDependencies(file_path):
   for dep_info in base_config.IterDependencyInfo():
     if dep_info.has_cloud_storage_info:
       if not dep_info.cloud_storage_info.DependencyExistsInCloudStorage():
-        print >> sys.stderr, (
-          '%s does not exist in cloud storage' % dep_info.cloud_storage_info)
+        print('%s does not exist in cloud storage' %
+              dep_info.cloud_storage_info)
         cloud_storage_deps_not_exist = True
       else:
-        print >> sys.stdout, (
-          '%s passes cloud storage validation' % dep_info.dependency)
+        print('%s passes cloud storage validation' % dep_info.dependency)
 
   if cloud_storage_deps_not_exist:
     raise Exception(
