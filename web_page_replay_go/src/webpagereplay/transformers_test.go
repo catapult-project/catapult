@@ -220,6 +220,7 @@ func TestTransformCsp(t *testing.T) {
 	tests := []struct {
 		desc string
 		input string
+		inputSha string
 		want string
 	}{
 		{
@@ -242,11 +243,17 @@ func TestTransformCsp(t *testing.T) {
 			input: "default-src 'self' https://foo.com ; script-src 'self'",
 			want:  "default-src 'self' https://foo.com ; script-src 'self' 'unsafe-inline'",
 		},
+		{
+			desc:  "Sha repeats",
+			input: "script-src 'self' blob: https://foo.com 'sha256-XXX' 'sha384-XXX' https://foo2.com 'sha512-XXX', 'sha256-XX';",
+			inputSha: "NEW",
+			want: "script-src 'self' blob: https://foo.com 'sha256-NEW' 'sha256-XXX' 'sha384-XXX' https://foo2.com 'sha256-NEW' 'sha512-XXX', 'sha256-XX' ;",
+		},
 	}
 
 	for _, tc := range tests {
 		responseHeader := http.Header{"Content-Security-Policy": { tc.input } }
-		transformCSPHeader(responseHeader, "")
+		transformCSPHeader(responseHeader, tc.inputSha)
 		got := responseHeader.Get("Content-Security-Policy")
 		if diff := pretty.Compare(tc.want, got); diff != "" {
 			t.Errorf("TransformCsp scenario `%s`\n[input(%s)]\n returned diff (-want +got):\n%s",
