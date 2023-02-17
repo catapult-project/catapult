@@ -545,9 +545,16 @@ Polymer({
         break;
 
       case tr.b.math.Statistics.Significance.SIGNIFICANT:
+        if (this.ignoreSignificance()) {
+          if (changeClass !== 'same') title = 'insignificant ' + title;
+          this.$.insignificant.style.display = 'inline';
+          changeClass = 'same';
+          break;
+        }
         if (changeClass === 'same') {
           throw new Error('How can no change be significant?');
         }
+
         this.$['significantly_' + changeClass].style.display = 'inline';
         title = 'significant ' + title;
         break;
@@ -558,6 +565,17 @@ Polymer({
 
     this.$.significance.title = title;
     this.$.content.title = title;
+  },
+
+  ignoreSignificance() {
+    // Ingore significance when the size of the change is less than 1%
+    // https://bugs.chromium.org/p/chromium/issues/detail?id=1416622
+    if (this.unit.baseUnit.unitName == 'normalizedPercentage') {
+     if (Math.abs(this.value) < 0.01) {
+        return true;
+      }
+    }
+    return false;
   },
 
   get changeClassName_() {

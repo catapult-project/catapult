@@ -226,6 +226,90 @@ tr.b.unittest.testSuite(function() {
       significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
       expectedEmoji: ''
     });
+
+    checkScalarSpan(this, -0.02, Unit.byName.normalizedPercentageDelta_biggerIsBetter, '-2.0%', {
+      expectedColor: 'rgb(255, 0, 0)',
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
+      expectedEmoji: 'significantly_worse',
+      expectedTitle: 'significant regression'
+    });
+
+    checkScalarSpan(this, 0.02, Unit.byName.normalizedPercentageDelta_biggerIsBetter, '+2.0%', {
+      expectedColor: 'rgb(0, 128, 0)',
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
+      expectedEmoji: 'significantly_better',
+      expectedTitle: 'significant improvement'
+    });
+
+    checkScalarSpan(this, -0.01, Unit.byName.normalizedPercentageDelta_biggerIsBetter, '-1.0%', {
+      expectedColor: 'rgb(255, 0, 0)',
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
+      expectedEmoji: 'significantly_worse',
+      expectedTitle: 'significant regression'
+    });
+
+    checkScalarSpan(this, 0.01, Unit.byName.normalizedPercentageDelta_biggerIsBetter, '+1.0%', {
+      expectedColor: 'rgb(0, 128, 0)',
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
+      expectedEmoji: 'significantly_better',
+      expectedTitle: 'significant improvement'
+    });
+
+    checkScalarSpan(this, -0.009, Unit.byName.normalizedPercentageDelta_biggerIsBetter, '-0.9%', {
+      expectedColor: 'rgb(255, 0, 0)',
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
+      expectedTitle: 'insignificant regression',
+      expectedEmoji: 'insignificant'
+    });
+
+    checkScalarSpan(this, 0.009, Unit.byName.normalizedPercentageDelta_biggerIsBetter, '+0.9%', {
+      expectedColor: 'rgb(0, 128, 0)',
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
+      expectedTitle: 'insignificant improvement',
+      expectedEmoji: 'insignificant'
+    });
+
+    checkScalarSpan(this, -0.02, Unit.byName.normalizedPercentageDelta_smallerIsBetter, '-2.0%', {
+      expectedColor: 'rgb(0, 128, 0)',
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
+      expectedEmoji: 'significantly_better',
+      expectedTitle: 'significant improvement'
+    });
+
+    checkScalarSpan(this, 0.02, Unit.byName.normalizedPercentageDelta_smallerIsBetter, '+2.0%', {
+      expectedColor: 'rgb(255, 0, 0)',
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
+      expectedEmoji: 'significantly_worse',
+      expectedTitle: 'significant regression'
+    });
+
+    checkScalarSpan(this, -0.01, Unit.byName.normalizedPercentageDelta_smallerIsBetter, '-1.0%', {
+      expectedColor: 'rgb(0, 128, 0)',
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
+      expectedEmoji: 'significantly_better',
+      expectedTitle: 'significant improvement'
+    });
+
+    checkScalarSpan(this, 0.01, Unit.byName.normalizedPercentageDelta_smallerIsBetter, '+1.0%', {
+      expectedColor: 'rgb(255, 0, 0)',
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
+      expectedEmoji: 'significantly_worse',
+      expectedTitle: 'significant regression'
+    });
+
+    checkScalarSpan(this, -0.009, Unit.byName.normalizedPercentageDelta_smallerIsBetter, '-0.9%', {
+      expectedColor: 'rgb(0, 128, 0)',
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
+      expectedTitle: 'insignificant improvement',
+      expectedEmoji: 'insignificant'
+    });
+
+    checkScalarSpan(this, 0.009, Unit.byName.normalizedPercentageDelta_smallerIsBetter, '+0.9%', {
+      expectedColor: 'rgb(255, 0, 0)',
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
+      expectedTitle: 'insignificant regression',
+      expectedEmoji: 'insignificant'
+    });
   });
 
   test('instantiate', function() {
