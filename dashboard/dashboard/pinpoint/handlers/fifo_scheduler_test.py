@@ -20,6 +20,10 @@ from dashboard.pinpoint.models.tasks import bisection_test_util
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
+@mock.patch('dashboard.common.cloud_metric.PublishPinpointJobStatusMetric',
+            mock.MagicMock())
+@mock.patch('dashboard.common.cloud_metric.PublishPinpointJobRunTimeMetric',
+            mock.MagicMock())
 class FifoSchedulerTest(test.TestCase):
 
   def setUp(self):

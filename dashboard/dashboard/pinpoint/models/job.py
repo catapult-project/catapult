@@ -13,12 +13,14 @@ import sys
 import traceback
 import uuid
 
+from google.appengine.api import app_identity
 from google.appengine.api import datastore_errors
 from google.appengine.api import taskqueue
 from google.appengine.ext import deferred
 from google.appengine.ext import ndb
 from google.appengine.runtime import apiproxy_errors
 
+from dashboard.common import cloud_metric
 from dashboard.common import datastore_hooks
 from dashboard.models import anomaly
 from dashboard.models import graph_data
@@ -520,6 +522,8 @@ class Job(ndb.Model):
     self.started_time = datetime.datetime.now()
     self.put()
 
+    self._PrintJobMetrics("started")
+
     title = _ROUND_PUSHPIN + ' Pinpoint job started.'
     comment = '\n'.join((title, self.url))
     deferred.defer(
@@ -716,6 +720,8 @@ class Job(ndb.Model):
     self.put()
 
     if not self.cancelled:
+      self._PrintJobMetrics("failed", True)
+
       comment = '\n'.join((title, self.url, '', exc_message))
 
       deferred.defer(
@@ -784,6 +790,9 @@ class Job(ndb.Model):
         # ensure the job stops running after a user cancels the job.
         self.cancelled = True
         logging.debug('Pinpoint job forced to stop because job meets cancellation conditions')
+
+        self._PrintJobMetrics("cancelled")
+
         raise errors.BuildCancelled('Pinpoint Job cancelled')
       if self.use_execution_engine:
         # Treat this as if it's a poll, and run the handler here.
@@ -834,6 +843,7 @@ class Job(ndb.Model):
 
       if self.completed:
         timing_record.RecordJobTiming(self)
+        self._PrintJobMetrics("completed", True)
 
       try:
         self.put()
@@ -937,6 +947,9 @@ class Job(ndb.Model):
     # Remove any "task" identifiers.
     self.task = None
     self.put()
+
+    self._PrintJobMetrics("cancelled")
+
     title = _ROUND_PUSHPIN + ' Pinpoint job cancelled.'
     comment = u'{}\n{}\n\nCancelled by {}, reason given: {}'.format(
         title, self.url, user, reason)
@@ -948,6 +961,17 @@ class Job(ndb.Model):
         send_email=True,
         labels=job_bug_update.ComputeLabelUpdates(['Pinpoint-Job-Cancelled']),
         _retry_options=RETRY_OPTIONS)
+
+  def _PrintJobMetrics(self, job_status, with_run_time=False):
+    cloud_metric.PublishPinpointJobStatusMetric(
+        app_identity.get_application_id(), self.job_id, self.comparison_mode,
+        job_status)
+
+    if with_run_time:
+      job_run_time = self.updated - self.started_time
+      cloud_metric.PublishPinpointJobRunTimeMetric(
+          app_identity.get_application_id(), self.job_id, self.comparison_mode,
+          job_status, job_run_time.total_seconds())
 
 
 def _PostBugCommentDeferred(bug_id, *args, **kwargs):

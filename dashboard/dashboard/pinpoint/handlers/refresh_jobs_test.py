@@ -19,6 +19,10 @@ from dashboard.pinpoint import test
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
+@mock.patch('dashboard.common.cloud_metric.PublishPinpointJobStatusMetric',
+            mock.MagicMock())
+@mock.patch('dashboard.common.cloud_metric.PublishPinpointJobRunTimeMetric',
+            mock.MagicMock())
 class RefreshJobsTest(test.TestCase):
 
   def setUp(self):
@@ -105,10 +109,16 @@ class RefreshJobsTest(test.TestCase):
     self.assertEqual(mock_schedule.call_count, 0)
     self.assertEqual(mock_fail.call_count, 1)
 
+  @mock.patch('dashboard.common.cloud_metric.PublishPinpointJobStatusMetric',
+              mock.MagicMock())
+  @mock.patch('dashboard.common.cloud_metric.PublishPinpointJobRunTimeMetric',
+              mock.MagicMock())
   def testGet_OverRetryLimit(self):
     j1 = job_module.Job.New((), ())
     j1.task = '123'
     j1.started = True
+    j1.started_time = datetime.datetime.utcnow() - datetime.timedelta(hours=10)
+    j1.updated = datetime.datetime.utcnow() - datetime.timedelta(hours=9)
     j1.put()
     j1._Schedule = mock.MagicMock()
     j1.Fail = mock.MagicMock()
@@ -116,6 +126,7 @@ class RefreshJobsTest(test.TestCase):
     j2 = job_module.Job.New((), ())
     j2.task = '123'
     j2.started = True
+    j2.started_time = datetime.datetime.utcnow() - datetime.timedelta(hours=9)
     j2.updated = datetime.datetime.utcnow() - datetime.timedelta(hours=8)
     j2.put()
 

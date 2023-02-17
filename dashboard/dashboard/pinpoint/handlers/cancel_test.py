@@ -18,6 +18,10 @@ from dashboard.pinpoint.models import scheduler
 @mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
+@mock.patch('dashboard.common.cloud_metric.PublishPinpointJobStatusMetric',
+            mock.MagicMock())
+@mock.patch('dashboard.common.cloud_metric.PublishPinpointJobRunTimeMetric',
+            mock.MagicMock())
 class CancelJobTest(test.TestCase):
 
   def setUp(self):

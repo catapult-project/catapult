@@ -490,3 +490,8 @@ wheel: <
   name: "infra/python/wheels/colorama-py2_py3"
   version: "version:0.4.1"
 >
+
+wheel: <
+  name: "infra/python/wheels/google-cloud-monitoring-py2_py3"
+  version: "version:2.9.1"
+>
