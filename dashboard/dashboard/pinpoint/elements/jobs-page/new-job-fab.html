@@ -21,8 +21,8 @@ found in the LICENSE file.
 <link rel="import" href="/components/paper-radio-group/paper-radio-group.html">
 <link rel="import" href="/components/paper-tooltip/paper-tooltip.html">
 <link rel="import" href="/elements/autocomplete-box.html">
-
 <link rel="import" href="/elements/base-style.html">
+<link rel="import" href="/elements/jobs-page/attempt-count-help.html">
 <link rel="import" href="/elements/jobs-page/commit-details.html">
 
 <dom-module id="new-job-fab">
@@ -178,7 +178,7 @@ found in the LICENSE file.
                      label="Attempt Count"/>
               <label hidden="[[isBisectJob(comparisonMode)]]"
                      id="initial_attempt_count_label"
-                     for="initial_attempt_count">Attempt Count: </label>
+                     for="initial_attempt_count">Attempt Count: <attempt-count-help></attempt-count-help></label>
             </paper-radio-group>
 
             <div class="horizontal">
@@ -433,6 +433,7 @@ found in the LICENSE file.
         'testSuitesChanged(testSuites)',
         'benchmarkConfigChanged(benchmarkConfig)',
         'benchmarkChanged(benchmark)',
+        'jobConfigurationBenchmarkChanged(job, configuration, benchmark)',
         'jobChanged(job)',
       ],
 
@@ -551,12 +552,31 @@ found in the LICENSE file.
 
       benchmarkChanged(benchmark) {
         this.benchmarkConfig = null;
-        // recommended iterations for press benchmarks
-        if (benchmark.toLowerCase() == 'speedometer2' || benchmark.toLowerCase() == 'jetstream2') {
-          this.initial_attempt_count = 30;
-        // MotionMark
-        } else if (benchmark.toLowerCase().startsWith('rendering')) {
-          this.initial_attempt_count = 60;
+      },
+
+      jobConfigurationBenchmarkChanged(job, configuration, benchmark) {
+        // recommended iterations for press benchmarks on Mac M1 (crbug/1416374)
+        // set to 10 if not a try job
+        if (job != null && job.arguments.comparison_mode != 'try'){
+          this.initial_attempt_count = 10;
+          return;
+        }
+        // restarting jobs should default to what they were run on
+        if (job != null &&
+              configuration == job.arguments.configuration &&
+              benchmark == job.arguments.benchmark) {
+            this.initial_attempt_count = job.arguments.initial_attempt_count;
+            return;
+        }
+        if (configuration.startsWith('mac-m1_mini_2020')) {
+          if (benchmark.toLowerCase() == 'speedometer2' || benchmark.toLowerCase() == 'jetstream2') {
+            this.initial_attempt_count = 30;
+          // MotionMark
+          } else if (benchmark.toLowerCase().startsWith('rendering.desktop')) {
+            this.initial_attempt_count = 60;
+          } else {
+            this.initial_attempt_count = 10;
+          }
         } else {
           this.initial_attempt_count = 10;
         }
