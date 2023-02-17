@@ -105,6 +105,9 @@ class FakePlatform():
   def GetSystemLog(self):
     return None
 
+  def RestartTsProxyServerOnRemotePlatforms(self):
+    pass
+
   def StopAllLocalServers(self):
     pass
 

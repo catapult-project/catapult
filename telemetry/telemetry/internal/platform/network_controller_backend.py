@@ -85,6 +85,10 @@ class NetworkControllerBackend():
   def host_ip(self):
     return self._platform_backend.forwarder_factory.host_ip
 
+  @property
+  def wpr_mode(self):
+    return self._wpr_mode
+
   def Close(self):
     """Undo changes in the target platform used for network control.
 

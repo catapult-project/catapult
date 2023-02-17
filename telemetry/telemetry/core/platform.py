@@ -212,6 +212,16 @@ class Platform():
     This function may require root or administrator access."""
     return self._platform_backend.FlushDnsCache()
 
+  def RestartTsProxyServerOnRemotePlatforms(self):
+    """Restarts the TsProxyServer on remote platforms.
+
+    If something goes wrong with the connection to the remote device (SSH, adb,
+    etc.), then the forwarder between the device and the host will potentially
+    break, breaking all further network connectivity. So, restart the server
+    and its forwarder.
+    """
+    self._platform_backend.RestartTsProxyServerOnRemotePlatforms()
+
   def LaunchApplication(self,
                         application,
                         parameters=None,
