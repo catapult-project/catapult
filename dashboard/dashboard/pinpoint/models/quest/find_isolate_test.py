@@ -311,6 +311,7 @@ class BuildTest(_FindIsolateExecutionTest):
                 'deps_revision_overrides': {
                     test.CATAPULT_URL: 'commit_456'
                 },
+                'git_repo': test.CHROMIUM_URL,
                 'staging': False,
                 'patch_gerrit_url': 'https://codereview.com',
                 'patch_issue': 567890,
@@ -354,6 +355,7 @@ class BuildTest(_FindIsolateExecutionTest):
                 'deps_revision_overrides': {
                     test.CATAPULT_URL: 'commit_456'
                 },
+                'git_repo': test.CHROMIUM_URL,
                 'staging': False,
                 'patch_gerrit_url': 'https://codereview.com',
                 'patch_issue': 567890,

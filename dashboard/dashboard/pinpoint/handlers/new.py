@@ -311,12 +311,12 @@ def _ValidateChangesForTry(arguments):
     raise ValueError('base_git_hash is required for try jobs')
 
   commit_1 = change.Commit.FromDict({
-      'repository': arguments.get('repository'),
+      'repository': arguments.get('project') or arguments.get('repository'),
       'git_hash': arguments.get('base_git_hash'),
   })
   commit_2 = change.Commit.FromDict({
       'repository':
-          arguments.get('repository'),
+          arguments.get('project') or arguments.get('repository'),
       'git_hash':
           arguments.get(
               'end_git_hash',
@@ -388,12 +388,12 @@ def _ValidateChanges(comparison_mode, arguments):
           'bisections require both a start_git_hash and an end_git_hash')
 
     commit_1 = change.Commit.FromDict({
-        'repository': arguments.get('repository'),
+        'repository': arguments.get('project') or arguments.get('repository'),
         'git_hash': arguments.get('start_git_hash'),
     })
 
     commit_2 = change.Commit.FromDict({
-        'repository': arguments.get('repository'),
+        'repository': arguments.get('project') or arguments.get('repository'),
         'git_hash': arguments.get('end_git_hash'),
     })
 

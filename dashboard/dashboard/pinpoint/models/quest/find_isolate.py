@@ -341,8 +341,9 @@ def RequestBuild(builder_name, change, bucket, build_tags, task=None):
           # Incremental builds will be much faster especially with the help of
           # goma.
           'clobber': False,
-          'revision': change.base_commit.git_hash,
           'deps_revision_overrides': deps_overrides,
+          'git_repo': change.base_commit.repository_url,
+          'revision': change.base_commit.git_hash,
           'staging': utils.IsStagingEnvironment(),
       },
   }
