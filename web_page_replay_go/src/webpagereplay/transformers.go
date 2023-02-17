@@ -225,9 +225,19 @@ func getNonceTokenFromCSPHeaderScriptSrc(cspScriptSrc string) string {
 // Content-Security-Policy/script-src
 // https://developers.google.com/web/fundamentals/security/csp/
 func transformCSPHeader(header http.Header, injectedScriptSha256 string) {
-	csp := header.Get("Content-Security-Policy")
+	csps := header.Values("Content-Security-Policy")
+	for cspIndex, csp := range csps {
+		// Some sites will have more than one csp entry.
+		csps[cspIndex] = getUpdatedSingleCSPHeader(csp, injectedScriptSha256)
+	}
+}
+
+// getUpdatedSingleCSPHeader looks at an existing single csp string and updates
+// the script permissions if necessary. It always returns a csp string, only
+// altered when needed.
+func getUpdatedSingleCSPHeader(csp string, injectedScriptSha256 string) string {
 	if csp == "" {
-		return
+		return ""
 	}
 	// We prefer the 'script-src', but if it doesn't exist, we want to update a
 	// 'default-src' directive if it exists.
@@ -245,7 +255,7 @@ func transformCSPHeader(header http.Header, injectedScriptSha256 string) {
 	}
 	// No CSP policy to worry about updating.
 	if updateIndex < 0 {
-		return
+		return csp
 	}
 	updateDirective := directives[updateIndex]
 	if getNonceTokenFromCSPHeaderScriptSrc(updateDirective) != "" {
@@ -253,7 +263,7 @@ func transformCSPHeader(header http.Header, injectedScriptSha256 string) {
 		// transformCSPHeader does nothing.
 		// WPR will add the nonce token to any injected script to open the
 		// permission.
-		return
+		return csp
 	}
 	// Break the 'script-src' or 'default-src' directive into more tokens,
 	// and examine each token.
@@ -261,7 +271,6 @@ func transformCSPHeader(header http.Header, injectedScriptSha256 string) {
 	newDirective := ""
 	needsUnsafeInline := true
 	lookingForSha := true
-
 	for _, token := range tokens {
 		token = strings.TrimSpace(token)
 		// All keyword tokens ['unsafe-inline', 'none', 'nonce-...', 'sha...']
@@ -300,7 +309,7 @@ func transformCSPHeader(header http.Header, injectedScriptSha256 string) {
 
 	directives[updateIndex] = newDirective
 	newCsp := strings.Join(directives, ";")
-	header.Set("Content-Security-Policy", newCsp)
+	return newCsp
 }
 
 // ResponseTransformer is an interface for transforming HTTP responses.
