@@ -37,6 +37,8 @@ tr.exportTo('tr.metrics.v8', function() {
    * @const {!Array<string>}
    */
   const METRICS = [
+    'v8:gc:cycle',
+    'v8:gc:cycle:cpp',
     'v8:gc:cycle:full',
     'v8:gc:cycle:full:cpp',
     'v8:gc:cycle:full:mark',
@@ -47,6 +49,8 @@ tr.exportTo('tr.metrics.v8', function() {
     'v8:gc:cycle:full:sweep:cpp',
     'v8:gc:cycle:full:compact',
     'v8:gc:cycle:full:compact:cpp',
+    'v8:gc:cycle:main_thread',
+    'v8:gc:cycle:main_thread:cpp',
     'v8:gc:cycle:main_thread:full',
     'v8:gc:cycle:main_thread:full:cpp',
     'v8:gc:cycle:main_thread:full:mark',
@@ -138,9 +142,11 @@ tr.exportTo('tr.metrics.v8', function() {
   ];
 
   const V8_FULL_SWEEP_EVENTS = [
+    'V8.GC_BACKGROUND_FULL_ARRAY_BUFFER_SWEEP',
     'V8.GC_MC_BACKGROUND_SWEEPING',
     'V8.GC_MC_SWEEP',
     'V8.GC_MC_COMPLETE_SWEEPING',
+    'V8.GC_MC_COMPLETE_SWEEP_ARRAY_BUFFERS',
   ];
 
   const V8_FULL_WEAK_EVENTS = [
@@ -170,6 +176,9 @@ tr.exportTo('tr.metrics.v8', function() {
     'V8.GC_MINOR_MC_BACKGROUND_SWEEPING',
     'V8.GC_MINOR_MC_SWEEP',
     'V8.GC_MINOR_MC_COMPLETE_SWEEPING',
+    'V8.GC_MINOR_MC_COMPLETE_SWEEP_ARRAY_BUFFERS',
+    'V8.GC_BACKGROUND_YOUNG_ARRAY_BUFFER_SWEEP',
+    'V8.GC_SCAVENGER_COMPLETE_SWEEP_ARRAY_BUFFERS',
   ];
 
   const V8_YOUNG_WEAK_EVENTS = [
@@ -206,6 +215,7 @@ tr.exportTo('tr.metrics.v8', function() {
     'CppGC.AtomicSweep',
     'CppGC.IncrementalSweep',
     'CppGC.ConcurrentSweep',
+    'CppGC.SweepFinishIfOutOfWork',
   ];
 
   const CPP_GC_FULL_WEAK_EVENTS = [
@@ -281,6 +291,11 @@ tr.exportTo('tr.metrics.v8', function() {
       contribute_to: 'full:atomic:compact',
     },
     {
+      events: V8_FULL_COMPACT_EVENTS,
+      outside: V8_FULL_ATOMIC_EVENTS,
+      contribute_to: 'full:compact',
+    },
+    {
       events: CPP_GC_FULL_COMPACT_EVENTS,
       inside: V8_FULL_ATOMIC_EVENTS,
       contribute_to: 'full:atomic:compact:cpp',
@@ -334,6 +349,11 @@ tr.exportTo('tr.metrics.v8', function() {
       events: V8_YOUNG_COMPACT_EVENTS,
       inside: V8_YOUNG_ATOMIC_EVENTS,
       contribute_to: 'young:atomic:compact',
+    },
+    {
+      events: V8_YOUNG_COMPACT_EVENTS,
+      outside: V8_YOUNG_ATOMIC_EVENTS,
+      contribute_to: 'young:compact',
     },
     {
       events: V8_YOUNG_SWEEP_EVENTS,
@@ -794,7 +814,7 @@ tr.exportTo('tr.metrics.v8', function() {
 
       // Group events by GC cycle and consider each cycle separately.
       for (const cycleEvents of groupByEpoch(events).values()) {
-        // If any event is in the cycle is forced, then the whole cycle
+        // If any event in the cycle is forced, then the whole cycle
         // is considered forced. Skip all events in the cycle.
         if (cycleEvents.some(
             tr.metrics.v8.utils.isForcedGarbageCollectionEvent)) {
