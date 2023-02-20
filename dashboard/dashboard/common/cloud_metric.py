@@ -66,8 +66,8 @@ def PublishTSCloudMetric(service_name,
   # this manditory field
   series.resource.labels["task_id"] = DEFAULT_TASK_ID
 
-  for key, value in label_dict:
-    series.metric.labels[key] = value
+  for key in label_dict:
+    series.metric.labels[key] = label_dict[key]
 
   now = time.time()
   seconds = int(now)
