@@ -143,9 +143,13 @@ def _ProcessTestStat(test, stat, rows, ref_rows):
   if not anomalies:
     raise ndb.Return(None)
 
-  logging.info('Created %d anomalies', len(anomalies))
+  logging.info('Created %d anomalies: %s', len(anomalies), [
+      '(start=%s, end=%s)' % (a.start_revision, a.end_revision)
+      for a in anomalies
+  ])
   logging.info(' Test: %s', test_key.id())
   logging.info(' Stat: %s', stat)
+  logging.info(' Inputs: %s', [input[0] for input in anomaly_inputs])
 
   for a in anomalies:
     a.subscriptions = [a.matching_subscription]
