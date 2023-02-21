@@ -1071,10 +1071,11 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
   mock_apk = _MockApkHelper(TEST_APK_PATH, TEST_PACKAGE, ['p1'])
 
   def testInstall_noPriorInstall(self):
-    with self.patch_call(
-        self.call.device.product_name,
-        return_value='notflounder'), (self.patch_call(
-            self.call.device.build_version_sdk, return_value=23)):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False), \
+         self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.NOUGAT):
       with self.assertCalls(
           (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
@@ -1089,11 +1090,32 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
           (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
-  def testInstall_noStreaming(self):
-    with self.patch_call(
-        self.call.device.product_name,
-        return_value='flounder'), (self.patch_call(
-            self.call.device.build_version_sdk, return_value=23)):
+  def testInstall_noStreaming_device(self):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='flounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False), \
+         self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.NOUGAT):
+      with self.assertCalls(
+          (self.call.device._FakeInstall(set(), None, 'test.package')),
+          (mock.call.os.path.exists(TEST_APK_PATH), True),
+          (self.call.device._GetApplicationPathsInternal(TEST_PACKAGE), []),
+          self.call.adb.Install(TEST_APK_PATH,
+                                reinstall=False,
+                                streaming=False,
+                                allow_downgrade=False,
+                                instant_app=False,
+                                force_queryable=False),
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
+          (self.call.device.GrantPermissions(TEST_PACKAGE, ['p1']), [])):
+        self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
+
+  def testInstall_noStreaming_emulator(self):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=True), \
+         self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.NOUGAT):
       with self.assertCalls(
           (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
@@ -1109,10 +1131,11 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
   def testInstall_permissionsPreM(self):
-    with self.patch_call(
-        self.call.device.product_name,
-        return_value='notflounder'), (self.patch_call(
-            self.call.device.build_version_sdk, return_value=20)):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False), \
+         self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.KITKAT_WATCH):
       with self.assertCalls(
           (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
@@ -1127,10 +1150,11 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
   def testInstall_findPermissions(self):
-    with self.patch_call(
-        self.call.device.product_name,
-        return_value='notflounder'), (self.patch_call(
-            self.call.device.build_version_sdk, return_value=23)):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False), \
+         self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.NOUGAT):
       with self.assertCalls(
           (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
@@ -1146,8 +1170,9 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
   def testInstall_passPermissions(self):
-    with self.patch_call(
-        self.call.device.product_name, return_value='notflounder'):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False):
       with self.assertCalls(
           (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
@@ -1179,8 +1204,9 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
           DeviceUtilsInstallTest.mock_apk, retries=0, permissions=[])
 
   def testInstall_differentPriorInstall(self):
-    with self.patch_call(
-        self.call.device.product_name, return_value='notflounder'):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False):
       with self.assertCalls(
           (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
@@ -1199,8 +1225,9 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
             DeviceUtilsInstallTest.mock_apk, retries=0, permissions=[])
 
   def testInstall_differentPriorInstallSplitApk(self):
-    with self.patch_call(
-        self.call.device.product_name, return_value='notflounder'):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False):
       with self.assertCalls(
           (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
@@ -1219,8 +1246,9 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
             DeviceUtilsInstallTest.mock_apk, retries=0, permissions=[])
 
   def testInstall_differentPriorInstall_reinstall(self):
-    with self.patch_call(
-        self.call.device.product_name, return_value='notflounder'):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False):
       with self.assertCalls(
           (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
@@ -1264,8 +1292,9 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
   def testInstall_fails(self):
-    with self.patch_call(
-        self.call.device.product_name, return_value='notflounder'):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False):
       with self.assertCalls(
           (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
@@ -1281,8 +1310,9 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
           self.device.Install(DeviceUtilsInstallTest.mock_apk, retries=0)
 
   def testInstall_downgrade(self):
-    with self.patch_call(
-        self.call.device.product_name, return_value='notflounder'):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False):
       with self.assertCalls(
           (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
@@ -1312,10 +1342,11 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
     mock_apk_with_fake = _MockApkHelper(
         TEST_APK_PATH, TEST_PACKAGE, splits=['fake1-master.apk'])
     fake_modules = ['fake1']
-    with self.patch_call(
-        self.call.device.product_name,
-        return_value='notflounder'), (self.patch_call(
-            self.call.device.build_version_sdk, return_value=23)):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False), \
+         self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.NOUGAT):
       with self.assertCalls(
           (mock.call.py_utils.tempfile_ext.NamedTemporaryDirectory(),
            mock_zip_temp_dir),
@@ -1351,12 +1382,13 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
             mock_apk_with_fake, fake_modules=fake_modules, retries=0)
 
   def testInstall_packageNotAvailableAfterInstall(self):
-    with self.patch_call(
-        self.call.device.product_name,
-        return_value='notflounder'), (self.patch_call(
-            self.call.device.build_version_sdk, return_value=23)), (
-                self.patch_call(self.call.device.IsApplicationInstalled,
-                                return_value=False)):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False), \
+         self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.NOUGAT), \
+         self.patch_call(self.call.device.IsApplicationInstalled,
+                         return_value=False):
       with self.assertCalls(
           (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
@@ -1375,9 +1407,10 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
 
   def testInstall_instantApp(self):
     with self.patch_call(self.call.device.product_name,
-                         return_value='notflounder'), (self.patch_call(
-                             self.call.device.build_version_sdk,
-                             return_value=23)):
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False), \
+         self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.NOUGAT):
       with self.assertCalls(
           (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
@@ -1394,9 +1427,10 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
 
   def testInstall_forceQueryable(self):
     with self.patch_call(self.call.device.product_name,
-                         return_value='notflounder'), (self.patch_call(
-                             self.call.device.build_version_sdk,
-                             return_value=23)):
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False), \
+         self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.NOUGAT):
       with self.assertCalls(
           (self.call.device._FakeInstall(set(), None, 'test.package')),
           (mock.call.os.path.exists(TEST_APK_PATH), True),
@@ -1486,8 +1520,9 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
                             ['split1.apk', 'split2.apk'])
 
   def testInstallSplitApk_noPriorInstall(self):
-    with self.patch_call(
-        self.call.device.product_name, return_value='notflounder'):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False):
       with self.assertCalls(
           (mock.call.devil.android.apk_helper.ToSplitHelper(
               'base.apk', ['split1.apk', 'split2.apk']),
@@ -1510,8 +1545,9 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
             'base.apk', ['split1.apk', 'split2.apk'], permissions=[], retries=0)
 
   def testInstallSplitApk_noStreaming(self):
-    with self.patch_call(
-        self.call.device.product_name, return_value='flounder'):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='flounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False):
       with self.assertCalls(
           (mock.call.devil.android.apk_helper.ToSplitHelper(
               'base.apk', ['split1.apk', 'split2.apk']),
@@ -1534,8 +1570,9 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
             'base.apk', ['split1.apk', 'split2.apk'], permissions=[], retries=0)
 
   def testInstallSplitApk_partialInstall(self):
-    with self.patch_call(
-        self.call.device.product_name, return_value='notflounder'):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False):
       with self.assertCalls(
           (mock.call.devil.android.apk_helper.ToSplitHelper(
               DeviceUtilsInstallSplitApkTest.mock_apk,
@@ -1566,8 +1603,9 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
             retries=0)
 
   def testInstallSplitApk_downgrade(self):
-    with self.patch_call(
-        self.call.device.product_name, return_value='notflounder'):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False):
       with self.assertCalls(
           (mock.call.devil.android.apk_helper.ToSplitHelper(
               DeviceUtilsInstallSplitApkTest.mock_apk,
@@ -1615,8 +1653,9 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
           retries=0)
 
   def testInstallSplitApk_previouslyNonSplit(self):
-    with self.patch_call(
-        self.call.device.product_name, return_value='notflounder'):
+    with self.patch_call(self.call.device.product_name,
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False):
       with self.assertCalls(
           (mock.call.devil.android.apk_helper.ToSplitHelper(
               DeviceUtilsInstallSplitApkTest.mock_apk,
@@ -1646,7 +1685,8 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
 
   def testInstallSplitApk_instantApp(self):
     with self.patch_call(self.call.device.product_name,
-                         return_value='notflounder'):
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False):
       with self.assertCalls(
           (mock.call.devil.android.apk_helper.ToSplitHelper(
               'base.apk', ['split1.apk', 'split2.apk']),
@@ -1672,7 +1712,8 @@ class DeviceUtilsInstallSplitApkTest(DeviceUtilsTest):
 
   def testInstallSplitApk_forceQueryable(self):
     with self.patch_call(self.call.device.product_name,
-                         return_value='notflounder'):
+                         return_value='notflounder'), \
+         self.patch_call(self.call.device.is_emulator, return_value=False):
       with self.assertCalls(
           (mock.call.devil.android.apk_helper.ToSplitHelper(
               'base.apk', ['split1.apk', 'split2.apk']),

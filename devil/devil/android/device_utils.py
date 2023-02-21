@@ -252,11 +252,15 @@ _SPECIAL_ROOT_DEVICE_LIST += [
     'aosp_%s' % _d for _d in _SPECIAL_ROOT_DEVICE_LIST
 ]
 
-# Somce devices are slow/timeout when using default install.
-# Devices listed here will perform no_streaming app installation.
+# Streamed installation is introduced in Nougat. Some devices and emulators
+# at some API levels are slow/timeout with default streaming app install so
+# force to use no_streaming instead.
 _NO_STREAMING_DEVICE_LIST = [
     'flounder',  # Nexus 9
     'volantis',  # Another product name for Nexus 9
+]
+_NO_STREAMING_EMULATOR_API_LEVELS = [
+    version_codes.NOUGAT,
 ]
 
 _IMEI_RE = re.compile(r'  Device ID = (.+)$')
@@ -1517,6 +1521,9 @@ class DeviceUtils(object):
       partial = package_name if len(apks_to_install) < len(apk_paths) else None
       streaming = None
       if self.product_name in _NO_STREAMING_DEVICE_LIST:
+        streaming = False
+      if (self.is_emulator
+          and self.build_version_sdk in _NO_STREAMING_EMULATOR_API_LEVELS):
         streaming = False
       logger.info('Installing package %s using APKs %s',
                   package_name, apks_to_install)
