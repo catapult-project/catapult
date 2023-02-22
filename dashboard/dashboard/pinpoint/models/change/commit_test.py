@@ -302,13 +302,13 @@ deps = {
     self.assertEqual(c, expected)
 
     mock_put.assert_called_once_with(
-        expected.id_string,
+        'chromium@HEAD',
         mock.ANY,
         mock.ANY,
         mock.ANY,
         mock.ANY,
         mock.ANY,
-        memcache_timeout=1800)
+        memcache_timeout=60 * 60 * 24)
 
   def testFromDictFailureFromUnknownRepo(self):
     with self.assertRaises(KeyError):
