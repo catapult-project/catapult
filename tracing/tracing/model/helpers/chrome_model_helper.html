@@ -201,6 +201,10 @@ tr.exportTo('tr.model.helpers', function() {
       const eventNameToMarkers = new Map();
 
       for (const rendererHelper of Object.values(this.rendererHelpers)) {
+        // In rare cases, a renderer process may not have any events emitted on
+        // the main thread, leading to the mainThread not existing in the model.
+        if (rendererHelper.mainThread === undefined) continue;
+
         const mainThreadAsyncSlices = rendererHelper.mainThread.asyncSliceGroup;
         for (const slice of mainThreadAsyncSlices.getDescendantEvents()) {
           // Internal events are of the form
