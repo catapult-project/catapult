@@ -307,6 +307,8 @@ class FifoSchedulerCostModelTest(test.TestCase):
         })
 
   @mock.patch('dashboard.pinpoint.models.job.Job.Start')
+  @mock.patch('dashboard.common.cloud_metric.PublishPinpointJobStatusMetric',
+              mock.MagicMock())
   def testSchedule_AllBisections(self, mock_job_start):
 
     def CreateAndSchedule():

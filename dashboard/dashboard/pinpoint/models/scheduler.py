@@ -23,9 +23,11 @@ import functools
 import random
 import logging
 
+from google.appengine.api import app_identity
 from google.appengine.ext import ndb
 
 from dashboard.common import bot_configurations
+from dashboard.common import cloud_metric
 
 SECS_PER_HOUR = datetime.timedelta(hours=1).total_seconds()
 DEFAULT_BUDGET = 1.0
@@ -160,6 +162,9 @@ def Schedule(job, cost=1.0):
           priority=priority,
           cost=cost))
   queue.put()
+  cloud_metric.PublishPinpointJobStatusMetric(app_identity.get_application_id(),
+                                              job.job_id, job.comparison_mode,
+                                              "queued")
 
 
 @ndb.transactional

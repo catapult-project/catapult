@@ -97,6 +97,8 @@ class NewAuthTest(_NewTest):
 @mock.patch.object(utils, 'IsTryjobUser', mock.MagicMock())
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
+@mock.patch('dashboard.common.cloud_metric.PublishPinpointJobStatusMetric',
+            mock.MagicMock())
 class NewTest(_NewTest):
 
   def testPost(self):
