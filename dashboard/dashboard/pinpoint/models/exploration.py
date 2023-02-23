@@ -52,7 +52,7 @@ def _BinaryInfixTraversal(change_a, change_b, levels, midpoint, callback):
   _BinaryInfixTraversal(m, change_b, levels - 1, midpoint, callback)
 
 
-def Speculate(changes, change_detected, on_unknown, midpoint, levels=2):
+def Speculate(changes, change_detected, on_unknown, midpoint, levels=1):
   """Speculate on a range of changes.
 
   This function yields a list of tuples with the following form:
@@ -74,7 +74,7 @@ def Speculate(changes, change_detected, on_unknown, midpoint, levels=2):
     returning an object of the same type as the arguments or None;
     midpoint(a, b) -> m|None where type(m) == type(a) && type(m) == type(b).
   - levels: the depth of the binary search to explore for speculation; default
-    is 2.
+    is 1.
   """
   if not changes:
     return []

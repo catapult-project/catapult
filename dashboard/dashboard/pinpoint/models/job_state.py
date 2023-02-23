@@ -27,7 +27,7 @@ from dashboard.pinpoint.models import exploration
 MIN_ATTEMPTS = 10
 MAX_ATTEMPTS = 160
 MAX_BUILDS = 30
-_DEFAULT_SPECULATION_LEVELS = 2
+_DEFAULT_SPECULATION_LEVELS = 1
 
 FUNCTIONAL = 'functional'
 PERFORMANCE = 'performance'

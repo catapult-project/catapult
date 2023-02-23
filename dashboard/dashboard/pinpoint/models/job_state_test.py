@@ -48,9 +48,7 @@ class ExploreTest(test.TestCase):
     # and 7.
     expected = [
         change_test.Change(1),
-        change_test.Change(3),
         change_test.Change(5),
-        change_test.Change(7),
         change_test.Change(9),
     ]
 
@@ -58,14 +56,10 @@ class ExploreTest(test.TestCase):
     self.maxDiff = None
     self.assertEqual(state._changes, expected)
     attempt_count_1 = len(state._attempts[change_test.Change(1)])
-    attempt_count_2 = len(state._attempts[change_test.Change(3)])
-    attempt_count_3 = len(state._attempts[change_test.Change(5)])
-    attempt_count_4 = len(state._attempts[change_test.Change(7)])
-    attempt_count_5 = len(state._attempts[change_test.Change(9)])
+    attempt_count_2 = len(state._attempts[change_test.Change(5)])
+    attempt_count_3 = len(state._attempts[change_test.Change(9)])
     self.assertEqual(attempt_count_1, attempt_count_2)
     self.assertEqual(attempt_count_2, attempt_count_3)
-    self.assertEqual(attempt_count_3, attempt_count_4)
-    self.assertEqual(attempt_count_4, attempt_count_5)
     self.assertEqual([], state.Differences())
 
   def testDifferentNoMidpoint(self):
