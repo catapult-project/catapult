@@ -88,30 +88,18 @@ class ReplayStartupArgsTest(unittest.TestCase):
         expected_args,
         chrome_startup_args.GetReplayArgs(network_backend, False))
 
-  def testReplayArgsUseLiveTrafficWithSpkiSupport(self):
-    network_backend = mock.Mock()
-    network_backend.is_open = True
-    network_backend.use_live_traffic = True
-    network_backend.forwarder.remote_port = 789
-
-    expected_args = [
-        '--proxy-server=socks://127.0.0.1:789',
-        '--proxy-bypass-list=<-loopback>']
-    self.assertItemsEqual(
-        expected_args,
-        chrome_startup_args.GetReplayArgs(network_backend,
-                                          supports_spki_list=True))
-
-  def testReplayArgsUseLiveTrafficWithNoSpkiSupport(self):
+  def testReplayArgsUseLiveTraffic(self):
     network_backend = mock.Mock()
     network_backend.is_open = True
     network_backend.use_live_traffic = True
     network_backend.forwarder.remote_port = 123
 
-    expected_args = [
-        '--proxy-server=socks://127.0.0.1:123',
-        '--proxy-bypass-list=<-loopback>']
+    expected_args = []
     self.assertItemsEqual(
         expected_args,
         chrome_startup_args.GetReplayArgs(network_backend,
                                           supports_spki_list=False))
+    self.assertItemsEqual(
+        expected_args,
+        chrome_startup_args.GetReplayArgs(network_backend,
+                                          supports_spki_list=True))
