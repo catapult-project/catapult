@@ -35,9 +35,9 @@ queue:
 
  # Pinpoint
  - name: job-queue
-   rate: 10/s
+   rate: 20/s
    retry_parameters:
-     task_retry_limit: 1
+     task_retry_limit: 3
 
 
  # Miscellaneous:
