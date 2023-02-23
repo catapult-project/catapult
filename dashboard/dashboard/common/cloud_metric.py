@@ -18,6 +18,12 @@ JOB_TYPE = "job_type"
 JOB_STATUS = "job_status"
 
 
+def PublishFrozenJobMetric(stage, job_id, job_type, job_status, metric_value=1):
+  label_dict = {JOB_ID: job_id, JOB_TYPE: job_type, JOB_STATUS: job_status}
+  PublishTSCloudMetric("pinpoint", "pinpoint/job/frozen_job", label_dict, stage,
+                       metric_value)
+
+
 def PublishPinpointJobStatusMetric(stage,
                                    job_id,
                                    job_type,
