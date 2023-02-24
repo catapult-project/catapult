@@ -5,7 +5,8 @@ runtime: python38
 
 entrypoint: gunicorn -b:$PORT dashboard.dispatcher:APP --worker-class gthread --threads 10 --timeout 60
 app_engine_apis: true
-instance_class: F4
+# 2048MB Memory, 2.4GHz CPU limit, support auto scaling.
+instance_class: F4_1G
 
 automatic_scaling:
   max_concurrent_requests: 80
