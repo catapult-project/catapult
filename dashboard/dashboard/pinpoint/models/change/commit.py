@@ -269,6 +269,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
         except ValueError:
           pass
         result = gitiles_service.CommitInfo(repository_url, git_hash)
+      if result.get('commit'):
         git_hash = result['commit']
     except gitiles_service.NotFoundError as e:
       six.raise_from(KeyError(str(e)), e)
