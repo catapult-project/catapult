@@ -308,7 +308,7 @@ deps = {
         mock.ANY,
         mock.ANY,
         mock.ANY,
-        memcache_timeout=60 * 60 * 24)
+        memcache_timeout=60 * 60 * 10)
 
   def testFromDictFailureFromUnknownRepo(self):
     with self.assertRaises(KeyError):

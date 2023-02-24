@@ -261,6 +261,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
         # If it's already in the hash, then we've resolved this recently, and we
         # don't go resolving the data from the gitiles service.
         result = commit_cache.Get(key)
+        git_hash = result.get('url').split('/')[-1]
         cache_miss = False
       except KeyError:
         try:
@@ -269,7 +270,6 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
         except ValueError:
           pass
         result = gitiles_service.CommitInfo(repository_url, git_hash)
-      if result.get('commit'):
         git_hash = result['commit']
     except gitiles_service.NotFoundError as e:
       six.raise_from(KeyError(str(e)), e)
@@ -281,7 +281,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     # avoid hammering gitiles.
     if not gitiles_service.IsHash(data['git_hash']):
       if cache_miss:
-        commit.CacheCommitInfo(result, key=key, memcache_timeout=60 * 60 * 24)
+        commit.CacheCommitInfo(result, key=key, memcache_timeout=60 * 60 * 10)
     return commit
 
   @classmethod
