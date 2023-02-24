@@ -413,11 +413,15 @@ def _FlattenTrace(test_suite_name,
   elif trace_name != 'summary' and is_ref:
     name += '_ref'
 
+  units = trace.get('units')
+  if units is None:
+    raise BadRequestError('Units must be specified in the chart data')
+
   row_dict = {
       'test': name,
       'value': value,
       'error': error,
-      'units': trace['units'],
+      'units': units,
       'tracing_uri': tracing_uri,
       'benchmark_description': benchmark_description,
   }

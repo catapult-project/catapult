@@ -1126,6 +1126,15 @@ class FlattenTraceTest(testing_common.TestCase):
         'value': 42,
     }
 
+  @staticmethod
+  def _SampleTrace_Invalid_Key():
+    return {
+        'name': 'bar.baz',
+        'unit': 'meters',  #The key should be 'units'
+        'type': 'scalar',
+        'value': 42,
+    }
+
   def testFlattenTrace_PreservesUnits(self):
     """Tests that _FlattenTrace preserves the units property."""
     trace = self._SampleTrace()
@@ -1331,6 +1340,13 @@ class FlattenTraceTest(testing_common.TestCase):
     })
     row = add_point._FlattenTrace('foo', 'baz@@bar', 'https://abc.xyz/', trace)
     self.assertEqual(row['test'], 'foo/bar/baz/https___abc.xyz_')
+
+  def testFlattenTrace_InvalidUnitsKey(self):
+    """Tests that a BadRequestError is thrown if the 'units' key is
+       not provided in the data."""
+    trace = self._SampleTrace_Invalid_Key()
+    with self.assertRaises(add_point.BadRequestError):
+      add_point._FlattenTrace('foo', 'bar', 'summary', trace)
 
 
 if __name__ == '__main__':
