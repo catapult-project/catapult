@@ -512,6 +512,7 @@ class BrowserFinderOptions(optparse.Values):
         self.denylist_file = None
         self.test_devices = []
         self.enable_concurrent_adb = False
+        self.disable_test_server = False
         self.logcat_output_dir = None
         self.logcat_output_file = None
         self.num_retries = 1
