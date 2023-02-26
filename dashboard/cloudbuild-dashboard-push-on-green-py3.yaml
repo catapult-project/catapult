@@ -53,41 +53,40 @@ steps:
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'default',
-    '--splits=cloud-build-7b05da8=1'
+    '--splits=cloud-build-7b96e7a=1'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   id: 'Set traffic for api service'
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'api',
-    '--splits=cloud-build-2f486e7=1'
+    '--splits=cloud-build-7b96e7a=1'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   id: 'Set traffic for upload service'
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'upload',
-    '--splits=cloud-build-eb2613d-py3=.8,cloud-build-1ef5b9a-py3=.2',
-    '--split-by=random'
+    '--splits=cloud-build-7b96e7a=1'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   id: 'Set traffic for upload-processing service'
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'upload-processing',
-    '--splits=cloud-build-eb2613d-py3=.8,cloud-build-1ef5b9a-py3=.2',
+    '--splits=cloud-build-7b96e7a=1',
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   id: 'Set traffic for pinpoint service'
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'pinpoint',
-    '--splits=cloud-build-42ade3a=1'
+    '--splits=cloud-build-7b96e7a=1'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: '/bin/bash'
   args: [
-      '-x', '-e', 'dashboard/dev_dockerfiles/cleanup_versions.sh',
-      'api', 'default', 'pinpoint', 'upload-processing', 'upload'
+    '-x', '-e', 'dashboard/dev_dockerfiles/cleanup_versions.sh',
+    'api', 'default', 'pinpoint', 'upload-processing', 'upload'
   ]
 images: ['gcr.io/$PROJECT_ID/dashboard-base:latest']
