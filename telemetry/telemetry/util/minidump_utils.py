@@ -11,6 +11,7 @@ and internal/chrome/backends/chrome/minidump_symbolizer.py respectively.
 import logging
 import re
 import subprocess
+import sys
 
 from telemetry.internal.util import local_first_binary_manager
 
@@ -26,12 +27,25 @@ def DumpMinidump(minidump_path):
     minidump_dump on the given minidump. None is returned if the minidump could
     not be dumped for some reason.
   """
-  minidump_dump = local_first_binary_manager.GetInstance().FetchPath(
-      'minidump_dump')
-  if not minidump_dump:
-    logging.warning('No minidump_dump found, cannot dump %s', minidump_path)
-    return None
-  proc = subprocess.run([minidump_dump, minidump_path],
+  # minidump_dump does not exist for Windows, but dump_minidump_annotations can
+  # dump similar information.
+  cmd = []
+  if sys.platform == 'win32':
+    dump_annotations = local_first_binary_manager.GetInstance().FetchPath(
+        'dump_minidump_annotations')
+    if not dump_annotations:
+      logging.warning(
+          'No dump_minidump_annotations found, cannot dump %s', minidump_path)
+      return None
+    cmd = [dump_annotations, '--minidump', minidump_path]
+  else:
+    minidump_dump = local_first_binary_manager.GetInstance().FetchPath(
+        'minidump_dump')
+    if not minidump_dump:
+      logging.warning('No minidump_dump found, cannot dump %s', minidump_path)
+      return None
+    cmd = [minidump_dump, minidump_path]
+  proc = subprocess.run(cmd,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
                         text=True,
@@ -58,18 +72,33 @@ def GetCrashpadAnnotation(minidump_path, name, annotation_type=None):
     Either a string or None. In the case of a string, it contains the requested
     annotation value. None is returned if the value could not be retrieved.
   """
-  if annotation_type is None:
-    annotation_type = r'\d+'
-  # Looks for lines such as
-  #   module_list[0].crashpad_annotations["ptype"] (type = 1) = gpu-process
-  # and captures the value at the end (in this case, gpu-process).
-  capture_string = (
-      r'^\s*module_list\[\d+\]\.crashpad_annotations\[\"'
-      + name
-      + r'\"\] \(type = '
-      + str(annotation_type)
-      + r'\) = (\S+)$')
-  regex = re.compile(capture_string, re.MULTILINE)
+  if sys.platform == 'win32':
+    if annotation_type:
+      logging.warning(
+          'Requested explicit annotation type %d, but dumping on Windows does '
+          'not differentiate by type', annotation_type)
+    # Looks for lines such as
+    #   annotation_objects["ptype"] = gpu-process
+    # and captures the value at the end (in this case, gpu-process)
+    capture_string = (
+        r'^\s*annotation_objects\[\"'
+        + name
+        + r'\"\] = (.*)$'
+    )
+    regex = re.compile(capture_string, re.MULTILINE)
+  else:
+    if annotation_type is None:
+      annotation_type = r'\d+'
+    # Looks for lines such as
+    #   module_list[0].crashpad_annotations["ptype"] (type = 1) = gpu-process
+    # and captures the value at the end (in this case, gpu-process).
+    capture_string = (
+        r'^\s*module_list\[\d+\]\.crashpad_annotations\[\"'
+        + name
+        + r'\"\] \(type = '
+        + str(annotation_type)
+        + r'\) = (.*)$')
+    regex = re.compile(capture_string, re.MULTILINE)
 
   dump_output = DumpMinidump(minidump_path)
   if not dump_output:
