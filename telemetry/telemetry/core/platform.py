@@ -383,14 +383,6 @@ class Platform():
       real_logging.info('MemoryCacheHTTPServer created')
 
     self.StartLocalServer(server)
-    # For now, Fuchsia needs to do port forwarding due to --proxy-server
-    # flag not being supported in its browser.
-    # TODO(https://crbug.com/1014670): Remove once debug flags supported in
-    # Fuchsia browsers.
-    if self._platform_backend.GetOSName() == 'fuchsia':
-      self._forwarder = (
-          self._platform_backend.forwarder_factory.Create(server.port,
-                                                          server.port))
     return True
 
   def StopAllLocalServers(self):

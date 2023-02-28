@@ -76,11 +76,6 @@ class PossibleFuchsiaBrowser(possible_browser.PossibleBrowser):
     if browser_type == fuchsia_browser_backend.FUCHSIA_CHROME:
       startup_args.extend(chrome_startup_args.GetReplayArgs(
           self._platform_backend.network_controller_backend))
-      # This is a temporary removal as part of getting --proxy-server to work
-      # properly on Fuchsia. See crbug.com/1354797.
-      for arg in list(startup_args):
-        if arg.startswith('--proxy-server='):
-          startup_args.remove(arg)
       startup_args = [arg.replace('=<-loopback>', '="<-loopback>"')
                       for arg in startup_args]
 
