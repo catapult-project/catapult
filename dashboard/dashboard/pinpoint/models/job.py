@@ -524,6 +524,12 @@ class Job(ndb.Model):
 
     self._PrintJobMetrics("started")
 
+    # publish metric on the time waiting in configuration queue.
+    pinpoint_job_queued_time = self.started_time - self.created
+    cloud_metric.PublishPinpointJobRunTimeMetric(
+        app_identity.get_application_id(), self.job_id, self.comparison_mode,
+        "wait-time-in-queue", pinpoint_job_queued_time.total_seconds())
+
     title = _ROUND_PUSHPIN + ' Pinpoint job started.'
     comment = '\n'.join((title, self.url))
     deferred.defer(
