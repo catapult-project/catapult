@@ -6,6 +6,7 @@ from __future__ import absolute_import
 
 import logging
 import time
+import uuid
 from google.appengine.api import app_identity
 from google.cloud import monitoring_v3
 
@@ -21,6 +22,7 @@ API_METRIC_TYPE = "api/metrics"
 API_NAME = "api_name"
 REQUEST_STATUS = "request_status"
 RUN_TIME = "run_time"
+UUID = "uuid"
 
 
 def PublishFrozenJobMetric(project_id, job_id, job_type, job_status,
@@ -116,7 +118,14 @@ class APIMetricLogger:
 
   def __enter__(self):
     self._start = self._Now()
-    label_dict = {API_NAME: self._api_name, REQUEST_STATUS: "started"}
+    # Currently, Cloud Monitoring allows one write every 5 seconds for any
+    # unique tuple (metric_name, metric_label_value_1, metric_label_value_2, …).
+    #
+    # To avoid being throttled by Cloud Monitoring, add a UUID label_value to
+    # make the tuple unique.
+    # https://cloud.google.com/monitoring/quotas
+    label_dict = {API_NAME: self._api_name, REQUEST_STATUS: "started",
+                  UUID: uuid.uuid4()}
     _PublishTSCloudMetric(app_identity.get_application_id(), self._service_name,
                           API_METRIC_TYPE, label_dict)
 
@@ -125,14 +134,16 @@ class APIMetricLogger:
       # with statement BLOCK runs succeed
       self.seconds = self._Now() - self._start
       logging.info('%s:%s=%f', self._service_name, self._api_name, self.seconds)
-      label_dict = {API_NAME: self._api_name, REQUEST_STATUS: "completed"}
+      label_dict = {API_NAME: self._api_name, REQUEST_STATUS: "completed",
+                    UUID: uuid.uuid4()}
       _PublishTSCloudMetric(app_identity.get_application_id(),
                             self._service_name, API_METRIC_TYPE, label_dict,
                             self.seconds)
       return True
 
     # with statement BLOCK throws exception
-    label_dict = {API_NAME: self._api_name, REQUEST_STATUS: "failed"}
+    label_dict = {API_NAME: self._api_name, REQUEST_STATUS: "failed",
+                  UUID: uuid.uuid4()}
     _PublishTSCloudMetric(app_identity.get_application_id(),
                           self._service_name, API_METRIC_TYPE, label_dict)
     # throw out the original exception
