@@ -17,6 +17,7 @@ from flask import request
 from dashboard.api import api_request_handler
 from dashboard.api import api_auth
 from dashboard.common import bot_configurations
+from dashboard.common import cloud_metric
 from dashboard.common import utils
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import errors
@@ -76,6 +77,7 @@ def _CheckUser():
 
 
 @api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
+@cloud_metric.APIMetric("pinpoint", "/api/new")
 def NewHandlerPost():
   # TODO(dberris): Validate the inputs based on the type of job requested.
   job = _CreateJob(request)

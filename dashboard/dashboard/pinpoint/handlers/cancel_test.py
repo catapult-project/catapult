@@ -22,6 +22,8 @@ from dashboard.pinpoint.models import scheduler
             mock.MagicMock())
 @mock.patch('dashboard.common.cloud_metric.PublishPinpointJobRunTimeMetric',
             mock.MagicMock())
+@mock.patch('dashboard.common.cloud_metric._PublishTSCloudMetric',
+            mock.MagicMock())
 class CancelJobTest(test.TestCase):
 
   def setUp(self):

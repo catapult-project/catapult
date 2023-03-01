@@ -13,6 +13,7 @@ import six
 from flask import make_response, request
 
 from dashboard.pinpoint.models import job as job_module
+from dashboard.common import cloud_metric
 from dashboard.common import utils
 
 from google.appengine.datastore import datastore_query
@@ -31,6 +32,7 @@ class InvalidInput(Error):
   pass
 
 
+@cloud_metric.APIMetric("pinpoint", "/api/jobs")
 def JobsHandlerGet():
   try:
     return make_response(

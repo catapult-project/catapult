@@ -11,6 +11,7 @@ import logging
 
 from flask import make_response
 
+from dashboard.common import cloud_metric
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import results2
 
@@ -42,6 +43,7 @@ def Results2Handler(job_id):
     return make_response(str(e), 400)
 
 
+@cloud_metric.APIMetric("pinpoint", "/api/generate-results2")
 def Results2GeneratorHandler(job_id):
   try:
     job = job_module.JobFromId(job_id)

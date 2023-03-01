@@ -99,6 +99,8 @@ class NewAuthTest(_NewTest):
             mock.MagicMock(return_value=["a"]))
 @mock.patch('dashboard.common.cloud_metric.PublishPinpointJobStatusMetric',
             mock.MagicMock())
+@mock.patch('dashboard.common.cloud_metric._PublishTSCloudMetric',
+            mock.MagicMock())
 class NewTest(_NewTest):
 
   def testPost(self):

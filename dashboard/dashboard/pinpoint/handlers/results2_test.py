@@ -79,6 +79,8 @@ class Results2GetTest(_Results2Test):
 
 
 @mock.patch.object(results2.results2, 'GenerateResults2')
+@mock.patch('dashboard.common.cloud_metric._PublishTSCloudMetric',
+            mock.MagicMock())
 class Results2GeneratorPostTest(_Results2Test):
 
   def testGet_CallsGenerate(self, mock_generate):

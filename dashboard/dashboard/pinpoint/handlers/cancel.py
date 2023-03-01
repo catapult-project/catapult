@@ -12,6 +12,7 @@ from flask import request
 
 from dashboard.api import api_request_handler
 from dashboard.api import api_auth
+from dashboard.common import cloud_metric
 from dashboard.common import utils
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import errors
@@ -26,6 +27,7 @@ def _CheckUser():
 
 
 @api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
+@cloud_metric.APIMetric("pinpoint", "/api/job/cancel")
 def CancelHandlerPost():
   args = utils.RequestParamsMixed(request)
   job_id = args.get('job_id')

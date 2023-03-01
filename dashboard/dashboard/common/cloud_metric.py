@@ -4,7 +4,9 @@
 
 from __future__ import absolute_import
 
+import logging
 import time
+from google.appengine.api import app_identity
 from google.cloud import monitoring_v3
 
 METRIC_TYPE_PREFIX = "custom.googleapis.com/"
@@ -15,6 +17,10 @@ DEFAULT_TASK_ID = "task_id"
 JOB_ID = "job_id"
 JOB_TYPE = "job_type"
 JOB_STATUS = "job_status"
+API_METRIC_TYPE = "api/metrics"
+API_NAME = "api_name"
+REQUEST_STATUS = "request_status"
+RUN_TIME = "run_time"
 
 
 def PublishFrozenJobMetric(project_id, job_id, job_type, job_status,
@@ -92,3 +98,55 @@ def _PublishTSCloudMetric(project_id,
   })
   series.points = [point]
   client.create_time_series(name=project_name, time_series=[series])
+
+
+class APIMetricLogger:
+
+  def __init__(self, service_name, api_name):
+    """ This metric logger can be used by the with statement:
+    https://peps.python.org/pep-0343/
+    """
+    self._service_name = service_name
+    self._api_name = api_name
+    self._start = None
+    self.seconds = 0
+
+  def _Now(self):
+    return time.time()
+
+  def __enter__(self):
+    self._start = self._Now()
+    label_dict = {API_NAME: self._api_name, REQUEST_STATUS: "started"}
+    _PublishTSCloudMetric(app_identity.get_application_id(), self._service_name,
+                          API_METRIC_TYPE, label_dict)
+
+  def __exit__(self, exception_type, exception_value, execution_traceback):
+    if exception_type is None:
+      # with statement BLOCK runs succeed
+      self.seconds = self._Now() - self._start
+      logging.info('%s:%s=%f', self._service_name, self._api_name, self.seconds)
+      label_dict = {API_NAME: self._api_name, REQUEST_STATUS: "completed"}
+      _PublishTSCloudMetric(app_identity.get_application_id(),
+                            self._service_name, API_METRIC_TYPE, label_dict,
+                            self.seconds)
+      return True
+
+    # with statement BLOCK throws exception
+    label_dict = {API_NAME: self._api_name, REQUEST_STATUS: "failed"}
+    _PublishTSCloudMetric(app_identity.get_application_id(),
+                          self._service_name, API_METRIC_TYPE, label_dict)
+    # throw out the original exception
+    return False
+
+
+def APIMetric(service_name, api_name):
+
+  def Decorator(wrapped):
+
+    def Wrapper(*a, **kw):
+      with APIMetricLogger(service_name, api_name):
+        return wrapped(*a, **kw)
+
+    return Wrapper
+
+  return Decorator

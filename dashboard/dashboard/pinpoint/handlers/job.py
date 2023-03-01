@@ -10,9 +10,11 @@ import json
 
 from flask import make_response, request
 
+from dashboard.common import cloud_metric
 from dashboard.pinpoint.models import job as job_module
 
 
+@cloud_metric.APIMetric("pinpoint", "/api/job")
 def JobHandlerGet(job_id):
   try:
     job = job_module.JobFromId(job_id)

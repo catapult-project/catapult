@@ -11,6 +11,7 @@ import json
 
 from flask import make_response
 
+from dashboard.common import cloud_metric
 from dashboard.pinpoint.models import job
 
 _MAX_JOBS_TO_FETCH = 10000
@@ -19,6 +20,7 @@ _MAX_JOBS_TO_FETCH = 10000
 # include and how many Jobs to fetch.
 
 
+@cloud_metric.APIMetric("pinpoint", "/api/stats")
 def StatsHandler():
   return make_response(json.dumps(_GetJobs()))
 

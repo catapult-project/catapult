@@ -10,10 +10,12 @@ import logging
 
 from flask import make_response
 
+from dashboard.common import cloud_metric
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import errors
 
 
+@cloud_metric.APIMetric("pinpoint", "/api/run")
 def RunHandler(job_id):
   job = job_module.JobFromId(job_id)
   try:
