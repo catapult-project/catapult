@@ -21,7 +21,6 @@ from dashboard import find_change_points
 from dashboard.common import utils
 from dashboard.models import alert_group
 from dashboard.models import anomaly
-from dashboard.models import anomaly_config
 from dashboard.models import graph_data
 from dashboard.models import histogram
 from dashboard.models import subscription
@@ -67,8 +66,7 @@ def _ProcessTest(test_key):
 
   test = yield test_key.get_async()
 
-  config = yield anomaly_config.GetAnomalyConfigDictAsync(test)
-  max_num_rows = config.get('max_window_size', DEFAULT_NUM_POINTS)
+  max_num_rows = DEFAULT_NUM_POINTS
   rows_by_stat = yield GetRowsToAnalyzeAsync(test, max_num_rows)
 
   ref_rows_by_stat = {}
