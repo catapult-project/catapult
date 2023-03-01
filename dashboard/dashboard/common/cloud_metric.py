@@ -8,7 +8,6 @@ import time
 from google.cloud import monitoring_v3
 
 METRIC_TYPE_PREFIX = "custom.googleapis.com/"
-PROJECT_ID = "chromeperf"
 RESOURCE_TYPE = "generic_task"
 LOCATION = "us-central1"
 NAMESPACE = "Prod"
@@ -18,36 +17,37 @@ JOB_TYPE = "job_type"
 JOB_STATUS = "job_status"
 
 
-def PublishFrozenJobMetric(stage, job_id, job_type, job_status, metric_value=1):
+def PublishFrozenJobMetric(project_id, job_id, job_type, job_status,
+    metric_value=1):
   label_dict = {JOB_ID: job_id, JOB_TYPE: job_type, JOB_STATUS: job_status}
-  PublishTSCloudMetric("pinpoint", "pinpoint/job/frozen_job", label_dict, stage,
-                       metric_value)
+  _PublishTSCloudMetric(project_id, "pinpoint", "pinpoint/job/frozen_job",
+                       label_dict, metric_value)
 
 
-def PublishPinpointJobStatusMetric(stage,
+def PublishPinpointJobStatusMetric(project_id,
                                    job_id,
                                    job_type,
                                    job_status,
                                    metric_value=1):
   label_dict = {JOB_ID: job_id, JOB_TYPE: job_type, JOB_STATUS: job_status}
-  PublishTSCloudMetric("pinpoint", "pinpoint/job/status_change", label_dict,
-                       stage, metric_value)
+  _PublishTSCloudMetric(project_id, "pinpoint", "pinpoint/job/status_change",
+                       label_dict, metric_value)
 
 
-def PublishPinpointJobRunTimeMetric(stage, job_id, job_type, job_status,
+def PublishPinpointJobRunTimeMetric(project_id, job_id, job_type, job_status,
                                     metric_value):
   label_dict = {JOB_ID: job_id, JOB_TYPE: job_type, JOB_STATUS: job_status}
-  PublishTSCloudMetric("pinpoint", "pinpoint/job/run_time", label_dict, stage,
-                       metric_value)
+  _PublishTSCloudMetric(project_id, "pinpoint", "pinpoint/job/run_time",
+                       label_dict, metric_value)
 
 
-def PublishTSCloudMetric(service_name,
+def _PublishTSCloudMetric(project_id,
+                         service_name,
                          metric_type,
                          label_dict,
-                         stage=NAMESPACE,
                          metric_value=1):
   client = monitoring_v3.MetricServiceClient()
-  project_name = f"projects/{PROJECT_ID}"
+  project_name = f"projects/{project_id}"
 
   series = monitoring_v3.TimeSeries()
 
@@ -55,21 +55,22 @@ def PublishTSCloudMetric(service_name,
 
   series.resource.type = RESOURCE_TYPE
 
-  # The identifier of the GCP project associated with this resource, such as "my-project".
-  series.resource.labels["project_id"] = PROJECT_ID
+  # The identifier of the GCP project associated with this resource,
+  # such as "my-project".
+  series.resource.labels["project_id"] = project_id
 
   # The GCP region in which data about the resource is stored
   series.resource.labels["location"] = LOCATION
 
   # A namespace identifier, such as a cluster name: Dev, Staging or Prod
-  series.resource.labels["namespace"] = stage
+  series.resource.labels["namespace"] = NAMESPACE
 
-  # An identifier for a grouping of related tasks, such as the name of a microservice or
-  # distributed batch job
+  # An identifier for a grouping of related tasks, such as the name of
+  # a microservice or distributed batch job
   series.resource.labels["job"] = service_name
 
-  # A unique identifier for the task within the namespace and job, set default value for
-  # this manditory field
+  # A unique identifier for the task within the namespace and job,
+  # set default value for this manditory field
   series.resource.labels["task_id"] = DEFAULT_TASK_ID
 
   for key in label_dict:
