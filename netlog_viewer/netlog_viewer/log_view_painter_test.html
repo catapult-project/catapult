@@ -42,7 +42,12 @@ found in the LICENSE file.
         let actualText = div.innerText;
         actualText = actualText.replace(/^\s+|\s+$/g, '');
 
-        chai.assert.strictEqual(testCase.expectedText, actualText);
+        const expectedLines = testCase.expectedText.split('\n');
+        const actualLines = actualText.split('\n');
+        for (let i = 0; i < actualLines.length; i++) {
+          chai.assert.strictEqual(expectedLines[i], actualLines[i]);
+        }
+        chai.assert.strictEqual(expectedLines.length, actualLines.length);
       }
 
       runTestCase(painterTestURLRequest());
@@ -454,15 +459,13 @@ found in the LICENSE file.
 't=1338864633224 [st=  0] +REQUEST_ALIVE  [dt=789]\n' +
 't=1338864633238 [st= 14]    URL_REQUEST_START_JOB  [dt=8]\n' +
 '                            --> load_flags = ' +
-testCase.loadFlags.toString() +
-' (MAIN_FRAME_DEPRECATED | MAYBE_USER_GESTURE)\n' +
+testCase.loadFlags.toString() + ' (MAIN_FRAME_DEPRECATED)\n' +
 '                            --> method = "GET"\n' +
 '                            --> priority = 4\n' +
 '                            --> url = "http://www.google.com/"\n' +
 't=1338864633248 [st= 24]   +URL_REQUEST_START_JOB  [dt=279]\n' +
 '                            --> load_flags = ' +
-testCase.loadFlags.toString() +
-' (MAIN_FRAME_DEPRECATED | MAYBE_USER_GESTURE)\n' +
+testCase.loadFlags.toString() + ' (MAIN_FRAME_DEPRECATED)\n' +
 '                            --> method = "GET"\n' +
 '                            --> priority = 4\n' +
 '                            --> url = "http://www.google.com/"\n' +
@@ -604,8 +607,7 @@ testCase.loadFlags.toString() +
   function painterTestNetError() {
     const testCase = {};
     testCase.tickOffset = 1337911098446;
-    testCase.loadFlags =
-        LoadFlag.MAIN_FRAME_DEPRECATED | LoadFlag.MAYBE_USER_GESTURE;
+    testCase.loadFlags = LoadFlag.MAIN_FRAME_DEPRECATED;
 
     testCase.logEntries = [
       {
@@ -725,15 +727,13 @@ testCase.loadFlags.toString() +
 't=1338864773894 [st=  0] +REQUEST_ALIVE  [dt=475]\n' +
 't=1338864773901 [st=  7]    URL_REQUEST_START_JOB  [dt=5]\n' +
 '                            --> load_flags = ' +
-testCase.loadFlags.toString() +
-' (MAIN_FRAME_DEPRECATED | MAYBE_USER_GESTURE)\n' +
+testCase.loadFlags.toString() + ' (MAIN_FRAME_DEPRECATED)\n' +
 '                            --> method = "GET"\n' +
 '                            --> priority = 4\n' +
 '                            --> url = "http://www.doesnotexistdomain.com/"\n' +
 't=1338864773906 [st= 12]   +URL_REQUEST_START_JOB  [dt=245]\n' +
 '                            --> load_flags = ' +
-testCase.loadFlags.toString() +
-' (MAIN_FRAME_DEPRECATED | MAYBE_USER_GESTURE)\n' +
+testCase.loadFlags.toString() + ' (MAIN_FRAME_DEPRECATED)\n' +
 '                            --> method = "GET"\n' +
 '                            --> priority = 4\n' +
 '                            --> url = "http://www.doesnotexistdomain.com/"\n' +
@@ -1370,8 +1370,7 @@ QuicError.QUIC_NETWORK_IDLE_TIMEOUT + ' (QUIC_NETWORK_IDLE_TIMEOUT)';
   function painterTestInProgressURLRequest() {
     const testCase = {};
     testCase.tickOffset = 1337911098446;
-    testCase.loadFlags =
-        LoadFlag.MAIN_FRAME_DEPRECATED | LoadFlag.MAYBE_USER_GESTURE;
+    testCase.loadFlags = LoadFlag.MAIN_FRAME_DEPRECATED;
 
     testCase.logEntries = [
       {
@@ -1410,7 +1409,7 @@ QuicError.QUIC_NETWORK_IDLE_TIMEOUT + ' (QUIC_NETWORK_IDLE_TIMEOUT)';
 't=1338864773994 [st=  0] +REQUEST_ALIVE  [dt=375]\n' +
 '                          --> load_flags = ' +
 testCase.loadFlags.toString() +
-' (MAIN_FRAME_DEPRECATED | MAYBE_USER_GESTURE)\n' +
+' (MAIN_FRAME_DEPRECATED)\n' +
 '                          --> load_state = ' +
 LoadState.READING_RESPONSE + ' (READING_RESPONSE)\n' +
 '                          --> method = "GET"\n' +
