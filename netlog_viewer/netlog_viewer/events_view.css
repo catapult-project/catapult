@@ -83,7 +83,8 @@
 }
 
 #events-view-source-list-tbody .source-host-resolver-impl-job,
-#events-view-source-list-tbody .source-host-resolver-impl-request {
+#events-view-source-list-tbody .source-host-resolver-impl-request,
+#events-view-source-list-tbody .source-dns-over-https {
   color: rgb(32, 96, 96);
 }
 

@@ -79,6 +79,7 @@ class SourceEntry {
 
     switch (e.source.type) {
       case EventSourceType.URL_REQUEST:
+      case EventSourceType.DOH_URL_REQUEST:
       case EventSourceType.HTTP_STREAM_JOB:
       case EventSourceType.HTTP_STREAM_JOB_CONTROLLER:
       case EventSourceType.BIDIRECTIONAL_STREAM:
@@ -150,6 +151,7 @@ class SourceEntry {
         break;
       case EventSourceType.ASYNC_HOST_RESOLVER_REQUEST:
       case EventSourceType.DNS_TRANSACTION:
+      case EventSourceType.DNS_OVER_HTTPS:
         this.description_ = e.params.hostname;
         break;
       case EventSourceType.DOWNLOAD:
