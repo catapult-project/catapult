@@ -125,7 +125,7 @@ class APIMetricLogger:
     # make the tuple unique.
     # https://cloud.google.com/monitoring/quotas
     label_dict = {API_NAME: self._api_name, REQUEST_STATUS: "started",
-                  UUID: uuid.uuid4()}
+                  UUID: str(uuid.uuid4())}
     _PublishTSCloudMetric(app_identity.get_application_id(), self._service_name,
                           API_METRIC_TYPE, label_dict)
 
@@ -135,7 +135,7 @@ class APIMetricLogger:
       self.seconds = self._Now() - self._start
       logging.info('%s:%s=%f', self._service_name, self._api_name, self.seconds)
       label_dict = {API_NAME: self._api_name, REQUEST_STATUS: "completed",
-                    UUID: uuid.uuid4()}
+                    UUID: str(uuid.uuid4())}
       _PublishTSCloudMetric(app_identity.get_application_id(),
                             self._service_name, API_METRIC_TYPE, label_dict,
                             self.seconds)
@@ -143,7 +143,7 @@ class APIMetricLogger:
 
     # with statement BLOCK throws exception
     label_dict = {API_NAME: self._api_name, REQUEST_STATUS: "failed",
-                  UUID: uuid.uuid4()}
+                  UUID: str(uuid.uuid4())}
     _PublishTSCloudMetric(app_identity.get_application_id(),
                           self._service_name, API_METRIC_TYPE, label_dict)
     # throw out the original exception
