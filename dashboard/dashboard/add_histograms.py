@@ -26,6 +26,7 @@ from google.appengine.ext import ndb
 from dashboard import sheriff_config_client
 from dashboard.api import api_auth
 from dashboard.api import api_request_handler
+from dashboard.common import cloud_metric
 from dashboard.common import datastore_hooks
 from dashboard.common import histogram_helpers
 from dashboard.common import timing
@@ -54,6 +55,7 @@ def _CheckUser():
     raise api_request_handler.ForbiddenError()
 
 
+@cloud_metric.APIMetric("upload-processing", "/add_histograms/process")
 def AddHistogramsProcessPost():
   datastore_hooks.SetPrivilegedRequest()
   token = None
@@ -99,6 +101,7 @@ def _GetCloudStorageBucket():
 
 
 @api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
+@cloud_metric.APIMetric("upload", "/add_histograms")
 def AddHistogramsPost():
   if utils.IsDevAppserver():
     # Don't require developers to zip the body.

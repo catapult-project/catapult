@@ -99,7 +99,13 @@ def _PublishTSCloudMetric(project_id,
       }
   })
   series.points = [point]
-  client.create_time_series(name=project_name, time_series=[series])
+
+  try:
+    client.create_time_series(name=project_name, time_series=[series])
+  except Exception as e:  # pylint: disable=broad-except
+    # Swallow the error from Cloud Monitoring API, the failure from
+    # Cloud Monitoring API should not break our code logic.
+    logging.warning('Publish data to Cloud Monitoring failed. Error: %s', e)
 
 
 class APIMetricLogger:

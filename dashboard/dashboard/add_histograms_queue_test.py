@@ -618,6 +618,8 @@ class AddHistogramsQueueTest(testing_common.TestCase):
                    mock.MagicMock(return_value=None))
 @mock.patch.object(SheriffConfigClient, 'Match',
                    mock.MagicMock(return_value=([], None)))
+@mock.patch('dashboard.common.cloud_metric._PublishTSCloudMetric',
+            mock.MagicMock())
 class AddHistogramsQueueTestWithUploadCompletionToken(testing_common.TestCase):
 
   def setUp(self):

@@ -10,6 +10,7 @@ import logging
 
 from flask import make_response
 
+from dashboard.common import cloud_metric
 from dashboard.models import alert_group
 from dashboard.models import alert_group_workflow
 from google.appengine.ext import deferred
@@ -81,6 +82,7 @@ def ProcessAlertGroups():
   )
 
 
+@cloud_metric.APIMetric("chromeperf", "/alert_groups_update")
 def AlertGroupsGet():
   """Create and Update AlertGroups.
 

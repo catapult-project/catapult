@@ -17,6 +17,7 @@ from dashboard import find_anomalies
 from dashboard import graph_revisions
 from dashboard import units_to_direction
 from dashboard import sheriff_config_client
+from dashboard.common import cloud_metric
 from dashboard.common import datastore_hooks
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -25,6 +26,7 @@ from dashboard.models import graph_data
 from flask import request, make_response
 
 
+@cloud_metric.APIMetric("upload-processing", "/add_point_queue")
 def AddPointQueuePost():
   """Adds a set of points from the post data.
 

@@ -18,6 +18,7 @@ from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from dashboard.api import api_auth
+from dashboard.common import cloud_metric
 from dashboard.common import request_handler
 from dashboard.common import datastore_hooks
 from dashboard.common import histogram_helpers
@@ -51,6 +52,7 @@ class BadRequestError(Exception):
   """An error indicating that a 400 response status should be returned."""
 
 
+@cloud_metric.APIMetric("upload", "/add_point")
 def AddPointPost():
   """Validates data parameter and add task to queue to process points.
 
