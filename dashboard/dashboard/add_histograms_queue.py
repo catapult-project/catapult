@@ -185,7 +185,9 @@ def _ProcessRowAndHistogram(params):
   benchmark_description = params['benchmark_description']
   data_dict = params['data']
 
-  logging.info('Processing: %s', test_path)
+  # Disable this log since it's killing the quota of Cloud Logging API -
+  # write requests per minute
+  # logging.info('Processing: %s', test_path)
 
   hist = histogram_module.Histogram.FromDict(data_dict)
 
@@ -258,7 +260,10 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
     raise ndb.Return()
 
   yield ndb.put_multi_async(rows) + [r.UpdateParentAsync() for r in rows]
-  logging.debug('Processed %s row entities.', len(rows))
+
+  # Disable this log since it's killing the quota of Cloud Logging API -
+  # write requests per minute
+  # logging.debug('Processed %s row entities.', len(rows))
 
   def IsMonitored(client, test):
     reason = []
