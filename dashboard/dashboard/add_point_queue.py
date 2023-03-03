@@ -74,7 +74,9 @@ def AddPointQueuePost():
     if IsRefBuild(t.key):
       reason.append('RefBuild')
     if reason:
-      logging.info('Skip test: %s reason=%s', t.key, ','.join(reason))
+      # Disable this log since it's killing the quota of Cloud Logging API -
+      # write requests per minute
+      # logging.info('Skip test: %s reason=%s', t.key, ','.join(reason))
       continue
     logging.info('Process test: %s', t.key)
     tests_keys.append(t.key)

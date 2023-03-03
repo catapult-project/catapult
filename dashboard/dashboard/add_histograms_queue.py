@@ -268,7 +268,9 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
     if not test.has_rows:
       reason.append('has_rows')
     if reason:
-      logging.info('Skip test: %s reason=%s', test.key, ','.join(reason))
+      # Disable this log since it's killing the quota of Cloud Logging API -
+      # write requests per minute
+      # logging.info('Skip test: %s reason=%s', test.key, ','.join(reason))
       return False
     logging.info('Process test: %s', test.key)
     return True
