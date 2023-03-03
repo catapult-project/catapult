@@ -74,7 +74,7 @@ steps:
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'upload-processing',
-    '--splits=cloud-build-7b96e7a=1',
+    '--splits=cloud-build-efe5fd8=1',
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   id: 'Set traffic for pinpoint service'
