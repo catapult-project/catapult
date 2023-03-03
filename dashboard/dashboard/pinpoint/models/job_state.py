@@ -414,6 +414,12 @@ class JobState:
   def ChangesExamined(self):
     return len(self._changes)
 
+  def TotalAttemptsExecuted(self):
+    total_attempts = 0
+    for attempts in self._attempts.values():
+      total_attempts += len(attempts)
+    return total_attempts
+
   def FirstOrLastChangeFailed(self):
     """Did all attempts complete and fail for the first or last change?"""
     if not self._changes:

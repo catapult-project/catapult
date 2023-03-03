@@ -522,7 +522,7 @@ class Job(ndb.Model):
     self.started_time = datetime.datetime.now()
     self.put()
 
-    self._PrintJobMetrics("started")
+    self._PrintJobStatusRunTimeMetrics("started")
 
     # publish metric on the time waiting in configuration queue.
     pinpoint_job_queued_time = self.started_time - self.created
@@ -726,7 +726,7 @@ class Job(ndb.Model):
     self.put()
 
     if not self.cancelled:
-      self._PrintJobMetrics("failed", True)
+      self._PrintJobStatusRunTimeMetrics("failed", True)
 
       comment = '\n'.join((title, self.url, '', exc_message))
 
@@ -797,7 +797,7 @@ class Job(ndb.Model):
         self.cancelled = True
         logging.debug('Pinpoint job forced to stop because job meets cancellation conditions')
 
-        self._PrintJobMetrics("cancelled")
+        self._PrintJobStatusRunTimeMetrics("cancelled")
 
         raise errors.BuildCancelled('Pinpoint Job cancelled')
       if self.use_execution_engine:
@@ -849,7 +849,14 @@ class Job(ndb.Model):
 
       if self.completed:
         timing_record.RecordJobTiming(self)
-        self._PrintJobMetrics("completed", True)
+        job_status = "completed"
+        self._PrintJobStatusRunTimeMetrics(job_status, True)
+
+        cloud_metric.PublishPinpointJobDetailMetrics(
+            app_identity.get_application_id(), self.job_id,
+            self.comparison_mode, job_status, self.state.ChangesExamined(),
+            self.state.TotalAttemptsExecuted(),
+            0 if self.difference_count is None else self.difference_count)
 
       try:
         self.put()
@@ -954,7 +961,7 @@ class Job(ndb.Model):
     self.task = None
     self.put()
 
-    self._PrintJobMetrics("cancelled")
+    self._PrintJobStatusRunTimeMetrics("cancelled")
 
     title = _ROUND_PUSHPIN + ' Pinpoint job cancelled.'
     comment = u'{}\n{}\n\nCancelled by {}, reason given: {}'.format(
@@ -968,7 +975,7 @@ class Job(ndb.Model):
         labels=job_bug_update.ComputeLabelUpdates(['Pinpoint-Job-Cancelled']),
         _retry_options=RETRY_OPTIONS)
 
-  def _PrintJobMetrics(self, job_status, with_run_time=False):
+  def _PrintJobStatusRunTimeMetrics(self, job_status, with_run_time=False):
     cloud_metric.PublishPinpointJobStatusMetric(
         app_identity.get_application_id(), self.job_id, self.comparison_mode,
         job_status)

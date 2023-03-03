@@ -49,6 +49,25 @@ def PublishPinpointJobRunTimeMetric(project_id, job_id, job_type, job_status,
                        label_dict, metric_value)
 
 
+def PublishPinpointJobDetailMetrics(project_id,
+                                    job_id,
+                                    job_type,
+                                    job_status,
+                                    change_count,
+                                    attempt_count,
+                                    difference_count=1):
+  label_dict = {JOB_ID: job_id, JOB_TYPE: job_type, JOB_STATUS: job_status}
+  _PublishTSCloudMetric(project_id, "pinpoint",
+                        "pinpoint/job/change_count_per_job", label_dict,
+                        change_count)
+  _PublishTSCloudMetric(project_id, "pinpoint",
+                        "pinpoint/job/attempt_count_per_job", label_dict,
+                        attempt_count)
+  _PublishTSCloudMetric(project_id, "pinpoint",
+                        "pinpoint/job/difference_count_per_job", label_dict,
+                        difference_count)
+
+
 def _PublishTSCloudMetric(project_id,
                          service_name,
                          metric_type,
