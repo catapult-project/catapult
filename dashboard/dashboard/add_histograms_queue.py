@@ -20,7 +20,6 @@ from dashboard import add_point_queue
 from dashboard import find_anomalies
 from dashboard import graph_revisions
 from dashboard import sheriff_config_client
-from dashboard.common import cloud_metric
 from dashboard.common import datastore_hooks
 from dashboard.common import histogram_helpers
 from dashboard.common import utils
@@ -85,7 +84,6 @@ def _CheckRequest(condition, msg):
     raise BadRequestError(msg)
 
 
-@cloud_metric.APIMetric("upload-processing", "/add_histograms_queue")
 def AddHistogramsQueuePost():
   """Adds a single histogram or sparse shared diagnostic to the datastore.
 
