@@ -40,7 +40,7 @@ cron:
 
 - description: Restart pinpoint jobs that encounter failures
   url: /cron/refresh-jobs
-  schedule: every 30 minutes
+  schedule: every 15 minutes
   target: pinpoint
 
 - description: Purge Pinpoint's expired isolates from datastore.
