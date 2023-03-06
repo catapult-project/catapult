@@ -24,6 +24,49 @@ REQUEST_STATUS = "request_status"
 RUN_TIME = "run_time"
 UUID = "uuid"
 
+# swarming metric label keys
+SWARMING_TASK_ID = 'swarming_task_id'
+SWARMING_BOT_ID = 'swarming_bot_id'
+SWARMING_BOT_OS = 'swarming_bot_os'
+SWARMING_TASK_PENDING_TIME = 'swarming_task_pending_time'
+SWARMING_TASK_RUNNING_TIME = 'swarming_task_running_time'
+
+
+def PublishPinpointSwarmingPendingMetric(task_id, pinpoint_job_type,
+                                         pinpoint_job_id, bot_id, bot_os,
+                                         pending_time):
+  label_dict = {
+      SWARMING_TASK_ID: task_id,
+      JOB_TYPE: pinpoint_job_type,
+      JOB_ID: pinpoint_job_id,
+      SWARMING_BOT_ID: bot_id,
+      SWARMING_BOT_OS: bot_os
+  }
+  _PublishTSCloudMetric(
+      project_id=app_identity.get_application_id(),
+      service_name='pinpoint',
+      metric_type='pinpoint/swarming_job/pending_time',
+      label_dict=label_dict,
+      metric_value=pending_time)
+
+
+def PublishPinpointSwarmingRuntimeMetric(task_id, pinpoint_job_type,
+                                         pinpoint_job_id, bot_id, bot_os,
+                                         running_time):
+  label_dict = {
+      SWARMING_TASK_ID: task_id,
+      JOB_TYPE: pinpoint_job_type,
+      JOB_ID: pinpoint_job_id,
+      SWARMING_BOT_ID: bot_id,
+      SWARMING_BOT_OS: bot_os
+  }
+  _PublishTSCloudMetric(
+      project_id=app_identity.get_application_id(),
+      service_name='pinpoint',
+      metric_type='pinpoint/swarming_job/run_time',
+      label_dict=label_dict,
+      metric_value=running_time)
+
 
 def PublishFrozenJobMetric(project_id, job_id, job_type, job_status,
     metric_value=1):

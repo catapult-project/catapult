@@ -10,16 +10,17 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+from datetime import datetime
 import json
 import logging
 import random
 import shlex
 
+from dashboard.common import cloud_metric
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models.quest import execution as execution_module
 from dashboard.pinpoint.models.quest import quest
 from dashboard.services import swarming
-import six
 
 _TESTER_SERVICE_ACCOUNT = (
     'chrome-tester@chops-service-accounts.iam.gserviceaccount.com')
@@ -218,7 +219,7 @@ class RunTest(quest.Quest):
     dimensions = arguments.get('dimensions')
     if not dimensions:
       raise TypeError('Missing a "dimensions" argument.')
-    if isinstance(dimensions, six.string_types):
+    if isinstance(dimensions, str):
       dimensions = json.loads(dimensions)
     if not any(dimension['key'] == 'pool' for dimension in dimensions):
       raise ValueError('Missing a "pool" dimension.')
@@ -368,6 +369,9 @@ class _RunTestExecution(execution_module.Execution):
     if result['state'] != 'COMPLETED':
       raise errors.SwarmingTaskError(result['state'])
 
+    # The swarming task is completed. Report the pending time
+    self._ReportSwarmingJobsMetric(result)
+
     if result['failure']:
       if 'outputs_ref' not in result:
         task_url = '%s/task?id=%s' % (self._swarming_server, self._task_id)
@@ -389,6 +393,57 @@ class _RunTestExecution(execution_module.Execution):
       }
 
     self._Complete(result_arguments=result_arguments)
+
+  @staticmethod
+  def _ReportSwarmingJobsMetric(result):
+    """Report metrics on the completed swarming task.
+
+    Including:
+      pending_time: how long the task has waited, such as for a busy bot
+      running_time: how long the task runs.
+    Dimensions are:
+      task_id: id of the swarming task
+      bot_os: the detailed os version of the bot.
+      bot_id: bot id.
+      pinpoint_job_type: try or bisect. Expecting longer wait on try jobs
+        as one of the two branches will wait for the same bot from the
+        other branch.
+      pinpont_job_id: id of the pinpoint job which launches the swarming task
+    """
+    created_ts = result.get('created_ts')
+    started_ts = result.get('started_ts')
+    completed_ts = result.get('completed_ts')
+    if created_ts and started_ts and completed_ts:
+      pending_time = datetime.fromisoformat(
+          started_ts) - datetime.fromisoformat(created_ts)
+      running_time = datetime.fromisoformat(
+          completed_ts) - datetime.fromisoformat(started_ts)
+
+      bot_os, pinpoint_job_type, pinpoint_job_id = None, None, None
+      for tag in result.get('tags', ''):
+        key, value = tag.split(':', 1)
+        if key == 'os':
+          bot_os = value
+        if key == 'comparison_mode':
+          pinpoint_job_type = value
+        if key == 'pinpoint_job_id':
+          pinpoint_job_id = value
+
+      cloud_metric.PublishPinpointSwarmingPendingMetric(
+          task_id=result.get('task_id'),
+          pinpoint_job_type=pinpoint_job_type,
+          pinpoint_job_id=pinpoint_job_id,
+          bot_id=result.get('bot_id'),
+          bot_os=bot_os,
+          pending_time=pending_time.total_seconds())
+
+      cloud_metric.PublishPinpointSwarmingRuntimeMetric(
+          task_id=result.get('task_id'),
+          pinpoint_job_type=pinpoint_job_type,
+          pinpoint_job_id=pinpoint_job_id,
+          bot_id=result.get('bot_id'),
+          bot_os=bot_os,
+          running_time=running_time.total_seconds())
 
   @staticmethod
   def _IsCasDigest(d):
