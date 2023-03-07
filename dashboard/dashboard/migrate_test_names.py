@@ -30,7 +30,6 @@ from dashboard.common import utils
 
 from flask import request
 
-
 _ACCESS_GROUP_NAME = 'chromeperf-test-rename-access'
 
 
@@ -86,9 +85,10 @@ def MigrateTestNamesPost():
   try:
     old_pattern = request.values.get('old_pattern')
     new_pattern = request.values.get('new_pattern')
-    migrate_test_names_tasks.MigrateTestBegin(old_pattern, new_pattern)
+    migrate_test_names_tasks.MigrateTestBegin(old_pattern, new_pattern,
+                                              user_email)
     return request_handler.RequestHandlerRenderHtml(
-      'result.html', {'headline': 'Test name migration task started.'})
+        'result.html', {'headline': 'Test name migration task started.'})
   except migrate_test_names_tasks.BadInputPatternError as error:
     return request_handler.RequestHandlerReportError(
         'Error: %s' % str(error), status=400)

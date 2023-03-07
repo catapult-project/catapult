@@ -342,19 +342,19 @@ class MigrateTestNamesTest(testing_common.TestCase):
     self.assertEqual('browser-perf-engprod@google.com',
                      messages[0].to)
     self.assertEqual('Sheriffed Test Migrated', messages[0].subject)
-    body = str(messages[0].body)
+    body = str(messages[0].html)
     self.assertIn(
-        'test ChromiumPerf/mac/moz/read_op_b/r_op_b has been migrated', body)
-    self.assertIn('migrated to ChromiumPerf/mac/moz/read_operations_browser',
+        'ChromiumPerf/mac/moz/read_op_b/r_op_b -> ', body)
+    self.assertIn('-> <i>ChromiumPerf/mac/moz/read_operations_browser</i>',
                   body)
     self.assertEqual('gasper-alerts@google.com', messages[1].sender)
     self.assertEqual('browser-perf-engprod@google.com',
                      messages[1].to)
     self.assertEqual('Sheriffed Test Migrated', messages[1].subject)
-    body = str(messages[1].body)
+    body = str(messages[1].html)
     self.assertIn(
-        'test ChromiumPerf/win7/moz/read_op_b/r_op_b has been migrated', body)
-    self.assertIn('migrated to ChromiumPerf/win7/moz/read_operations_browser',
+        'ChromiumPerf/win7/moz/read_op_b/r_op_b ->', body)
+    self.assertIn('-> <i>ChromiumPerf/win7/moz/read_operations_browser</i>',
                   body)
 
   def testGetNewTestPath_WithAsterisks(self):

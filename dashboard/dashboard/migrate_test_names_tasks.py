@@ -30,6 +30,7 @@ from google.appengine.ext import ndb
 
 from dashboard import graph_revisions
 from dashboard import list_tests
+from dashboard import migrate_test_job_tracking as tracking
 from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
 from dashboard.common import utils
@@ -79,10 +80,46 @@ _TEST_EXCLUDE = _TEST_COMPUTED_PROPERTIES + _TEST_DEPRECATED_PROPERTIES
 # Properties of Row that shouldn't be copied.
 _ROW_EXCLUDE = ['parent_test', 'revision', 'id', 'internal_only']
 
+_EMAIL_DISPLAY_LIMIT = 50
 _SHERIFF_ALERT_EMAIL_BODY = """
-The test %(old_test_path)s has been migrated to %(new_test_path)s.
+<html>
+  <body>
+    %(total_test_count)s tests have been renamed as requested by
+     %(requested_by)s.<br/><br/>
+    <p>
+      <table>
+        <tr>
+          <td><b>Old Pattern:</b></td>
+          <td>%(old_pattern)s</td>
+        </tr>
+        <tr>
+          <td><b>New Pattern:</b></td>
+          <td>%(new_pattern)s</td>
+        </tr>
+        <tr>
+          <td><b>Migration Start Time:</b></td>
+          <td>%(start_time)s</td>
+        </tr>
+        <tr>
+          <td><b>Migration End Time:</b></td>
+          <td>%(end_time)s</td>
+        </tr>
+        <tr>
+          <td><b>Total tests:</b></td>
+          <td>%(total_test_count)s</td>
+        </tr>
+      </table>
+    </p>
+    <br/>
+    <b>Please ensure the new tests are properly sheriffed!</b> <br/>
 
-Please ensure the new test is properly sheriffed!
+    <hr>
+    %(append)s <br/>
+    <p>
+    %(formatted_tests)s
+    </p>
+  </body>
+</html>
 """
 
 # Match square brackets and group inside them.
@@ -107,8 +144,6 @@ def MigrateTestNamesTasksPost():
   which should both be keys of TestMetadata entities in urlsafe form.
   """
 
-  logging.info('Test Migration Request details:%s', request.values.items())
-
   datastore_hooks.SetPrivilegedRequest()
 
   status = request.values.get('status')
@@ -120,26 +155,32 @@ def MigrateTestNamesTasksPost():
   if status == _MIGRATE_TEST_LOOKUP_PATTERNS:
     old_pattern = request.values.get('old_pattern')
     new_pattern = request.values.get('new_pattern')
-    _MigrateTestLookupPatterns(old_pattern, new_pattern)
+    job_id = request.values.get('job_id')
+    _MigrateTestLookupPatterns(old_pattern, new_pattern, job_id)
   elif status == _MIGRATE_TEST_CREATE:
     old_test_key = ndb.Key(urlsafe=request.values.get('old_test_key'))
     new_test_key = ndb.Key(urlsafe=request.values.get('new_test_key'))
-    _MigrateTestCreateTest(old_test_key, new_test_key)
+    job_id = request.values.get('job_id')
+    parent_id = request.values.get('parent_id')
+    _MigrateTestCreateTest(job_id, old_test_key, new_test_key, parent_id)
   elif status == _MIGRATE_TEST_COPY_DATA:
     old_test_key = ndb.Key(urlsafe=request.values.get('old_test_key'))
     new_test_key = ndb.Key(urlsafe=request.values.get('new_test_key'))
-    _MigrateTestCopyData(old_test_key, new_test_key)
-
+    job_id = request.values.get('job_id')
+    parent_id = request.values.get('parent_id')
+    _MigrateTestCopyData(job_id, old_test_key, new_test_key, parent_id)
   return make_response('')
 
 
-def MigrateTestBegin(old_pattern, new_pattern):
+def MigrateTestBegin(old_pattern, new_pattern, requested_by):
   _ValidateTestPatterns(old_pattern, new_pattern)
 
+  job_id = tracking.AddRootJobData(old_pattern, new_pattern, requested_by)
   _QueueTask({
       'old_pattern': old_pattern,
       'new_pattern': new_pattern,
       'status': _MIGRATE_TEST_LOOKUP_PATTERNS,
+      'job_id': job_id,
   }).get_result()
 
 
@@ -150,7 +191,7 @@ def _ValidateTestPatterns(old_pattern, new_pattern):
     _ValidateAndGetNewTestPath(old_path, new_pattern)
 
 
-def _MigrateTestLookupPatterns(old_pattern, new_pattern):
+def _MigrateTestLookupPatterns(old_pattern, new_pattern, job_id):
   """Enumerates individual test migration tasks and enqueues them.
 
   Typically, this function is called by a request initiated by the user.
@@ -166,6 +207,7 @@ def _MigrateTestLookupPatterns(old_pattern, new_pattern):
   """
   futures = []
   tests = list_tests.GetTestsMatchingPattern(old_pattern, list_entities=False)
+
   for test in tests:
     old_test_key = utils.TestKey(test)
     new_test_key = utils.TestKey(
@@ -173,12 +215,15 @@ def _MigrateTestLookupPatterns(old_pattern, new_pattern):
     task = {
         'old_test_key': old_test_key.urlsafe(),
         'new_test_key': new_test_key.urlsafe(),
-        'status': _MIGRATE_TEST_CREATE
+        'job_id': str(job_id),
+        'status': _MIGRATE_TEST_CREATE,
+        'parent_id': 'root',
     }
     if task['old_test_key'] != task['new_test_key']:
       futures.append(_QueueTask(task))
   logging.info('%d test paths matched and %d migration tasks created.',
                len(tests), len(futures))
+
   for f in futures:
     f.get_result()
 
@@ -274,7 +319,7 @@ def _QueueTask(task_params, countdown=None):
 
 
 @ndb.synctasklet
-def _MigrateTestCreateTest(old_test_key, new_test_key):
+def _MigrateTestCreateTest(job_id, old_test_key, new_test_key, parent_id):
   """Migrates data (Row entities) from the old to the new test.
 
   Migrating all rows in one request is usually too much work to do before
@@ -295,20 +340,27 @@ def _MigrateTestCreateTest(old_test_key, new_test_key):
   yield new_test_entity.UpdateSheriffAsync()
 
   yield (new_test_entity.put_async(),
-         _MigrateTestScheduleChildTests(old_test_key, new_test_key))
+         _MigrateTestScheduleChildTests(
+             old_test_key, new_test_key, job_id, parent_id))
 
+  tracking.AddNewTestJobData(
+      job_id, utils.TestPath(old_test_key),
+      utils.TestPath(new_test_key), parent_id)
   # Now migrate the actual row data and any associated data (ex. anomalies).
   # Do this in a seperate task that just spins on the row data.
   _QueueTask({
       'old_test_key': old_test_key.urlsafe(),
       'new_test_key': new_test_key.urlsafe(),
+      'job_id': job_id,
+      'parent_id': parent_id,
       'status': _MIGRATE_TEST_COPY_DATA
   }).get_result()
 
 
 @ndb.tasklet
-def _MigrateTestScheduleChildTests(old_test_key, new_test_key):
-  # Try to re-parent children test first. We'll do this by creating a seperate
+def _MigrateTestScheduleChildTests(
+      old_test_key, new_test_key, job_id, parent_id):
+  # Try to re-parent children test first. We'll do this by creating a separate
   # task for each child test.
   tests_to_reparent = yield graph_data.TestMetadata.query(
       graph_data.TestMetadata.parent_test == old_test_key).fetch_async(
@@ -326,6 +378,8 @@ def _MigrateTestScheduleChildTests(old_test_key, new_test_key):
         _QueueTask({
             'old_test_key': old_child_test_key.urlsafe(),
             'new_test_key': new_child_test_key.urlsafe(),
+            'job_id': job_id,
+            'parent_id': parent_id,
             'status': _MIGRATE_TEST_CREATE
         }))
   for f in futures:
@@ -333,7 +387,7 @@ def _MigrateTestScheduleChildTests(old_test_key, new_test_key):
 
 
 @ndb.synctasklet
-def _MigrateTestCopyData(old_test_key, new_test_key):
+def _MigrateTestCopyData(job_id, old_test_key, new_test_key, parent_id):
 
   more = yield (_MigrateTestRows(old_test_key, new_test_key),
                 _MigrateAnomalies(old_test_key, new_test_key),
@@ -346,12 +400,18 @@ def _MigrateTestCopyData(old_test_key, new_test_key):
         {
             'old_test_key': old_test_key.urlsafe(),
             'new_test_key': new_test_key.urlsafe(),
+            'job_id': job_id,
+            'parent_id': parent_id,
             'status': _MIGRATE_TEST_COPY_DATA
         },
         countdown=_TASK_INTERVAL).get_result()
     return
 
-  _SendNotificationEmail(old_test_key, new_test_key)
+  is_fully_complete = tracking.CompleteTestJobData(
+      job_id, utils.TestPath(new_test_key), parent_id)
+  if is_fully_complete:
+    _SendNotificationEmail(job_id)
+    tracking.CompleteJob(job_id)
   old_test_key.delete()
 
 
@@ -456,8 +516,7 @@ def _MigrateHistogramData(old_parent_key, new_parent_key):
 
   raise ndb.Return(any(result))
 
-
-def _SendNotificationEmail(old_test_key, new_test_key):
+def _SendNotificationEmail(job_id):
   """Send a notification email about the test migration.
 
   This function should be called after we have already found out that there are
@@ -465,19 +524,51 @@ def _SendNotificationEmail(old_test_key, new_test_key):
   delete the old test.
 
   Args:
-    old_test_key: TestMetadata key of the test that's about to be deleted.
-    new_test_key: TestMetadata key of the test that's replacing the old one.
+    job_id: id of the migration job
   """
-  body = _SHERIFF_ALERT_EMAIL_BODY % {
-      'old_test_path': utils.TestPath(old_test_key),
-      'new_test_path': utils.TestPath(new_test_key),
+  root_job = tracking.GetRootJobEntry(job_id)
+  job_entry = root_job.GetEntryData(tracking.RootJobData)
+
+  formatted_tests, test_count = _GetFormattedMigratedTests(job_id)
+  params = {
+     'total_test_count': test_count,
+     'requested_by': job_entry.requested_by,
+     'formatted_tests': formatted_tests,
+     'start_time': root_job.start_time.strftime("%m/%d/%Y, %H:%M:%S"),
+     'end_time': root_job.end_time.strftime("%m/%d/%Y, %H:%M:%S"),
+     'old_pattern': job_entry.old_pattern,
+     'new_pattern': job_entry.new_pattern,
+     'append': '',
   }
+  if test_count > _EMAIL_DISPLAY_LIMIT:
+    params['append'] = '<b><i>Displaying the top %i tests</i></b>' % \
+                       _EMAIL_DISPLAY_LIMIT
+
+  body = _SHERIFF_ALERT_EMAIL_BODY % params
+
   mail.send_mail(
       sender='gasper-alerts@google.com',
       to='browser-perf-engprod@google.com',
+      cc=job_entry.requested_by,
       subject='Sheriffed Test Migrated',
-      body=body)
+      body='',
+      html=body)
 
+
+def _GetFormattedMigratedTests(job_id):
+  all_tests = tracking.GetAllMigratedTests(job_id, 'root')
+
+  # Take the first n tests so that the email does not become too big
+  test_count = len(all_tests) - 1
+  filtered_tests = all_tests[:_EMAIL_DISPLAY_LIMIT]
+  test_entries = []
+  for test in filtered_tests:
+    if test.entry_type == 'test':
+      test_data = test.GetEntryData(tracking.TestJobData)
+      test_entries.append('%s -> <i>%s</i>' %
+                          (test_data.old_test_key, test_data.new_test_key))
+
+  return '<br/>'.join(entry for entry in test_entries), test_count
 
 @ndb.tasklet
 def _GetOrCreate(cls, old_entity, new_name, parent_key, exclude):
