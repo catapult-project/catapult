@@ -143,8 +143,14 @@ def _PublishTSCloudMetric(project_id,
   # set default value for this manditory field
   series.resource.labels["task_id"] = DEFAULT_TASK_ID
 
+  # debug infor for crbug/1422306
   for key in label_dict:
-    series.metric.labels[key] = label_dict[key]
+    try:
+      series.metric.labels[key] = label_dict[key]
+    except TypeError as e:
+      series.metric.labels[key] = str(label_dict[key])
+      logging.warning('Invalid value found in label_dict: %s. (%s)', label_dict,
+                      str(e))
 
   now = time.time()
   seconds = int(now)

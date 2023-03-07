@@ -419,7 +419,7 @@ class _RunTestExecution(execution_module.Execution):
       running_time = datetime.fromisoformat(
           completed_ts) - datetime.fromisoformat(started_ts)
 
-      bot_os, pinpoint_job_type, pinpoint_job_id = None, None, None
+      bot_os = pinpoint_job_type = pinpoint_job_id = None
       for tag in result.get('tags', ''):
         key, value = tag.split(':', 1)
         if key == 'os':
@@ -428,6 +428,10 @@ class _RunTestExecution(execution_module.Execution):
           pinpoint_job_type = value
         if key == 'pinpoint_job_id':
           pinpoint_job_id = value
+
+      # debug infor for crbug/1422306
+      if None in (bot_os, pinpoint_job_type, pinpoint_job_id):
+        logging.debug('Missing value in swarming result: %s', result)
 
       cloud_metric.PublishPinpointSwarmingPendingMetric(
           task_id=result.get('task_id'),
