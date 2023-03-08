@@ -33,6 +33,24 @@ class TestPerfControl(device_test_case.DeviceTestCase):
     finally:
       perf.SetDefaultPerfMode()
 
+  def testOverrideScalingGovernor(self):
+    perf = perf_control.PerfControl(self._device)
+    try:
+      # Set all CPUs to the "performance" governor.
+      perf.SetPerfProfilingMode()
+      cpu_info = perf.GetCpuInfo()
+      # Temporarily override all governors.
+      with perf.OverrideScalingGovernor('powersave'):
+        cpu_info = perf.GetCpuInfo()
+        for _, _, new_governor in cpu_info:
+          self.assertEqual(new_governor, 'powersave')
+      # Check that original governors were restored.
+      cpu_info = perf.GetCpuInfo()
+      for _, _, governor in cpu_info:
+        self.assertEqual(governor, 'performance')
+    finally:
+      perf.SetDefaultPerfMode()
+
 
 if __name__ == '__main__':
   unittest.main()

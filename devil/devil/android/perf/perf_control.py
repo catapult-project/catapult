@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import atexit
+import contextlib
 import logging
 import re
 
@@ -361,10 +362,32 @@ class PerfControl(object):
     Args:
       value: [string] The new governor value.
     """
-    condition = 'test -e "{path}" && grep -q {value} {path}'.format(
-        path=('${CPU}/%s' % self._AVAILABLE_GOVERNORS_REL_PATH), value=value)
-    self._ConditionallyWriteCpuFiles('cpufreq/scaling_governor', value,
-                                     self._cpu_file_list, condition)
+    self._SetScalingGovernor(value, self._cpu_file_list)
+
+  @contextlib.contextmanager
+  def OverrideScalingGovernor(self, value):
+    """Sets the scaling governor to the given value on all available CPUs.
+
+    This is similar to self.SetScalingGovernor, but restores old governor
+    values on leaving the context. Example:
+
+    ```
+    with OverrideScalingGovernor('powersave'):
+      # Here, the governor for all CPUs is set to 'powersave'.
+      pass
+    # Here, the original governors for CPUs are restored.
+    ```
+
+    Args:
+      value: [string] The new governor value.
+    """
+    original_governors = self.GetScalingGovernor()
+    self.SetScalingGovernor(value)
+    try:
+      yield
+    finally:
+      for cpu, governor in original_governors:
+        self._SetScalingGovernor(governor, cpu)
 
   def GetScalingGovernor(self):
     """Gets the currently set governor for each CPU.
@@ -385,6 +408,21 @@ class PerfControl(object):
       governors for that cpu.
     """
     return self._available_governors
+
+  def _SetScalingGovernor(self, value, cpu_list):
+    """Sets the scaling governor to the given value for CPUs in cpu_list.
+
+    This does not attempt to set a governor to a value not reported as available
+    on the corresponding CPU.
+
+    Args:
+      value: [string] The new governor value.
+      cpu_list: A space-separated string of CPU core names.
+    """
+    condition = 'test -e "{path}" && grep -q {value} {path}'.format(
+        path=('${CPU}/%s' % self._AVAILABLE_GOVERNORS_REL_PATH), value=value)
+    self._ConditionallyWriteCpuFiles('cpufreq/scaling_governor', value,
+                                     cpu_list, condition)
 
   def _SetScalingMaxFreqForCpus(self, value, cpu_files):
     self._WriteCpuFiles('cpufreq/scaling_max_freq', '%d' % value, cpu_files)
