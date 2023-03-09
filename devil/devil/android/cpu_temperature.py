@@ -136,15 +136,11 @@ class CpuTemperature(object):
                 target_temp / self._device_info['temp_multiplier'])
 
     # Set the governor to powersave to aid the cooling down of the CPU
-    self._perf_control.SetScalingGovernor('powersave')
-
-    # Retry 3 times, each time waiting 30 seconds.
-    # This negates most (if not all) of the noise in recorded results without
-    # taking too long
-    timeout_retry.WaitFor(cool_cpu, wait_period=wait_period, max_tries=3)
-
-    # Set the performance mode
-    self._perf_control.SetHighPerfMode()
+    with self._perf_control.OverrideScalingGovernor('powersave'):
+      # Retry 3 times, each time waiting 30 seconds.
+      # This negates most (if not all) of the noise in recorded results without
+      # taking too long
+      timeout_retry.WaitFor(cool_cpu, wait_period=wait_period, max_tries=3)
 
   def GetDeviceForTesting(self):
     return self._device
