@@ -258,10 +258,11 @@ def GetTestsMatchingPatternAsync(pattern,
                                  use_cache=True):
   property_names = [
       'master_name', 'bot_name', 'suite_name', 'test_part1_name',
-      'test_part2_name', 'test_part3_name', 'test_part4_name', 'test_part5_name'
+      'test_part2_name', 'test_part3_name', 'test_part4_name', 'test_part5_name',
+      'test_part6_name'
   ]
   pattern_parts = pattern.split('/')
-  if len(pattern_parts) > 8:
+  if len(pattern_parts) > 9:
     raise ndb.Return([])
 
   # Below, we first build a list of (property_name, value) pairs to filter on.
@@ -272,9 +273,9 @@ def GetTestsMatchingPatternAsync(pattern,
   for index in range(len(pattern_parts), 7):
     # Tests longer than the desired pattern will have non-empty property names,
     # so they can be filtered out by matching against an empty string.
-    # Bug: 'test_part5_name' was added recently, and TestMetadata entities which
-    # were created before then do not match it. Since it is the last part, and
-    # rarely used, it's okay not to test for it. See
+    # Bug: 'test_part5_name' and 'test_part6_name' were added recently, and
+    # TestMetadata entities which were created before then do not match it.
+    # Since they are the last parts, and rarely used, it's okay not to test for them. See
     # https://github.com/catapult-project/catapult/issues/2885
     query_filters.append((property_names[index], ''))
 
