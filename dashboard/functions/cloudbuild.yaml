@@ -1,0 +1,81 @@
+steps:
+
+# Deploy Start Pinpoint Job function
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args:
+  - gcloud
+  - functions
+  - deploy
+  - start-pinpoint-job
+  - --gen2
+  - --runtime=python311
+  - --region=us-central1
+  - --source=.
+  - --entry-point=StartPinpointJob
+  - --trigger-http
+  - --run-service-account=chromeperf@appspot.gserviceaccount.com
+
+# Deploy Poll Pinpoint Job Function
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args:
+  - gcloud
+  - functions
+  - deploy
+  - poll-pinpoint-job
+  - --gen2
+  - --runtime=python311
+  - --region=us-central1
+  - --source=.
+  - --entry-point=PollPinpointJob
+  - --trigger-http
+  - --run-service-account=chromeperf@appspot.gserviceaccount.com
+  waitFor: ['-']
+
+# Deploy Get CABE Analysis Function
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args:
+  - gcloud
+  - functions
+  - deploy
+  - get-cabe-analysis
+  - --gen2
+  - --runtime=python311
+  - --region=us-central1
+  - --source=.
+  - --entry-point=GetCabeAnalysis
+  - --trigger-http
+  - --run-service-account=chromeperf@appspot.gserviceaccount.com
+  # let deployment of functions be done in parallel
+  waitFor: ['-']
+
+# Deploy Regression Detection Function
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args:
+  - gcloud
+  - functions
+  - deploy
+  - regression-detection
+  - --gen2
+  - --runtime=python311
+  - --region=us-central1
+  - --source=.
+  - --entry-point=RegressionDetection
+  - --trigger-http
+  - --run-service-account=chromeperf@appspot.gserviceaccount.com
+  waitFor: ['-']
+
+# Deploy Handler Callback Function
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args:
+  - gcloud
+  - functions
+  - deploy
+  - handler-callback
+  - --gen2
+  - --runtime=python311
+  - --region=us-central1
+  - --source=.
+  - --entry-point=HandlerCallback
+  - --trigger-http
+  - --run-service-account=chromeperf@appspot.gserviceaccount.com
+  waitFor: ['-']
