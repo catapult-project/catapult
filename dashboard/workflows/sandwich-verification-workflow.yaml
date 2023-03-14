@@ -1,0 +1,150 @@
+main:
+    params: [input]
+    steps:
+    - init:
+        assign:
+          - anomaly: ${input.anomaly}
+          - mode: ${input.mode}
+          - job_id: null
+          - status: null
+          - error: null
+          - statistic: null
+          - decision: null
+    - startPinpointJob:
+        try:
+          steps:
+            - postStartPinpointJob:
+                call: http.post
+                args:
+                  url: https://start-pinpoint-job-kkdem5ntpa-uc.a.run.app
+                  body:
+                    anomaly: ${anomaly}
+                  auth:
+                    type: OIDC
+                result: startPinpointJobResult
+            - assignJobId:
+                assign:
+                  - job_id: ${startPinpointJobResult.body.job_id}
+        retry:
+          predicate: ${http.default_retry_predicate}
+          max_retries: 8
+          backoff:
+            initial_delay: 1
+            max_delay: 60
+            multiplier: 2
+        except:
+          as: error
+          steps:
+            - errorStartPinpointJob:
+                next: handlerCallback
+    - pollPinpointJob:
+        try:
+          steps:
+            - postPollPinpointJob:
+                call: http.post
+                args:
+                  url: https://poll-pinpoint-job-kkdem5ntpa-uc.a.run.app
+                  body:
+                    job_id: ${job_id}
+                  auth:
+                    type: OIDC
+                result: pollPinpointJobResult
+            - assignStatus:
+                assign:
+                  - status: ${pollPinpointJobResult.body.status}
+            - checkIfJobDone:
+                switch:
+                  - condition: ${status == "Completed"}
+                    next: getCabeAnalysis
+                  - condition: ${status == "Failed"}
+                    raise: "Pinpoint Job failed."
+                  - condition: ${status == "Cancelled"}
+                    raise: "Pinpoint Job cancelled."
+            - wait:
+                call: sys.sleep
+                args:
+                  seconds: 60
+                next: pollPinpointJob
+        except:
+          as: error
+          steps:
+            - errorPollPinpointJob:
+                next: handlerCallback
+    - getCabeAnalysis:
+        try:
+          steps:
+            - postGetCabeAnalysis:
+                call: http.post
+                args:
+                  url: https://get-cabe-analysis-kkdem5ntpa-uc.a.run.app
+                  body:
+                    anomaly: ${anomaly}
+                    job_id: ${job_id}
+                  auth:
+                    type: OIDC
+                result: getCabeAnalysisResult
+            - assignStatistic:
+                assign:
+                  - statistic: ${getCabeAnalysisResult.body.statistic}
+        retry:
+          predicate: ${http.default_retry_predicate}
+          max_retries: 8
+          backoff:
+            initial_delay: 1
+            max_delay: 60
+            multiplier: 2
+        except:
+          as: error
+          steps:
+            - errorGetCabeAnalysis:
+                next: handlerCallback
+    - regressionDetection:
+        try:
+          steps:
+            - postRegressionDetection:
+                call: http.post
+                args:
+                  url: https://regression-detection-kkdem5ntpa-uc.a.run.app
+                  body:
+                    statistic: ${statistic}
+                  auth:
+                    type: OIDC
+                result: regressionDetectionResult
+            - assignDecision:
+                assign:
+                  - decision: ${regressionDetectionResult.body.decision}
+        except:
+          as: error
+          steps:
+            - errorRegressionDetection:
+                next: handlerCallback
+    - handlerCallback:
+        try:
+          steps:
+            - postHandlerCallback:
+                call: http.post
+                args:
+                  url: https://handler-callback-kkdem5ntpa-uc.a.run.app
+                  body:
+                    mode: ${mode}
+                    anomaly: ${anomaly}
+                    decision: ${decision}
+                    statistic: ${statistic}
+                    error: ${error}
+                    args: ${input}
+                  auth:
+                    type: OIDC
+                result: handlerCallbackResult
+            - completeExecution:
+                return: ${handlerCallbackResult.body}
+        retry:
+          predicate: ${http.default_retry_predicate}
+          max_retries: 8
+          backoff:
+            initial_delay: 1
+            max_delay: 60
+            multiplier: 2
+        except:
+          as: error
+          raise: ${error}
+

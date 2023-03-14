@@ -1,0 +1,13 @@
+steps:
+
+# Deploy Sandwich Verification Workflow
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  args:
+  - gcloud
+  - workflows
+  - deploy
+  - sandwich-verification-workflow
+  - --source=sandwich-verification-workflow.yaml
+  - --location=us-central1
+  - --service-account=chromeperf@appspot.gserviceaccount.com
+
