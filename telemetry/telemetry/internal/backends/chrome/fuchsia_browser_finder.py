@@ -73,14 +73,11 @@ class PossibleFuchsiaBrowser(possible_browser.PossibleBrowser):
   def GetBrowserStartupArgs(self, browser_options, browser_type):
     startup_args = chrome_startup_args.GetFromBrowserOptions(browser_options)
 
+    startup_args.extend(chrome_startup_args.GetReplayArgs(
+        self._platform_backend.network_controller_backend))
+    # This substitution may no longer be necessary after the change to FFX, but
+    # is kept in place until it's shown to cause problems.
     if browser_type == fuchsia_browser_backend.FUCHSIA_CHROME:
-      startup_args.extend(chrome_startup_args.GetReplayArgs(
-          self._platform_backend.network_controller_backend))
-      # This is a temporary removal as part of getting --proxy-server to work
-      # properly on Fuchsia. See crbug.com/1354797.
-      for arg in list(startup_args):
-        if arg.startswith('--proxy-server='):
-          startup_args.remove(arg)
       startup_args = [arg.replace('=<-loopback>', '="<-loopback>"')
                       for arg in startup_args]
 
