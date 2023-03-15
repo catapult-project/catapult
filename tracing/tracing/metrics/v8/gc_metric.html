@@ -636,7 +636,7 @@ tr.exportTo('tr.metrics.v8', function() {
     const mainThreads = ([rendererHelper.mainThread]
         .concat(rendererHelper.dedicatedWorkerThreads)
         .concat(rendererHelper.serviceWorkerThreads));
-    const backgroundThreads = rendererHelper.foregroundWorkerThreads;
+    const backgroundThreads = rendererHelper.foregroundWorkerThreads.concat(rendererHelper.utilityWorkerThreads);
     const threadTypes = new Map();
     for (const thread of mainThreads) {
       threadTypes.set(thread.tid, ThreadType.MAIN);

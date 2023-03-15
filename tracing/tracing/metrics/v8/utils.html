@@ -238,6 +238,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
       threads = threads.concat(rendererHelper.dedicatedWorkerThreads);
       threads = threads.concat(rendererHelper.serviceWorkerThreads);
       threads = threads.concat(rendererHelper.foregroundWorkerThreads);
+      threads = threads.concat(rendererHelper.utilityWorkerThreads);
     }
     return threads;
   }

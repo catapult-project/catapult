@@ -34,6 +34,9 @@ tr.exportTo('tr.model.helpers', function() {
     this.foregroundWorkerThreads_ = process.findAllThreadsMatching(function(t) {
       return t.name && t.name.startsWith('ThreadPoolForegroundWorker');
     });
+    this.utilityWorkerThreads_ = process.findAllThreadsMatching(function(t) {
+      return t.name && t.name.startsWith('ThreadPoolUtilityWorker');
+    });
 
     if (!process.name) {
       process.name = ChromeRendererHelper.PROCESS_NAME;
@@ -83,6 +86,10 @@ tr.exportTo('tr.model.helpers', function() {
 
     get foregroundWorkerThreads() {
       return this.foregroundWorkerThreads_;
+    },
+
+    get utilityWorkerThreads() {
+      return this.utilityWorkerThreads_;
     },
 
     get isChromeTracingUI() {
