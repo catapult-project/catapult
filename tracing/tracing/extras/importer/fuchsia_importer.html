@@ -64,7 +64,7 @@ tr.exportTo('tr.e.importer.fuchsia', function() {
     }
 
     isIdleThread(pid, prio) {
-      return pid === 0 && prio === 0;
+      return (pid === 0 && prio === 0) || (pid == undefined && prio <= -2147483648);
     }
 
     recordThreadState_(pid, tid, timestamp, state, prio) {
@@ -83,13 +83,13 @@ tr.exportTo('tr.e.importer.fuchsia', function() {
     //     "ts": 151981130.88743783,
     //     "cpu": 1,
     //     "out": {
-    //       "pid": 25977,
+    //       "pid": 25977, // Optional.
     //       "tid": 28909,
     //       "state": 3,
     //       "prio": 20
     //     },
     //     "in": {
-    //       "pid": 0,
+    //       "pid": 0,     // Optional.
     //       "tid": 6444931392,
     //       "prio": 0
     //     }
@@ -150,6 +150,39 @@ tr.exportTo('tr.e.importer.fuchsia', function() {
           event.out.prio);
     }
 
+    // Thread wakeup events take the form:
+    // {
+    //     "ph": "w",
+    //     "ts": 151981130.88743783,
+    //     "cpu": 1,
+    //     "tid": 28909,
+    //     "prio": 20
+    //   },
+    processThreadWakeupEvent_(event) {
+      let tid = event.tid;
+      let threadName = tid.toString();
+      let procName = '';
+      const prio = event.prio;
+
+      if (this.threadInfo_.has(tid)) {
+        const threadInfo = this.threadInfo_.get(tid);
+        threadName = threadInfo.name;
+        const pid = threadInfo.pid;
+        if (this.processNames_.has(pid)) {
+          procName = this.processNames_.get(pid) + ':';
+        }
+
+        const name = procName + threadName;
+
+        const cpu = this.model_.kernel.getOrCreateCpu(event.cpu);
+        const timestamp = tr.b.Unit.timestampFromUs(event.ts);
+        cpu.switchActiveThread(timestamp, {}, tid, name, tid);
+
+        const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+        this.recordThreadState_(pid, tid, timestamp, SCHEDULING_STATE.WAKING, prio);
+      }
+    }
+
     processProcessInfoEvent_(event) {
       const process = this.model_.getOrCreateProcess(event.pid);
       process.name = event.name;
@@ -177,6 +210,9 @@ tr.exportTo('tr.e.importer.fuchsia', function() {
       switch (event.ph) {
         case 'k':
           this.processContextSwitchEvent_(event);
+          break;
+        case 'w':
+          this.processThreadWakeupEvent_(event);
           break;
         case 'p':
           this.processProcessInfoEvent_(event);
