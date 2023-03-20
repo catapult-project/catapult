@@ -9,6 +9,13 @@ and monitoring performance test results.
 -   [Project glossary](/dashboard/docs/glossary.md)
 -   [Pages and endpoints](/dashboard/docs/pages-and-endpoints.md)
 
+## Running a local development server
+
+Running a local instance (i.e., a dev server) of the Performance Dashboard is
+no longer supported due to a python2 dependency in the appengine toolchain.
+
+To manually test your python server changes, deploy them to chromeperf-stage.
+
 ## Code Structure
 
 All dashboard code lives in the `dashboard/` subdirectory, with the endpoints
