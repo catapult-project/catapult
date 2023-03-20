@@ -4,7 +4,6 @@
 
 from __future__ import absolute_import
 import logging
-import threading
 import traceback
 
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
@@ -35,12 +34,8 @@ class NativeProfilingBackend():
     request = {'method': method}
     try:
       logging.warning('Requesting PGO profiles to be dumped')
-      response_event = threading.Event()
-      def ws_callback(unused_response):
-        logging.warning('PGO profile dump done')
-        response_event.set()
-      self._inspector_websocket.AsyncRequest(request, ws_callback)
-      response_event.wait(timeout)
+      unused_response = self._inspector_websocket.SyncRequest(request, timeout)
+      logging.warning('PGO profile dump done')
     except inspector_websocket.WebSocketException as err:
       if issubclass(
           err.websocket_error_type, websocket.WebSocketTimeoutException):

@@ -136,8 +136,8 @@ class InspectorWebsocket():
   def AsyncRequest(self, req, callback):
     """Sends an async request and returns immediately.
 
-    Response will be handled in the |callback| later when DispatchNotifications
-    is invoked.
+    This needs to be followed by explicit call to DispatchNotifications(), which
+    will wait for responses, and invoke |callback|.
 
     Args:
       callback: a function that takes inspector's response as the argument.
