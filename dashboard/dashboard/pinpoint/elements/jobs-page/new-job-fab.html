@@ -147,7 +147,7 @@ found in the LICENSE file.
           <iron-ajax method="post" headers="[[client.authHeaders]]" auto url="/api/commits" params="{{commitsParams(job)}}" loading="{{commitRangeLoading}}" last-response="{{commitsList}}"></iron-ajax>
         </template>
 
-        <iron-form id="try_form" headers="[[client.authHeaders]]"  on-iron-form-error="handleError" on-iron-form-response="handleResponse">
+        <iron-form id="try_form" headers="[[client.authHeaders]]"  on-iron-form-presubmit="preSubmit" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
           <form action="/api/new" method="POST">
 
             <input type="hidden" name="comparison_mode" value="[[comparisonMode]]">
@@ -444,6 +444,24 @@ found in the LICENSE file.
         this.client.requestAccessToken({hint: this.user});
       },
 
+      validTestSuite() {
+        return config.configurations.includes(this.configuration);
+      },
+
+      preSubmit(event) {
+        const invalidBenchmark = !this.validBenchmark(this.benchmark);
+        const invalidStory = !this.validStoryAndStoryTag(
+            this.story, this.storyTags);
+        if (invalidBenchmark) {
+          event.preventDefault();
+          this.error = "Benchmark input param is invalid";
+        }
+        else if (invalidStory) {
+          event.preventDefault();
+          this.error = "Story and story tag should be valid or empty";
+        }
+      },
+
       submit() {
         this.$.try_form.submit();
       },
@@ -611,7 +629,10 @@ found in the LICENSE file.
         if (!benchmark) {
           return false;
         }
-        return benchmark != '';
+        if (this.testSuites) {
+          return this.testSuites.includes(benchmark);
+        }
+        return false;
       },
 
       validConfig(config) {
@@ -651,6 +672,30 @@ found in the LICENSE file.
       statistics(benchmarkConfig) {
         const s = [''];
         return this.arrayToAutocompleteList(s.concat(_STATISTICS));
+      },
+
+      validStoryAndStoryTag(story, storyTag) {
+        if (!story) {
+          return this.validStoryTag(storyTag);
+        }
+        if (!storyTag) {
+          return this.validStory(story);
+        }
+        return this.validStory(story) && this.validStoryTag(storyTag);
+      },
+
+      validStory(story) {
+        if (this.benchmarkConfig) {
+          return this.benchmarkConfig.cases.includes(story);
+        }
+        return false;
+      },
+
+      validStoryTag(storyTag) {
+        if (this.benchmarkConfig) {
+          return (storyTag in this.benchmarkConfig.caseTags);
+        }
+        return false;
       },
 
       storyCases(benchmarkConfig) {
