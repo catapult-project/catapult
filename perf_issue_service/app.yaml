@@ -7,4 +7,12 @@ runtime_config:
   # As of Q1 2023, the latest python supported by Appengine flexible is 3.7.9.
   python_version: 3.7
 
-entrypoint: gunicorn -b:$PORT main:APP 
+entrypoint: gunicorn -b:$PORT main:APP
+
+readiness_check:
+  path: "/"
+  check_interval_sec: 5
+  timeout_sec: 4
+  failure_threshold: 2
+  success_threshold: 2
+  app_start_timeout_sec: 300
