@@ -5,7 +5,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 import logging
-import os
+import posixpath
 import shutil
 import time
 import six.moves._thread  # pylint: disable=import-error
@@ -17,9 +17,6 @@ from telemetry import decorators
 from telemetry.core import debug_data
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.backends.chrome import minidump_finder
-
-DEVTOOLS_ACTIVE_PORT_FILE = 'DevToolsActivePort'
-UI_DEVTOOLS_ACTIVE_PORT_FILE = 'UIDevToolsActivePort'
 
 class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def __init__(self, cros_platform_backend, browser_options,
@@ -64,7 +61,7 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return None
 
   def _GetDevToolsActivePortPath(self):
-    return os.path.join(self.profile_directory, DEVTOOLS_ACTIVE_PORT_FILE)
+    return '/usr/local/lacros-chrome/user_data/DevToolsActivePort'
 
   def _RunCommandAndLog(self, cmd):
     results = self._cri.RunCmdOnDevice(cmd)
@@ -87,9 +84,9 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return devtools_port, browser_target
 
   def _FindUIDevtoolsPort(self):
-    devtools_file_path = os.path.join(self.profile_directory,
-                                      UI_DEVTOOLS_ACTIVE_PORT_FILE)
-
+    devtools_file_path = posixpath.join(
+        '/', 'usr', 'local', 'lacros-chrome', 'user_data',
+        'UIDevToolsActivePort')
     # GetFileContents may raise IOError or OSError, the caller will retry.
     lines = self._cri.GetFileContents(devtools_file_path).splitlines()
     if not lines:
@@ -134,6 +131,7 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
            '-s', '/tmp/lacros.sock',
            '/usr/local/lacros-chrome/lacros-chrome',
            '--ozone-platform=wayland',
+           '--user-data-dir=/usr/local/lacros-chrome/user_data',
            '--enable-gpu-rasterization',
            '--enable-oop-rasterization',
            '--lang=en-US',

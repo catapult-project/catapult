@@ -9,10 +9,7 @@ import os
 import platform
 import posixpath
 import random
-import shutil
-import tempfile
 
-from py_utils import file_util
 from telemetry.core import cros_interface
 from telemetry.core import platform as platform_module
 from telemetry.internal.backends.chrome import chrome_startup_args
@@ -56,7 +53,6 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     self._platform_backend = (
         cros_platform._platform_backend)  # pylint: disable=protected-access
     self._is_guest = is_guest
-    self._profile_directory = None
 
     self._existing_minidump_dir = None
     # There's no way to automatically determine the build directory, as
@@ -78,7 +74,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
 
   @property
   def profile_directory(self):
-    return self._profile_directory
+    return '/home/chronos/Default'
 
   def _InitPlatformIfNeeded(self):
     pass
@@ -88,15 +84,6 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
 
   def SetUpEnvironment(self, browser_options):
     super().SetUpEnvironment(browser_options)
-
-    self._profile_directory = tempfile.mkdtemp()
-
-    # Copy data into the profile if it hasn't already been added via
-    # |source_profile|.
-    for source, dest in self._browser_options.profile_files_to_copy:
-      full_dest_path = os.path.join(self._profile_directory, dest)
-      if not os.path.exists(full_dest_path):
-        file_util.CopyFileWithIntermediateDirectories(source, full_dest_path)
 
     # Copy extensions to temp directories on the device.
     # Note that we also perform this copy locally to ensure that
@@ -130,10 +117,6 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
                           '--user=%s' % self._browser_options.username])
 
   def _TearDownEnvironment(self):
-    if self._profile_directory and os.path.exists(self._profile_directory):
-      # Remove the profile directory, which was hosted on a temp dir.
-      shutil.rmtree(self._profile_directory, ignore_errors=True)
-      self._profile_directory = None
     cri = self._platform_backend.cri
     for extension in self._browser_options.extensions_to_load:
       cri.RmRF(posixpath.dirname(extension.local_path))
@@ -177,8 +160,6 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
               self._DEFAULT_CHROME_ENV,
               os_browser_backend,
               build_dir=self._build_dir))
-      if self.profile_directory is not None:
-        startup_args.append('--user-data-dir=%s' % self.profile_directory)
       return browser.Browser(
           lacros_chrome_browser_backend, self._platform_backend, startup_args)
     return browser.Browser(os_browser_backend, self._platform_backend,
