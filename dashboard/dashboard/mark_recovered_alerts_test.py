@@ -19,6 +19,7 @@ from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.services import issue_tracker_service
+from dashboard.services import perf_issue_service_client
 
 flask_app = Flask(__name__)
 
@@ -29,6 +30,7 @@ def MarkRecoveredAlertsPost():
 
 
 @mock.patch('apiclient.discovery.build', mock.MagicMock())
+@mock.patch('dashboard.services.request.RequestJson', mock.MagicMock())
 @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
 class MarkRecoveredAlertsTest(testing_common.TestCase):
 
@@ -286,11 +288,9 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
 
   @mock.patch.object(issue_tracker_service.IssueTrackerService, 'AddBugComment')
   @mock.patch.object(
-      issue_tracker_service.IssueTrackerService,
-      'List',
-      return_value={'items': [{
+      perf_issue_service_client, 'GetIssues', return_value=[{
           'id': 1234
-      }]})
+      }])
   def testPost_AllAnomaliesRecovered_AddsComment(self, _, add_bug_comment_mock):
     values = [
         49,
@@ -339,11 +339,9 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
 
   @mock.patch.object(issue_tracker_service.IssueTrackerService, 'AddBugComment')
   @mock.patch.object(
-      issue_tracker_service.IssueTrackerService,
-      'List',
-      return_value={'items': [{
+      perf_issue_service_client, 'GetIssues', return_value=[{
           'id': 1234
-      }]})
+      }])
   def testPost_TestDeletedMarkRecovered_AddsComment(self, _,
                                                     add_bug_comment_mock):
     values = [
@@ -396,11 +394,9 @@ class MarkRecoveredAlertsTest(testing_common.TestCase):
 
   @mock.patch.object(issue_tracker_service.IssueTrackerService, 'AddBugComment')
   @mock.patch.object(
-      issue_tracker_service.IssueTrackerService,
-      'List',
-      return_value={'items': [{
+      perf_issue_service_client, 'GetIssues', return_value=[{
           'id': 1234
-      }]})
+      }])
   def testPost_BugHasNoAlerts_NoCommentPosted(self, _, add_bug_comment_mock):
     self.testapp.post('/mark_recovered_alerts')
     self.ExecuteTaskQueueTasks('/mark_recovered_alerts',

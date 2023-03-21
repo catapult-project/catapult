@@ -17,7 +17,7 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models.subscription import Subscription
-from dashboard.services import issue_tracker_service
+from dashboard.services import perf_issue_service_client
 
 
 flask_app = Flask(__name__)
@@ -115,33 +115,28 @@ class AssociateAlertsTest(testing_common.TestCase):
 
   # Mocks fetching bugs from issue tracker.
   @mock.patch('dashboard.common.utils.ServiceAccountHttp', mock.MagicMock())
-  @mock.patch('services.issue_tracker_service.discovery.build',
-              mock.MagicMock())
   @mock.patch.object(
-      issue_tracker_service.IssueTrackerService, 'List',
-      mock.MagicMock(
-          return_value={
-              'items': [
-                  {
-                      'id': 12345,
-                      'summary': '5% regression in bot/suite/x at 10000:20000',
-                      'state': 'open',
-                      'status': 'New',
-                      'author': {
-                          'name': 'exam...@google.com'
-                      },
-                  },
-                  {
-                      'id': 13579,
-                      'summary': '1% regression in bot/suite/y at 10000:20000',
-                      'state': 'closed',
-                      'status': 'WontFix',
-                      'author': {
-                          'name': 'exam...@google.com'
-                      },
-                  },
-              ]
-          }))
+      perf_issue_service_client, 'GetIssues',
+      mock.MagicMock(return_value=[
+          {
+              'id': 12345,
+              'summary': '5% regression in bot/suite/x at 10000:20000',
+              'state': 'open',
+              'status': 'New',
+              'author': {
+                  'name': 'exam...@google.com'
+              },
+          },
+          {
+              'id': 13579,
+              'summary': '1% regression in bot/suite/y at 10000:20000',
+              'state': 'closed',
+              'status': 'WontFix',
+              'author': {
+                  'name': 'exam...@google.com'
+              },
+          },
+      ]))
   def testGet_NoBugId_ShowsDialog(self):
     # When a GET request is made with some anomaly keys but no bug ID,
     # A HTML form is shown for the user to input a bug number.

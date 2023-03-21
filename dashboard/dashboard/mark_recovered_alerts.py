@@ -20,6 +20,7 @@ from dashboard.common import datastore_hooks
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.services import issue_tracker_service
+from dashboard.services import perf_issue_service_client
 
 from flask import request, make_response
 
@@ -109,12 +110,13 @@ def _FetchUntriagedAnomalies():
 
 def _FetchOpenBugs():
   """Fetches a list of open bugs on all sheriffing labels."""
-  issue_tracker = issue_tracker_service.IssueTrackerService()
-  bugs = issue_tracker.List(
-      can='open',
-      q='Performance=Sheriff OR Performance=Sheriff-V8',
-      maxResults=1000)
-  return bugs['items']
+  bugs = perf_issue_service_client.GetIssues(
+      status='open',
+      age=365,
+      labels='Performance-Sheriff,Performance-Sheriff-V8',
+      limit=1000)
+
+  return bugs
 
 
 def MarkAlertAndBugIfRecovered(alert_key_urlsafe, bug_id, project_id):

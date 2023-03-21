@@ -14,7 +14,7 @@ from google.appengine.ext import ndb
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
-from dashboard.services import issue_tracker_service
+from dashboard.services import perf_issue_service_client
 
 
 def AssociateAlertsHandlerPost():
@@ -81,12 +81,13 @@ def _ShowCommentDialog(urlsafe_keys):
 
 
 def _FetchBugs():
-  issue_tracker = issue_tracker_service.IssueTrackerService()
-  response = issue_tracker.List(
-      q='opened-after:today-5',
-      label='Type-Bug-Regression,Performance',
-      sort='-id')
-  return response.get('items', []) if response else []
+  response = perf_issue_service_client.GetIssues(
+      age=5,
+      status='all',
+      labels='Type-Bug-Regression,Performance',
+  )
+
+  return response
 
 
 def _AssociateAlertsWithBug(bug_id, project_id, urlsafe_keys, is_confirmed):
