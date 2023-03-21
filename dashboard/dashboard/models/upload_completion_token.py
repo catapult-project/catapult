@@ -4,12 +4,14 @@
 """The datastore models for upload tokens and related data."""
 from __future__ import absolute_import
 
+import datetime
 import logging
 import uuid
 
 from google.appengine.ext import ndb
 
 from dashboard.models import internal_only_model
+from dateutil.relativedelta import relativedelta
 
 # 10 minutes should be enough for keeping the data in memory because processing
 # histograms takes 3.5 minutes in the 90th percentile.
@@ -144,6 +146,13 @@ class Measurement(internal_only_model.InternalOnlyModel):
   monitored = ndb.BooleanProperty(default=False, indexed=False)
 
   histogram = ndb.KeyProperty(kind='Histogram', indexed=True, default=None)
+
+  @ndb.ComputedProperty
+  def expiry(self):  # pylint: disable=invalid-name
+    if self.update_time:
+      return self.update_time + relativedelta(years=3)
+
+    return datetime.datetime.utcnow() + relativedelta(years=3)
 
   @classmethod
   def GetByPath(cls, test_path, token_id):

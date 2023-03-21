@@ -58,6 +58,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import datetime
 import json
 import logging
 import six
@@ -69,6 +70,8 @@ from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import internal_only_model
+
+from dateutil.relativedelta import relativedelta
 
 # Maximum level of nested tests.
 MAX_TEST_ANCESTORS = 10
@@ -399,6 +402,13 @@ class Row(ndb.Expando):
 
   # The standard deviation at this point. Optional.
   error = ndb.FloatProperty(indexed=False)
+
+  @ndb.ComputedProperty
+  def expiry(self):  # pylint: disable=invalid-name
+    if self.timestamp:
+      return self.timestamp + relativedelta(years=3)
+
+    return datetime.datetime.utcnow() + relativedelta(years=3)
 
   @ndb.tasklet
   def UpdateParentAsync(self, **ctx_options):
