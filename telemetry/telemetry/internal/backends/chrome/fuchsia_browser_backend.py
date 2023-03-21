@@ -105,7 +105,6 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         '--',
         '--web-engine-package-name=web_engine_with_webui',
         '--remote-debugging-port=0',
-        '--use-web-instance',
         '--enable-web-instance-tmp',
         '--with-webui',
         'about:blank'
