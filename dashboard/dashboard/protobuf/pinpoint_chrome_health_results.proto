@@ -37,6 +37,14 @@ message Speedometer2 {
 
 message MotionMark {
   float motionmark = 1;
+  float canvas_arcs = 2;
+  float canvas_lines = 3;
+  float design = 4;
+  float images = 5;
+  float leaves = 6;
+  float multiply = 7;
+  float paths = 8;
+  float suits = 9;
 }
 
 message Jetstream2 {

@@ -68,6 +68,14 @@ _METRIC_MAP = {
 
     # MotionMark
     "motionmark": ("motionmark", "motionmark"),
+    "Canvas Arcs": ("motionmark", "canvas_arcs"),
+    "Canvas Lines": ("motionmark", "canvas_lines"),
+    "Design": ("motionmark", "design"),
+    "Images": ("motionmark", "images"),
+    "Leaves": ("motionmark", "leaves"),
+    "Multiply": ("motionmark", "multiply"),
+    "Paths": ("motionmark", "paths"),
+    "Suits": ("motionmark", "suits"),
 
     # Jetstream2
     # BQ unhappy if name starts with numeric
