@@ -14,7 +14,7 @@ from google.appengine.ext import ndb
 from dashboard.common import layered_cache
 from dashboard.models import anomaly
 from dashboard.models import bug_data
-from dashboard.services import issue_tracker_service
+from dashboard.services import perf_issue_service_client
 
 _COMMIT_HASH_CACHE_KEY = 'commit_hash_%s'
 
@@ -24,7 +24,7 @@ culprits in destination issue.
 """
 
 
-def GetMergeIssueDetails(issue_tracker, commit_cache_key):
+def GetMergeIssueDetails(commit_cache_key):
   """Get's the issue this one might be merged into.
 
   Returns: A dict with the following fields:
@@ -46,7 +46,8 @@ def GetMergeIssueDetails(issue_tracker, commit_cache_key):
     project = 'chromium'
     issue_id = merge_issue_key
 
-  merge_issue = issue_tracker.GetIssue(issue_id, project=project)
+  merge_issue = perf_issue_service_client.GetIssue(
+      issue_id, project_name=project)
   if not merge_issue:
     logging.debug('GetMergeIssueDetails: Could not get issue with id "%s"'\
                   'and merge_issue_key "%s"',
@@ -60,7 +61,7 @@ def GetMergeIssueDetails(issue_tracker, commit_cache_key):
   # We won't duplicate against an issue that itself is already
   # a duplicate though. Could follow the whole chain through but we'll
   # just keep things simple and flat for now.
-  if merge_issue.get('status') != issue_tracker_service.STATUS_DUPLICATE:
+  if merge_issue.get('status') != perf_issue_service_client.STATUS_DUPLICATE:
     merge_issue_id = str(merge_issue.get('id'))
     project = merge_issue.get('projectId', 'chromium')
 
@@ -93,7 +94,7 @@ def UpdateMergeIssue(commit_cache_key,
   # If the issue we were going to merge into was itself a duplicate, we don't
   # dup against it but we also don't merge existing anomalies to it or cache it.
   if merge_details['issue'].get('status') == (
-      issue_tracker_service.STATUS_DUPLICATE):
+      perf_issue_service_client.STATUS_DUPLICATE):
     return
 
   _MapAnomaliesAndUpdateBug(

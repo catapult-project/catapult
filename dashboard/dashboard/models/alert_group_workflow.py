@@ -42,6 +42,7 @@ from dashboard.models import subscription
 from dashboard.services import crrev_service
 from dashboard.services import gitiles_service
 from dashboard.services import issue_tracker_service
+from dashboard.services import perf_issue_service_client
 from dashboard.services import pinpoint_service
 
 # Templates used for rendering issue contents
@@ -225,13 +226,15 @@ class AlertGroupWorkflow:
         self._group.Status.triaged, self._group.Status.bisected,
         self._group.Status.closed
     }:
-      issue = self._issue_tracker.GetIssue(
-          self._group.bug.bug_id, project=self._group.bug.project)
+      issue = perf_issue_service_client.GetIssue(
+          self._group.bug.bug_id, project_name=self._group.bug.project)
       # GetIssueComments doesn't work with empty project id so we have to
       # manually replace it with 'chromium'.
-      issue['comments'] = self._issue_tracker.GetIssueComments(
-          self._group.bug.bug_id, project=self._group.bug.project or 'chromium')
-      canonical_group = self._FindCanonicalGroup(issue)
+      if issue:
+        issue['comments'] = perf_issue_service_client.GetIssueComments(
+            self._group.bug.bug_id,
+            project_name=self._group.bug.project or 'chromium')
+        canonical_group = self._FindCanonicalGroup(issue)
     return self.GroupUpdate(now, anomalies, issue, canonical_group)
 
   def Process(self, update=None):

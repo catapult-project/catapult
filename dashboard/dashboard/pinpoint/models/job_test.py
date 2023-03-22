@@ -213,8 +213,13 @@ class BugCommentTest(test.TestCase):
                          'IssueTrackerService')
     issue_tracker_service = patcher.start()
     issue_tracker_service.return_value = mock.MagicMock(
-        AddBugComment=self.add_bug_comment, GetIssue=self.get_issue)
+        AddBugComment=self.add_bug_comment)
     self.addCleanup(patcher.stop)
+
+    perf_issue_patcher = mock.patch(
+        'dashboard.services.perf_issue_service_client.GetIssue', self.get_issue)
+    perf_issue_patcher.start()
+    self.addCleanup(perf_issue_patcher.stop)
     self.PatchDatastoreHooksRequest()
 
   def testNoBug(self):
@@ -378,11 +383,12 @@ class BugCommentTest(test.TestCase):
     self.assertIn('Pinpoint-Culprit-Found', labels)
     self.assertNotIn('-Pinpoint-Culprit-Found', labels)
 
+  @mock.patch('dashboard.services.perf_issue_service_client.GetIssue')
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
   def testCompletedSkipsMergeWhenDuplicate(self, differences, result_values,
-                                           commit_as_dict):
+                                           commit_as_dict, get_issue):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
     differences.return_value = [(None, c)]
     result_values.side_effect = [0], [1.23456]
@@ -395,12 +401,20 @@ class BugCommentTest(test.TestCase):
         'message': 'Subject.\n\nCommit message.',
     }
 
-    def _GetIssue(bug_id, project='chromium'):
+    def _GetIssue(bug_id, project_name='chromium'):
       if bug_id == '111222':
-        return {'status': 'Duplicate', 'projectId': project, 'id': '111222'}
-      return {'status': 'Untriaged', 'projectId': project, 'id': str(bug_id)}
+        return {
+            'status': 'Duplicate',
+            'projectId': project_name,
+            'id': '111222'
+        }
+      return {
+          'status': 'Untriaged',
+          'projectId': project_name,
+          'id': str(bug_id)
+      }
 
-    self.get_issue.side_effect = _GetIssue
+    get_issue.side_effect = _GetIssue
     layered_cache.SetExternal('commit_hash_git_hash', 'chromium:111222')
     j = job.Job.New((), (),
                     bug_id=123456,

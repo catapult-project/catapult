@@ -15,9 +15,10 @@ import os.path
 
 from dashboard import update_bug_with_results
 from dashboard.common import utils
-from dashboard.services import issue_tracker_service
 from dashboard.models import histogram
 from dashboard.models import anomaly
+from dashboard.services import issue_tracker_service
+from dashboard.services import perf_issue_service_client
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models.change import commit as commit_module
 from dashboard.pinpoint.models.change import patch as patch_module
@@ -350,21 +351,21 @@ class _BugUpdateInfo(
   """
 
 
-def _ComputePostMergeDetails(issue_tracker, commit_cache_key, cc_list):
+def _ComputePostMergeDetails(commit_cache_key, cc_list):
   merge_details = {}
   if commit_cache_key:
     merge_details = update_bug_with_results.GetMergeIssueDetails(
-        issue_tracker, commit_cache_key)
+        commit_cache_key)
     if merge_details['id']:
       cc_list = set()
   return merge_details, cc_list
 
 
-def _GetBugStatus(issue_tracker, bug_id, project='chromium'):
+def _GetBugStatus(bug_id, project='chromium'):
   if not bug_id:
     return None, None
 
-  issue_data = issue_tracker.GetIssue(bug_id, project=project)
+  issue_data = perf_issue_service_client.GetIssue(bug_id, project_name=project)
   if not issue_data:
     return None, None
 
@@ -406,12 +407,10 @@ def UpdatePostAndMergeDeferred(bug_update_builder, bug_id, tags, url, project,
   bug_update = bug_update_builder.BuildUpdate(tags, url, improvement_dir)
   issue_tracker = issue_tracker_service.IssueTrackerService()
   merge_details, cc_list = _ComputePostMergeDetails(
-      issue_tracker,
       commit_cache_key,
       bug_update.cc_list,
   )
   owner, current_bug_status = _GetBugStatus(
-      issue_tracker,
       bug_id,
       project=project,
   )

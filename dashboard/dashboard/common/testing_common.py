@@ -453,11 +453,11 @@ class FakeIssueTrackerService:
         'kwargs': kwargs,
     })
 
-  def GetIssue(self, issue_id, project='chromium'):
-    return self.issues.get((project, issue_id))
+  def GetIssue(self, issue_id, project_name='chromium'):
+    return self.issues.get((project_name, issue_id))
 
-  def GetIssueComments(self, issue_id, project='chromium'):
-    return self.issue_comments.get((project, issue_id), [])
+  def GetIssueComments(self, issue_id, project_name='chromium'):
+    return self.issue_comments.get((project_name, issue_id), [])
 
 
 class FakeSheriffConfigClient:
