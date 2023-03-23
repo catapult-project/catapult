@@ -339,7 +339,7 @@ class AddPointTest(testing_common.TestCase):
     point['test'] = '1234/abcd_ref'
     self.testapp.post('/add_point', {'data': json.dumps([point])})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
-    mock_process_test.assert_called_once_with([])
+    mock_process_test.assert_called_once_with(set())
 
   @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTestsAsync')
   def testPost_TestNameEndsWithSlashRef_ProcessTestIsNotCalled(
@@ -349,7 +349,7 @@ class AddPointTest(testing_common.TestCase):
     point['test'] = '1234/ref'
     self.testapp.post('/add_point', {'data': json.dumps([point])})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
-    mock_process_test.assert_called_once_with([])
+    mock_process_test.assert_called_once_with(set())
 
   @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTestsAsync')
   def testPost_TestNameEndsContainsButDoesntEndWithRef_ProcessTestIsCalled(
