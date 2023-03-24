@@ -137,7 +137,11 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
            '--lang=en-US',
            '--breakpad-dump-location=/usr/local/lacros-chrome/',
            '--no-sandbox',
-           '--trace-smb-size=32768'] + startup_args)
+           '--trace-smb-size=32768',
+           # Add LLVM profile output arg regardless of whether it's used.
+           # For PGO enabled builds, profiles are written to /tmp/profraw
+           # on the device. See crrev/c/4358910 for definition on arg.
+           '--llvm-profile-file=/tmp/default-%2m.profraw'] + startup_args)
       # This will only exist if launch was successful.
       return self._IsDevtoolsUp()
 
