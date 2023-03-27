@@ -15,6 +15,7 @@ from dashboard.common import namespaced_stored_object
 from dashboard.common import stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
+from dashboard.services import perf_issue_service_client
 from dashboard.pinpoint import test
 from dashboard.pinpoint.handlers import new
 from dashboard.pinpoint.models import job as job_module
@@ -90,8 +91,8 @@ class NewAuthTest(_NewTest):
     self.assertEqual(result, {'error': 'User authentication error'})
 
 
-@mock.patch.object(job_module.issue_tracker_service, 'IssueTrackerService',
-                   mock.MagicMock())
+@mock.patch('dashboard.services.perf_issue_service_client.PostIssueComment',
+            mock.MagicMock())
 @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
 @mock.patch.object(api_auth, 'Authorize', mock.MagicMock())
 @mock.patch.object(utils, 'IsTryjobUser', mock.MagicMock())
@@ -504,9 +505,9 @@ class NewTest(_NewTest):
     self.assertEqual(job.batch_id, 'some-identifier')
 
   def testNewPostsCreationMessage(self):
-    tracker = mock.MagicMock()
-    tracker.AddBugComment.return_value = None
-    job_module.issue_tracker_service.IssueTrackerService.return_value = tracker
+    post_issue = perf_issue_service_client.PostIssueComment
+    post_issue.return_value = None
+
     request = dict(_BASE_REQUEST)
     request.update({
         'chart': 'some_chart',
@@ -514,15 +515,14 @@ class NewTest(_NewTest):
         'story_tags': 'some_tag,some_other_tag'
     })
     response = self.Post('/api/new', request, status=200)
+
     self.assertIsNotNone(
         job_module.JobFromId(json.loads(response.body)['jobId']))
     self.ExecuteDeferredTasks('default')
-    self.assertEqual(
-        1, job_module.issue_tracker_service.IssueTrackerService.call_count)
-    tracker.AddBugComment.assert_called_once_with(
-        12345, mock.ANY, project='chromium', send_email=True)
-    args, _ = tracker.AddBugComment.call_args
-    _, message = args
+
+    post_issue.assert_called_once_with(
+        12345, 'chromium', comment=mock.ANY, send_email=True)
+    message = post_issue.call_args.kwargs['comment']
     self.assertIn('Pinpoint job created and queued.', message)
 
   def testExtraArgsSupported(self):

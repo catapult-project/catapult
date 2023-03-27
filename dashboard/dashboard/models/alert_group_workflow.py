@@ -41,7 +41,6 @@ from dashboard.models import anomaly
 from dashboard.models import subscription
 from dashboard.services import crrev_service
 from dashboard.services import gitiles_service
-from dashboard.services import issue_tracker_service
 from dashboard.services import perf_issue_service_client
 from dashboard.services import pinpoint_service
 
@@ -131,7 +130,6 @@ class AlertGroupWorkflow:
       group,
       config=None,
       sheriff_config=None,
-      issue_tracker=None,
       pinpoint=None,
       crrev=None,
       gitiles=None,
@@ -145,7 +143,6 @@ class AlertGroupWorkflow:
     )
     self._sheriff_config = (
         sheriff_config or sheriff_config_client.GetSheriffConfigClient())
-    self._issue_tracker = issue_tracker or _IssueTracker()
     self._pinpoint = pinpoint or pinpoint_service
     self._crrev = crrev or crrev_service
     self._gitiles = gitiles or gitiles_service
@@ -164,7 +161,7 @@ class AlertGroupWorkflow:
       AlertGroup object or None if the issue is not duplicate, canonical issue
       has no corresponding group or duplicate chain forms a loop.
     """
-    if issue.get('status') != issue_tracker_service.STATUS_DUPLICATE:
+    if issue.get('status') != perf_issue_service_client.STATUS_DUPLICATE:
       return None
 
     merged_into = issue.get('mergedInto', {}).get('issueId', None)
@@ -429,12 +426,12 @@ class AlertGroupWorkflow:
         new_regression_notification=False)
 
   def _CloseBecauseRecovered(self):
-    self._issue_tracker.AddBugComment(
+    perf_issue_service_client.PostIssueComment(
         self._group.bug.bug_id,
-        'All regressions for this issue have been marked recovered; closing.',
+        self._group.project_id,
+        comment='All regressions for this issue have been marked recovered; closing.',
         status='WontFix',
         labels='Chromeperf-Auto-Closed',
-        project=self._group.project_id,
         send_email=False,
     )
 
@@ -443,15 +440,15 @@ class AlertGroupWorkflow:
         self._GetTemplateArgs(all_regressions))
     comment = _TEMPLATE_REOPEN_COMMENT.render(self._GetTemplateArgs(added))
     components, cc, _ = self._ComputeBugUpdate(subscriptions, added)
-    self._issue_tracker.AddBugComment(
+    perf_issue_service_client.PostIssueComment(
         self._group.bug.bug_id,
-        comment,
+        self._group.project_id,
+        comment=comment,
         summary=summary,
         components=components,
         labels=['Chromeperf-Auto-Reopened'],
         status='Unconfirmed',
-        cc_list=cc,
-        project=self._group.project_id,
+        cc=cc,
         send_email=False,
     )
 
@@ -466,14 +463,14 @@ class AlertGroupWorkflow:
     if new_regression_notification:
       comment = _TEMPLATE_ISSUE_COMMENT.render(self._GetTemplateArgs(added))
     components, cc, labels = self._ComputeBugUpdate(subscriptions, added)
-    self._issue_tracker.AddBugComment(
+    perf_issue_service_client.PostIssueComment(
         self._group.bug.bug_id,
-        comment,
+        self._group.project_id,
+        comment=comment,
         summary=summary,
         labels=labels,
         cc_list=cc,
         components=components,
-        project=self._group.project_id,
         send_email=False,
     )
 
@@ -482,10 +479,10 @@ class AlertGroupWorkflow:
         'group': self._group,
         'canonical_group': canonical_group,
     })
-    self._issue_tracker.AddBugComment(
+    perf_issue_service_client.PostIssueComment(
         self._group.bug.bug_id,
-        comment,
-        project=self._group.project_id,
+        self._group.project_id,
+        comment=comment,
         send_email=False,
     )
 
@@ -614,7 +611,6 @@ class AlertGroupWorkflow:
     file_bug.AssignBugToCLAuthor(
         self._group.bug.bug_id,
         commit_info,
-        self._issue_tracker,
         labels=['Chromeperf-Auto-Assigned'],
         project=self._group.project_id)
     return True
@@ -656,14 +652,15 @@ class AlertGroupWorkflow:
     self._group.updated = update.now
     self._group.status = self._group.Status.bisected
     self._CommitGroup()
-    self._issue_tracker.AddBugComment(
+    perf_issue_service_client.PostIssueComment(
         self._group.bug.bug_id,
-        _TEMPLATE_AUTO_BISECT_COMMENT.render(
+        self._group.project_id,
+        comment=_TEMPLATE_AUTO_BISECT_COMMENT.render(
             {'test': utils.TestPath(regression.test)}),
         labels=['Chromeperf-Auto-Bisected'],
-        project=self._group.project_id,
         send_email=False,
     )
+
     regression.pinpoint_bisects.append(job_id)
     regression.put()
 
@@ -696,9 +693,9 @@ class AlertGroupWorkflow:
     components, cc, labels = self._ComputeBugUpdate(subscriptions, regressions)
     logging.info('Creating a new issue for AlertGroup %s', self._group.key)
 
-    response = self._issue_tracker.NewBug(
-        title,
-        description,
+    response = perf_issue_service_client.PostIssue(
+        title=title,
+        description=description,
         labels=labels,
         components=components,
         cc=cc,
@@ -710,7 +707,7 @@ class AlertGroupWorkflow:
     # Update the issue associated witht his group, before we continue.
     return alert_group.BugInfo(
         project=self._group.project_id,
-        bug_id=response['bug_id'],
+        bug_id=response['issue_id'],
     ), anomalies
 
   def _StartPinpointBisectJob(self, regression):
@@ -832,17 +829,11 @@ class AlertGroupWorkflow:
     self._group.updated = now
     self._group.status = self._group.Status.bisected
     self._CommitGroup()
-    self._issue_tracker.AddBugComment(
+
+    perf_issue_service_client.PostIssueComment(
         self._group.bug.bug_id,
-        'Auto-Bisection failed with the following message:\n\n'
+        self._group.project_id,
+        comment='Auto-Bisection failed with the following message:\n\n'
         '%s\n\nNot retrying' % (error,),
         labels=labels if labels else ['Chromeperf-Auto-NeedsAttention'],
-        project=self._group.project_id)
-
-
-def _IssueTracker():
-  """Get a cached IssueTracker instance."""
-  # pylint: disable=protected-access
-  if not hasattr(_IssueTracker, '_client'):
-    _IssueTracker._client = issue_tracker_service.IssueTrackerService()
-  return _IssueTracker._client
+    )

@@ -69,6 +69,18 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     perf_comments_patcher.start()
     self.addCleanup(perf_comments_patcher.stop)
 
+    perf_issue_post_patcher = mock.patch(
+        'dashboard.services.perf_issue_service_client.PostIssue',
+        self._issue_tracker.NewBug)
+    perf_issue_post_patcher.start()
+    self.addCleanup(perf_issue_post_patcher.stop)
+
+    perf_comment_post_patcher = mock.patch(
+        'dashboard.services.perf_issue_service_client.PostIssueComment',
+        self._issue_tracker.AddBugComment)
+    perf_comment_post_patcher.start()
+    self.addCleanup(perf_comment_post_patcher.stop)
+
   @staticmethod
   def _AddAnomaly(is_summary=False, **kwargs):
     default = {
@@ -175,7 +187,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
     )
     self._UpdateTwice(
         workflow=w,
@@ -209,7 +220,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
     )
     self._UpdateTwice(
         workflow=w,
@@ -226,7 +236,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
       self.assertEqual(group.get().bug.bug_id,
                        self._issue_tracker.add_comment_args[0])
       self.assertIn('Added 2 regressions to the group',
-                    self._issue_tracker.add_comment_args[1])
+                    self._issue_tracker.add_comment_kwargs['comment'])
       self.assertIn('4 regressions in test_suite',
                     self._issue_tracker.add_comment_kwargs['summary'])
       self.assertIn('sheriff',
@@ -261,7 +271,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         service_account=self._service_account,
     )
     self._UpdateTwice(
@@ -279,7 +288,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
       self.assertEqual(group.get().bug.bug_id,
                        self._issue_tracker.add_comment_args[0])
       self.assertIn('Added 2 regressions to the group',
-                    self._issue_tracker.add_comment_args[1])
+                    self._issue_tracker.add_comment_kwargs['comment'])
       self.assertIn('4 regressions in test_suite',
                     self._issue_tracker.add_comment_kwargs['summary'])
       self.assertIn('sheriff',
@@ -314,7 +323,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         service_account=lambda: utils.LEGACY_SERVICE_ACCOUNT,
     )
     self._UpdateTwice(
@@ -332,7 +340,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
       self.assertEqual(group.get().bug.bug_id,
                        self._issue_tracker.add_comment_args[0])
       self.assertIn('Added 2 regressions to the group',
-                    self._issue_tracker.add_comment_args[1])
+                    self._issue_tracker.add_comment_kwargs['comment'])
       self.assertIn('4 regressions in test_suite',
                     self._issue_tracker.add_comment_kwargs['summary'])
       self.assertIn('sheriff',
@@ -370,7 +378,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         service_account=self._service_account,
     )
     w.Process(
@@ -387,7 +394,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
       self.assertEqual(group.get().bug.bug_id,
                        self._issue_tracker.add_comment_args[0])
       self.assertIn('Added 2 regressions to the group',
-                    self._issue_tracker.add_comment_args[1])
+                    self._issue_tracker.add_comment_kwargs['comment'])
     self.assertFalse(self._issue_tracker.add_comment_kwargs['send_email'])
 
   def testUpdate_GroupTriaged_IssueClosed(self):
@@ -416,7 +423,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         service_account=self._service_account,
     )
     self._UpdateTwice(
@@ -465,7 +471,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         service_account=self._service_account,
     )
     self._UpdateTwice(
@@ -483,7 +488,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
       self.assertEqual(group.get().bug.bug_id,
                        self._issue_tracker.add_comment_args[0])
       self.assertIn('Added 2 regressions to the group',
-                    self._issue_tracker.add_comment_args[1])
+                    self._issue_tracker.add_comment_kwargs['comment'])
     self.assertFalse(self._issue_tracker.add_comment_kwargs['send_email'])
 
   def testUpdate_GroupTriaged_IssueClosed_AllTriaged(self):
@@ -516,7 +521,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         service_account=self._service_account,
     )
     self._UpdateTwice(
@@ -553,7 +557,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         service_account=self._service_account,
     )
     self._UpdateTwice(
@@ -571,7 +574,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
       self.assertEqual(group.get().bug.bug_id,
                        self._issue_tracker.add_comment_args[0])
       self.assertIn('Added 2 regressions to the group',
-                    self._issue_tracker.add_comment_args[1])
+                    self._issue_tracker.add_comment_kwargs['comment'])
     self.assertFalse(self._issue_tracker.add_comment_kwargs['send_email'])
 
   def testUpdate_GroupClosed_IssueOpen(self):
@@ -592,7 +595,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
     )
     self._UpdateTwice(
         workflow=w,
@@ -625,7 +627,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
     )
     self._UpdateTwice(
         workflow=w,
@@ -655,7 +656,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
     )
     self._UpdateTwice(
         workflow=w,
@@ -686,7 +686,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
     )
     update = alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
         now=datetime.datetime.utcnow(),
@@ -712,7 +711,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         revision_info=self._revision_info,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
@@ -726,10 +724,10 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             anomalies=ndb.get_multi(anomalies),
             issue=None,
         ))
-    self.assertIn('2 regressions', self._issue_tracker.new_bug_args[0])
+    self.assertIn('2 regressions', self._issue_tracker.new_bug_kwargs['title'])
     self.assertIn(
         'Chromium Commit Position: http://test-results.appspot.com/revision_range?start=0&end=100',
-        self._issue_tracker.new_bug_args[1])
+        self._issue_tracker.new_bug_kwargs['description'])
 
   def testTriage_GroupUntriaged_MultiSubscriptions(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
@@ -747,7 +745,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         revision_info=self._revision_info,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
@@ -790,7 +787,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         revision_info=self._revision_info,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
@@ -822,7 +818,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         revision_info=self._revision_info,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
@@ -836,10 +831,10 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             anomalies=ndb.get_multi(anomalies),
             issue=None,
         ))
-    self.assertIn('2 regressions', self._issue_tracker.new_bug_args[0])
+    self.assertIn('2 regressions', self._issue_tracker.new_bug_kwargs['title'])
     self.assertIn(
         'Chromium Commit Position: http://test-results.appspot.com/revision_range?start=0&end=100',
-        self._issue_tracker.new_bug_args[1])
+        self._issue_tracker.new_bug_kwargs['description'])
 
   def testTriage_GroupUntriaged_InfAnomaly(self):
     anomalies = [self._AddAnomaly(median_before_anomaly=0), self._AddAnomaly()]
@@ -855,7 +850,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         revision_info=self._revision_info,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
@@ -869,7 +863,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             anomalies=ndb.get_multi(anomalies),
             issue=None,
         ))
-    self.assertIn('inf', self._issue_tracker.new_bug_args[1])
+    self.assertIn('inf', self._issue_tracker.new_bug_kwargs['description'])
 
   def testTriage_GroupTriaged_InfAnomaly(self):
     anomalies = [self._AddAnomaly(median_before_anomaly=0), self._AddAnomaly()]
@@ -886,7 +880,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
     )
     self._UpdateTwice(
         workflow=w,
@@ -895,7 +888,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             anomalies=ndb.get_multi(anomalies),
             issue=self._issue_tracker.issue,
         ))
-    self.assertIn('inf', self._issue_tracker.add_comment_args[1])
+    self.assertIn('inf', self._issue_tracker.add_comment_kwargs['comment'])
     self.assertFalse(self._issue_tracker.add_comment_kwargs['send_email'])
 
   def testArchive_GroupUntriaged(self):
@@ -911,7 +904,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=0),
             triage_delay=datetime.timedelta(hours=0),
@@ -945,7 +937,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=0),
             triage_delay=datetime.timedelta(hours=0),
@@ -984,7 +975,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
@@ -1038,7 +1028,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
@@ -1093,7 +1082,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
@@ -1144,7 +1132,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
@@ -1192,7 +1179,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
@@ -1226,7 +1212,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
@@ -1266,7 +1251,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
@@ -1316,7 +1300,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
@@ -1365,7 +1348,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
@@ -1415,7 +1397,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
@@ -1465,7 +1446,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
@@ -1517,7 +1497,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
@@ -1566,7 +1545,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
@@ -1604,7 +1582,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
@@ -1642,7 +1619,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
@@ -1707,7 +1683,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
         gitiles=self._gitiles)
@@ -1723,7 +1698,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                      self._issue_tracker.add_comment_kwargs['labels'])
     self.assertIn(('Assigning to author@chromium.org because this is the '
                    'only CL in range:'),
-                  self._issue_tracker.add_comment_args[1])
+                  self._issue_tracker.add_comment_kwargs['comment'])
 
   def testBisect_ExplicitOptOut(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
@@ -1750,7 +1725,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         pinpoint=self._pinpoint,
         crrev=self._crrev,
     )
@@ -1776,9 +1750,9 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self._issue_tracker._bug_id_counter = 42
     duplicate_issue = self._issue_tracker.GetIssue(
         self._issue_tracker.NewBug(status='Duplicate',
-                                   state='closed')['bug_id'])
+                                   state='closed')['issue_id'])
     canonical_issue = self._issue_tracker.GetIssue(
-        self._issue_tracker.NewBug()['bug_id'])
+        self._issue_tracker.NewBug()['issue_id'])
 
     grouped_anomalies = [self._AddAnomaly(), self._AddAnomaly()]
     all_anomalies = grouped_anomalies + [self._AddAnomaly()]
@@ -1797,7 +1771,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
             triage_delay=datetime.timedelta(hours=0),
@@ -1818,12 +1791,14 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(self._issue_tracker.calls[2]['method'], 'AddBugComment')
     self.assertEqual(len(self._issue_tracker.calls[2]['args']), 2)
     self.assertEqual(self._issue_tracker.calls[2]['args'][0], 42)
+    self.assertEqual(self._issue_tracker.calls[2]['args'][1], 'chromium')
     self.assertIn(
         '(%s) was automatically merged into %s' %
         (group.string_id(), canonical_group.string_id()),
-        self._issue_tracker.calls[2]['args'][1])
+        self._issue_tracker.calls[2]['kwargs']['comment'])
+
     self.assertEqual(self._issue_tracker.calls[2]['kwargs'], {
-        'project': 'chromium',
+        'comment': mock.ANY,
         'send_email': False
     })
 
@@ -1861,9 +1836,9 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self._issue_tracker._bug_id_counter = 42
     duplicate_issue = self._issue_tracker.GetIssue(
         self._issue_tracker.NewBug(status='Duplicate',
-                                   state='closed')['bug_id'])
+                                   state='closed')['issue_id'])
     canonical_issue = self._issue_tracker.GetIssue(
-        self._issue_tracker.NewBug()['bug_id'])
+        self._issue_tracker.NewBug()['issue_id'])
 
     grouped_anomalies = [self._AddAnomaly(), self._AddAnomaly()]
     all_anomalies = grouped_anomalies + [self._AddAnomaly()]
@@ -1882,7 +1857,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
             triage_delay=datetime.timedelta(hours=0),
@@ -1899,14 +1873,14 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
 
     # First two are NewBug calls in the test itself.
     self.assertEqual(len(self._issue_tracker.calls), 3)
-
     self.assertEqual(self._issue_tracker.calls[2]['method'], 'AddBugComment')
     self.assertEqual(len(self._issue_tracker.calls[2]['args']), 2)
     self.assertEqual(self._issue_tracker.calls[2]['args'][0], 42)
+    self.assertEqual(self._issue_tracker.calls[2]['args'][1], 'chromium')
     self.assertNotIn('was automatically merged into',
-                     self._issue_tracker.calls[2]['args'][1])
+                     self._issue_tracker.calls[2]['kwargs']['comment'])
     self.assertIn('Alert group updated:',
-                  self._issue_tracker.calls[2]['args'][1])
+                  self._issue_tracker.calls[2]['kwargs']['comment'])
     self.assertCountEqual(
         self._issue_tracker.calls[2]['kwargs'], {
             'summary':
@@ -1917,8 +1891,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             ],
             'cc_list': [],
             'components': ['Foo>Bar'],
-            'project':
-                'chromium',
+            'comment':
+                mock.ANY,
             'send_email':
                 False
         })
@@ -1936,7 +1910,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     }
 
     self._issue_tracker._bug_id_counter = 42
-    issue = self._issue_tracker.GetIssue(self._issue_tracker.NewBug()['bug_id'])
+    issue = self._issue_tracker.GetIssue(
+        self._issue_tracker.NewBug()['issue_id'])
 
     grouped_anomalies = [self._AddAnomaly(), self._AddAnomaly()]
     all_anomalies = grouped_anomalies + [self._AddAnomaly()]
@@ -1950,7 +1925,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
             triage_delay=datetime.timedelta(hours=0),
@@ -1970,10 +1944,11 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(self._issue_tracker.calls[1]['method'], 'AddBugComment')
     self.assertEqual(len(self._issue_tracker.calls[1]['args']), 2)
     self.assertEqual(self._issue_tracker.calls[1]['args'][0], 42)
+    self.assertEqual(self._issue_tracker.calls[1]['args'][1], 'chromium')
     self.assertNotIn('was automatically merged into',
-                     self._issue_tracker.calls[1]['args'][1])
+                     self._issue_tracker.calls[1]['kwargs']['comment'])
     self.assertIn('Alert group updated:',
-                  self._issue_tracker.calls[1]['args'][1])
+                  self._issue_tracker.calls[1]['kwargs']['comment'])
     self.assertCountEqual(
         self._issue_tracker.calls[1]['kwargs'], {
             'summary':
@@ -1984,8 +1959,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             ],
             'cc_list': [],
             'components': ['Foo>Bar'],
-            'project':
-                'chromium',
+            'comment':
+                mock.ANY,
             'send_email':
                 False
         })
@@ -2008,9 +1983,9 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self._issue_tracker._bug_id_counter = 42
     duplicate_issue = self._issue_tracker.GetIssue(
         self._issue_tracker.NewBug(status='Duplicate',
-                                   state='closed')['bug_id'])
+                                   state='closed')['issue_id'])
     canonical_issue = self._issue_tracker.GetIssue(
-        self._issue_tracker.NewBug()['bug_id'])
+        self._issue_tracker.NewBug()['issue_id'])
 
     grouped_anomalies = [
         self._AddAnomaly(test='master/bot/regular_suite/measurement'),
@@ -2034,7 +2009,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
             triage_delay=datetime.timedelta(hours=0),
@@ -2055,12 +2029,13 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(self._issue_tracker.calls[2]['method'], 'AddBugComment')
     self.assertEqual(len(self._issue_tracker.calls[2]['args']), 2)
     self.assertEqual(self._issue_tracker.calls[2]['args'][0], 42)
+    self.assertEqual(self._issue_tracker.calls[2]['args'][1], 'chromium')
     self.assertIn(
         '(%s) was automatically merged into %s' %
         (group.string_id(), canonical_group.string_id()),
-        self._issue_tracker.calls[2]['args'][1])
+        self._issue_tracker.calls[2]['kwargs']['comment'])
     self.assertEqual(self._issue_tracker.calls[2]['kwargs'], {
-        'project': 'chromium',
+        'comment': mock.ANY,
         'send_email': False
     })
 
@@ -2103,9 +2078,9 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self._issue_tracker._bug_id_counter = 42
     duplicate_issue = self._issue_tracker.GetIssue(
         self._issue_tracker.NewBug(status='Duplicate',
-                                   state='closed')['bug_id'])
+                                   state='closed')['issue_id'])
     canonical_issue = self._issue_tracker.GetIssue(
-        self._issue_tracker.NewBug()['bug_id'])
+        self._issue_tracker.NewBug()['issue_id'])
 
     grouped_anomalies = [self._AddAnomaly(), self._AddAnomaly()]
     group = self._AddAlertGroup(
@@ -2123,7 +2098,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
             triage_delay=datetime.timedelta(hours=0),
@@ -2144,12 +2118,13 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(self._issue_tracker.calls[2]['method'], 'AddBugComment')
     self.assertEqual(len(self._issue_tracker.calls[2]['args']), 2)
     self.assertEqual(self._issue_tracker.calls[2]['args'][0], 42)
+    self.assertEqual(self._issue_tracker.calls[2]['args'][1], 'chromium')
     self.assertIn(
         '(%s) was automatically merged into %s' %
         (group.string_id(), canonical_group.string_id()),
-        self._issue_tracker.calls[2]['args'][1])
+        self._issue_tracker.calls[2]['kwargs']['comment'])
     self.assertEqual(self._issue_tracker.calls[2]['kwargs'], {
-        'project': 'chromium',
+        'comment': mock.ANY,
         'send_email': False
     })
 
@@ -2167,7 +2142,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
 
     self._issue_tracker._bug_id_counter = 42
     duplicate_issue = self._issue_tracker.GetIssue(
-        self._issue_tracker.NewBug()['bug_id'])
+        self._issue_tracker.NewBug()['issue_id'])
 
     grouped_anomalies = [self._AddAnomaly(), self._AddAnomaly()]
     all_anomalies = grouped_anomalies + [self._AddAnomaly()]
@@ -2185,7 +2160,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
             triage_delay=datetime.timedelta(hours=0),
@@ -2207,7 +2181,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(len(self._issue_tracker.calls[1]['args']), 2)
     self.assertEqual(self._issue_tracker.calls[1]['args'][0], 42)
     self.assertIn('Alert group updated:',
-                  self._issue_tracker.calls[1]['args'][1])
+                  self._issue_tracker.calls[1]['kwargs']['comment'])
 
     self.assertIsNone(group.get().canonical_group)
     self.assertEqual(group.get().status, alert_group.AlertGroup.Status.triaged)
@@ -2217,7 +2191,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
 
     self._issue_tracker._bug_id_counter = 42
     canonical_issue = self._issue_tracker.GetIssue(
-        self._issue_tracker.NewBug()['bug_id'])
+        self._issue_tracker.NewBug()['issue_id'])
     canonical_group = self._AddAlertGroup(
         base_anomaly,
         issue=canonical_issue,
@@ -2230,7 +2204,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
 
     duplicate_issue = self._issue_tracker.GetIssue(
         self._issue_tracker.NewBug(status='Duplicate',
-                                   state='closed')['bug_id'])
+                                   state='closed')['issue_id'])
     duplicate_group = self._AddAlertGroup(
         base_anomaly,
         issue=duplicate_issue,
@@ -2245,7 +2219,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         canonical_group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
             triage_delay=datetime.timedelta(hours=0),
@@ -2266,7 +2239,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self._issue_tracker._bug_id_counter = 42
 
     canonical_issue = self._issue_tracker.GetIssue(
-        self._issue_tracker.NewBug()['bug_id'])
+        self._issue_tracker.NewBug()['issue_id'])
     canonical_group = self._AddAlertGroup(
         base_anomaly,
         issue=canonical_issue,
@@ -2277,7 +2250,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         self._issue_tracker.NewBug(
             status='Duplicate',
             state='closed',
-            mergedInto={'issueId': canonical_issue['id']})['bug_id'])
+            mergedInto={'issueId': canonical_issue['id']})['issue_id'])
     duplicate_group = self._AddAlertGroup(
         base_anomaly,
         issue=duplicate_issue,
@@ -2291,7 +2264,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         duplicate_group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
             triage_delay=datetime.timedelta(hours=0),
@@ -2310,7 +2282,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self._issue_tracker._bug_id_counter = 42
     duplicate_issue = self._issue_tracker.GetIssue(
         self._issue_tracker.NewBug(status='Duplicate',
-                                   state='closed')['bug_id'])
+                                   state='closed')['issue_id'])
     duplicate_group = self._AddAlertGroup(
         base_anomaly,
         issue=duplicate_issue,
@@ -2318,7 +2290,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     )
 
     looped_issue = self._issue_tracker.GetIssue(
-        self._issue_tracker.NewBug()['bug_id'])
+        self._issue_tracker.NewBug()['issue_id'])
     looped_group = self._AddAlertGroup(
         base_anomaly,
         issue=looped_issue,
@@ -2327,7 +2299,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     )
 
     canonical_issue = self._issue_tracker.GetIssue(
-        self._issue_tracker.NewBug()['bug_id'])
+        self._issue_tracker.NewBug()['issue_id'])
     self._AddAlertGroup(
         base_anomaly,
         issue=canonical_issue,
@@ -2350,7 +2322,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     w = alert_group_workflow.AlertGroupWorkflow(
         duplicate_group.get(),
         sheriff_config=self._sheriff_config,
-        issue_tracker=self._issue_tracker,
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
             triage_delay=datetime.timedelta(hours=0),

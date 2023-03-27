@@ -68,3 +68,31 @@ def GetIssueComments(issue_id, project_name='chromium'):
         '[PerfIssueService] Error requesting comments (id: %s, project: %s): %s',
         issue_id, project_name, str(e))
     return []
+
+
+def PostIssue(**kwargs):
+  url = _SERVICE_URL + _ISSUES_PERFIX
+  try:
+    resp = request.RequestJson(url, method='POST', body=kwargs)
+    return resp
+  except request.RequestError as e:
+    cloud_metric.PublishPerfIssueServiceRequestFailures('PostIssue', 'POST',
+                                                        url, kwargs)
+    logging.error('[PerfIssueService] Error requesting new issue (%s): %s',
+                  kwargs, str(e))
+    return []
+
+
+def PostIssueComment(issue_id, project_name='chromium', **kwargs):
+  url = _SERVICE_URL + _ISSUES_PERFIX
+  url += '%s/project/%s/comments' % (issue_id, project_name)
+  try:
+    resp = request.RequestJson(url, method='POST', body=kwargs)
+    return resp
+  except request.RequestError as e:
+    cloud_metric.PublishPerfIssueServiceRequestFailures('PostIssueComment',
+                                                        'POST', url, kwargs)
+    logging.error(
+        '[PerfIssueService] Error requesting new issue comment (id: %s, project: %s data: %s): %s',
+        issue_id, project_name, kwargs, str(e))
+    return []

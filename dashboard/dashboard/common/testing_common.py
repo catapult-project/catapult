@@ -427,7 +427,7 @@ class FakeIssueTrackerService:
                      ('projectId', kwargs.get('project', 'chromium'))]))
     })
     result = {
-        'bug_id': self._bug_id_counter,
+        'issue_id': self._bug_id_counter,
         'project_id': kwargs.get('project', 'chromium')
     }
     self._bug_id_counter += 1

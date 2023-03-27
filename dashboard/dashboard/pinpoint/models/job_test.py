@@ -209,17 +209,18 @@ class BugCommentTest(test.TestCase):
     super().setUp()
     self.add_bug_comment = mock.MagicMock()
     self.get_issue = mock.MagicMock()
-    patcher = mock.patch('dashboard.services.issue_tracker_service.'
-                         'IssueTrackerService')
-    issue_tracker_service = patcher.start()
-    issue_tracker_service.return_value = mock.MagicMock(
-        AddBugComment=self.add_bug_comment)
-    self.addCleanup(patcher.stop)
 
     perf_issue_patcher = mock.patch(
         'dashboard.services.perf_issue_service_client.GetIssue', self.get_issue)
     perf_issue_patcher.start()
     self.addCleanup(perf_issue_patcher.stop)
+
+    perf_comment_post_patcher = mock.patch(
+        'dashboard.services.perf_issue_service_client.PostIssueComment',
+        self.add_bug_comment)
+    perf_comment_post_patcher.start()
+    self.addCleanup(perf_comment_post_patcher.stop)
+
     self.PatchDatastoreHooksRequest()
 
   def testNoBug(self):
@@ -237,10 +238,10 @@ class BugCommentTest(test.TestCase):
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
-        _COMMENT_STARTED,
+        'chromium',
+        comment=_COMMENT_STARTED,
         labels=mock.ANY,
-        send_email=True,
-        project='chromium')
+        send_email=True)
     labels = self.add_bug_comment.call_args[1]['labels']
     self.assertIn('Pinpoint-Job-Started', labels)
     self.assertNotIn('-Pinpoint-Job-Started', labels)
@@ -253,9 +254,9 @@ class BugCommentTest(test.TestCase):
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
-        _COMMENT_COMPLETED_NO_COMPARISON,
+        'chromium',
+        comment=_COMMENT_COMPLETED_NO_COMPARISON,
         labels=['Pinpoint-Tryjob-Completed'],
-        project='chromium',
     )
 
   def testCompletedNoDifference(self):
@@ -266,10 +267,10 @@ class BugCommentTest(test.TestCase):
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
-        _COMMENT_COMPLETED_NO_DIFFERENCES,
+        'chromium',
+        comment=_COMMENT_COMPLETED_NO_DIFFERENCES,
         labels=mock.ANY,
         status='WontFix',
-        project='chromium',
     )
     labels = self.add_bug_comment.call_args[1]['labels']
     self.assertIn('Pinpoint-Job-Completed', labels)
@@ -290,10 +291,9 @@ class BugCommentTest(test.TestCase):
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
-        _COMMENT_COMPLETED_NO_DIFFERENCES_DUE_TO_FAILURE,
-        labels=mock.ANY,
-        project='chromium',
-    )
+        'chromium',
+        comment=_COMMENT_COMPLETED_NO_DIFFERENCES_DUE_TO_FAILURE,
+        labels=mock.ANY)
     labels = self.add_bug_comment.call_args[1]['labels']
     self.assertIn('Pinpoint-Job-Failed', labels)
     self.assertNotIn('-Pinpoint-Job-Failed', labels)
@@ -320,19 +320,19 @@ class BugCommentTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456,
-        mock.ANY,
+        issue_id=123456,
+        project_name='chromium',
+        comment=mock.ANY,
         status='Assigned',
         owner='author@chromium.org',
         labels=mock.ANY,
-        cc_list=['author@chromium.org'],
-        merge_issue=None,
-        project='chromium')
-    message = self.add_bug_comment.call_args[0][1]
+        cc=['author@chromium.org'],
+        merge_issue=None)
+    message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found a significant difference at 1 commit.', message)
     self.assertIn('<b>Subject.</b>', message)
     self.assertIn('https://example.com/repository/+/git_hash', message)
-    labels = self.add_bug_comment.call_args[1]['labels']
+    labels = self.add_bug_comment.call_args.kwargs['labels']
     self.assertIn('Pinpoint-Culprit-Found', labels)
     self.assertNotIn('-Pinpoint-Culprit-Found', labels)
     self.assertIn('Pinpoint-Job-Completed', labels)
@@ -366,18 +366,18 @@ class BugCommentTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456,
-        mock.ANY,
+        issue_id=123456,
+        project_name='chromium',
+        comment=mock.ANY,
         status='Assigned',
         owner='author@chromium.org',
-        cc_list=[],
+        cc=[],
         labels=mock.ANY,
-        merge_issue='111222',
-        project='chromium')
-    message = self.add_bug_comment.call_args[0][1]
+        merge_issue='111222')
+    message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found a significant difference at 1 commit.', message)
     self.assertIn('https://example.com/repository/+/git_hash', message)
-    labels = self.add_bug_comment.call_args[1]['labels']
+    labels = self.add_bug_comment.call_args.kwargs['labels']
     self.assertIn('Pinpoint-Job-Completed', labels)
     self.assertNotIn('-Pinpoint-Job-Completed', labels)
     self.assertIn('Pinpoint-Culprit-Found', labels)
@@ -425,18 +425,18 @@ class BugCommentTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456,
-        mock.ANY,
+        issue_id=123456,
+        project_name='chromium',
+        comment=mock.ANY,
         status='Assigned',
         owner='author@chromium.org',
         labels=mock.ANY,
-        cc_list=['author@chromium.org'],
-        merge_issue=None,
-        project='chromium')
-    message = self.add_bug_comment.call_args[0][1]
+        cc=['author@chromium.org'],
+        merge_issue=None)
+    message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found a significant difference at 1 commit.', message)
     self.assertIn('https://example.com/repository/+/git_hash', message)
-    labels = self.add_bug_comment.call_args[1]['labels']
+    labels = self.add_bug_comment.call_args.kwargs['labels']
     self.assertIn('Pinpoint-Job-Completed', labels)
     self.assertNotIn('-Pinpoint-Job-Completed', labels)
     self.assertIn('Pinpoint-Culprit-Found', labels)
@@ -503,19 +503,19 @@ class BugCommentTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456,
-        mock.ANY,
+        issue_id=123456,
+        project_name='chromium',
+        comment=mock.ANY,
         status='Assigned',
         owner='author@chromium.org',
         labels=mock.ANY,
-        cc_list=['author@chromium.org'],
-        merge_issue=None,
-        project='chromium')
-    message = self.add_bug_comment.call_args[0][1]
+        cc=['author@chromium.org'],
+        merge_issue=None)
+    message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found a significant difference at 1 commit.', message)
     self.assertIn('http://docs', message)
     self.assertIn('Benchmark doc link', message)
-    labels = self.add_bug_comment.call_args[1]['labels']
+    labels = self.add_bug_comment.call_args.kwargs['labels']
     self.assertIn('Pinpoint-Job-Completed', labels)
     self.assertNotIn('-Pinpoint-Job-Completed', labels)
     self.assertIn('Pinpoint-Culprit-Found', labels)
@@ -543,18 +543,18 @@ class BugCommentTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456,
-        mock.ANY,
+        issue_id=123456,
+        project_name='chromium',
+        comment=mock.ANY,
         status='Assigned',
         owner='author@chromium.org',
         labels=mock.ANY,
-        cc_list=['author@chromium.org'],
-        merge_issue=None,
-        project='chromium')
-    message = self.add_bug_comment.call_args[0][1]
+        cc=['author@chromium.org'],
+        merge_issue=None)
+    message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found a significant difference at 1 commit.', message)
     self.assertIn('https://codereview.com/c/672011/2f0d5c7', message)
-    labels = self.add_bug_comment.call_args[1]['labels']
+    labels = self.add_bug_comment.call_args.kwargs['labels']
     self.assertIn('Pinpoint-Culprit-Found', labels)
     self.assertNotIn('-Pinpoint-Culprit-Found', labels)
 
@@ -587,18 +587,18 @@ class BugCommentTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456,
-        mock.ANY,
+        issue_id=123456,
+        project_name='chromium',
+        comment=mock.ANY,
         owner='author@chromium.org',
         status=None,
-        cc_list=['author@chromium.org', 'some-author@somewhere.org'],
+        cc=['author@chromium.org', 'some-author@somewhere.org'],
         labels=mock.ANY,
-        merge_issue=None,
-        project='chromium')
-    message = self.add_bug_comment.call_args[0][1]
+        merge_issue=None)
+    message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found a significant difference at 1 commit.', message)
     self.assertIn('https://codereview.com/c/672011/2f0d5c7', message)
-    labels = self.add_bug_comment.call_args[1]['labels']
+    labels = self.add_bug_comment.call_args.kwargs['labels']
     self.assertIn('Pinpoint-Job-Completed', labels)
     self.assertNotIn('-Pinpoint-Job-Completed', labels)
     self.assertIn('Pinpoint-Culprit-Found', labels)
@@ -627,17 +627,17 @@ class BugCommentTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456,
-        mock.ANY,
+        issue_id=123456,
+        project_name='chromium',
+        comment=mock.ANY,
         owner=None,
         status=None,
-        cc_list=['author@chromium.org'],
+        cc=['author@chromium.org'],
         labels=mock.ANY,
-        merge_issue=None,
-        project='chromium')
-    message = self.add_bug_comment.call_args[0][1]
+        merge_issue=None)
+    message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('10 revisions compared', message)
-    labels = self.add_bug_comment.call_args[1]['labels']
+    labels = self.add_bug_comment.call_args.kwargs['labels']
     self.assertIn('Pinpoint-Job-Completed', labels)
     self.assertNotIn('-Pinpoint-Job-Completed', labels)
     self.assertIn('Pinpoint-Culprit-Found', labels)
@@ -691,15 +691,16 @@ class BugCommentTest(test.TestCase):
 
     # We now only CC folks from the top commit.
     self.add_bug_comment.assert_called_once_with(
-        123456,
-        mock.ANY,
+        issue_id=123456,
+        project_name='chromium',
+        comment=mock.ANY,
         status='Assigned',
         owner='author1@chromium.org',
-        cc_list=['author1@chromium.org'],
+        cc=['author1@chromium.org'],
         labels=mock.ANY,
         merge_issue=None,
-        project='chromium')
-    message = self.add_bug_comment.call_args[0][1]
+    )
+    message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found significant differences at 2 commits.', message)
     self.assertIn('1. Subject.', message)
     self.assertIn('transitions from "no values" to "some values"', message)
@@ -733,20 +734,20 @@ class BugCommentTest(test.TestCase):
 
     # We now only CC folks from the top commit.
     self.add_bug_comment.assert_called_once_with(
-        123456,
-        mock.ANY,
+        issue_id=123456,
+        project_name='chromium',
+        comment=mock.ANY,
         status='Assigned',
         owner='author3@chromium.org',
-        cc_list=['author3@chromium.org'],
+        cc=['author3@chromium.org'],
         labels=mock.ANY,
-        merge_issue=None,
-        project='chromium')
-    message = self.add_bug_comment.call_args[0][1]
+        merge_issue=None)
+    message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found significant differences at 2 commits.', message)
     self.assertIn('https://example.com/repository/+/git_hash_3', message)
     self.assertIn('https://example.com/repository/+/git_hash_2', message)
     self.assertIn('https://example.com/repository/+/git_hash_1', message)
-    labels = self.add_bug_comment.call_args[1]['labels']
+    labels = self.add_bug_comment.call_args.kwargs['labels']
     self.assertIn('Pinpoint-Job-Completed', labels)
     self.assertNotIn('-Pinpoint-Job-Completed', labels)
     self.assertIn('Pinpoint-Multiple-Culprits', labels)
@@ -812,14 +813,14 @@ class BugCommentTest(test.TestCase):
 
     # We only CC folks from the top commits.
     self.add_bug_comment.assert_called_once_with(
-        123456,
-        mock.ANY,
+        issue_id=123456,
+        project_name='chromium',
+        comment=mock.ANY,
         status='Assigned',
         owner=expected_ccs[0],
-        cc_list=sorted(expected_ccs),
+        cc=sorted(expected_ccs),
         labels=mock.ANY,
-        merge_issue=None,
-        project='chromium')
+        merge_issue=None)
     labels = self.add_bug_comment.call_args[1]['labels']
     self.assertIn('Pinpoint-Job-Completed', labels)
     self.assertNotIn('-Pinpoint-Job-Completed', labels)
@@ -872,19 +873,19 @@ class BugCommentTest(test.TestCase):
     # Notifies the owner of the first change in the list of differences, seeing
     # as they are all equally small.
     self.add_bug_comment.assert_called_once_with(
-        123456,
-        mock.ANY,
+        issue_id=123456,
+        project_name='chromium',
+        comment=mock.ANY,
         status='Assigned',
         owner='author1@chromium.org',
-        cc_list=['author1@chromium.org'],
+        cc=['author1@chromium.org'],
         labels=mock.ANY,
-        merge_issue=None,
-        project='chromium')
-    message = self.add_bug_comment.call_args[0][1]
+        merge_issue=None)
+    message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Missing Values', message)
     self.assertIn('author1@chromium.org', message)
     self.assertIn('author2@chromium.org', message)
-    labels = self.add_bug_comment.call_args[1]['labels']
+    labels = self.add_bug_comment.call_args.kwargs['labels']
     self.assertIn('Pinpoint-Job-Completed', labels)
     self.assertNotIn('-Pinpoint-Job-Completed', labels)
     self.assertIn('Pinpoint-Multiple-MissingValues', labels)
@@ -916,19 +917,19 @@ class BugCommentTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        123456,
-        mock.ANY,
+        issue_id=123456,
+        project_name='chromium',
+        comment=mock.ANY,
         status='Assigned',
         owner='sheriff@bar.com',
-        cc_list=['chromium-autoroll@skia-public.iam.gserviceaccount.com'],
+        cc=['chromium-autoroll@skia-public.iam.gserviceaccount.com'],
         labels=mock.ANY,
-        merge_issue=None,
-        project='chromium')
-    message = self.add_bug_comment.call_args[0][1]
+        merge_issue=None)
+    message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found a significant difference at 1 commit.', message)
     self.assertIn('chromium-autoroll@skia-public.iam.gserviceaccount.com',
                   message)
-    labels = self.add_bug_comment.call_args[1]['labels']
+    labels = self.add_bug_comment.call_args.kwargs['labels']
     self.assertIn('Pinpoint-Job-Completed', labels)
     self.assertNotIn('-Pinpoint-Job-Completed', labels)
     self.assertIn('Pinpoint-Culprit-Found', labels)
@@ -978,14 +979,14 @@ class BugCommentTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
     self.assertFalse(j.failed)
     self.add_bug_comment.assert_called_once_with(
-        mock.ANY,
-        mock.ANY,
+        issue_id=mock.ANY,
+        project_name='chromium',
+        comment=mock.ANY,
         status='Assigned',
         owner='sheriff@bar.com',
-        cc_list=['chromium-autoroll@skia-public.iam.gserviceaccount.com'],
+        cc=['chromium-autoroll@skia-public.iam.gserviceaccount.com'],
         labels=mock.ANY,
-        merge_issue=None,
-        project='chromium')
+        merge_issue=None)
 
   @mock.patch.object(job.job_state.JobState, 'ScheduleWork',
                      mock.MagicMock(side_effect=AssertionError('Error string')))
@@ -999,10 +1000,10 @@ class BugCommentTest(test.TestCase):
     self.assertTrue(j.failed)
     self.add_bug_comment.assert_called_once_with(
         123456,
-        _COMMENT_FAILED,
+        'chromium',
+        comment=_COMMENT_FAILED,
         send_email=True,
-        labels=mock.ANY,
-        project='chromium')
+        labels=mock.ANY)
     labels = self.add_bug_comment.call_args[1]['labels']
     self.assertIn('Pinpoint-Job-Failed', labels)
 

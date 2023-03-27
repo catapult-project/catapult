@@ -115,7 +115,7 @@ class IssueTrackerClient:
     if cc:
       # We deduplicate the CC'ed emails to avoid having to forward
       # those to the issue tracker.
-      accounts = {email.strip() for email in cc.split(',') if email.strip()}
+      accounts = set(email.strip() for email in cc if email.strip())
       body['cc'] = [{'name': account} for account in accounts if account]
 
     request = self._service.issues().insert(
@@ -136,8 +136,8 @@ class IssueTrackerClient:
 
   def NewComment(self,
                   issue_id,
-                  comment,
                   project='chromium',
+                  comment='',
                   title=None,
                   status=None,
                   merge_issue=None,

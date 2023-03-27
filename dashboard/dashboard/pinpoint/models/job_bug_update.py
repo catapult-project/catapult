@@ -17,7 +17,6 @@ from dashboard import update_bug_with_results
 from dashboard.common import utils
 from dashboard.models import histogram
 from dashboard.models import anomaly
-from dashboard.services import issue_tracker_service
 from dashboard.services import perf_issue_service_client
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models.change import commit as commit_module
@@ -405,7 +404,6 @@ def UpdatePostAndMergeDeferred(bug_update_builder, bug_id, tags, url, project,
     logging.debug('UpdatePostAndMergeDeferred: commit_cache_key is None. Bug: "%s"',
                   bug_id)
   bug_update = bug_update_builder.BuildUpdate(tags, url, improvement_dir)
-  issue_tracker = issue_tracker_service.IssueTrackerService()
   merge_details, cc_list = _ComputePostMergeDetails(
       commit_cache_key,
       bug_update.cc_list,
@@ -436,14 +434,14 @@ def UpdatePostAndMergeDeferred(bug_update_builder, bug_id, tags, url, project,
       )
       cc_list.add(owner.get('email', ''))
 
-  issue_tracker.AddBugComment(
-      bug_id,
-      bug_update.comment_text,
+  perf_issue_service_client.PostIssueComment(
+      issue_id=bug_id,
+      project_name=project,
+      comment=bug_update.comment_text,
       status=status,
-      cc_list=sorted(cc_list),
+      cc=sorted(cc_list),
       owner=bug_owner,
       labels=bug_update.labels,
-      merge_issue=merge_details.get('id'),
-      project=project)
+      merge_issue=merge_details.get('id'))
   update_bug_with_results.UpdateMergeIssue(
       commit_cache_key, merge_details, bug_id, project=project)

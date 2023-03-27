@@ -19,7 +19,6 @@ from dashboard.common import utils
 from dashboard.common import datastore_hooks
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
-from dashboard.services import issue_tracker_service
 from dashboard.services import perf_issue_service_client
 
 from flask import request, make_response
@@ -147,11 +146,10 @@ def MarkAlertAndBugIfRecovered(alert_key_urlsafe, bug_id, project_id):
       logging.info('All alerts for bug %s recovered!', bug_id)
       comment = 'Automatic message: All alerts recovered.\nGraphs: %s' % (
           'https://chromeperf.appspot.com/group_report?bug_id=%s' % bug_id)
-      issue_tracker = issue_tracker_service.IssueTrackerService()
-      issue_tracker.AddBugComment(
-          bug_id,
-          comment,
-          project=project_id,
+      perf_issue_service_client.PostIssueComment(
+          issue_id=bug_id,
+          comment=comment,
+          project_name=project_id,
           labels='Performance-Regression-Recovered')
 
 
@@ -177,8 +175,8 @@ def _IsAlertRecovered(alert_entity, bug_id, project_id):
       alert_entity.recovered = True
       alert_entity.put()
       if bug_id:
-        issue_tracker = issue_tracker_service.IssueTrackerService()
-        issue_tracker.AddBugComment(bug_id, comment, project=project_id)
+        perf_issue_service_client.PostIssueComment(
+            issue_id=bug_id, comment=comment, project_name=project_id)
     return alert_entity.recovered
   config = anomaly_config.GetAnomalyConfigDict(test)
   max_num_rows = config.get('max_window_size',

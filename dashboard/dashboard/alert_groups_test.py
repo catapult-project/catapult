@@ -67,8 +67,6 @@ class GroupReportTestBase(testing_common.TestCase):
     sheriff = subscription.Subscription(name='sheriff',
                                         auto_triage_enable=True)
     mock_get_sheriff_client().Match.return_value = ([sheriff], None)
-    self.PatchObject(alert_group_workflow, '_IssueTracker',
-                     lambda: self.fake_issue_tracker)
     self.PatchObject(crrev_service, 'GetNumbering',
                      lambda *args, **kargs: {'git_sha': 'abcd'})
 
@@ -89,6 +87,18 @@ class GroupReportTestBase(testing_common.TestCase):
         self.fake_issue_tracker.GetIssueComments)
     perf_comments_patcher.start()
     self.addCleanup(perf_comments_patcher.stop)
+
+    perf_issue_post_patcher = mock.patch(
+        'dashboard.services.perf_issue_service_client.PostIssue',
+        self.fake_issue_tracker.NewBug)
+    perf_issue_post_patcher.start()
+    self.addCleanup(perf_issue_post_patcher.stop)
+
+    perf_comment_post_patcher = mock.patch(
+        'dashboard.services.perf_issue_service_client.PostIssueComment',
+        self.fake_issue_tracker.AddBugComment)
+    perf_comment_post_patcher.start()
+    self.addCleanup(perf_comment_post_patcher.stop)
 
   def _AddAnomaly(self, **kargs):
     default = {
@@ -446,8 +456,7 @@ class GroupReportTest(GroupReportTestBase):
         'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
         'Chromeperf-Auto-Triaged'
     ])
-    logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
-    self.assertRegex(self.fake_issue_tracker.new_bug_args[1],
+    self.assertRegex(self.fake_issue_tracker.new_bug_kwargs['description'],
                      r'Top 1 affected measurements in bot:')
     self.assertEqual(a.get().bug_id, 12345)
     self.assertEqual(group.bug.bug_id, 12345)
@@ -569,11 +578,10 @@ class GroupReportTest(GroupReportTestBase):
     self._CallHandler()
     for a in anomalies:
       self.assertEqual(a.get().bug_id, 12345)
-    logging.debug('Rendered:\n%s', self.fake_issue_tracker.add_comment_args[1])
     self.assertEqual(self.fake_issue_tracker.add_comment_args[0], 12345)
     self.assertCountEqual(
         self.fake_issue_tracker.add_comment_kwargs['components'], ['Foo>Bar'])
-    self.assertRegex(self.fake_issue_tracker.add_comment_args[1],
+    self.assertRegex(self.fake_issue_tracker.add_comment_kwargs['comment'],
                      r'Top 2 affected measurements in bot:')
 
   def testMultipleAltertsNonoverlapThreshold(self, mock_get_sheriff_client):
@@ -647,8 +655,9 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self._SetUpMocks(mock_get_sheriff_client)
     self.InitAfterMocks()
     self._CallHandler()
-    logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
-    self.assertRegex(self.fake_issue_tracker.new_bug_args[1],
+    logging.debug('Rendered:\n%s',
+                  self.fake_issue_tracker.new_bug_kwargs['description'])
+    self.assertRegex(self.fake_issue_tracker.new_bug_kwargs['description'],
                      r'Top 1 affected measurements in bot:')
 
   def testClosesIssueOnAllRecovered(self, mock_get_sheriff_client):
@@ -657,8 +666,9 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self._SetUpMocks(mock_get_sheriff_client)
     self.InitAfterMocks()
     self._CallHandler()
-    logging.debug('Rendered:\n%s', self.fake_issue_tracker.new_bug_args[1])
-    self.assertRegex(self.fake_issue_tracker.new_bug_args[1],
+    logging.debug('Rendered:\n%s',
+                  self.fake_issue_tracker.new_bug_kwargs['description'])
+    self.assertRegex(self.fake_issue_tracker.new_bug_kwargs['description'],
                      r'Top 1 affected measurements in bot:')
     # Mark one of the anomalies recovered.
     recovered_anomaly = self.anomalies[0].get()
@@ -667,7 +677,7 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self._CallHandler()
     self.assertEqual(self.fake_issue_tracker.issue['state'], 'closed')
     self.assertRegex(
-        self.fake_issue_tracker.add_comment_args[1],
+        self.fake_issue_tracker.add_comment_kwargs['comment'],
         r'All regressions for this issue have been marked recovered; closing.')
 
   def testReopensClosedIssuesWithNewRegressions(self, mock_get_sheriff_client):
@@ -684,12 +694,13 @@ class RecoveredAlertsTests(GroupReportTestBase):
                      end_revision=75,
                      test='master/bot/test_suite/measurement/other_test_case')
     self._CallHandler()
-    logging.debug('Rendered:\n%s', self.fake_issue_tracker.add_comment_args[1])
+    logging.debug('Rendered:\n%s',
+                  self.fake_issue_tracker.add_comment_kwargs['comment'])
     self.assertEqual(self.fake_issue_tracker.issue["state"], 'open')
     self.assertRegex(
-        self.fake_issue_tracker.add_comment_args[1],
+        self.fake_issue_tracker.add_comment_kwargs['comment'],
         r'Reopened due to new regressions detected for this alert group:')
-    self.assertRegex(self.fake_issue_tracker.add_comment_args[1],
+    self.assertRegex(self.fake_issue_tracker.add_comment_kwargs['comment'],
                      r'test_suite/measurement/other_test_case')
 
   def testManualClosedIssuesWithNewRegressions(self, mock_get_sheriff_client):
@@ -713,9 +724,10 @@ class RecoveredAlertsTests(GroupReportTestBase):
                      end_revision=75,
                      test='master/bot/test_suite/measurement/other_test_case')
     self._CallHandler()
-    logging.debug('Rendered:\n%s', self.fake_issue_tracker.add_comment_args[1])
+    logging.debug('Rendered:\n%s',
+                  self.fake_issue_tracker.add_comment_kwargs['comment'])
     self.assertEqual(self.fake_issue_tracker.issue["state"], 'closed')
-    self.assertRegex(self.fake_issue_tracker.add_comment_args[1],
+    self.assertRegex(self.fake_issue_tracker.add_comment_kwargs['comment'],
                      r'test_suite/measurement/other_test_case')
 
   def testStartAutoBisection(self, mock_get_sheriff_client):
@@ -810,8 +822,10 @@ class NonChromiumAutoTriage(GroupReportTestBase):
     self._CallHandler()
     self.assertCountEqual([{
         'method': 'NewBug',
-        'args': (mock.ANY, mock.ANY),
+        'args': (),
         'kwargs': {
+            'title': mock.ANY,
+            'description': mock.ANY,
             'project': 'v8',
             'cc': [],
             'labels': mock.ANY,
@@ -819,8 +833,10 @@ class NonChromiumAutoTriage(GroupReportTestBase):
         },
     }, {
         'method': 'NewBug',
-        'args': (mock.ANY, mock.ANY),
+        'args': (),
         'kwargs': {
+            'title': mock.ANY,
+            'description': mock.ANY,
             'project': 'chromium',
             'cc': [],
             'labels': mock.ANY,
@@ -853,8 +869,10 @@ class NonChromiumAutoTriage(GroupReportTestBase):
     self._CallHandler()
     self.assertCountEqual([{
         'method': 'NewBug',
-        'args': (mock.ANY, mock.ANY),
+        'args': (),
         'kwargs': {
+            'title': mock.ANY,
+            'description': mock.ANY,
             'project': 'non-chromium',
             'cc': [],
             'labels': mock.ANY,

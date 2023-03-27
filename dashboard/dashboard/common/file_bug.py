@@ -24,7 +24,7 @@ from dashboard.models import bug_label_patterns
 from dashboard.models import histogram
 from dashboard.services import crrev_service
 from dashboard.services import gitiles_service
-from dashboard.services import issue_tracker_service
+from dashboard.services import perf_issue_service_client
 from tracing.value.diagnostics import reserved_infos
 
 # A list of bug labels to suggest for all performance regression bugs.
@@ -274,11 +274,7 @@ def GetCommitInfoForAlert(alert, crrev=None, gitiles=None):
   return gitiles.CommitInfo(repository_url, rev)
 
 
-def AssignBugToCLAuthor(bug_id,
-                        commit_info,
-                        service,
-                        labels=None,
-                        project='chromium'):
+def AssignBugToCLAuthor(bug_id, commit_info, labels=None, project='chromium'):
   """Assigns the bug to the author of the given revision."""
   author = commit_info['author']['email']
   message = commit_info['message']
@@ -289,14 +285,14 @@ def AssignBugToCLAuthor(bug_id,
       author, message)
   author = alternative_assignee or author
 
-  service.AddBugComment(
+  perf_issue_service_client.PostIssueComment(
       bug_id,
-      'Assigning to %s because this is the only CL in range:\n%s' %
+      project,
+      comment='Assigning to %s because this is the only CL in range:\n%s' %
       (author, message),
       status='Assigned',
       labels=labels,
       owner=author,
-      project=project,
   )
 
 
@@ -319,10 +315,9 @@ def FileBug(owner,
   if milestone_label:
     labels.append(milestone_label)
 
-  user_issue_tracker_service = issue_tracker_service.IssueTrackerService()
-  new_bug_response = user_issue_tracker_service.NewBug(
-      summary,
-      description,
+  new_bug_response = perf_issue_service_client.PostIssue(
+      title=summary,
+      description=description,
       project=project_id or 'chromium',
       labels=labels,
       components=components,
@@ -332,7 +327,7 @@ def FileBug(owner,
   if 'error' in new_bug_response:
     return {'error': new_bug_response['error']}
 
-  bug_id = new_bug_response['bug_id']
+  bug_id = new_bug_response['issue_id']
   bug_data.Bug.New(bug_id=bug_id, project=project_id or 'chromium').put()
 
   for a in alerts:
@@ -344,9 +339,8 @@ def FileBug(owner,
 
   # Add the bug comment with the service account, so that there are no
   # permissions issues.
-  dashboard_issue_tracker_service = issue_tracker_service.IssueTrackerService()
-  dashboard_issue_tracker_service.AddBugComment(bug_id, comment_body,
-                                                project_id)
+  perf_issue_service_client.PostIssueComment(
+      bug_id, project_id, comment=comment_body)
   template_params = {'bug_id': bug_id, 'project_id': project_id}
   if all(k.kind() == 'Anomaly' for k in alert_keys):
     logging.info('Kicking bisect for bug %s', bug_id)
@@ -355,8 +349,7 @@ def FileBug(owner,
       commit_info = GetCommitInfoForAlert(alerts[0])
       if commit_info:
         needs_bisect = False
-        AssignBugToCLAuthor(bug_id, commit_info,
-                            dashboard_issue_tracker_service)
+        AssignBugToCLAuthor(bug_id, commit_info)
     if needs_bisect:
       bisect_result = auto_bisect.StartNewBisectForBug(bug_id, project_id)
       if 'error' in bisect_result:
