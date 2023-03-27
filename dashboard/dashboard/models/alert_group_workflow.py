@@ -523,7 +523,7 @@ class AlertGroupWorkflow:
 
   def _ComputeBugUpdate(self, subscriptions, regressions):
     components = list(
-        set(c for s in subscriptions for c in s.bug_components)
+        self._GetComponentsFromSubscriptions(subscriptions)
         | self._GetComponentsFromRegressions(regressions))
     cc = list(set(e for s in subscriptions for e in s.bug_cc_emails))
     labels = list(
@@ -540,8 +540,15 @@ class AlertGroupWorkflow:
       labels = list(set(labels) | {'Restrict-View-Google'})
     return self.BugUpdateDetails(components, cc, labels)
 
-  @staticmethod
-  def _GetComponentsFromRegressions(regressions):
+  def _GetComponentsFromSubscriptions(self, subscriptions):
+    components = set(c for s in subscriptions for c in s.bug_components)
+    if self._group.bug and components:
+      logging.debug(
+          'Components added from subscriptions. Bug: %s, components: %s',
+          self._group.bug.bug_id, components)
+    return components
+
+  def _GetComponentsFromRegressions(self, regressions):
     components = []
     for r in regressions:
       component = r.ownership and r.ownership.get('component')
@@ -551,6 +558,10 @@ class AlertGroupWorkflow:
         components.append(component[0])
       elif component:
         components.append(component)
+    if self._group.bug and components:
+      logging.debug(
+          'Components added from regressions. Bug: %s, components: %s',
+          self._group.bug.bug_id, components)
     return set(components)
 
   def _GetTemplateArgs(self, regressions):
