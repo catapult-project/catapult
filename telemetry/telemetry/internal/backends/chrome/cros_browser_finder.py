@@ -11,6 +11,7 @@ import posixpath
 import random
 
 from telemetry.core import cros_interface
+from telemetry.core import linux_based_interface
 from telemetry.core import platform as platform_module
 from telemetry.internal.backends.chrome import chrome_startup_args
 from telemetry.internal.backends.chrome import cros_browser_backend
@@ -34,7 +35,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
   # anything in this file, so we can quote it here instead of everywhere it's
   # used.
   _CROS_MINIDUMP_DIR = cmd_helper.SingleQuote(
-      cros_interface.CrOSInterface.CROS_MINIDUMP_DIR)
+      cros_interface.CrOSInterface.MINIDUMP_DIR)
 
   _DEFAULT_CHROME_ENV = [
       'CHROME_HEADLESS=1',
@@ -232,7 +233,7 @@ def SelectDefaultBrowser(possible_browsers):
 
 def CanFindAvailableBrowsers(finder_options):
   return (cros_device.IsRunningOnCrOS() or finder_options.remote or
-          cros_interface.HasSSH())
+          linux_based_interface.HasSSH())
 
 
 def FindAllBrowserTypes():
@@ -268,8 +269,8 @@ def FindAllAvailableBrowsers(finder_options, device):
   # Check ssh
   try:
     plat = platform_module.GetPlatformForDevice(device, finder_options)
-  except cros_interface.LoginException as ex:
-    if isinstance(ex, cros_interface.KeylessLoginRequiredException):
+  except linux_based_interface.LoginException as ex:
+    if isinstance(ex, linux_based_interface.KeylessLoginRequiredException):
       logging.warning('Could not ssh into %s. Your device must be configured',
                       finder_options.remote)
       logging.warning('to allow passwordless login as root.')

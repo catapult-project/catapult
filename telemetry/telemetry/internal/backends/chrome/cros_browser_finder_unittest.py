@@ -145,7 +145,7 @@ class CrOSBrowserEnvironmentTest(unittest.TestCase):
     if cri.local:
       return
     remote_path = cmd_helper.SingleQuote(
-        posixpath.join(cri.CROS_MINIDUMP_DIR, 'test_dump'))
+        posixpath.join(cri.MINIDUMP_DIR, 'test_dump'))
     cri.RunCmdOnDevice(['touch', remote_path])
     self.assertTrue(cri.FileExistsOnDevice(remote_path))
     browser.SetUpEnvironment(options_for_unittests.GetCopy().browser_options)
@@ -163,16 +163,16 @@ class CrOSBrowserEnvironmentTest(unittest.TestCase):
     if cri.local:
       return
     remote_path = cmd_helper.SingleQuote(
-        posixpath.join(cri.CROS_MINIDUMP_DIR, 'test_dump'))
+        posixpath.join(cri.MINIDUMP_DIR, 'test_dump'))
     if cri.FileExistsOnDevice(remote_path):
       cri.RmRF(remote_path)
     browser.SetUpEnvironment(options_for_unittests.GetCopy().browser_options)
 
-    # SetUpEnvironment may finish too early, CROS_MINIDUMP_DIR might not exist
+    # SetUpEnvironment may finish too early, MINIDUMP_DIR might not exist
     # yet. First waits for its existence, and then create a test dump.
     def minidump_dir_exists():
       return cri.FileExistsOnDevice(
-          cmd_helper.SingleQuote(cri.CROS_MINIDUMP_DIR))
+          cmd_helper.SingleQuote(cri.MINIDUMP_DIR))
     py_utils.WaitFor(minidump_dir_exists, timeout=10)
 
     cri.RunCmdOnDevice(['touch', remote_path])

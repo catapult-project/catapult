@@ -10,7 +10,7 @@ from telemetry import decorators
 from telemetry.core import cros_interface
 from telemetry.core import platform
 from telemetry.core import util
-from telemetry.internal.forwarders import cros_forwarder
+from telemetry.internal.forwarders import linux_based_forwarder
 from telemetry.internal.platform import cros_device
 from telemetry.internal.platform import linux_based_platform_backend
 
@@ -48,7 +48,7 @@ class CrosPlatformBackend(
     return self._cri
 
   def _CreateForwarderFactory(self):
-    return cros_forwarder.CrOsForwarderFactory(self._cri)
+    return linux_based_forwarder.LinuxBasedForwarderFactory(self._cri)
 
   def GetRemotePort(self, port):
     if self._cri.local:
