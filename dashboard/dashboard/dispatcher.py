@@ -216,7 +216,7 @@ def LoadFromProdHandler():
   return load_from_prod.LoadFromProdHandlerGetPost()
 
 
-@flask_app.route('/mark_recovered_alerts', methods=['POST'])
+@flask_app.route('/mark_recovered_alerts', methods=['GET', 'POST'])
 def MarkRecoveredAlertsPost():
   return mark_recovered_alerts.MarkRecoveredAlertsPost()
 
