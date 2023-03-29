@@ -223,14 +223,12 @@ class AlertGroupWorkflow:
         self._group.Status.triaged, self._group.Status.bisected,
         self._group.Status.closed
     }:
+      project_name = self._group.bug.project or 'chromium'
       issue = perf_issue_service_client.GetIssue(
-          self._group.bug.bug_id, project_name=self._group.bug.project)
-      # GetIssueComments doesn't work with empty project id so we have to
-      # manually replace it with 'chromium'.
+          self._group.bug.bug_id, project_name=project_name)
       if issue:
         issue['comments'] = perf_issue_service_client.GetIssueComments(
-            self._group.bug.bug_id,
-            project_name=self._group.bug.project or 'chromium')
+            self._group.bug.bug_id, project_name=project_name)
         canonical_group = self._FindCanonicalGroup(issue)
     return self.GroupUpdate(now, anomalies, issue, canonical_group)
 
@@ -444,7 +442,7 @@ class AlertGroupWorkflow:
         self._group.bug.bug_id,
         self._group.project_id,
         comment=comment,
-        summary=summary,
+        title=summary,
         components=components,
         labels=['Chromeperf-Auto-Reopened'],
         status='Unconfirmed',
@@ -467,7 +465,7 @@ class AlertGroupWorkflow:
         self._group.bug.bug_id,
         self._group.project_id,
         comment=comment,
-        summary=summary,
+        title=summary,
         labels=labels,
         cc_list=cc,
         components=components,

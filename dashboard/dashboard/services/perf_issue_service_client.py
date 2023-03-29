@@ -24,6 +24,8 @@ _ISSUES_PERFIX = 'issues/'
 def GetIssues(**kwargs):
   url = _SERVICE_URL + _ISSUES_PERFIX
   try:
+    cloud_metric.PublishPerfIssueServiceRequests('GetIssues', 'GET', url,
+                                                 kwargs)
     resp = request.RequestJson(url, method='GET', **kwargs)
     return resp
   except request.RequestError as e:
@@ -35,9 +37,17 @@ def GetIssues(**kwargs):
 
 
 def GetIssue(issue_id, project_name='chromium'):
+  # Normalize the project_name in case it is empty or None.
+  project_name = 'chromium' if project_name is None or not project_name.strip(
+  ) else project_name
+
   url = _SERVICE_URL + _ISSUES_PERFIX
   url += '%s/project/%s' % (issue_id, project_name)
   try:
+    cloud_metric.PublishPerfIssueServiceRequests('GetIssue', 'GET', url, {
+        'issue_id': issue_id,
+        'project_name': project_name
+    })
     resp = request.RequestJson(url, method='GET')
     return resp
   except request.RequestError as e:
@@ -53,9 +63,18 @@ def GetIssue(issue_id, project_name='chromium'):
 
 
 def GetIssueComments(issue_id, project_name='chromium'):
+  # Normalize the project_name in case it is empty or None.
+  project_name = 'chromium' if project_name is None or not project_name.strip(
+  ) else project_name
+
   url = _SERVICE_URL + _ISSUES_PERFIX
   url += '%s/project/%s/comments' % (issue_id, project_name)
   try:
+    cloud_metric.PublishPerfIssueServiceRequests(
+        'GetIssueComments', 'GET', url, {
+            'issue_id': issue_id,
+            'project_name': project_name
+        })
     resp = request.RequestJson(url, method='GET')
     return resp
   except request.RequestError as e:
@@ -73,6 +92,8 @@ def GetIssueComments(issue_id, project_name='chromium'):
 def PostIssue(**kwargs):
   url = _SERVICE_URL + _ISSUES_PERFIX
   try:
+    cloud_metric.PublishPerfIssueServiceRequests('PostIssue', 'POST', url,
+                                                 kwargs)
     resp = request.RequestJson(url, method='POST', body=kwargs)
     return resp
   except request.RequestError as e:
@@ -84,9 +105,15 @@ def PostIssue(**kwargs):
 
 
 def PostIssueComment(issue_id, project_name='chromium', **kwargs):
+  # Normalize the project_name in case it is empty or None.
+  project_name = 'chromium' if project_name is None or not project_name.strip(
+  ) else project_name
+
   url = _SERVICE_URL + _ISSUES_PERFIX
   url += '%s/project/%s/comments' % (issue_id, project_name)
   try:
+    cloud_metric.PublishPerfIssueServiceRequests('PostIssueComment', 'POST',
+                                                 url, kwargs)
     resp = request.RequestJson(url, method='POST', body=kwargs)
     return resp
   except request.RequestError as e:

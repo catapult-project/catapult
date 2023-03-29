@@ -32,6 +32,18 @@ SWARMING_TASK_PENDING_TIME = 'swarming_task_pending_time'
 SWARMING_TASK_RUNNING_TIME = 'swarming_task_running_time'
 
 
+def PublishPerfIssueServiceRequests(request, method, url, data):
+  data = {
+      k: (v if type(v) in (bytes, str) else str(v)) for k, v in data.items()
+  }
+  label_dict = {'request': request, 'method': method, 'url': url, **data}
+  _PublishTSCloudMetric(
+      project_id=app_identity.get_application_id(),
+      service_name='chromeperf',
+      metric_type='chromeperf/perf_issue_service/request',
+      label_dict=label_dict)
+
+
 def PublishPerfIssueServiceRequestFailures(request, method, url, data):
   data = {
       k: (v if type(v) in (bytes, str) else str(v)) for k, v in data.items()

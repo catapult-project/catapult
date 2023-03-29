@@ -28,8 +28,12 @@ def IssuesGetHandler():
       sort='-id')
   return make_response(response)
 
+@issues.route('/<issue_id>/project/', methods=['GET'])
 @issues.route('/<issue_id>/project/<project_name>', methods=['GET'])
-def IssuesGetByIdHandler(issue_id, project_name):
+def IssuesGetByIdHandler(issue_id, project_name=None):
+  # add handling before the fix on alert_group_workflow is deployed.
+  if not project_name:
+    project_name = 'chromium'
   client = issue_tracker_client.IssueTrackerClient()
   response = client.GetIssue(
       issue_id=issue_id,

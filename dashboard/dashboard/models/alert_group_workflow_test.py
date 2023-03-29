@@ -238,9 +238,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
       self.assertIn('Added 2 regressions to the group',
                     self._issue_tracker.add_comment_kwargs['comment'])
       self.assertIn('4 regressions in test_suite',
-                    self._issue_tracker.add_comment_kwargs['summary'])
-      self.assertIn('sheriff',
-                    self._issue_tracker.add_comment_kwargs['summary'])
+                    self._issue_tracker.add_comment_kwargs['title'])
+      self.assertIn('sheriff', self._issue_tracker.add_comment_kwargs['title'])
       self.assertFalse(self._issue_tracker.add_comment_kwargs['send_email'])
 
   def testAddAnomalies_GroupTriaged_IssueClosed(self):
@@ -290,9 +289,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
       self.assertIn('Added 2 regressions to the group',
                     self._issue_tracker.add_comment_kwargs['comment'])
       self.assertIn('4 regressions in test_suite',
-                    self._issue_tracker.add_comment_kwargs['summary'])
-      self.assertIn('sheriff',
-                    self._issue_tracker.add_comment_kwargs['summary'])
+                    self._issue_tracker.add_comment_kwargs['title'])
+      self.assertIn('sheriff', self._issue_tracker.add_comment_kwargs['title'])
       self.assertFalse(self._issue_tracker.add_comment_kwargs['send_email'])
 
   def testAddAnomalies_GroupTriaged_IssueClosed_LegacyAccount(self):
@@ -342,9 +340,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
       self.assertIn('Added 2 regressions to the group',
                     self._issue_tracker.add_comment_kwargs['comment'])
       self.assertIn('4 regressions in test_suite',
-                    self._issue_tracker.add_comment_kwargs['summary'])
-      self.assertIn('sheriff',
-                    self._issue_tracker.add_comment_kwargs['summary'])
+                    self._issue_tracker.add_comment_kwargs['title'])
+      self.assertIn('sheriff', self._issue_tracker.add_comment_kwargs['title'])
       self.assertFalse(self._issue_tracker.add_comment_kwargs['send_email'])
 
   def testAddAnomalies_GroupTriaged_IssueClosed_AutoBisect(self):
@@ -1883,7 +1880,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                   self._issue_tracker.calls[2]['kwargs']['comment'])
     self.assertCountEqual(
         self._issue_tracker.calls[2]['kwargs'], {
-            'summary':
+            'title':
                 '[%s]: %d regressions in %s' % ('sheriff', 3, 'test_suite'),
             'labels': [
                 'Type-Bug-Regression', 'Chromeperf-Auto-Triaged',
@@ -1951,7 +1948,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                   self._issue_tracker.calls[1]['kwargs']['comment'])
     self.assertCountEqual(
         self._issue_tracker.calls[1]['kwargs'], {
-            'summary':
+            'title':
                 '[%s]: %d regressions in %s' % ('sheriff', 3, 'test_suite'),
             'labels': [
                 'Type-Bug-Regression', 'Chromeperf-Auto-Triaged',
