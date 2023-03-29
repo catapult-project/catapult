@@ -467,7 +467,7 @@ class AlertGroupWorkflow:
         comment=comment,
         title=summary,
         labels=labels,
-        cc_list=cc,
+        cc=cc,
         components=components,
         send_email=False,
     )

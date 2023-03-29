@@ -1810,7 +1810,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                     'Type-Bug-Regression', 'Chromeperf-Auto-Triaged',
                     'Restrict-View-Google', 'Pri-2'
                 ],
-                'cc_list': [],
+                'cc': [],
                 'components': ['Foo>Bar'],
                 'project':
                     'chromium',
@@ -1886,7 +1886,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                 'Type-Bug-Regression', 'Chromeperf-Auto-Triaged',
                 'Restrict-View-Google', 'Pri-2'
             ],
-            'cc_list': [],
+            'cc': [],
             'components': ['Foo>Bar'],
             'comment':
                 mock.ANY,
@@ -1954,7 +1954,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                 'Type-Bug-Regression', 'Chromeperf-Auto-Triaged',
                 'Restrict-View-Google', 'Pri-2'
             ],
-            'cc_list': [],
+            'cc': [],
             'components': ['Foo>Bar'],
             'comment':
                 mock.ANY,
@@ -2048,7 +2048,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                     'Type-Bug-Regression', 'Chromeperf-Auto-Triaged',
                     'Restrict-View-Google', 'Pri-2'
                 ],
-                'cc_list': [],
+                'cc': [],
                 'components': ['Foo>Bar'],
                 'project':
                     'chromium',
