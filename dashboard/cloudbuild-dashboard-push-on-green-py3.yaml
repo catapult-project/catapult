@@ -53,7 +53,7 @@ steps:
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'default',
-    '--splits=cloud-build-cd2103b=1'
+    '--splits=cloud-build-568df55=1'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   id: 'Set traffic for api service'
@@ -81,7 +81,7 @@ steps:
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'pinpoint',
-    '--splits=cloud-build-b793739=1'
+    '--splits=cloud-build-568df55=1'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: '/bin/bash'
