@@ -121,6 +121,8 @@ class LacrosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._ReformatArg(startup_args, 'proxy-bypass-list')
     self._ReformatArg(startup_args, 'user-agent')
 
+    logging.info('Starting Chrome w/ Args: %s', startup_args)
+
     def _Launch():
       # This will block until the launched browser is closed.
       self._RunCommandAndLog(
