@@ -272,14 +272,14 @@ found in the LICENSE file.
                 <commit-details class="column rightPad"
                                 project="{{project}}"
                                 value="{{base_git_hash}}"
-                                label="Base Git Hash/Commit Position"
+                                label="Base Git Hash/Commit Position/-REF for cached REF"
                                 items="[[commitsListItems(commitsList)]]"
                                 headers="[[client.authHeaders]]"
                                 required disabled="[[isBisectJob(comparisonMode)]]"></commit-details>
                 <commit-details class="column rightPad"
                                 project="{{project}}"
                                 value="{{end_git_hash}}"
-                                label="Exp Git Hash/Commit Position"
+                                label="Exp Git Hash/Commit Position/-REF for cached REF"
                                 items="[[commitsListItems(commitsList)]]"
                                 headers="[[client.authHeaders]]"
                                 required disabled="[[isBisectJob(comparisonMode)]]"></commit-details>
@@ -394,15 +394,15 @@ found in the LICENSE file.
         statistic: String,
         base_git_hash: {
           type: String,
-          value: 'HEAD'
+          value: '-HEAD'
         },
         start_git_hash: {
           type: String,
-          value: 'HEAD'
+          value: '-HEAD'
         },
         end_git_hash: {
           type: String,
-          value: 'HEAD'
+          value: '-HEAD'
         },
         submenu: {
           type: Boolean,
