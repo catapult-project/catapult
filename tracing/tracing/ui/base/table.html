@@ -1752,7 +1752,9 @@ Polymer({
         this.cellTitle_, this.ownerDocument);
 
     this.$.title.innerText = '';
-    titleNode.innerHTML = this.shortenColumnName(titleNode.innerHTML);
+    if (titleNode.innerHTML && titleNode.innerHTML.indexOf('<span') === -1) {
+      titleNode.innerHTML = this.shortenColumnName(titleNode.innerHTML);
+    }
 
     Polymer.dom(this.$.title).appendChild(titleNode);
   },
