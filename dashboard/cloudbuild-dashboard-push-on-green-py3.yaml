@@ -81,7 +81,7 @@ steps:
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'pinpoint',
-    '--splits=cloud-build-561451f=1'
+    '--splits=cloud-build-b793739=1'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: '/bin/bash'
