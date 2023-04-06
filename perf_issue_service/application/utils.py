@@ -86,7 +86,7 @@ def BearerTokenAuthorizer(wrapped_handler):
 
   def Wrapper(*args, **kwargs):
     if not AuthorizeBearerToken(flask_request):
-      return make_response('Failed to validate the incoming request.')
+      return make_response('Failed to validate the incoming request.', 403)
     return wrapped_handler(*args, **kwargs)
 
   Wrapper.__name__ = wrapped_handler.__name__
