@@ -51,6 +51,7 @@ class IssueTrackerClient:
           raise
       attempt += 1
 
+  @utils.BearerTokenAuthorizer
   def GetIssuesList(self, project='chromium', **kwargs):
     """Makes a request to the issue tracker to list issues."""
     # Normalize the project in case it is empty or None.
@@ -59,7 +60,7 @@ class IssueTrackerClient:
     response = self._ExecuteRequest(request)
     return response.get('items', []) if response else []
 
-
+  @utils.BearerTokenAuthorizer
   def GetIssue(self, issue_id, project='chromium'):
     """Makes a request to the issue tracker to get an issue."""
     # Normalize the project in case it is empty or None.
@@ -67,7 +68,7 @@ class IssueTrackerClient:
     request = self._service.issues().get(projectId=project, issueId=issue_id)
     return self._ExecuteRequest(request)
 
-
+  @utils.BearerTokenAuthorizer
   def GetIssueComments(self, issue_id, project='chromium'):
     """Gets all the comments for the given issue.
 
@@ -90,7 +91,7 @@ class IssueTrackerClient:
         'updates': r['updates']
     } for r in response.get('items')]
 
-
+  @utils.BearerTokenAuthorizer
   def NewIssue(self,
              title,
              description,
@@ -134,6 +135,7 @@ class IssueTrackerClient:
       return {'error': str(e)}
     return {'error': 'Unknown failure creating issue.'}
 
+  @utils.BearerTokenAuthorizer
   def NewComment(self,
                   issue_id,
                   project='chromium',
