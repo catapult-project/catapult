@@ -436,11 +436,6 @@ tr.b.unittest.testSuite(function() {
         start: 200, cpuStart: 200, end: 220, cpuEnd: 220,
       },
       {
-        title: 'V8.GC_MINOR_MC_EVACUATE',
-        cat: 'v8.gc',
-        start: 300, cpuStart: 300, end: 330, cpuEnd: 330,
-      },
-      {
         title: 'V8.GC_MINOR_MC_SWEEP',
         cat: 'v8.gc',
         start: 400, cpuStart: 400, end: 440, cpuEnd: 440,
@@ -450,7 +445,6 @@ tr.b.unittest.testSuite(function() {
     const expectedAverages = [
       ['v8:gc:cycle:main_thread:young:atomic:mark', 10],
       ['v8:gc:cycle:main_thread:young:atomic:weak', 20],
-      ['v8:gc:cycle:main_thread:young:atomic:compact', 30],
       ['v8:gc:cycle:main_thread:young:atomic:sweep', 40],
     ];
     const metrics = expectedAverages.map(pair => pair[0]);
@@ -850,30 +844,6 @@ tr.b.unittest.testSuite(function() {
         args: {'epoch': 0},
         start: 160, cpuStart: 160, end: 190, cpuEnd: 190,
       },
-      {
-        title: 'V8.GC_MINOR_MARK_COMPACTOR',
-        cat: 'v8',
-        args: {'epoch': 1},
-        start: 200, cpuStart: 200, end: 300, cpuEnd: 300,
-      },
-      {
-        title: 'V8.GC_MINOR_MC_EVACUATE',
-        cat: 'v8',
-        args: {'epoch': 1},
-        start: 210, cpuStart: 210, end: 250, cpuEnd: 250,
-      },
-      {
-        title: 'V8.GC_MINOR_MC_SWEEP',
-        cat: 'v8',
-        args: {'epoch': 1},
-        start: 220, cpuStart: 220, end: 240, cpuEnd: 240,
-      },
-      {
-        title: 'V8.GC_MINOR_MC_SWEEP',
-        cat: 'v8',
-        args: {'epoch': 1},
-        start: 260, cpuStart: 260, end: 290, cpuEnd: 290,
-      },
     ];
     const backgroundSlices = [
     {
@@ -894,30 +864,9 @@ tr.b.unittest.testSuite(function() {
         args: {'epoch': 0},
         start: 160, cpuStart: 160, end: 190, cpuEnd: 190,
       },
-      {
-        title: 'V8.GC_MINOR_MC_BACKGROUND_EVACUATE_COPY',
-        cat: 'v8',
-        args: {'epoch': 1},
-        start: 210, cpuStart: 210, end: 250, cpuEnd: 250,
-      },
-      {
-        title: 'V8.GC_MINOR_MC_BACKGROUND_SWEEPING',
-        cat: 'v8',
-        args: {'epoch': 1},
-        start: 220, cpuStart: 220, end: 240, cpuEnd: 240,
-      },
-      {
-        title: 'V8.GC_MINOR_MC_BACKGROUND_SWEEPING',
-        cat: 'v8',
-        args: {'epoch': 1},
-        start: 260, cpuStart: 260, end: 290, cpuEnd: 290,
-      },
     ];
     const expectedAverages = [
-    ['v8:gc:cycle:full:compact', 40 + 40],
       ['v8:gc:cycle:full:sweep', 30 + 30],
-      ['v8:gc:cycle:young:compact', 40 + 40],
-      ['v8:gc:cycle:young:sweep', 30 + 30],
     ];
     const metrics = expectedAverages.map(pair => pair[0]);
     const histograms = addGarbageCollectionMetrics(
