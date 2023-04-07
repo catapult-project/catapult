@@ -111,6 +111,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       process_info.append(pi)
     return process_info
 
+  @decorators.Cache
   def GetPcSystemType(self):
     # WMIC was introduced in Windows 2000, deprecated in Windows 10 21H1 (build
     # 19043), and removed in Windows 10 22H1. Get-CimInstance is the recommended
