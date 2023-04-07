@@ -26,7 +26,7 @@ def IsStagingEnvironment():
 def AllowList():
   if IsStagingEnvironment():
     return {'chromeperf-stage@appspot.gserviceaccount.com'}
-  return {'chromeperf@appspot.gsserviceaccount.com'}
+  return {'chromeperf@appspot.gserviceaccount.com'}
 
 
 def ServiceAccountHttp(scope=EMAIL_SCOPE, timeout=None):
