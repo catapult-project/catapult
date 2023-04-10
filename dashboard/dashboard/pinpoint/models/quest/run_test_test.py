@@ -183,6 +183,11 @@ class RunTestFullTest(_RunTestExecutionTest):
 
   @mock.patch('dashboard.services.swarming.IsBotAlive',
               mock.MagicMock(return_value=True))
+  @mock.patch('dashboard.services.swarming.Tasks.Count',
+              mock.MagicMock(return_value={'count': 0}))
+  @mock.patch(
+      'dashboard.common.cloud_metric.PublishSwarmingBotPendingTasksMetric',
+      mock.MagicMock())
   def testSuccess(self, swarming_task_result, swarming_tasks_new):
     # Goes through a full run of two Executions.
 
@@ -383,6 +388,11 @@ class RunTestFullTest(_RunTestExecutionTest):
 
   @mock.patch('dashboard.services.swarming.IsBotAlive',
               mock.MagicMock(return_value=True))
+  @mock.patch('dashboard.services.swarming.Tasks.Count',
+              mock.MagicMock(return_value={'count': 0}))
+  @mock.patch(
+      'dashboard.common.cloud_metric.PublishSwarmingBotPendingTasksMetric',
+      mock.MagicMock())
   def testSuccess_Cas(self, swarming_task_result, swarming_tasks_new):
     # Goes through a full run of two Executions.
 
@@ -679,6 +689,11 @@ class BotIdHandlingTest(_RunTestExecutionTest):
 
   @mock.patch('dashboard.services.swarming.IsBotAlive',
               mock.MagicMock(return_value=True))
+  @mock.patch('dashboard.services.swarming.Tasks.Count',
+              mock.MagicMock(return_value={'count': 0}))
+  @mock.patch(
+      'dashboard.common.cloud_metric.PublishSwarmingBotPendingTasksMetric',
+      mock.MagicMock())
   def testSimultaneousExecutions(self, swarming_task_result,
                                  swarming_tasks_new):
     quest = run_test.RunTest('server', DIMENSIONS, ['arg'], _BASE_SWARMING_TAGS,

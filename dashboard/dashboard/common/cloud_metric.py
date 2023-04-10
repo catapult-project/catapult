@@ -56,6 +56,16 @@ def PublishPerfIssueServiceRequestFailures(request, method, url, data):
       label_dict=label_dict)
 
 
+def PublishSwarmingBotPendingTasksMetric(bot_id, pool, count):
+  label_dict = {'bot_id': bot_id, 'pool': pool}
+  _PublishTSCloudMetric(
+      project_id=app_identity.get_application_id(),
+      service_name='pinpoint',
+      metric_type='pinpoint/swarming_job/bot_pending_tasks',
+      label_dict=label_dict,
+      metric_value=count)
+
+
 def PublishPinpointSwarmingPendingMetric(task_id, pinpoint_job_type,
                                          pinpoint_job_id, bot_id, bot_os,
                                          pending_time):

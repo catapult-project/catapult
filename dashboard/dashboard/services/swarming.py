@@ -12,6 +12,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import datetime
 import random
 
 from dashboard.services import request
@@ -134,6 +135,20 @@ class Tasks:
     """
     url = '%s/%s/tasks/new' % (self._server, _API_PATH)
     return request.RequestJson(url, method='POST', body=body)
+
+
+  def Count(self, bot_id, state, pool):
+    """Count the tasks queued on a bot
+
+    Returns {'count': the number of tasks, 'now': the time of the query}
+    """
+    start_time = int(
+        (datetime.datetime.now() - datetime.timedelta(days=7)).timestamp())
+    query = 'start={}&state={}&tags=id%3A{}&tags=pool%3A{}'.format(
+        start_time, state, bot_id, pool)
+    url = '%s/%s/tasks/count?%s' % (self._server, _API_PATH, query)
+
+    return request.RequestJson(url)
 
 
 def _IsAlive(response):
