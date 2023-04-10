@@ -31,6 +31,8 @@ _EXCLUDED_PATHS = (
     r'^dashboard[\\/]dashboard[\\/]api[\\/]examples[\\/].*.js',
     r'^dashboard[\\/]dashboard[\\/]templates[\\/].*',
     r'^dashboard[\\/]dashboard[\\/]sheriff_config[\\/].*_pb2.py$',
+    r'^dashboard[\\/]functions[\\/]cabe_grpc[\\/].*_pb2.py$',
+    r'^dashboard[\\/]functions[\\/]cabe_grpc[\\/].*_pb2_grpc.py$',
     r'^experimental[\\/]heatmap[\\/].*',
     r'^experimental[\\/]trace_on_tap[\\/]third_party[\\/].*',
     r'^experimental[\\/]perf_sheriffing_emailer[\\/].*.js',

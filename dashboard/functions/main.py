@@ -98,6 +98,11 @@ def GetCabeAnalysis(request):
     A statistic map with upper and lower confidence intervals.
   """
 
+  print('Original request: %s' % request)
+  print('Original request.content_type: %s' % request.content_type)
+  req_data = request.get_data(as_text=True)
+  print('Original request data: %s' % req_data)
+
   request_json = request.get_json(silent=True)
 
   print('Original params: %s' % request_json)

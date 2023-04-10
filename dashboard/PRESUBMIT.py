@@ -21,6 +21,7 @@ def CheckChangeOnCommit(input_api, output_api):
 def _CommonChecks(input_api, output_api):
   files_to_skip = input_api.DEFAULT_FILES_TO_SKIP + (
       '.*_pb2.py$',
+      '.*_pb2_grpc.py$',
       '.*bq_export.*',
   )
   results = []
