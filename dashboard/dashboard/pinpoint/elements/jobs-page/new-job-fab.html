@@ -451,6 +451,7 @@ found in the LICENSE file.
         const invalidBenchmark = !this.validBenchmark(this.benchmark);
         const invalidStory = !this.validStoryAndStoryTag(
             this.story, this.storyTags);
+        const invalidBot = !this.validBot(this.configuration);
         if (invalidBenchmark) {
           event.preventDefault();
           this.error = "Benchmark input param is invalid";
@@ -458,6 +459,10 @@ found in the LICENSE file.
         else if (invalidStory) {
           event.preventDefault();
           this.error = "Story and story tag should be valid or empty";
+        }
+        else if (invalidBot) {
+          event.preventDefault();
+          this.error = "Bot invalid. Mac-m1-pro-perf does not support on-demand jobs due to few devices.";
         }
       },
 
@@ -604,6 +609,10 @@ found in the LICENSE file.
           return this.testSuites.includes(benchmark);
         }
         return false;
+      },
+
+      validBot(configuration) {
+        return !configuration.startsWith('mac-m1-pro-perf');
       },
 
       validConfig(config) {
