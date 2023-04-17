@@ -10,6 +10,7 @@ import json
 import logging
 
 from google.appengine.api import datastore_errors
+from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from dashboard import add_point
@@ -17,6 +18,7 @@ from dashboard import find_anomalies
 from dashboard import graph_revisions
 from dashboard import units_to_direction
 from dashboard import sheriff_config_client
+from dashboard import skia_perf_upload
 from dashboard.common import datastore_hooks
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -61,6 +63,13 @@ def AddPointQueuePost():
       return make_response('')
 
   ndb.Future.wait_all(all_put_futures)
+
+  for row in added_rows:
+    taskqueue.add(
+        url='/skia_perf_upload',
+        params={'rows': [row.key.urlsafe()]},
+        queue_name=skia_perf_upload._TASK_QUEUE_NAME,
+    )
 
   client = sheriff_config_client.GetSheriffConfigClient()
   tests_keys = set()

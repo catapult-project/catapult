@@ -13,6 +13,7 @@ import sys
 import uuid
 from six.moves import zip_longest
 
+from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from dashboard import add_point
@@ -20,6 +21,7 @@ from dashboard import add_point_queue
 from dashboard import find_anomalies
 from dashboard import graph_revisions
 from dashboard import sheriff_config_client
+from dashboard import skia_perf_upload
 from dashboard.common import datastore_hooks
 from dashboard.common import histogram_helpers
 from dashboard.common import utils
@@ -34,6 +36,7 @@ from tracing.value.diagnostics import diagnostic_ref
 from tracing.value.diagnostics import reserved_infos
 
 from flask import request, make_response
+
 
 # Note: annotation names should shorter than add_point._MAX_COLUMN_NAME_LENGTH.
 DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES = {
@@ -260,6 +263,14 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
     raise ndb.Return()
 
   yield ndb.put_multi_async(rows) + [r.UpdateParentAsync() for r in rows]
+
+  for row in rows:
+    row_urlsafe = row.key.urlsafe()
+    taskqueue.add(
+        url='/skia_perf_upload',
+        params={'rows': [row_urlsafe]},
+        queue_name=skia_perf_upload._TASK_QUEUE_NAME,
+    )
 
   # Disable this log since it's killing the quota of Cloud Logging API -
   # write requests per minute

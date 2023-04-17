@@ -18,6 +18,7 @@ from google.appengine.ext import ndb
 
 from dashboard import add_histograms_queue
 from dashboard import find_anomalies
+from dashboard import skia_perf_upload
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -83,6 +84,13 @@ def AddHistogramsQueuePost():
   return add_histograms_queue.AddHistogramsQueuePost()
 
 
+@flask_app.route('/skia_perf_upload', methods=['POST'])
+def SkiaPerfUploadPost():
+  return skia_perf_upload.SkiaPerfUploadPost()
+
+
+@mock.patch('dashboard.common.cloud_metric._PublishTSCloudMetric',
+            mock.MagicMock())
 class AddHistogramsQueueTest(testing_common.TestCase):
 
   def setUp(self):
@@ -618,6 +626,8 @@ class AddHistogramsQueueTest(testing_common.TestCase):
                    mock.MagicMock(return_value=None))
 @mock.patch.object(SheriffConfigClient, 'Match',
                    mock.MagicMock(return_value=([], None)))
+@mock.patch('dashboard.common.cloud_metric._PublishTSCloudMetric',
+            mock.MagicMock())
 class AddHistogramsQueueTestWithUploadCompletionToken(testing_common.TestCase):
 
   def setUp(self):
