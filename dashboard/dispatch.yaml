@@ -14,6 +14,8 @@ dispatch:
     service: upload-processing
   - url: "chromeperf.appspot.com/add_point_queue"
     service: upload-processing
+  - url: "chromeperf.appspot.com/skia_perf_upload"
+    service: upload-processing
 
   # We also intercept all the requests headed for the `upload` service for the
   # URLs we care about. This happens when tasks are queued up for Cloud Tasks
@@ -24,6 +26,8 @@ dispatch:
   - url: "*.chromeperf.appspot.com/add_histograms_queue"
     service: upload-processing
   - url: "*.chromeperf.appspot.com/add_point_queue"
+    service: upload-processing
+  - url: "*.chromeperf.appspot.com/skia_perf_upload"
     service: upload-processing
 
   # Upload routing rules
