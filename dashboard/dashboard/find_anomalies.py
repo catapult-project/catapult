@@ -142,8 +142,8 @@ def _ProcessTestStat(test, stat, rows, ref_rows):
     raise ndb.Return(None)
 
   logging.info('Created %d anomalies: %s', len(anomalies), [
-      '(start=%s, end=%s)' % (a.start_revision, a.end_revision)
-      for a in anomalies
+      '(start=%s, end=%s, project=%s)' %
+      (a.start_revision, a.end_revision, a.master_name) for a in anomalies
   ])
   logging.info(' Test: %s', test_key.id())
   logging.info(' Stat: %s', stat)

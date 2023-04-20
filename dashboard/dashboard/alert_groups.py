@@ -25,6 +25,8 @@ def _ProcessAlertGroup(group_key):
 
 
 def _ProcessUngroupedAlerts():
+  ''' Process alerts which need a new group
+  '''
   groups = alert_group.AlertGroup.GetAll()
 
   # TODO(fancl): This is an inefficient algorithm, as it's linear to the number

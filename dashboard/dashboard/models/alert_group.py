@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import logging
 import uuid
 
 from google.appengine.ext import ndb
@@ -121,6 +122,9 @@ class AlertGroup(ndb.Model):
   @classmethod
   def GetGroupsForAnomaly(cls, anomaly_entity, subscriptions):
     names = anomaly_entity.alert_grouping or [anomaly_entity.benchmark_name]
+    if anomaly_entity.alert_grouping:
+      logging.warning('alert_grouping is still in use: %s',
+                      anomaly_entity.alert_grouping)
     group_type = cls.GetType(anomaly_entity)
     # all_possible_groups including all groups for the anomaly. Some of groups
     # may havn't been created yet.
@@ -134,9 +138,11 @@ class AlertGroup(ndb.Model):
         g1 for name in names
         for g1 in cls.Get(name, group_type)
         if any(g1.IsOverlapping(g2) for g2 in all_possible_groups)]
+    # Each of the all_possible_groups should either has overlap with an
+    # existing one, or be created.
     # If any of the group in the all_possible_groups doesn't overlap with any
     # of the existing group, we put it into a special group for creating the
-    # non-existent group in next iteration.
+    # non-existent group in next alert_group_workflow iteration.
     if not existing_groups or not all(
         any(g1.IsOverlapping(g2) for g2 in existing_groups)
         for g1 in all_possible_groups):

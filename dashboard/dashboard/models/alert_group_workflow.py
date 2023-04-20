@@ -285,12 +285,16 @@ class AlertGroupWorkflow:
           abs(a.absolute_delta / float(a.median_before_anomaly))
           if a.median_before_anomaly != 0. else float('Inf'))
 
+    # anomaly.groups are updated in upload-processing. Here we update
+    # the group.anomalies
     added = self._UpdateAnomalies(update.anomalies)
 
     if update.issue:
       group_merged = self._UpdateCanonicalGroup(update.anomalies,
                                                 update.canonical_group)
+      # Update the group status.
       self._UpdateStatus(update.issue)
+      # Update the anomalies to associate with an issue.
       self._UpdateAnomaliesIssues(update.anomalies, update.canonical_group)
 
       # Current group is a duplicate.
@@ -382,7 +386,7 @@ class AlertGroupWorkflow:
     new_regressions, subscriptions = self._GetRegressions(added)
     all_regressions, _ = self._GetRegressions(anomalies)
 
-    # Only update issue if there is at least one regression
+    # Only update issue if there is at least one new regression
     if not new_regressions:
       return False
 

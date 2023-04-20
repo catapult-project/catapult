@@ -20,7 +20,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import six.moves.cPickle as cPickle
+import pickle
 
 from google.appengine.ext import ndb
 
@@ -119,7 +119,7 @@ class MultipartEntity(ndb.Model):
     ]
     part_entities = yield ndb.get_multi_async(part_keys)
     serialized = b''.join(p.value for p in part_entities if p is not None)
-    self.SetData(cPickle.loads(serialized))
+    self.SetData(pickle.loads(serialized))
 
   @classmethod
   @ndb.tasklet
@@ -165,7 +165,7 @@ def _Serialize(value):
     A list of string representation of the value that has been pickled and split
     into _CHUNK_SIZE.
   """
-  serialized = cPickle.dumps(value, 2)
+  serialized = pickle.dumps(value, 2)
   length = len(serialized)
   values = []
   for i in range(0, length, _CHUNK_SIZE):
