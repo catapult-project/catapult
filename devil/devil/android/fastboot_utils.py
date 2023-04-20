@@ -248,7 +248,7 @@ class FastbootUtils(object):
       if partitions[partition].restart:
         self.Reboot(bootloader=True)
 
-  def FlashDevice(self, directory, wipe=False):
+  def FlashDevice(self, directory, wipe=False, wait_for_reboot=False):
     """Flash device with build in |directory|.
 
     Directory must contain bootloader, radio, and other necessary files from
@@ -263,6 +263,8 @@ class FastbootUtils(object):
       directory: Directory with build files.
       wipe: If set to true, wipe the device data by erasing "userdata"
         partitions and flash partitions in _WIPE_PARTITIONS.
+      wait_for_reboot: If set to true, wait for the device to be online after
+        sending reboot command.
     """
 
     # If a device is wiped, then it will no longer have adb keys so it cannot be
@@ -285,4 +287,4 @@ class FastbootUtils(object):
       logger.info('Erasing "userdata" partition.')
       self.fastboot.Erase('userdata')
       self._FlashPartitions(_WIPE_PARTITIONS, directory)
-    self.Reboot(wait_for_reboot=not wipe)
+    self.Reboot(wait_for_reboot=wait_for_reboot)
