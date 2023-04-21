@@ -28,6 +28,7 @@ import mock
 class LinuxBasedInterfaceHelperMethodsTest(unittest.TestCase):
 
   @mock.patch.object(cmd_util, 'GetAllCmdOutput')
+  @decorators.Enabled('linux', 'chromeos')
   def testGetAllCmdOutputCallsAndDecodes(self, mock_get_output):
     mock_stdout = mock.create_autospec(bytes, instance=True)
     mock_stdout.decode.return_value = 'decoded stdout'
@@ -52,6 +53,7 @@ class LinuxBasedInterfaceHelperMethodsTest(unittest.TestCase):
     mock_get_output.assert_called_once_with(['forward', 'me'], 'some/dir', True)
 
   @mock.patch.object(cmd_util, 'StartCmd')
+  @decorators.Enabled('linux', 'chromeos')
   def testStartCmdForwardsArgs(self, mock_start):
     ret = mock.Mock()
     mock_start.return_value = ret
@@ -75,6 +77,7 @@ class LinuxBasedInterfaceHelperMethodsTest(unittest.TestCase):
                                        stderr=None,
                                        env=None)
 
+  @decorators.Enabled('linux', 'chromeos')
   def testUnquoteRemovesExternalQuotes(self):
     # For some reason, this use-case is supported.
     self.assertEqual(linux_based_interface._Unquote(0), 0)
@@ -100,6 +103,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
 
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'OpenConnection')
+  @decorators.Enabled('linux', 'chromeos')
   def testLocal(self, unused_mock):
     with self._GetLocalLBI() as lbi:
       self.assertTrue(lbi.local)
@@ -107,6 +111,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
 
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'OpenConnection')
+  @decorators.Enabled('linux', 'chromeos')
   def testLocalIsFalseIfHostname(self, unused_mock):
     with self._GetLBI(remote='some address') as lbi:
       self.assertFalse(lbi.local)
@@ -114,6 +119,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
 
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'OpenConnection')
+  @decorators.Enabled('linux', 'chromeos')
   def testCallsOpenConnectionOnInitRemote(self, mock_open):
     with self._GetLBI(remote='address'):
       mock_open.assert_called_once_with()
@@ -121,6 +127,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
   @mock.patch.object(subprocess, 'call')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'FormSSHCommandLine')
+  @decorators.Enabled('linux', 'chromeos')
   def testOpenConnection(self, mock_call, mock_form_ssh):
     with self._GetLocalLBI() as lbi:
       # Check that local will return immediately.
@@ -146,6 +153,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
 
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'OpenConnection')
+  @decorators.Enabled('linux', 'chromeos')
   def testFormSSHCommandLineLocal(self, unused_mock):
     with self._GetLocalLBI() as lbi:
       self.assertEqual(
@@ -153,6 +161,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
 
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'OpenConnection')
+  @decorators.Enabled('linux', 'chromeos')
   def testFormSSHCommandLineRemote(self, unused_conn):
     with self._GetLBI(remote='address') as lbi:
       lbi._DEFAULT_SSH_CONNECTION_TIMEOUT = 42
@@ -198,6 +207,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
 
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'OpenConnection')
+  @decorators.Enabled('linux', 'chromeos')
   def testRemoveSSHWarnings(self, unused_mock):
     with self._GetLBI() as lbi:
       filter_string = ('Warning: Permanently added something to '
@@ -222,6 +232,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      '_RemoveSSHWarnings')
   @mock.patch.object(linux_based_interface, 'GetAllCmdOutput')
+  @decorators.Enabled('linux', 'chromeos')
   def testRunCmdOnDeviceUsesArgsCorrectly(self, mock_get_output,
                                           mock_remove_warnings, mock_form_ssh,
                                           unused_mock):
@@ -251,6 +262,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
                      'OpenConnection')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'RunCmdOnDevice')
+  @decorators.Enabled('linux', 'chromeos')
   def testTryLoginRunsEcho(self, mock_run_cmd, unused_mock):
     with self._GetLBI(remote='address') as lbi:
       lbi._REMOTE_USER = 'foo_user'
@@ -268,6 +280,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
                      'OpenConnection')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'RunCmdOnDevice')
+  @decorators.Enabled('linux', 'chromeos')
   def testTryLoginErrors(self, mock_run_cmd, unused_mock):
     with self._GetLBI(remote='address') as lbi:
       mock_run_cmd.return_value = ('', 'random error')
@@ -298,6 +311,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
                      'OpenConnection')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'RunCmdOnDevice', return_value=('',''))
+  @decorators.Enabled('linux', 'chromeos')
   def testTestFileAssertAnExistenceCondition(self, unused_mock_run,
                                              unused_mock):
     with self._GetLBI(remote='address') as lbi:
@@ -309,6 +323,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
                      'OpenConnection')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'RunCmdOnDevice', return_value=('', 'stderr'))
+  @decorators.Enabled('linux', 'chromeos')
   def testTestFileThrowsErrorOnFailure(self, unused_mock_run, unused_mock):
     with self._GetLBI(remote='address') as lbi:
       self.assertRaises(OSError, lbi.TestFile, 'foo', exists=True)
@@ -329,6 +344,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
                      'OpenConnection')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'RunCmdOnDevice')
+  @decorators.Enabled('linux', 'chromeos')
   def testTestFileUsesCorrectConditions(self, mock_run, unused_mock):
     with self._GetLBI(remote='address') as lbi:
       mock_run.return_value = '1\n', ''
@@ -351,6 +367,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
                      'OpenConnection')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'RunCmdOnDevice')
+  @decorators.Enabled('linux', 'chromeos')
   def testFileExistsOnDevice(self, mock_run_cmd, unused_mock):
     with self._GetLBI(remote='address') as lbi:
       mock_run_cmd.return_value = ('1\n', '')
@@ -379,6 +396,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      '_FormSCPToRemote')
   @mock.patch.object(os.path, 'exists', return_value=True)
+  @decorators.Enabled('linux', 'chromeos')
   def testPushFileLocal(self, unused_mock_exists, mock_form_scp, mock_run_cmd,
                         unused_mock):
     with self._GetLocalLBI() as lbi:
@@ -404,6 +422,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
                      '_RemoveSSHWarnings')
   @mock.patch.object(os.path, 'abspath')
   @mock.patch.object(os.path, 'exists')
+  @decorators.Enabled('linux', 'chromeos')
   def testPushFileRemote(self, mock_exists,
                          mock_abspath, mock_ssh_warnings, mock_form_scp,
                          mock_run_cmd, unused_mock):
@@ -437,6 +456,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
                      'OpenConnection')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface, 'PushFile')
   @mock.patch.object(tempfile, 'NamedTemporaryFile')
+  @decorators.Enabled('linux', 'chromeos')
   def testPushContents(self, mock_tempfile, mock_push_file, unused_mock):
     with self._GetLocalLBI() as lbi:
 
@@ -463,6 +483,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
   @mock.patch.object(linux_based_interface, 'GetAllCmdOutput')
   @mock.patch.object(os.path, 'abspath')
   @mock.patch.object(shutil, 'copyfile')
+  @decorators.Enabled('linux', 'chromeos')
   def testGetFileLocal(self, mock_copyfile, mock_abspath, mock_cmd, mock_scp,
                        unused_mock):
     with self._GetLocalLBI() as lbi:
@@ -507,6 +528,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
   @mock.patch.object(linux_based_interface, 'GetAllCmdOutput')
   @mock.patch.object(os.path, 'abspath')
   @mock.patch.object(shutil, 'copyfile')
+  @decorators.Enabled('linux', 'chromeos')
   def testGetFileRemote(self, mock_copyfile, mock_abspath, mock_cmd, mock_scp,
                         unused_mock):
     with self._GetLBI(remote='address') as lbi:
@@ -562,6 +584,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
   @mock.patch.object(linux_based_interface.LinuxBasedInterface, 'GetFile')
   @mock.patch.object(tempfile, 'NamedTemporaryFile')
   @mock.patch.object(builtins, 'open')
+  @decorators.Enabled('linux', 'chromeos')
   def testGetFileContents(self, mock_open, mock_named_temp, mock_getfile,
                           unused_mock):
     with self._GetLBI(remote='address') as lbi:
@@ -587,6 +610,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'RunCmdOnDevice')
   @mock.patch.object(time, 'time')
+  @decorators.Enabled('linux', 'chromeos')
   def testGetDeviceHostClockOffset(self, mock_time, mock_run_cmd, unused_mock):
     with self._GetLocalLBI() as lbi:
       self.assertIsNone(lbi._device_host_clock_offset)
@@ -609,6 +633,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
                      'OpenConnection')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'RunCmdOnDevice')
+  @decorators.Enabled('linux', 'chromeos')
   def testHasSystemD(self, mock_cmd, unused_mock):
     with self._GetLocalLBI() as lbi:
       mock_cmd.return_value = 'ignored', ''
@@ -626,6 +651,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
                      'OpenConnection')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'RunCmdOnDevice')
+  @decorators.Enabled('linux', 'chromeos')
   def testListProcesses(self, mock_cmd, unused_mock):
     ps_output = """
     1       0 /sbin/init splash               S
@@ -660,6 +686,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
   @mock.patch.object(linux_based_interface.LinuxBasedInterface, 'ListProcesses')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'RunCmdOnDevice')
+  @decorators.Enabled('linux', 'chromeos')
   def testKillAllMatching(self, mock_run_cmd, mock_list, unused_mock):
     with self._GetLocalLBI() as lbi:
       mock_list.return_value = [
@@ -705,6 +732,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'RunCmdOnDevice')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface, 'HasSystemd')
+  @decorators.Enabled('linux', 'chromeos')
   def testIsServiceRunning(self, mock_systemd, mock_cmd, unused_mock):
     with self._GetLocalLBI() as lbi:
       # Test default case.
@@ -737,6 +765,7 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
                      'OpenConnection')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'RunCmdOnDevice')
+  @decorators.Enabled('linux', 'chromeos')
   def testGetRemotePort(self, mock_cmd, unused_mock):
     netstat_output = ("""Active Internet connections (servers and established)
 Proto Recv-Q Send-Q Local Address           Foreign Address         State
@@ -765,6 +794,7 @@ tcp        0      0 127.0.0.1:9557          0.0.0.0:*               LISTEN
                      'OpenConnection')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'RunCmdOnDevice')
+  @decorators.Enabled('linux', 'chromeos')
   def testIsHTTPServerRunningOnPort(self, mock_cmd, unused_mock):
     with self._GetLocalLBI() as lbi:
       mock_cmd.return_value = 'some stdout from wget', 'Connection refused'
@@ -786,10 +816,14 @@ tcp        0      0 127.0.0.1:9557          0.0.0.0:*               LISTEN
                      'OpenConnection')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'RunCmdOnDevice')
+  @mock.patch.object(linux_based_interface.LinuxBasedInterface,
+                     'CanTakeScreenshot', return_value=True)
   @mock.patch.object(linux_based_interface.LinuxBasedInterface, 'GetFile')
+  @decorators.Enabled('linux', 'chromeos')
   def testTakeScreenshotFailsIfBadStdout(
       self,
       unused_mock_get_file,
+      unused_mock_take_screenshot,
       mock_run_cmd,
       unused_mock,
   ):
@@ -812,6 +846,7 @@ tcp        0      0 127.0.0.1:9557          0.0.0.0:*               LISTEN
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'CanTakeScreenshot', return_value=True)
   @mock.patch.object(linux_based_interface.LinuxBasedInterface, 'GetFile')
+  @decorators.Enabled('linux', 'chromeos')
   def testTakeScreenshotLocallyMakesDirectoryAndCopiesFile(
       self,
       unused_mock_get_file,
@@ -848,6 +883,7 @@ tcp        0      0 127.0.0.1:9557          0.0.0.0:*               LISTEN
   @mock.patch.object(linux_based_interface.LinuxBasedInterface, 'GetFile')
   @mock.patch.object(os.path, 'exists')
   @mock.patch.object(os, 'makedirs')
+  @decorators.Enabled('linux', 'chromeos')
   def testTakeScreenshotRemoteMakesDirectoryAndCopiesFile(
       self, mock_mkdirs, mock_exists, mock_get_file,
       unused_mock_take_screenshot, mock_run_cmd, unused_mock):
@@ -891,6 +927,7 @@ tcp        0      0 127.0.0.1:9557          0.0.0.0:*               LISTEN
                      'RunCmdOnDevice')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'FileExistsOnDevice')
+  @decorators.Enabled('linux', 'chromeos')
   def testTakeScreenshotWithPrefixSucceeds(self, mock_file_exists, mock_run_cmd,
                                            mock_screenshot, unused_mock):
     with self._GetLocalLBI() as lbi:
@@ -912,6 +949,7 @@ tcp        0      0 127.0.0.1:9557          0.0.0.0:*               LISTEN
                      'RunCmdOnDevice')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'FileExistsOnDevice')
+  @decorators.Enabled('linux', 'chromeos')
   def testTakeScreenshotWithPrefixFailsIfFull(self, mock_file_exists,
                                               mock_run_cmd, mock_screenshot,
                                               unused_mock):
@@ -936,6 +974,7 @@ tcp        0      0 127.0.0.1:9557          0.0.0.0:*               LISTEN
                      'OpenConnection')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'RunCmdOnDevice')
+  @decorators.Enabled('linux', 'chromeos')
   def testGetArchName(self, mock_cmd, unused_mock):
     with self._GetLocalLBI() as lbi:
       mock_cmd.return_value = 'foo-arch\n', 'ignored stderr'
@@ -952,6 +991,7 @@ tcp        0      0 127.0.0.1:9557          0.0.0.0:*               LISTEN
                      'OpenConnection')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'GetFileContents')
+  @decorators.Enabled('linux', 'chromeos')
   def testLsbReleaseValue(self, mock_contents, unused_mock):
     example_contents = """DISTRIB_CODENAME=buzzian
 DISTRIB_DESCRIPTION="Debian GNU/Linux buzzian"
@@ -979,6 +1019,7 @@ ANOTHER_PROPERTY=foobuntu
                      'OpenConnection')
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
                      'CloseConnection')
+  @decorators.Enabled('linux', 'chromeos')
   def testOpenAndCloseAreCalled(self, mock_close, mock_open):
     with self._GetLBI(remote='address'):
       mock_open.assert_called_once_with()
@@ -1001,6 +1042,7 @@ ANOTHER_PROPERTY=foobuntu
                      'GetFile')
   @mock.patch.object(os, 'utime')
   @mock.patch.object(os.path, 'exists')
+  @decorators.Enabled('linux', 'chromeos')
   def testPullDumps(
       self, mock_local_exists, mock_utime, mock_get_file, mock_file_exists,
       mock_is_dir, mock_offset, mock_cmd, unused_mock_open):
