@@ -34,6 +34,7 @@ from google.appengine.ext import ndb
 from dashboard import pinpoint_request
 from dashboard import sheriff_config_client
 from dashboard import revision_info_client
+from dashboard.common import cloud_metric
 from dashboard.common import file_bug
 from dashboard.common import utils
 from dashboard.models import alert_group
@@ -524,6 +525,10 @@ class AlertGroupWorkflow:
     components = list(
         self._GetComponentsFromSubscriptions(subscriptions)
         | self._GetComponentsFromRegressions(regressions))
+    if len(components) != 1:
+      logging.warning('Invalid component count is found for bug update: %s',
+                      components)
+      cloud_metric.PublistPerfIssueInvalidComponentCount(len(components))
     cc = list(set(e for s in subscriptions for e in s.bug_cc_emails))
     labels = list(
         set(l for s in subscriptions for l in s.bug_labels)
@@ -541,10 +546,12 @@ class AlertGroupWorkflow:
 
   def _GetComponentsFromSubscriptions(self, subscriptions):
     components = set(c for s in subscriptions for c in s.bug_components)
-    if self._group.bug and components:
+    if components:
+      bug_id = self._group.bug or 'New'
+      subsciption_names = [s.name for s in subscriptions]
       logging.debug(
-          'Components added from subscriptions. Bug: %s, components: %s',
-          self._group.bug.bug_id, components)
+          'Components added from subscriptions. Bug: %s, subscriptions: %s, components: %s',
+          bug_id, subsciption_names, components)
     return components
 
   def _GetComponentsFromRegressions(self, regressions):
@@ -557,10 +564,12 @@ class AlertGroupWorkflow:
         components.append(component[0])
       elif component:
         components.append(component)
-    if self._group.bug and components:
+    if components:
+      bug_id = self._group.bug or 'New'
+      benchmarks = [r.benchmark_name for r in regressions]
       logging.debug(
-          'Components added from regressions. Bug: %s, components: %s',
-          self._group.bug.bug_id, components)
+          'Components added from benchmark.Info. Bug: %s, benchmarks: %s, components: %s',
+          bug_id, benchmarks, components)
     return set(components)
 
   def _GetTemplateArgs(self, regressions):
