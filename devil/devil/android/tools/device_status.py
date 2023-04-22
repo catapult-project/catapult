@@ -280,7 +280,7 @@ def main():
 
   # Dump the device statuses to JSON.
   if args.json_output:
-    with open(args.json_output, 'wb') as f:
+    with open(args.json_output, 'w') as f:
       f.write(
           json.dumps(
               statuses, indent=4, sort_keys=True, separators=(',', ': ')))
