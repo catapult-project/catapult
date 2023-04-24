@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from flask import Flask
 import itertools
 import json
+import mock
 import unittest
 
 import six
@@ -25,6 +26,7 @@ from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import page_state
 from dashboard.models.subscription import Subscription
+from dashboard.services import perf_issue_service_client
 
 flask_app = Flask(__name__)
 
@@ -231,6 +233,8 @@ class GroupReportTest(testing_common.TestCase):
     error = self.GetJsonValue(response, 'error')
     self.assertEqual('Invalid bug ID "chromium:foo".', error)
 
+  @mock.patch.object(perf_issue_service_client, 'GetAnomaliesByAlertGroupID',
+                     mock.MagicMock(return_value=[1, 2, 3]))
   def testPost_WithGroupIdParameter(self):
     subscription = self._Subscription()
     test_keys = self._AddTests()
