@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
+import logging
 import six
 
 from google.appengine.ext import ndb
@@ -14,11 +15,13 @@ from google.appengine.ext import ndb
 from dashboard import alerts
 from dashboard import chart_handler
 from dashboard import update_test_suites
+from dashboard.common import cloud_metric
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import page_state
+from dashboard.services import perf_issue_service_client
 
 from flask import request, make_response
 
@@ -200,6 +203,13 @@ def GetAlertsForGroupID(group_id):
   if not group:
     raise request_handler.InvalidInputError('Invalid AlertGroup ID "%s".' %
                                             group_id)
+  anomalies = perf_issue_service_client.GetAnomaliesByAlertGroupID(group_id)
+  anomaly_keys = [ndb.Key('Anomaly', a) for a in anomalies]
+  if sorted(anomaly_keys) != sorted(group.anomalies):
+    logging.warning('Imparity found for GetAnomaliesByAlertGroupID. %s, %s',
+                    group.anomalies, anomaly_keys)
+    cloud_metric.PublishPerfIssueServiceGroupingImpariry(
+        'GetAnomaliesByAlertGroupID')
   return ndb.get_multi(group.anomalies)
 
 

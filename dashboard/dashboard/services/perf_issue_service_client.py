@@ -19,6 +19,7 @@ else:
   _SERVICE_URL = 'https://perf-issue-service-dot-chromeperf.appspot.com/'
 
 _ISSUES_PERFIX = 'issues/'
+_ALERT_GROUP_PREFIX = 'alert_groups/'
 
 
 def GetIssues(**kwargs):
@@ -122,4 +123,22 @@ def PostIssueComment(issue_id, project_name='chromium', **kwargs):
     logging.error(
         '[PerfIssueService] Error requesting new issue comment (id: %s, project: %s data: %s): %s',
         issue_id, project_name, kwargs, str(e))
+    return []
+
+
+def GetAnomaliesByAlertGroupID(group_id):
+  url = _SERVICE_URL + _ALERT_GROUP_PREFIX
+  url += '%s/anomalies' % group_id
+  try:
+    cloud_metric.PublishPerfIssueServiceRequests('GetAnomaliesByAlertGroupID',
+                                                 'GET', url,
+                                                 {'group_id': group_id})
+    resp = request.RequestJson(url, method='GET')
+    return resp
+  except request.RequestError as e:
+    cloud_metric.PublishPerfIssueServiceRequestFailures(
+        'GetAnomaliesByAlertGroupID', 'GET', url, {'group_id': group_id})
+    logging.warning(
+        '[PerfIssueService] Error requesting anomalies by group id: %s. %s',
+        group_id, str(e))
     return []
