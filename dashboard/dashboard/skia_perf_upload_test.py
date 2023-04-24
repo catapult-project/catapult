@@ -8,7 +8,6 @@ from __future__ import absolute_import
 from flask import Flask
 import json
 import mock
-import six
 import unittest
 import webtest
 
@@ -114,7 +113,7 @@ class SkiaPerfUploadTest(testing_common.TestCase):
         }
     }
 
-    params = {'rows': [six.ensure_str(row.key.urlsafe()) for row in rows]}
+    params = {'rows': [row.key.urlsafe().decode() for row in rows]}
 
     self.testapp.post('/skia_perf_upload', json.dumps(params))
 

@@ -68,7 +68,7 @@ def AddPointQueuePost():
     if hasattr(row, 'r_commit_pos'):
       taskqueue.add(
           url='/skia_perf_upload',
-          params={'rows': [row.key.urlsafe()]},
+          payload=json.dumps({'rows': [row.key.urlsafe().decode()]}),
           queue_name=skia_perf_upload._TASK_QUEUE_NAME,
       )
 
