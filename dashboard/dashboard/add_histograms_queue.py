@@ -265,12 +265,13 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
   yield ndb.put_multi_async(rows) + [r.UpdateParentAsync() for r in rows]
 
   for row in rows:
-    row_urlsafe = row.key.urlsafe()
-    taskqueue.add(
-        url='/skia_perf_upload',
-        params={'rows': [row_urlsafe]},
-        queue_name=skia_perf_upload._TASK_QUEUE_NAME,
-    )
+    if hasattr(row, 'r_commit_pos'):
+      row_urlsafe = row.key.urlsafe()
+      taskqueue.add(
+          url='/skia_perf_upload',
+          params={'rows': [row_urlsafe]},
+          queue_name=skia_perf_upload._TASK_QUEUE_NAME,
+      )
 
   # Disable this log since it's killing the quota of Cloud Logging API -
   # write requests per minute

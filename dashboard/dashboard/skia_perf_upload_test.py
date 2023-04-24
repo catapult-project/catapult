@@ -34,13 +34,6 @@ class SkiaPerfUploadTest(testing_common.TestCase):
   def setUp(self):
     super().setUp()
     self.testapp = webtest.TestApp(flask_app)
-    testing_common.SetIsInternalUser('foo@bar.com', True)
-    testing_common.SetIsAdministrator('foo@bar.com', True)
-    self.SetCurrentUser('foo@bar.com', is_admin=True)
-
-    oauth_patcher = mock.patch.object(api_auth, 'oauth')
-    self.addCleanup(oauth_patcher.stop)
-    SetInternalUserOAuth(oauth_patcher.start())
 
   @mock.patch('dashboard.common.cloud_metric._PublishTSCloudMetric',
               mock.MagicMock())

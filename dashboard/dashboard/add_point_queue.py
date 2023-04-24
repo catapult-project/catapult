@@ -65,11 +65,12 @@ def AddPointQueuePost():
   ndb.Future.wait_all(all_put_futures)
 
   for row in added_rows:
-    taskqueue.add(
-        url='/skia_perf_upload',
-        params={'rows': [row.key.urlsafe()]},
-        queue_name=skia_perf_upload._TASK_QUEUE_NAME,
-    )
+    if hasattr(row, 'r_commit_pos'):
+      taskqueue.add(
+          url='/skia_perf_upload',
+          params={'rows': [row.key.urlsafe()]},
+          queue_name=skia_perf_upload._TASK_QUEUE_NAME,
+      )
 
   client = sheriff_config_client.GetSheriffConfigClient()
   tests_keys = set()

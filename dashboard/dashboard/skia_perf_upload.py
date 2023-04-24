@@ -13,13 +13,12 @@ import time
 
 from google.appengine.ext import ndb
 
-from dashboard.api import api_auth
-from dashboard.api import api_request_handler
 from dashboard.common import cloud_metric
+from dashboard.common import datastore_hooks
 from dashboard.common import utils
 from dashboard.models import anomaly
 
-from flask import request
+from flask import request, make_response
 
 _TASK_QUEUE_NAME = 'skia-perf-upload-queue'
 
@@ -27,16 +26,7 @@ PUBLIC_BUCKET_NAME = 'chrome-perf-public'
 INTERNAL_BUCKET_NAME = 'chrome-perf-non-public'
 
 
-def _CheckUser():
-  if utils.IsDevAppserver():
-    return
-  api_auth.Authorize()
-  if not utils.IsAdministrator():
-    raise api_request_handler.ForbiddenError()
-
-
 @cloud_metric.APIMetric("chromeperf", "/skia_perf_upload")
-@api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
 def SkiaPerfUploadPost():
   """
   Upload a list of ChromePerf Rows to Skia Perf.
@@ -44,6 +34,7 @@ def SkiaPerfUploadPost():
   Args:
     Rows: A list of urlsafe encoded Rows.
   """
+  datastore_hooks.SetPrivilegedRequest()
   try:
     row_ids = json.loads(request.get_data())['rows']
   except ValueError:
@@ -64,7 +55,7 @@ def SkiaPerfUploadPost():
                    str(e))
       cloud_metric.PublishSkiaUploadResult(test_path, str(e), 'Failed')
       raise RuntimeError from e
-  return {}
+  return make_response('')
 
 
 def UploadRow(row):
