@@ -94,6 +94,8 @@ found in the LICENSE file.
 
       #initial_attempt_count {
         float: right;
+        width: 10%;
+        margin-top: -1.5em;
       }
 
       #initial_attempt_count_label {
@@ -171,11 +173,11 @@ found in the LICENSE file.
             <paper-radio-group id="comparison_mode" selected="{{comparisonMode}}">
               <paper-radio-button class="radio" name="try" disabled="[[hasJob(job)]]">Try Job</paper-radio-button>
               <paper-radio-button class="radio" name="performance" disabled="[[hasJob(job)]]">Bisect</paper-radio-button>
-              <input hidden="[[isBisectJob(comparisonMode)]]"
+              <paper-input hidden="[[isBisectJob(comparisonMode)]]"
                      id="initial_attempt_count"
                      name="initial_attempt_count"
-                     value="{{initial_attempt_count}}"
-                     label="Attempt Count"/>
+                     placeholder="[[defaultAttemptCount(job, configuration, benchmark)]]"
+                     value="{{initial_attempt_count}}"></paper-input>
               <label hidden="[[isBisectJob(comparisonMode)]]"
                      id="initial_attempt_count_label"
                      for="initial_attempt_count">Attempt Count: <attempt-count-help></attempt-count-help></label>
@@ -351,6 +353,8 @@ found in the LICENSE file.
 
     const _STATISTICS = ['avg', 'count', 'max', 'min', 'std', 'sum'];
 
+    const _DEFAULT_ATTEMPT_COUNT = 10
+
     Polymer({
       is: 'new-job-fab',
 
@@ -387,7 +391,7 @@ found in the LICENSE file.
         extra_test_args: String,
         initial_attempt_count: {
           type: Number,
-          value: 10
+          value: null
         },
         base_patch: String,
         experiment_patch: String,
@@ -433,7 +437,6 @@ found in the LICENSE file.
         'testSuitesChanged(testSuites)',
         'benchmarkConfigChanged(benchmarkConfig)',
         'benchmarkChanged(benchmark)',
-        'jobConfigurationBenchmarkChanged(job, configuration, benchmark)',
         'jobChanged(job)',
       ],
 
@@ -468,6 +471,9 @@ found in the LICENSE file.
       },
 
       submit() {
+        if (this.initial_attempt_count == null) {
+          this.initial_attempt_count = this.defaultAttemptCount(this.job, this.configuration, this.benchmark)
+        }
         this.$.try_form.submit();
       },
 
@@ -577,34 +583,6 @@ found in the LICENSE file.
         this.benchmarkConfig = null;
       },
 
-      jobConfigurationBenchmarkChanged(job, configuration, benchmark) {
-        // recommended iterations for press benchmarks on Mac M1 (crbug/1416374)
-        // set to 10 if not a try job
-        if (job != null && job.arguments.comparison_mode != 'try'){
-          this.initial_attempt_count = 10;
-          return;
-        }
-        // restarting jobs should default to what they were run on
-        if (job != null &&
-              configuration == job.arguments.configuration &&
-              benchmark == job.arguments.benchmark) {
-            this.initial_attempt_count = job.arguments.initial_attempt_count;
-            return;
-        }
-        if (configuration.startsWith('mac-m1_mini_2020')) {
-          if (benchmark.toLowerCase() == 'speedometer2' || benchmark.toLowerCase() == 'jetstream2') {
-            this.initial_attempt_count = 30;
-          // MotionMark
-          } else if (benchmark.toLowerCase().startsWith('rendering.desktop')) {
-            this.initial_attempt_count = 60;
-          } else {
-            this.initial_attempt_count = 10;
-          }
-        } else {
-          this.initial_attempt_count = 10;
-        }
-      },
-
       commitsParams(job) {
         return {
           repository: job.arguments.project ? job.arguments.project : 'chromium',
@@ -620,6 +598,26 @@ found in the LICENSE file.
         else {
           return "https://chromeperf.appspot.com" + api;
         }
+      },
+
+      defaultAttemptCount(job, configuration, benchmark) {
+        // restarting jobs should default to what they were run on
+        if (job != null &&
+              configuration == job.arguments.configuration &&
+              benchmark == job.arguments.benchmark) {
+            return job.arguments.initial_attempt_count;
+        }
+        // press benchmark on mac m1 iteration defaults
+        if (configuration.startsWith('mac-m1_mini_2020')) {
+          if (benchmark.toLowerCase() == 'speedometer2' || benchmark.toLowerCase() == 'jetstream2') {
+            return 30;
+          // MotionMark
+          } else if (benchmark.toLowerCase().startsWith('rendering.desktop')) {
+            return 60;
+          }
+        }
+        // otherwise return default for all other configurations + benchmarks
+        return _DEFAULT_ATTEMPT_COUNT
       },
 
       describeParams(benchmark) {
