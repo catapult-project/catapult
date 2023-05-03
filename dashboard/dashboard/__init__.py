@@ -38,6 +38,7 @@ DASHBOARD_FILES = [
     'queue.yaml',
     'requirements.txt',
     'scripts.yaml',
+    'skia-bridge.yaml',
     'upload-processing.yaml',
     'upload.yaml',
 ]
