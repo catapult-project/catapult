@@ -12,7 +12,7 @@ entrypoint: gunicorn -b:$PORT dashboard.skia_bridge.main:APP
 automatic_scaling:
   min_num_instances: 4
   max_num_instances: 20
-  cool_down_period_Sec: 180
+  cool_down_period_sec: 180
   cpu_utilization:
     target_utilization: 0.6
 
