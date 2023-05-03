@@ -9,6 +9,9 @@ runtime_config:
 
 entrypoint: gunicorn -b:$PORT main:APP
 
+automatic_scaling:
+  min_num_instances: 5
+
 readiness_check:
   path: "/"
   check_interval_sec: 5
