@@ -28,6 +28,20 @@ class AnomalyData:
   end_revision:int
   id:int
   timestamp:datetime.datetime
+  bug_id:int
+  is_improvement:bool
+  recovered:bool
+  state:str
+  statistic:str
+  units:str
+  degrees_of_freedom:float
+  median_before_anomaly:float
+  median_after_anomaly:float
+  p_value:float
+  segment_size_after:int
+  segment_size_before:int
+  std_dev_before_anomaly:float
+  t_statistic:float
 
   def __init__(
       self,
@@ -75,5 +89,20 @@ def GetAnomalyData(anomaly_obj: anomaly.Anomaly):
       test_path=utils.TestPath(anomaly_obj.test),
       start_revision=anomaly_obj.start_revision,
       end_revision=anomaly_obj.end_revision,
-      timestamp=anomaly_obj.timestamp
+      timestamp=anomaly_obj.timestamp,
+      id=anomaly_obj.key.id(),
+      bug_id=anomaly_obj.bug_id,
+      is_improvement=anomaly_obj.is_improvement,
+      recovered=anomaly_obj.recovered,
+      state=anomaly_obj.state,
+      statistic=anomaly_obj.statistic,
+      units=anomaly_obj.units,
+      degrees_of_freedom=anomaly_obj.degrees_of_freedom,
+      median_before_anomaly=anomaly_obj.median_before_anomaly,
+      median_after_anomaly=anomaly_obj.median_after_anomaly,
+      p_value=anomaly_obj.p_value,
+      segment_size_after=anomaly_obj.segment_size_after,
+      segment_size_before=anomaly_obj.segment_size_before,
+      std_dev_before_anomaly=anomaly_obj.std_dev_before_anomaly,
+      t_statistic=anomaly_obj.t_statistic,
   )

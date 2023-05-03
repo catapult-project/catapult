@@ -7,11 +7,22 @@ runtime_config:
   # As of Q1 2023, the latest python supported by Appengine flexible is 3.7.9.
   python_version: 3.7
 
-entrypoint: gunicorn -b:$PORT dashboard.skia_perf.main:APP
+entrypoint: gunicorn -b:$PORT dashboard.skia_bridge.main:APP
+
+automatic_scaling:
+  min_num_instances: 4
+  max_num_instances: 20
+  cool_down_period_Sec: 180
+  cpu_utilization:
+    target_utilization: 0.6
+
+resources:
+  cpu: 4
+  memory_gb: 8
 
 handlers:
 - url: /.*
-  script: dashboard.skia_perf.main.APP
+  script: dashboard.skia_bridge.main.APP
   secure: always
 
 readiness_check:
