@@ -5,7 +5,7 @@
 from __future__ import absolute_import
 import datetime
 
-from flask import make_response, Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify
 import logging
 import json
 
@@ -76,12 +76,6 @@ def QueryAnomaliesPostHandler():
   except Exception as e:
     logging.exception(e)
     raise
-
-
-@blueprint.route('/', methods=['GET'])
-def QueryAnomaliesGetHandler():
-  """ Required for service health check """
-  return make_response('Ok')
 
 
 def GetAnomalyData(anomaly_obj: anomaly.Anomaly):

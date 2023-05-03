@@ -29,11 +29,6 @@ class QueryAnomaliesTest(unittest.TestCase):
     ndb.get_context().clear_cache()
 
 
-  def testGet(self):
-    response = self.client.get('/anomalies/')
-    data = response.get_data(as_text=True)
-    self.assertEqual('Ok', data)
-
   def testNoAnomaliesExist(self):
     test_name = 'master/bot/test1/metric'
     response = self.client.post(
