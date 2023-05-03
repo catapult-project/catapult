@@ -66,6 +66,20 @@ REGULAR_TELEMETRY_TESTS_WITH_FALLBACKS = {}
 for test in SUFFIXED_REGULAR_TELEMETRY_TESTS:
   for suffix in SUFFIXES:
     REGULAR_TELEMETRY_TESTS_WITH_FALLBACKS[test + suffix] = test
+# crbug/1439658:
+# Add fallback from _android_clank_monochrome to _android_clank_chrome.
+# We will use _android_clank_monochrome to replace _android_clank_chrome
+# to reduce build time. The change in chromium will break pinpoint as pinpoint
+# jobs running on the new commits will look for _android_clank_monochrome which
+# pinpoint does not recognize.
+# This will override the value set above, mapping from 'test+suffix' to 'test.
+# The current logic was added two years ago to break performance_test_suite
+# into smaller targets. It should be no longer is use. I added logs in
+# find_isolate.py to catch possible issues.
+_NEW_MONOCHROME_TARGET = 'performance_test_suite_android_clank_monochrome'
+_OLD_CHROME_TARGET = 'performance_test_suite_android_clank_chrome'
+REGULAR_TELEMETRY_TESTS_WITH_FALLBACKS[
+    _NEW_MONOCHROME_TARGET] = _OLD_CHROME_TARGET
 
 
 def _CheckUser():
