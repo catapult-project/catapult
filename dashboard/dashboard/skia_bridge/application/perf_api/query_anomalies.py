@@ -10,6 +10,7 @@ import logging
 import json
 
 from dashboard.models import anomaly
+from dashboard.common import datastore_hooks
 from dashboard.common import utils
 
 blueprint = Blueprint('query_anomalies', __name__)
@@ -56,6 +57,7 @@ class AnomalyData:
 def QueryAnomaliesPostHandler():
   try:
     logging.info('Received query request with data %s', request.data)
+    datastore_hooks.SetPrivilegedRequest()
     data = json.loads(request.data)
     test_keys = [utils.TestKey(test_path) for test_path in data['tests']]
     anomalies, _, _ = anomaly.Anomaly.QueryAsync(
