@@ -225,12 +225,23 @@ def _PublishTSCloudMetric(project_id,
           "seconds": seconds,
           "nanos": nanos
       }})
-  point = monitoring_v3.Point({
-      "interval": interval,
-      "value": {
-          "double_value": metric_value
-      }
-  })
+  try:
+    point = monitoring_v3.Point({
+        "interval": interval,
+        "value": {
+            "double_value": metric_value
+        }
+    })
+  except TypeError as e:
+    point = monitoring_v3.Point({
+        "interval": interval,
+        "value": {
+            "double_value": int(metric_value)
+        }
+    })
+    logging.warning('Invalid value found in metric_value: %s. (%s)',
+                    metric_value, str(e))
+
   series.points = [point]
 
   try:

@@ -369,7 +369,7 @@ class _RunTestExecution(execution_module.Execution):
       logging.debug('Bot %s has %s jobs in the pending queue.', self._bot_id,
                     pending_count)
       cloud_metric.PublishSwarmingBotPendingTasksMetric(
-          bot_id=self._bot_id, pool=pool, count=pending_count)
+          bot_id=self._bot_id, pool=pool, count=int(pending_count))
 
     if result['state'] == 'PENDING' or result['state'] == 'RUNNING':
       return
