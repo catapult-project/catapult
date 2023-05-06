@@ -245,6 +245,9 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
                 or the git hash is not valid.
     """
     repository = data['repository']
+    if repository == 'angleproject':
+      repository = 'angle'
+
     git_hash = str(data['git_hash']).strip()
     if not git_hash:
       raise KeyError("No git hash given")
