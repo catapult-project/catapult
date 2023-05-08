@@ -18,12 +18,14 @@ from google.appengine.ext import ndb
 
 from dashboard import email_sheriff
 from dashboard import find_change_points
+from dashboard.common import cloud_metric
 from dashboard.common import utils
 from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import histogram
 from dashboard.models import subscription
+from dashboard.services import perf_issue_service_client
 from dashboard.sheriff_config_client import SheriffConfigClient
 from tracing.value.diagnostics import reserved_infos
 
@@ -155,7 +157,21 @@ def _ProcessTestStat(test, stat, rows, ref_rows):
     a.internal_only = (
         any(s.visibility != subscription.VISIBILITY.PUBLIC
             for s in subscriptions) or test.internal_only)
-    a.groups = alert_group.AlertGroup.GetGroupsForAnomaly(a, subscriptions)
+    alert_groups = alert_group.AlertGroup.GetGroupsForAnomaly(a, subscriptions)
+    a.groups = alert_groups
+    try:
+      # parity results from perf_issue_service
+      groups_by_request = perf_issue_service_client.GetAlertGroupsForAnomaly(
+          a, subscriptions)
+      group_keys = [ndb.Key('AlertGroup', g) for g in groups_by_request]
+      if sorted(group_keys) != sorted(alert_groups):
+        logging.warning('Imparity found for GetAlertGroupsForAnomaly. %s, %s',
+                        group_keys, alert_groups)
+        cloud_metric.PublishPerfIssueServiceGroupingImpariry(
+            'GetAlertGroupsForAnomaly')
+    except Exception as e:  # pylint: disable=broad-except
+      logging.warning('Parity logic failed in GetAlertGroupsForAnomaly. %s',
+                      str(e))
 
   yield ndb.put_multi_async(anomalies)
 
