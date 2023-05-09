@@ -47,6 +47,11 @@ steps:
     upload.yaml,
     pinpoint.yaml,
   ]
+- name: 'gcr.io/cloud-builders/gcloud'
+  dir: 'deploy-dashboard'
+  args: [
+    'app', 'deploy', 'queue.yaml',
+  ]
 # We check in the target versions to avoid unintended traffic changes.
 - name: 'gcr.io/cloud-builders/gcloud'
   id: 'Set traffic for default service'
