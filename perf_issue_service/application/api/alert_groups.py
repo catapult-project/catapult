@@ -9,6 +9,23 @@ from models import alert_group
 
 alert_groups = Blueprint('alert_groups', __name__)
 
+
+@alert_groups.route('/<group_id>/duplicates', methods=['GET'])
+def FindDuplicatesHandler(group_id):
+  duplicate_keys = alert_group.AlertGroup.FindDuplicates(group_id)
+
+  return make_response(duplicate_keys)
+
+
+@alert_groups.route('<current_group_key>/canonical/issue_id/<issue_id>/project_name/<project_name>', methods=['GET'])
+def FindCanonicalGroupHandler(current_group_key, issue_id, project_name):
+  canonical_group = alert_group.AlertGroup.FindCanonicalGroupByIssue(current_group_key, int(issue_id), project_name)
+
+  if canonical_group:
+    return make_response(canonical_group)
+  return make_response('')
+
+
 @alert_groups.route('/<group_id>/anomalies', methods=['GET'])
 def GetAnomaliesHandler(group_id):
   try:

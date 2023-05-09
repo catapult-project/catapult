@@ -10,10 +10,15 @@ from google.cloud import ndb
 class NoEntityFoundException(Exception):
   pass
 
+
 class RevisionRange(ndb.Model):
   repository = ndb.StringProperty()
   start = ndb.IntegerProperty()
   end = ndb.IntegerProperty()
+
+class BugInfo(ndb.Model):
+  project = ndb.StringProperty(indexed=True)
+  bug_id = ndb.IntegerProperty(indexed=True)
 
 class AlertGroup(ndb.Model):
   name = ndb.StringProperty(indexed=True)
@@ -43,13 +48,53 @@ class AlertGroup(ndb.Model):
   )
   active = ndb.BooleanProperty(indexed=True)
   revision = ndb.LocalStructuredProperty(RevisionRange)
-#   bug = ndb.StructuredProperty(BugInfo, indexed=True)
+  bug = ndb.StructuredProperty(BugInfo, indexed=True)
   project_id = ndb.StringProperty(indexed=True, default='chromium')
   bisection_ids = ndb.StringProperty(repeated=True)
   anomalies = ndb.KeyProperty(repeated=True)
   # Key of canonical AlertGroup. If not None the group is considered to be
   # duplicate.
   canonical_group = ndb.KeyProperty(indexed=True)
+
+  @classmethod
+  def FindDuplicates(cls, group_id):
+    client = ndb.Client()
+    with client.context():
+      query = cls.query(
+          cls.active == True,
+          cls.canonical_group == ndb.Key('AlertGroup', group_id))
+      duplicates = query.fetch()
+      return [g.key.string_id() for g in duplicates]
+
+
+  @classmethod
+  def FindCanonicalGroupByIssue(cls, current_group_key, issue_id, project_name):
+    client = ndb.Client()
+    with client.context():
+      query = cls.query(
+          cls.active == True,
+          cls.bug.project == project_name,
+          cls.bug.bug_id == issue_id)
+      query_result = query.fetch(limit=1)
+      if not query_result:
+        return None
+
+      canonical_group = query_result[0]
+      visited = set()
+      while canonical_group.canonical_group:
+        visited.add(canonical_group.key)
+        next_group_key = canonical_group.canonical_group
+        # Visited check is just precaution.
+        # If it is true - the system previously failed to prevent loop creation.
+        if next_group_key == current_group_key or next_group_key in visited:
+          logging.warning(
+              'Alert group auto merge failed. Found a loop while '
+              'searching for a canonical group for %r', current_group_key)
+          return None
+        canonical_group = next_group_key.get()
+
+      return canonical_group.key.string_id()
+
 
   @classmethod
   def GetAnomaliesByID(cls, group_id):

@@ -171,10 +171,12 @@ class AlertGroupWorkflow:
     logging.info('Found canonical issue for the groups\' issue: %d',
                  merged_into)
 
+    merged_issue_project = issue.get('mergedInto',
+                                     {}).get('projectId',
+                                             self._group.bug.project)
     query = alert_group.AlertGroup.query(
         alert_group.AlertGroup.active == True,
-        alert_group.AlertGroup.bug.project == issue.get('mergedInto', {}).get(
-            'projectId', self._group.bug.project),
+        alert_group.AlertGroup.bug.project == merged_issue_project,
         alert_group.AlertGroup.bug.bug_id == merged_into)
     query_result = query.fetch(limit=1)
     if not query_result:
@@ -194,8 +196,31 @@ class AlertGroupWorkflow:
         return None
       canonical_group = next_group_key.get()
 
+    # Parity check for canonical group
+    try:
+      canonical_group_key = perf_issue_service_client.GetCanonicalGroupByIssue(
+          self._group.key.string_id(), merged_into, merged_issue_project)
+      original_canonical_key = canonical_group.key.string_id()
+      if original_canonical_key != canonical_group_key:
+        logging.warning('Imparity found for GetCanonicalGroupByIssue. %s, %s',
+                        original_canonical_key, canonical_group_key)
+        cloud_metric.PublishPerfIssueServiceGroupingImpariry(
+            'GetCanonicalGroupByIssue')
+    except Exception as e:  # pylint: disable=broad-except
+      logging.warning('Parity logic failed in GetCanonicalGroupByIssue. %s',
+                      str(e))
+
     logging.info('Found canonical group: %s', canonical_group.key.string_id())
     return canonical_group
+
+  def _FindDuplicateGroupKeys(self):
+    try:
+      group_keys = perf_issue_service_client.GetDuplicateGroupKeys(
+          self._group.key.string_id())
+      return group_keys
+    except ValueError:
+      # only 'ungrouped' has integer key, which we should not find duplicate.
+      return []
 
   def _FindDuplicateGroups(self):
     query = alert_group.AlertGroup.query(
@@ -217,6 +242,19 @@ class AlertGroupWorkflow:
     """
     duplicate_groups = self._FindDuplicateGroups()
     anomalies = self._FindRelatedAnomalies([self._group] + duplicate_groups)
+
+    # Parity check for duplicated groups
+    try:
+      duplicate_group_keys = self._FindDuplicateGroupKeys()
+      original_keys = [g.key.string_id() for g in duplicate_groups]
+      if sorted(duplicate_group_keys) != sorted(original_keys):
+        logging.warning('Imparity found for _FindDuplicateGroups. %s, %s',
+                        duplicate_group_keys, original_keys)
+        cloud_metric.PublishPerfIssueServiceGroupingImpariry(
+            '_FindDuplicateGroups')
+    except Exception as e:  # pylint: disable=broad-except
+      logging.warning('Parity logic failed in _FindDuplicateGroups. %s', str(e))
+
     now = datetime.datetime.utcnow()
     issue = None
     canonical_group = None
