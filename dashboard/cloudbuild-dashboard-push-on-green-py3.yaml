@@ -46,7 +46,6 @@ steps:
     upload-processing.yaml,
     upload.yaml,
     pinpoint.yaml,
-    skia-bridge.yaml,
   ]
 # We check in the target versions to avoid unintended traffic changes.
 - name: 'gcr.io/cloud-builders/gcloud'

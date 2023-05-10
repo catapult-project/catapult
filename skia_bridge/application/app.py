@@ -5,8 +5,8 @@
 from __future__ import absolute_import
 from flask import Flask
 
-from dashboard.skia_bridge.application.perf_api import query_anomalies
-from dashboard.skia_bridge.application import health_checks
+from application.perf_api import query_anomalies
+from application import health_checks
 
 
 def Create():

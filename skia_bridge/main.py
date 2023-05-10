@@ -21,7 +21,7 @@ dashboard_path = Path(__file__).parent.parent.parent
 if str(dashboard_path) not in sys.path:
   sys.path.insert(0, str(dashboard_path))
 
-from dashboard.skia_bridge.application import app
+from application import app
 def _AddToPathIfNeeded(path):
   if path not in sys.path:
     sys.path.insert(0, path)
