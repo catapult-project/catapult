@@ -9,6 +9,7 @@ from flask import Blueprint, request, jsonify
 import logging
 import json
 
+from common import cloud_metric
 from application.perf_api import datastore_client, auth_helper
 
 from google.cloud import datastore
@@ -17,8 +18,14 @@ blueprint = Blueprint('query_anomalies', __name__)
 
 
 ALLOWED_CLIENTS = [
-    # TODO: Add the service account used by skia and remove the account below.
-    'ashwinpv@google.com'
+    # TODO: Remove the user accounts below once skia service account
+    #       is validated.
+    'ashwinpv@google.com',
+    'sunpeng@google.com',
+    'funing@google.com',
+    'eduardoyap@google.com',
+    # Chrome (public) skia instance service account
+    'perf-chrome-public@skia-infra-public.iam.gserviceaccount.com',
 ]
 
 def Serialize(value):
@@ -58,6 +65,7 @@ class AnomalyData:
     return json.dumps(self, default=Serialize)
 
 
+@cloud_metric.APIMetric("skia-bridge", "/anomalies/find")
 @blueprint.route('/find', methods=['POST'])
 def QueryAnomaliesPostHandler():
   try:
