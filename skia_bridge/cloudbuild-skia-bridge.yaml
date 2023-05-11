@@ -4,7 +4,7 @@ options:
   machineType: 'N1_HIGHCPU_8'
 steps:
 - name: 'gcr.io/cloud-builders/gcloud'
-  dir: '.'
+  dir: 'skia_bridge'
   args: [
     app, deploy, '--no-promote', '--version', 'cloud-build-${SHORT_SHA}',
     skia-bridge.yaml,

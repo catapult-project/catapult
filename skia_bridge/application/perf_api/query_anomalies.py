@@ -65,8 +65,8 @@ class AnomalyData:
     return json.dumps(self, default=Serialize)
 
 
-@cloud_metric.APIMetric("skia-bridge", "/anomalies/find")
 @blueprint.route('/find', methods=['POST'])
+@cloud_metric.APIMetric("skia-bridge", "/anomalies/find")
 def QueryAnomaliesPostHandler():
   try:
     logging.info('Received query request with data %s', request.data)
