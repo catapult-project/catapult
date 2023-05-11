@@ -974,7 +974,9 @@ QuicError.QUIC_NETWORK_IDLE_TIMEOUT + ' (QUIC_NETWORK_IDLE_TIMEOUT)';
 '                          --> source_dependency = 634 (TRANSPORT_CONNECT_JOB' +
 ')\n' +
 't=1338865016933 [st=  1]   +TCP_CONNECT  [dt=5]\n' +
-'                            --> address_list = ["184.30.253.15:80"]\n' +
+'                            --> address_list = [\n' +
+'                                  "184.30.253.15:80"\n' +
+'                                ]\n' +
 't=1338865016934 [st=  2]      TCP_CONNECT_ATTEMPT  [dt=3]\n' +
 '                              --> address = "184.30.253.15:80"\n' +
 't=1338865016938 [st=  6]   -TCP_CONNECT\n' +
@@ -1173,7 +1175,10 @@ QuicError.QUIC_NETWORK_IDLE_TIMEOUT + ' (QUIC_NETWORK_IDLE_TIMEOUT)';
         '                         --> is_issued_by_known_root = true\n' +
         '                         --> is_issued_by_additional_trust_anchor =' +
         ' false\n' +
-        '                         --> public_key_hashes = ["hash1","hash2"]';
+        '                         --> public_key_hashes = [\n' +
+        '                               "hash1",\n' +
+        '                               "hash2"\n' +
+        '                             ]';
 
     return testCase;
   }
@@ -1356,8 +1361,10 @@ QuicError.QUIC_NETWORK_IDLE_TIMEOUT + ' (QUIC_NETWORK_IDLE_TIMEOUT)';
 
     testCase.expectedText =
         't=1338864633356 [st=0]  HTTP_TRANSACTION_SEND_REQUEST_HEADERS\n' +
-        '                        --> headersWRONG = ["Host: www.google.com",' +
-        '"Connection: keep-alive"]\n' +
+        '                        --> headersWRONG = [\n' +
+        '                              "Host: www.google.com",\n' +
+        '                              "Connection: keep-alive"\n' +
+        '                            ]\n' +
         '                        --> line = "GET / HTTP/1.1\\r\\n"';
 
     return testCase;

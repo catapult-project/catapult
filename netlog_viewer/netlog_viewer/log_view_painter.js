@@ -255,6 +255,23 @@ let proxySettingsToString;
     }
 
     /**
+     * Outputs key and prettified value lines which looks like:
+     *
+     *   --> key = {
+     *         "field1": [
+     *         "field1_value1",
+     *           "field1_value2"
+     *         ],
+     *         "field2": "field2_value"
+     *       }
+     */
+    writeArrowKeyJSONValue(key, value) {
+      const lines = JSON.stringify(value, null, 2).split('\n');
+      this.writeArrowKeyValue(key, lines[0]);
+      this.writeSpaceIndentedLines(5, lines.slice(1));
+    }
+
+    /**
      * Outputs a key= line which looks like:
      *
      *   --> key =
@@ -461,7 +478,7 @@ let proxySettingsToString;
     }
 
     // Otherwise just default to JSON formatting of the value.
-    out.writeArrowKeyValue(key, JSON.stringify(value));
+    out.writeArrowKeyJSONValue(key, value);
   }
 
   /**
