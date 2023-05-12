@@ -161,8 +161,7 @@ def _ProcessTestStat(test, stat, rows, ref_rows):
     a.groups = alert_groups
     try:
       # parity results from perf_issue_service
-      groups_by_request = perf_issue_service_client.GetAlertGroupsForAnomaly(
-          a, subscriptions)
+      groups_by_request = perf_issue_service_client.GetAlertGroupsForAnomaly(a)
       group_keys = [ndb.Key('AlertGroup', g) for g in groups_by_request]
       if sorted(group_keys) != sorted(alert_groups):
         logging.warning('Imparity found for GetAlertGroupsForAnomaly. %s, %s',

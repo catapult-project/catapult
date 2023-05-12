@@ -7,7 +7,7 @@ from httplib2 import http
 import json
 import logging
 
-from application import issue_tracker_client
+from application.clients import issue_tracker_client
 
 issues = Blueprint('issues', __name__)
 

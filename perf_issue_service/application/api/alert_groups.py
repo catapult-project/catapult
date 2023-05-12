@@ -39,12 +39,13 @@ def GetAnomaliesHandler(group_id):
     return make_response(str(e), 404)
   return make_response(anomalies)
 
-@alert_groups.route(
-  '/test/<path:test_key>/start/<start_rev>/end/<end_rev>/subs/<subscription_names>/projects/<project_names>',
-  methods=['GET'])
-def GetGroupsForAnomalyHandler(
-  test_key, start_rev, end_rev, subscription_names, project_names):
-  group_keys = alert_group.AlertGroup.GetGroupsForAnomaly(
-    test_key, start_rev, end_rev, subscription_names, project_names)
+
+@alert_groups.route('/test/<path:test_key>/start/<start_rev>/end/<end_rev>', methods=['GET'])
+def GetGroupsForAnomalyHandler(test_key, start_rev, end_rev):
+  try:
+    group_keys = alert_group.AlertGroup.GetGroupsForAnomaly(
+      test_key, start_rev, end_rev)
+  except alert_group.SheriffConfigRequestException as e:
+    return make_response(str(e), 500)
 
   return make_response(group_keys)

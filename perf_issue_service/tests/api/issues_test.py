@@ -13,7 +13,7 @@ class IssuesTest(unittest.TestCase):
   def setUp(self):
     self.client = create_app().test_client()
 
-  @mock.patch('application.issue_tracker_client.IssueTrackerClient')
+  @mock.patch('application.clients.issue_tracker_client.IssueTrackerClient')
   def testIssueGetHandlerArgumentsDefault(self, mock_client):
     instance = mock_client.return_value
     instance.GetIssuesList.side_effect = []
@@ -28,7 +28,7 @@ class IssuesTest(unittest.TestCase):
       sort='-id'
     )
 
-  @mock.patch('application.issue_tracker_client.IssueTrackerClient')
+  @mock.patch('application.clients.issue_tracker_client.IssueTrackerClient')
   def testIssueGetHandlerArguments(self, mock_client):
     instance = mock_client.return_value
     instance.GetIssuesList.side_effect = []
@@ -44,7 +44,7 @@ class IssuesTest(unittest.TestCase):
       sort='-id'
     )
 
-  @mock.patch('application.issue_tracker_client.IssueTrackerClient')
+  @mock.patch('application.clients.issue_tracker_client.IssueTrackerClient')
   def testIssueGetByIdHandler(self, mock_client):
     instance = mock_client.return_value
     instance.GetIssue.side_effect = []
@@ -57,7 +57,7 @@ class IssuesTest(unittest.TestCase):
       project='foo',
     )
 
-  @mock.patch('application.issue_tracker_client.IssueTrackerClient')
+  @mock.patch('application.clients.issue_tracker_client.IssueTrackerClient')
   def testCommentsGetByIdHandler(self, mock_client):
     instance = mock_client.return_value
     instance.GetIssueComments.side_effect = []
@@ -70,7 +70,7 @@ class IssuesTest(unittest.TestCase):
       project='foo',
     )
 
-  @mock.patch('application.issue_tracker_client.IssueTrackerClient')
+  @mock.patch('application.clients.issue_tracker_client.IssueTrackerClient')
   def testIssuesPostHandler(self, mock_client):
     instance = mock_client.return_value
     instance.NewIssue.side_effect = []
@@ -88,7 +88,7 @@ class IssuesTest(unittest.TestCase):
       **data
     )
 
-  @mock.patch('application.issue_tracker_client.IssueTrackerClient')
+  @mock.patch('application.clients.issue_tracker_client.IssueTrackerClient')
   def testIssuesPostHandlerBadContentType(self, mock_client):
     instance = mock_client.return_value
     instance.NewIssue.side_effect = []
@@ -104,7 +104,7 @@ class IssuesTest(unittest.TestCase):
     self.assertEqual(response.status_code, 400)
     instance.NewIssue.assert_not_called()
 
-  @mock.patch('application.issue_tracker_client.IssueTrackerClient')
+  @mock.patch('application.clients.issue_tracker_client.IssueTrackerClient')
   def testCommentsPostHandler(self, mock_client):
     instance = mock_client.return_value
     instance.NewComment.side_effect = []
@@ -124,7 +124,7 @@ class IssuesTest(unittest.TestCase):
       **data
     )
 
-  @mock.patch('application.issue_tracker_client.IssueTrackerClient')
+  @mock.patch('application.clients.issue_tracker_client.IssueTrackerClient')
   def testCommentsPostHandlerBadContentType(self, mock_client):
     instance = mock_client.return_value
     instance.NewComment.side_effect = []

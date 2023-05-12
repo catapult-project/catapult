@@ -3,11 +3,17 @@
 # found in the LICENSE file.
 
 import logging
+from urllib import parse
 
 from google.cloud import ndb
+from application.clients import sheriff_config_client
 
 
 class NoEntityFoundException(Exception):
+  pass
+
+
+class SheriffConfigRequestException(Exception):
   pass
 
 
@@ -119,27 +125,28 @@ class AlertGroup(ndb.Model):
 
 
   @classmethod
-  def GetGroupsForAnomaly(cls, test_key, start_rev, end_rev, subscription_names, project_names):
-    logging.debug('GetGroupsForAnomaly(%s, %s, %s, %s, %s)', test_key, start_rev, end_rev, subscription_names, project_names)
-    subscriptions = subscription_names.split(',')
-    projects = [p if p != 'null' else '' for p in project_names.split(',')]
+  def GetGroupsForAnomaly(cls, test_key, start_rev, end_rev):
+    client = sheriff_config_client.GetSheriffConfigClient()
+    matched_configs, err_msg = client.Match(test_key)
+
+    if err_msg is not None:
+      raise SheriffConfigRequestException(err_msg)
+
+    if not matched_configs:
+      return []
+
     start_rev = int(start_rev)
     end_rev = int(end_rev)
-    if len(subscriptions) != len(projects):
-      logging.warning('Length mismatch on subcriptions: %s %s', subscriptions, projects)
-      return []
-    subs_info = list(zip(subscriptions, projects))
     master_name = test_key.split('/')[0]
     benchmark_name = test_key.split('/')[2]
 
     existing_groups = cls.Get(benchmark_name, 0)
     result_groups = set()
-    for sub in subs_info:
-      # for each matched subscription, try to find the overlapped existing
-      # groups
+    for config in matched_configs:
+      s = config['subscription']
       has_overlapped = False
       for g in existing_groups:
-        if g.domain == master_name and g.subscription_name == sub[0] and g.project_id == sub[1] and max(g.revision.start, start_rev) <= min(g.revision.end, end_rev) and abs(g.revision.start - start_rev) + abs(g.revision.end - end_rev) <= 100:
+        if g.domain == master_name and g.subscription_name == s.get('name') and g.project_id == s.get('monorail_project_id', '') and max(g.revision.start, start_rev) <= min(g.revision.end, end_rev) and abs(g.revision.start - start_rev) + abs(g.revision.end - end_rev) <= 100:
           has_overlapped = True
           result_groups.add(g.key.string_id())
       if not has_overlapped:

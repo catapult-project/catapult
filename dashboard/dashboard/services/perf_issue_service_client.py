@@ -187,19 +187,13 @@ def GetAnomaliesByAlertGroupID(group_id):
     return []
 
 
-def GetAlertGroupsForAnomaly(anomaly, subscriptions):
+def GetAlertGroupsForAnomaly(anomaly):
   test_key = utils.TestPath(anomaly.test)
   start_rev = anomaly.start_revision
   end_rev = anomaly.end_revision
-  subscription_names = project_names = []
-  for s in subscriptions:
-    subscription_names.append(s.name)
-    project_names.append(s.monorail_project_id or 'null')
 
   url = _SERVICE_URL + _ALERT_GROUP_PREFIX
-  url += 'test/%s/start/%s/end/%s/subs/%s/projects/%s' % (
-      test_key, start_rev, end_rev, ','.join(subscription_names),
-      ','.join(project_names))
+  url += 'test/%s/start/%s/end/%s' % (test_key, start_rev, end_rev)
 
   try:
     cloud_metric.PublishPerfIssueServiceRequests('GetAlertGroupsForAnomaly',
@@ -211,6 +205,6 @@ def GetAlertGroupsForAnomaly(anomaly, subscriptions):
     cloud_metric.PublishPerfIssueServiceRequestFailures(
         'GetAlertGroupsForAnomaly', 'GET', url, {'test_key': test_key})
     logging.warning(
-        '[PerfIssueService] Error requesting groups by anomaly and subscriptions: %s. %s',
+        '[PerfIssueService] Error requesting groups by anomaly: %s. %s',
         test_key, str(e))
     return []
