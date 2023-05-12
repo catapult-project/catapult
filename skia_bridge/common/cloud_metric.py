@@ -108,11 +108,14 @@ class APIMetricLogger:
     self._api_name = api_name
     self._start = None
     self.seconds = 0
+    self.is_disabled = os.environ.get('DISABLE_METRICS')
 
   def _Now(self):
     return time.time()
 
   def __enter__(self):
+    if self.is_disabled:
+      return
     self._start = self._Now()
     # Currently, Cloud Monitoring allows one write every 5 seconds for any
     # unique tuple (metric_name, metric_label_value_1, metric_label_value_2, …).
@@ -125,6 +128,8 @@ class APIMetricLogger:
     _PublishTSCloudMetric(self._service_name, API_METRIC_TYPE, label_dict)
 
   def __exit__(self, exception_type, exception_value, execution_traceback):
+    if self.is_disabled:
+      return True
     if exception_type is None:
       # with statement BLOCK runs succeed
       self.seconds = self._Now() - self._start
