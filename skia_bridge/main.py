@@ -6,6 +6,7 @@
 from __future__ import absolute_import
 
 import logging
+import os
 import sys
 from pathlib import Path
 import google.cloud.logging
@@ -31,5 +32,5 @@ APP = app.Create()
 
 if __name__ == '__main__':
   # This is used when running locally only.
-
+  os.environ['DISABLE_METRICS'] = 'True'
   APP.run(host='127.0.0.1', port=8080, debug=True)

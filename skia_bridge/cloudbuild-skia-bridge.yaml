@@ -9,5 +9,3 @@ steps:
     app, deploy, '--no-promote', '--version', 'cloud-build-${SHORT_SHA}',
     skia-bridge.yaml,
   ]
-
-images: ['gcr.io/$PROJECT_ID/dashboard-base:latest']

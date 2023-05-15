@@ -5,7 +5,7 @@
 from __future__ import absolute_import
 import datetime
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, make_response
 import logging
 import json
 
@@ -61,9 +61,22 @@ class AnomalyData:
       **kwargs):
     self.__dict__.update(kwargs)
 
-  def ToJson(self):
-    return json.dumps(self, default=Serialize)
+class AnomalyResponse:
+  def __init__(self):
+    self.anomalies = {}
 
+  def AddAnomaly(self, test_name: str, anomaly_data:AnomalyData):
+    if not self.anomalies.get(test_name):
+      self.anomalies[test_name] = []
+
+    self.anomalies[test_name].append(anomaly_data.__dict__)
+
+  def ToDict(self):
+    return {
+      "anomalies": {
+          test_name: self.anomalies[test_name] for test_name in self.anomalies
+      }
+    }
 
 @blueprint.route('/find', methods=['POST'])
 @cloud_metric.APIMetric("skia-bridge", "/anomalies/find")
@@ -86,16 +99,13 @@ def QueryAnomaliesPostHandler():
     anomalies = client.QueryAnomalies(
         data['tests'], data['min_revision'], data['max_revision'])
 
-    response = {}
+    logging.info('%i anomalies returned from DataStore', len(anomalies))
+    response = AnomalyResponse()
     for found_anomaly in anomalies:
-      logging.info(str(found_anomaly))
       anomaly_data = GetAnomalyData(found_anomaly)
-      if not response.get(anomaly_data.test_path):
-        response[anomaly_data.test_path] = []
+      response.AddAnomaly(anomaly_data.test_path, anomaly_data)
 
-      response[anomaly_data.test_path].append(anomaly_data.ToJson())
-
-    return jsonify(response)
+    return make_response(response.ToDict())
   except Exception as e:
     logging.exception(e)
     raise

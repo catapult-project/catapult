@@ -65,8 +65,8 @@ class QueryAnomaliesTest(unittest.TestCase):
           '/anomalies/find',
           data='{"tests":["%s"], "max_revision":"1234", "min_revision":"1233"}'
                % test_name)
-      data = response.get_data(as_text=True)
-      self.assertEqual('{}\n', data, 'Empty json expected in the response')
+      data = json.loads(response.get_data(as_text=True))
+      self.assertEqual({}, data["anomalies"], 'No anomalies expected')
 
   @mock.patch('application.perf_api.datastore_client'
               '.DataStoreClient.QueryAnomalies')
@@ -100,36 +100,42 @@ class QueryAnomaliesTest(unittest.TestCase):
           '/anomalies/find',
           data='{"tests":["%s"], "max_revision":"1234", "min_revision":"1233"}'
                % test_name_2)
-      data = response.get_data(as_text=True)
-      self.assertEqual('{}\n', data, 'Empty json expected in the response')
+      data = json.loads(response.get_data(as_text=True))
+      self.assertEqual({}, data["anomalies"], 'No anomalies expected')
 
       # Search for an existing test anomaly, but a different revision
       response = self.client.post(
           '/anomalies/find',
           data='{"tests":["%s"], "max_revision":"1232", "min_revision":"1230"}'
                % test_name)
-      data = response.get_data(as_text=True)
-      self.assertEqual('{}\n', data, 'Empty json expected in the response')
+      data = json.loads(response.get_data(as_text=True))
+      self.assertEqual({}, data["anomalies"], 'No anomalies expected')
 
   @mock.patch('application.perf_api.datastore_client'
               '.DataStoreClient.QueryAnomalies')
   def testAnomaliesFound(self, query_mock):
     test_name = 'master/bot/test1/metric'
     client = datastore.Client()
+
+    def create_anomaly(key, start_rev, end_rev):
+      test_anomaly = datastore.entity.Entity(key)
+      test_anomaly['start_revision'] = start_rev
+      test_anomaly['end_revision'] = end_rev
+      test_anomaly['test'] = test_key1
+      return test_anomaly
+
     start_rev = 1233
     end_rev = 1234
     test_key1 = client.key('TestMetadata', test_name)
-    anomaly_key = client.key('Anomaly', 1111)
-
-    test_anomaly = datastore.entity.Entity(anomaly_key)
-    test_anomaly['start_revision'] = start_rev
-    test_anomaly['end_revision'] = end_rev
-    test_anomaly['test'] = test_key1
+    anomaly_key_1 = client.key('Anomaly', 1111)
+    anomaly_key_2 = client.key('Anomaly', 2222)
+    test_anomaly_1 = create_anomaly(anomaly_key_1, start_rev, end_rev)
+    test_anomaly_2 = create_anomaly(anomaly_key_2, start_rev, end_rev)
 
     def mock_query(tests, min_revision, max_revision):
       if test_name in tests and \
          start_rev >= int(min_revision) and end_rev <= int(max_revision):
-        return [test_anomaly]
+        return [test_anomaly_1, test_anomaly_2]
 
       return []
 
@@ -144,14 +150,14 @@ class QueryAnomaliesTest(unittest.TestCase):
       data = response.get_data(as_text=True)
       response_data = json.loads(data)
       self.assertIsNotNone(response_data)
-      anomaly_list = response_data[test_name]
+      anomaly_list = response_data["anomalies"][test_name]
       self.assertIsNotNone(anomaly_list, 'Anomaly list for test expected.')
-      self.assertEqual(1, len(anomaly_list), 'One anomaly expected in list')
-      anomaly_data = json.loads(anomaly_list[0])
+      self.assertEqual(2, len(anomaly_list), 'Two anomalies expected in list')
+      anomaly_data = anomaly_list[0]
       self.assertEqual(test_name, anomaly_data['test_path'])
-      self.assertEqual(test_anomaly['start_revision'],
+      self.assertEqual(test_anomaly_1['start_revision'],
                        anomaly_data['start_revision'])
-      self.assertEqual(test_anomaly['end_revision'],
+      self.assertEqual(test_anomaly_1['end_revision'],
                        anomaly_data['end_revision'])
 
 
