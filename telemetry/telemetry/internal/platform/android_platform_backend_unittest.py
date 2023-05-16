@@ -35,6 +35,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
 
     self.device_patcher = mock.patch.multiple(
         device_utils.DeviceUtils,
+        RunShellCommand = mock.MagicMock(return_value=True),
         HasRoot=mock.MagicMock(return_value=True),
         GetProp=mock.MagicMock(side_effect=get_prop))
     self.device_patcher.start()
