@@ -37,7 +37,13 @@ def _GetParsedLSUSBOutput():
 
 
 def _GetUSBDevicesOutput():
-  return cmd_helper.GetCmdOutput(['usb-devices'])
+  try:
+    with open('/sys/kernel/debug/usb/devices') as f:
+      return f.read()
+  except PermissionError:
+    logger.error('Re-run this script with sudo (or root), or rewrite it to '
+                 'parse lsusb output.')
+    raise
 
 
 def _GetTtyUSBInfo(tty_string):
