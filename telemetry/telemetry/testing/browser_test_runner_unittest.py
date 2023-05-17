@@ -549,45 +549,50 @@ class BrowserTestRunnerTest(unittest.TestCase):
   @decorators.Disabled('chromeos')  # crbug.com/696553
   def testSplittingShardsByTimes(self):
     temp_file_name = self.writeMockTestResultsFile()
-    # It seems that the sorting order of the first four tests above is:
-    #   passing_test_0, Test1, Test2, Test3
-    # This is probably because the relative order of the "fixed" tests
-    # (starting with "Test") and the generated ones ("passing_") is
-    # not well defined, and the sorting is stable afterward.  The
-    # expectations have been adjusted for this fact.
+    # Tests should be sorted first by runtime then by test name.
+    # Thus, the ordered tests to be sharded should be:
+    #   passing_test_0
+    #   Test3-1
+    #   passing_test_4-1
+    #   passing_test_8-5
+    #   passing_test_9
     try:
+      # Shard time: 6.5
       self.BaseShardingTest(4, 0, [], [
           'browser_tests.simple_sharding_test' +
           '.SimpleShardingTest.passing_test_0',
           'browser_tests.simple_sharding_test' +
-          '.SimpleShardingTest.passing_test_1',
+          '.SimpleShardingTest.passing_test_4',
           'browser_tests.simple_sharding_test' +
-          '.SimpleShardingTest.passing_test_5',
+          '.SimpleShardingTest.passing_test_8',
           'browser_tests.simple_sharding_test' +
           '.SimpleShardingTest.passing_test_9'
       ], temp_file_name)
+      # Shard time: 6
       self.BaseShardingTest(4, 1, [], [
           'browser_tests.simple_sharding_test' +
-          '.SimpleShardingTest.Test1',
-          'browser_tests.simple_sharding_test' +
-          '.SimpleShardingTest.passing_test_2',
-          'browser_tests.simple_sharding_test' +
-          '.SimpleShardingTest.passing_test_6'
-      ], temp_file_name)
-      self.BaseShardingTest(4, 2, [], [
-          'browser_tests.simple_sharding_test' +
-          '.SimpleShardingTest.Test2',
+          '.SimpleShardingTest.Test3',
           'browser_tests.simple_sharding_test' +
           '.SimpleShardingTest.passing_test_3',
           'browser_tests.simple_sharding_test' +
           '.SimpleShardingTest.passing_test_7'
       ], temp_file_name)
+      # Shard time: 6
+      self.BaseShardingTest(4, 2, [], [
+          'browser_tests.simple_sharding_test' +
+          '.SimpleShardingTest.Test2',
+          'browser_tests.simple_sharding_test' +
+          '.SimpleShardingTest.passing_test_2',
+          'browser_tests.simple_sharding_test' +
+          '.SimpleShardingTest.passing_test_6'
+      ], temp_file_name)
+      # Shard time: 6
       self.BaseShardingTest(4, 3, [], [
-          'browser_tests.simple_sharding_test.SimpleShardingTest.Test3',
+          'browser_tests.simple_sharding_test.SimpleShardingTest.Test1',
           'browser_tests.simple_sharding_test' +
-          '.SimpleShardingTest.passing_test_4',
+          '.SimpleShardingTest.passing_test_1',
           'browser_tests.simple_sharding_test' +
-          '.SimpleShardingTest.passing_test_8'
+          '.SimpleShardingTest.passing_test_5'
       ], temp_file_name)
     finally:
       os.remove(temp_file_name)
@@ -606,10 +611,10 @@ class BrowserTestRunnerTest(unittest.TestCase):
     temp_file_name = self.writeMockTestResultsFile()
     try:
       self.BaseShardingTest(
-          4, 3, [], ['passing_test_8'], temp_file_name,
+          4, 3, [], ['passing_test_5'], temp_file_name,
           opt_test_name_prefix=('browser_tests.'
                                 'simple_sharding_test.SimpleShardingTest.'),
-          opt_test_filter='passing_test_8',
+          opt_test_filter='passing_test_5',
           opt_filter_tests_after_sharding=True)
     finally:
       os.remove(temp_file_name)
@@ -618,9 +623,9 @@ class BrowserTestRunnerTest(unittest.TestCase):
   def testFilteringAfterSharding(self):
     temp_file_name = self.writeMockTestResultsFile()
     successes = [
-        'browser_tests.simple_sharding_test.SimpleShardingTest.Test1',
-        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_2',
-        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_6']
+        'browser_tests.simple_sharding_test.SimpleShardingTest.Test3',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_3',
+        'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_7']
     try:
       self.BaseShardingTest(
           4, 1, [], successes, temp_file_name,

@@ -102,7 +102,10 @@ def _SplitShardsByTime(test_cases, total_shards, test_times,
   shards = []
   for i in range(total_shards):
     shards.append({'total_time': 0.0, 'tests': []})
-  test_cases.sort(key=lambda t: _TestTime(t, test_times, median),
+  # Sort by test time first, falling back to the test name in the case of a tie
+  # so that ordering is consistent across all shards.
+  test_cases.sort(key=lambda t: (_TestTime(t, test_times, median),
+                                 t.shortName()),
                   reverse=True)
 
   # The greedy algorithm has been empirically tested on the WebGL 2.0
