@@ -90,10 +90,12 @@ func MintServerCert(serverName string, rootCert *x509.Certificate, rootKey crypt
 	conn.Handshake()
 	template := conn.ConnectionState().PeerCertificates[0]
 
+	dt := time.Now()
+
 	template.Subject.CommonName = serverName
-	template.NotBefore = time.Now()
+	template.NotBefore = dt.Add(-24 * time.Hour)
 	// Certs cannot be valid for longer than 12 mths.
-	template.NotAfter = template.NotBefore.Add(12 * 30 * 24 * time.Hour)
+	template.NotAfter = dt.Add(12 * 30 * 24 * time.Hour)
 	template.SignatureAlgorithm = rootCert.SignatureAlgorithm
 	template.PublicKey = rootCert.PublicKey
 	var buf [20]byte
