@@ -39,7 +39,7 @@ class DataStoreClient:
         lambda a: a.get('start_revision') >= int(min_revision),
         lambda a: a.get('start_revision') <= int(max_revision),
     ]
-    results = list(ds_query.fetch(limit=10))
+    results = list(ds_query.fetch())
     filtered_results = [
         alert for alert in results if all(
             post_filter(alert) for post_filter in post_query_filters)

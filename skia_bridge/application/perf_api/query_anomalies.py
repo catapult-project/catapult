@@ -28,6 +28,8 @@ ALLOWED_CLIENTS = [
     'perf-chrome-public@skia-infra-public.iam.gserviceaccount.com',
 ]
 
+DATASTORE_TEST_BATCH_SIZE = 25
+
 def Serialize(value):
   if isinstance(value, datetime.datetime):
     return str(value)
@@ -96,8 +98,14 @@ def QueryAnomaliesPostHandler():
       return error, 400
 
     client = datastore_client.DataStoreClient()
-    anomalies = client.QueryAnomalies(
-        data['tests'], data['min_revision'], data['max_revision'])
+    batched_tests = list(CreateTestBatches(data['tests']))
+    logging.info('Created %i batches for DataStore query', len(batched_tests))
+    anomalies = []
+    for batch in batched_tests:
+      batch_anomalies = client.QueryAnomalies(
+        batch, data['min_revision'], data['max_revision'])
+      if batch_anomalies and len(batch_anomalies) > 0:
+        anomalies.extend(batch_anomalies)
 
     logging.info('%i anomalies returned from DataStore', len(anomalies))
     response = AnomalyResponse()
@@ -109,6 +117,11 @@ def QueryAnomaliesPostHandler():
   except Exception as e:
     logging.exception(e)
     raise
+
+
+def CreateTestBatches(testList):
+  for i in range(0, len(testList), DATASTORE_TEST_BATCH_SIZE):
+    yield testList[i:i + DATASTORE_TEST_BATCH_SIZE]
 
 
 def TestPath(key: datastore.key.Key):

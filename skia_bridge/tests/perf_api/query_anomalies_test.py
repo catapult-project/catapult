@@ -15,6 +15,7 @@ if str(app_path) not in sys.path:
   sys.path.insert(0, str(app_path))
 
 from application import app
+from application.perf_api import query_anomalies
 from google.cloud import datastore
 
 import mock
@@ -110,6 +111,35 @@ class QueryAnomaliesTest(unittest.TestCase):
                % test_name)
       data = json.loads(response.get_data(as_text=True))
       self.assertEqual({}, data["anomalies"], 'No anomalies expected')
+
+  @mock.patch('application.perf_api.datastore_client'
+              '.DataStoreClient.QueryAnomalies')
+  def testAnomalyRequestBatching(self, query_mock):
+    query_mock.return_value = []
+    batch_size = query_anomalies.DATASTORE_TEST_BATCH_SIZE
+    batch_count = 2
+    test_count = batch_size*batch_count
+    tests = []
+    for i in range(test_count):
+      tests.append('master/bot/benchmark/test_%i' % i)
+
+    with mock.patch('application.perf_api.auth_helper.AuthorizeBearerToken') \
+        as auth_mock:
+      auth_mock.return_value = True
+
+      # Replace the single inverted comma with double to render the json
+      test_str = str(tests).replace('\'', '"')
+      request_data = \
+        '{"tests":%s, "max_revision":"1234", "min_revision":"1233"}'% test_str
+
+      response = self.client.post(
+          '/anomalies/find',
+          data=request_data)
+      data = json.loads(response.get_data(as_text=True))
+      self.assertEqual({}, data["anomalies"], 'No anomalies expected')
+      self.assertEqual(batch_count, query_mock.call_count,
+                       'Datastore expected to be queried exactly %i times' %
+                       batch_count)
 
   @mock.patch('application.perf_api.datastore_client'
               '.DataStoreClient.QueryAnomalies')
