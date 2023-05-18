@@ -208,3 +208,20 @@ def GetAlertGroupsForAnomaly(anomaly):
         '[PerfIssueService] Error requesting groups by anomaly: %s. %s',
         test_key, str(e))
     return []
+
+
+def GetAllActiveAlertGroups():
+  url = _SERVICE_URL + _ALERT_GROUP_PREFIX
+  url += 'all/'
+
+  try:
+    cloud_metric.PublishPerfIssueServiceRequests('GetAllActiveAlertGroups',
+                                                 'GET', url, {})
+    resp = request.RequestJson(url, method='GET')
+    return resp
+  except request.RequestError as e:
+    cloud_metric.PublishPerfIssueServiceRequestFailures(
+        'GetAllActiveAlertGroups', 'GET', url, {})
+    logging.warning('[PerfIssueService] Error requesting all groups: %s',
+                    str(e))
+    return []

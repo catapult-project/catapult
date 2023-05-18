@@ -17,7 +17,7 @@ def FindDuplicatesHandler(group_id):
   return make_response(duplicate_keys)
 
 
-@alert_groups.route('<current_group_key>/canonical/issue_id/<issue_id>/project_name/<project_name>', methods=['GET'])
+@alert_groups.route('/<current_group_key>/canonical/issue_id/<issue_id>/project_name/<project_name>', methods=['GET'])
 def FindCanonicalGroupHandler(current_group_key, issue_id, project_name):
   canonical_group = alert_group.AlertGroup.FindCanonicalGroupByIssue(current_group_key, int(issue_id), project_name)
 
@@ -49,3 +49,16 @@ def GetGroupsForAnomalyHandler(test_key, start_rev, end_rev):
     return make_response(str(e), 500)
 
   return make_response(group_keys)
+
+@alert_groups.route('/all', methods=['GET'])
+def GetAllActiveGroups():
+  all_group_keys = alert_group.AlertGroup.GetAll()
+
+  return make_response(all_group_keys)
+
+
+@alert_groups.route('/ungrouped', methods=['GET'])
+def PostUngroupedGroupsHandler():
+  alert_group.AlertGroup.ProcessUngroupedAlerts()
+
+  return make_response('')

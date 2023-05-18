@@ -13,6 +13,7 @@ from flask import make_response
 from dashboard.common import cloud_metric
 from dashboard.models import alert_group
 from dashboard.models import alert_group_workflow
+from dashboard.services import perf_issue_service_client
 from google.appengine.ext import deferred
 from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
@@ -69,6 +70,21 @@ def ProcessAlertGroups():
   logging.info('Fetching alert groups.')
   groups = alert_group.AlertGroup.GetAll()
   logging.info('Found %s alert groups.', len(groups))
+
+  # Parity on get all
+  try:
+    group_keys = perf_issue_service_client.GetAllActiveAlertGroups()
+    logging.info('Parity found %s alert groups.', len(group_keys))
+    original_group_keys = [g.key.string_id() for g in groups]
+    if sorted(group_keys) != sorted(original_group_keys):
+      logging.warning('Imparity found for GetAllActiveAlertGroups. %s, %s',
+                      group_keys, original_group_keys)
+      cloud_metric.PublishPerfIssueServiceGroupingImpariry(
+          'GetAllActiveAlertGroups')
+  except Exception as e:  # pylint: disable=broad-except
+    logging.warning('Parity logic failed in GetAllActiveAlertGroups. %s',
+                    str(e))
+
   for group in groups:
     deferred.defer(
         _ProcessAlertGroup,

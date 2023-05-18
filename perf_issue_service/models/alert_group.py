@@ -3,9 +3,11 @@
 # found in the LICENSE file.
 
 import logging
-from urllib import parse
+import uuid
 
 from google.cloud import ndb
+
+from models import anomaly
 from application.clients import sheriff_config_client
 
 
@@ -125,7 +127,7 @@ class AlertGroup(ndb.Model):
 
 
   @classmethod
-  def GetGroupsForAnomaly(cls, test_key, start_rev, end_rev):
+  def GetGroupsForAnomaly(cls, test_key, start_rev, end_rev, create_on_ungrouped):
     client = sheriff_config_client.GetSheriffConfigClient()
     matched_configs, err_msg = client.Match(test_key)
 
@@ -150,7 +152,63 @@ class AlertGroup(ndb.Model):
           has_overlapped = True
           result_groups.add(g.key.string_id())
       if not has_overlapped:
-        result_groups.add('ungrouped')
+        if create_on_ungrouped:
+          client = ndb.Client()
+          with client.context():
+            new_id = str(uuid.uuid4())
+            new_group = cls(
+              id=new_id,
+              name=benchmark_name,
+              domain=master_name,
+              subscription_name=s.get('name'),
+              project_id=s.get('monorail_project_id', ''),
+              status=cls.Status.untriaged,
+              group_type=cls.Type.test_suite,
+              active=True,
+              revision=RevisionRange(
+                repository='chromium',
+                start=start_rev,
+                end=end_rev
+              )
+            )
+            logging.info('Saving new group %s', new_id)
+            new_group.put()
+          result_groups.add(new_id)
+        else:
+          result_groups.add('ungrouped')
 
     logging.debug('GetGroupsForAnomaly returning %s', result_groups)
     return list(result_groups)
+
+
+  @classmethod
+  def GetAll(cls):
+    client = ndb.Client()
+    with client.context():
+      groups = cls.query(cls.active == True).fetch()
+      return [g.key.id() for g in groups]
+
+
+  @classmethod
+  def ProcessUngroupedAlerts(cls):
+    """ Process each of the alert which needs a new group
+
+    This alerts are added to the 'ungrouped' group during anomaly detection
+    when no existing group is found to add them to.
+    """
+    ungrouped_groups = cls.Get('Ungrouped', 2)
+    client = ndb.Client()
+    with client.context():
+      if not ungrouped_groups:
+        # initiate when there is no active group called 'Ungrouped'.
+        cls(name='Ungrouped', group_type=cls.Type.reserved, active=True).put()
+        return
+      if len(ungrouped_groups) != 1:
+        logging.warning('More than one active groups are named "Ungrouped".')
+      ungrouped_anomalies = ndb.get_multi(ungrouped_groups[0].anomalies)
+      logging.info('Loaded %s ungrouped alerts from "ungrouped". ID(%s)',
+                  len(ungrouped_anomalies), ungrouped_groups[0].key.integer_id())
+
+    for anomaly in ungrouped_anomalies:
+      cls.GetGroupsForAnomaly(anomaly.test.id(), anomaly.start_revision, anomaly.end_revision, create_on_ungrouped=True)
+    return
