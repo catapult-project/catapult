@@ -3872,14 +3872,27 @@ class DeviceUtilsSetWebViewFallbackLogicTest(DeviceUtilsTest):
 
 class DeviceUtilsTakeScreenshotTest(DeviceUtilsTest):
   def testTakeScreenshot_fileNameProvided(self):
-    with self.assertCalls(
-        (mock.call.devil.android.device_temp_file.DeviceTempFile(
-            self.adb, suffix='.png'), MockTempFile('/tmp/path/temp-123.png')),
-        (self.call.adb.Shell('/system/bin/screencap -p /tmp/path/temp-123.png'),
-         ''),
-        self.call.device.PullFile('/tmp/path/temp-123.png',
-                                  '/test/host/screenshot.png')):
-      self.device.TakeScreenshot('/test/host/screenshot.png')
+    with self.patch_call(self.call.device.product_name,
+                         return_value='hammerhead'):
+      with self.assertCalls(
+          (mock.call.devil.android.device_temp_file.DeviceTempFile(
+              self.adb, suffix='.png'), MockTempFile('/tmp/path/temp-123.png')),
+          (self.call.adb.Shell(
+              '/system/bin/screencap -p /tmp/path/temp-123.png'), ''),
+          self.call.device.PullFile('/tmp/path/temp-123.png',
+                                    '/test/host/screenshot.png')):
+        self.device.TakeScreenshot('/test/host/screenshot.png')
+
+  def testTakeScreenshot_alternateCmdDevice(self):
+    with self.patch_call(self.call.device.product_name, return_value='flame'):
+      with self.assertCalls(
+          (mock.call.devil.android.device_temp_file.DeviceTempFile(
+              self.adb, suffix='.png'), MockTempFile('/tmp/path/temp-123.png')),
+          (self.call.adb.Shell(
+              '/system/bin/screencap -p > /tmp/path/temp-123.png'), ''),
+          self.call.device.PullFile('/tmp/path/temp-123.png',
+                                    '/test/host/screenshot.png')):
+        self.device.TakeScreenshot('/test/host/screenshot.png')
 
 
 class DeviceUtilsDismissCrashDialogIfNeededTest(DeviceUtilsTest):
