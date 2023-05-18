@@ -182,6 +182,12 @@ securityDefinitions:
     type: "oauth2"
     x-google-issuer: "chromeperf@appspot.gserviceaccount.com"
     x-google-jwks_uri: "https://www.googleapis.com/robot/v1/metadata/x509/chromeperf@appspot.gserviceaccount.com"
+  chromeperf_staging_service_account:
+    authorizationUrl: ""
+    flow: "implicit"
+    type: "oauth2"
+    x-google-issuer: "chromeperf-stage@appspot.gserviceaccount.com"
+    x-google-jwks_uri: "https://www.googleapis.com/robot/v1/metadata/x509/chromeperf-stage@appspot.gserviceaccount.com"
   luci_config_service_account:
     authorizationUrl: ""
     flow: "implicit"

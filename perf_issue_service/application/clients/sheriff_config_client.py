@@ -45,7 +45,10 @@ class SheriffConfigClient:
     self._InitAuthHeaders()
 
   def _InitAuthHeaders(self):
-    sa_email = 'chromeperf@appspot.gserviceaccount.com'
+    if utils.IsStagingEnvironment():
+      sa_email = 'chromeperf-stage@appspot.gserviceaccount.com'
+    else:
+      sa_email = 'chromeperf@appspot.gserviceaccount.com'
     audience = 'sheriff-config-dot-chromeperf.appspot.com'
     url = SIGNJWT_ENDPOINT.format(sa_email)
     now = int(time.time())
@@ -89,7 +92,8 @@ class SheriffConfigClient:
     if response.status_code == 401:
       logging.debug('Request unauthorized. Will renew the jwt token and retry.')
       self._InitAuthHeaders()
-      response = requests.post(url, headers=self.auth_header, json={'path': path})
+      response = requests.post(
+        url, headers=self.auth_header, json={'path': path})
     if response.status_code == 404:  # If no subscription matched
       return [], None
     if not response.ok:
