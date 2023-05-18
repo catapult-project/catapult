@@ -1560,14 +1560,10 @@ class DeviceUtils(object):
           'Package %s with version %s not installed on device after explicit '
           'install attempt.' % (package_name, library_version))
 
-    # Granting permissions takes a small amount of time, which can add up if
-    # done repeatedly. So, only grant permissions if an APK was actually
-    # installed.
-    if apks_to_install:
-      if (permissions is None
-          and self.build_version_sdk >= version_codes.MARSHMALLOW):
-        permissions = apk.GetPermissions()
-      self.GrantPermissions(package_name, permissions)
+    if (permissions is None
+        and self.build_version_sdk >= version_codes.MARSHMALLOW):
+      permissions = apk.GetPermissions()
+    self.GrantPermissions(package_name, permissions)
     # Upon success, we know the device checksums, but not their paths.
     if host_checksums is not None:
       self._cache['package_apk_checksums'][package_name] = host_checksums

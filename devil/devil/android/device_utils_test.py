@@ -1200,13 +1200,8 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
          ([], None)), (self.call.device.ClearApplicationState(TEST_PACKAGE)),
         (self.call.device.ForceStop(TEST_PACKAGE)),
         (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
-      # GrantPermissions should *not* be called in this case, so make calling it
-      # raise an exception.
-      with self.patch_call(self.call.device.GrantPermissions,
-                           side_effect=RuntimeError):
-        self.device.Install(DeviceUtilsInstallTest.mock_apk,
-                            retries=0,
-                            permissions=[])
+      self.device.Install(
+          DeviceUtilsInstallTest.mock_apk, retries=0, permissions=[])
 
   def testInstall_differentPriorInstall(self):
     with self.patch_call(self.call.device.product_name,
@@ -1225,8 +1220,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 allow_downgrade=False,
                                 instant_app=False,
                                 force_queryable=False),
-          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
-          (self.call.device.GrantPermissions(TEST_PACKAGE, []), [])):
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk, retries=0, permissions=[])
 
@@ -1247,8 +1241,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 allow_downgrade=False,
                                 instant_app=False,
                                 force_queryable=False),
-          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
-          (self.call.device.GrantPermissions(TEST_PACKAGE, []), [])):
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk, retries=0, permissions=[])
 
@@ -1269,8 +1262,7 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
                                 allow_downgrade=False,
                                 instant_app=False,
                                 force_queryable=False),
-          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True),
-          (self.call.device.GrantPermissions(TEST_PACKAGE, []), [])):
+          (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
         self.device.Install(
             DeviceUtilsInstallTest.mock_apk,
             reinstall=True,
@@ -1286,14 +1278,11 @@ class DeviceUtilsInstallTest(DeviceUtilsTest):
         (self.call.device._ComputeStaleApks(TEST_PACKAGE, [TEST_APK_PATH]),
          ([], None)), (self.call.device.ForceStop(TEST_PACKAGE)),
           (self.call.device.IsApplicationInstalled(TEST_PACKAGE, None), True)):
-      # GrantPermissions should *not* be called in this case, so make calling it
-      # raise an exception.
-      with self.patch_call(self.call.device.GrantPermissions,
-                           side_effect=RuntimeError):
-        self.device.Install(DeviceUtilsInstallTest.mock_apk,
-                            reinstall=True,
-                            retries=0,
-                            permissions=[])
+      self.device.Install(
+          DeviceUtilsInstallTest.mock_apk,
+          reinstall=True,
+          retries=0,
+          permissions=[])
 
   def testInstall_missingApk(self):
     with self.assertCalls(
