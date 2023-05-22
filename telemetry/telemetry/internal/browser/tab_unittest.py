@@ -83,6 +83,7 @@ class TabTest(tab_test_case.TabTestCase):
     self.assertEqual(self._tab.url, url)
 
   @decorators.Disabled('android') # https://crbug.com/463933
+  @decorators.Disabled('all') # Temporary disabled for Chromium changes
   def testTabIsAlive(self):
     self.assertEqual(self._tab.url, 'about:blank')
     self.assertTrue(self._tab.IsAlive())

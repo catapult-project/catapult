@@ -52,6 +52,7 @@ class TabListBackendTest(tab_test_case.TabTestCase):
   # https://github.com/catapult-project/catapult/issues/3099 (Android)
   @decorators.Enabled('has tabs')
   @decorators.Disabled('android')
+  @decorators.Disabled('all') # Temporary disabled for Chromium changes
   def testTabIdStableAfterTabCrash(self):
     # Ensure that there are two tabs.
     while len(self.tabs) < 2:
