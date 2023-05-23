@@ -648,21 +648,42 @@ class Runner(object):
 
     def _run_one_set(self, stats, result_set, test_set, jobs, pool_group):
         self._skip_tests(stats, result_set, test_set.tests_to_skip)
-        pool = pool_group.make_parallel_pool()
-        try:
-            self._run_list(stats, result_set,
-                           test_set.parallel_tests, jobs, pool)
-            pool_group.close_parallel_pool()
-        finally:
-            self.final_responses.extend(pool_group.join_parallel_pool())
+        # Don't bother spinning up any pools if we don't have any use for them.
+        have_tests = test_set.parallel_tests or test_set.isolated_tests
+        if not have_tests:
+            return
 
-        pool = pool_group.make_serial_pool()
-        try:
-            self._run_list(stats, result_set,
-                           test_set.isolated_tests, 1, pool)
-            pool_group.close_serial_pool()
-        finally:
-            self.final_responses.extend(pool_group.join_serial_pool())
+        # If we know we are running all tests serially, reduce overhead a bit
+        # by only using one pool.
+        if jobs == 1:
+            pool = pool_group.make_serial_pool()
+            try:
+                self._run_list(stats, result_set, test_set.parallel_tests,
+                               jobs, pool)
+                self._run_list(stats, result_set, test_set.isolated_tests,
+                               jobs, pool)
+                pool_group.close_serial_pool()
+            finally:
+                self.final_responses.extend(pool_group.join_serial_pool())
+            return
+
+        if test_set.parallel_tests:
+            pool = pool_group.make_parallel_pool()
+            try:
+                self._run_list(stats, result_set,
+                               test_set.parallel_tests, jobs, pool)
+                pool_group.close_parallel_pool()
+            finally:
+                self.final_responses.extend(pool_group.join_parallel_pool())
+
+        if test_set.isolated_tests:
+            pool = pool_group.make_serial_pool()
+            try:
+                self._run_list(stats, result_set,
+                               test_set.isolated_tests, 1, pool)
+                pool_group.close_serial_pool()
+            finally:
+                self.final_responses.extend(pool_group.join_serial_pool())
 
     def _skip_tests(self, stats, result_set, tests_to_skip):
         for test_input in tests_to_skip:
