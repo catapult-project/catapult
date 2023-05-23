@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 """Common utils for issue tracker client."""
 
+import functools
 import json
 import logging
 import os
@@ -83,11 +84,10 @@ def AuthorizeBearerToken(request):
 
 
 def BearerTokenAuthorizer(wrapped_handler):
-
+  @functools.wraps(wrapped_handler)
   def Wrapper(*args, **kwargs):
     if not AuthorizeBearerToken(flask_request):
       return make_response('Failed to validate the incoming request.', 403)
     return wrapped_handler(*args, **kwargs)
 
-  Wrapper.__name__ = wrapped_handler.__name__
   return Wrapper

@@ -7,6 +7,7 @@ from httplib2 import http
 import json
 import logging
 
+from application import utils
 from application.clients import issue_tracker_client
 
 issues = Blueprint('issues', __name__)
@@ -14,6 +15,7 @@ issues = Blueprint('issues', __name__)
 
 @issues.route('/', methods=['GET'])
 @issues.route('/project/<project_name>', methods=['GET'])
+@utils.BearerTokenAuthorizer
 def IssuesGetHandler(project_name=None):
   limit = request.args.get('limit', '2000')
   age = request.args.get('age', '3')
@@ -32,6 +34,7 @@ def IssuesGetHandler(project_name=None):
 
 @issues.route('/<issue_id>/project/', methods=['GET'])
 @issues.route('/<issue_id>/project/<project_name>', methods=['GET'])
+@utils.BearerTokenAuthorizer
 def IssuesGetByIdHandler(issue_id, project_name=None):
   # add handling before the fix on alert_group_workflow is deployed.
   if not project_name:
@@ -43,6 +46,7 @@ def IssuesGetByIdHandler(issue_id, project_name=None):
   return make_response(response)
 
 @issues.route('/<issue_id>/project/<project_name>/comments', methods=['GET'])
+@utils.BearerTokenAuthorizer
 def CommentsHandler(issue_id, project_name):
   client = issue_tracker_client.IssueTrackerClient()
   response = client.GetIssueComments(
@@ -51,6 +55,7 @@ def CommentsHandler(issue_id, project_name):
   return make_response(response)
 
 @issues.route('/', methods=['POST'])
+@utils.BearerTokenAuthorizer
 def IssuesPostHandler():
   try:
     data = json.loads(request.data)
@@ -62,6 +67,7 @@ def IssuesPostHandler():
   return make_response(response)
 
 @issues.route('/<issue_id>/project/<project_name>/comments', methods=['POST'])
+@utils.BearerTokenAuthorizer
 def CommentsPostHandler(issue_id, project_name):
   try:
     data = json.loads(request.data)

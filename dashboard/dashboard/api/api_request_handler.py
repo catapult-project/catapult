@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import functools
 import json
 import logging
 import re
@@ -52,6 +53,7 @@ def RequestHandlerDecoratorFactory(user_checker):
 
   def RequestHandlerDecorator(request_handler):
 
+    @functools.wraps(request_handler)
     def Wrapper(*args):
       if request.method == 'OPTIONS':
         response = make_response()
@@ -81,7 +83,6 @@ def RequestHandlerDecoratorFactory(user_checker):
       _SetCorsHeadersIfAppropriate(request, response)
       return response
 
-    Wrapper.__name__ = request_handler.__name__
     return Wrapper
 
   return RequestHandlerDecorator

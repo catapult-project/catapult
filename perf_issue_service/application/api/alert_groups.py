@@ -6,11 +6,13 @@ from flask import make_response, Blueprint, request
 import logging
 
 from models import alert_group
+from application import utils
 
 alert_groups = Blueprint('alert_groups', __name__)
 
 
 @alert_groups.route('/<group_id>/duplicates', methods=['GET'])
+@utils.BearerTokenAuthorizer
 def FindDuplicatesHandler(group_id):
   duplicate_keys = alert_group.AlertGroup.FindDuplicates(group_id)
 
@@ -18,6 +20,7 @@ def FindDuplicatesHandler(group_id):
 
 
 @alert_groups.route('/<current_group_key>/canonical/issue_id/<issue_id>/project_name/<project_name>', methods=['GET'])
+@utils.BearerTokenAuthorizer
 def FindCanonicalGroupHandler(current_group_key, issue_id, project_name):
   canonical_group = alert_group.AlertGroup.FindCanonicalGroupByIssue(current_group_key, int(issue_id), project_name)
 
@@ -27,6 +30,7 @@ def FindCanonicalGroupHandler(current_group_key, issue_id, project_name):
 
 
 @alert_groups.route('/<group_id>/anomalies', methods=['GET'])
+@utils.BearerTokenAuthorizer
 def GetAnomaliesHandler(group_id):
   try:
     group_id = int(group_id)
@@ -41,6 +45,7 @@ def GetAnomaliesHandler(group_id):
 
 
 @alert_groups.route('/test/<path:test_key>/start/<start_rev>/end/<end_rev>', methods=['GET'])
+@utils.BearerTokenAuthorizer
 def GetGroupsForAnomalyHandler(test_key, start_rev, end_rev):
   try:
     group_keys = alert_group.AlertGroup.GetGroupsForAnomaly(
@@ -51,6 +56,7 @@ def GetGroupsForAnomalyHandler(test_key, start_rev, end_rev):
   return make_response(group_keys)
 
 @alert_groups.route('/all', methods=['GET'])
+@utils.BearerTokenAuthorizer
 def GetAllActiveGroups():
   all_group_keys = alert_group.AlertGroup.GetAll()
 
@@ -58,6 +64,7 @@ def GetAllActiveGroups():
 
 
 @alert_groups.route('/ungrouped', methods=['GET'])
+@utils.BearerTokenAuthorizer
 def PostUngroupedGroupsHandler():
   alert_group.AlertGroup.ProcessUngroupedAlerts()
 
