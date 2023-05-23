@@ -13,7 +13,8 @@ issues = Blueprint('issues', __name__)
 
 
 @issues.route('/', methods=['GET'])
-def IssuesGetHandler():
+@issues.route('/project/<project_name>', methods=['GET'])
+def IssuesGetHandler(project_name=None):
   limit = request.args.get('limit', '2000')
   age = request.args.get('age', '3')
   status = request.args.get('status', 'open')
@@ -21,6 +22,7 @@ def IssuesGetHandler():
 
   client = issue_tracker_client.IssueTrackerClient()
   response = client.GetIssuesList(
+      project=project_name,
       q='opened>today-%s' % age,
       can=status,
       label=labels,
