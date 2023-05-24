@@ -131,8 +131,10 @@ class AndroidPlatformBackend(
     super().__init__(device)
     self._device = device_utils.DeviceUtils(device.device_id)
     # Disable Play Store on Android devices.
-    self._device.RunShellCommand(['pm', 'disable-user', 'com.android.vending'],
-                                 check_return=True)
+    if self._device.IsApplicationInstalled('com.android.vending'):
+      self._device.RunShellCommand(
+        ['pm', 'disable-user', 'com.android.vending'],
+        check_return=True)
     self._can_elevate_privilege = False
     self._require_root = require_root
     if self._require_root:
