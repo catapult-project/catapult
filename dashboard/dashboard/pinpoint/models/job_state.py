@@ -342,6 +342,9 @@ class JobState:
             comparison_magnitude = 0.5
         else:
           comparison_magnitude = 1.0
+
+        logging.debug('BisectDebug: Functional Comparing exceptions: %s, %s',
+            exceptions_a, exceptions_b)
         comparison, _, _, _ = compare.Compare(
             exceptions_a,
             exceptions_b,
@@ -349,6 +352,7 @@ class JobState:
             FUNCTIONAL,
             comparison_magnitude,
         )
+        logging.debug('BisectDebug: Functional Compare result: %s', comparison)
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
         if comparison == compare.UNKNOWN:
@@ -375,6 +379,8 @@ class JobState:
           comparison_magnitude = 1.0
 
         sample_count = (len(all_a_values) + len(all_b_values)) // 2
+        logging.debug('BisectDebug: Comparing values: %s, %s',
+            all_a_values, all_b_values)
         comparison, _, _, _ = compare.Compare(
             all_a_values,
             all_b_values,
@@ -382,6 +388,7 @@ class JobState:
             PERFORMANCE,
             comparison_magnitude,
         )
+        logging.debug('BisectDebug: Compare result: %s', comparison)
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
         if comparison == compare.UNKNOWN:
