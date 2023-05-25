@@ -298,6 +298,13 @@ class Job(ndb.Model):
 
     return None
 
+  @property
+  def origin(self):
+    origin = 'default'
+    if self.tags and self.tags.get('origin'):
+      origin = self.tags['origin']
+    return origin
+
   @classmethod
   def New(cls,
           quests,
@@ -526,9 +533,11 @@ class Job(ndb.Model):
 
     # publish metric on the time waiting in configuration queue.
     pinpoint_job_queued_time = self.started_time - self.created
+
     cloud_metric.PublishPinpointJobRunTimeMetric(
         app_identity.get_application_id(), self.job_id, self.comparison_mode,
-        "wait-time-in-queue", pinpoint_job_queued_time.total_seconds())
+        "wait-time-in-queue", self.user, self.origin,
+        pinpoint_job_queued_time.total_seconds())
 
     title = _ROUND_PUSHPIN + ' Pinpoint job started.'
     comment = '\n'.join((title, self.url))
@@ -852,11 +861,10 @@ class Job(ndb.Model):
         timing_record.RecordJobTiming(self)
         job_status = "completed"
         self._PrintJobStatusRunTimeMetrics(job_status, True)
-
         cloud_metric.PublishPinpointJobDetailMetrics(
             app_identity.get_application_id(), self.job_id,
-            self.comparison_mode, job_status, self.state.ChangesExamined(),
-            self.state.TotalAttemptsExecuted(),
+            self.comparison_mode, job_status, self.user, self.origin,
+            self.state.ChangesExamined(), self.state.TotalAttemptsExecuted(),
             0 if self.difference_count is None else self.difference_count)
 
       try:
@@ -979,13 +987,13 @@ class Job(ndb.Model):
   def _PrintJobStatusRunTimeMetrics(self, job_status, with_run_time=False):
     cloud_metric.PublishPinpointJobStatusMetric(
         app_identity.get_application_id(), self.job_id, self.comparison_mode,
-        job_status)
+        job_status, self.user, self.origin)
 
     if with_run_time:
       job_run_time = self.updated - self.started_time
       cloud_metric.PublishPinpointJobRunTimeMetric(
           app_identity.get_application_id(), self.job_id, self.comparison_mode,
-          job_status, job_run_time.total_seconds())
+          job_status, self.user, self.origin, job_run_time.total_seconds())
 
 
 def _PostBugCommentDeferred(bug_id, *args, **kwargs):
@@ -997,3 +1005,5 @@ def _PostBugCommentDeferred(bug_id, *args, **kwargs):
 
 def _UpdateGerritDeferred(*args, **kwargs):
   gerrit_service.PostChangeComment(*args, **kwargs)
+
+# pylint: disable=too-many-lines

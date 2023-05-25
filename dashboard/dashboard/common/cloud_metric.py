@@ -22,6 +22,8 @@ API_METRIC_TYPE = "api/metrics"
 API_NAME = "api_name"
 REQUEST_STATUS = "request_status"
 RUN_TIME = "run_time"
+USER = "user"
+ORIGIN = "origin"
 UUID = "uuid"
 
 # swarming metric label keys
@@ -144,15 +146,19 @@ def PublishPinpointJobStatusMetric(project_id,
                                    job_id,
                                    job_type,
                                    job_status,
+                                   job_user,
+                                   origin,
                                    metric_value=1):
-  label_dict = {JOB_ID: job_id, JOB_TYPE: job_type, JOB_STATUS: job_status}
+  label_dict = {JOB_ID: job_id, JOB_TYPE: job_type, JOB_STATUS: job_status,
+                USER: job_user, ORIGIN: origin}
   _PublishTSCloudMetric(project_id, "pinpoint", "pinpoint/job/status_change",
                        label_dict, metric_value)
 
 
 def PublishPinpointJobRunTimeMetric(project_id, job_id, job_type, job_status,
-                                    metric_value):
-  label_dict = {JOB_ID: job_id, JOB_TYPE: job_type, JOB_STATUS: job_status}
+                                    job_user, origin, metric_value):
+  label_dict = {JOB_ID: job_id, JOB_TYPE: job_type, JOB_STATUS: job_status,
+                USER: job_user, ORIGIN: origin}
   _PublishTSCloudMetric(project_id, "pinpoint", "pinpoint/job/run_time",
                        label_dict, metric_value)
 
@@ -161,10 +167,13 @@ def PublishPinpointJobDetailMetrics(project_id,
                                     job_id,
                                     job_type,
                                     job_status,
+                                    job_user,
+                                    origin,
                                     change_count,
                                     attempt_count,
                                     difference_count=1):
-  label_dict = {JOB_ID: job_id, JOB_TYPE: job_type, JOB_STATUS: job_status}
+  label_dict = {JOB_ID: job_id, JOB_TYPE: job_type, JOB_STATUS: job_status,
+                USER: job_user, ORIGIN: origin}
   _PublishTSCloudMetric(project_id, "pinpoint",
                         "pinpoint/job/change_count_per_job", label_dict,
                         change_count)
