@@ -127,7 +127,7 @@ class AlertGroup(ndb.Model):
 
 
   @classmethod
-  def GetGroupsForAnomaly(cls, test_key, start_rev, end_rev, create_on_ungrouped):
+  def GetGroupsForAnomaly(cls, test_key, start_rev, end_rev, create_on_ungrouped=False):
     client = sheriff_config_client.GetSheriffConfigClient()
     matched_configs, err_msg = client.Match(test_key)
 
