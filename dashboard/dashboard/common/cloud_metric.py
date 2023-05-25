@@ -171,7 +171,7 @@ def PublishPinpointJobDetailMetrics(project_id,
                                     origin,
                                     change_count,
                                     attempt_count,
-                                    difference_count=1):
+                                    difference_count=0):
   label_dict = {JOB_ID: job_id, JOB_TYPE: job_type, JOB_STATUS: job_status,
                 USER: job_user, ORIGIN: origin}
   _PublishTSCloudMetric(project_id, "pinpoint",
@@ -183,6 +183,9 @@ def PublishPinpointJobDetailMetrics(project_id,
   _PublishTSCloudMetric(project_id, "pinpoint",
                         "pinpoint/job/difference_count_per_job", label_dict,
                         difference_count)
+  _PublishTSCloudMetric(project_id, "pinpoint",
+                        "pinpoint/job/has_difference", label_dict,
+                        0 if difference_count == 0 else 1)
 
 
 def _PublishTSCloudMetric(project_id,
