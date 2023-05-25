@@ -30,10 +30,20 @@ class TestPublicAccessPrevention(testcase.GsUtilIntegrationTestCase):
   _set_pap_cmd = ['pap', 'set']
   _get_pap_cmd = ['pap', 'get']
 
+  def _verify_public_access_prevention_unspecified(self, bucket_uri):
+    # TODO(b/201683262) Replace all calls to this method
+    # with self.VerifyPublicAccessPreventionValue(bucket_uri, 'inherited')
+    # once the backend rollout is completed.
+    stdout = self.RunGsUtil(['publicaccessprevention', 'get',
+                             suri(bucket_uri)],
+                            return_stdout=True)
+    self.assertRegex(stdout,
+                     r'%s:\s+(unspecified|inherited)' % suri(bucket_uri))
+
   @SkipForXML('Public access prevention only runs on GCS JSON API')
   def test_off_on_default_buckets(self):
     bucket_uri = self.CreateBucket()
-    self.VerifyPublicAccessPreventionValue(bucket_uri, 'inherited')
+    self._verify_public_access_prevention_unspecified(bucket_uri)
 
   @SkipForXML('Public access prevention only runs on GCS JSON API')
   def test_turning_off_on_enabled_buckets(self):
@@ -41,13 +51,14 @@ class TestPublicAccessPrevention(testcase.GsUtilIntegrationTestCase):
                                    prefer_json_api=True)
     self.VerifyPublicAccessPreventionValue(bucket_uri, 'enforced')
 
-    self.RunGsUtil(self._set_pap_cmd + ['inherited', suri(bucket_uri)])
-    self.VerifyPublicAccessPreventionValue(bucket_uri, 'inherited')
+    self.RunGsUtil(self._set_pap_cmd + ['unspecified', suri(bucket_uri)])
+    self._verify_public_access_prevention_unspecified(bucket_uri)
 
   @SkipForXML('Public access prevention only runs on GCS JSON API')
   def test_turning_on(self):
     bucket_uri = self.CreateBucket()
     self.RunGsUtil(self._set_pap_cmd + ['enforced', suri(bucket_uri)])
+
     self.VerifyPublicAccessPreventionValue(bucket_uri, 'enforced')
 
   @SkipForXML('Public access prevention only runs on GCS JSON API')
@@ -57,8 +68,8 @@ class TestPublicAccessPrevention(testcase.GsUtilIntegrationTestCase):
     self.RunGsUtil(self._set_pap_cmd + ['enforced', suri(bucket_uri)])
     self.VerifyPublicAccessPreventionValue(bucket_uri, 'enforced')
 
-    self.RunGsUtil(self._set_pap_cmd + ['inherited', suri(bucket_uri)])
-    self.VerifyPublicAccessPreventionValue(bucket_uri, 'inherited')
+    self.RunGsUtil(self._set_pap_cmd + ['unspecified', suri(bucket_uri)])
+    self._verify_public_access_prevention_unspecified(bucket_uri)
 
   @SkipForXML('Public access prevention only runs on GCS JSON API')
   def test_multiple_buckets(self):
@@ -68,8 +79,10 @@ class TestPublicAccessPrevention(testcase.GsUtilIntegrationTestCase):
         self._get_pap_cmd +
         [suri(bucket_uri1), suri(bucket_uri2)],
         return_stdout=True)
-    self.assertRegex(stdout, r'%s:\s+inherited' % suri(bucket_uri1))
-    self.assertRegex(stdout, r'%s:\s+inherited' % suri(bucket_uri2))
+    self.assertRegex(stdout,
+                     r'%s:\s+(unspecified|inherited)' % suri(bucket_uri1))
+    self.assertRegex(stdout,
+                     r'%s:\s+(unspecified|inherited)' % suri(bucket_uri2))
 
   @SkipForJSON('Testing XML only behavior')
   def test_xml_fails(self):
@@ -86,7 +99,7 @@ class TestPublicAccessPrevention(testcase.GsUtilIntegrationTestCase):
     ]
     with SetBotoConfigForTest(boto_config_hmac_auth_only):
       bucket_uri = 'gs://any-bucket-name'
-      stderr = self.RunGsUtil(self._set_pap_cmd + ['inherited', bucket_uri],
+      stderr = self.RunGsUtil(self._set_pap_cmd + ['unspecified', bucket_uri],
                               return_stderr=True,
                               expected_status=1)
       self.assertIn('command can only be with the Cloud Storage JSON API',
@@ -102,21 +115,15 @@ class TestPublicAccessPrevention(testcase.GsUtilIntegrationTestCase):
   def test_s3_fails(self):
     bucket_uri = self.CreateBucket()
     stderr = self.RunGsUtil(self._set_pap_cmd +
-                            ['inherited', suri(bucket_uri)],
+                            ['unspecified', suri(bucket_uri)],
                             return_stderr=True,
                             expected_status=1)
-    if self._use_gcloud_storage:
-      self.assertIn('Flags disallowed for S3', stderr)
-    else:
-      self.assertIn('command can only be used for GCS Buckets', stderr)
+    self.assertIn('command can only be used for GCS Buckets', stderr)
 
-    if not self._use_gcloud_storage:
-      # gcloud storage uses a generic buckets describe command for this, and it
-      # would not print a result instead of erroring.
-      stderr = self.RunGsUtil(self._get_pap_cmd + [suri(bucket_uri)],
-                              return_stderr=True,
-                              expected_status=1)
-      self.assertIn('command can only be used for GCS Buckets', stderr)
+    stderr = self.RunGsUtil(self._get_pap_cmd + [suri(bucket_uri)],
+                            return_stderr=True,
+                            expected_status=1)
+    self.assertIn('command can only be used for GCS Buckets', stderr)
 
   def test_set_too_few_arguments_fails(self):
     stderr = self.RunGsUtil(self._set_pap_cmd,

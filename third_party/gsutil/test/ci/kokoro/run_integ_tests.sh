@@ -16,30 +16,120 @@
 # Doc: https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html#The-Set-Builtin
 set -xu
 
-HELPER_PATH="/tmpfs/src/github/src/gsutil/test/ci/kokoro/run_integ_tests_helper.sh"
 
-# Set the locale to utf-8 for macos b/154863917 and linux
-# https://github.com/GoogleCloudPlatform/gsutil/pull/1692
-if [[ $KOKORO_JOB_NAME =~ "linux" ]]; then
-  export LANG=C.UTF-8
-  export LC_ALL=C.UTF-8
-  # Kokoro for linux runs in a Docker container as root, which causes
-  # few tests to fail. See b/281868063.
-  # Add a new user.
-  # -s: Set the login shell.
-  useradd -s /bin/bash tester
+# PYMAJOR, PYMINOR, and API environment variables are set per job in:
+# go/kokoro-gsutil-configs
+PYVERSION="$PYMAJOR.$PYMINOR"
 
-  # Make this user the owner of /tmpfs/src and /root dirs so that restricted
-  # files can be accessed.
-  chown -hR tester: /tmpfs/src/
-  chown -hR tester: /root/
+# Processes to use based on default Kokoro specs here:
+# go/gcp-ubuntu-vm-configuration-v32i
+# go/kokoro-macos-external-configuration
+PROCS="8"
 
-  # Call the script as the new user.
-  # -E: Preserve the environment variables.
-  sudo -E -u tester bash "$HELPER_PATH"
-elif [[ $KOKORO_JOB_NAME =~ "macos" ]]; then
+GSUTIL_KEY="/tmpfs/src/keystore/74008_gsutil_kokoro_service_key"
+GSUTIL_SRC="/tmpfs/src/github/src/gsutil"
+GSUTIL_ENTRYPOINT="$GSUTIL_SRC/gsutil.py"
+CFG_GENERATOR="$GSUTIL_SRC/test/ci/kokoro/config_generator.sh"
+BOTO_CONFIG="/tmpfs/src/.boto_$API"
+
+# gsutil looks for this environment variable to find .boto config
+# https://cloud.google.com/storage/docs/boto-gsutil
+export BOTO_PATH="$BOTO_CONFIG"
+
+# Set the locale to utf-8 for macos b/154863917
+if [[ $KOKORO_JOB_NAME =~ "macos" ]]; then
   export LANG=en_US.UTF-8
-  export LC_ALL=en_US.UTF-8
-  bash "$HELPER_PATH"
 fi
 
+function latest_python_release {
+  # Return string with latest Python version triplet for a given version tuple.
+  # Example: PYVERSION="2.7"; latest_python_release -> "2.7.15"
+  pyenv install --list \
+    | grep -vE "(^Available versions:|-src|dev|rc|alpha|beta|(a|b)[0-9]+)" \
+    | grep -E "^\s*$PYVERSION" \
+    | sed -E 's/^[[:space:]]+//' \
+    | tail -1
+}
+
+function install_pyenv {
+  # Install pyenv if missing.
+  if ! [ "$(pyenv --version)" ]; then
+    # MacOS VM does not have pyenv installed by default.
+    git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init --path)"
+  fi
+  pyenv update
+  # To address pyenv issue: See b/187701234#comment12.
+  cd ~/.pyenv/plugins/python-build/../.. && git pull && \
+     git checkout 783870759566a77d09b426e0305bc0993a522765 && cd -
+}
+
+function install_python {
+  pyenv install -s "$PYVERSIONTRIPLET"
+}
+
+function init_configs {
+  # Create .boto config for gsutil
+  # https://cloud.google.com/storage/docs/gsutil/commands/config
+  bash "$CFG_GENERATOR" "$GSUTIL_KEY" "$API" "$BOTO_CONFIG"
+  cat "$BOTO_CONFIG"
+}
+
+function init_python {
+  # Ensure latest release of desired Python version is installed, and that
+  # dependencies from pip, e.g. crcmod, are installed.
+  install_pyenv
+  PYVERSIONTRIPLET=$(latest_python_release)
+  install_python
+  pyenv global "$PYVERSIONTRIPLET"
+  # Check if Python version is same as set by the config
+  py_ver=$(python -V 2>&1 | grep -Eo 'Python ([0-9]+)\.[0-9]+')
+  if ! [[ $py_ver == "Python $PYVERSION" ]]; then
+    echo "Python version $py_ver does not match the required version"
+    exit 1
+  fi
+  python -m pip install -U crcmod
+}
+
+function update_submodules {
+  # Most dependencies are included in gsutil via submodules. We need to
+  # tell git to grab our dependencies' source before we can depend on them.
+  cd "$GSUTIL_SRC"
+  git submodule update --init --recursive
+}
+
+
+init_configs
+init_python
+update_submodules
+
+set -e
+
+# Check that we're using the correct config.
+python "$GSUTIL_ENTRYPOINT" version -l
+# Run integration tests.
+python "$GSUTIL_ENTRYPOINT" test -p "$PROCS"
+# Run custom endpoint tests.
+# We don't generate a .boto for these tests since there are only a few settings.
+python "$GSUTIL_ENTRYPOINT" \
+  -o "Credentials:gs_host=storage-psc.p.googleapis.com" \
+  -o "Credentials:gs_host_header=storage.googleapis.com" \
+  -o "Credentials:gs_json_host=storage-psc.p.googleapis.com" \
+  -o "Credentials:gs_json_host_header=www.googleapis.com" \
+  test gslib.tests.test_psc
+
+# Run mTLS authentication test.
+if [[ $API == "json" ]]; then
+  MTLS_TEST_ACCOUNT_REFRESH_TOKEN="/tmpfs/src/keystore/74008_mtls_test_account_refresh_token"
+  MTLS_TEST_ACCOUNT_CLIENT_ID="/tmpfs/src/keystore/74008_mtls_test_account_client_id"
+  MTLS_TEST_ACCOUNT_CLIENT_SECRET="/tmpfs/src/keystore/74008_mtls_test_account_client_secret"
+  MTLS_TEST_CERT_PATH="/tmpfs/src/keystore/74008_mtls_test_cert"
+
+  # Generate .boto config specifically for mTLS tests.
+  bash "$CFG_GENERATOR" "" "$API" "$BOTO_CONFIG" "$MTLS_TEST_ACCOUNT_REFRESH_TOKEN" "$MTLS_TEST_ACCOUNT_CLIENT_ID" "$MTLS_TEST_ACCOUNT_CLIENT_SECRET" "$MTLS_TEST_CERT_PATH"
+
+  # Run mTLS E2E test.
+  python "$GSUTIL_ENTRYPOINT" test gslib.tests.test_mtls.TestMtls
+fi

@@ -975,76 +975,15 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
       ])
       self.assertEqual(expected, actual)
 
-  def testRecursiveCopyFileToExistingBucketSubDirInvalidSourceParent(self):
-    """Tests recursive copy of invalid path file to existing bucket subdir."""
-    src_dir = self.CreateTempDir(test_files=[('nested', 'f0')])
-    dst_bucket_uri = self.CreateBucket(test_objects=['dst_subdir/existing_obj'])
-
-    for relative_path_string in ['.', '.' + os.sep]:
-      self.RunCommand('cp', [
-          '-R',
-          src_dir + os.sep + relative_path_string,
-          suri(dst_bucket_uri, 'dst_subdir'),
-      ])
-      actual = set(
-          str(u) for u in self._test_wildcard_iterator(
-              suri(dst_bucket_uri, 'dst_subdir', '**')).IterAll(
-                  expand_top_level_buckets=True))
-      expected = set([
-          suri(dst_bucket_uri, 'dst_subdir', 'nested', 'f0'),
-          suri(dst_bucket_uri, 'dst_subdir', 'existing_obj'),
-      ])
-      self.assertEqual(expected, actual)
-
-  def testRecursiveCopyFilesToExistingBucketSubDirInvalidSourceParent(self):
-    """Tests recursive copy of invalid paths files to existing bucket subdir."""
-    src_dir = self.CreateTempDir(test_files=['f0'])
-    dst_bucket_uri = self.CreateBucket(test_objects=['dst_subdir/existing_obj'])
-
-    for relative_path_string in ['.', '.' + os.sep, '..', '..' + os.sep]:
-      with self.subTest(relative_path_string=relative_path_string):
-        with self.assertRaises(InvalidUrlError):
-          self.RunCommand('cp', [
-              '-R',
-              src_dir,
-              relative_path_string,
-              suri(dst_bucket_uri, 'dst_subdir'),
-          ])
-
+  # @SequentialAndParallelTransfer
   def testRecursiveCopyObjsAndFilesToNonExistentBucketSubDir(self):
     """Tests recursive copy of objs + files to non-existent bucket subdir."""
     src_bucket_uri = self.CreateBucket(test_objects=['f0', 'nested/f1'])
-    src_dir = self.CreateTempDir(test_files=[
-        ('parent', 'f2'),
-        ('parent', 'nested', 'f3'),
-    ])
+    src_dir = self.CreateTempDir(test_files=['f2', ('nested', 'f3')])
     dst_bucket_uri = self.CreateBucket()
     self.RunCommand('cp', [
-        '-R',
-        os.path.join(src_dir, 'parent'),
+        '-R', src_dir,
         suri(src_bucket_uri),
-        suri(dst_bucket_uri, 'dst_subdir')
-    ])
-    actual = set(
-        str(u) for u in self._test_wildcard_iterator(suri(
-            dst_bucket_uri, '**')).IterAll(expand_top_level_buckets=True))
-    expected = set([
-        suri(dst_bucket_uri, 'dst_subdir', src_bucket_uri.bucket_name, 'f0'),
-        suri(dst_bucket_uri, 'dst_subdir', src_bucket_uri.bucket_name, 'nested',
-             'f1'),
-        suri(dst_bucket_uri, 'dst_subdir', 'parent', 'f2'),
-        suri(dst_bucket_uri, 'dst_subdir', 'parent', 'nested', 'f3')
-    ])
-    self.assertEqual(expected, actual)
-
-  def testRecursiveCopyNestedObjsToNonExistentBucketSubDir(self):
-    """Tests recursive copy of objs + files to non-existent bucket subdir."""
-    src_bucket_uri = self.CreateBucket(
-        test_objects=['parent/f0', 'parent/nested/f1'])
-    dst_bucket_uri = self.CreateBucket()
-    self.RunCommand('cp', [
-        '-R',
-        suri(src_bucket_uri, 'parent'),
         suri(dst_bucket_uri, 'dst_subdir')
     ])
     actual = set(
@@ -1053,18 +992,6 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
     expected = set([
         suri(dst_bucket_uri, 'dst_subdir', 'f0'),
         suri(dst_bucket_uri, 'dst_subdir', 'nested', 'f1'),
-    ])
-    self.assertEqual(expected, actual)
-
-  def testRecursiveCopyFilesToNonExistentBucketSubDir(self):
-    """Tests recursive copy of objs + files to non-existent bucket subdir."""
-    src_dir = self.CreateTempDir(test_files=['f2', ('nested', 'f3')])
-    dst_bucket_uri = self.CreateBucket()
-    self.RunCommand('cp', ['-R', src_dir, suri(dst_bucket_uri, 'dst_subdir')])
-    actual = set(
-        str(u) for u in self._test_wildcard_iterator(suri(
-            dst_bucket_uri, '**')).IterAll(expand_top_level_buckets=True))
-    expected = set([
         suri(dst_bucket_uri, 'dst_subdir', 'f2'),
         suri(dst_bucket_uri, 'dst_subdir', 'nested', 'f3')
     ])
@@ -1343,6 +1270,18 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
         str(u) for u in self._test_wildcard_iterator(suri(
             src_bucket_uri, '**')).IterAll(expand_top_level_buckets=True))
     self.assertEqual(actual, set())
+
+  def testWildcardSrcSubDirMoveDisallowed(self):
+    """Tests moving a bucket subdir specified by wildcard is disallowed."""
+    src_bucket_uri = self.CreateBucket(test_objects=['dir/foo1'])
+    dst_bucket_uri = self.CreateBucket(test_objects=['dir/foo2'])
+    try:
+      self.RunCommand(
+          'mv', [suri(src_bucket_uri, 'dir*'),
+                 suri(dst_bucket_uri, 'dir')])
+      self.fail('Did not get expected CommandException')
+    except CommandException as e:
+      self.assertIn('mv command disallows naming', e.reason)
 
   def testMovingBucketSubDirToNonExistentBucketSubDir(self):
     """Tests moving a bucket subdir to a non-existent bucket subdir."""

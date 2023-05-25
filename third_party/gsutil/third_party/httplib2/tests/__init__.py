@@ -7,10 +7,12 @@ import email.utils
 import functools
 import gzip
 import hashlib
+import httplib2
 import os
 import random
 import re
 import shutil
+import six
 import socket
 import ssl
 import struct
@@ -19,18 +21,8 @@ import threading
 import time
 import traceback
 import zlib
+from six.moves import http_client, queue
 
-import httplib2
-import pytest
-import six
-from six.moves import http_client, queue, urllib
-
-
-_missing = object()
-
-x509 = None
-if sys.version_info >= (3, 6):
-    from cryptography import x509
 
 DUMMY_URL = "http://127.0.0.1:1"
 DUMMY_HTTPS_URL = "https://127.0.0.1:2"
@@ -42,10 +34,6 @@ CLIENT_PEM = os.path.join(tls_dir, "client.pem")
 CLIENT_ENCRYPTED_PEM = os.path.join(tls_dir, "client_encrypted.pem")
 SERVER_PEM = os.path.join(tls_dir, "server.pem")
 SERVER_CHAIN = os.path.join(tls_dir, "server_chain.pem")
-skip_benchmark = pytest.mark.skipif(
-    os.getenv("httplib2_test_bench", "") != "1",
-    reason="benchmark disabled by default, set env httplib2_test_bench=1",
-)
 
 
 @contextlib.contextmanager
@@ -66,7 +54,8 @@ def assert_raises(exc_type):
 
 
 class BufferedReader(object):
-    """io.BufferedReader with \r\n support"""
+    """io.BufferedReader with \r\n support
+    """
 
     def __init__(self, sock):
         self._buf = b""
@@ -130,9 +119,9 @@ def parse_http_message(kind, buf):
     msg = kind()
     msg.raw = start_line
     if kind is HttpRequest:
-        assert re.match(br".+ HTTP/\d\.\d\r\n$", start_line), "Start line does not look like HTTP request: " + repr(
-            start_line
-        )
+        assert re.match(
+            br".+ HTTP/\d\.\d\r\n$", start_line
+        ), "Start line does not look like HTTP request: " + repr(start_line)
         msg.method, msg.uri, msg.proto = start_line.rstrip().decode().split(" ", 2)
         assert msg.proto.startswith("HTTP/"), repr(start_line)
     elif kind is HttpResponse:
@@ -208,7 +197,8 @@ class MockResponse(six.BytesIO):
 
 
 class MockHTTPConnection(object):
-    """This class is just a mock of httplib.HTTPConnection used for testing"""
+    """This class is just a mock of httplib.HTTPConnection used for testing
+    """
 
     def __init__(
         self,
@@ -244,7 +234,8 @@ class MockHTTPConnection(object):
 
 
 class MockHTTPBadStatusConnection(object):
-    """Mock of httplib.HTTPConnection that raises BadStatusLine."""
+    """Mock of httplib.HTTPConnection that raises BadStatusLine.
+    """
 
     num_calls = 0
 
@@ -306,7 +297,6 @@ def server_socket(fun, request_count=1, timeout=5, scheme="", tls=None):
     tls_skip_errors = [
         "TLSV1_ALERT_UNKNOWN_CA",
     ]
-    assert scheme in ("", "http", "https"), 'tests.server_socket: invalid scheme="{}"'.format(scheme)
 
     def tick(request):
         gcounter[0] += 1
@@ -338,7 +328,11 @@ def server_socket(fun, request_count=1, timeout=5, scheme="", tls=None):
                     # at least in other/connection_close test
                     # should not be a problem since socket would close upon garbage collection
             if gcounter[0] > request_count:
-                gresult[0] = Exception("Request count expected={0} actual={1}".format(request_count, gcounter[0]))
+                gresult[0] = Exception(
+                    "Request count expected={0} actual={1}".format(
+                        request_count, gcounter[0]
+                    )
+                )
         except Exception as e:
             # traceback.print_exc caused IOError: concurrent operation on sys.stderr.close() under setup.py test
             print(traceback.format_exc(), file=sys.stderr)
@@ -357,17 +351,13 @@ def server_socket(fun, request_count=1, timeout=5, scheme="", tls=None):
     if tls is True:
         tls = SERVER_CHAIN
     if tls:
-        # TODO: Drop py3.3 support and replace this with ssl.create_default_context
-        ssl_context = ssl.SSLContext(getattr(ssl, "PROTOCOL_TLS", None) or getattr(ssl, "PROTOCOL_SSLv23"))
-        # TODO: leave this when py3.3 support is dropped
-        # ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH, cafile=CA_CERTS)
-
+        context = ssl_context()
         if callable(tls):
-            ssl_context.load_cert_chain(SERVER_CHAIN)
-            server = tls(ssl_context, server, tls_skip_errors)
+            context.load_cert_chain(SERVER_CHAIN)
+            server = tls(context, server, tls_skip_errors)
         else:
-            ssl_context.load_cert_chain(tls)
-            server = ssl_context.wrap_socket(server, server_side=True)
+            context.load_cert_chain(tls)
+            server = context.wrap_socket(server, server_side=True)
     if scheme == "":
         scheme = "https" if tls else "http"
 
@@ -468,12 +458,21 @@ def http_response_bytes(
     if add_etag:
         headers.setdefault("etag", '"{0}"'.format(hashlib.md5(body).hexdigest()))
     header_string = "".join("{0}: {1}\r\n".format(k, v) for k, v in headers.items())
-    if not undefined_body_length and proto != "HTTP/1.0" and "content-length" not in headers:
-        raise Exception("httplib2.tests.http_response_bytes: client could not figure response body length")
+    if (
+        not undefined_body_length
+        and proto != "HTTP/1.0"
+        and "content-length" not in headers
+    ):
+        raise Exception(
+            "httplib2.tests.http_response_bytes: client could not figure response body length"
+        )
     if str(status).isdigit():
         status = "{} {}".format(status, http_client.responses[status])
     response = (
-        "{proto} {status}\r\n{headers}\r\n".format(proto=proto, status=status, headers=header_string).encode() + body
+        "{proto} {status}\r\n{headers}\r\n".format(
+            proto=proto, status=status, headers=header_string
+        ).encode()
+        + body
     )
     return response
 
@@ -527,6 +526,21 @@ def server_reflect(**kwargs):
     return server_request(http_handler, **kwargs)
 
 
+def http_parse_auth(s):
+    """https://tools.ietf.org/html/rfc7235#section-2.1
+    """
+    scheme, rest = s.split(" ", 1)
+    result = {}
+    while True:
+        m = httplib2.WWW_AUTH_RELAXED.search(rest)
+        if not m:
+            break
+        if len(m.groups()) == 3:
+            key, value, rest = m.groups()
+            result[key.lower()] = httplib2.UNQUOTE_PAIRS.sub(r"\1", value)
+    return result
+
+
 def store_request_response(out):
     def wrapper(fun):
         @functools.wraps(fun)
@@ -542,7 +556,9 @@ def store_request_response(out):
     return wrapper
 
 
-def http_reflect_with_auth(allow_scheme, allow_credentials, out_renew_nonce=None, out_requests=None):
+def http_reflect_with_auth(
+    allow_scheme, allow_credentials, out_renew_nonce=None, out_requests=None
+):
     """allow_scheme - 'basic', 'digest', etc allow_credentials - sequence of ('name', 'password') out_renew_nonce - None | [function]
 
         Way to return nonce renew function to caller.
@@ -559,7 +575,9 @@ def http_reflect_with_auth(allow_scheme, allow_credentials, out_renew_nonce=None
 
     def renew_nonce():
         if gnextnonce[0]:
-            assert False, "previous nextnonce was not used, probably bug in test code"
+            assert False, (
+                "previous nextnonce was not used, probably bug in " "test code"
+            )
         gnextnonce[0] = gen_digest_nonce()
         return gserver_nonce[0], gnextnonce[0]
 
@@ -578,8 +596,6 @@ def http_reflect_with_auth(allow_scheme, allow_credentials, out_renew_nonce=None
                 + ', nonce="{nonce}", opaque="{opaque}"'
                 + (", stale=true" if nonce_stale else "")
             ).format(realm=realm, nonce=gserver_nonce[0], opaque=server_opaque)
-        elif allow_scheme == "wsse":
-            authenticate = 'wsse realm="{realm}", profile="UsernameToken"'.format(realm=realm)
         else:
             raise Exception("unknown allow_scheme={0}".format(allow_scheme))
         deny_headers = {"www-authenticate": authenticate}
@@ -595,19 +611,16 @@ def http_reflect_with_auth(allow_scheme, allow_credentials, out_renew_nonce=None
         auth_header = request.headers.get("authorization", "")
         if not auth_header:
             return deny()
-        try:
-            auth_parsed = httplib2.auth._parse_www_authenticate(request.headers, "authorization")
-            print("debug: auth_parsed", auth_parsed)
-        except httplib2.error.MalformedHeader:
-            print("debug: auth header error")
-            return http_response_bytes(status=400, body=b"authorization header syntax error")
-        scheme = auth_header.split(" ", 1)[0].lower()
-        print("debug: first auth scheme='{}'".format(scheme))
+        if " " not in auth_header:
+            return http_response_bytes(
+                status=400, body=b"authorization header syntax error"
+            )
+        scheme, data = auth_header.split(" ", 1)
+        scheme = scheme.lower()
         if scheme != allow_scheme:
             return deny(body=b"must use different auth scheme")
-        auth_info = auth_parsed[scheme]
         if scheme == "basic":
-            decoded = base64.b64decode(auth_info["token"]).decode()
+            decoded = base64.b64decode(data).decode()
             username, password = decoded.split(":", 1)
             if (username, password) in allow_credentials:
                 return make_http_reflect()(request)
@@ -621,6 +634,7 @@ def http_reflect_with_auth(allow_scheme, allow_credentials, out_renew_nonce=None
                 gserver_nonce[0] = nextnonce
                 gnextnonce[0] = None
             server_nonce_current = gserver_nonce[0]
+            auth_info = http_parse_auth(data)
             client_cnonce = auth_info.get("cnonce", "")
             client_nc = auth_info.get("nc", "")
             client_nonce = auth_info.get("nonce", "")
@@ -641,12 +655,18 @@ def http_reflect_with_auth(allow_scheme, allow_credentials, out_renew_nonce=None
                 return deny(body=b"auth-info nc missing")
             if client_opaque != server_opaque:
                 return deny(
-                    body="auth-info opaque mismatch expected={} actual={}".format(server_opaque, client_opaque).encode()
+                    body="auth-info opaque mismatch expected={} actual={}".format(
+                        server_opaque, client_opaque
+                    ).encode()
                 )
             for allow_username, allow_password in allow_credentials:
-                ha1 = hasher(":".join((allow_username, realm, allow_password)).encode()).hexdigest()
+                ha1 = hasher(
+                    ":".join((allow_username, realm, allow_password)).encode()
+                ).hexdigest()
                 allow_response = hasher(
-                    ":".join((ha1, client_nonce, client_nc, client_cnonce, client_qop, ha2)).encode()
+                    ":".join(
+                        (ha1, client_nonce, client_nc, client_cnonce, client_qop, ha2)
+                    ).encode()
                 ).hexdigest()
                 rspauth_ha2 = hasher(":{}".format(request.uri).encode()).hexdigest()
                 rspauth = hasher(
@@ -666,44 +686,17 @@ def http_reflect_with_auth(allow_scheme, allow_credentials, out_renew_nonce=None
                     # do we need to save nc only on success?
                     glastnc[0] = client_nc
                     allow_headers = {
-                        "authentication-info": ", ".join(
-                            filter(
-                                None,
-                                (
-                                    'nextnonce="{}"'.format(nextnonce) if nextnonce else "",
-                                    "qop={}".format(client_qop),
-                                    'rspauth="{}"'.format(rspauth),
-                                    'cnonce="{}"'.format(client_cnonce),
-                                    "nc={}".format(client_nc),
-                                ),
+                        "authentication-info": " ".join(
+                            (
+                                'nextnonce="{}"'.format(nextnonce) if nextnonce else "",
+                                "qop={}".format(client_qop),
+                                'rspauth="{}"'.format(rspauth),
+                                'cnonce="{}"'.format(client_cnonce),
+                                "nc={}".format(client_nc),
                             )
                         ).strip()
                     }
                     return make_http_reflect(headers=allow_headers)(request)
-            return deny(body=b"supplied credentials are not allowed")
-        elif scheme == "wsse":
-            x_wsse = request.headers.get("x-wsse", "")
-            if x_wsse.count(",") != 3:
-                return http_response_bytes(status=400, body=b"x-wsse header syntax error")
-            wsse_params = httplib2.auth._parse_www_authenticate(request.headers, "x-wsse").get("usernametoken", {})
-            print("debug: wsse_params", wsse_params)
-            client_username = wsse_params.get("username", "")
-            client_nonce = wsse_params.get("nonce", "")
-            client_created = wsse_params.get("created", "")
-            client_digest = wsse_params.get("passworddigest", "")
-            allow_password = None
-            for allow_username, allow_password in allow_credentials:
-                if client_username == allow_username:
-                    break
-            else:
-                return deny(body=b"unknown username")
-
-            digest = hashlib.sha1("".join((client_nonce, client_created, allow_password)).encode("utf-8")).digest()
-            digest_b64 = base64.b64encode(digest).decode()
-            print("debug: check client={} == real={}".format(client_digest, digest_b64))
-            if client_digest == digest_b64:
-                return make_http_reflect()(request)
-
             return deny(body=b"supplied credentials are not allowed")
         else:
             return http_response_bytes(
@@ -756,51 +749,8 @@ def deflate_decompress(bs):
 
 
 def ssl_context(protocol=None):
-    """Workaround for old SSLContext() required protocol argument."""
+    """Workaround for old SSLContext() required protocol argument.
+    """
     if sys.version_info < (3, 5, 3):
         return ssl.SSLContext(ssl.PROTOCOL_SSLv23)
     return ssl.SSLContext()
-
-
-def memoize(fun):
-    # functools.cache 3.9+
-    f = getattr(functools, "cache", None)
-    if f:
-        return f(fun)
-
-    # functools.lru_cache 3.2+
-    f = getattr(functools, "lru_cache", None)
-    if f:
-        return f()(fun)
-
-    # < 3.2
-    return fun
-
-
-@memoize
-def x509_serial(path):
-    if x509 is None:
-        raise Exception("x509_serial requires package cryptography installed")
-    with open(path, "rb") as f:
-        pem = f.read()
-    cert = x509.load_pem_x509_certificate(pem)
-    return cert.serial_number
-
-
-def rebuild_uri(old, scheme=_missing, netloc=_missing, host=_missing, port=_missing, path=_missing):
-    if "//" not in old:
-        old = "//" + old
-    u = urllib.parse.urlsplit(old)
-    if scheme is _missing:
-        scheme = u.scheme
-    if netloc is _missing:
-        netloc = u.netloc
-    if host is _missing:
-        host = u.hostname if not u.netloc.startswith("[") else "[{}]".format(u.hostname)
-    if port is _missing:
-        port = u.port
-    netloc = host if port is None else "{}:{}".format(host, port)
-    if path is _missing:
-        path = u.path
-    new = (scheme, netloc, path) + u[3:]
-    return urllib.parse.urlunsplit(new)

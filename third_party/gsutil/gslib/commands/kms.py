@@ -24,7 +24,6 @@ import textwrap
 
 from gslib import metrics
 from gslib.cloud_api import AccessDeniedException
-from gslib.cloud_api import ServiceException
 from gslib.command import Command
 from gslib.command_argument import CommandArgument
 from gslib.cs_api_map import ApiSelector
@@ -38,9 +37,6 @@ from gslib.third_party.storage_apitools import storage_v1_messages as apitools_m
 from gslib.utils import text_util
 from gslib.utils.constants import NO_MAX
 from gslib.utils.encryption_helper import ValidateCMEK
-from gslib.utils.retry_util import Retry
-from gslib.utils.shim_util import GcloudStorageFlag
-from gslib.utils.shim_util import GcloudStorageMap
 
 _AUTHORIZE_SYNOPSIS = """
   gsutil kms authorize [-p <proj_id>] -k <kms_key>
@@ -71,12 +67,12 @@ _AUTHORIZE_DESCRIPTION = """
 
     gsutil kms authorize -p my-project \\
         -k projects/key-project/locations/us-east1/keyRings/key-ring/cryptoKeys/my-key
-
+        
 <B>AUTHORIZE OPTIONS</B>
   -k <key>      The path to the KMS key to use. The path has
                 the following form:
                 ``projects/[project-id]/locations/[location]/keyRings/[key-ring]/cryptoKeys/[my-key]``
-
+     
   -p <project>  The ID or number of the project being authorized to use the Cloud
                 KMS key. If this flag is not included, your
                 default project is authorized.
@@ -103,7 +99,7 @@ _ENCRYPTION_DESCRIPTION = """
   Clear the default KMS key so newly-written objects are not encrypted using it:
 
     gsutil kms encryption -d gs://my-bucket
-
+    
   Once you clear the default KMS key, newly-written objects are encrypted with
   Google-managed encryption keys by default.
 
@@ -112,17 +108,17 @@ _ENCRYPTION_DESCRIPTION = """
                 full path to the key, which has the following
                 form:
                 ``projects/[project-id]/locations/[location]/keyRings/[key-ring]/cryptoKeys/[my-key]``
-
-  -w            (used with -k key) Display a warning rather than
+                
+  -w            (used with -k key) Display a warning rather than 
                 failing if gsutil is unable to verify that
-                the specified key contains the correct IAM bindings
+                the specified key contains the correct IAM bindings 
                 for encryption/decryption. This is useful for
-                users that do not have getIamPolicy permission
+                users that do not have getIamPolicy permission 
                 but know that the key has the correct IAM policy
                 for encryption in the user's project.
-
+     
   -d            Clear the default KMS key.
-
+  
 """
 # pylint: enable=line-too-long
 
@@ -153,10 +149,6 @@ _DESCRIPTION = """
   The kms command has three sub-commands that deal with configuring Cloud
   Storage's integration with Cloud KMS: ``authorize``, ``encryption``,
   and ``serviceaccount``.
-
-  Before using this command, read the `prerequisites
-  <https://cloud.google.com/storage/docs/encryption/using-customer-managed-keys#prereqs>`_.
-  for using Cloud KMS with Cloud Storage.
 """ + (_AUTHORIZE_DESCRIPTION + _ENCRYPTION_DESCRIPTION +
        _SERVICEACCOUNT_DESCRIPTION)
 
@@ -168,19 +160,6 @@ _encryption_help_text = CreateHelpText(_ENCRYPTION_SYNOPSIS,
                                        _ENCRYPTION_DESCRIPTION)
 _serviceaccount_help_text = CreateHelpText(_SERVICEACCOUNT_SYNOPSIS,
                                            _SERVICEACCOUNT_DESCRIPTION)
-
-_AUTHORIZE_COMMAND = GcloudStorageMap(
-    gcloud_command=['alpha', 'storage', 'service-agent'],
-    flag_map={
-        '-p': GcloudStorageFlag('--project'),
-        '-k': GcloudStorageFlag('--authorize-cmek'),
-    })
-
-_SERVICEACCOUNT_COMMAND = GcloudStorageMap(
-    gcloud_command=['alpha', 'storage', 'service-agent'],
-    flag_map={
-        '-p': GcloudStorageFlag('--project'),
-    })
 
 
 class KmsCommand(Command):
@@ -216,43 +195,6 @@ class KmsCommand(Command):
       },
   )
 
-  gcloud_storage_map = GcloudStorageMap(
-      gcloud_command={
-          'authorize': _AUTHORIZE_COMMAND,
-          'serviceaccount': _SERVICEACCOUNT_COMMAND,
-          # "encryption" subcommand handled in get_gcloud_storage_args.
-      },
-      flag_map={})
-
-  def get_gcloud_storage_args(self):
-    if self.args[0] == 'encryption':
-      gcloud_storage_map = GcloudStorageMap(gcloud_command={
-          'encryption':
-              GcloudStorageMap(
-                  gcloud_command=['alpha', 'storage', 'buckets'],
-                  flag_map={
-                      '-d': GcloudStorageFlag('--clear-default-encryption-key'),
-                      '-k': GcloudStorageFlag('--default-encryption-key'),
-                      '-w': GcloudStorageFlag(''),
-                  }),
-      },
-                                            flag_map={})
-      if '-d' in self.args or '-k' in self.args:
-        gcloud_storage_map.gcloud_command['encryption'].gcloud_command += [
-            'update'
-        ]
-      else:
-        gcloud_storage_map.gcloud_command['encryption'].gcloud_command += [
-            'describe',
-            ('--format=value[separator=\": \"](name, encryption'
-             '.defaultKmsKeyName.yesno(no="No default encryption key."))'),
-            '--raw'
-        ]
-    else:
-      gcloud_storage_map = KmsCommand.gcloud_storage_map
-
-    return super().get_gcloud_storage_args(gcloud_storage_map)
-
   def _GatherSubOptions(self, subcommand_name):
     self.CheckArguments()
     self.clear_kms_key = False
@@ -283,7 +225,6 @@ class KmsCommand(Command):
     if not self.project_id:
       self.project_id = PopulateProjectId(None)
 
-  @Retry(ServiceException, tries=3, timeout_secs=1)
   def _AuthorizeProject(self, project_id, kms_key):
     """Authorizes a project's service account to be used with a KMS key.
 

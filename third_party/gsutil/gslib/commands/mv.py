@@ -22,13 +22,10 @@ from __future__ import unicode_literals
 from gslib.command import Command
 from gslib.command_argument import CommandArgument
 from gslib.commands.cp import CP_SUB_ARGS
-from gslib.commands.cp import GENERIC_COPY_COMMAND_SHIM_FLAG_MAP
 from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
 from gslib.storage_url import StorageUrlFromString
 from gslib.utils.constants import NO_MAX
-from gslib.utils.shim_util import GcloudStorageFlag
-from gslib.utils.shim_util import GcloudStorageMap
 
 _SYNOPSIS = """
   gsutil mv [-p] src_url dst_url
@@ -63,6 +60,10 @@ _DETAILED_HELP_TEXT = ("""
 
     gsutil mv gs://my_bucket/oldprefix gs://my_bucket/newprefix
 
+  Note that when using ``mv`` to rename groups of objects with a common
+  prefix, you cannot specify the source URL using wildcards; you must spell
+  out the complete name.
+
   If you do a rename as specified above and you want to preserve ACLs, you
   should use the ``-p`` option (see OPTIONS).
 
@@ -86,8 +87,8 @@ _DETAILED_HELP_TEXT = ("""
 <B>OPTIONS</B>
   All options that are available for the gsutil cp command are also available
   for the gsutil mv command (except for the -R flag, which is implied by the
-  ``gsutil mv`` command). Please see the `Options section for cp
-  <https://cloud.google.com/storage/docs/gsutil/commands/cp#options>`_
+  ``gsutil mv`` command). Please see the
+  <a href="/storage/docs/gsutil/commands/cp#options">Options section for cp</a>
   for more information.
 
 """)
@@ -126,11 +127,6 @@ class MvCommand(Command):
       help_one_line_summary='Move/rename objects',
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={},
-  )
-
-  gcloud_storage_map = GcloudStorageMap(
-      gcloud_command=['alpha', 'storage', 'mv'],
-      flag_map=GENERIC_COPY_COMMAND_SHIM_FLAG_MAP,
   )
 
   def RunCommand(self):

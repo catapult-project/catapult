@@ -56,7 +56,7 @@ interactive() {
 	echo 'script/release: interactive mode for creating new tagged releases with human assistance' >&2
 
 	local branch="${1-$(git symbolic-ref --short HEAD)}"
-	version=$(python -Es -c "$(egrep '^__version__' python3/httplib2/__init__.py);print(__version__)")
+	version="$(PYTHONPATH=$PWD/python3 python3 -c 'import httplib2; print(httplib2.__version__)')"
 	printf "\nbranch: %s httplib2.__version__: '%s'\n" $branch $version >&2
 
 	if [[ "$branch" != "master" ]] ; then
@@ -96,7 +96,7 @@ interactive() {
 	$venv/bin/python setup.py sdist bdist_wheel
 	$venv/bin/check-manifest || echo "FIXME check-manifest" >&2
 
-	if confirm "Upload to PyPI? Use in special situation, normally CI/CD will upload to PyPI. [yN] " ; then
+	if confirm "Upload to PyPI? Use in special situation, normally CI (Travis) will upload to PyPI. [yN] " ; then
 		$venv/bin/twine upload dist/* || exit 1
 	fi
 
@@ -210,11 +210,11 @@ assert_tree_clean() {
 
 version_check() {
 	local need=$1
-	local version_setup=$(python setup.py --version)
-	local version_py2=$(python -Es -c "$(egrep '^__version__' python2/httplib2/__init__.py);print(__version__)")
-	local version_py3=$(python -Es -c "$(egrep '^__version__' python3/httplib2/__init__.py);print(__version__)")
+	local version_setup=$(fgrep 'VERSION =' setup.py |tr -d " '\"" |cut -d\= -f2)
+	local version_py2=$(cd python2 ; python2 -Es -c 'import httplib2;print(httplib2.__version__)')
+	local version_py3=$(cd python3 ; python3 -Es -c 'import httplib2;print(httplib2.__version__)')
 	if [[ "$version_setup" != "$need" ]] ; then
-		echo "error: setup.py version=$version_setup expected=$need" >&1
+		echo "error: setup.py VERSION=$version_setup expected=$need" >&1
 		exit 1
 	fi
 	if [[ "$version_py2" != "$need" ]] ; then

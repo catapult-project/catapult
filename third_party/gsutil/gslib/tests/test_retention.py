@@ -155,8 +155,7 @@ class TestRetention(testcase.GsUtilIntegrationTestCase):
         retention_period_in_seconds=_SECONDS_IN_DAY)
     stderr = self.RunGsUtil(
         ['retention', 'lock', suri(bucket_uri)], stdin='n', return_stderr=True)
-    self.assertRegexpMatches(stderr,
-                             'Abort [Ll]ocking [Rr]etention [Pp]olicy on')
+    self.assertRegexpMatches(stderr, 'Abort Locking Retention Policy on')
     self.VerifyRetentionPolicy(
         bucket_uri, expected_retention_period_in_seconds=_SECONDS_IN_DAY)
 
@@ -169,8 +168,8 @@ class TestRetention(testcase.GsUtilIntegrationTestCase):
         stdin='y',
         expected_status=1,
         return_stderr=True)
-    self.assertRegexpMatches(
-        stderr, 'does not have a(n Unlocked)? [Rr]etention [Pp]olicy')
+    self.assertRegexpMatches(stderr,
+                             'does not have an Unlocked Retention Policy')
     self.VerifyRetentionPolicy(bucket_uri,
                                expected_retention_period_in_seconds=None)
 
@@ -193,7 +192,7 @@ class TestRetention(testcase.GsUtilIntegrationTestCase):
     stderr = self.RunGsUtil(
         ['retention', 'lock', suri(bucket_uri)], stdin='y', return_stderr=True)
     self.assertRegexpMatches(stderr,
-                             r'Retention [Pp]olicy on .* is already locked')
+                             r'Retention Policy on .* is already locked')
 
   @SkipForS3('Retention is not supported for s3 objects')
   @SkipForXML('Retention is not supported for XML API')
@@ -221,7 +220,7 @@ class TestRetention(testcase.GsUtilIntegrationTestCase):
                             expected_status=1,
                             return_stderr=True)
     self.assertRegexpMatches(
-        stderr, 'Cannot reduce retention duration of a '
+        stderr, '403 Cannot reduce retention duration of a '
         'locked Retention Policy for bucket')
 
   @SkipForS3('Retention is not supported for s3 objects')
@@ -235,7 +234,7 @@ class TestRetention(testcase.GsUtilIntegrationTestCase):
         return_stderr=True)
     self.assertRegexpMatches(
         stderr,
-        r'Bucket .* has a locked Retention Policy which cannot be removed')
+        r'403 Bucket .* has a locked Retention Policy which cannot be removed')
 
   @SkipForS3('Retention is not supported for s3 objects')
   @SkipForXML('Retention is not supported for XML API')
@@ -243,27 +242,16 @@ class TestRetention(testcase.GsUtilIntegrationTestCase):
     bucket_uri = self.CreateBucketWithRetentionPolicy(
         retention_period_in_seconds=_SECONDS_IN_DAY, is_locked=True)
     stdout = self.RunGsUtil(
-        ['-DD', 'retention', 'get', suri(bucket_uri)], return_stdout=True)
-    if self._use_gcloud_storage:
-      self.assertRegexpMatches(stdout, r'isLocked\: true')
-      self.assertRegexpMatches(stdout, r'retentionPeriod\: \'86400\'')
-      self.assertRegexpMatches(stdout, r'effectiveTime\: \'.*\'')
-    else:
-      self.assertRegexpMatches(stdout, r'Retention Policy \(LOCKED\):')
-      self.assertRegexpMatches(stdout, r'Duration: 1 Day\(s\)')
-      self.assertRegexpMatches(stdout, r'Effective Time: .* GMT')
+        ['retention', 'get', suri(bucket_uri)], return_stdout=True)
+    self.assertRegexpMatches(stdout, r'Retention Policy \(LOCKED\):')
+    self.assertRegexpMatches(stdout, r'Duration: 1 Day\(s\)')
+    self.assertRegexpMatches(stdout, r'Effective Time: .* GMT')
+    expected_effective_time = self._ConvertTimeStringToSeconds(
+        re.search(r'(?<=Time: )[\w,: ]+', stdout).group())
     actual_retention_policy = self.json_api.GetBucket(
         bucket_uri.bucket_name, fields=['retentionPolicy']).retentionPolicy
-
-    if self._use_gcloud_storage:
-      expected_effective_time = datetime.datetime.fromisoformat(
-          re.search(r'effectiveTime\: \'(.*)\'', stdout).group(1))
-      actual_effective_time = actual_retention_policy.effectiveTime
-    else:
-      expected_effective_time = self._ConvertTimeStringToSeconds(
-          re.search(r'(?<=Time: )[\w,: ]+', stdout).group())
-      actual_effective_time = self.DateTimeToSeconds(
-          actual_retention_policy.effectiveTime.replace(tzinfo=None))
+    actual_effective_time = self.DateTimeToSeconds(
+        actual_retention_policy.effectiveTime.replace(tzinfo=None))
     self.assertEqual(actual_effective_time, expected_effective_time)
 
   @SkipForS3('Retention is not supported for s3 objects')
@@ -273,28 +261,15 @@ class TestRetention(testcase.GsUtilIntegrationTestCase):
         retention_period_in_seconds=_SECONDS_IN_DAY)
     stdout = self.RunGsUtil(
         ['retention', 'get', suri(bucket_uri)], return_stdout=True)
-    if self._use_gcloud_storage:
-      # Sometimes the field is absent if isLocked is false.
-      self.assertNotRegexpMatches(stdout, r'isLocked \: true')
-      self.assertRegexpMatches(stdout, r'retentionPeriod\: \'86400\'')
-      self.assertRegexpMatches(stdout, r'effectiveTime\: \'.*\'')
-    else:
-      self.assertRegexpMatches(stdout, r'Retention Policy \(UNLOCKED\):')
-      self.assertRegexpMatches(stdout, r'Duration: 1 Day\(s\)')
-      self.assertRegexpMatches(stdout, r'Effective Time: .* GMT')
+    self.assertRegexpMatches(stdout, r'Retention Policy \(UNLOCKED\):')
+    self.assertRegexpMatches(stdout, r'Duration: 1 Day\(s\)')
+    self.assertRegexpMatches(stdout, r'Effective Time: .* GMT')
+    expected_effective_time = self._ConvertTimeStringToSeconds(
+        re.search(r'(?<=Time: )[\w,: ]+', stdout).group())
     actual_retention_policy = self.json_api.GetBucket(
         bucket_uri.bucket_name, fields=['retentionPolicy']).retentionPolicy
-
-    if self._use_gcloud_storage:
-      expected_effective_time = datetime.datetime.fromisoformat(
-          re.search(r'effectiveTime\: \'(.*)\'', stdout).group(1))
-      actual_effective_time = actual_retention_policy.effectiveTime
-    else:
-      expected_effective_time = self._ConvertTimeStringToSeconds(
-          re.search(r'(?<=Time: )[\w,: ]+', stdout).group())
-      actual_effective_time = self.DateTimeToSeconds(
-          actual_retention_policy.effectiveTime.replace(tzinfo=None))
-
+    actual_effective_time = self.DateTimeToSeconds(
+        actual_retention_policy.effectiveTime.replace(tzinfo=None))
     self.assertEqual(actual_effective_time, expected_effective_time)
 
   @SkipForS3('Retention is not supported for s3 objects')
@@ -303,10 +278,7 @@ class TestRetention(testcase.GsUtilIntegrationTestCase):
     bucket_uri = self.CreateBucket()
     stdout = self.RunGsUtil(
         ['retention', 'get', suri(bucket_uri)], return_stdout=True)
-    if self._use_gcloud_storage:
-      self.assertRegexpMatches(stdout, 'null')
-    else:
-      self.assertRegexpMatches(stdout, 'has no Retention Policy')
+    self.assertRegexpMatches(stdout, 'has no Retention Policy')
 
   @SkipForS3('Retention is not supported for s3 objects')
   @SkipForXML('Retention is not supported for XML API')

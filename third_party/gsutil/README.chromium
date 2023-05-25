@@ -1,0 +1,21 @@
+Name: gsutil
+Short Name: gsutil
+URL: https://cloud.google.com/storage/docs/gsutil
+Version: 4.46
+Date: 2020-01-06
+License: Apache 2.0
+License File: LICENSE
+Security Critical: no
+
+Description:
+gsutil is a Python application that allow access Google Cloud Storage from
+the command line. gsutil can do a wide range of bucket and object
+management tasks, including:
+* Creating and deleting buckets.
+* Uploading, downloading, and deleting objects.
+* Listing buckets and objects.
+* Moving, copying, and renaming objects.
+* Editing object and bucket ACLs.
+
+Local Modifications:
+_ Added this file.

@@ -23,7 +23,6 @@ import textwrap
 from gslib import metrics
 from gslib.command import Command
 from gslib.command_argument import CommandArgument
-from gslib.commands import ubla
 from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
 from gslib.exception import NO_URLS_MATCHED_TARGET
@@ -122,10 +121,6 @@ class BucketPolicyOnlyCommand(Command):
           'set': _set_help_text,
       },
   )
-
-  # Get command will display "Uniform bucket-level access" display string, but
-  # contents are otherwise identical.
-  gcloud_storage_map = ubla.UblaCommand.gcloud_storage_map
 
   def _ValidateBucketListingRefAndReturnBucketName(self, blr):
     if blr.storage_url.scheme != 'gs':

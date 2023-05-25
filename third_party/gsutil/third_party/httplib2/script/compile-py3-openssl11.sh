@@ -1,4 +1,4 @@
-#!not for running standalone, see .github/workflows/test.yaml
+#!not for running standalone, see .travis.yml
 
 cache_dir=$HOME/.cache
 install_dir=$cache_dir/py3-openssl11
@@ -9,7 +9,7 @@ export PYTHONDONTWRITEBYTECODE=1
 
 #rm -rf $cache_dir/* # uncomment to rebuild
 
-if [[ ! -x "$install_dir/bin/python" ]] || [[ $($install_dir/bin/python -V) != "Python $python_version" ]] ; then
+if [[ $($install_dir/bin/python -V) != "Python $python_version" ]] ; then
   (
   mkdir -p /tmp/source
   cd /tmp/source

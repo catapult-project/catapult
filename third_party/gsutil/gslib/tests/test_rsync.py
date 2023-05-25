@@ -20,22 +20,16 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import os
-import re
-from unittest import mock
 
 import six
 
-from gslib import command
+import crcmod
 from gslib.commands import rsync
 from gslib.project_id import PopulateProjectId
-from gslib.storage_url import StorageUrlFromString
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.integration_testcase import SkipForGS
 from gslib.tests.testcase.integration_testcase import SkipForS3
 from gslib.tests.testcase.integration_testcase import SkipForXML
-from gslib.tests.util import AuthorizeProjectToUseTestingKmsKey
-from gslib.tests.util import TEST_ENCRYPTION_KEY_S3
-from gslib.tests.util import TEST_ENCRYPTION_KEY_S3_MD5
 from gslib.tests.util import BuildErrorRegex
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import ORPHANED_FILE
@@ -106,33 +100,6 @@ class TestRsyncUnit(testcase.GsUtilUnitTestCase):
     # Decode accepts language-appropriate string type, returns unicode.
     self.assertEqual(rsync._DecodeUrl(six.ensure_str(encoded_url)),
                      six.ensure_text(decoded_url))
-
-  @mock.patch(
-      'gslib.utils.copy_helper.TriggerReauthForDestinationProviderIfNecessary')
-  @mock.patch('gslib.command.Command._GetProcessAndThreadCount')
-  @mock.patch('gslib.command.Command.Apply',
-              new=mock.Mock(spec=command.Command.Apply))
-  def testRsyncTriggersReauth(self, mock_get_process_and_thread_count,
-                              mock_trigger_reauth):
-    path = self.CreateTempDir()
-    bucket_uri = self.CreateBucket()
-    mock_get_process_and_thread_count.return_value = 2, 3
-
-    self.RunCommand('rsync', [path, suri(bucket_uri)])
-
-    mock_trigger_reauth.assert_called_once_with(
-        StorageUrlFromString(suri(bucket_uri)),
-        mock.ANY,  # Gsutil API.
-        worker_count=6,
-    )
-
-    mock_get_process_and_thread_count.assert_called_once_with(
-        process_count=None,
-        thread_count=None,
-        parallel_operations_override=command.Command.ParallelOverrideReason.
-        SPEED,
-        print_macos_warning=False,
-    )
 
 
 # TODO: Add inspection to the retry wrappers in this test suite where the state
@@ -2737,8 +2704,8 @@ class TestRsync(testcase.GsUtilIntegrationTestCase):
 
     _Check2()
 
-  def _test_dir_to_bucket_regex_paramaterized(self, flag):
-    """Tests that rsync regex exclusions work correctly."""
+  def test_dir_to_bucket_minus_x(self):
+    """Tests that rsync -x option works correctly."""
     # Create dir and bucket with 1 overlapping and 2 extra objects in each.
     tmpdir = self.CreateTempDir()
     bucket_uri = self.CreateBucket()
@@ -2763,7 +2730,7 @@ class TestRsync(testcase.GsUtilIntegrationTestCase):
     @Retry(AssertionError, tries=3, timeout_secs=1)
     def _Check1():
       """Tests rsync works as expected."""
-      self.RunGsUtil(['rsync', '-d', flag, 'obj[34]', tmpdir, suri(bucket_uri)])
+      self.RunGsUtil(['rsync', '-d', '-x', 'obj[34]', tmpdir, suri(bucket_uri)])
       listing1 = TailSet(tmpdir, self.FlatListDir(tmpdir))
       listing2 = TailSet(suri(bucket_uri), self.FlatListBucket(bucket_uri))
       # Dir should have un-altered content.
@@ -2781,126 +2748,11 @@ class TestRsync(testcase.GsUtilIntegrationTestCase):
       self.assertEquals(
           NO_CHANGES,
           self.RunGsUtil(
-              ['rsync', '-d', flag, 'obj[34]', tmpdir,
+              ['rsync', '-d', '-x', 'obj[34]', tmpdir,
                suri(bucket_uri)],
               return_stderr=True))
 
     _Check2()
-
-  def test_dir_to_bucket_minus_x(self):
-    """Tests that rsync regex exclusions work correctly for -x."""
-    self._test_dir_to_bucket_regex_paramaterized('-x')
-
-  def test_dir_to_bucket_minus_y(self):
-    """Tests that rsync regex exclusions work correctly for -y."""
-    self._test_dir_to_bucket_regex_paramaterized('-y')
-
-  def _test_dir_to_bucket_regex_negative_lookahead(self, flag, includes):
-    """Tests if negative lookahead includes files/objects."""
-    bucket_uri = self.CreateBucket()
-    tmpdir = self.CreateTempDir(test_files=[
-        'a', 'b', 'c', ('data1',
-                        'a.txt'), ('data1',
-                                   'ok'), ('data2',
-                                           'b.txt'), ('data3', 'data4', 'c.txt')
-    ])
-    self.RunGsUtil(
-        ['rsync', '-r', flag, '^(?!.*\.txt$).*', tmpdir,
-         suri(bucket_uri)],
-        return_stderr=True)
-    listing = TailSet(tmpdir, self.FlatListDir(tmpdir))
-    self.assertEquals(
-        listing,
-        set([
-            '/a', '/b', '/c', '/data1/a.txt', '/data1/ok', '/data2/b.txt',
-            '/data3/data4/c.txt'
-        ]))
-    if includes:
-      actual = TailSet(suri(bucket_uri), self.FlatListBucket(bucket_uri))
-      self.assertEquals(
-          actual, set(['/data1/a.txt', '/data2/b.txt', '/data3/data4/c.txt']))
-    else:
-      stderr = self.RunGsUtil(['ls', suri(bucket_uri, '**')],
-                              expected_status=1,
-                              return_stderr=True)
-      self.assertIn('One or more URLs matched no objects', stderr)
-
-  def test_dir_to_bucket_negative_lookahead_works_in_minus_x(self):
-    """Test that rsync -x negative lookahead includes objects/files."""
-    self._test_dir_to_bucket_regex_negative_lookahead('-x', includes=True)
-
-  def test_dir_to_bucket_negative_lookahead_breaks_in_minux_y(self):
-    """Test that rsync -y nevative lookahead does not includes objects/files."""
-    self._test_dir_to_bucket_regex_negative_lookahead('-y', includes=False)
-
-  def _test_dir_to_bucket_relative_regex_paramaterized(self, flag, skip_dirs):
-    """Test that rsync regex options work with a relative regex per the docs."""
-    tmpdir = self.CreateTempDir(test_files=[
-        'a', 'b', 'c', ('data1',
-                        'a.txt'), ('data1',
-                                   'ok'), ('data2',
-                                           'b.txt'), ('data3', 'data4', 'c.txt')
-    ])
-
-    # Use @Retry as hedge against bucket listing eventual consistency.
-    @Retry(AssertionError, tries=3, timeout_secs=1)
-    def _check_exclude_regex(exclude_regex, expected):
-      """Tests rsync skips the excluded pattern."""
-      bucket_uri = self.CreateBucket()
-      stderr = ''
-      # Add a trailing slash to the source directory to ensure its removed.
-      local = tmpdir + ('\\' if IS_WINDOWS else '/')
-      stderr += self.RunGsUtil(
-          ['rsync', '-r', flag, exclude_regex, local,
-           suri(bucket_uri)],
-          return_stderr=True)
-
-      listing = TailSet(tmpdir, self.FlatListDir(tmpdir))
-      self.assertEquals(
-          listing,
-          set([
-              '/a', '/b', '/c', '/data1/a.txt', '/data1/ok', '/data2/b.txt',
-              '/data3/data4/c.txt'
-          ]))
-      actual = TailSet(suri(bucket_uri), self.FlatListBucket(bucket_uri))
-      self.assertEquals(actual, expected)
-      return stderr
-
-    def _Check1():
-      """Ensure the example exclude pattern from the docs works as expected."""
-      _check_exclude_regex('data.[/\\\\].*\\.txt$',
-                           set(['/a', '/b', '/c', '/data1/ok']))
-
-    _Check1()
-
-    def _Check2():
-      """Tests that a regex with a pipe works as expected."""
-      _check_exclude_regex('^data|[bc]$', set(['/a']))
-
-    _Check2()
-
-    def _Check3():
-      """Tests that directories are skipped from iteration as expected."""
-      stderr = _check_exclude_regex(
-          'data3',
-          set(['/a', '/b', '/c', '/data1/ok', '/data1/a.txt', '/data2/b.txt']))
-      self.assertIn(
-          'Skipping excluded directory {}...'.format(
-              os.path.join(tmpdir, 'data3')), stderr)
-      self.assertNotIn(
-          'Skipping excluded directory {}...'.format(
-              os.path.join(tmpdir, 'data3', 'data4')), stderr)
-
-    if skip_dirs:
-      _Check3()
-
-  def test_dir_to_bucket_relative_minus_x(self):
-    """Test that rsync -x option works with a relative regex per the docs."""
-    self._test_dir_to_bucket_relative_regex_paramaterized('-x', skip_dirs=False)
-
-  def test_dir_to_bucket_relative_minus_y(self):
-    """Test that rsync -y option works with a relative regex per the docs."""
-    self._test_dir_to_bucket_relative_regex_paramaterized('-y', skip_dirs=True)
 
   @unittest.skipIf(IS_WINDOWS,
                    "os.chmod() won't make file unreadable on Windows.")
@@ -3242,6 +3094,19 @@ class TestRsync(testcase.GsUtilIntegrationTestCase):
     self.assertIn('send: Using gzip transport encoding for the request.',
                   stderr)
 
+  def authorize_project_to_use_testing_kms_key(
+      self, key_name=testcase.KmsTestingResources.CONSTANT_KEY_NAME):
+    # Make sure our keyRing and cryptoKey exist.
+    keyring_fqn = self.kms_api.CreateKeyRing(
+        PopulateProjectId(None),
+        testcase.KmsTestingResources.KEYRING_NAME,
+        location=testcase.KmsTestingResources.KEYRING_LOCATION)
+    key_fqn = self.kms_api.CreateCryptoKey(keyring_fqn, key_name)
+    # Make sure that the service account for our default project is authorized
+    # to use our test KMS key.
+    self.RunGsUtil(['kms', 'authorize', '-k', key_fqn])
+    return key_fqn
+
   @SkipForS3('Test uses gs-specific KMS encryption')
   def test_kms_key_applied_to_dest_objects(self):
     bucket_uri = self.CreateBucket()
@@ -3252,7 +3117,7 @@ class TestRsync(testcase.GsUtilIntegrationTestCase):
     self.CreateTempFile(tmpdir=tmp_dir,
                         file_name=obj_name,
                         contents=obj_contents)
-    key_fqn = AuthorizeProjectToUseTestingKmsKey()
+    key_fqn = self.authorize_project_to_use_testing_kms_key()
 
     # Rsync the object from our tmpdir to a GCS bucket, specifying a KMS key.
     with SetBotoConfigForTest([('GSUtil', 'encryption_key', key_fqn)]):
@@ -3277,51 +3142,3 @@ class TestRsync(testcase.GsUtilIntegrationTestCase):
     # formatting (i.e. specifying KMS key in a request to S3's API).
     with SetBotoConfigForTest([('GSUtil', 'prefer_api', 'json')]):
       self.RunGsUtil(['rsync', tmp_dir, suri(bucket_uri)])
-
-  def test_bucket_to_bucket_includes_arbitrary_headers(self):
-    bucket1_uri = self.CreateBucket()
-    bucket2_uri = self.CreateBucket()
-    self.CreateObject(bucket_uri=bucket1_uri,
-                      object_name='obj1',
-                      contents=b'obj1')
-
-    stderr = self.RunGsUtil([
-        '-D', '-h', 'arbitrary:header', 'rsync',
-        suri(bucket1_uri),
-        suri(bucket2_uri)
-    ],
-                            return_stderr=True)
-
-    headers_for_all_requests = re.findall(r"Headers: \{([\s\S]*?)\}", stderr)
-    self.assertTrue(headers_for_all_requests)
-    for headers in headers_for_all_requests:
-      self.assertIn("'arbitrary': 'header'", headers)
-
-  @SkipForGS('Tests that S3 SSE-C is handled.')
-  def test_s3_sse_is_handled_with_arbitrary_headers(self):
-    tmp_dir = self.CreateTempDir()
-    tmp_file = self.CreateTempFile(tmpdir=tmp_dir, contents=b'foo')
-    bucket_uri1 = self.CreateBucket()
-    bucket_uri2 = self.CreateBucket()
-
-    header_flags = [
-        '-h',
-        '"x-amz-server-side-encryption-customer-algorithm:AES256"',
-        '-h',
-        '"x-amz-server-side-encryption-customer-key:{}"'.format(
-            TEST_ENCRYPTION_KEY_S3),
-        '-h',
-        '"x-amz-server-side-encryption-customer-key-md5:{}"'.format(
-            TEST_ENCRYPTION_KEY_S3_MD5),
-    ]
-
-    with SetBotoConfigForTest([('GSUtil', 'check_hashes', 'never')]):
-      self.RunGsUtil(header_flags + ['cp', tmp_file, suri(bucket_uri1, 'test')])
-      self.RunGsUtil(header_flags +
-                     ['rsync', suri(bucket_uri1),
-                      suri(bucket_uri2)])
-      contents = self.RunGsUtil(header_flags +
-                                ['cat', suri(bucket_uri2, 'test')],
-                                return_stdout=True)
-
-    self.assertEqual(contents, 'foo')

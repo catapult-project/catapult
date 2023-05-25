@@ -34,15 +34,13 @@ from gslib.storage_url import StorageUrlFromString
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
 from gslib.utils.constants import NO_MAX
 from gslib.utils.retention_util import RetentionInSeconds
-from gslib.utils.shim_util import GcloudStorageFlag
-from gslib.utils.shim_util import GcloudStorageMap
 from gslib.utils.text_util import InsistAscii
 from gslib.utils.text_util import InsistOnOrOff
 from gslib.utils.text_util import NormalizeStorageClass
 from gslib.utils.encryption_helper import ValidateCMEK
 
 _SYNOPSIS = """
-  gsutil mb [-b (on|off)] [-c <class>] [-k <key>] [-l <location>] [-p <project>]
+  gsutil mb [-b (on|off)] [-c <class>] [-l <location>] [-p <project>]
             [--autoclass] [--retention <time>] [--pap <setting>]
             [--placement <region1>,<region2>]
             [--rpo {}] gs://<bucket_name>...
@@ -131,10 +129,8 @@ _DETAILED_HELP_TEXT = ("""
                          not evaluated. Consequently, only IAM policies grant
                          access to objects in these buckets. Default is "off".
 
-  -c class               Specifies the default storage class. Default is
-                         ``Standard``. See `Available storage classes
-                         <https://cloud.google.com/storage/docs/storage-classes#classes>`_
-                         for a list of possible values.
+  -c class               Specifies the default storage class.
+                         Default is "Standard".
 
   -k <key>               Set the default KMS key using the full path to the key,
                          which has the following form:
@@ -156,11 +152,11 @@ _DETAILED_HELP_TEXT = ("""
                          retention policy see "gsutil help retention"
 
   --pap setting          Specifies the public access prevention setting. Valid
-                         values are "enforced" or "inherited". When
+                         values are "enforced" or "unspecified". When
                          "enforced", objects in this bucket cannot be made
-                         publicly accessible. Default is "inherited".
+                         publicly accessible. Default is "unspecified".
 
-  --placement reg1,reg2  Two regions that form the custom dual-region.
+  --placement reg1,reg2  Two regions that form the cutom dual-region.
                          Only regions within the same continent are or will ever
                          be valid. Invalid location pairs (such as
                          mixed-continent, or with unsupported regions)
@@ -179,7 +175,6 @@ _DETAILED_HELP_TEXT = ("""
 BUCKET_NAME_RE = re.compile(r'^[a-zA-Z0-9][a-zA-Z0-9\._-]{1,253}[a-zA-Z0-9]$')
 # Regex to disallow buckets with individual DNS labels longer than 63.
 TOO_LONG_DNS_NAME_COMP = re.compile(r'[-_a-z0-9]{64}')
-_RETENTION_FLAG = '--retention'
 
 IamConfigurationValue = apitools_messages.Bucket.IamConfigurationValue
 BucketPolicyOnlyValue = IamConfigurationValue.BucketPolicyOnlyValue
@@ -234,49 +229,6 @@ class MbCommand(Command):
       subcommand_help_text={},
   )
 
-  gcloud_storage_map = GcloudStorageMap(
-      gcloud_command=['alpha', 'storage', 'buckets', 'create'],
-      flag_map={
-          '-b':
-              GcloudStorageFlag({
-                  'on': '--uniform-bucket-level-access',
-                  'off': None,
-              }),
-          '-c':
-              GcloudStorageFlag('--default-storage-class'),
-          '-k':
-              GcloudStorageFlag('--default-encryption-key'),
-          '-l':
-              GcloudStorageFlag('--location'),
-          '-p':
-              GcloudStorageFlag('--project'),
-          '--pap':
-              GcloudStorageFlag({
-                  'enforced': '--public-access-prevention',
-                  'inherited': None,
-              }),
-          '--placement':
-              GcloudStorageFlag('--placement'),
-          _RETENTION_FLAG:
-              GcloudStorageFlag('--retention-period'),
-          '--rpo':
-              GcloudStorageFlag('--recovery-point-objective')
-      },
-  )
-
-  def get_gcloud_storage_args(self):
-    retention_arg_idx = 0
-    while retention_arg_idx < len(self.sub_opts):
-      if self.sub_opts[retention_arg_idx][0] == _RETENTION_FLAG:
-        break
-      retention_arg_idx += 1
-    if retention_arg_idx < len(self.sub_opts):
-      # Convert retention time to seconds, which gcloud knows how to handle.
-      self.sub_opts[retention_arg_idx] = (
-          _RETENTION_FLAG,
-          str(RetentionInSeconds(self.sub_opts[retention_arg_idx][1])) + 's')
-    return super().get_gcloud_storage_args(MbCommand.gcloud_storage_map)
-
   def RunCommand(self):
     """Command entry point for the mb command."""
     autoclass = False
@@ -285,10 +237,10 @@ class MbCommand(Command):
     location = None
     storage_class = None
     seconds = None
-    placements = None
     public_access_prevention = None
     rpo = None
     json_only_flags_in_command = []
+    placements = None
     if self.sub_opts:
       for o, a in self.sub_opts:
         if o == '--autoclass':
@@ -306,7 +258,7 @@ class MbCommand(Command):
           self.project_id = a
         elif o == '-c' or o == '-s':
           storage_class = NormalizeStorageClass(a)
-        elif o == _RETENTION_FLAG:
+        elif o == '--retention':
           seconds = RetentionInSeconds(a)
         elif o == '--rpo':
           rpo = a.strip()

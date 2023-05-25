@@ -40,10 +40,7 @@ class TestRb(testcase.GsUtilIntegrationTestCase):
     stderr = self.RunGsUtil(['rb', suri(bucket_uri)],
                             expected_status=1,
                             return_stderr=True)
-    if self._use_gcloud_storage:
-      self.assertIn('Bucket is not empty', stderr)
-    else:
-      self.assertIn('BucketNotEmpty', stderr)
+    self.assertIn('BucketNotEmpty', stderr)
 
   def test_rb_versioned_bucket_not_empty(self):
     bucket_uri = self.CreateVersionedBucket(test_objects=1)
@@ -58,10 +55,7 @@ class TestRb(testcase.GsUtilIntegrationTestCase):
         ['rb', 'gs://%s' % self.nonexistent_bucket_name],
         return_stderr=True,
         expected_status=1)
-    if self._use_gcloud_storage:
-      self.assertIn('not found', stderr)
-    else:
-      self.assertIn('does not exist.', stderr)
+    self.assertIn('does not exist.', stderr)
 
   def test_rb_minus_f(self):
     bucket_uri = self.CreateBucket()

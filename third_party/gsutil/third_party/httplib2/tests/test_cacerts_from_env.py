@@ -1,9 +1,6 @@
 import os
 import sys
-try:
-    from unittest import mock
-except ImportError:
-    import mock
+import mock
 import pytest
 import tempfile
 import httplib2

@@ -9,12 +9,9 @@ from __future__ import division
 from __future__ import print_function
 
 import httplib2
-
-try:
-    from unittest import mock
-except ImportError:
-    import mock
+import mock
 import os
+import pytest
 import socket
 import tests
 from six.moves import urllib
@@ -39,21 +36,6 @@ def test_from_url_ident():
     assert pi.proxy_pass == "fish"
 
 
-def test_from_url_no_password():
-    pi = httplib2.proxy_info_from_url("http://leila@fro.xy:1032")
-    assert pi.proxy_host == "fro.xy"
-    assert pi.proxy_port == 1032
-    assert pi.proxy_user == "leila"
-    assert pi.proxy_pass is None
-
-
-def test_from_url_ipv6():
-    pi = httplib2.proxy_info_from_url("http://[::1]:8888")
-    assert pi.proxy_host == "::1"
-    assert pi.proxy_port == 8888
-    assert pi.proxy_user is None
-
-
 def test_from_env(monkeypatch):
     assert os.environ.get("http_proxy") is None
     monkeypatch.setenv("http_proxy", "http://myproxy.example.com:8080")
@@ -75,19 +57,6 @@ def test_from_env_none():
     os.environ.clear()
     pi = httplib2.proxy_info_from_environment()
     assert pi is None
-
-
-def test_from_env_other():
-    pi = httplib2.proxy_info_from_environment("foobar")
-    assert pi is None
-
-
-def test_proxy_info_repr():
-    pi = httplib2.ProxyInfo(3, "pseudorandom", 8123, proxy_pass="secret")
-    r = repr(pi)
-    assert "pseudorandom" in r
-    assert "8123" in r
-    assert "secret" not in r
 
 
 def test_applies_to(monkeypatch):
@@ -129,11 +98,11 @@ def test_headers():
     assert pi.proxy_headers == headers
 
 
-# @pytest.mark.skipif(
-#     os.environ.get("TRAVIS_PYTHON_VERSION") in ("2.7", "pypy"),
-#     reason="Fails on Travis py27/pypy, works elsewhere. "
-#     "See https://travis-ci.org/httplib2/httplib2/jobs/408769880.",
-# )
+@pytest.mark.skipif(
+    os.environ.get("TRAVIS_PYTHON_VERSION") in ("2.7", "pypy"),
+    reason="Fails on Travis py27/pypy, works elsewhere. "
+    "See https://travis-ci.org/httplib2/httplib2/jobs/408769880.",
+)
 @mock.patch("socket.socket.connect", spec=True)
 def test_server_not_found_error_is_raised_for_invalid_hostname(mock_socket_connect):
     """Invalidates https://github.com/httplib2/httplib2/pull/100."""

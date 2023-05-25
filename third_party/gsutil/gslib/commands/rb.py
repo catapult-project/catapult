@@ -27,8 +27,6 @@ from gslib.exception import CommandException
 from gslib.exception import NO_URLS_MATCHED_TARGET
 from gslib.storage_url import StorageUrlFromString
 from gslib.utils.constants import NO_MAX
-from gslib.utils.shim_util import GcloudStorageFlag
-from gslib.utils.shim_util import GcloudStorageMap
 
 _SYNOPSIS = """
   gsutil rb [-f] gs://<bucket_name>...
@@ -98,13 +96,6 @@ class RbCommand(Command):
       help_one_line_summary='Remove buckets',
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={},
-  )
-
-  gcloud_storage_map = GcloudStorageMap(
-      gcloud_command=['alpha', 'storage', 'buckets', 'delete'],
-      flag_map={
-          '-f': GcloudStorageFlag('--continue-on-error'),
-      },
   )
 
   def RunCommand(self):

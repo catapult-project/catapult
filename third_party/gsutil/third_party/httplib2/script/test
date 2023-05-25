@@ -3,7 +3,7 @@ set -eux
 # By default, run tests with pytest-forked plugin,
 # disable in terminal for debugging, you may add --forked
 flag_forked="--forked"
-if [[ -z "${CI:-}" ]] && [[ -t 1 ]] ; then
+if [[ -z "${CONTINUOUS_INTEGRATION-}" ]] && [[ -t 1 ]] ; then
 	flag_forked=""
 fi
 test_flags=(
@@ -14,8 +14,15 @@ test_flags=(
 
 main() {
 	cd "$( dirname "${BASH_SOURCE[0]}" )/.."
-	if [[ -n "${CI:-}" ]] ; then
+	if [[ -n "${CONTINUOUS_INTEGRATION-}" ]] ; then
 		case "${test_group-}" in
+		pep8)
+			if [[ "${TRAVIS_PYTHON_VERSION}" = "2.7" ]] ; then
+				flake8 python2/
+			else
+				flake8 python3/ tests/
+			fi
+			;;
 		package)
 			# TODO: sdist bdist_wheel
 			# but wheels don't roll well with our 2/3 split code base
@@ -58,8 +65,8 @@ main() {
 install_check_version() {
 	local pip="$1"
 	$pip install dist/httplib2*
-	version_source=$(python setup.py --version)
-	version_installed=$($pip show httplib2 |fgrep Version: |cut -d' ' -f2)
+	version_source=$(cd python3 ; python3 -Es -c 'import httplib2;print(httplib2.__version__)')
+	version_installed=$($pip show httplib2 |fgrep Version |cut -d' ' -f2)
 	if [[ "$version_source" != "$version_installed" ]] ; then
 		echo "error: installed package version=$version_installed does not match source=$version_source" >&2
 		exit 1

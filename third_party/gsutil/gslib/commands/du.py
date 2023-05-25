@@ -34,8 +34,6 @@ from gslib.utils import ls_helper
 from gslib.utils.constants import NO_MAX
 from gslib.utils.constants import S3_DELETE_MARKER_GUID
 from gslib.utils.constants import UTF8
-from gslib.utils.shim_util import GcloudStorageFlag
-from gslib.utils.shim_util import GcloudStorageMap
 from gslib.utils.text_util import print_to_fd
 from gslib.utils.unit_util import MakeHumanReadable
 from gslib.utils import text_util
@@ -64,8 +62,7 @@ _DETAILED_HELP_TEXT = ("""
               can use this to make the output machine-readable.
 
   -a          Includes both live and noncurrent object versions. Also prints the
-              generation and metageneration number for each listed object. If 
-              this flag is not specified, only live object versions are included.
+              generation and metageneration number for each listed object.
 
   -c          Includes a total size at the end of the output.
 
@@ -147,19 +144,6 @@ class DuCommand(Command):
       help_one_line_summary='Display object size usage',
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={},
-  )
-
-  gcloud_storage_map = GcloudStorageMap(
-      gcloud_command=['alpha', 'storage', 'du'],
-      flag_map={
-          '-0': GcloudStorageFlag('--zero-terminator'),
-          '-a': GcloudStorageFlag('--all-versions'),
-          '-c': GcloudStorageFlag('--total'),
-          '-e': GcloudStorageFlag('--exclude-name-pattern'),
-          '-h': GcloudStorageFlag('--readable-sizes'),
-          '-s': GcloudStorageFlag('--summarize'),
-          '-X': GcloudStorageFlag('--exclude-name-pattern-file'),
-      },
   )
 
   def _PrintSummaryLine(self, num_bytes, name):

@@ -114,7 +114,7 @@ def CreateDirIfNeeded(dir_path, mode=0o777):
     # resumable uploads concurrently from a machine where no tracker dir had
     # yet been created.
     except OSError as e:
-      if e.errno != errno.EEXIST and e.errno != errno.EISDIR:
+      if e.errno != errno.EEXIST:
         raise
 
 

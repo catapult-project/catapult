@@ -1,0 +1,93 @@
+language: python
+dist: xenial
+
+cache:
+  apt: true
+  ccache: true
+  pip: true
+  directories:
+    - $HOME/.cache
+
+env:
+  global:
+    - pip_install_common='pip>=9.0 setuptools>=43.0 wheel>=0.30'
+python:
+  - 2.7
+  - 3.5
+  - 3.6
+  - 3.7
+install: pip install $pip_install_common 'codecov>=2.0.15' -r requirements-test.txt
+script: script/test -sv && codecov
+
+stages:
+  - test
+  - release
+jobs:
+  fast_finish: true
+  include:
+    - stage: test
+      python: pypy
+      dist: trusty
+      install: pip install $pip_install_common 'codecov>=2.0.15' -r requirements-test.txt
+      script: script/test -sv && codecov
+    - stage: test
+      env: _=py2-pep8
+      python: 2.7
+      install: pip install -r requirements-test.txt
+      script: test_group=pep8 script/test
+    - stage: test
+      env: _=py3-pep8
+      python: 3.7
+      install: pip install -r requirements-test.txt
+      script: test_group=pep8 script/test
+    - stage: test
+      env: _-py37-openssl11
+      python: 3.7 # we'll use compiled version but makes Travis look correct
+      install:
+        - deactivate && rm -rf $HOME/virtualenv
+        - source script/compile-py3-openssl11.sh # source to alter PATH
+        - pip install virtualenv && virtualenv $HOME/virtualenv && source $HOME/virtualenv/bin/activate
+        - pip install $pip_install_common -r requirements-test.txt
+      script: script/test -sv
+    - stage: test
+      env: _=py2-package
+      python: 2.7
+      install: pip install $pip_install_common
+      script: test_group=package script/test
+    - stage: test
+      env: _=py3-package
+      python: 3.7
+      install: pip install $pip_install_common
+      script: test_group=package script/test
+    - stage: release
+      if: (branch = master)
+      env: _=pypi-upload-test
+      python: 3.7
+      install: pip install $pip_install_common
+      script: script/release -auto
+      deploy:
+        provider: pypi
+        server: https://test.pypi.org/legacy/
+        username: httplib2.release.test
+        password:
+          secure: "XN3oxobC+26UPiS+F1MvL4c6XtytejZ13SkLXCHfgVDPSASzKqF81CnR4EhsnbfZLvSgGHgSlfY5Jve5HF2VR9GzpJMc6wzcfkkeBg6PeRHuMppIqmuoq7BTw81SZL9X62/mju/vxXs2cHpVkwNTSE7W1JH1bVXPj86oAR9xXo9waRuXcyPGNuSqmOd1NPOMbFmeuz+HeArk2Fz7wwo6H5BJuXjOrEOHWD1rzeRchH901PBUrftm54Id2TIVMARW8jm1saQY2FtPWaBv2v/DJC1fKWMJpcNQ3mmcvrrTFC1IJ00dk9XJfqx5hnsRaergc0UvzHoOGEQKSMdg0PUAkvNohAoCf+3GddPkvk8MaZ+aQlijoK6wp93A5dfTxBVZqdhmEdheolbYiJPunzS60bWvaEv6/D15/xyMiwGamUmF1Tx7UIvvm/zj6tAOBWbNEgLRyvQ0qx2RE95GLtp+RXK4pT+Kig1+cof5hrWODuEl1SSLMBySaNLWO73IN9esZu0X1JS7svnROLRJCAvRjppJYswwCPziP+B8XQDeMrhIDMHNzdbtxOPpBAXpYUE764FkzaUTMsK83Q+ugE3Dx8xtrAzT4M0fdiFv+3QEhSUtfvWsLH9zS9wXC5Px9kPKU3FO8mdUyf7A0bIasvJLNcApDJigKjBukToOIsZVFok="
+        distributions: "sdist bdist_wheel"
+        skip_cleanup: true
+        on:
+          repo: httplib2/httplib2
+    - stage: release
+      if: (tag IS present)
+      env: _=pypi-upload-public
+      python: 3.7
+      install: pip install $pip_install_common
+      script: script/release -auto
+      deploy:
+        provider: pypi
+        username: httplib2.release
+        password:
+          secure: "jZAyMFnmbhYChjsb3gRYfESWlio6pgmWEWBRxtBQXYZf+tzyKVISyHuyWkJvOVTP+lOpp2MTPZ2s1UgxGwfzZ/VE034Cz5iA/C6wafmgtSW+wK+KEJFPseHBBA7Gh4ReiAPi2a+i1UXdsJpFNhv36E9tbTq2sEinbisE2lSEQ0KHadjkc+6pvCjlyhmes7QyM5GviWYlWRNj2OIkT8SUuUcWQt7ZEl6kN82MoMHCaf1YxE/i4JUP3VLomWK3RLZJP356Y4IDkzlVhFU4MJ4ubNtoQ/ECM0uQ+nsHzO0k1uGWdF6mMTna7U5gLqUi9rfCK3bLMeVSo+TUCpjI7HkWDaBgVXGTe5dUMJCDfRgqeYa0GnriI74XYJu8NGjMLv30uO58t9E7VQGo2NrFRJDzKAIHANejWnpUPY3XgoN1rlrh52seMjaU2+jO40EC8HvIqeRRwPwhkqCSV2y+IZT2bOFp2nbMWhkUMsxIX7OXt+sy8GvK/ilMleEl7r0tnudsT7lGdnMwXlttI3CIAFGE7E+0zwnxNiMzQDzo+ILVR7ezrCK9M9xVYKGa3i8gkpSn0Fblnltgg7HaEI8YC3rMZe4iu1t0D6cZZUAAp2ZUo3NCJcZ35iUFBhlFvjVDbe2upJgU6GFgtDLjyzCJiKbz8qLRgMFYgT0CGr512e1jBo0="
+        distributions: "sdist bdist_wheel"
+        skip_cleanup: true
+        on:
+          repo: httplib2/httplib2
+          tags: true

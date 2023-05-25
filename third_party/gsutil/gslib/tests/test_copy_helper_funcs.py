@@ -23,7 +23,6 @@ import collections
 import datetime
 import logging
 import os
-import pyu2f
 from apitools.base.py import exceptions as apitools_exceptions
 
 from gslib.bucket_listing_ref import BucketListingObject
@@ -118,9 +117,8 @@ class TestCpFuncs(GsUtilUnitTestCase):
     tracker_file = self.CreateTempFile(file_name='foo', contents=b'asdf')
     tracker_file_lock = parallelism_framework_util.CreateLock()
 
-    # dst_obj_metadata used for passing content-type and storage class.
-    content_type = 'ContentType'
-    storage_class = 'StorageClass'
+    # dst_obj_metadata used for passing content-type.
+    empty_object = apitools_messages.Object()
 
     # Already uploaded, contents still match, component still used.
     fpath_uploaded_correctly = self.CreateTempFile(file_name='foo1',
@@ -140,8 +138,8 @@ class TestCpFuncs(GsUtilUnitTestCase):
 
     args_uploaded_correctly = PerformParallelUploadFileToObjectArgs(
         fpath_uploaded_correctly, 0, 1, fpath_uploaded_correctly_url,
-        object_uploaded_correctly_url, '', content_type, storage_class,
-        tracker_file, tracker_file_lock, None, False)
+        object_uploaded_correctly_url, '', empty_object, tracker_file,
+        tracker_file_lock, None, False)
 
     # Not yet uploaded, but needed.
     fpath_not_uploaded = self.CreateTempFile(file_name='foo2', contents=b'2')
@@ -150,7 +148,7 @@ class TestCpFuncs(GsUtilUnitTestCase):
         '%s://%s/%s' % (self.default_provider, bucket_name, fpath_not_uploaded))
     args_not_uploaded = PerformParallelUploadFileToObjectArgs(
         fpath_not_uploaded, 0, 1, fpath_not_uploaded_url,
-        object_not_uploaded_url, '', content_type, storage_class, tracker_file,
+        object_not_uploaded_url, '', empty_object, tracker_file,
         tracker_file_lock, None, False)
 
     # Already uploaded, but contents no longer match. Even though the contents
@@ -171,16 +169,15 @@ class TestCpFuncs(GsUtilUnitTestCase):
 
     args_wrong_contents = PerformParallelUploadFileToObjectArgs(
         fpath_wrong_contents, 0, 1, fpath_wrong_contents_url,
-        object_wrong_contents_url, '', content_type, storage_class,
-        tracker_file, tracker_file_lock, None, False)
+        object_wrong_contents_url, '', empty_object, tracker_file,
+        tracker_file_lock, None, False)
 
     # Exists in tracker file, but component object no longer exists.
     fpath_remote_deleted = self.CreateTempFile(file_name='foo5', contents=b'5')
     fpath_remote_deleted_url = StorageUrlFromString(str(fpath_remote_deleted))
     args_remote_deleted = PerformParallelUploadFileToObjectArgs(
         fpath_remote_deleted, 0, 1, fpath_remote_deleted_url, '', '',
-        content_type, storage_class, tracker_file, tracker_file_lock, None,
-        False)
+        empty_object, tracker_file, tracker_file_lock, None, False)
 
     # Exists in tracker file and already uploaded, but no longer needed.
     fpath_no_longer_used = self.CreateTempFile(file_name='foo6', contents=b'6')
@@ -230,9 +227,8 @@ class TestCpFuncs(GsUtilUnitTestCase):
     bucket_name = self.MakeTempName('bucket')
     mock_api.MockCreateVersionedBucket(bucket_name)
 
-    # dst_obj_metadata used for passing content-type and storage class.
-    content_type = 'ContentType'
-    storage_class = 'StorageClass'
+    # dst_obj_metadata used for passing content-type.
+    empty_object = apitools_messages.Object()
 
     tracker_file = self.CreateTempFile(file_name='foo', contents=b'asdf')
     tracker_file_lock = parallelism_framework_util.CreateLock()
@@ -256,8 +252,7 @@ class TestCpFuncs(GsUtilUnitTestCase):
     args_uploaded_correctly = PerformParallelUploadFileToObjectArgs(
         fpath_uploaded_correctly, 0, 1, fpath_uploaded_correctly_url,
         object_uploaded_correctly_url, object_uploaded_correctly.generation,
-        content_type, storage_class, tracker_file, tracker_file_lock, None,
-        False)
+        empty_object, tracker_file, tracker_file_lock, None, False)
 
     # Duplicate object name in tracker file, but uploaded correctly.
     fpath_duplicate = fpath_uploaded_correctly
@@ -274,8 +269,8 @@ class TestCpFuncs(GsUtilUnitTestCase):
     args_duplicate = PerformParallelUploadFileToObjectArgs(
         fpath_duplicate, 0, 1, fpath_duplicate_url,
         duplicate_uploaded_correctly_url,
-        duplicate_uploaded_correctly.generation, content_type, storage_class,
-        tracker_file, tracker_file_lock, None, False)
+        duplicate_uploaded_correctly.generation, empty_object, tracker_file,
+        tracker_file_lock, None, False)
 
     # Already uploaded, but contents no longer match.
     fpath_wrong_contents = self.CreateTempFile(file_name='foo4', contents=b'4')
@@ -293,8 +288,8 @@ class TestCpFuncs(GsUtilUnitTestCase):
          object_wrong_contents.generation))
     args_wrong_contents = PerformParallelUploadFileToObjectArgs(
         fpath_wrong_contents, 0, 1, fpath_wrong_contents_url,
-        wrong_contents_url, '', content_type, storage_class, tracker_file,
-        tracker_file_lock, None, False)
+        wrong_contents_url, '', empty_object, tracker_file, tracker_file_lock,
+        None, False)
 
     dst_args = {
         fpath_uploaded_correctly: args_uploaded_correctly,
@@ -326,92 +321,6 @@ class TestCpFuncs(GsUtilUnitTestCase):
     for uri in existing_objects_to_delete:
       self.assertTrue((uri.object_name, uri.generation) in expected_to_delete)
     self.assertEqual(len(expected_to_delete), len(existing_objects_to_delete))
-
-  def testReauthChallengeIsPerformed(self):
-    mock_api = mock.Mock(spec=CloudApi)
-    destination_url = StorageUrlFromString('gs://bucket')
-
-    with SetBotoConfigForTest([
-        ('GSUtil', 'trigger_reauth_challenge_for_parallel_operations', 'True')
-    ]):
-      copy_helper.TriggerReauthForDestinationProviderIfNecessary(
-          destination_url, mock_api, worker_count=2)
-
-    mock_api.GetBucket.assert_called_once_with('bucket',
-                                               fields=['location'],
-                                               provider='gs')
-
-  def testReauthChallengeIsNotPerformedByDefault(self):
-    mock_api = mock.Mock(spec=CloudApi)
-    destination_url = StorageUrlFromString('gs://bucket')
-
-    copy_helper.TriggerReauthForDestinationProviderIfNecessary(destination_url,
-                                                               mock_api,
-                                                               worker_count=2)
-
-    mock_api.GetBucket.assert_not_called()
-
-  def testReauthChallengeNotPerformedWithFileDestination(self):
-    mock_api = mock.Mock(spec=CloudApi)
-    destination_url = StorageUrlFromString('dir/file')
-
-    with SetBotoConfigForTest([
-        ('GSUtil', 'trigger_reauth_challenge_for_parallel_operations', 'True')
-    ]):
-      copy_helper.TriggerReauthForDestinationProviderIfNecessary(
-          destination_url, mock_api, worker_count=2)
-
-    mock_api.GetBucket.assert_not_called()
-
-  def testReauthChallengeNotPerformedWhenDestinationContainsWildcard(self):
-    mock_api = mock.Mock(spec=CloudApi)
-    destination_url = StorageUrlFromString('gs://bucket*')
-
-    with SetBotoConfigForTest([
-        ('GSUtil', 'trigger_reauth_challenge_for_parallel_operations', 'True')
-    ]):
-      copy_helper.TriggerReauthForDestinationProviderIfNecessary(
-          destination_url, mock_api, worker_count=2)
-
-    mock_api.GetBucket.assert_not_called()
-
-  def testReauthChallengeNotPerformedWithSequentialExecution(self):
-    mock_api = mock.Mock(spec=CloudApi)
-    destination_url = StorageUrlFromString('gs://bucket')
-
-    with SetBotoConfigForTest([
-        ('GSUtil', 'trigger_reauth_challenge_for_parallel_operations', 'True')
-    ]):
-      copy_helper.TriggerReauthForDestinationProviderIfNecessary(
-          destination_url, mock_api, worker_count=1)
-    mock_api.GetBucket.assert_not_called()
-
-  def testReauthChallengeRaisesReauthError(self):
-    mock_api = mock.Mock(spec=CloudApi)
-    mock_api.GetBucket.side_effect = pyu2f.errors.PluginError('Reauth error')
-    destination_url = StorageUrlFromString('gs://bucket')
-
-    with SetBotoConfigForTest([
-        ('GSUtil', 'trigger_reauth_challenge_for_parallel_operations', 'True')
-    ]):
-      with self.assertRaisesRegex(pyu2f.errors.PluginError, 'Reauth error'):
-        copy_helper.TriggerReauthForDestinationProviderIfNecessary(
-            destination_url, mock_api, worker_count=2)
-
-  def testReauthChallengeSilencesOtherErrors(self):
-    mock_api = mock.Mock(spec=CloudApi)
-    mock_api.GetBucket.side_effect = Exception
-    destination_url = StorageUrlFromString('gs://bucket')
-
-    with SetBotoConfigForTest([
-        ('GSUtil', 'trigger_reauth_challenge_for_parallel_operations', 'True')
-    ]):
-      copy_helper.TriggerReauthForDestinationProviderIfNecessary(
-          destination_url, mock_api, worker_count=2)
-
-    mock_api.GetBucket.assert_called_once_with('bucket',
-                                               fields=['location'],
-                                               provider='gs')
 
   # pylint: disable=protected-access
   def testTranslateApitoolsResumableUploadException(self):

@@ -34,8 +34,6 @@ from gslib.storage_url import StorageUrlFromString
 from gslib.storage_url import UrlsAreForSingleProvider
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
 from gslib.utils.constants import NO_MAX
-from gslib.utils.shim_util import GcloudStorageFlag
-from gslib.utils.shim_util import GcloudStorageMap
 from gslib.utils import text_util
 
 _SET_SYNOPSIS = """
@@ -51,26 +49,26 @@ _SYNOPSIS = _SET_SYNOPSIS + _GET_SYNOPSIS.lstrip('\n') + '\n'
 
 _SET_DESCRIPTION = """
 <B>SET</B>
-  The ``set`` sub-command has two sub-commands:
+  The set sub-command has two sub-commands:
 
 <B>ON</B>
-  The ``gsutil logging set on`` command enables usage logging of the buckets
-  named by the specified URLs, outputting log files to the bucket specified
-  with the ``-b`` flag. Cloud Storage doesn't validate the existence of the
-  output bucket, so users should ensure it already exists, and all URLs must
-  name Cloud Storage buckets (e.g., ``gs://bucket``). The optional ``-o``
-  flag specifies the prefix for log object names. The default prefix is the
-  bucket name. For example, the command:
+  The "gsutil logging set on" command will enable usage logging of the
+  buckets named by the specified URLs, outputting log files in the specified
+  logging_bucket. Cloud Storage doesn't validate the existence of logging_bucket
+  so users should ensure it already exists, and all URLs must name buckets
+  (e.g., gs://bucket). The required bucket parameter specifies the
+  bucket to which the logs are written, and the optional log_object_prefix
+  parameter specifies the prefix for log object names. The default prefix
+  is the bucket name. For example, the command:
 
     gsutil logging set on -b gs://my_logging_bucket -o UsageLog \\
         gs://my_bucket1 gs://my_bucket2
 
-  causes all read and write activity to objects in ``gs://mybucket1`` and
-  ``gs://mybucket2`` to be logged to objects prefixed with the name
-  ``UsageLog``, with those log objects written to the bucket
-  ``gs://my_logging_bucket``.
+  will cause all read and write activity to objects in gs://mybucket1 and
+  gs://mybucket2 to be logged to objects prefixed with the name "UsageLog",
+  with those log objects written to the bucket gs://my_logging_bucket.
 
-  In addition to enabling logging on your bucket(s), you also need to grant
+  In addition to enabling logging on your bucket(s), you will also need to grant
   cloud-storage-analytics@google.com write access to the log bucket, using this
   command:
 
@@ -81,12 +79,12 @@ _SET_DESCRIPTION = """
   "gsutil help defacl".)
 
 <B>OFF</B>
-  This command disables usage logging of the buckets named by the specified
-  URLs. All URLs must name Cloud Storage buckets (e.g., ``gs://bucket``).
+  This command will disable usage logging of the buckets named by the
+  specified URLs. All URLs must name buckets (e.g., gs://bucket).
 
   No logging data is removed from the log buckets when you disable logging,
-  but Google Cloud Storage stops delivering new logs once you have run this
-  command.
+  but Google Cloud Storage will stop delivering new logs once you have
+  run this command.
 
 """
 
@@ -105,32 +103,22 @@ _GET_DESCRIPTION = """
 """
 
 _DESCRIPTION = """
-  Google Cloud Storage offers `usage logs and storage logs
-  <https://cloud.google.com/storage/docs/access-logs>`_ in the form of CSV
+  Google Cloud Storage offers usage logs and storage logs in the form of CSV
   files that you can download and view. Usage logs provide information for all
   of the requests made on a specified bucket and are created hourly. Storage
   logs provide information about the storage consumption of that bucket for
   the last day and are created daily.
-
+  
   Once set up, usage logs and storage logs are automatically created as new
   objects in a bucket that you specify. Usage logs and storage logs are
   subject to the same pricing as other objects stored in Cloud Storage.
 
-  For a complete list of usage log fields and storage data fields, see
-  `Usage and storage log format
-  <https://cloud.google.com/storage/docs/access-logs#format>`_.
-  
-  The <code>logging</code> command has two sub-commands:
+  The logging command has two sub-commands:
 """ + _SET_DESCRIPTION + _GET_DESCRIPTION + """
 
-<B>OPTIONS</B>
-  -b bucket_name Specifies the bucket that stores the generated logs. This
-                 flag is only available for the ``set on`` command and is
-                 required for that command.
-
-  -o log_prefix  Specifies a common prefix for the names of generated
-                 logs. This flag is only available for the ``set on``
-                 command and is optional for that command.
+<B>USAGE LOG AND STORAGE DATA FIELDS</B>
+  For a complete list of usage log fields and storage data fields, see:
+  https://cloud.google.com/storage/docs/access-logs#format
 """
 
 _DETAILED_HELP_TEXT = CreateHelpText(_SYNOPSIS, _DESCRIPTION)
@@ -178,53 +166,6 @@ class LoggingCommand(Command):
           'get': _get_help_text,
           'set': _set_help_text,
       },
-  )
-
-  gcloud_storage_map = GcloudStorageMap(
-      gcloud_command={
-          'get':
-              GcloudStorageMap(
-                  gcloud_command=[
-                      'alpha', 'storage', 'buckets', 'list',
-                      '--format=multi(logging:format=json)', '--raw'
-                  ],
-                  flag_map={},
-              ),
-          'set':
-              GcloudStorageMap(
-                  gcloud_command={
-                      'on':
-                          GcloudStorageMap(
-                              gcloud_command=[
-                                  'alpha',
-                                  'storage',
-                                  'buckets',
-                                  'update',
-                              ],
-                              flag_map={
-                                  '-b':
-                                      GcloudStorageFlag('--log-bucket'),
-                                  '-o':
-                                      GcloudStorageFlag('--log-object-prefix'),
-                              },
-                          ),
-                      'off':
-                          GcloudStorageMap(
-                              gcloud_command=[
-                                  'alpha',
-                                  'storage',
-                                  'buckets',
-                                  'update',
-                                  '--clear-log-bucket',
-                                  '--clear-log-object-prefix',
-                              ],
-                              flag_map={},
-                          ),
-                  },
-                  flag_map={},
-              )
-      },
-      flag_map={},
   )
 
   def _Get(self):

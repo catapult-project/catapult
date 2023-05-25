@@ -34,7 +34,6 @@ import stat
 import string
 import sys
 import threading
-from unittest import mock
 
 from apitools.base.py import exceptions as apitools_exceptions
 import boto
@@ -43,7 +42,6 @@ from boto.exception import ResumableTransferDisposition
 from boto.exception import StorageResponseError
 from boto.storage_uri import BucketStorageUri
 
-from gslib import command
 from gslib import exception
 from gslib import name_expansion
 from gslib.cloud_api import ResumableUploadStartOverException
@@ -66,14 +64,12 @@ from gslib.tests.testcase.integration_testcase import SkipForGS
 from gslib.tests.testcase.integration_testcase import SkipForS3
 from gslib.tests.testcase.integration_testcase import SkipForXML
 from gslib.tests.testcase.integration_testcase import SkipForJSON
-from gslib.tests.util import AuthorizeProjectToUseTestingKmsKey
 from gslib.tests.util import BuildErrorRegex
 from gslib.tests.util import GenerationFromURI as urigen
 from gslib.tests.util import HaltingCopyCallbackHandler
 from gslib.tests.util import HaltOneComponentCopyCallbackHandler
 from gslib.tests.util import HAS_GS_PORT
 from gslib.tests.util import HAS_S3_CREDS
-from gslib.tests.util import KmsTestingResources
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import ORPHANED_FILE
 from gslib.tests.util import POSIX_GID_ERROR
@@ -82,7 +78,6 @@ from gslib.tests.util import POSIX_MODE_ERROR
 from gslib.tests.util import POSIX_UID_ERROR
 from gslib.tests.util import SequentialAndParallelTransfer
 from gslib.tests.util import SetBotoConfigForTest
-from gslib.tests.util import SetEnvironmentForTest
 from gslib.tests.util import TailSet
 from gslib.tests.util import TEST_ENCRYPTION_KEY1
 from gslib.tests.util import TEST_ENCRYPTION_KEY1_SHA256_B64
@@ -105,13 +100,11 @@ from gslib.utils.copy_helper import TrackerFileType
 from gslib.utils.hashing_helper import CalculateB64EncodedMd5FromContents
 from gslib.utils.hashing_helper import CalculateMd5FromContents
 from gslib.utils.hashing_helper import GetMd5
-from gslib.utils.metadata_util import CreateCustomMetadata
 from gslib.utils.posix_util import GID_ATTR
 from gslib.utils.posix_util import MODE_ATTR
 from gslib.utils.posix_util import NA_ID
 from gslib.utils.posix_util import NA_MODE
 from gslib.utils.posix_util import UID_ATTR
-from gslib.utils.posix_util import ParseAndSetPOSIXAttributes
 from gslib.utils.posix_util import ValidateFilePermissionAccess
 from gslib.utils.posix_util import ValidatePOSIXMode
 from gslib.utils.retry_util import Retry
@@ -143,12 +136,6 @@ if not IS_WINDOWS:
   from gslib.tests.util import USER_ID
 # pylint: enable=g-import-not-at-top
 
-# (status_code, error_prefix, error_substring)
-_GCLOUD_STORAGE_GZIP_FLAG_CONFLICT_OUTPUT = (
-    2, 'ERROR',
-    'At most one of --gzip-in-flight-all | --gzip-in-flight-extensions |'
-    ' --gzip-local-all | --gzip-local-extensions can be specified')
-
 
 def TestCpMvPOSIXBucketToLocalErrors(cls, bucket_uri, obj, tmpdir, is_cp=True):
   """Helper function for preserve_posix_errors tests in test_cp and test_mv.
@@ -160,21 +147,7 @@ def TestCpMvPOSIXBucketToLocalErrors(cls, bucket_uri, obj, tmpdir, is_cp=True):
     tmpdir: The local file path to cp to.
     is_cp: Whether or not the calling test suite is cp or mv.
   """
-  error_key = 'error_regex'
-  if cls._use_gcloud_storage:
-    insufficient_access_error = no_read_access_error = re.compile(
-        r"User \d+ owns file, but owner does not have read permission")
-    missing_gid_error = re.compile(
-        r"GID in .* metadata doesn't exist on current system")
-    missing_uid_error = re.compile(
-        r"UID in .* metadata doesn't exist on current system")
-  else:
-    insufficient_access_error = BuildErrorRegex(
-        obj, POSIX_INSUFFICIENT_ACCESS_ERROR)
-    missing_gid_error = BuildErrorRegex(obj, POSIX_GID_ERROR)
-    missing_uid_error = BuildErrorRegex(obj, POSIX_UID_ERROR)
-    no_read_access_error = BuildErrorRegex(obj, POSIX_MODE_ERROR)
-
+  error = 'error'
   # A dict of test_name: attrs_dict.
   # attrs_dict holds the different attributes that we want for the object in a
   # specific test.
@@ -184,74 +157,74 @@ def TestCpMvPOSIXBucketToLocalErrors(cls, bucket_uri, obj, tmpdir, is_cp=True):
   test_params = {
       'test1': {
           MODE_ATTR: '333',
-          error_key: no_read_access_error,
+          error: POSIX_MODE_ERROR
       },
       'test2': {
           GID_ATTR: GetInvalidGid,
-          error_key: missing_gid_error,
+          error: POSIX_GID_ERROR
       },
       'test3': {
           GID_ATTR: GetInvalidGid,
           MODE_ATTR: '420',
-          error_key: missing_gid_error,
+          error: POSIX_GID_ERROR
       },
       'test4': {
           UID_ATTR: INVALID_UID,
-          error_key: missing_uid_error,
+          error: POSIX_UID_ERROR
       },
       'test5': {
           UID_ATTR: INVALID_UID,
           MODE_ATTR: '530',
-          error_key: missing_uid_error,
+          error: POSIX_UID_ERROR
       },
       'test6': {
           UID_ATTR: INVALID_UID,
           GID_ATTR: GetInvalidGid,
-          error_key: missing_uid_error,
+          error: POSIX_UID_ERROR
       },
       'test7': {
           UID_ATTR: INVALID_UID,
           GID_ATTR: GetInvalidGid,
           MODE_ATTR: '640',
-          error_key: missing_uid_error,
+          error: POSIX_UID_ERROR
       },
       'test8': {
           UID_ATTR: INVALID_UID,
           GID_ATTR: GetPrimaryGid,
-          error_key: missing_uid_error,
+          error: POSIX_UID_ERROR
       },
       'test9': {
           UID_ATTR: INVALID_UID,
           GID_ATTR: GetNonPrimaryGid,
-          error_key: missing_uid_error,
+          error: POSIX_UID_ERROR
       },
       'test10': {
           UID_ATTR: INVALID_UID,
           GID_ATTR: GetPrimaryGid,
           MODE_ATTR: '640',
-          error_key: missing_uid_error,
+          error: POSIX_UID_ERROR
       },
       'test11': {
           UID_ATTR: INVALID_UID,
           GID_ATTR: GetNonPrimaryGid,
           MODE_ATTR: '640',
-          error_key: missing_uid_error,
+          error: POSIX_UID_ERROR
       },
       'test12': {
           UID_ATTR: USER_ID,
           GID_ATTR: GetInvalidGid,
-          error_key: missing_gid_error,
+          error: POSIX_GID_ERROR
       },
       'test13': {
           UID_ATTR: USER_ID,
           GID_ATTR: GetInvalidGid,
           MODE_ATTR: '640',
-          error_key: missing_gid_error,
+          error: POSIX_GID_ERROR
       },
       'test14': {
           GID_ATTR: GetPrimaryGid,
           MODE_ATTR: '240',
-          error_key: insufficient_access_error,
+          error: POSIX_INSUFFICIENT_ACCESS_ERROR
       }
   }
   # The first variable below can be used to help debug the test if there is a
@@ -283,17 +256,11 @@ def TestCpMvPOSIXBucketToLocalErrors(cls, bucket_uri, obj, tmpdir, is_cp=True):
     ],
                            expected_status=1,
                            return_stderr=True)
-
-    if cls._use_gcloud_storage:
-      general_posix_error = 'ERROR'
-    else:
-      general_posix_error = ORPHANED_FILE
     cls.assertIn(
-        general_posix_error, stderr,
+        ORPHANED_FILE, stderr,
         'Error during test "%s": %s not found in stderr:\n%s' %
-        (test_name, general_posix_error, stderr))
-
-    error_regex = attrs_dict[error_key]
+        (test_name, ORPHANED_FILE, stderr))
+    error_regex = BuildErrorRegex(obj, attrs_dict.get(error))
     cls.assertTrue(
         error_regex.search(stderr),
         'Test %s did not match expected error; could not find a match for '
@@ -633,12 +600,12 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     fpath = self.CreateTempFile(contents=b'bar')
     stderr = self.RunGsUtil(
         ['cp', '-n', fpath, suri(key_uri)], return_stderr=True)
-    self.assertRegex(stderr, r'Skipping.*: {}'.format(re.escape(suri(key_uri))))
+    self.assertIn('Skipping existing item: %s' % suri(key_uri), stderr)
     self.assertEqual(key_uri.get_contents_as_string(), b'foo')
     stderr = self.RunGsUtil(['cp', '-n', suri(key_uri), fpath],
                             return_stderr=True)
     with open(fpath, 'rb') as f:
-      self.assertRegex(stderr, r'Skipping.*: {}'.format(re.escape(suri(f))))
+      self.assertIn('Skipping existing item: %s' % suri(f), stderr)
       self.assertEqual(f.read(), b'bar')
 
   @SequentialAndParallelTransfer
@@ -647,12 +614,12 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     fpath = self.CreateTempFile(contents=b'quux')
     stderr = self.RunGsUtil(
         ['cp', '-n', fpath, suri(key_uri)], return_stderr=True)
-    self.assertRegex(stderr, r'Skipping.*: {}'.format(re.escape(suri(key_uri))))
+    self.assertIn('Skipping existing item: %s' % suri(key_uri), stderr)
     self.assertEqual(key_uri.get_contents_as_string(), b'foo')
     stderr = self.RunGsUtil(['cp', '-n', suri(key_uri), fpath],
                             return_stderr=True)
     with open(fpath, 'rb') as f:
-      self.assertRegex(stderr, r'Skipping.*: {}'.format(re.escape(suri(f))))
+      self.assertIn('Skipping existing item: %s' % suri(f), stderr)
       self.assertEqual(f.read(), b'quux')
 
   def test_dest_bucket_not_exist(self):
@@ -665,10 +632,7 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
       stderr = self.RunGsUtil(['cp', fpath, invalid_bucket_uri],
                               expected_status=1,
                               return_stderr=True)
-      if self._use_gcloud_storage:
-        self.assertIn('not found: 404', stderr)
-      else:
-        self.assertIn('does not exist', stderr)
+      self.assertIn('does not exist', stderr)
 
     _Check()
 
@@ -684,112 +648,9 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     stderr = self.RunGsUtil(
         ['cp', '-n', suri(key_uri),
          suri(bucket2_uri)], return_stderr=True)
-    self.assertRegex(
-        stderr, r'Skipping.*: {}'.format(suri(bucket2_uri,
-                                              key_uri.object_name)))
-
-  @SequentialAndParallelTransfer
-  @SkipForXML('Boto library does not handle objects with .. in them.')
-  def test_skip_object_with_parent_directory_symbol_in_name(self):
-    bucket_uri = self.CreateBucket()
-    key_uri = self.CreateObject(bucket_uri=bucket_uri,
-                                object_name='dir/../../../file',
-                                contents=b'data',
-                                prefer_json_api=True)
-    self.CreateObject(bucket_uri=bucket_uri,
-                      object_name='file2',
-                      contents=b'data')
-    directory = self.CreateTempDir()
-
-    stderr = self.RunGsUtil(
-        ['cp', '-r', suri(bucket_uri), directory], return_stderr=True)
-
-    # By default, deletes in the tearDown method run with the XML API. Boto
-    # does not handle names with '..', so we need to delete problematic
-    # objects with the json API. Delete happens before assertions, in case they
-    # raise errors and prevent cleanup.
-    self.json_api.DeleteObject(bucket_uri.bucket_name, key_uri.object_name)
-
     self.assertIn(
-        'Skipping copy of source URL %s because it would be copied '
-        'outside the expected destination directory: %s.' %
-        (suri(key_uri), os.path.abspath(directory)), stderr)
-    self.assertFalse(os.path.exists(os.path.join(directory, 'file')))
-    self.assertTrue(
-        os.path.exists(os.path.join(directory, bucket_uri.bucket_name,
-                                    'file2')))
-
-  @SequentialAndParallelTransfer
-  @SkipForXML('Boto library does not handle objects with .. in them.')
-  def test_skip_parent_directory_symbol_in_name_is_reflected_in_manifest(self):
-    bucket_uri = self.CreateBucket()
-    key_uri = self.CreateObject(bucket_uri=bucket_uri,
-                                object_name='dir/../../../file',
-                                contents=b'data',
-                                prefer_json_api=True)
-    directory = self.CreateTempDir()
-    log_path = os.path.join(directory, 'log.csv')
-
-    stderr = self.RunGsUtil(
-        ['cp', '-r', '-L', log_path,
-         suri(bucket_uri), directory],
-        return_stderr=True)
-
-    # By default, deletes in the tearDown method run with the XML API. Boto
-    # does not handle names with '..', so we need to delete problematic
-    # objects with the json API. Delete happens before assertions, in case they
-    # raise errors and prevent cleanup.
-    self.json_api.DeleteObject(bucket_uri.bucket_name, key_uri.object_name)
-
-    self.assertIn(
-        'Skipping copy of source URL %s because it would be copied '
-        'outside the expected destination directory: %s.' %
-        (suri(key_uri), os.path.abspath(directory)), stderr)
-    self.assertFalse(os.path.exists(os.path.join(directory, 'file')))
-    with open(log_path, 'r') as f:
-      lines = f.readlines()
-      results = lines[1].strip().split(',')
-      self.assertEqual(results[0], suri(key_uri))  # The 'Source' column.
-      self.assertEqual(results[8], 'skip')  # The 'Result' column.
-
-  @SequentialAndParallelTransfer
-  @SkipForXML('Boto library does not handle objects with .. in them.')
-  @unittest.skipIf(IS_WINDOWS, 'os.symlink() is not available on Windows.')
-  def test_skip_parent_directory_symbol_object_with_symlink_destination(self):
-    bucket_uri = self.CreateBucket()
-    key_uri = self.CreateObject(bucket_uri=bucket_uri,
-                                object_name='dir/../../../file',
-                                contents=b'data',
-                                prefer_json_api=True)
-    second_key_uri = self.CreateObject(bucket_uri=bucket_uri,
-                                       object_name='file2',
-                                       contents=b'data')
-
-    directory = self.CreateTempDir()
-    linked_destination = os.path.join(directory, 'linked_destination')
-    destination = os.path.join(directory, 'destination')
-    os.mkdir(destination)
-    os.symlink(destination, linked_destination)
-
-    stderr = self.RunGsUtil([
-        '-D', 'cp', '-r',
-        suri(bucket_uri),
-        suri(second_key_uri), linked_destination
-    ],
-                            return_stderr=True)
-
-    # By default, deletes in the tearDown method run with the XML API. Boto
-    # does not handle names with '..', so we need to delete problematic
-    # objects with the json API. Delete happens before assertions, in case they
-    # raise errors and prevent cleanup.
-    self.json_api.DeleteObject(bucket_uri.bucket_name, key_uri.object_name)
-
-    self.assertIn(
-        'Skipping copy of source URL %s because it would be copied '
-        'outside the expected destination directory: %s.' %
-        (suri(key_uri), linked_destination), stderr)
-    self.assertFalse(os.path.exists(os.path.join(linked_destination, 'file')))
-    self.assertTrue(os.path.exists(os.path.join(linked_destination, 'file2')))
+        'Skipping existing item: %s' % suri(bucket2_uri, key_uri.object_name),
+        stderr)
 
   @unittest.skipIf(IS_WINDOWS, 'os.mkfifo not available on Windows.')
   @SequentialAndParallelTransfer
@@ -866,10 +727,7 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
         ['cp', '-', '%s' % suri(bucket_uri, 'foo')],
         stdin='bar',
         return_stderr=True)
-    if self._use_gcloud_storage:
-      self.assertIn('Copying file://- to ' + suri(bucket_uri, 'foo'), stderr)
-    else:
-      self.assertIn('Copying from <STDIN>', stderr)
+    self.assertIn('Copying from <STDIN>', stderr)
     key_uri = self.StorageUriCloneReplaceName(bucket_uri, 'foo')
     self.assertEqual(key_uri.get_contents_as_string(), b'bar')
 
@@ -902,14 +760,7 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     write_thread.join(120)
     if not list_for_output:
       self.fail('Reading/writing to the fifo timed out.')
-
-    if self._use_gcloud_storage:
-      self.assertIn(
-          'Copying file://{} to {}'.format(fifo_path,
-                                           suri(bucket_uri, object_name)),
-          list_for_output[0])
-    else:
-      self.assertIn('Copying from named pipe', list_for_output[0])
+    self.assertIn('Copying from named pipe', list_for_output[0])
 
     key_uri = self.StorageUriCloneReplaceName(bucket_uri, object_name)
     self.assertEqual(key_uri.get_contents_as_string(), object_contents)
@@ -966,13 +817,8 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
                             stdin='bar',
                             return_stderr=True,
                             expected_status=1)
-    if self._use_gcloud_storage:
-      self.assertIn(
-          'Multiple URL strings are not supported when transferring'
-          ' from stdin.', stderr)
-    else:
-      self.assertIn('Multiple URL strings are not supported with streaming',
-                    stderr)
+    self.assertIn('Multiple URL strings are not supported with streaming',
+                  stderr)
 
   # TODO: Implement a way to test both with and without using magic file.
 
@@ -1176,7 +1022,6 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
 
     stdout = self.RunGsUtil(['ls', '-L', dst_uri], return_stdout=True)
     self.assertRegex(stdout, r'Cache-Control\s*:\s*public,max-age=12')
-
     self.assertRegex(stdout, r'Metadata:\s*1:\s*abcd')
 
     dst_uri2 = suri(bucket_uri, 'bar')
@@ -1194,17 +1039,13 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     dst_uri = suri(bucket_uri, 'foo')
     fpath = self._get_test_file('test.gif')
     # Ensure x-goog-request-header is set in cp command
-    stderr = self.RunGsUtil(['-DD', 'cp', fpath, dst_uri], return_stderr=True)
-
-    if self._use_gcloud_storage:
-      reason_regex = r"b'X-Goog-Request-Reason': b'b/this_is_env_reason'"
-    else:
-      reason_regex = r"'x-goog-request-reason': 'b/this_is_env_reason'"
-
-    self.assertRegex(stderr, reason_regex)
+    stderr = self.RunGsUtil(['-D', 'cp', fpath, dst_uri], return_stderr=True)
+    self.assertRegex(stderr,
+                     r'\'x-goog-request-reason\': \'b/this_is_env_reason\'')
     # Ensure x-goog-request-header is set in ls command
-    stderr = self.RunGsUtil(['-DD', 'ls', '-L', dst_uri], return_stderr=True)
-    self.assertRegex(stderr, reason_regex)
+    stderr = self.RunGsUtil(['-D', 'ls', '-L', dst_uri], return_stderr=True)
+    self.assertRegex(stderr,
+                     r'\'x-goog-request-reason\': \'b/this_is_env_reason\'')
 
   @SequentialAndParallelTransfer
   @SkipForXML('XML APIs use a different debug log format.')
@@ -1217,17 +1058,14 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
 
     boto_config_for_test = ('GSUtil', 'resumable_threshold', '0')
     with SetBotoConfigForTest([boto_config_for_test]):
-      stderr = self.RunGsUtil(['-DD', 'cp', fpath, dst_uri], return_stderr=True)
+      stderr = self.RunGsUtil(['-D', 'cp', fpath, dst_uri], return_stderr=True)
 
-    if self._use_gcloud_storage:
-      reason_regex = r'X-Goog-Request-Reason\': b\'b/this_is_env_reason'
-    else:
-      reason_regex = r'x-goog-request-reason\': \'b/this_is_env_reason'
-
-    self.assertRegex(
-        stderr,
-        # POST follows GET request. Both need the request-reason header.
-        r'GET[\s\S]*' + reason_regex + r'[\s\S]*POST[\s\S]*' + reason_regex)
+    # PUT follows GET request. Both need the request-reason header.
+    reason_regex = (r'Making http GET[\s\S]*'
+                    r'x-goog-request-reason\': \'b/this_is_env_reason[\s\S]*'
+                    r'send: (b\')?PUT[\s\S]*x-goog-request-reason:'
+                    r' b/this_is_env_reason')
+    self.assertRegex(stderr, reason_regex)
 
   @SequentialAndParallelTransfer
   @SkipForJSON('JSON API uses a different debug log format.')
@@ -1292,12 +1130,7 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     stderr = self.RunGsUtil(['cp', fpath, k2_uri.uri],
                             return_stderr=True,
                             expected_status=1)
-    if self._use_gcloud_storage:
-      self.assertIn(
-          'destination argument of the cp command cannot'
-          ' be a version-specific URL', stderr)
-    else:
-      self.assertIn('cannot be the destination for gsutil cp', stderr)
+    self.assertIn('cannot be the destination for gsutil cp', stderr)
 
   def test_versioning_no_parallelism(self):
     """Tests that copy all-versions errors when parallelism is enabled."""
@@ -1311,10 +1144,7 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
       ],
                               expected_status=1,
                               return_stderr=True)
-      if self._use_gcloud_storage:
-        self.assertIn('sequential instead of parallel task execution', stderr)
-      else:
-        self.assertIn('-m option is not supported with the cp -A flag', stderr)
+      self.assertIn('-m option is not supported with the cp -A flag', stderr)
 
     _Check()
 
@@ -1420,12 +1250,7 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
          suri(bucket_uri)],
         return_stderr=True,
         expected_status=1)
-    if self._use_gcloud_storage:
-      self.assertIn(
-          'HTTPError 412: At least one of the pre-conditions you specified'
-          ' did not hold.', stderr)
-    else:
-      self.assertIn('PreconditionException', stderr)
+    self.assertIn('PreconditionException', stderr)
 
   @SequentialAndParallelTransfer
   @SkipForS3('Preconditions not supported for S3.')
@@ -1449,10 +1274,7 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
         return_stderr=True,
         expected_status=1)
 
-    if self._use_gcloud_storage:
-      self.assertIn('pre-condition', stderr)
-    else:
-      self.assertIn('PreconditionException', stderr)
+    self.assertIn('PreconditionException', stderr)
 
     # Specifiying a generation with -n should fail before the request hits the
     # server.
@@ -1462,14 +1284,10 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
         return_stderr=True,
         expected_status=1)
 
-    if self._use_gcloud_storage:
-      self.assertIn(
-          'Cannot specify both generation precondition and no-clobber', stderr)
-    else:
-      self.assertIn('ArgumentException', stderr)
-      self.assertIn(
-          'Specifying x-goog-if-generation-match is not supported '
-          'with cp -n', stderr)
+    self.assertIn('ArgumentException', stderr)
+    self.assertIn(
+        'Specifying x-goog-if-generation-match is not supported '
+        'with cp -n', stderr)
 
   @SequentialAndParallelTransfer
   def test_cp_nv(self):
@@ -1486,7 +1304,7 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     # Second copy should skip copying.
     stderr = self.RunGsUtil(
         ['cp', '-nv', fpath1, suri(k1_uri)], return_stderr=True)
-    self.assertIn('Skipping existing', stderr)
+    self.assertIn('Skipping existing item:', stderr)
 
   @SequentialAndParallelTransfer
   @SkipForS3('S3 lists versioned objects in reverse timestamp order.')
@@ -1716,14 +1534,9 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
         return_stderr=True,
         expected_status=1,
         stdin='streaming data')
-    if self._use_gcloud_storage:
-      self.assertIn(
-          'Gzip content encoding is not currently supported for streaming '
-          'uploads.', stderr)
-    else:
-      self.assertIn(
-          'gzip compression is not currently supported on streaming uploads',
-          stderr)
+    self.assertIn(
+        'gzip compression is not currently supported on streaming uploads',
+        stderr)
 
   def test_seek_ahead_upload_cp(self):
     """Tests that the seek-ahead iterator estimates total upload work."""
@@ -1875,56 +1688,6 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
           '%s%s/obj0\n' % (dst_bucket_uri, src_bucket_uri.bucket_name), stdout)
       self.assertIn(
           '%s%s/obj1\n' % (dst_bucket_uri, src_bucket_uri.bucket_name), stdout)
-
-    _CopyAndCheck()
-
-  def test_copy_duplicate_nested_object_names_to_new_cloud_dir(self):
-    """Tests copying from bucket to same bucket preserves file structure."""
-    bucket_uri = self.CreateBucket()
-    self.CreateObject(bucket_uri=bucket_uri,
-                      object_name='dir1/file.txt',
-                      contents=b'data')
-    self.CreateObject(bucket_uri=bucket_uri,
-                      object_name='dir2/file.txt',
-                      contents=b'data')
-
-    # Use @Retry as hedge against bucket listing eventual consistency.
-    @Retry(AssertionError, tries=3, timeout_secs=1)
-    def _CopyAndCheck():
-      self.RunGsUtil(
-          ['cp', '-R',
-           suri(bucket_uri) + '/*',
-           suri(bucket_uri) + '/dst'])
-      stdout = self.RunGsUtil(['ls', '-R', bucket_uri.uri], return_stdout=True)
-      self.assertIn(suri(bucket_uri) + '/dst/dir1/file.txt', stdout)
-      self.assertIn(suri(bucket_uri) + '/dst/dir2/file.txt', stdout)
-
-    _CopyAndCheck()
-
-  def test_copy_duplicate_nested_object_names_to_existing_cloud_dir(self):
-    """Tests copying from bucket to same bucket preserves file structure."""
-    bucket_uri = self.CreateBucket()
-    self.CreateObject(bucket_uri=bucket_uri,
-                      object_name='dir1/file.txt',
-                      contents=b'data')
-    self.CreateObject(bucket_uri=bucket_uri,
-                      object_name='dir2/file.txt',
-                      contents=b'data')
-    self.CreateObject(bucket_uri=bucket_uri,
-                      object_name='dst/existing_file.txt',
-                      contents=b'data')
-
-    # Use @Retry as hedge against bucket listing eventual consistency.
-    @Retry(AssertionError, tries=3, timeout_secs=1)
-    def _CopyAndCheck():
-      self.RunGsUtil(
-          ['cp', '-R',
-           suri(bucket_uri) + '/*',
-           suri(bucket_uri) + '/dst'])
-      stdout = self.RunGsUtil(['ls', '-R', bucket_uri.uri], return_stdout=True)
-      self.assertIn(suri(bucket_uri) + '/dst/dir1/file.txt', stdout)
-      self.assertIn(suri(bucket_uri) + '/dst/dir2/file.txt', stdout)
-      self.assertIn(suri(bucket_uri) + '/dst/existing_file.txt', stdout)
 
     _CopyAndCheck()
 
@@ -2234,7 +1997,6 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
         'Source Size', 'Bytes Transferred', 'Result', 'Description'
     ]
     self.assertEqual(expected_headers, lines[0].strip().split(','))
-
     results = lines[1].strip().split(',')
     self.assertEqual(results[0][:5], '%s://' % self.default_provider)  # source
     self.assertEqual(results[1][:7], 'file://')  # destination
@@ -2259,16 +2021,12 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     with SetBotoConfigForTest([('GSUtil', 'resumable_threshold', '1')]):
       # fpath_bytes = fpath.encode(UTF8)
       self.RunGsUtil(['cp', fpath, suri(key_uri)], return_stderr=True)
-      stdout = self.RunGsUtil(['cat', suri(key_uri)],
-                              return_stdout=True,
-                              force_gsutil=True)
+      stdout = self.RunGsUtil(['cat', suri(key_uri)], return_stdout=True)
       self.assertEquals(stdout.encode('ascii'), file_contents)
     with SetBotoConfigForTest([('GSUtil', 'resumable_threshold',
                                 str(START_CALLBACK_PER_BYTES * 3))]):
       self.RunGsUtil(['cp', fpath, suri(key_uri)], return_stderr=True)
-      stdout = self.RunGsUtil(['cat', suri(key_uri)],
-                              return_stdout=True,
-                              force_gsutil=True)
+      stdout = self.RunGsUtil(['cat', suri(key_uri)], return_stdout=True)
       self.assertEquals(stdout.encode('ascii'), file_contents)
 
   # Note: We originally one time implemented a test
@@ -2354,12 +2112,8 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
         stderr: String output from running the gsutil command to upload mock
                   data.
       """
-      if self._use_gcloud_storage:
-        extension_list_string = 'js,html'
-      else:
-        extension_list_string = 'js, html'
       stderr = self.RunGsUtil([
-          '-D', 'cp', '-j', extension_list_string,
+          '-D', 'cp', '-j', 'js, html',
           os.path.join(tmpdir, 'test*'),
           suri(bucket_uri)
       ],
@@ -2430,10 +2184,9 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
           return_stderr=True)
       # Ensure all objects are uploaded.
       self.AssertNObjectsInBucket(bucket_uri, 10)
-      if not self._use_gcloud_storage:
-        # Ensure the progress logger sees a gzip encoding.
-        self.assertIn('send: Using gzip transport encoding for the request.',
-                      stderr)
+      # Ensure the progress logger sees a gzip encoding.
+      self.assertIn('send: Using gzip transport encoding for the request.',
+                    stderr)
 
   @SkipForS3('No compressed transport encoding support for S3.')
   @SkipForXML('No compressed transport encoding support for the XML API.')
@@ -2458,10 +2211,9 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
           return_stderr=True)
       # Ensure all objects are uploaded.
       self.AssertNObjectsInBucket(bucket_uri, 10)
-      if not self._use_gcloud_storage:
-        # Ensure the progress logger sees a gzip encoding.
-        self.assertIn('send: Using gzip transport encoding for the request.',
-                      stderr)
+      # Ensure the progress logger sees a gzip encoding.
+      self.assertIn('send: Using gzip transport encoding for the request.',
+                    stderr)
 
   @SequentialAndParallelTransfer
   def test_gzip_all_upload_and_download(self):
@@ -2530,10 +2282,9 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     self.assertIn(
         'Using compressed transport encoding for file://%s.' % (local_uri2),
         stderr)
-    if not self._use_gcloud_storage:
-      # Ensure the progress logger sees a gzip encoding.
-      self.assertIn('send: Using gzip transport encoding for the request.',
-                    stderr)
+    # Ensure the progress logger sees a gzip encoding.
+    self.assertIn('send: Using gzip transport encoding for the request.',
+                  stderr)
     # Ensure the files do not have a stored encoding of gzip and are stored
     # uncompressed.
     remote_uri1 = suri(bucket_uri, 'test.txt')
@@ -2554,20 +2305,11 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
         # Same test, but with arguments in the opposite order.
         ['cp', '-z', 'html, js', '-Z', 'a.js', 'b.js'])
 
-    if self._use_gcloud_storage:
-      expected_status, expected_error_prefix, expected_error_substring = (
-          _GCLOUD_STORAGE_GZIP_FLAG_CONFLICT_OUTPUT)
-    else:
-      expected_status = 1
-      expected_error_prefix = 'CommandException'
-      expected_error_substring = (
-          'Specifying both the -z and -Z options together is invalid.')
     for case in cases:
-      stderr = self.RunGsUtil(case,
-                              return_stderr=True,
-                              expected_status=expected_status)
-      self.assertIn(expected_error_prefix, stderr)
-      self.assertIn(expected_error_substring, stderr)
+      stderr = self.RunGsUtil(case, return_stderr=True, expected_status=1)
+      self.assertIn('CommandException', stderr)
+      self.assertIn(
+          'Specifying both the -z and -Z options together is invalid.', stderr)
 
   def test_both_gzip_transport_encoding_options_error(self):
     """Test that mixing transport encoding flags error."""
@@ -2577,21 +2319,11 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
         # Same test, but with arguments in the opposite order.
         ['cp', '-j', 'html, js', '-J', 'a.js', 'b.js'])
 
-    if self._use_gcloud_storage:
-      expected_status, expected_error_prefix, expected_error_substring = (
-          _GCLOUD_STORAGE_GZIP_FLAG_CONFLICT_OUTPUT)
-    else:
-      expected_status = 1
-      expected_error_prefix = 'CommandException'
-      expected_error_substring = (
-          'Specifying both the -j and -J options together is invalid.')
-
     for case in cases:
-      stderr = self.RunGsUtil(case,
-                              return_stderr=True,
-                              expected_status=expected_status)
-      self.assertIn(expected_error_prefix, stderr)
-      self.assertIn(expected_error_substring, stderr)
+      stderr = self.RunGsUtil(case, return_stderr=True, expected_status=1)
+      self.assertIn('CommandException', stderr)
+      self.assertIn(
+          'Specifying both the -j and -J options together is invalid.', stderr)
 
   def test_combined_gzip_options_error(self):
     """Test that mixing transport encoding and compression flags error."""
@@ -2600,21 +2332,12 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
                         'b.js'], ['cp', '-j', 'html, js', '-Z', 'a.js', 'b.js'],
              ['cp', '-z', 'html, js', '-J', 'a.js', 'b.js'])
 
-    if self._use_gcloud_storage:
-      expected_status, expected_error_prefix, expected_error_substring = (
-          _GCLOUD_STORAGE_GZIP_FLAG_CONFLICT_OUTPUT)
-    else:
-      expected_status = 1
-      expected_error_prefix = 'CommandException'
-      expected_error_substring = (
-          'Specifying both the -j/-J and -z/-Z options together is invalid.')
-
     for case in cases:
-      stderr = self.RunGsUtil(case,
-                              return_stderr=True,
-                              expected_status=expected_status)
-      self.assertIn(expected_error_prefix, stderr)
-      self.assertIn(expected_error_substring, stderr)
+      stderr = self.RunGsUtil(case, return_stderr=True, expected_status=1)
+      self.assertIn('CommandException', stderr)
+      self.assertIn(
+          'Specifying both the -j/-J and -z/-Z options together is invalid.',
+          stderr)
 
   def test_upload_with_subdir_and_unexpanded_wildcard(self):
     fpath1 = self.CreateTempFile(file_name=('tmp', 'x', 'y', 'z'))
@@ -2705,16 +2428,13 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     # no valid (non-symlinked) files could be found at that path; we don't want
     # the command to terminate if that's the first file we attempt to copy.
     stderr = self.RunGsUtil([
-        '-m', 'cp', '-e',
+        'cp', '-e', '-c',
         '%s%s*' % (fpath_dir, os.path.sep),
         suri(bucket_uri, 'files')
     ],
                             return_stderr=True)
     self.assertIn('Copying file', stderr)
-    if self._use_gcloud_storage:
-      self.assertIn('Skipping symlink', stderr)
-    else:
-      self.assertIn('Skipping symbolic link', stderr)
+    self.assertIn('Skipping symbolic link', stderr)
 
     # Ensure that top-level arguments are ignored if they are symlinks. The file
     # at fpath1 should be successfully copied, then copying the symlink at
@@ -2725,12 +2445,8 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
         return_stderr=True,
         expected_status=1)
     self.assertIn('Copying file', stderr)
-    if self._use_gcloud_storage:
-      self.assertIn('Skipping symlink', stderr)
-      self.assertIn('URL matched no objects or files: %s' % fpath2, stderr)
-    else:
-      self.assertIn('Skipping symbolic link', stderr)
-      self.assertIn('CommandException: No URLs matched: %s' % fpath2, stderr)
+    self.assertIn('Skipping symbolic link', stderr)
+    self.assertIn('CommandException: No URLs matched: %s' % fpath2, stderr)
 
   def test_cp_multithreaded_wildcard(self):
     """Tests that cp -m works with a wildcard."""
@@ -3359,7 +3075,7 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     bucket_uri = self.CreateBucket()
     fpath = self.CreateTempFile(contents=b'abcd')
     obj_suri = suri(bucket_uri, 'composed')
-    key_fqn = AuthorizeProjectToUseTestingKmsKey()
+    key_fqn = self.authorize_project_to_use_testing_kms_key()
 
     with SetBotoConfigForTest([
         ('GSUtil', 'encryption_key', key_fqn),
@@ -3370,26 +3086,6 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
 
     with SetBotoConfigForTest([('GSUtil', 'prefer_api', 'json')]):
       self.AssertObjectUsesCMEK(obj_suri, key_fqn)
-
-  @SkipForS3('No composite upload support for S3.')
-  def test_nearline_applied_to_parallel_composite_upload(self):
-    bucket_uri = self.CreateBucket(storage_class='standard')
-    fpath = self.CreateTempFile(contents=b'abcd')
-    obj_suri = suri(bucket_uri, 'composed')
-
-    with SetBotoConfigForTest([
-        ('GSUtil', 'parallel_composite_upload_threshold', '1'),
-        ('GSUtil', 'parallel_composite_upload_component_size', '1')
-    ]):
-      self.RunGsUtil(['cp', '-s', 'nearline', fpath, obj_suri])
-    stdout = self.RunGsUtil(['ls', '-L', obj_suri], return_stdout=True)
-    if self._use_gcloud_storage:
-      self.assertRegexpMatchesWithFlags(
-          stdout, r'Storage class:               NEARLINE', flags=re.IGNORECASE)
-    else:
-      self.assertRegexpMatchesWithFlags(stdout,
-                                        r'Storage class:          NEARLINE',
-                                        flags=re.IGNORECASE)
 
   # This temporarily changes the tracker directory to unwritable which
   # interferes with any parallel running tests that use the tracker directory.
@@ -3803,18 +3499,14 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     bucket_uri = self.CreateBucket()
     fpath = self.CreateTempFile(file_name='looks-zipped.gz', contents=b'foo')
     stderr = self.RunGsUtil([
-        '-D', '-d', '-h', 'content-type:application/gzip', 'cp', '-J',
+        '-D', '-h', 'content-type:application/gzip', 'cp', '-J',
         suri(fpath),
         suri(bucket_uri, 'foo')
     ],
                             return_stderr=True)
     # Ensure the progress logger sees a gzip encoding.
-    if self._use_gcloud_storage:
-      self.assertIn("b\'Content-Encoding\': b\'gzip\'", stderr)
-      self.assertIn('"contentType": "application/gzip"', stderr)
-    else:
-      self.assertIn('send: Using gzip transport encoding for the request.',
-                    stderr)
+    self.assertIn('send: Using gzip transport encoding for the request.',
+                  stderr)
     self.RunGsUtil(['cp', suri(bucket_uri, 'foo'), fpath])
 
   @SequentialAndParallelTransfer
@@ -4368,15 +4060,13 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     object_uri = self.CreateObject(bucket_uri=bucket_uri,
                                    object_name='foo',
                                    contents=b'foo')
-
-    cp_command = [
-        'cp',
-        '-c',
+    self.RunGsUtil([
+        'cp', '-c',
         suri(bucket_uri) + '/foo2',
         suri(object_uri),
-        suri(bucket_uri) + '/dir/',
-    ]
-    self.RunGsUtil(cp_command, expected_status=1)
+        suri(bucket_uri) + '/dir/'
+    ],
+                   expected_status=1)
     self.RunGsUtil(['stat', '%s/dir/foo' % suri(bucket_uri)])
 
   def test_rewrite_cp(self):
@@ -4744,12 +4434,25 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
                                       r'Storage class:\s+STANDARD',
                                       flags=re.IGNORECASE)
 
+  def authorize_project_to_use_testing_kms_key(
+      self, key_name=testcase.KmsTestingResources.CONSTANT_KEY_NAME):
+    # Make sure our keyRing and cryptoKey exist.
+    keyring_fqn = self.kms_api.CreateKeyRing(
+        PopulateProjectId(None),
+        testcase.KmsTestingResources.KEYRING_NAME,
+        location=testcase.KmsTestingResources.KEYRING_LOCATION)
+    key_fqn = self.kms_api.CreateCryptoKey(keyring_fqn, key_name)
+    # Make sure that the service account for our default project is authorized
+    # to use our test KMS key.
+    self.RunGsUtil(['kms', 'authorize', '-k', key_fqn])
+    return key_fqn
+
   @SkipForS3('Test uses gs-specific KMS encryption')
   def test_kms_key_correctly_applied_to_dst_obj_from_src_with_no_key(self):
     bucket_uri = self.CreateBucket()
     obj1_name = 'foo'
     obj2_name = 'bar'
-    key_fqn = AuthorizeProjectToUseTestingKmsKey()
+    key_fqn = self.authorize_project_to_use_testing_kms_key()
 
     # Create the unencrypted object, then copy it, specifying a KMS key for the
     # new object.
@@ -4772,7 +4475,7 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     fpath = self.CreateTempFile(contents=b'abcd')
     obj_name = 'foo'
     obj_suri = suri(bucket_uri) + '/' + obj_name
-    key_fqn = AuthorizeProjectToUseTestingKmsKey()
+    key_fqn = self.authorize_project_to_use_testing_kms_key()
 
     with SetBotoConfigForTest([('GSUtil', 'encryption_key', key_fqn)]):
       self.RunGsUtil(['cp', fpath, obj_suri])
@@ -4787,7 +4490,7 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     fpath = self.CreateTempFile(contents=b'a' * resumable_threshold)
     obj_name = 'foo'
     obj_suri = suri(bucket_uri) + '/' + obj_name
-    key_fqn = AuthorizeProjectToUseTestingKmsKey()
+    key_fqn = self.authorize_project_to_use_testing_kms_key()
 
     with SetBotoConfigForTest([('GSUtil', 'encryption_key', key_fqn),
                                ('GSUtil', 'resumable_threshold',
@@ -4802,9 +4505,9 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     bucket_uri = self.CreateBucket()
     obj1_name = 'foo'
     obj2_name = 'bar'
-    key1_fqn = AuthorizeProjectToUseTestingKmsKey()
-    key2_fqn = AuthorizeProjectToUseTestingKmsKey(
-        key_name=KmsTestingResources.CONSTANT_KEY_NAME2)
+    key1_fqn = self.authorize_project_to_use_testing_kms_key()
+    key2_fqn = self.authorize_project_to_use_testing_kms_key(
+        key_name=testcase.KmsTestingResources.CONSTANT_KEY_NAME2)
     obj1_suri = suri(
         self.CreateObject(bucket_uri=bucket_uri,
                           object_name=obj1_name,
@@ -4826,7 +4529,7 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     bucket_uri = self.CreateBucket()
     obj1_name = 'foo'
     obj2_name = 'bar'
-    key1_fqn = AuthorizeProjectToUseTestingKmsKey()
+    key1_fqn = self.authorize_project_to_use_testing_kms_key()
     obj1_suri = suri(
         self.CreateObject(bucket_uri=bucket_uri,
                           object_name=obj1_name,
@@ -4863,14 +4566,9 @@ class TestCp(testcase.GsUtilIntegrationTestCase):
     stderr = self.RunGsUtil(['-m', 'cp', '-', 'file'],
                             return_stderr=True,
                             expected_status=1)
-    if self._use_gcloud_storage:
-      self.assertIn(
-          'WARNING: Using sequential instead of parallel task execution to'
-          ' transfer from stdin', stderr)
-    else:
-      self.assertIn(
-          'CommandException: Cannot upload from a stream when using gsutil -m',
-          stderr)
+    self.assertIn(
+        'CommandException: Cannot upload from a stream when using gsutil -m',
+        stderr)
 
   @SequentialAndParallelTransfer
   def test_cp_overwrites_existing_destination(self):
@@ -4953,71 +4651,3 @@ class TestCpUnitTests(testcase.GsUtilUnitTestCase):
     self.assertEquals(1, len(warning_messages))
     self.assertIn('Found no hashes to validate object upload',
                   warning_messages[0])
-
-  def test_shim_translates_flags(self):
-    bucket_uri = self.CreateBucket()
-    fpath = self.CreateTempFile(contents=b'abcd')
-    with SetBotoConfigForTest([('GSUtil', 'use_gcloud_storage', 'True'),
-                               ('GSUtil', 'hidden_shim_mode', 'dry_run')]):
-      with SetEnvironmentForTest({
-          'CLOUDSDK_CORE_PASS_CREDENTIALS_TO_GSUTIL': 'True',
-          'CLOUDSDK_ROOT_DIR': 'fake_dir',
-      }):
-        mock_log_handler = self.RunCommand('cp', [
-            '-e', '-n', '-r', '-R', '-s', 'some-class', '-v', fpath,
-            suri(bucket_uri)
-        ],
-                                           return_log_handler=True)
-        info_lines = '\n'.join(mock_log_handler.messages['info'])
-        self.assertIn(
-            'Gcloud Storage Command: {} alpha storage cp'
-            ' --ignore-symlinks --no-clobber -r -r --storage-class some-class'
-            ' --print-created-message {} {}'.format(
-                os.path.join('fake_dir', 'bin', 'gcloud'), fpath,
-                suri(bucket_uri)), info_lines)
-
-  @unittest.skipIf(IS_WINDOWS, 'POSIX attributes not available on Windows.')
-  @mock.patch('os.geteuid', new=mock.Mock(return_value=0))
-  @mock.patch.object(os, 'chown', autospec=True)
-  def test_posix_runs_chown_as_super_user(self, mock_chown):
-    fpath = self.CreateTempFile(contents=b'abcd')
-    obj = apitools_messages.Object()
-    obj.metadata = CreateCustomMetadata(entries={UID_ATTR: USER_ID})
-    ParseAndSetPOSIXAttributes(fpath, obj, False, True)
-    mock_chown.assert_called_once_with(fpath, USER_ID, -1)
-
-  @unittest.skipIf(IS_WINDOWS, 'POSIX attributes not available on Windows.')
-  @mock.patch('os.geteuid', new=mock.Mock(return_value=1))
-  @mock.patch.object(os, 'chown', autospec=True)
-  def test_posix_skips_chown_when_not_super_user(self, mock_chown):
-    fpath = self.CreateTempFile(contents=b'abcd')
-    obj = apitools_messages.Object()
-    obj.metadata = CreateCustomMetadata(entries={UID_ATTR: USER_ID})
-    ParseAndSetPOSIXAttributes(fpath, obj, False, True)
-    mock_chown.assert_not_called()
-
-  @mock.patch(
-      'gslib.utils.copy_helper.TriggerReauthForDestinationProviderIfNecessary')
-  @mock.patch('gslib.command.Command._GetProcessAndThreadCount')
-  @mock.patch('gslib.command.Command.Apply',
-              new=mock.Mock(spec=command.Command.Apply))
-  def test_cp_triggers_reauth(self, mock_get_process_and_thread_count,
-                              mock_trigger_reauth):
-    path = self.CreateTempFile(file_name=('foo'))
-    bucket_uri = self.CreateBucket()
-    mock_get_process_and_thread_count.return_value = 2, 3
-
-    self.RunCommand('cp', [path, suri(bucket_uri)])
-
-    mock_trigger_reauth.assert_called_once_with(
-        StorageUrlFromString(suri(bucket_uri)),
-        mock.ANY,  # Gsutil API.
-        6,  # Worker count.
-    )
-
-    mock_get_process_and_thread_count.assert_called_once_with(
-        process_count=None,
-        thread_count=None,
-        parallel_operations_override=None,
-        print_macos_warning=False,
-    )

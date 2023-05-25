@@ -29,7 +29,6 @@ from gslib.help_provider import CreateHelpText
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
 from gslib.utils import text_util
 from gslib.utils.constants import NO_MAX
-from gslib.utils.shim_util import GcloudStorageMap
 
 _SET_SYNOPSIS = """
   gsutil autoclass set (on|off) gs://<bucket_name>...
@@ -43,38 +42,27 @@ _SYNOPSIS = _SET_SYNOPSIS + _GET_SYNOPSIS.lstrip('\n')
 
 _SET_DESCRIPTION = """
 <B>SET</B>
-  The ``set`` sub-command requires an additional sub-command, either ``on``
-  or ``off``, which enables or disables Autoclass for the specified
-  bucket(s).
+  The "set" sub-command requires an additional sub-command, either "on" or
+  "off", which will enable or disable autoclass for the specified bucket(s).
 """
 
 _GET_DESCRIPTION = """
 <B>GET</B>
-  The ``get`` sub-command gets the current Autoclass configuration for a
-  bucket. The returned configuration has the following fields:
-
-  ``enabled``: a boolean field indicating whether the feature is on or off.
-
-  ``toggleTime``: a timestamp indicating when the enabled field was set.
+  The "get" sub-command gets the current autoclass configuration for a
+  Bucket. The returned configuration will have following fields:
+     enabled: a boolean field indicating whether the feature is on or off.
+     toggleTime: a timestamp indicating when the enabled field was set.
 """
 
 _DESCRIPTION = """
-  The `Autoclass <https://cloud.google.com/storage/docs/autoclass>`_
-  feature automatically selects the best storage class for objects based
-  on access patterns. This command has two sub-commands, ``get`` and
-  ``set``.
+  The Autoclass feature automatically selects the best storage class for
+  objects based on access patterns. This command has two sub-commands:
+  ``get`` and ``set``.
 """ + _GET_DESCRIPTION + _SET_DESCRIPTION
 
 _DETAILED_HELP_TEXT = CreateHelpText(_SYNOPSIS, _DESCRIPTION)
 _set_help_text = CreateHelpText(_SET_SYNOPSIS, _SET_DESCRIPTION)
 _get_help_text = CreateHelpText(_GET_SYNOPSIS, _GET_DESCRIPTION)
-
-GCLOUD_FORMAT_STRING = ('--format=value[separator="\n"]('
-                        'format("gs://{}:", name),'
-                        ' format("  Enabled: {}",'
-                        'autoclass.enabled.yesno(True, False)),'
-                        ' format("  Toggle Time: {}",'
-                        'autoclass.toggleTime))')
 
 
 class AutoclassCommand(Command):
@@ -104,55 +92,12 @@ class AutoclassCommand(Command):
       help_name='autoclass',
       help_name_aliases=[],
       help_type='command_help',
-      help_one_line_summary='Configure Autoclass feature',
+      help_one_line_summary='Configure autoclass feature',
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={
           'get': _get_help_text,
           'set': _set_help_text,
       },
-  )
-
-  gcloud_storage_map = GcloudStorageMap(
-      gcloud_command={
-          'get':
-              GcloudStorageMap(
-                  gcloud_command=[
-                      'alpha', 'storage', 'buckets', 'list',
-                      GCLOUD_FORMAT_STRING, '--raw'
-                  ],
-                  flag_map={},
-                  supports_output_translation=True,
-              ),
-          'set':
-              GcloudStorageMap(
-                  gcloud_command={
-                      'on':
-                          GcloudStorageMap(
-                              gcloud_command=[
-                                  'alpha',
-                                  'storage',
-                                  'buckets',
-                                  'update',
-                                  '--enable-autoclass',
-                              ],
-                              flag_map={},
-                          ),
-                      'off':
-                          GcloudStorageMap(
-                              gcloud_command=[
-                                  'alpha',
-                                  'storage',
-                                  'buckets',
-                                  'update',
-                                  '--no-enable-autoclass',
-                              ],
-                              flag_map={},
-                          ),
-                  },
-                  flag_map={},
-              )
-      },
-      flag_map={},
   )
 
   def _get_autoclass(self, blr):

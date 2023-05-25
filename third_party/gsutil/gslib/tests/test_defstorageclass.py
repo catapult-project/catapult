@@ -20,7 +20,6 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import re
-from unittest import skipIf
 
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.integration_testcase import SkipForS3
@@ -43,12 +42,11 @@ class TestDefStorageClass(testcase.GsUtilIntegrationTestCase):
         self._set_dsc_cmd +
         [new_storage_class, suri(bucket_uri)],
         return_stderr=True)
-    if not self._use_gcloud_storage:
-      self.assertRegexpMatchesWithFlags(
-          stderr,
-          r'Setting default storage class to "%s" for bucket %s' %
-          (new_storage_class, suri(bucket_uri)),
-          flags=re.IGNORECASE)
+    self.assertRegexpMatchesWithFlags(
+        stderr,
+        r'Setting default storage class to "%s" for bucket %s' %
+        (new_storage_class, suri(bucket_uri)),
+        flags=re.IGNORECASE)
 
     # Make sure the storage class shows up as nearline from defstorageclass get.
     stdout = self.RunGsUtil(self._get_dsc_cmd + [suri(bucket_uri)],
@@ -70,12 +68,11 @@ class TestDefStorageClass(testcase.GsUtilIntegrationTestCase):
          suri(bucket2_uri)],
         return_stderr=True)
     for bucket_uri in (suri(bucket1_uri), suri(bucket2_uri)):
-      if not self._use_gcloud_storage:
-        self.assertRegexpMatchesWithFlags(
-            stderr,
-            r'Setting default storage class to "%s" for bucket %s' %
-            (new_storage_class, bucket_uri),
-            flags=re.IGNORECASE)
+      self.assertRegexpMatchesWithFlags(
+          stderr,
+          r'Setting default storage class to "%s" for bucket %s' %
+          (new_storage_class, bucket_uri),
+          flags=re.IGNORECASE)
 
     # Make sure the storage class shows up as nearline from defstorageclass get.
     stdout = self.RunGsUtil(
@@ -94,10 +91,7 @@ class TestDefStorageClass(testcase.GsUtilIntegrationTestCase):
                             ['invalidclass', suri(bucket_uri)],
                             return_stderr=True,
                             expected_status=1)
-    if self._use_gcloud_storage:
-      self.assertIn('Invalid storage class', stderr)
-    else:
-      self.assertIn('BadRequestException: 400', stderr)
+    self.assertIn('BadRequestException: 400', stderr)
 
   def test_too_few_arguments_fails(self):
     # No arguments for set, but valid subcommand.
@@ -107,16 +101,10 @@ class TestDefStorageClass(testcase.GsUtilIntegrationTestCase):
     self.assertIn('command requires at least', stderr)
 
     # Argument given for set, but no buckets listed.
-    if self._use_gcloud_storage:
-      expected_status = 2
-      expected_error_string = 'argument URL [URL ...]: Must be specified'
-    else:
-      expected_status = 1
-      expected_error_string = 'command requires at least'
     stderr = self.RunGsUtil(self._set_dsc_cmd + ['std'],
                             return_stderr=True,
-                            expected_status=expected_status)
-    self.assertIn(expected_error_string, stderr)
+                            expected_status=1)
+    self.assertIn('command requires at least', stderr)
 
     # No arguments for get, but valid subcommand.
     stderr = self.RunGsUtil(self._get_dsc_cmd,

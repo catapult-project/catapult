@@ -1,4 +1,0 @@
-include MANIFEST.in README.rst LICENSE certifi/cacert.pem
-
-exclude .github/
-recursive-exclude .github
