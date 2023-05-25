@@ -19,6 +19,9 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
 
+import os
+
+from gslib import gcs_json_api
 from gslib import metrics
 from gslib.cloud_api import AccessDeniedException
 from gslib.cloud_api import BadRequestException
@@ -37,6 +40,7 @@ from gslib.third_party.storage_apitools import storage_v1_messages as apitools_m
 from gslib.utils import acl_helper
 from gslib.utils.constants import NO_MAX
 from gslib.utils.retry_util import Retry
+from gslib.utils.shim_util import GcloudStorageMap
 from gslib.utils.translation_helper import PRIVATE_DEFAULT_OBJ_ACL
 
 _SET_SYNOPSIS = """
@@ -190,6 +194,44 @@ class DefAclCommand(Command):
           'ch': _ch_help_text,
       },
   )
+
+  def get_gcloud_storage_args(self):
+    sub_command = self.args.pop(0)
+    if sub_command == 'get':
+      gcloud_storage_map = GcloudStorageMap(
+          gcloud_command=[
+              'storage', 'buckets', 'describe',
+              '--format=multi(defaultObjectAcl:format=json)', '--raw'
+          ],
+          flag_map={},
+      )
+
+    elif sub_command == 'set':
+      acl_file_or_predefined_acl = self.args.pop(0)
+      if (os.path.isfile(acl_file_or_predefined_acl)):
+        gcloud_storage_map = GcloudStorageMap(
+            gcloud_command=[
+                'storage', 'buckets', 'update',
+                '--default-object-acl-file=' + acl_file_or_predefined_acl
+            ],
+            flag_map={},
+        )
+      else:
+        if acl_file_or_predefined_acl in (
+            gcs_json_api.FULL_PREDEFINED_ACL_XML_TO_JSON_TRANSLATION):
+          predefined_acl = (
+              gcs_json_api.FULL_PREDEFINED_ACL_XML_TO_JSON_TRANSLATION[
+                  acl_file_or_predefined_acl])
+        else:
+          predefined_acl = acl_file_or_predefined_acl
+        gcloud_storage_map = GcloudStorageMap(
+            gcloud_command=[
+                'storage', 'buckets', 'update',
+                '--predefined-default-object-acl=' + predefined_acl
+            ],
+            flag_map={},
+        )
+    return super().get_gcloud_storage_args(gcloud_storage_map)
 
   def _CalculateUrlsStartArg(self):
     if not self.args:

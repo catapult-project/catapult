@@ -20,9 +20,15 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import json
+import os
+from unittest import mock
+
+from gslib.commands import web
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.integration_testcase import SkipForS3
 from gslib.tests.util import ObjectToURI as suri
+from gslib.tests.util import SetBotoConfigForTest
+from gslib.tests.util import SetEnvironmentForTest
 
 WEBCFG_FULL = json.loads('{"notFoundPage": "404", "mainPageSuffix": "main"}\n')
 WEBCFG_MAIN = json.loads('{"mainPageSuffix": "main"}\n')
@@ -44,28 +50,41 @@ class TestWeb(testcase.GsUtilIntegrationTestCase):
         ['-m', 'main', '-e', '404', suri(bucket_uri)])
     stdout = self.RunGsUtil(self._get_web_cmd + [suri(bucket_uri)],
                             return_stdout=True)
-    self.assertEquals(json.loads(stdout), WEBCFG_FULL)
+    if self._use_gcloud_storage:
+      self.assertIn('"mainPageSuffix": "main"', stdout)
+      self.assertIn('"notFoundPage": "404"', stdout)
+    else:
+      self.assertEquals(json.loads(stdout), WEBCFG_FULL)
 
   def test_main(self):
     bucket_uri = self.CreateBucket()
     self.RunGsUtil(self._set_web_cmd + ['-m', 'main', suri(bucket_uri)])
     stdout = self.RunGsUtil(self._get_web_cmd + [suri(bucket_uri)],
                             return_stdout=True)
-    self.assertEquals(json.loads(stdout), WEBCFG_MAIN)
+    if self._use_gcloud_storage:
+      self.assertEquals('{\n  "mainPageSuffix": "main"\n}\n', stdout)
+    else:
+      self.assertEquals(json.loads(stdout), WEBCFG_MAIN)
 
   def test_error(self):
     bucket_uri = self.CreateBucket()
     self.RunGsUtil(self._set_web_cmd + ['-e', '404', suri(bucket_uri)])
     stdout = self.RunGsUtil(self._get_web_cmd + [suri(bucket_uri)],
                             return_stdout=True)
-    self.assertEquals(json.loads(stdout), WEBCFG_ERROR)
+    if self._use_gcloud_storage:
+      self.assertEquals('{\n  "notFoundPage": "404"\n}\n', stdout)
+    else:
+      self.assertEquals(json.loads(stdout), WEBCFG_ERROR)
 
   def test_empty(self):
     bucket_uri = self.CreateBucket()
     self.RunGsUtil(self._set_web_cmd + [suri(bucket_uri)])
     stdout = self.RunGsUtil(self._get_web_cmd + [suri(bucket_uri)],
                             return_stdout=True)
-    self.assertIn(WEBCFG_EMPTY, stdout)
+    if self._use_gcloud_storage:
+      self.assertEquals('[]\n', stdout)
+    else:
+      self.assertIn(WEBCFG_EMPTY, stdout)
 
   def testTooFewArgumentsFails(self):
     """Ensures web commands fail with too few arguments."""
@@ -84,6 +103,69 @@ class TestWeb(testcase.GsUtilIntegrationTestCase):
     # Neither arguments nor subcommand.
     stderr = self.RunGsUtil(['web'], return_stderr=True, expected_status=1)
     self.assertIn('command requires at least', stderr)
+
+
+class TestWebShim(testcase.GsUtilUnitTestCase):
+
+  @mock.patch.object(web.WebCommand, '_GetWeb', new=mock.Mock())
+  def test_shim_translates_get_command(self):
+    with SetBotoConfigForTest([('GSUtil', 'use_gcloud_storage', 'True'),
+                               ('GSUtil', 'hidden_shim_mode', 'dry_run')]):
+      with SetEnvironmentForTest({
+          'CLOUDSDK_CORE_PASS_CREDENTIALS_TO_GSUTIL': 'True',
+          'CLOUDSDK_ROOT_DIR': 'fake_dir',
+      }):
+        mock_log_handler = self.RunCommand('web', [
+            'get',
+            'gs://bucket',
+        ],
+                                           return_log_handler=True)
+        info_lines = '\n'.join(mock_log_handler.messages['info'])
+        self.assertIn(
+            ('Gcloud Storage Command: {} alpha storage buckets describe'
+             ' --format=multi(website:format=json)'
+             ' --raw gs://bucket').format(
+                 os.path.join('fake_dir', 'bin', 'gcloud')), info_lines)
+
+  @mock.patch.object(web.WebCommand, '_SetWeb', new=mock.Mock())
+  def test_shim_translates_set_command(self):
+    with SetBotoConfigForTest([('GSUtil', 'use_gcloud_storage', 'True'),
+                               ('GSUtil', 'hidden_shim_mode', 'dry_run')]):
+      with SetEnvironmentForTest({
+          'CLOUDSDK_CORE_PASS_CREDENTIALS_TO_GSUTIL': 'True',
+          'CLOUDSDK_ROOT_DIR': 'fake_dir',
+      }):
+        mock_log_handler = self.RunCommand('web', [
+            'set',
+            '-e',
+            '404',
+            '-m',
+            'main',
+            'gs://bucket',
+        ],
+                                           return_log_handler=True)
+        info_lines = '\n'.join(mock_log_handler.messages['info'])
+        self.assertIn(
+            ('Gcloud Storage Command: {} alpha storage buckets update'
+             ' --web-error-page 404 --web-main-page-suffix main gs://bucket'
+            ).format(os.path.join('fake_dir', 'bin', 'gcloud')), info_lines)
+
+  @mock.patch.object(web.WebCommand, '_SetWeb', new=mock.Mock())
+  def test_shim_translates_clear_command(self):
+    with SetBotoConfigForTest([('GSUtil', 'use_gcloud_storage', 'True'),
+                               ('GSUtil', 'hidden_shim_mode', 'dry_run')]):
+      with SetEnvironmentForTest({
+          'CLOUDSDK_CORE_PASS_CREDENTIALS_TO_GSUTIL': 'True',
+          'CLOUDSDK_ROOT_DIR': 'fake_dir',
+      }):
+        mock_log_handler = self.RunCommand('web', ['set', 'gs://bucket'],
+                                           return_log_handler=True)
+        info_lines = '\n'.join(mock_log_handler.messages['info'])
+        self.assertIn(
+            ('Gcloud Storage Command: {} alpha storage buckets update'
+             ' --clear-web-error-page --clear-web-main-page-suffix'
+             ' gs://bucket').format(os.path.join('fake_dir', 'bin',
+                                                 'gcloud')), info_lines)
 
 
 class TestWebOldAlias(TestWeb):

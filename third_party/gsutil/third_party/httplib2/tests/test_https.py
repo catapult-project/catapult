@@ -1,8 +1,10 @@
-import httplib2
-import pytest
-from six.moves import urllib
 import socket
 import ssl
+
+import pytest
+from six.moves import urllib
+
+import httplib2
 import tests
 
 
@@ -71,59 +73,25 @@ def test_not_trusted_ca():
             pass
 
 
-@pytest.mark.skipif(
-    not hasattr(tests.ssl_context(), "minimum_version"),
-    reason="ssl doesn't support TLS min/max",
+ssl_context_accept_version = hasattr(tests.ssl_context(), "maximum_version") and hasattr(
+    tests.ssl_context(), "minimum_version"
 )
-def test_set_min_tls_version():
-    # Test setting minimum TLS version
+
+
+@pytest.mark.skipif(not ssl_context_accept_version, reason="ssl doesn't support TLS min/max")
+@pytest.mark.parametrize("attr", ("maximum_version", "minimum_version"))
+@pytest.mark.parametrize("version", (None, "TLSv1_2", ssl.TLSVersion.TLSv1_2) if ssl_context_accept_version else (None,))
+def test_set_tls_version(attr, version):
     # We expect failure on Python < 3.7 or OpenSSL < 1.1
-    expect_success = hasattr(ssl.SSLContext(), 'minimum_version')
+    expect_success = hasattr(ssl.SSLContext(), attr)
+    kwargs = {"tls_" + attr: version}
+    http = httplib2.Http(**kwargs)
     try:
-        http = httplib2.Http(tls_minimum_version="TLSv1_2")
         http.request(tests.DUMMY_HTTPS_URL)
     except RuntimeError:
         assert not expect_success
     except socket.error:
         assert expect_success
-
-
-@pytest.mark.skipif(
-    not hasattr(tests.ssl_context(), "maximum_version"),
-    reason="ssl doesn't support TLS min/max",
-)
-def test_set_max_tls_version():
-    # Test setting maximum TLS version
-    # We expect RuntimeError on Python < 3.7 or OpenSSL < 1.1
-    # We expect socket error otherwise
-    expect_success = hasattr(ssl.SSLContext(), 'maximum_version')
-    try:
-        http = httplib2.Http(tls_maximum_version="TLSv1_2")
-        http.request(tests.DUMMY_HTTPS_URL)
-    except RuntimeError:
-        assert not expect_success
-    except socket.error:
-        assert expect_success
-
-
-@pytest.mark.skipif(
-    not hasattr(tests.ssl_context(), "minimum_version"),
-    reason="ssl doesn't support TLS min/max",
-)
-def test_min_tls_version():
-    def setup_tls(context, server, skip_errors):
-        skip_errors.append("WRONG_VERSION_NUMBER")
-        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_1)
-        context.load_cert_chain(tests.SERVER_CHAIN)
-        return context.wrap_socket(server, server_side=True)
-
-    http = httplib2.Http(ca_certs=tests.CA_CERTS, tls_minimum_version="TLSv1_2")
-    with tests.server_const_http(tls=setup_tls) as uri:
-        try:
-            http.request(uri)
-            assert False, "expected SSLError"
-        except ssl.SSLError as e:
-            assert e.reason in ("UNSUPPORTED_PROTOCOL", "VERSION_TOO_LOW")
 
 
 @pytest.mark.skipif(
@@ -131,11 +99,11 @@ def test_min_tls_version():
     reason="ssl doesn't support TLS min/max",
 )
 def test_max_tls_version():
-    http = httplib2.Http(ca_certs=tests.CA_CERTS, tls_maximum_version="TLSv1")
+    http = httplib2.Http(ca_certs=tests.CA_CERTS, tls_maximum_version="TLSv1_2")
     with tests.server_const_http(tls=True) as uri:
         http.request(uri)
         _, tls_ver, _ = http.connections.popitem()[1].sock.cipher()
-        assert tls_ver == "TLSv1.0"
+        assert "TLSv1.0" <= tls_ver <= "TLSv1.2"
 
 
 def test_client_cert_verified():
@@ -157,8 +125,8 @@ def test_client_cert_verified():
         http.request(uri)
 
     assert len(cert_log) == 1
-    # TODO extract serial from tests.CLIENT_PEM
-    assert cert_log[0]["serialNumber"] == "E2AA6A96D1BF1AEC"
+    expect_serial = tests.x509_serial(tests.CLIENT_PEM) if tests.x509 else 16332984194609126127
+    assert int(cert_log[0]["serialNumber"], base=16) == expect_serial
 
 
 def test_client_cert_password_verified():
@@ -176,13 +144,12 @@ def test_client_cert_password_verified():
     http = httplib2.Http(ca_certs=tests.CA_CERTS)
     with tests.server_request(handler, tls=setup_tls) as uri:
         uri_parsed = urllib.parse.urlparse(uri)
-        http.add_certificate(tests.CLIENT_ENCRYPTED_PEM, tests.CLIENT_ENCRYPTED_PEM,
-                             uri_parsed.netloc, password="12345")
+        http.add_certificate(tests.CLIENT_ENCRYPTED_PEM, tests.CLIENT_ENCRYPTED_PEM, uri_parsed.netloc, password="12345")
         http.request(uri)
 
     assert len(cert_log) == 1
-    # TODO extract serial from tests.CLIENT_PEM
-    assert cert_log[0]["serialNumber"] == "E2AA6A96D1BF1AED"
+    expect_serial = tests.x509_serial(tests.CLIENT_ENCRYPTED_PEM) if tests.x509 else 16332984194609126128
+    assert int(cert_log[0]["serialNumber"], base=16) == expect_serial
 
 
 @pytest.mark.skipif(
@@ -201,3 +168,25 @@ def test_sni_set_servername_callback():
         uri_parsed = urllib.parse.urlparse(uri)
         http.request(uri)
         assert sni_log == [uri_parsed.hostname]
+
+
+def test_http_redirect_https():
+    http = httplib2.Http(ca_certs=tests.CA_CERTS)
+    with tests.server_const_http(tls=True) as uri_https:
+        with tests.server_const_http(status=301, headers={"location": uri_https}) as uri_http:
+            response, _ = http.request(uri_http, "GET")
+            assert response.status == 200
+            assert response["content-location"] == uri_https
+            assert response.previous.status == 301
+            assert response.previous["content-location"] == uri_http
+
+
+def test_https_redirect_http():
+    http = httplib2.Http(ca_certs=tests.CA_CERTS)
+    with tests.server_const_http() as uri_http:
+        with tests.server_const_http(tls=True, status=301, headers={"location": uri_http}) as uri_https:
+            response, _ = http.request(uri_https, "GET")
+            assert response.status == 200
+            assert response["content-location"] == uri_http
+            assert response.previous.status == 301
+            assert response.previous["content-location"] == uri_https

@@ -49,18 +49,23 @@ LKJHLSDJKFHLEUIORWUYERWEHJHL
 KLJHGFDLSJKH(@#*&$)@*#KJHFLKJDSFSD
 -----END CERTIFICATE-----
 """
-KEY_SECTION = """-----BEGIN ENCRYPTED PRIVATE KEY-----
+ENCRYPTED_KEY_SECTION = """-----BEGIN ENCRYPTED PRIVATE KEY-----
 LKJWE:RUWEORIU)(#*&$@(#$KJHLKDJHF(I*F@YLFHSLDKJFS
 -----END ENCRYPTED PRIVATE KEY-----
 """
-CERT_KEY_SECTION = CERT_SECTION + KEY_SECTION
+KEY_SECTION = """-----BEGIN PRIVATE KEY-----
+LKJWE:RUWEORIU)(#*&$@(#$KJHLKDJHF(I*F@YLFHSLDKJFS
+-----END PRIVATE KEY-----
+"""
+CERT_ENCRYPTED_KEY_SECTION = CERT_SECTION + ENCRYPTED_KEY_SECTION
 PASSWORD = '##invalid-password##'
 PASSWORD_SECTION = """
 -----BEGIN PASSPHRASE-----
 %s
 -----END PASSPHRASE-----
 """ % PASSWORD
-FULL_CERT = CERT_KEY_SECTION + PASSWORD_SECTION
+FULL_ENCRYPTED_CERT = CERT_ENCRYPTED_KEY_SECTION + PASSWORD_SECTION
+FULL_CERT = CERT_SECTION + KEY_SECTION
 
 BAD_CERT_KEY_EMBEDDED_SECTION = """-----BEGIN CERTIFICATE-----
 LKJHLSDJKFHLEUIORWUYERWEHJHL
@@ -127,25 +132,26 @@ class TestPemFileParser(testcase.GsUtilUnitTestCase):
     sections = context_config._split_pem_into_sections(
         CERT_KEY_WITH_COMMENT_AT_BEGIN, self.logger)
     self.assertEqual(sections['CERTIFICATE'], CERT_SECTION)
-    self.assertEqual(sections['ENCRYPTED PRIVATE KEY'], KEY_SECTION)
+    self.assertEqual(sections['ENCRYPTED PRIVATE KEY'], ENCRYPTED_KEY_SECTION)
 
   def test_pem_file_with_comment_at_end(self):
     sections = context_config._split_pem_into_sections(
         CERT_KEY_WITH_COMMENT_AT_END, self.logger)
     self.assertEqual(sections['CERTIFICATE'], CERT_SECTION)
-    self.assertEqual(sections['ENCRYPTED PRIVATE KEY'], KEY_SECTION)
+    self.assertEqual(sections['ENCRYPTED PRIVATE KEY'], ENCRYPTED_KEY_SECTION)
 
   def test_pem_file_with_comment_in_between(self):
     sections = context_config._split_pem_into_sections(
         CERT_KEY_WITH_COMMENT_IN_BETWEEN, self.logger)
     self.assertEqual(sections['CERTIFICATE'], CERT_SECTION)
-    self.assertEqual(sections['ENCRYPTED PRIVATE KEY'], KEY_SECTION)
+    self.assertEqual(sections['ENCRYPTED PRIVATE KEY'], ENCRYPTED_KEY_SECTION)
 
   def test_pem_file_with_bad_format_embedded_section(self):
     sections = context_config._split_pem_into_sections(
         BAD_CERT_KEY_EMBEDDED_SECTION, self.logger)
     self.assertIsNone(sections.get('CERTIFICATE'))
-    self.assertEqual(sections.get('ENCRYPTED PRIVATE KEY'), KEY_SECTION)
+    self.assertEqual(sections.get('ENCRYPTED PRIVATE KEY'),
+                     ENCRYPTED_KEY_SECTION)
 
   def test_pem_file_with_bad_format_missing_ending(self):
     sections = context_config._split_pem_into_sections(BAD_CERT_KEY_MISSING_END,
@@ -157,7 +163,8 @@ class TestPemFileParser(testcase.GsUtilUnitTestCase):
     sections = context_config._split_pem_into_sections(
         BAD_CERT_KEY_MISSING_BEGIN, self.logger)
     self.assertIsNone(sections.get('CERTIFICATE'))
-    self.assertEqual(sections.get('ENCRYPTED PRIVATE KEY'), KEY_SECTION)
+    self.assertEqual(sections.get('ENCRYPTED PRIVATE KEY'),
+                     ENCRYPTED_KEY_SECTION)
 
   def test_pem_file_with_bad_format_section_mismatch(self):
     sections = context_config._split_pem_into_sections(BAD_CERT_KEY_MISMATCH,
@@ -260,7 +267,9 @@ class TestContextConfig(testcase.GsUtilUnitTestCase):
   def test_default_provider_not_found_error(self):
     with SetBotoConfigForTest([('Credentials', 'use_client_certificate',
                                 'True'),
-                               ('Credentials', 'cert_provider_command', None)]):
+                               ('Credentials', 'cert_provider_command', None),
+                               # Avoids permissions error on Windows tests:
+                               ('GSUtil', 'state_dir', self.CreateTempDir())]):
       context_config.create_context_config(self.mock_logger)
 
       self.mock_logger.error.assert_called_once_with(
@@ -373,8 +382,44 @@ class TestContextConfig(testcase.GsUtilUnitTestCase):
   @mock.patch(OPEN_TO_PATCH, new_callable=mock.mock_open)
   @mock.patch.object(os, 'remove')
   @mock.patch.object(subprocess, 'Popen')
-  def test_writes_and_deletes_certificate_file_storing_password_to_memory(
+  def test_writes_and_deletes_encrypted_certificate_file_storing_password_to_memory(
       self, mock_Popen, mock_remove, mock_open):
+    mock_command_process = mock.Mock()
+    mock_command_process.returncode = 0
+    mock_command_process.communicate.return_value = (
+        FULL_ENCRYPTED_CERT.encode(), None)
+    mock_Popen.return_value = mock_command_process
+
+    with SetBotoConfigForTest([
+        ('Credentials', 'use_client_certificate', 'True'),
+        ('Credentials', 'cert_provider_command', 'path --print_certificate')
+    ]):
+      # Mock logger argument to avoid atexit hook writing to stderr.
+      test_config = context_config.create_context_config(mock.Mock())
+
+      # Test writes certificate file.
+      # Can't check whole mock_calls list because SetBotoConfigForTest also
+      # uses the mock in Python 3. Should work with any_order=False based on
+      # docs description but does not in current environment.
+      mock_open.assert_has_calls([
+          mock.call(test_config.client_cert_path, 'w+'),
+          mock.call().write(CERT_SECTION),
+          mock.call().write(ENCRYPTED_KEY_SECTION),
+      ],
+                                 any_order=True)
+      # Test saves certificate password to memory.
+      self.assertEqual(context_config._singleton_config.client_cert_password,
+                       PASSWORD)
+      # Test deletes certificate file.
+      context_config._singleton_config._unprovision_client_cert()
+      mock_remove.assert_called_once_with(test_config.client_cert_path)
+
+  @mock.patch(OPEN_TO_PATCH, new_callable=mock.mock_open)
+  @mock.patch.object(os, 'remove')
+  @mock.patch.object(subprocess, 'Popen')
+  def test_writes_and_deletes_unencrypted_certificate_file_without_storing_password(
+      self, mock_Popen, mock_remove, mock_open):
+    """This is the format used by gcloud by default."""
     mock_command_process = mock.Mock()
     mock_command_process.returncode = 0
     mock_command_process.communicate.return_value = (FULL_CERT.encode(), None)
@@ -397,9 +442,9 @@ class TestContextConfig(testcase.GsUtilUnitTestCase):
           mock.call().write(KEY_SECTION),
       ],
                                  any_order=True)
-      # Test saves certificate password to memory.
-      self.assertEqual(context_config._singleton_config.client_cert_password,
-                       PASSWORD)
+      # Does not save unnecessary password.
+      self.assertIsNone(context_config._singleton_config.client_cert_password,
+                        PASSWORD)
       # Test deletes certificate file.
       context_config._singleton_config._unprovision_client_cert()
       mock_remove.assert_called_once_with(test_config.client_cert_path)

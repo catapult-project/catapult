@@ -74,6 +74,8 @@ O_R = 0o004
 O_W = 0o002
 O_X = 0o001
 
+# The permissions newly created files get by default.
+SYSTEM_POSIX_MODE = None
 # A list of group IDs that the current user is a member of.
 USER_GROUPS = set()
 
@@ -260,26 +262,6 @@ def NeedsPOSIXAttributeUpdate(src_atime, dst_atime, src_mtime, dst_mtime,
                        (has_src_mode and not has_dst_mode))
 
 
-def GetDefaultMode():
-  """Gets the default POSIX mode using os.umask.
-
-  Args:
-    None
-
-  Returns:
-    The default POSIX mode as a 3-character string.
-  """
-  # umask returns the permissions that should not be granted, so they must be
-  # subtracted from the maximum set of permissions.
-  max_permissions = 0o777
-  current_umask = os.umask(0)
-  os.umask(current_umask)
-  mode = max_permissions - current_umask
-  # Files are not given execute privileges by default. Therefore we need to
-  # subtract one from every odd permissions value. This is done via a bitmask.
-  return oct(mode & 0o666)[-3:]
-
-
 def ValidatePOSIXMode(mode):
   """Validates whether the mode is valid.
 
@@ -333,7 +315,7 @@ def ValidateFilePermissionAccess(url_str, uid=NA_ID, gid=NA_ID, mode=NA_MODE):
   else:
     # Calculate the default mode if the mode doesn't exist.
     # Convert mode to a 3-digit, base-8 integer.
-    mode = int(GetDefaultMode())
+    mode = int(SYSTEM_POSIX_MODE)
 
   if uid_present:
     try:
@@ -421,8 +403,6 @@ def ParseAndSetPOSIXAttributes(path,
     found_mode, mode = GetValueFromObjectCustomMetadata(obj_metadata,
                                                         MODE_ATTR,
                                                         default_value=NA_MODE)
-    if not found_mode:
-      mode = int(GetDefaultMode())
     if found_mt:
       mtime = long(mtime)
       if not preserve_posix:
@@ -432,8 +412,10 @@ def ParseAndSetPOSIXAttributes(path,
     elif is_rsync:
       mtime = ConvertDatetimeToPOSIX(obj_metadata.timeCreated)
       os.utime(path, (mtime, mtime))
+
     if not preserve_posix:
       return
+
     if found_at:
       atime = long(atime)
     if atime > NA_TIME and mtime > NA_TIME:
@@ -451,8 +433,11 @@ def ParseAndSetPOSIXAttributes(path,
       # Windows doesn't use POSIX uid/gid/mode unlike other systems. So there's
       # no point continuing.
       return
-    if found_uid:
+    # Only root can change ownership.
+    if found_uid and os.geteuid() == 0:
       uid = int(uid)
+    else:
+      uid = NA_ID
     if found_gid:
       gid = int(gid)
     if uid > NA_ID and gid > NA_ID:
@@ -464,9 +449,11 @@ def ParseAndSetPOSIXAttributes(path,
     elif uid <= NA_ID and gid > NA_ID:
       # gid is valid but uid isn't.
       os.chown(path, -1, gid)
+
     if found_mode:
       mode = int(str(mode), 8)
       os.chmod(path, mode)
+
   except ValueError:
     raise CommandException('Check POSIX attribute values for %s' %
                            obj_metadata.name)
@@ -521,6 +508,24 @@ def ConvertDatetimeToPOSIX(dt):
   return long(timegm(dt.replace(tzinfo=UTC()).timetuple()))
 
 
+def InitializeDefaultMode():
+  """Records the default POSIX mode using os.umask."""
+  global SYSTEM_POSIX_MODE
+  if IS_WINDOWS:
+    # os.umask returns 0 on Windows. Below math works out to 666.
+    SYSTEM_POSIX_MODE = '666'
+    return
+  # umask returns the permissions that should not be granted, so they must be
+  # subtracted from the maximum set of permissions.
+  max_permissions = 0o777
+  current_umask = os.umask(0o177)
+  os.umask(current_umask)
+  mode = max_permissions - current_umask
+  # Files are not given execute privileges by default. Therefore we need to
+  # subtract one from every odd permissions value. This is done via a bitmask.
+  SYSTEM_POSIX_MODE = oct(mode & 0o666)[-3:]
+
+
 def InitializeUserGroups():
   """Initializes the set of groups that the user is in.
 
@@ -536,3 +541,9 @@ def InitializeUserGroups():
       [pwd.getpwuid(user_id).pw_gid] +
       # Secondary groups
       [g.gr_gid for g in grp.getgrall() if user_name in g.gr_mem])
+
+
+def InitializePreservePosixData():
+  """Initializes POSIX data. Run once at the beginning of a copy."""
+  InitializeDefaultMode()
+  InitializeUserGroups()

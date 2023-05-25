@@ -117,7 +117,8 @@ class VersionCommand(Command):
           'gsutil path: {gsutil_path}\n'
           'compiled crcmod: {compiled_crcmod}\n'
           'installed via package manager: {is_package_install}\n'
-          'editable install: {is_editable_install}\n')
+          'editable install: {is_editable_install}\n'
+          'shim enabled: {is_shim_enabled}\n')
 
       sys.stdout.write(
           long_form_output.format(
@@ -136,7 +137,8 @@ class VersionCommand(Command):
               compiled_crcmod=UsingCrcmodExtension(),
               is_package_install=gslib.IS_PACKAGE_INSTALL,
               is_editable_install=gslib.IS_EDITABLE_INSTALL,
-          ))
+              is_shim_enabled=boto.config.getbool('GSUtil',
+                                                  'use_gcloud_storage', False)))
 
     return 0
 

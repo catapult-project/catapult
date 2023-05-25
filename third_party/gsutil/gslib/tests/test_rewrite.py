@@ -36,6 +36,7 @@ from gslib.tests.rewrite_helper import HaltingRewriteCallbackHandler
 from gslib.tests.rewrite_helper import RewriteHaltException
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.integration_testcase import SkipForS3
+from gslib.tests.util import AuthorizeProjectToUseTestingKmsKey
 from gslib.tests.util import GenerationFromURI as urigen
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import SetBotoConfigForTest
@@ -53,6 +54,19 @@ from gslib.utils.unit_util import ONE_MIB
 @SkipForS3('gsutil doesn\'t support S3 customer-supplied encryption keys.')
 class TestRewrite(testcase.GsUtilIntegrationTestCase):
   """Integration tests for rewrite command."""
+
+  def setUp(self):
+    super(TestRewrite, self).setUp()
+    if self._use_gcloud_storage:
+      self.rotating_message = 'Rewriting'
+      self.skipping_message = 'Patching'
+      self.encrypting_message = 'Rewriting'
+      self.decrypting_message = 'Rewriting'
+    else:
+      self.rotating_message = 'Rotating'
+      self.skipping_message = 'Skipping'
+      self.encrypting_message = 'Encrypting'
+      self.decrypting_message = 'Decrypting'
 
   def test_rewrite_missing_flag(self):
     """Tests rewrite with no transformation flag."""
@@ -142,8 +156,8 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
       return unittest.skip('Rewrite API is only supported in JSON.')
     bucket_uri = self.CreateBucket()
     self._test_rewrite_key_rotation_bucket(
-        bucket_uri,
-        ['-m', 'rewrite', '-k', suri(bucket_uri, '**')])
+        bucket_uri, ['-d', '-m', 'rewrite', '-k',
+                     suri(bucket_uri, '**')])
 
   def _test_rewrite_key_rotation_bucket(self, bucket_uri, command_args):
     """Helper function for testing key rotation on a bucket.
@@ -179,9 +193,10 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
     with SetBotoConfigForTest(boto_config_for_test):
       stderr = self.RunGsUtil(command_args, return_stderr=True)
       # Object one already has the correct key.
-      self.assertIn('Skipping %s' % suri(object_uri1), stderr)
+      self.assertIn('{} {}'.format(self.skipping_message, suri(object_uri1)),
+                    stderr)
       # Other objects should be rotated.
-      self.assertIn('Rotating', stderr)
+      self.assertIn(self.rotating_message, stderr)
     for object_uri_str in (suri(object_uri1), suri(object_uri2),
                            suri(object_uri3), suri(object_uri4)):
       self.AssertObjectUsesCSEK(object_uri_str, TEST_ENCRYPTION_KEY1)
@@ -192,7 +207,7 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
 
     with SetBotoConfigForTest(boto_config_for_test2):
       stderr = self.RunGsUtil(command_args, return_stderr=True)
-      self.assertIn('Decrypting', stderr)
+      self.assertIn(self.decrypting_message, stderr)
 
     for object_uri_str in (suri(object_uri1), suri(object_uri2),
                            suri(object_uri3), suri(object_uri4)):
@@ -252,7 +267,7 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
     with SetBotoConfigForTest(boto_config_for_test):
       stderr = self.RunGsUtil(
           ['rewrite', '-k', suri(object_uri)], return_stderr=True)
-      self.assertIn('Rotating', stderr)
+      self.assertIn(self.rotating_message, stderr)
 
     self.AssertObjectUsesCSEK(suri(object_uri), TEST_ENCRYPTION_KEY2)
 
@@ -262,7 +277,7 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
     with SetBotoConfigForTest(boto_config_for_test2):
       stderr = self.RunGsUtil(
           ['rewrite', '-k', suri(object_uri)], return_stderr=True)
-      self.assertIn('Decrypting', stderr)
+      self.assertIn(self.decrypting_message, stderr)
 
     self.AssertObjectUnencrypted(suri(object_uri))
 
@@ -298,9 +313,12 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
     with SetBotoConfigForTest(boto_config_for_test):
       stderr = self.RunGsUtil(['rewrite', '-r', '-k', rotate_subdir],
                               return_stderr=True)
-      self.assertIn('Rotating', stderr)  # Object 2.
-      self.assertIn('Skipping %s' % suri(object_uri3), stderr)
-      self.assertIn('Encrypting', stderr)  # Object 4.
+      # Cannot check for "Rotating [object URL]" because output gets corrupt:
+      # "\nRotating   ...ewrite-k"
+      self.assertIn(self.rotating_message, stderr)
+      self.assertIn('{} {}'.format(self.skipping_message, suri(object_uri3)),
+                    stderr)
+      self.assertIn(self.encrypting_message, stderr)
 
     # First subdir should be unaffected.
     self.AssertObjectUsesCSEK(suri(object_uri1), TEST_ENCRYPTION_KEY1)
@@ -316,7 +334,7 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
     with SetBotoConfigForTest(boto_config_for_test2):
       stderr = self.RunGsUtil(['rewrite', '-r', '-k', rotate_subdir],
                               return_stderr=True)
-      self.assertIn('Decrypting', stderr)
+      self.assertIn(self.decrypting_message, stderr)
 
     # First subdir should be unaffected.
     self.AssertObjectUsesCSEK(suri(object_uri1), TEST_ENCRYPTION_KEY1)
@@ -357,7 +375,7 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
           ['rewrite', '-s', 'nearline', '-k',
            suri(object_uri)],
           return_stderr=True)
-      self.assertIn('Rotating', stderr)
+      self.assertIn(self.rotating_message, stderr)
 
     self.AssertObjectUsesCSEK(suri(object_uri), TEST_ENCRYPTION_KEY2)
     stdout = self.RunGsUtil(['stat', suri(object_uri)], return_stdout=True)
@@ -392,7 +410,8 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
     stderr = self.RunGsUtil(['rewrite', '-s', 'standard',
                              suri(object_uri)],
                             return_stderr=True)
-    self.assertIn('Skipping %s' % suri(object_uri), stderr)
+    self.assertIn('{} {}'.format(self.skipping_message, suri(object_uri)),
+                  stderr)
 
   def test_rewrite_with_same_key_and_storage_class_is_skipped(self):
     if self.test_api == ApiSelector.XML:
@@ -407,7 +426,8 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
           ['rewrite', '-k', '-s', 'standard',
            suri(object_uri)],
           return_stderr=True)
-    self.assertIn('Skipping %s' % suri(object_uri), stderr)
+    self.assertIn('{} {}'.format(self.skipping_message, suri(object_uri)),
+                  stderr)
 
   def test_rewrite_with_no_value_for_minus_s(self):
     if self.test_api == ApiSelector.XML:
@@ -439,30 +459,17 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
                                          new_dec_key=TEST_ENCRYPTION_KEY3,
                                          new_enc_key=TEST_ENCRYPTION_KEY4)
 
-  def authorize_project_to_use_testing_kms_key(
-      self, key_name=testcase.KmsTestingResources.CONSTANT_KEY_NAME):
-    # Make sure our keyRing and cryptoKey exist.
-    keyring_fqn = self.kms_api.CreateKeyRing(
-        PopulateProjectId(None),
-        testcase.KmsTestingResources.KEYRING_NAME,
-        location=testcase.KmsTestingResources.KEYRING_LOCATION)
-    key_fqn = self.kms_api.CreateCryptoKey(keyring_fqn, key_name)
-    # Make sure that the service account for our default project is authorized
-    # to use our test KMS key.
-    self.RunGsUtil(['kms', 'authorize', '-k', key_fqn])
-    return key_fqn
-
   def test_rewrite_to_kms_then_unencrypted(self):
     if self.test_api == ApiSelector.XML:
       return unittest.skip('Rewrite API is only supported in JSON.')
-    key_fqn = self.authorize_project_to_use_testing_kms_key()
+    key_fqn = AuthorizeProjectToUseTestingKmsKey()
     object_uri = self.CreateObject(contents=b'foo')
 
     boto_config_for_test = [('GSUtil', 'encryption_key', key_fqn)]
     with SetBotoConfigForTest(boto_config_for_test):
       stderr = self.RunGsUtil(
           ['rewrite', '-k', suri(object_uri)], return_stderr=True)
-    self.assertIn('Encrypting', stderr)
+    self.assertIn(self.encrypting_message, stderr)
     self.AssertObjectUsesCMEK(suri(object_uri), key_fqn)
 
     # Rewrite back to unencrypted and make sure no KMS key was used.
@@ -470,20 +477,20 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
     with SetBotoConfigForTest(boto_config_for_test):
       stderr = self.RunGsUtil(
           ['rewrite', '-k', suri(object_uri)], return_stderr=True)
-    self.assertIn('Decrypting', stderr)
+    self.assertIn(self.decrypting_message, stderr)
     self.AssertObjectUnencrypted(suri(object_uri))
 
   def test_rewrite_to_kms_then_csek(self):
     if self.test_api == ApiSelector.XML:
       return unittest.skip('Rewrite API is only supported in JSON.')
-    key_fqn = self.authorize_project_to_use_testing_kms_key()
+    key_fqn = AuthorizeProjectToUseTestingKmsKey()
     object_uri = self.CreateObject(contents=b'foo')
 
     boto_config_for_test = [('GSUtil', 'encryption_key', key_fqn)]
     with SetBotoConfigForTest(boto_config_for_test):
       stderr = self.RunGsUtil(
           ['rewrite', '-k', suri(object_uri)], return_stderr=True)
-    self.assertIn('Encrypting', stderr)
+    self.assertIn(self.encrypting_message, stderr)
     self.AssertObjectUsesCMEK(suri(object_uri), key_fqn)
 
     # Rewrite from CMEK to CSEK encryption.
@@ -491,20 +498,20 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
     with SetBotoConfigForTest(boto_config_for_test):
       stderr = self.RunGsUtil(
           ['rewrite', '-k', suri(object_uri)], return_stderr=True)
-    self.assertIn('Rotating', stderr)
+    self.assertIn(self.rotating_message, stderr)
     self.AssertObjectUsesCSEK(suri(object_uri), TEST_ENCRYPTION_KEY1)
 
   def test_rewrite_to_csek_then_kms(self):
     if self.test_api == ApiSelector.XML:
       return unittest.skip('Rewrite API is only supported in JSON.')
-    key_fqn = self.authorize_project_to_use_testing_kms_key()
+    key_fqn = AuthorizeProjectToUseTestingKmsKey()
     object_uri = self.CreateObject(contents=b'foo')
 
     boto_config_for_test = [('GSUtil', 'encryption_key', TEST_ENCRYPTION_KEY1)]
     with SetBotoConfigForTest(boto_config_for_test):
       stderr = self.RunGsUtil(
           ['rewrite', '-k', suri(object_uri)], return_stderr=True)
-    self.assertIn('Encrypting', stderr)
+    self.assertIn(self.encrypting_message, stderr)
     self.AssertObjectUsesCSEK(suri(object_uri), TEST_ENCRYPTION_KEY1)
 
     # Rewrite from CSEK to CMEK encryption.
@@ -515,7 +522,7 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
     with SetBotoConfigForTest(boto_config_for_test):
       stderr = self.RunGsUtil(
           ['rewrite', '-k', suri(object_uri)], return_stderr=True)
-    self.assertIn('Rotating', stderr)
+    self.assertIn(self.rotating_message, stderr)
     self.AssertObjectUsesCMEK(suri(object_uri), key_fqn)
 
   def test_rewrite_with_no_encryption_key_operates_on_unencrypted_objects(self):
@@ -529,7 +536,7 @@ class TestRewrite(testcase.GsUtilIntegrationTestCase):
     # since we don't know if the operation will end up decrypting the object or
     # implicitly encrypting it with the bucket's default KMS key.
 
-    key_fqn = self.authorize_project_to_use_testing_kms_key()
+    key_fqn = AuthorizeProjectToUseTestingKmsKey()
 
     # Create an unencrypted object.
     bucket_uri = self.CreateBucket()

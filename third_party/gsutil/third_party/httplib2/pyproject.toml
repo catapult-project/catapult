@@ -6,4 +6,4 @@ build-backend = "setuptools.build_meta"
 line-length = 121
 
 [tool.check-manifest]
-ignore = [".travis.yml", "script/*", "*.tex"]
+ignore = [".github/*", "script/*", "*.tex"]

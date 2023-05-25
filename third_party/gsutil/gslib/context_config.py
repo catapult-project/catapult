@@ -27,6 +27,7 @@ from boto import config
 
 import gslib
 from gslib import exception
+from gslib.utils import boto_util
 from gslib.utils import execution_util
 
 # Maintain a single context configuration.
@@ -194,7 +195,8 @@ class _ContextConfig(object):
 
     # Generates certificate and deletes it afterwards.
     atexit.register(self._unprovision_client_cert)
-    self.client_cert_path = os.path.join(gslib.GSUTIL_DIR, 'caa_cert.pem')
+    self.client_cert_path = os.path.join(boto_util.GetGsutilStateDir(),
+                                         'caa_cert.pem')
     try:
       # Certs provisioned using endpoint verification are stored as a
       # single file holding both the public certificate and the private key.
@@ -219,8 +221,12 @@ class _ContextConfig(object):
       sections = _split_pem_into_sections(command_stdout_string, self.logger)
       with open(cert_path, 'w+') as f:
         f.write(sections['CERTIFICATE'])
-        f.write(sections['ENCRYPTED PRIVATE KEY'])
-      self.client_cert_password = sections['PASSPHRASE'].splitlines()[1]
+        if 'ENCRYPTED PRIVATE KEY' in sections:
+          f.write(sections['ENCRYPTED PRIVATE KEY'])
+          self.client_cert_password = sections['PASSPHRASE'].splitlines()[1]
+        else:
+          f.write(sections['PRIVATE KEY'])
+          self.client_cert_password = None
     except (exception.ExternalBinaryError, OSError) as e:
       raise CertProvisionError(e)
     except KeyError as e:

@@ -38,6 +38,7 @@ from gslib.utils.constants import NO_MAX
 from gslib.utils.ls_helper import ENCRYPTED_FIELDS
 from gslib.utils.ls_helper import PrintFullInfoAboutObject
 from gslib.utils.ls_helper import UNENCRYPTED_FULL_LISTING_FIELDS
+from gslib.utils.shim_util import GcloudStorageMap
 
 _SYNOPSIS = """
   gsutil stat url...
@@ -119,6 +120,18 @@ class StatCommand(Command):
       help_one_line_summary='Display object status',
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={},
+  )
+
+  gcloud_storage_map = GcloudStorageMap(
+      gcloud_command=[
+          # Formatting done in gcloud.
+          'alpha',
+          'storage',
+          'objects',
+          'list',
+          '--stat'
+      ],
+      flag_map={},
   )
 
   def RunCommand(self):

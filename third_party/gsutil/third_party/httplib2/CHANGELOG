@@ -1,3 +1,50 @@
+0.20.4
+
+  proxy: support proxy urls with ipv6 address
+  https://github.com/httplib2/httplib2/pull/217
+
+0.20.3
+
+  No changes in library. Tests compatible with Python3.10 and recent pytest.
+
+0.20.2
+
+  auth: support pyparsing v3 (AttributeError downcaseTokens)
+  https://github.com/httplib2/httplib2/issues/207
+
+  proxy: correct extraction of errno from pysocks ProxyConnectionError
+  https://github.com/httplib2/httplib2/pull/202
+
+0.20.1
+
+  No changes from 0.20.0, re-upload of broken py2 wheel.
+
+0.20.0
+
+  IMPORTANT cacerts: remove expired DST Root CA X3, add ISRG Root X1, X2
+  https://github.com/httplib2/httplib2/pull/200
+  https://github.com/httplib2/httplib2/issues/203
+
+  tls: accept min/max ssl.TLSVersion enum values
+  https://github.com/httplib2/httplib2/pull/191
+
+  setup(python_requires=...) may need setuptools update
+  https://github.com/httplib2/httplib2/pull/195
+
+0.19.1
+
+  auth header parsing performance optimizations; Thanks to Paul McGuire
+
+  Use mock from the standard library on Python>=3.3
+
+0.19.0
+
+  auth: parse headers using pyparsing instead of regexp
+  https://github.com/httplib2/httplib2/pull/182
+
+  auth: WSSE token needs to be string not bytes
+  https://github.com/httplib2/httplib2/pull/179
+
 0.18.1
 
   explicit build-backend workaround for pip build isolation bug

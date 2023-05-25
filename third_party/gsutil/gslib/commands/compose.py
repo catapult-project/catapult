@@ -30,6 +30,8 @@ from gslib.storage_url import ContainsWildcard
 from gslib.storage_url import StorageUrlFromString
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
 from gslib.utils.encryption_helper import GetEncryptionKeyWrapper
+from gslib.utils.shim_util import GcloudStorageFlag
+from gslib.utils.shim_util import GcloudStorageMap
 from gslib.utils.translation_helper import PreconditionsFromHeaders
 
 MAX_COMPOSE_ARITY = 32
@@ -83,6 +85,11 @@ class ComposeCommand(Command):
           'Concatenate a sequence of objects into a new composite object.'),
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={},
+  )
+
+  gcloud_storage_map = GcloudStorageMap(
+      gcloud_command=['alpha', 'storage', 'objects', 'compose'],
+      flag_map={},
   )
 
   def CheckProvider(self, url):

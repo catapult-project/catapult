@@ -187,6 +187,12 @@ class TestMetricsUnitTests(testcase.GsUtilUnitTestCase):
       self.assertFalse(MetricsCollector._disabled_cache)
       self.assertEqual(self.collector, MetricsCollector.GetCollector())
 
+    # Test that when using the shim analytics are disabled.
+    with mock.patch('boto.config.getbool', return_value=True):
+      MetricsCollector._CheckAndSetDisabledCache()
+      self.assertTrue(MetricsCollector._disabled_cache)
+      self.assertEqual(None, MetricsCollector.GetCollector())
+
     # Test when gsutil is part of the Cloud SDK and the user did not opt in
     # there.
     with mock.patch.dict(os.environ,

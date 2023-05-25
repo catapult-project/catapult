@@ -84,12 +84,18 @@ class TestNotificationPubSub(testcase.GsUtilIntegrationTestCase):
     bucket_uri = self.CreateBucket()
     topic_name = self._RegisterDefaultTopicCreation(bucket_uri.bucket_name)
 
-    stderr = self.RunGsUtil(
+    stdout, stderr = self.RunGsUtil(
         ['notification', 'create', '-f', 'json',
          suri(bucket_uri)],
+        return_stdout=True,
         return_stderr=True)
-    self.assertIn('Created notification', stderr)
-    self.assertIn(topic_name, stderr)
+
+    if self._use_gcloud_storage:
+      self.assertIn('kind: storage#notification', stdout)
+      self.assertIn(topic_name, stdout)
+    else:
+      self.assertIn('Created notification', stderr)
+      self.assertIn(topic_name, stderr)
 
   def test_list_one_entry(self):
     """Tests notification config listing with one entry."""
@@ -108,15 +114,25 @@ class TestNotificationPubSub(testcase.GsUtilIntegrationTestCase):
                    return_stderr=True)
     stdout = self.RunGsUtil(
         ['notification', 'list', suri(bucket_uri)], return_stdout=True)
+
+    if self._use_gcloud_storage:
+      # gcloud and gsutil look the same in the terminal, but, for some reason,
+      # the shim test script detects an extra newline.
+      trailing_space = '\n'
+    else:
+      trailing_space = ''
     self.assertEquals(
-        stdout, ('projects/_/buckets/{bucket_name}/notificationConfigs/1\n'
-                 '\tCloud Pub/Sub topic: {topic_name}\n'
-                 '\tCustom attributes:\n'
-                 '\t\tsomeKey: someValue\n'
-                 '\tFilters:\n'
-                 '\t\tEvent Types: OBJECT_FINALIZE, OBJECT_DELETE\n'
-                 '\t\tObject name prefix: \'somePrefix\'\n'.format(
-                     bucket_name=bucket_name, topic_name=topic_name)))
+        stdout,
+        ('projects/_/buckets/{bucket_name}/notificationConfigs/1\n'
+         '\tCloud Pub/Sub topic: {topic_name}\n'
+         '\tCustom attributes:\n'
+         '\t\tsomeKey: someValue\n'
+         '\tFilters:\n'
+         '\t\tEvent Types: OBJECT_FINALIZE, OBJECT_DELETE\n'
+         '\t\tObject name prefix: \'somePrefix\'\n{trailing_space}'.format(
+             bucket_name=bucket_name,
+             topic_name=topic_name,
+             trailing_space=trailing_space)))
 
   def test_delete(self):
     """Tests the create command succeeds in normal circumstances."""

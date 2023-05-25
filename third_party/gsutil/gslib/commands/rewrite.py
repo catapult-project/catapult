@@ -44,6 +44,8 @@ from gslib.utils.encryption_helper import CryptoKeyType
 from gslib.utils.encryption_helper import CryptoKeyWrapperFromKey
 from gslib.utils.encryption_helper import GetEncryptionKeyWrapper
 from gslib.utils.encryption_helper import MAX_DECRYPTION_KEYS
+from gslib.utils.shim_util import GcloudStorageFlag
+from gslib.utils.shim_util import GcloudStorageMap
 from gslib.utils.system_util import StdinIterator
 from gslib.utils.text_util import ConvertRecursiveToFlatWildcard
 from gslib.utils.text_util import NormalizeStorageClass
@@ -228,6 +230,28 @@ class RewriteCommand(Command):
       help_one_line_summary='Rewrite objects',
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={},
+  )
+
+  gcloud_storage_map = GcloudStorageMap(
+      gcloud_command=['alpha', 'storage', 'objects', 'update'],
+      flag_map={
+          '-I':
+              GcloudStorageFlag('-I'),
+          '-f':
+              GcloudStorageFlag('--continue-on-error'),
+          # Adding encryptions handled in shim_util.py.
+          '-k':
+              None if config.get('GSUtil', 'encryption_key', None) else
+              GcloudStorageFlag('--clear-encryption-key'),
+          '-O':
+              GcloudStorageFlag('--no-preserve-acl'),
+          '-r':
+              GcloudStorageFlag('-r'),
+          '-R':
+              GcloudStorageFlag('-r'),
+          '-s':
+              GcloudStorageFlag('-s'),
+      },
   )
 
   def CheckProvider(self, url):

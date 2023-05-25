@@ -35,9 +35,12 @@ from gslib.exception import CommandException
 from gslib.exception import NO_URLS_MATCHED_TARGET
 from gslib.help_provider import CreateHelpText
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
+from gslib.utils import shim_util
 from gslib.utils.constants import NO_MAX
 from gslib.utils.constants import UTF8
 from gslib.utils.retry_util import Retry
+from gslib.utils.shim_util import GcloudStorageFlag
+from gslib.utils.shim_util import GcloudStorageMap
 from gslib.utils.translation_helper import LabelTranslation
 
 _SET_SYNOPSIS = """
@@ -59,8 +62,8 @@ _CH_SYNOPSIS = """
 
 _GET_DESCRIPTION = """
 <B>GET</B>
-  The "label get" command gets the
-  `labels <https://cloud.google.com/storage/docs/key-terms#bucket-labels>`_
+  The "label get" command gets the `labels
+  <https://cloud.google.com/storage/docs/tags-and-labels#bucket-labels>`_
   applied to a bucket, which you can save and edit for use with the "label set"
   command.
 """
@@ -175,6 +178,39 @@ class LabelCommand(Command):
           'ch': _ch_help_text,
       },
   )
+
+  gcloud_storage_map = GcloudStorageMap(gcloud_command={
+      'get':
+          GcloudStorageMap(
+              gcloud_command=[
+                  'alpha', 'storage', 'buckets', 'describe',
+                  '--format=multi(labels:format=json)', '--raw'
+              ],
+              flag_map={},
+          ),
+      'set':
+          GcloudStorageMap(
+              gcloud_command=[
+                  'alpha', 'storage', 'buckets', 'update', '--labels-file'
+              ],
+              flag_map={},
+          ),
+      'ch':
+          GcloudStorageMap(
+              gcloud_command=['alpha', 'storage', 'buckets', 'update'],
+              flag_map={
+                  '-d':
+                      GcloudStorageFlag(
+                          '--remove-labels',
+                          repeat_type=shim_util.RepeatFlagType.LIST),
+                  '-l':
+                      GcloudStorageFlag(
+                          '--update-labels',
+                          repeat_type=shim_util.RepeatFlagType.DICT),
+              },
+          ),
+  },
+                                        flag_map={})
 
   def _CalculateUrlsStartArg(self):
     if not self.args:

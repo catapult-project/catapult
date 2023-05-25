@@ -20,13 +20,17 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import json
+import os
 import posixpath
+from unittest import mock
 from xml.dom.minidom import parseString
 
 from gslib.cs_api_map import ApiSelector
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.integration_testcase import SkipForS3
 from gslib.tests.util import ObjectToURI as suri
+from gslib.tests.util import SetBotoConfigForTest
+from gslib.tests.util import SetEnvironmentForTest
 from gslib.tests.util import unittest
 from gslib.utils.retry_util import Retry
 from gslib.utils.translation_helper import LifecycleTranslation
@@ -71,6 +75,7 @@ class TestSetLifecycle(testcase.GsUtilIntegrationTestCase):
       '"age": 0, "isLive": false, "numNewerVersions": 0}}]}')
 
   no_lifecycle_config = 'has no lifecycle configuration.'
+  empty_lifecycle_config = '[]'
 
   def test_lifecycle_translation(self):
     """Tests lifecycle translation for various formats."""
@@ -90,7 +95,10 @@ class TestSetLifecycle(testcase.GsUtilIntegrationTestCase):
     bucket_uri = self.CreateBucket()
     stdout = self.RunGsUtil(
         ['lifecycle', 'get', suri(bucket_uri)], return_stdout=True)
-    self.assertIn(self.no_lifecycle_config, stdout)
+    if self._use_gcloud_storage:
+      self.assertIn(self.empty_lifecycle_config, stdout)
+    else:
+      self.assertIn(self.no_lifecycle_config, stdout)
 
   def test_set_empty_lifecycle1(self):
     bucket_uri = self.CreateBucket()
@@ -98,7 +106,10 @@ class TestSetLifecycle(testcase.GsUtilIntegrationTestCase):
     self.RunGsUtil(['lifecycle', 'set', fpath, suri(bucket_uri)])
     stdout = self.RunGsUtil(
         ['lifecycle', 'get', suri(bucket_uri)], return_stdout=True)
-    self.assertIn(self.no_lifecycle_config, stdout)
+    if self._use_gcloud_storage:
+      self.assertIn(self.empty_lifecycle_config, stdout)
+    else:
+      self.assertIn(self.no_lifecycle_config, stdout)
 
   def test_valid_lifecycle(self):
     bucket_uri = self.CreateBucket()
@@ -175,7 +186,10 @@ class TestSetLifecycle(testcase.GsUtilIntegrationTestCase):
     self.RunGsUtil(['lifecycle', 'set', fpath, suri(bucket_uri)])
     stdout = self.RunGsUtil(
         ['lifecycle', 'get', suri(bucket_uri)], return_stdout=True)
-    self.assertIn(self.no_lifecycle_config, stdout)
+    if self._use_gcloud_storage:
+      self.assertIn(self.empty_lifecycle_config, stdout)
+    else:
+      self.assertIn(self.no_lifecycle_config, stdout)
 
   def test_set_lifecycle_multi_buckets(self):
     """Tests setting lifecycle configuration on multiple buckets."""
@@ -223,20 +237,27 @@ class TestSetLifecycle(testcase.GsUtilIntegrationTestCase):
 
     fpath = self.CreateTempFile(contents=self.lifecycle_doc.encode('ascii'))
 
+    actual_lines = set()
     # Use @Retry as hedge against bucket listing eventual consistency.
-    expected = set([
-        'Setting lifecycle configuration on %s/...' % suri(bucket1_uri),
-        'Setting lifecycle configuration on %s/...' % suri(bucket2_uri)
-    ])
-    actual = set()
-
     @Retry(AssertionError, tries=3, timeout_secs=1)
     def _Check1():
       stderr = self.RunGsUtil(['lifecycle', 'set', fpath, wildcard],
                               return_stderr=True)
-      actual.update(stderr.splitlines())
-      self.assertEqual(expected, actual)
-      self.assertEqual(stderr.count('Setting lifecycle configuration'), 2)
+      actual_lines.update(stderr.splitlines())
+      if self._use_gcloud_storage:
+        # Gcloud may have unrelated characters on status line
+        # as a result of output logic so can't do direct line string comparison.
+        self.assertIn('Updating %s/...' % suri(bucket1_uri), stderr)
+        self.assertIn('Updating %s/...' % suri(bucket2_uri), stderr)
+        status_message = 'Updating'
+      else:
+        expected_lines = set([
+            'Setting lifecycle configuration on %s/...' % suri(bucket1_uri),
+            'Setting lifecycle configuration on %s/...' % suri(bucket2_uri)
+        ])
+        self.assertEqual(expected_lines, actual_lines)
+        status_message = 'Setting lifecycle configuration'
+      self.assertEqual(stderr.count(status_message), 2)
 
     _Check1()
 
@@ -246,3 +267,52 @@ class TestSetLifecycle(testcase.GsUtilIntegrationTestCase):
     stdout = self.RunGsUtil(
         ['lifecycle', 'get', suri(bucket2_uri)], return_stdout=True)
     self.assertEqual(json.loads(stdout), self.lifecycle_json_obj)
+
+
+class TestLifecycleUnitTests(testcase.GsUtilUnitTestCase):
+  """Unit tests for gsutil lifecycle."""
+
+  def test_shim_translates_lifecycle_get_correctly(self):
+    bucket_uri = self.CreateBucket()
+    with SetBotoConfigForTest([('GSUtil', 'use_gcloud_storage', 'True'),
+                               ('GSUtil', 'hidden_shim_mode', 'dry_run')]):
+      with SetEnvironmentForTest({
+          'CLOUDSDK_CORE_PASS_CREDENTIALS_TO_GSUTIL': 'True',
+          'CLOUDSDK_ROOT_DIR': 'fake_dir',
+      }):
+        mock_log_handler = self.RunCommand('lifecycle',
+                                           args=[
+                                               'get',
+                                               suri(bucket_uri),
+                                           ],
+                                           return_log_handler=True)
+        info_lines = '\n'.join(mock_log_handler.messages['info'])
+        self.assertIn(
+            ('Gcloud Storage Command: {} alpha storage buckets'
+             ' describe --format=multi(lifecycle:format=json)'
+             ' --raw {}').format(os.path.join('fake_dir', 'bin', 'gcloud'),
+                                 suri(bucket_uri)), info_lines)
+
+  @mock.patch('gslib.commands.lifecycle.LifecycleCommand._SetLifecycleConfig',
+              new=mock.Mock())
+  def test_shim_translates_lifecycle_set_correctly(self):
+    with SetBotoConfigForTest([('GSUtil', 'use_gcloud_storage', 'True'),
+                               ('GSUtil', 'hidden_shim_mode', 'dry_run')]):
+      with SetEnvironmentForTest({
+          'CLOUDSDK_CORE_PASS_CREDENTIALS_TO_GSUTIL': 'True',
+          'CLOUDSDK_ROOT_DIR': 'fake_dir',
+      }):
+        mock_log_handler = self.RunCommand('lifecycle',
+                                           args=[
+                                               'set',
+                                               'fake-lifecycle-config.json',
+                                               'gs://fake-bucket1',
+                                               'gs://fake-bucket2',
+                                           ],
+                                           return_log_handler=True)
+        info_lines = '\n'.join(mock_log_handler.messages['info'])
+        self.assertIn(('Gcloud Storage Command: {} alpha storage buckets'
+                       ' update --lifecycle-file=fake-lifecycle-config.json'
+                       ' gs://fake-bucket1 gs://fake-bucket2').format(
+                           os.path.join('fake_dir', 'bin', 'gcloud')),
+                      info_lines)

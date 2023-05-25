@@ -42,8 +42,10 @@ KEY2 = 'key_two'
 VALUE1 = 'value_one'
 VALUE2 = 'value_two'
 
-# Argument in this line should be formatted with bucket_uri.
-LABEL_SETTING_OUTPUT = 'Setting label configuration on %s/...'
+
+def _get_label_setting_output(using_gcloud_storage, bucket_uri):
+  return ('Updating {}' if using_gcloud_storage else
+          'Setting label configuration on {}/...').format(bucket_uri)
 
 
 @SkipForGS('Tests use S3-style XML passthrough.')
@@ -87,7 +89,12 @@ class TestLabelS3(testcase.GsUtilIntegrationTestCase):
     stderr = self.RunGsUtil(['label', 'set', self.xml_fpath,
                              suri(bucket_uri)],
                             return_stderr=True)
-    self.assertEqual(stderr.strip(), LABEL_SETTING_OUTPUT % suri(bucket_uri))
+    expected_output = _get_label_setting_output(self._use_gcloud_storage,
+                                                suri(bucket_uri))
+    if self._use_gcloud_storage:
+      self.assertIn(expected_output, stderr)
+    else:
+      self.assertEqual(stderr.strip(), expected_output)
 
     # Verify that the bucket is configured with the labels we just set.
     # Work around eventual consistency for S3 tagging.
@@ -157,7 +164,12 @@ class TestLabelGS(testcase.GsUtilIntegrationTestCase):
     stderr = self.RunGsUtil(['label', 'set', self.json_fpath,
                              suri(bucket_uri)],
                             return_stderr=True)
-    self.assertEqual(stderr.strip(), LABEL_SETTING_OUTPUT % suri(bucket_uri))
+    expected_output = _get_label_setting_output(self._use_gcloud_storage,
+                                                suri(bucket_uri))
+    if self._use_gcloud_storage:
+      self.assertIn(expected_output, stderr)
+    else:
+      self.assertEqual(stderr.strip(), expected_output)
     # Verify that the bucket is configured with the labels we just set.
     stdout = self.RunGsUtil(['label', 'get', suri(bucket_uri)],
                             return_stdout=True)
@@ -175,10 +187,14 @@ class TestLabelGS(testcase.GsUtilIntegrationTestCase):
         return_stderr=True)
     actual = set(stderr.splitlines())
     expected = set([
-        LABEL_SETTING_OUTPUT % suri(bucket_uri),
-        LABEL_SETTING_OUTPUT % suri(bucket2_uri)
+        _get_label_setting_output(self._use_gcloud_storage, suri(bucket_uri)),
+        _get_label_setting_output(self._use_gcloud_storage, suri(bucket2_uri)),
     ])
-    self.assertSetEqual(actual, expected)
+    if self._use_gcloud_storage:
+      # Gcloud may not have exact match because of progress spinner.
+      self.assertTrue(all([x in stderr for x in expected]))
+    else:
+      self.assertSetEqual(actual, expected)
 
   def testSetOverwritesOldLabelConfig(self):
     bucket_uri = self.CreateBucket()
@@ -210,7 +226,12 @@ class TestLabelGS(testcase.GsUtilIntegrationTestCase):
     # Ensure 'ch' progress message shows in stderr.
     stderr = self.RunGsUtil(['label', 'ch'] + ch_subargs + [suri(bucket_uri)],
                             return_stderr=True)
-    self.assertEqual(stderr.strip(), LABEL_SETTING_OUTPUT % suri(bucket_uri))
+    expected_output = _get_label_setting_output(self._use_gcloud_storage,
+                                                suri(bucket_uri))
+    if self._use_gcloud_storage:
+      self.assertIn(expected_output, stderr)
+    else:
+      self.assertEqual(stderr.strip(), expected_output)
 
     # Check the bucket to ensure it's configured with the labels we just
     # specified.
@@ -243,9 +264,14 @@ class TestLabelGS(testcase.GsUtilIntegrationTestCase):
     stderr = self.RunGsUtil(['label', 'ch'] + ch_subargs + bucket_suris,
                             return_stderr=True)
     actual = set(stderr.splitlines())
-    expected = set(
-        [LABEL_SETTING_OUTPUT % bucket_suri for bucket_suri in bucket_suris])
-    self.assertSetEqual(actual, expected)
+    expected = set([
+        _get_label_setting_output(self._use_gcloud_storage, bucket_suri)
+        for bucket_suri in bucket_suris
+    ])
+    if self._use_gcloud_storage:
+      self.assertTrue(all([x in stderr for x in expected]))
+    else:
+      self.assertSetEqual(actual, expected)
 
     # Check the buckets to ensure both are configured with the labels we
     # just specified.
@@ -258,7 +284,11 @@ class TestLabelGS(testcase.GsUtilIntegrationTestCase):
     self.RunGsUtil(['label', 'ch', '-d', 'dummy-key', suri(bucket_uri)])
     stdout = self.RunGsUtil(['label', 'get', suri(bucket_uri)],
                             return_stdout=True)
-    self.assertIn('%s/ has no label configuration.' % suri(bucket_uri), stdout)
+    if self._use_gcloud_storage:
+      self.assertIn('[]', stdout)
+    else:
+      self.assertIn('%s/ has no label configuration.' % suri(bucket_uri),
+                    stdout)
 
   def testTooFewArgumentsFails(self):
     """Ensures label commands fail with too few arguments."""

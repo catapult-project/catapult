@@ -32,6 +32,7 @@ from gslib.storage_url import StorageUrlFromString
 from gslib.storage_url import UrlsAreForSingleProvider
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
 from gslib.utils.constants import NO_MAX
+from gslib.utils.shim_util import GcloudStorageMap
 from gslib.utils.translation_helper import CorsTranslation
 from gslib.utils.translation_helper import REMOVE_CORS_CONFIG
 
@@ -76,7 +77,7 @@ _DESCRIPTION = ("""
   The above JSON document explicitly allows cross-origin GET requests from
   http://origin1.example.com and may include the Content-Type response header.
   The preflight request may be cached for 1 hour.
-  
+
   Note that requests to the authenticated browser download endpoint ``storage.cloud.google.com``
   do not allow CORS requests. For more information about supported endpoints for CORS, see
   `Cloud Storage CORS support <https://cloud.google.com/storage/docs/cross-origin#server-side-support>`_.
@@ -89,8 +90,8 @@ _DESCRIPTION = ("""
   The cors command has two sub-commands:
 """ + '\n'.join([_GET_DESCRIPTION, _SET_DESCRIPTION]) + """
 For more info about CORS generally, see https://www.w3.org/TR/cors/.
-For more info about CORS in Cloud Storage, see the 
-`CORS concept page <https://cloud.google.com/storage/docs/configuring-cors>`_.
+For more info about CORS in Cloud Storage, see the
+`CORS concept page <https://cloud.google.com/storage/docs/cross-origin>`_.
 """)
 
 _DETAILED_HELP_TEXT = CreateHelpText(_SYNOPSIS, _DESCRIPTION)
@@ -138,6 +139,27 @@ class CorsCommand(Command):
           'get': _get_help_text,
           'set': _set_help_text,
       },
+  )
+
+  gcloud_storage_map = GcloudStorageMap(
+      gcloud_command={
+          'get':
+              GcloudStorageMap(
+                  gcloud_command=[
+                      'alpha', 'storage', 'buckets', 'describe',
+                      '--format=multi(cors:format=json)', '--raw'
+                  ],
+                  flag_map={},
+              ),
+          'set':
+              GcloudStorageMap(
+                  gcloud_command=[
+                      'alpha', 'storage', 'buckets', 'update', '--cors-file'
+                  ],
+                  flag_map={},
+              ),
+      },
+      flag_map={},
   )
 
   def _CalculateUrlsStartArg(self):

@@ -26,6 +26,8 @@ from gslib.commands.compose import MAX_COMPOSE_ARITY
 from gslib.cs_api_map import ApiSelector
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.integration_testcase import SkipForS3
+from gslib.tests.util import AuthorizeProjectToUseTestingKmsKey
+from gslib.tests.util import GenerationFromURI as urigen
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import SetBotoConfigForTest
 from gslib.tests.util import TEST_ENCRYPTION_KEY1
@@ -64,33 +66,54 @@ class TestCompose(testcase.GsUtilIntegrationTestCase):
     self.assertIn('command accepts at most', stderr)
 
   def test_compose_too_few_fails(self):
-    stderr = self.RunGsUtil(['compose', 'gs://b/composite-obj'],
-                            expected_status=1,
-                            return_stderr=True)
-    self.assertIn(
-        'CommandException: "compose" requires at least 1 component object.\n',
-        stderr)
+    stderr = self.RunGsUtil(
+        ['compose', 'gs://b/composite-obj'],
+        expected_status=2 if self._use_gcloud_storage else 1,
+        return_stderr=True)
+    if self._use_gcloud_storage:
+      self.assertIn('argument DESTINATION: Must be specified.', stderr)
+    else:
+      self.assertIn(
+          'CommandException: "compose" requires at least 1 component object.\n',
+          stderr)
 
   def test_compose_between_buckets_fails(self):
-    target = 'gs://b/composite-obj'
-    offending_obj = 'gs://alt-b/obj2'
-    components = ['gs://b/obj1', offending_obj]
-    stderr = self.RunGsUtil(['compose'] + components + [target],
+    bucket_uri_1 = self.CreateBucket()
+    bucket_uri_2 = self.CreateBucket()
+    object_uri1 = self.CreateObject(bucket_uri=bucket_uri_1, contents=b'1')
+    object_uri2 = self.CreateObject(bucket_uri=bucket_uri_2, contents=b'2')
+    composite_object_uri = self.StorageUriCloneReplaceName(
+        bucket_uri_1, self.MakeTempName('obj'))
+    stderr = self.RunGsUtil([
+        'compose',
+        suri(object_uri1),
+        suri(object_uri2),
+        suri(composite_object_uri)
+    ],
                             expected_status=1,
                             return_stderr=True)
-    expected_msg = ('CommandException: GCS does '
-                    'not support inter-bucket composing.\n')
-    self.assertIn(expected_msg, stderr)
+    if self._use_gcloud_storage:
+      self.assertIn('Inter-bucket composing not supported\n', stderr)
+    else:
+      self.assertIn(
+          'CommandException: GCS does '
+          'not support inter-bucket composing.\n', stderr)
 
   def test_versioned_target_disallowed(self):
     stderr = self.RunGsUtil(
         ['compose', 'gs://b/o1', 'gs://b/o2', 'gs://b/o3#1234'],
         expected_status=1,
         return_stderr=True)
-    expected_msg = ('CommandException: A version-specific URL (%s) '
-                    'cannot be the destination for gsutil compose - abort.' %
-                    'gs://b/o3#1234')
-    self.assertIn(expected_msg, stderr)
+
+    if self._use_gcloud_storage:
+      self.assertIn(
+          'Verison-specific URLs are not valid destinations because composing always results in creating an object with the latest generation.',
+          stderr)
+    else:
+      self.assertIn(
+          'CommandException: A version-specific URL (%s) '
+          'cannot be the destination for gsutil compose - abort.' %
+          'gs://b/o3#1234', stderr)
 
   def test_simple_compose(self):
     self.check_n_ary_compose(1)
@@ -161,8 +184,12 @@ class TestCompose(testcase.GsUtilIntegrationTestCase):
     ],
                             return_stderr=True,
                             expected_status=1)
-
-    self.assertIn('PreconditionException', stderr)
+    if self._use_gcloud_storage:
+      self.assertIn(
+          'At least one of the pre-conditions you specified did not hold',
+          stderr)
+    else:
+      self.assertIn('PreconditionException', stderr)
 
   def test_compose_with_encryption(self):
     """Tests composing encrypted objects."""
@@ -213,19 +240,6 @@ class TestCompose(testcase.GsUtilIntegrationTestCase):
           suri(bucket_uri, 'obj')
       ])
 
-  def authorize_project_to_use_testing_kms_key(
-      self, key_name=testcase.KmsTestingResources.CONSTANT_KEY_NAME):
-    # Make sure our keyRing and cryptoKey exist.
-    keyring_fqn = self.kms_api.CreateKeyRing(
-        PopulateProjectId(None),
-        testcase.KmsTestingResources.KEYRING_NAME,
-        location=testcase.KmsTestingResources.KEYRING_LOCATION)
-    key_fqn = self.kms_api.CreateCryptoKey(keyring_fqn, key_name)
-    # Make sure that the service account for our default project is authorized
-    # to use our test KMS key.
-    self.RunGsUtil(['kms', 'authorize', '-k', key_fqn])
-    return key_fqn
-
   @SkipForS3('Test uses gs-specific KMS encryption')
   def test_compose_with_kms_encryption(self):
     """Tests composing encrypted objects."""
@@ -237,7 +251,7 @@ class TestCompose(testcase.GsUtilIntegrationTestCase):
     object_uri2 = self.CreateObject(bucket_uri=bucket_uri, contents=b'bar')
 
     obj_suri = suri(bucket_uri, 'composed')
-    key_fqn = self.authorize_project_to_use_testing_kms_key()
+    key_fqn = AuthorizeProjectToUseTestingKmsKey()
 
     with SetBotoConfigForTest([('GSUtil', 'encryption_key', key_fqn)]):
       self.RunGsUtil([
@@ -301,9 +315,12 @@ class TestCompose(testcase.GsUtilIntegrationTestCase):
     ],
                             expected_status=1,
                             return_stderr=True)
-    self.assertIn('NotFoundException', stderr)
-    if self.test_api == ApiSelector.JSON:
-      self.assertIn('One of the source objects does not exist', stderr)
+    if self._use_gcloud_storage:
+      self.assertIn('The following URLs matched no objects or files:', stderr)
+    else:
+      self.assertIn('NotFoundException', stderr)
+      if self.test_api == ApiSelector.JSON:
+        self.assertIn('One of the source objects does not exist', stderr)
 
   def test_compose_with_generations(self):
     """Tests composing objects with generations."""
@@ -327,14 +344,20 @@ class TestCompatibleCompose(testcase.GsUtilIntegrationTestCase):
     stderr = self.RunGsUtil(['compose', 'gs://b/o1', 'gs://b/o2', 's3://b/o3'],
                             expected_status=1,
                             return_stderr=True)
-    expected_msg = ('CommandException: "compose" called on URL with '
-                    'unsupported provider (%s).\n' % 's3://b/o3')
-    self.assertIn(expected_msg, stderr)
+    if self._use_gcloud_storage:
+      self.assertIn('Composing across providers is not supported.', stderr)
+    else:
+      expected_msg = ('CommandException: "compose" called on URL with '
+                      'unsupported provider (%s).\n' % 's3://b/o3')
+      self.assertIn(expected_msg, stderr)
 
   def test_compose_non_gcs_component(self):
     stderr = self.RunGsUtil(['compose', 'gs://b/o1', 's3://b/o2', 'gs://b/o3'],
                             expected_status=1,
                             return_stderr=True)
-    expected_msg = ('CommandException: "compose" called on URL with '
-                    'unsupported provider (%s).\n' % 's3://b/o2')
-    self.assertIn(expected_msg, stderr)
+    if self._use_gcloud_storage:
+      self.assertIn('Composing across providers is not supported.', stderr)
+    else:
+      expected_msg = ('CommandException: "compose" called on URL with '
+                      'unsupported provider (%s).\n' % 's3://b/o2')
+      self.assertIn(expected_msg, stderr)

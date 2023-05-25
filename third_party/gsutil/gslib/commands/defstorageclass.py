@@ -28,6 +28,7 @@ from gslib.exception import NO_URLS_MATCHED_TARGET
 from gslib.help_provider import CreateHelpText
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
 from gslib.utils.constants import NO_MAX
+from gslib.utils.shim_util import GcloudStorageMap
 from gslib.utils.text_util import NormalizeStorageClass
 
 _SET_SYNOPSIS = """
@@ -68,6 +69,27 @@ _DETAILED_HELP_TEXT = CreateHelpText(_SYNOPSIS, _DESCRIPTION)
 _get_help_text = CreateHelpText(_GET_SYNOPSIS, _GET_DESCRIPTION)
 _set_help_text = CreateHelpText(_SET_SYNOPSIS, _SET_DESCRIPTION)
 
+SHIM_GET_COMMAND_MAP = GcloudStorageMap(
+    # Using a list because a string gets splitted up on space and the
+    # format string below has a space.
+    gcloud_command=[
+        'alpha',
+        'storage',
+        'buckets',
+        'list',
+        # The url_string for buckets ends with a slash.
+        # Substitute the last slash with a colon.
+        '--format=value[separator=\": \"](name.sub("^", "gs://"),'
+        'storageClass)',
+        '--raw'
+    ],
+    flag_map={},
+)
+SHIM_SET_COMMAND_MAP = GcloudStorageMap(
+    gcloud_command='alpha storage buckets update --default-storage-class',
+    flag_map={},
+)
+
 
 class DefStorageClassCommand(Command):
   """Implementation of gsutil defstorageclass command."""
@@ -104,6 +126,14 @@ class DefStorageClassCommand(Command):
           'get': _get_help_text,
           'set': _set_help_text,
       },
+  )
+
+  gcloud_storage_map = GcloudStorageMap(
+      gcloud_command={
+          'get': SHIM_GET_COMMAND_MAP,
+          'set': SHIM_SET_COMMAND_MAP,
+      },
+      flag_map={},
   )
 
   def _CheckIsGsUrl(self, url_str):

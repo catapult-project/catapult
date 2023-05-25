@@ -31,6 +31,7 @@ from gslib.help_provider import CreateHelpText
 from gslib.storage_url import UrlsAreForSingleProvider
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
 from gslib.utils.constants import NO_MAX
+from gslib.utils.shim_util import GcloudStorageMap
 from gslib.utils.translation_helper import LifecycleTranslation
 
 _GET_SYNOPSIS = """
@@ -136,6 +137,43 @@ class LifecycleCommand(Command):
           'set': _set_help_text,
       },
   )
+
+  def get_gcloud_storage_args(self):
+    if self.args[0] == 'set':
+      gcloud_storage_map = GcloudStorageMap(
+          gcloud_command={
+              'set':
+                  GcloudStorageMap(
+                      gcloud_command=[
+                          'alpha',
+                          'storage',
+                          'buckets',
+                          'update',
+                          '--lifecycle-file={}'.format(self.args[1]),
+                      ] + self.args[2:],  # Adds target bucket URLs.
+                      flag_map={},
+                  ),
+          },
+          flag_map={},
+      )
+      # Don't trigger unneeded translation now that complete command is above.
+      self.args = self.args[:1]
+    else:
+      gcloud_storage_map = GcloudStorageMap(
+          gcloud_command={
+              'get':
+                  GcloudStorageMap(
+                      gcloud_command=[
+                          'alpha', 'storage', 'buckets', 'describe',
+                          '--format=multi(lifecycle:format=json)', '--raw'
+                      ],
+                      flag_map={},
+                  ),
+          },
+          flag_map={},
+      )
+
+    return super().get_gcloud_storage_args(gcloud_storage_map)
 
   def _SetLifecycleConfig(self):
     """Sets lifecycle configuration for a Google Cloud Storage bucket."""

@@ -88,10 +88,10 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>DESCRIPTION</B>
-  The ``perfdiag`` command runs a suite of diagnostic tests for a given Google
+  The ``perfdiag`` command runs a suite of diagnostic tests for a given Cloud
   Storage bucket.
 
-  The 'bucket_name' parameter must name an existing bucket to which the user
+  The ``bucket_name`` parameter must name an existing bucket to which the user
   has write permission. Several test files will be uploaded to and downloaded
   from this bucket. All test files will be deleted at the completion of the
   diagnostic if it finishes successfully. For a list of relevant permissions,
@@ -114,12 +114,18 @@ _DETAILED_HELP_TEXT = ("""
   measurement suite when troubleshooting performance problems.
 
 
-<B>PROVIDING DIAGNOSTIC OUTPUT TO GOOGLE CLOUD STORAGE TEAM</B>
-  If the Google Cloud Storage Team asks you to run a performance diagnostic
+<B>PROVIDING DIAGNOSTIC OUTPUT TO THE CLOUD STORAGE TEAM</B>
+  If the Cloud Storage team asks you to run a performance diagnostic
   please use the following command, and email the output file (output.json)
-  to the @google.com address provided by the Cloud Storage team.
+  to the @google.com address provided by the Cloud Storage team:
 
     gsutil perfdiag -o output.json gs://your-bucket
+
+  Additional resources for discussing ``perfdiag`` results include the
+  `Stack Overflow tag for Cloud Storage
+  <https://stackoverflow.com/questions/tagged/google-cloud-storage>`_ and
+  the `gsutil GitHub repository
+  <https://github.com/GoogleCloudPlatform/gsutil/issues>`_.
 
 
 <B>OPTIONS</B>
@@ -139,7 +145,7 @@ _DETAILED_HELP_TEXT = ("""
               not by saturated with work if too few objects (specified with ``-n``)
               and too few components (specified with ``-y``) are specified.
 
-  -p          Sets the type of `parallelism to be used (only applicable when
+  -p          Sets the type of parallelism to be used (only applicable when
               threads or processes are specified and threads * processes > 1). The
               default is to use ``fan``. Must be one of the following:
 
@@ -230,8 +236,8 @@ _DETAILED_HELP_TEXT = ("""
               between 0 and 100 (inclusive), with 0 generating a file with
               uniform data, and 100 generating random data. When you specify
               the ``-j`` option, files being uploaded are compressed in-memory and
-              on-the-wire only. See ``cp -j
-              <https://cloud.google.com/storage/docs/gsutil/commands/cp#options>``_
+              on-the-wire only. See `cp -j
+              <https://cloud.google.com/storage/docs/gsutil/commands/cp#options>`_
               for specific semantics.
 
 
