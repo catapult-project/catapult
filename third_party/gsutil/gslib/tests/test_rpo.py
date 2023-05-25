@@ -16,6 +16,7 @@
 
 from __future__ import absolute_import
 
+import os
 import textwrap
 
 from gslib.commands.rpo import RpoCommand
@@ -28,6 +29,7 @@ from gslib.tests.testcase.integration_testcase import SkipForJSON
 from gslib.tests.testcase.integration_testcase import SkipForXML
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import SetBotoConfigForTest
+from gslib.tests.util import SetEnvironmentForTest
 
 from six import add_move, MovedModule
 
@@ -83,6 +85,48 @@ class TestRpoUnit(testcase.GsUtilUnitTestCase):
         CommandException, 'Invalid subcommand "blah", use get|set instead'):
       self.RunCommand('rpo', ['blah', 'DEFAULT', 'gs://boo*'])
 
+  def test_shim_translates_recovery_point_objective_get_command(self):
+    fake_cloudsdk_dir = 'fake_dir'
+    with SetBotoConfigForTest([('GSUtil', 'use_gcloud_storage', 'True'),
+                               ('GSUtil', 'hidden_shim_mode', 'dry_run')]):
+      with SetEnvironmentForTest({
+          'CLOUDSDK_CORE_PASS_CREDENTIALS_TO_GSUTIL': 'True',
+          'CLOUDSDK_ROOT_DIR': fake_cloudsdk_dir,
+      }):
+        self.CreateBucket(bucket_name='fake-bucket-get-rpo-1')
+        mock_log_handler = self.RunCommand(
+            'rpo',
+            args=['get', 'gs://fake-bucket-get-rpo-1'],
+            return_log_handler=True)
+
+        info_lines = '\n'.join(mock_log_handler.messages['info'])
+        self.assertIn(
+            ('Gcloud Storage Command: {} storage'
+             ' buckets list --format=value[separator=": "]'
+             '(format("gs://{}", name),rpo.yesno(no="None"))'
+             ' --raw').format(os.path.join('fake_dir', 'bin', 'gcloud'),
+                              r'{}'), info_lines)
+
+  def test_shim_translates_recovery_point_objective_set_command(self):
+    fake_cloudsdk_dir = 'fake_dir'
+    with SetBotoConfigForTest([('GSUtil', 'use_gcloud_storage', 'True'),
+                               ('GSUtil', 'hidden_shim_mode', 'dry_run')]):
+      with SetEnvironmentForTest({
+          'CLOUDSDK_CORE_PASS_CREDENTIALS_TO_GSUTIL': 'True',
+          'CLOUDSDK_ROOT_DIR': fake_cloudsdk_dir,
+      }):
+        self.CreateBucket(bucket_name='fake-bucket-set-rpo')
+        mock_log_handler = self.RunCommand(
+            'rpo',
+            args=['set', 'DEFAULT', 'gs://fake-bucket-set-rpo'],
+            return_log_handler=True)
+
+        info_lines = '\n'.join(mock_log_handler.messages['info'])
+        self.assertIn(
+            ('Gcloud Storage Command: {} storage'
+             ' buckets update --recovery-point-objective DEFAULT').format(
+                 os.path.join('fake_dir', 'bin', 'gcloud')), info_lines)
+
 
 class TestRpoE2E(testcase.GsUtilIntegrationTestCase):
   """Integration tests for rpo command."""
@@ -102,7 +146,7 @@ class TestRpoE2E(testcase.GsUtilIntegrationTestCase):
 
   @SkipForXML('RPO only runs on GCS JSON API.')
   def test_get_returns_default_for_dual_region_bucket(self):
-    bucket_uri = self.CreateBucket(location='us')
+    bucket_uri = self.CreateBucket(location='nam4')
     self._verify_get_returns_default_or_none(bucket_uri)
 
   @SkipForXML('RPO only runs on GCS JSON API.')
@@ -180,15 +224,28 @@ class TestRpoE2E(testcase.GsUtilIntegrationTestCase):
   def test_s3_fails_for_set(self):
     bucket_uri = self.CreateBucket()
     stderr = self.RunGsUtil(
-        ['rpo', 'set', 'default', suri(bucket_uri)],
+        ['rpo', 'set', 'DEFAULT', suri(bucket_uri)],
         return_stderr=True,
         expected_status=1)
-    self.assertIn('command can only be used for GCS buckets', stderr)
+
+    if self._use_gcloud_storage:
+      self.assertIn(
+          'Features disallowed for S3: Setting Recovery Point Objective',
+          stderr)
+    else:
+      self.assertIn('command can only be used for GCS buckets', stderr)
 
   @SkipForGS('Testing S3 only behavior.')
   def test_s3_fails_for_get(self):
     bucket_uri = self.CreateBucket()
-    stderr = self.RunGsUtil(['rpo', 'get', suri(bucket_uri)],
-                            return_stderr=True,
-                            expected_status=1)
-    self.assertIn('command can only be used for GCS buckets', stderr)
+    expected_status = 0 if self._use_gcloud_storage else 1
+    stdout, stderr = self.RunGsUtil(
+        ['rpo', 'get', suri(bucket_uri)],
+        return_stderr=True,
+        return_stdout=True,
+        expected_status=expected_status)
+    if self._use_gcloud_storage:
+      # TODO(b/265304295)
+      self.assertIn('gs://None: None', stdout)
+    else:
+      self.assertIn('command can only be used for GCS buckets', stderr)

@@ -4,7 +4,7 @@ import setuptools.command.test
 import sys
 
 pkgdir = {"": "python%s" % sys.version_info[0]}
-VERSION = "0.18.1"
+VERSION = "0.20.4"
 
 
 # `python setup.py test` uses existing Python environment, no virtualenv, no pip.
@@ -14,19 +14,20 @@ class TestCommand(setuptools.command.test.test):
     def run_tests(self):
         # pytest may be not installed yet
         import pytest
-        args = ['--forked', '--fulltrace', '--no-cov', 'tests/']
+
+        args = ["--forked", "--fulltrace", "--no-cov", "tests/"]
         if self.test_suite:
-            args += ['-k', self.test_suite]
-        sys.stderr.write('setup.py:test run pytest {}\n'.format(' '.join(args)))
+            args += ["-k", self.test_suite]
+        sys.stderr.write("setup.py:test run pytest {}\n".format(" ".join(args)))
         errno = pytest.main(args)
         sys.exit(errno)
 
 
 def read_requirements(name):
     project_root = os.path.dirname(os.path.abspath(__file__))
-    with open(os.path.join(project_root, name), 'rb') as f:
+    with open(os.path.join(project_root, name), "rb") as f:
         # remove whitespace and comments
-        g = (line.decode('utf-8').lstrip().split('#', 1)[0].rstrip() for line in f)
+        g = (line.decode("utf-8").lstrip().split("#", 1)[0].rstrip() for line in f)
         return [l for l in g if l]
 
 
@@ -85,7 +86,9 @@ A comprehensive HTTP client library, ``httplib2`` supports many features left ou
     package_dir=pkgdir,
     packages=["httplib2"],
     package_data={"httplib2": ["*.txt"]},
+    install_requires=read_requirements("requirements.txt"),
     tests_require=read_requirements("requirements-test.txt"),
+    python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
     cmdclass={"test": TestCommand},
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -101,6 +104,8 @@ A comprehensive HTTP client library, ``httplib2`` supports many features left ou
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Software Development :: Libraries",
     ],

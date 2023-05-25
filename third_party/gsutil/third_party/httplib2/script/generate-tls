@@ -2,7 +2,7 @@
 set -eu
 
 target_dir="${1:-.}"
-days=3650
+days=7300
 rsa_bits=2048
 org="httplib2-test"
 server_cn="localhost"

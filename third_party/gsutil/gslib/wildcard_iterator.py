@@ -24,7 +24,6 @@ import glob
 import logging
 import os
 import re
-import sys
 import textwrap
 
 import six
@@ -583,16 +582,24 @@ class FileWildcardIterator(WildcardIterator):
   files in any subdirectory named 'abc').
   """
 
-  def __init__(self, wildcard_url, ignore_symlinks=False, logger=None):
+  def __init__(self,
+               wildcard_url,
+               exclude_tuple=None,
+               ignore_symlinks=False,
+               logger=None):
     """Instantiates an iterator over BucketListingRefs matching wildcard URL.
 
     Args:
       wildcard_url: FileUrl that contains the wildcard to iterate.
+      exclude_tuple: (base_url, exclude_pattern), where base_url is
+                     top-level URL to list; exclude_pattern is a regex
+                     of paths to ignore during iteration.
       ignore_symlinks: If True, ignore symlinks during iteration.
       logger: logging.Logger used for outputting debug messages during
               iteration. If None, the root logger will be used.
     """
     self.wildcard_url = wildcard_url
+    self.exclude_tuple = exclude_tuple
     self.ignore_symlinks = ignore_symlinks
     self.logger = logger or logging.getLogger()
 
@@ -686,12 +693,26 @@ class FileWildcardIterator(WildcardIterator):
     # originated on Windows) os.walk() will not attempt to decode and then die
     # with a "codec can't decode byte" error, and instead we can catch the error
     # at yield time and print a more informative error message.
-    for dirpath, dirnames, filenames in os.walk(six.ensure_text(directory)):
-      if self.logger:
-        for dirname in dirnames:
-          full_dir_path = os.path.join(dirpath, dirname)
-          if os.path.islink(full_dir_path):
-            self.logger.info('Skipping symlink directory "%s"', full_dir_path)
+    for dirpath, dirnames, filenames in os.walk(six.ensure_text(directory),
+                                                topdown=True):
+      filtered_dirnames = []
+
+      for dirname in dirnames:
+        full_dir_path = os.path.join(dirpath, dirname)
+        # Removes directories in place to prevent them and their children from
+        # being iterated. See https://docs.python.org/3/library/os.html#os.walk
+        if not self._ExcludeDir(full_dir_path):
+          filtered_dirnames.append(dirname)
+        else:
+          # If a symlink is excluded above we don't want to print 2 messages.
+          continue
+        # This only prints a log message as os.walk() will not, by default,
+        # walk down into symbolic links that resolve to directories.
+        if self.logger and os.path.islink(full_dir_path):
+          self.logger.info('Skipping symlink directory "%s"', full_dir_path)
+
+      dirnames[:] = filtered_dirnames
+
       for f in fnmatch.filter(filenames, wildcard):
         try:
           yield os.path.join(dirpath, FixWindowsEncodingIfNeeded(f))
@@ -725,6 +746,29 @@ class FileWildcardIterator(WildcardIterator):
           raise CommandException('\n'.join(
               textwrap.wrap(_UNICODE_EXCEPTION_TEXT %
                             repr(os.path.join(dirpath, f)))))
+
+  def _ExcludeDir(self, dir):
+    """Check a directory to see if it should be excluded from os.walk.
+
+    Args:
+      dir: String representing the directory to check.
+
+    Returns:
+      True if the directory should be excluded.
+    """
+    if self.exclude_tuple is None:
+      return False
+    (base_url, exclude_dirs, exclude_pattern) = self.exclude_tuple
+    if not exclude_dirs:
+      return False
+    str_to_check = StorageUrlFromString(
+        dir).url_string[len(base_url.url_string):]
+    if str_to_check.startswith(self.wildcard_url.delim):
+      str_to_check = str_to_check[1:]
+    if exclude_pattern.match(str_to_check):
+      if self.logger:
+        self.logger.info('Skipping excluded directory %s...', dir)
+      return True
 
   # pylint: disable=unused-argument
   def IterObjects(self, bucket_listing_fields=None):
@@ -794,6 +838,7 @@ def CreateWildcardIterator(url_str,
                            gsutil_api,
                            all_versions=False,
                            project_id=None,
+                           exclude_tuple=None,
                            ignore_symlinks=False,
                            logger=None):
   """Instantiate a WildcardIterator for the given URL string.
@@ -806,6 +851,9 @@ def CreateWildcardIterator(url_str,
                   matching the wildcard.  If false, yields just the live
                   object version.
     project_id: Project id to use for bucket listings.
+    exclude_tuple: (base_url, exclude_pattern), where base_url is
+                   top-level URL to list; exclude_pattern is a regex
+                   of paths to ignore during iteration.
     ignore_symlinks: For FileUrls, ignore symlinks during iteration if true.
     logger: logging.Logger used for outputting debug messages during iteration.
             If None, the root logger will be used.
@@ -818,6 +866,7 @@ def CreateWildcardIterator(url_str,
   logger = logger or logging.getLogger()
   if url.IsFileUrl():
     return FileWildcardIterator(url,
+                                exclude_tuple=exclude_tuple,
                                 ignore_symlinks=ignore_symlinks,
                                 logger=logger)
   else:  # Cloud URL

@@ -24,6 +24,7 @@ import re
 import stat
 import sys
 
+from gslib.exception import CommandException
 from gslib.exception import InvalidUrlError
 from gslib.utils import system_util
 from gslib.utils import text_util
@@ -43,6 +44,8 @@ S3_VERSION_REGEX = re.compile(r'(?P<object>.+)#(?P<version_id>.+)$')
 FILE_OBJECT_REGEX = re.compile(r'([^:]*://)(?P<filepath>.*)')
 # Regex to determine if a string contains any wildcards.
 WILDCARD_REGEX = re.compile(r'[*?\[\]]')
+
+RELATIVE_PATH_SYMBOLS = frozenset(['.', '..'])
 
 
 class StorageUrl(object):
@@ -487,3 +490,25 @@ def UrlsAreForSingleProvider(url_args):
     elif url.scheme != provider:
       return False
   return provider is not None
+
+
+def UrlsAreMixOfBucketsAndObjects(urls):
+  """Tests whether the URLs are a mix of buckets and objects.
+
+  Args:
+    url_args: (Iterable[gslib.storage_url.StorageUrl]) Collection of URLs to
+    check.
+
+  Returns:
+    True if URLs are a mix of buckets and objects. False if URLs are all buckets
+    or all objects. None if invalid Cloud URLs are included.
+  """
+  if all(url.IsCloudUrl() for url in urls):
+    are_buckets = list(map(lambda x: x.IsBucket(), urls))
+    return any(are_buckets) and not all(are_buckets)
+
+
+def RaiseErrorIfUrlsAreMixOfBucketsAndObjects(urls, recursion_requested):
+  """Raises error if mix of buckets and objects adjusted for recursion."""
+  if UrlsAreMixOfBucketsAndObjects(urls) and not recursion_requested:
+    raise CommandException('Cannot operate on a mix of buckets and objects.')

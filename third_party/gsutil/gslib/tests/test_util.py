@@ -309,7 +309,7 @@ class TestUtil(testcase.GsUtilUnitTestCase):
                 httplib2.ProxyInfo(httplib2.socks.PROXY_TYPE_HTTP,
                                    '1.2.3.4',
                                    50,
-                                   proxy_pass='bar'))
+                                   proxy_user='bar'))
       for env_var in ['proxy', 'noproxy', 'garbage']:
         for url_string in ['1.2.3.4:50', 'http://1.2.3.4:50']:
           with SetEnvironmentForTest({env_var: url_string}):

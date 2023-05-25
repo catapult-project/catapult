@@ -50,6 +50,7 @@ from gslib.gcs_json_api import GcsJsonApi
 from gslib.no_op_credentials import NoOpCredentials
 from gslib.tab_complete import MakeCompleter
 from gslib.utils import boto_util
+from gslib.utils import shim_util
 from gslib.utils import system_util
 from gslib.utils.constants import RELEASE_NOTES_URL
 from gslib.utils.constants import UTF8
@@ -410,7 +411,14 @@ class CommandRunner(object):
                                sub_opts=command_inst.sub_opts,
                                command_alias=command_name)
 
-    return_code = command_inst.RunCommand()
+    if command_inst.translate_to_gcloud_storage_if_requested():
+      # This does not mean that the gcloud storage command worked.
+      # It only means that we succesfully attempted running gcloud storage.
+      # The command itself might have failed.
+      return_code = command_inst.run_gcloud_storage()
+    else:
+      # Run gsutil.
+      return_code = command_inst.RunCommand()
 
     if CheckMultiprocessingAvailableAndInit().is_available and do_shutdown:
       ShutDownGsutil()

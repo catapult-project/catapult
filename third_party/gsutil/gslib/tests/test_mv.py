@@ -21,7 +21,6 @@ from __future__ import unicode_literals
 
 import os
 
-import crcmod
 from gslib.cs_api_map import ApiSelector
 from gslib.tests.test_cp import TestCpMvPOSIXBucketToLocalErrors
 from gslib.tests.test_cp import TestCpMvPOSIXBucketToLocalNoErrors
@@ -36,7 +35,77 @@ from gslib.utils.retry_util import Retry
 from gslib.utils.system_util import IS_WINDOWS
 
 
-class TestMv(testcase.GsUtilIntegrationTestCase):
+class TestMvUnitTests(testcase.GsUtilUnitTestCase):
+  """Unit tests for mv command."""
+
+  def test_move_bucket_objects_with_duplicate_names_inter_bucket(self):
+    """Tests moving multiple top-level items between buckets."""
+    bucket1_uri = self.CreateBucket()
+    self.CreateObject(bucket_uri=bucket1_uri,
+                      object_name='dir1/file.txt',
+                      contents=b'data')
+    self.CreateObject(bucket_uri=bucket1_uri,
+                      object_name='dir2/file.txt',
+                      contents=b'data')
+    bucket2_uri = self.CreateBucket()
+
+    self.RunCommand('mv', [suri(bucket1_uri, '*'), suri(bucket2_uri)])
+
+    actual = set(
+        str(u)
+        for u in self._test_wildcard_iterator(suri(bucket2_uri, '**')).IterAll(
+            expand_top_level_buckets=True))
+    expected = set([
+        suri(bucket2_uri, 'dir1', 'file.txt'),
+        suri(bucket2_uri, 'dir2', 'file.txt'),
+    ])
+    self.assertEqual(actual, expected)
+
+  def test_move_bucket_objects_with_duplicate_names_to_bucket_subdir(self):
+    """Tests moving multiple top-level items between buckets."""
+    bucket1_uri = self.CreateBucket()
+    self.CreateObject(bucket_uri=bucket1_uri,
+                      object_name='dir1/file.txt',
+                      contents=b'data')
+    self.CreateObject(bucket_uri=bucket1_uri,
+                      object_name='dir2/file.txt',
+                      contents=b'data')
+    bucket2_uri = self.CreateBucket()
+
+    self.RunCommand('mv', [suri(bucket1_uri, '*'), suri(bucket2_uri, 'dir')])
+
+    actual = set(
+        str(u)
+        for u in self._test_wildcard_iterator(suri(bucket2_uri, '**')).IterAll(
+            expand_top_level_buckets=True))
+    expected = set([
+        suri(bucket2_uri, 'dir', 'dir1', 'file.txt'),
+        suri(bucket2_uri, 'dir', 'dir2', 'file.txt'),
+    ])
+    self.assertEqual(actual, expected)
+
+  def test_move_dirs_with_duplicate_file_names_to_bucket(self):
+    """Tests moving multiple top-level items to a bucket."""
+    bucket_uri = self.CreateBucket()
+    dir_path = self.CreateTempDir(test_files=[
+        ('dir1', 'file.txt'),
+        ('dir2', 'file.txt'),
+    ])
+
+    self.RunCommand('mv', [dir_path + '/*', suri(bucket_uri)])
+
+    actual = set(
+        str(u)
+        for u in self._test_wildcard_iterator(suri(bucket_uri, '**')).IterAll(
+            expand_top_level_buckets=True))
+    expected = set([
+        suri(bucket_uri, 'dir1', 'file.txt'),
+        suri(bucket_uri, 'dir2', 'file.txt'),
+    ])
+    self.assertEqual(actual, expected)
+
+
+class TestMvE2ETests(testcase.GsUtilIntegrationTestCase):
   """Integration tests for mv command."""
 
   def test_moving(self):
@@ -147,7 +216,12 @@ class TestMv(testcase.GsUtilIntegrationTestCase):
     stderr = self.RunGsUtil(
         ['mv', '-n', fpath1, suri(object_uri)], return_stderr=True)
     # Copy should be skipped and source file should not be removed.
-    self.assertIn('Skipping existing item: %s' % suri(object_uri), stderr)
+    if self._use_gcloud_storage:
+      self.assertIn(
+          'Skipping existing destination item (no-clobber): %s' %
+          suri(object_uri), stderr)
+    else:
+      self.assertIn('Skipping existing item: %s' % suri(object_uri), stderr)
     self.assertNotIn('Removing %s' % suri(fpath1), stderr)
     # Object content should be unchanged.
     contents = self.RunGsUtil(['cat', suri(object_uri)], return_stdout=True)
@@ -201,3 +275,28 @@ class TestMv(testcase.GsUtilIntegrationTestCase):
         'Warning: moving nearline object %s may incur an early deletion '
         'charge, because the original object is less than 30 days old '
         'according to the local system time.' % suri(object_uri), stderr)
+
+  def test_move_bucket_objects_with_duplicate_names_to_dir(self):
+    """Tests moving multiple top-level items to a bucket."""
+    bucket_uri = self.CreateBucket()
+    self.CreateObject(bucket_uri=bucket_uri,
+                      object_name='dir1/file.txt',
+                      contents=b'data')
+    self.CreateObject(bucket_uri=bucket_uri,
+                      object_name='dir2/file.txt',
+                      contents=b'data')
+    self.AssertNObjectsInBucket(bucket_uri, 2)
+
+    tmpdir = self.CreateTempDir()
+    self.RunGsUtil(['mv', suri(bucket_uri, '*'), tmpdir])
+
+    file_list = []
+    for dirname, _, filenames in os.walk(tmpdir):
+      for filename in filenames:
+        file_list.append(os.path.join(dirname, filename))
+    self.assertEqual(len(file_list), 2)
+    self.assertIn('{}{}dir1{}file.txt'.format(tmpdir, os.sep, os.sep),
+                  file_list)
+    self.assertIn('{}{}dir2{}file.txt'.format(tmpdir, os.sep, os.sep),
+                  file_list)
+    self.AssertNObjectsInBucket(bucket_uri, 0)

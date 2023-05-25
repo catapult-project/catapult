@@ -36,6 +36,7 @@ import six
 from six.moves import configparser
 from six.moves import range
 
+from google.auth import exceptions as google_auth_exceptions
 import gslib.exception
 from gslib.exception import CommandException
 from gslib.exception import ControlCException
@@ -702,7 +703,8 @@ def _RunNamedCommandAndHandleExceptions(command_runner,
     _OutputAndExit(message=e, exception=e)
   except ServiceException as e:
     _OutputAndExit(message=e, exception=e)
-  except oauth2client.client.HttpAccessTokenRefreshError as e:
+  except (oauth2client.client.HttpAccessTokenRefreshError,
+          google_auth_exceptions.OAuthError) as e:
     if system_util.InvokedViaCloudSdk():
       _OutputAndExit(
           'Your credentials are invalid. '

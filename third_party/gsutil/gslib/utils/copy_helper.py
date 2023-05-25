@@ -32,6 +32,7 @@ import mimetypes
 from operator import attrgetter
 import os
 import pickle
+import pyu2f
 import random
 import re
 import shutil
@@ -87,6 +88,7 @@ from gslib.parallel_tracker_file import WriteParallelUploadTrackerFile
 from gslib.progress_callback import FileProgressCallbackHandler
 from gslib.progress_callback import ProgressCallbackWithTimeout
 from gslib.resumable_streaming_upload import ResumableStreamingJsonUploadWrapper
+from gslib import storage_url
 from gslib.storage_url import ContainsWildcard
 from gslib.storage_url import GenerationFromUrlAndString
 from gslib.storage_url import IsCloudSubdirPlaceholder
@@ -236,7 +238,7 @@ UPLOAD_RETURN_FIELDS = [
 PerformParallelUploadFileToObjectArgs = namedtuple(
     'PerformParallelUploadFileToObjectArgs',
     'filename file_start file_length src_url dst_url canned_acl '
-    'content_type tracker_file tracker_file_lock encryption_key_sha256 '
+    'content_type storage_class tracker_file tracker_file_lock encryption_key_sha256 '
     'gzip_encoded')
 
 PerformSlicedDownloadObjectToFileArgs = namedtuple(
@@ -330,17 +332,18 @@ def _PerformParallelUploadFileToObject(cls, args, thread_state=None):
     # reach a state in which uploads will always fail on retries.
     preconditions = None
 
-    # Fill in content type if one was provided.
+    # Fill in content type and storage class if one was provided.
     dst_object_metadata = apitools_messages.Object(
         name=args.dst_url.object_name,
         bucket=args.dst_url.bucket_name,
-        contentType=args.content_type)
+        contentType=args.content_type,
+        storageClass=args.storage_class)
 
+    orig_prefer_api = gsutil_api.prefer_api
     try:
       if global_copy_helper_opts.canned_acl:
         # No canned ACL support in JSON, force XML API to be used for
         # upload/copy operations.
-        orig_prefer_api = gsutil_api.prefer_api
         gsutil_api.prefer_api = ApiSelector.XML
       ret = _UploadFileToObject(args.src_url,
                                 fp,
@@ -557,10 +560,51 @@ def _ShouldTreatDstUrlAsSingleton(src_url_names_container, have_multiple_srcs,
             dst_url.IsObject())
 
 
+def _IsUrlValidParentDir(url):
+  """Returns True if not FileUrl ending in  relative path symbols.
+
+  A URL is invalid if it is a FileUrl and the parent directory of the file is a
+  relative path symbol. Unix will not allow a file itself to be named with a
+  relative path symbol, but one can be the parent. Notably, "../obj" can lead
+  to unexpected behavior at the copy destination. We examine the pre-recursion
+  "url", which might point to "..", to see if the parent is valid.
+
+  If the user does a recursive copy from a URL, it may not end up
+  the final parent of the copied object. For example, see: "dir/nested_dir/obj".
+
+  If you ran "cp -r dir gs://bucket" from the parent of "dir", then the "url"
+  arg would be "dir", but "nested_dir" would be the parent of "obj".
+  This actually doesn't matter since recursion won't add relative path symbols
+  to the path. However, we still return if "url" is valid because
+  there are cases where we need to copy every parent directory up to
+  "dir" to prevent file name conflicts.
+
+  Args:
+    url: StorageUrl before recursion.
+
+  Returns:
+    Boolean indicating if the "url" is valid as a parent directory.
+  """
+  if not url.IsFileUrl():
+    return True
+
+  url_string_minus_trailing_delimiter = url.versionless_url_string.rstrip(
+      url.delim)
+  _, _, after_last_delimiter = (url_string_minus_trailing_delimiter.rpartition(
+      url.delim))
+
+  return after_last_delimiter not in storage_url.RELATIVE_PATH_SYMBOLS and (
+      after_last_delimiter not in [
+          url.scheme + '://' + symbol
+          for symbol in storage_url.RELATIVE_PATH_SYMBOLS
+      ])
+
+
 def ConstructDstUrl(src_url,
                     exp_src_url,
                     src_url_names_container,
                     have_multiple_srcs,
+                    has_multiple_top_level_srcs,
                     exp_dst_url,
                     have_existing_dest_subdir,
                     recursion_requested,
@@ -578,6 +622,8 @@ def ConstructDstUrl(src_url,
     have_multiple_srcs: True if this is a multi-source request. This can be
         true if src_url wildcard-expanded to multiple URLs or if there were
         multiple source URLs in the request.
+    has_multiple_top_level_srcs: Same as have_multiple_srcs but measured
+        before recursion.
     exp_dst_url: the expanded StorageUrl requested for the cp destination.
         Final written path is constructed from this plus a context-dependent
         variant of src_url.
@@ -635,26 +681,23 @@ def ConstructDstUrl(src_url,
     exp_dst_url = StorageUrlFromString(
         '%s%s' % (exp_dst_url.url_string, exp_dst_url.delim))
 
+  src_url_is_valid_parent = _IsUrlValidParentDir(src_url)
+  if not src_url_is_valid_parent and has_multiple_top_level_srcs:
+    # To avoid top-level name conflicts, we need to copy the parent dir.
+    # However, that cannot be done because the parent dir has an invalid name.
+    raise InvalidUrlError(
+        'Presence of multiple top-level sources and invalid expanded URL'
+        ' make file name conflicts possible for URL: {}'.format(src_url))
+
   # Making naming behavior match how things work with local Linux cp and mv
   # operations depends on many factors, including whether the destination is a
-  # container, the plurality of the source(s), and whether the mv command is
-  # being used:
-  # 1. For the "mv" command that specifies a non-existent destination subdir,
-  #    renaming should occur at the level of the src subdir, vs appending that
-  #    subdir beneath the dst subdir like is done for copying. For example:
-  #      gsutil rm -r gs://bucket
-  #      gsutil cp -r dir1 gs://bucket
-  #      gsutil cp -r dir2 gs://bucket/subdir1
-  #      gsutil mv gs://bucket/subdir1 gs://bucket/subdir2
-  #    would (if using cp naming behavior) end up with paths like:
-  #      gs://bucket/subdir2/subdir1/dir2/.svn/all-wcprops
-  #    whereas mv naming behavior should result in:
-  #      gs://bucket/subdir2/dir2/.svn/all-wcprops
-  # 2. Copying from directories, buckets, or bucket subdirs should result in
-  #    objects/files mirroring the source directory hierarchy. For example:
-  #      gsutil cp dir1/dir2 gs://bucket
+  # container, and the plurality of the source(s).
+  # 1. Recursively copying from directories, buckets, or bucket subdirs should
+  #    result in objects/files mirroring the source hierarchy. For example:
+  #      gsutil cp -r dir1/dir2 gs://bucket
   #    should create the object gs://bucket/dir2/file2, assuming dir1/dir2
   #    contains file2).
+  #
   #    To be consistent with Linux cp behavior, there's one more wrinkle when
   #    working with subdirs: The resulting object names depend on whether the
   #    destination subdirectory exists. For example, if gs://bucket/subdir
@@ -663,58 +706,53 @@ def ConstructDstUrl(src_url,
   #    should create objects named like gs://bucket/subdir/dir2/a/b/c. In
   #    contrast, if gs://bucket/subdir does not exist, this same command
   #    should create objects named like gs://bucket/subdir/a/b/c.
-  # 3. Copying individual files or objects to dirs, buckets or bucket subdirs
+  #
+  #    If there are multiple top-level source items, preserve source parent
+  #    dirs. This is similar to when the destination dir already exists and
+  #    avoids conflicts such as "dir1/f.txt" and "dir2/f.txt" both getting
+  #    copied to "gs://bucket/f.txt". Linux normally errors on these conflicts,
+  #    but we cannot do that because we need to give users the ability to create
+  #    dirs as they copy to the cloud.
+  #
+  #    Note: "mv" is similar to running "cp -r" followed by source deletion.
+  #
+  # 2. Copying individual files or objects to dirs, buckets or bucket subdirs
   #    should result in objects/files named by the final source file name
   #    component. Example:
   #      gsutil cp dir1/*.txt gs://bucket
   #    should create the objects gs://bucket/f1.txt and gs://bucket/f2.txt,
   #    assuming dir1 contains f1.txt and f2.txt.
 
-  recursive_move_to_new_subdir = False
-  if (global_copy_helper_opts.perform_mv and recursion_requested and
-      src_url_names_container and not have_existing_dest_subdir):
-    # Case 1. Handle naming rules for bucket subdir mv. Here we want to
-    # line up the src_url against its expansion, to find the base to build
-    # the new name. For example, running the command:
-    #   gsutil mv gs://bucket/abcd gs://bucket/xyz
-    # when processing exp_src_url=gs://bucket/abcd/123
-    # exp_src_url_tail should become /123
-    # Note: mv.py code disallows wildcard specification of source URL.
-    recursive_move_to_new_subdir = True
-    exp_src_url_tail = (exp_src_url.url_string[len(src_url.url_string):])
-    dst_key_name = '%s/%s' % (exp_dst_url.object_name.rstrip('/'),
-                              exp_src_url_tail.strip('/'))
-
-  elif src_url_names_container and (exp_dst_url.IsCloudUrl() or
-                                    exp_dst_url.IsDirectory()):
-    # Case 2.  Container copy to a destination other than a file.
+  # Ignore the "multiple top-level sources" rule if using double wildcard **
+  # because that treats all files as top-level, in which case the user doesn't
+  # want to preserve directories.
+  preserve_src_top_level_dirs = ('**' not in src_url.versionless_url_string and
+                                 src_url_is_valid_parent and
+                                 (has_multiple_top_level_srcs or
+                                  have_existing_dest_subdir))
+  if preserve_src_top_level_dirs or (src_url_names_container and
+                                     (exp_dst_url.IsCloudUrl() or
+                                      exp_dst_url.IsDirectory())):
+    # Case 1.  Container copy to a destination other than a file.
     # Build dst_key_name from subpath of exp_src_url past
     # where src_url ends. For example, for src_url=gs://bucket/ and
     # exp_src_url=gs://bucket/src_subdir/obj, dst_key_name should be
     # src_subdir/obj.
     src_url_path_sans_final_dir = GetPathBeforeFinalDir(src_url, exp_src_url)
-
     dst_key_name = exp_src_url.versionless_url_string[
         len(src_url_path_sans_final_dir):].lstrip(src_url.delim)
-    # Handle case where dst_url is a non-existent subdir.
-    if not have_existing_dest_subdir:
+
+    if not preserve_src_top_level_dirs:
+      # Only copy file name, not parent dir.
       dst_key_name = dst_key_name.partition(src_url.delim)[-1]
-    # Handle special case where src_url was a directory named with '.' or
-    # './', so that running a command like:
-    #   gsutil cp -r . gs://dest
-    # will produce obj names of the form gs://dest/abc instead of
-    # gs://dest/./abc.
-    if dst_key_name.startswith('.%s' % os.sep):
-      dst_key_name = dst_key_name[2:]
 
   else:
-    # Case 3.
+    # Case 2.
     dst_key_name = exp_src_url.object_name.rpartition(src_url.delim)[-1]
 
-  if (not recursive_move_to_new_subdir and
-      (exp_dst_url.IsFileUrl() or _ShouldTreatDstUrlAsBucketSubDir(
-          have_multiple_srcs, exp_dst_url, have_existing_dest_subdir,
-          src_url_names_container, recursion_requested))):
+  if (exp_dst_url.IsFileUrl() or _ShouldTreatDstUrlAsBucketSubDir(
+      have_multiple_srcs, exp_dst_url, have_existing_dest_subdir,
+      src_url_names_container, recursion_requested)):
     if exp_dst_url.object_name and exp_dst_url.object_name.endswith(
         exp_dst_url.delim):
       dst_key_name = '%s%s%s' % (exp_dst_url.object_name.rstrip(
@@ -961,13 +999,14 @@ def CheckForDirFileConflict(exp_src_url, dst_url):
                            (exp_src_url.url_string, dst_path))
 
 
-def _PartitionFile(fp,
-                   file_size,
-                   src_url,
+def _PartitionFile(canned_acl,
                    content_type,
-                   canned_acl,
                    dst_bucket_url,
+                   file_size,
+                   fp,
                    random_prefix,
+                   src_url,
+                   storage_class,
                    tracker_file,
                    tracker_file_lock,
                    encryption_key_sha256=None,
@@ -980,14 +1019,15 @@ def _PartitionFile(fp,
   corresponding to each part.
 
   Args:
-    fp: The file object to be partitioned.
-    file_size: The size of fp, in bytes.
-    src_url: Source FileUrl from the original command.
-    content_type: content type for the component and final objects.
     canned_acl: The user-provided canned_acl, if applicable.
-    dst_bucket_url: CloudUrl for the destination bucket
+    content_type: content type for the component and final objects.
+    dst_bucket_url: CloudUrl for the destination bucket.
+    file_size: The size of fp, in bytes.
+    fp: The file object to be partitioned.
     random_prefix: The randomly-generated prefix used to prevent collisions
                    among the temporary component names.
+    src_url: Source FileUrl from the original command.
+    storage_class: storage class for the component and final objects.
     tracker_file: The path to the parallel composite upload tracker file.
     tracker_file_lock: The lock protecting access to the tracker file.
     encryption_key_sha256: Encryption key SHA256 for use in this upload, if any.
@@ -1028,8 +1068,8 @@ def _PartitionFile(fp,
     offset = i * component_size
     func_args = PerformParallelUploadFileToObjectArgs(
         fp.name, offset, file_part_length, src_url, tmp_dst_url, canned_acl,
-        content_type, tracker_file, tracker_file_lock, encryption_key_sha256,
-        gzip_encoded)
+        content_type, storage_class, tracker_file, tracker_file_lock,
+        encryption_key_sha256, gzip_encoded)
     file_names.append(temp_file_name)
     dst_args[temp_file_name] = func_args
 
@@ -1128,13 +1168,14 @@ def _DoParallelCompositeUpload(fp,
   # before and after the operation.
   components_info = {}
   # Get the set of all components that should be uploaded.
-  dst_args = _PartitionFile(fp,
-                            file_size,
-                            src_url,
+  dst_args = _PartitionFile(canned_acl,
                             dst_obj_metadata.contentType,
-                            canned_acl,
                             dst_bucket_url,
+                            file_size,
+                            fp,
                             random_prefix,
+                            src_url,
+                            dst_obj_metadata.storageClass,
                             tracker_file_name,
                             tracker_file_lock,
                             encryption_key_sha256=encryption_key_sha256,
@@ -1444,6 +1485,65 @@ def ExpandUrlToSingleBlr(url_str,
   # Case 4: If no objects/prefixes matched, and nonexistent objects should be
   # treated as subdirectories.
   return (storage_url, treat_nonexistent_object_as_subdir)
+
+
+def TriggerReauthForDestinationProviderIfNecessary(destination_url, gsutil_api,
+                                                   worker_count):
+  """Makes a request to the destination API provider to trigger reauth.
+
+  Addresses https://github.com/GoogleCloudPlatform/gsutil/issues/1639.
+
+  If an API call occurs in a child process, the library that handles
+  reauth will fail. We need to make at least one API call in the main
+  process to allow a user to reauthorize.
+
+  For cloud source URLs this already happens because the plurality of 
+  the source name expansion iterator is checked in the main thread. For
+  cloud destination URLs, only some situations result in a similar API
+  call. In these situations, this function exits without performing an
+  API call. In others, this function performs an API call to trigger
+  reauth.
+
+  Args:
+    destination_url (StorageUrl): The destination of the transfer.
+    gsutil_api (CloudApiDelegator): API to use for the GetBucket call.
+    worker_count (int): If greater than 1, assume that parallel execution
+      is used. Technically, reauth challenges can be answered in the main
+      process, but they may be triggered multiple times if multithreading
+      is used.
+  
+  Returns:
+    None, but performs an API call if necessary.
+  """
+  # Only perform this check if the user has opted in.
+  if not config.getbool(
+      'GSUtil', 'trigger_reauth_challenge_for_parallel_operations', False):
+    return
+
+  # Reauth is not necessary for non-cloud destinations.
+  if not destination_url.IsCloudUrl():
+    return
+
+  # Destination wildcards are expanded by an API call in the main process.
+  if ContainsWildcard(destination_url.url_string):
+    return
+
+  # If gsutil executes sequentially, all calls will occur in the main process.
+  if worker_count == 1:
+    return
+
+  try:
+    # The specific API call is not important, but one must occur.
+    gsutil_api.GetBucket(
+        destination_url.bucket_name,
+        fields=['location'],  # Single field to limit XML API calls.
+        provider=destination_url.scheme)
+  except Exception as e:
+    if isinstance(e, pyu2f.errors.PluginError):
+      raise
+
+    # Other exceptions can be ignored. The purpose was just to trigger
+    # a reauth challenge.
 
 
 def FixWindowsNaming(src_url, dst_url):

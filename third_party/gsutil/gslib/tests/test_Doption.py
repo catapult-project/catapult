@@ -109,6 +109,31 @@ class TestDOption(testcase.GsUtilIntegrationTestCase):
                              return_stderr=True)
     self.assertIn('\'cookie\': \'123\'', stderr2)
 
+  def test_minus_D_arbitrary_header_cp(self):
+    """Test upload and download with a sample perf trace token."""
+    file_name = 'bar'
+    fpath = self.CreateTempFile(file_name=file_name, contents=b'foo')
+    bucket_uri = self.CreateBucket()
+    stderr = self.RunGsUtil(
+        ['-D', '-h', 'custom-header:asdf', 'cp', fpath,
+         suri(bucket_uri)],
+        return_stderr=True)
+    self.assertRegex(stderr,
+                     r"Headers: \{[\s\S]*'custom-header': 'asdf'[\s\S]*\}")
+    stderr2 = self.RunGsUtil([
+        '-D', '-h', 'custom-header:asdf', 'cp',
+        suri(bucket_uri, file_name), fpath
+    ],
+                             return_stderr=True)
+    self.assertRegex(stderr2,
+                     r"Headers: \{[\s\S]*'custom-header': 'asdf'[\s\S]*\}")
+
+    # Ensure the header wasn't set in metadata somehow:
+    stdout = self.RunGsUtil(
+        ['ls', '-L', suri(bucket_uri, file_name)], return_stdout=True)
+    self.assertNotIn('custom', stdout)
+    self.assertNotIn('asdf', stdout)
+
   def test_minus_D_resumable_upload(self):
     fpath = self.CreateTempFile(contents=b'a1b2c3d4')
     bucket_uri = self.CreateBucket()

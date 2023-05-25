@@ -48,24 +48,24 @@ _DETAILED_HELP_TEXT = ("""
      has already been reported by another user. From there you can also
      subscribe to updates to the issue.
 
-  3. If a GitHub issue doesn't already exist, create one about your idea before
+     If a GitHub issue doesn't already exist, create one about your idea before
      sending actual code. Often we can discuss the idea and help propose things
      that could save you later revision work.
 
-  4. We tend to avoid adding command line options that are of use to only
+  3. We tend to avoid adding command line options that are of use to only
      a very small fraction of users, especially if there's some other way
      to accommodate such needs. Adding such options complicates the code and
      also adds overhead to users having to read through an "alphabet soup"
      list of option documentation.
 
-  5. While gsutil has a number of features specific to Google Cloud Storage,
+  4. While gsutil has a number of features specific to Google Cloud Storage,
      it can also be used with other cloud storage providers. We're open to
      including changes for making gsutil support features specific to other
      providers, as long as those changes don't make gsutil work worse for Google
      Cloud Storage. If you do make such changes we recommend including someone
      with knowledge of the specific provider as a code reviewer (see below).
 
-  6. You can check out the gsutil code from the GitHub repository:
+  5. You can check out the gsutil code from the GitHub repository:
 
        https://github.com/GoogleCloudPlatform/gsutil
 
@@ -76,13 +76,13 @@ _DETAILED_HELP_TEXT = ("""
      To push your own changes to GitHub, click the Fork button on the
      repository page and clone the repository from your own fork.
 
-  7. The gsutil git repository uses git submodules to pull in external modules.
+  6. The gsutil git repository uses git submodules to pull in external modules.
      After checking out the repository, make sure to also pull the submodules
      by entering into the gsutil top-level directory and run:
 
        git submodule update --init --recursive
 
-  8. Please make sure to run all tests against your modified code. To
+  7. Please make sure to run all tests against your modified code. To
      do this, change directories into the gsutil top-level directory and run:
 
        ./gsutil test
@@ -96,10 +96,10 @@ _DETAILED_HELP_TEXT = ("""
        ./gsutil test -u
 
      If you made changes to boto, please run the boto tests. For these tests you
-     need to use HMAC credentials (from gsutil config -a), because the current
-     boto test suite doesn't import the OAuth2 handler. You'll also need to
-     install some python modules. Change directories into the boto root
-     directory at third_party/boto and run:
+     need to use HMAC credentials (from gsutil config -a), because the boto test
+     suite doesn't import the OAuth2 handler. You'll also need to install some
+     Python modules. Change directories into the boto root directory at
+     third_party/boto and run:
 
        pip install -r requirements.txt
 
@@ -107,22 +107,21 @@ _DETAILED_HELP_TEXT = ("""
      Make sure each of the individual installations succeeded. If they don't
      you may need to run the install command again.
 
-     Then ensure your .boto file has HMAC credentials defined (the boto tests
-     don't load the OAUTH2 plugin), and then change directories into boto's
-     tests directory and run:
+     Then ensure your .boto file has HMAC credentials defined, and then change
+     directories into boto's tests directory and run:
 
        python test.py unit
        python test.py -t s3 -t gs -t ssl
 
-  9. Please consider contributing test code for your change, especially if the
+  8. Please consider contributing test code for your change, especially if the
      change impacts any of the core gsutil code (like the gsutil cp command).
 
-  10. Please run the yapf linter with the config files in the root of the GitHub
-      repository.
+  9. Please run the yapf linter with the config files in the root of the GitHub
+     repository:
 
        yapf -irp .
 
-  11. When it's time to send us code, please submit a PR to the `gsutil GitHub
+  10. When it's time to send us code, please submit a PR to the `gsutil GitHub
       repository <https://github.com/GoogleCloudPlatform/gsutil>`_. For help on
       making GitHub PRs, please refer to this
       `GitHub help document <https://help.github.com/en/articles/about-pull-requests>`_.

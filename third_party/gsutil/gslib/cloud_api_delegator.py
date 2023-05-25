@@ -52,6 +52,7 @@ class CloudApiDelegator(CloudApi):
                status_queue,
                provider=None,
                debug=0,
+               http_headers=None,
                trace_token=None,
                perf_trace_token=None,
                user_project=None):
@@ -70,6 +71,7 @@ class CloudApiDelegator(CloudApi):
       provider: Default provider prefix describing cloud storage provider to
                 connect to.
       debug: Debug level for the API implementation (0..3).
+      http_headers (dict|None): Arbitrary headers to be included in every request.
       trace_token: Apiary trace token to pass to API.
       perf_trace_token: Performance trace token to use when making API calls.
       user_project: Project to be billed for this project.
@@ -79,6 +81,7 @@ class CloudApiDelegator(CloudApi):
                                             status_queue,
                                             provider=provider,
                                             debug=debug,
+                                            http_headers=http_headers,
                                             trace_token=trace_token,
                                             perf_trace_token=perf_trace_token,
                                             user_project=user_project)
@@ -140,6 +143,7 @@ class CloudApiDelegator(CloudApi):
             self.status_queue,
             provider=provider,
             debug=self.debug,
+            http_headers=self.http_headers,
             trace_token=self.trace_token,
             perf_trace_token=self.perf_trace_token,
             user_project=self.user_project))

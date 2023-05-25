@@ -34,6 +34,7 @@ class CloudApi(object):
                status_queue,
                provider=None,
                debug=0,
+               http_headers=None,
                trace_token=None,
                perf_trace_token=None,
                user_project=None):
@@ -47,6 +48,7 @@ class CloudApi(object):
       provider: Default provider prefix describing cloud storage provider to
                 connect to.
       debug: Debug level for the API implementation (0..3).
+      http_headers (dict|None): Arbitrary headers to be included in every request.
       trace_token: Google internal trace token to pass to the API
                    implementation (string).
       perf_trace_token: Performance trace token to use when making API calls.
@@ -57,6 +59,7 @@ class CloudApi(object):
     self.status_queue = status_queue
     self.provider = provider
     self.debug = debug
+    self.http_headers = http_headers
     self.trace_token = trace_token
     self.perf_trace_token = perf_trace_token
     self.user_project = user_project

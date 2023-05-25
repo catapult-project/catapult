@@ -20,13 +20,18 @@ from __future__ import unicode_literals
 
 from contextlib import contextmanager
 import functools
+import locale
+import logging
 import os
 import pkgutil
 import posixpath
 import re
 import io
+import signal
+import subprocess
 import sys
 import tempfile
+import threading
 import unittest
 
 import six
@@ -35,16 +40,19 @@ from six.moves import cStringIO
 
 import boto
 import crcmod
+import gslib
+from gslib.kms_api import KmsApi
+from gslib.project_id import PopulateProjectId
 import mock_storage_service  # From boto/tests/integration/s3
 
 from gslib.cloud_api import ResumableDownloadException
 from gslib.cloud_api import ResumableUploadException
 from gslib.lazy_wrapper import LazyWrapper
 import gslib.tests as gslib_tests
+from gslib.utils import posix_util
 from gslib.utils.boto_util import UsingCrcmodExtension, HasUserSpecifiedGsHost
 from gslib.utils.constants import UTF8
 from gslib.utils.encryption_helper import Base64Sha256FromBase64EncryptionKey
-from gslib.utils.posix_util import GetDefaultMode
 from gslib.utils.system_util import IS_WINDOWS
 from gslib.utils.unit_util import MakeHumanReadable
 
@@ -101,7 +109,8 @@ if not IS_WINDOWS:
     return set([GetPrimaryGid()] +
                [g.gr_gid for g in grp.getgrall() if USER_NAME() in g.gr_mem])
 
-  DEFAULT_MODE = int(GetDefaultMode(), 8)
+  posix_util.InitializeDefaultMode()
+  DEFAULT_MODE = int(posix_util.SYSTEM_POSIX_MODE, 8)
   USER_ID = os.getuid()
   USER_NAME = LazyWrapper(lambda: pwd.getpwuid(USER_ID).pw_name)
   # Take the current user's UID and increment it by one, this counts as an
@@ -118,6 +127,95 @@ if not IS_WINDOWS:
   # as a member of the group in the gr_mem group attribute. Make this a list of
   # all group IDs and cast as a set for more efficient lookup times.
   USER_GROUPS = LazyWrapper(lambda: GetUserGroups())
+
+
+def GetGsutilCommand(raw_command, force_gsutil=False):
+  """Adds config options to a list of strings defining a gsutil subcommand."""
+  # TODO(b/203250512) Remove this once all the commands are supported
+  # via gcloud storage.
+  if force_gsutil:
+    use_gcloud_storage = False
+  else:
+    use_gcloud_storage = boto.config.getbool('GSUtil', 'use_gcloud_storage',
+                                             False)
+  gcloud_storage_setting = [
+      '-o',
+      'GSUtil:use_gcloud_storage={}'.format(use_gcloud_storage),
+      '-o',
+      'GSUtil:hidden_shim_mode=no_fallback',
+  ]
+  gsutil_command = [
+      gslib.GSUTIL_PATH, '--testexceptiontraces', '-o',
+      'GSUtil:default_project_id=' + PopulateProjectId()
+  ] + gcloud_storage_setting + raw_command
+
+  # Checks to see if the test was invoked from a par file (bundled archive).
+  # If not, adds the Python executable path to ensure that the correct version
+  # of Python is used for testing.
+  if not InvokedFromParFile():
+    gsutil_command_with_executable_path = [str(sys.executable)] + gsutil_command
+  else:
+    gsutil_command_with_executable_path = gsutil_command
+
+  return [six.ensure_str(part) for part in gsutil_command_with_executable_path]
+
+
+def GetGsutilSubprocess(cmd, env_vars=None):
+  """Returns a subprocess.Popen object for for running a gsutil command."""
+  env = os.environ.copy()
+  if env_vars:
+    env.update(env_vars)
+  envstr = dict()
+  for k, v in six.iteritems(env):
+    envstr[six.ensure_str(k)] = six.ensure_str(v)
+
+  # The os.setsid call allows us to kill the process group below
+  # if execution times out. With Python 2.7, there's no other way to
+  # stop execution (p.kill() doesn't work). Since os.setsid is not available
+  # on Windows, we just deal with the occasional timeouts on Windows.
+  preexec_fn = os.setsid if hasattr(os, 'setsid') else None
+  return subprocess.Popen(cmd,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE,
+                          stdin=subprocess.PIPE,
+                          env=envstr,
+                          preexec_fn=preexec_fn)
+
+
+def CommunicateWithTimeout(process, stdin=None):
+  if stdin is not None:
+    if six.PY3:
+      if not isinstance(stdin, bytes):
+        stdin = stdin.encode(UTF8)
+    else:
+      stdin = stdin.encode(UTF8)
+  comm_kwargs = {'input': stdin}
+
+  def Kill():
+    os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+
+  if six.PY3:
+    # TODO(b/135936279): Make this number configurable in .boto
+    comm_kwargs['timeout'] = 180
+  else:
+    timer = threading.Timer(180, Kill)
+    timer.start()
+
+  c_out = process.communicate(**comm_kwargs)
+
+  if not six.PY3:
+    timer.cancel()
+
+  try:
+    c_out = [six.ensure_text(output) for output in c_out]
+  except UnicodeDecodeError:
+    c_out = [
+        six.ensure_text(output, locale.getpreferredencoding(False))
+        for output in c_out
+    ]
+
+  return c_out
+
 
 # 256-bit base64 encryption keys used for testing AES256 customer-supplied
 # encryption. These are public and open-source, so don't ever use them for
@@ -137,6 +235,9 @@ TEST_ENCRYPTION_KEY3_SHA256_B64 = Base64Sha256FromBase64EncryptionKey(
 TEST_ENCRYPTION_KEY4 = b'U6zIErjZCK/IpIeDS0pJrDayqlZurY8M9dvPJU0SXI8='
 TEST_ENCRYPTION_KEY4_SHA256_B64 = Base64Sha256FromBase64EncryptionKey(
     TEST_ENCRYPTION_KEY4)
+
+TEST_ENCRYPTION_KEY_S3 = b'MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI='
+TEST_ENCRYPTION_KEY_S3_MD5 = b'dnF5x6K/8ZZRzpfSlMMM+w=='
 
 TEST_ENCRYPTION_CONTENT1 = b'bar'
 TEST_ENCRYPTION_CONTENT1_MD5 = 'N7UdGUp1E+RbVvZSTy1R8g=='
@@ -169,6 +270,47 @@ POSIX_MODE_ERROR = 'Mode for %s won\'t allow read access.'
 POSIX_GID_ERROR = 'GID for %s doesn\'t exist on current system.'
 POSIX_UID_ERROR = 'UID for %s doesn\'t exist on current system.'
 POSIX_INSUFFICIENT_ACCESS_ERROR = 'Insufficient access with uid/gid/mode for %s'
+
+
+class KmsTestingResources(object):
+  """Constants for KMS resource names to be used in integration testing."""
+  KEYRING_LOCATION = 'us-central1'
+  # Since KeyRings and their child resources cannot be deleted, we minimize the
+  # number of resources created by using a hard-coded keyRing name.
+  KEYRING_NAME = 'keyring-for-gsutil-integration-tests'
+
+  # Used by tests where we don't need to alter the state of a cryptoKey and/or
+  # its IAM policy bindings once it's initialized the first time.
+  CONSTANT_KEY_NAME = 'key-for-gsutil-integration-tests'
+  CONSTANT_KEY_NAME2 = 'key-for-gsutil-integration-tests2'
+
+  # This key should not be authorized so it can be used for failure cases.
+  CONSTANT_KEY_NAME_DO_NOT_AUTHORIZE = 'key-for-gsutil-no-auth'
+  # Pattern used for keys that should only be operated on by one tester at a
+  # time. Because multiple integration test invocations can run at the same
+  # time, we want to minimize the risk of them operating on each other's key,
+  # while also not creating too many one-time-use keys (as they cannot be
+  # deleted). Tests should fill in the %d entries with a digit between 0 and 9.
+  MUTABLE_KEY_NAME_TEMPLATE = 'cryptokey-for-gsutil-integration-tests-%d%d%d'
+
+
+def AuthorizeProjectToUseTestingKmsKey(
+    key_name=KmsTestingResources.CONSTANT_KEY_NAME):
+  """Ensures test keys exist and that the service agent is authorized."""
+  kms_api = KmsApi(logging.getLogger())
+
+  keyring_fully_qualified_name = kms_api.CreateKeyRing(
+      PopulateProjectId(None),
+      KmsTestingResources.KEYRING_NAME,
+      location=KmsTestingResources.KEYRING_LOCATION)
+
+  key_fully_qualified_name = kms_api.CreateCryptoKey(
+      keyring_fully_qualified_name, key_name)
+  cmd = GetGsutilCommand(['kms', 'authorize', '-k', key_fully_qualified_name],
+                         force_gsutil=True)
+  process = GetGsutilSubprocess(cmd)
+  CommunicateWithTimeout(process)
+  return key_fully_qualified_name
 
 
 def BuildErrorRegex(obj, err_str):

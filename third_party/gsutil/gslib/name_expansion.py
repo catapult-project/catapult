@@ -62,13 +62,16 @@ class NameExpansionResult(object):
   """
 
   def __init__(self, source_storage_url, is_multi_source_request,
-               names_container, expanded_storage_url, expanded_result):
+               is_multi_top_level_source_request, names_container,
+               expanded_storage_url, expanded_result):
     """Instantiates a result from name expansion.
 
     Args:
       source_storage_url: StorageUrl that was being expanded.
-      is_multi_source_request: bool indicator whether src_url_str expanded to
-          more than one BucketListingRef.
+      is_multi_source_request: bool indicator whether multiple input URLs or
+          src_url_str expanded to more than one BucketListingRef.
+      is_multi_top_level_source_request: same as is_multi_source_request but
+          measured before recursion.
       names_container: Bool indicator whether src_url names a container.
       expanded_storage_url: StorageUrl that was expanded.
       expanded_result: cloud object metadata in MessageToJson form (for
@@ -77,6 +80,7 @@ class NameExpansionResult(object):
     """
     self.source_storage_url = source_storage_url
     self.is_multi_source_request = is_multi_source_request
+    self.is_multi_top_level_source_request = is_multi_top_level_source_request
     self.names_container = names_container
     self.expanded_storage_url = expanded_storage_url
     self.expanded_result = encoding.MessageToJson(
@@ -203,7 +207,12 @@ class _NameExpansionIterator(object):
         if self.url_strs.has_plurality:
           raise CommandException('Multiple URL strings are not supported '
                                  'with streaming ("-") URLs or named pipes.')
-        yield NameExpansionResult(storage_url, False, False, storage_url, None)
+        yield NameExpansionResult(source_storage_url=storage_url,
+                                  is_multi_source_request=False,
+                                  is_multi_top_level_source_request=False,
+                                  names_container=False,
+                                  expanded_storage_url=storage_url,
+                                  expanded_result=None)
         continue
 
       # Step 1: Expand any explicitly specified wildcards. The output from this
@@ -229,6 +238,10 @@ class _NameExpansionIterator(object):
                 expand_top_level_buckets=True))
         if storage_url.IsCloudUrl() and storage_url.IsBucket():
           src_names_bucket = True
+
+      src_url_expands_to_multi = post_step1_iter.HasPlurality()
+      is_multi_top_level_source_request = (self.url_strs.has_plurality or
+                                           src_url_expands_to_multi)
 
       # Step 2: Expand bucket subdirs. The output from this
       # step is an iterator of (names_container, BucketListingRef).
@@ -277,11 +290,15 @@ class _NameExpansionIterator(object):
       #  [dir/a.txt, dir/b.txt, dir/c/]
       for (names_container, blr) in post_step3_iter:
         src_names_container = src_names_bucket or names_container
-
         if blr.IsObject():
-          yield NameExpansionResult(storage_url, is_multi_source_request,
-                                    src_names_container, blr.storage_url,
-                                    blr.root_object)
+          yield NameExpansionResult(
+              source_storage_url=storage_url,
+              is_multi_source_request=is_multi_source_request,
+              is_multi_top_level_source_request=
+              is_multi_top_level_source_request,
+              names_container=src_names_container,
+              expanded_storage_url=blr.storage_url,
+              expanded_result=blr.root_object)
         else:
           # Use implicit wildcarding to do the enumeration.
           # At this point we are guaranteed that:
@@ -308,8 +325,14 @@ class _NameExpansionIterator(object):
           # This will be a flattened listing of all underlying objects in the
           # subdir.
           for blr in wc_iter:
-            yield NameExpansionResult(storage_url, is_multi_source_request,
-                                      True, blr.storage_url, blr.root_object)
+            yield NameExpansionResult(
+                source_storage_url=storage_url,
+                is_multi_source_request=is_multi_source_request,
+                is_multi_top_level_source_request=(
+                    is_multi_top_level_source_request),
+                names_container=True,
+                expanded_storage_url=blr.storage_url,
+                expanded_result=blr.root_object)
 
   def WildcardIterator(self, url_string):
     """Helper to instantiate gslib.WildcardIterator.
@@ -594,6 +617,8 @@ class CopyObjectInfo(object):
     """
     self.source_storage_url = name_expansion_result.source_storage_url
     self.is_multi_source_request = name_expansion_result.is_multi_source_request
+    self.is_multi_top_level_source_request = (
+        name_expansion_result.is_multi_top_level_source_request)
     self.names_container = name_expansion_result.names_container
     self.expanded_storage_url = name_expansion_result.expanded_storage_url
     self.expanded_result = name_expansion_result.expanded_result

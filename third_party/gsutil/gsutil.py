@@ -42,6 +42,25 @@ def OutputAndExit(message):
   sys.exit(1)
 
 
+def _fix_google_module():
+  """Reloads the google module to prefer our third_party copy.
+
+  When Python is not invoked with the -S option, it may preload the google module via .pth file.
+  This leads to the "site_packages" version being preferred over gsutil "third_party" version.
+  To force the "third_party" version, insert the path at the start of sys.path and reload the google module.
+
+  This is a hacky. Reloading is required for the rare case that users have
+  google-auth already installed in their Python environment.
+  Note that this reload may cause an issue for Python 3.5.3 and lower
+  because of the weakref issue, fixed in Python 3.5.4:
+  https://github.com/python/cpython/commit/9cd7e17640a49635d1c1f8c2989578a8fc2c1de6.
+  """
+  if 'google' not in sys.modules:
+    return
+  import importlib  # pylint: disable=g-import-not-at-top
+  importlib.reload(sys.modules['google'])
+
+
 GSUTIL_DIR = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
 if not GSUTIL_DIR:
   OutputAndExit('Unable to determine where gsutil is installed. Sorry, '
@@ -81,9 +100,18 @@ THIRD_PARTY_LIBS = [
     ('gcs-oauth2-boto-plugin', ''),
     ('fasteners', ''),  # oauth2client and apitools dependency
     ('monotonic', ''),  # fasteners dependency
+    ('pyparsing', ''),  # httplib2 dependency
     ('httplib2', submodule_pyvers),
     ('retry-decorator', ''),
     ('six', ''),  # Python 2 / 3 compatibility dependency
+    ('cachetools', 'src'),  # google auth dependency
+    ('urllib3', 'src'),  # requests dependency
+    ('charset_normalizer', ''),  # requests dependency
+    ('chardet', ''),  # requests dependency
+    ('certifi', ''),  # requests dependency
+    ('idna', ''),  # requests dependency
+    ('requests', ''),  # google auth dependency
+    ('google-auth-library-python', ''),
 ]
 
 # The wrapper script adds all third_party libraries to the Python path, since
@@ -117,6 +145,7 @@ except ImportError:
 
 
 def RunMain():
+  _fix_google_module()
   # pylint: disable=g-import-not-at-top
   import gslib.__main__
   sys.exit(gslib.__main__.main())

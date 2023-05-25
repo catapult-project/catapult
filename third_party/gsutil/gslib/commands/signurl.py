@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Implementation of Url Signing workflow.
+"""Implementation of URL Signing workflow.
 
 see: https://cloud.google.com/storage/docs/access-control#Signed-URLs)
 """
@@ -85,8 +85,8 @@ _DETAILED_HELP_TEXT = ("""
   <https://cloud.google.com/storage/docs/access-control/signed-urls>`_ for
   background about signed URLs.
 
-  Multiple gs:// urls may be provided and may contain wildcards. A signed url
-  will be produced for each provided url, authorized
+  Multiple gs:// URLs may be provided and may contain wildcards. A signed URL
+  will be produced for each provided URL, authorized
   for the specified HTTP method and valid for the given duration.
 
   NOTE: Unlike the gsutil ls command, the signurl command does not support
@@ -97,7 +97,7 @@ _DETAILED_HELP_TEXT = ("""
   The signurl command uses the private key for a service account (the
   '<private-key-file>' argument) to generate the cryptographic
   signature for the generated URL. The private key file must be in PKCS12
-  or JSON format. If the private key is encrypted the signed url command will
+  or JSON format. If the private key is encrypted the signed URL command will
   prompt for the passphrase used to protect the private key file
   (default 'notasecret'). For more information regarding generating a private
   key for use with the signurl command please see the `Authentication
@@ -118,10 +118,10 @@ _DETAILED_HELP_TEXT = ("""
                 Note that it's not valid to specify both the ``-b`` and
                 ``--use-service-account`` options together.
 
-  -c            Specifies the content type for which the signed url is
+  -c            Specifies the content type for which the signed URL is
                 valid for.
 
-  -d            Specifies the duration that the signed url should be valid
+  -d            Specifies the duration that the signed URL should be valid
                 for, default duration is 1 hour.
 
                 Times may be specified with no suffix (default hours), or
@@ -136,10 +136,10 @@ _DETAILED_HELP_TEXT = ("""
 
                 The max duration allowed is 12 hours when -u option is used.
                 This limitation exists because the system-managed key used to
-                sign the url may not remain valid after 12 hours.
+                sign the URL may not remain valid after 12 hours.
 
   -m            Specifies the HTTP method to be authorized for use
-                with the signed url, default is GET. You may also specify
+                with the signed URL, default is GET. You may also specify
                 RESUMABLE to create a signed resumable upload start URL. When
                 using a signed URL to start a resumable upload session, you will
                 need to specify the 'x-goog-resumable:start' header in the
@@ -161,7 +161,7 @@ _DETAILED_HELP_TEXT = ("""
                 signed URL to create a bucket.
 
   -u            Use service account credentials instead of a private key file
-                to sign the url.
+                to sign the URL.
 
                 You can also use the ``--use-service-account`` option,
                 which is equivalent to ``-u``.
@@ -171,20 +171,20 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>USAGE</B>
-  Create a signed url for downloading an object valid for 10 minutes:
+  Create a signed URL for downloading an object valid for 10 minutes:
 
     gsutil signurl -d 10m <private-key-file> gs://<bucket>/<object>
 
-  Create a signed url without a private key, using a service account's
+  Create a signed URL without a private key, using a service account's
   credentials:
 
     gsutil signurl -d 10m -u gs://<bucket>/<object>
 
-  Create a signed url by impersonating a service account:
+  Create a signed URL by impersonating a service account:
 
     gsutil -i <service account email> signurl -d 10m -u gs://<bucket>/<object>
 
-  Create a signed url, valid for one hour, for uploading a plain text
+  Create a signed URL, valid for one hour, for uploading a plain text
   file via HTTP PUT:
 
     gsutil signurl -m PUT -d 1h -c text/plain <private-key-file> \\
@@ -254,7 +254,7 @@ def _GenSignedUrl(key,
     key: The private key to use for signing the URL.
     api: The CloudApiDelegator instance
     use_service_account: If True, use the service account credentials
-        instead of using the key file to sign the url
+        instead of using the key file to sign the URL
     provider: Cloud storage provider to connect to.  If not present,
         class-wide default is used.
     client_id: Client ID signing this URL.
@@ -273,7 +273,7 @@ def _GenSignedUrl(key,
     generation: If not None, specifies a version of an object for signing.
 
   Returns:
-    The complete url (string).
+    The complete URL (string).
   """
   gs_host = config.get('Credentials', 'gs_host', 'storage.googleapis.com')
   signed_headers = {'host': gs_host}
@@ -398,7 +398,7 @@ class UrlSignCommand(Command):
           'queryauth',
       ],
       help_type='command_help',
-      help_one_line_summary='Create a signed url',
+      help_one_line_summary='Create a signed URL',
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={},
   )
@@ -459,7 +459,7 @@ class UrlSignCommand(Command):
     if not use_service_account and len(self.args) < 2:
       raise CommandException(
           'The command requires a key file argument and one or more '
-          'url arguments if the --use-service-account flag is missing. '
+          'URL arguments if the --use-service-account flag is missing. '
           'Run `gsutil help signurl` for more info')
 
     if use_service_account and billing_project:
@@ -472,7 +472,7 @@ class UrlSignCommand(Command):
   def _ProbeObjectAccessWithClient(self, key, use_service_account, provider,
                                    client_email, gcs_path, generation, logger,
                                    region, billing_project):
-    """Performs a head request against a signed url to check for read access."""
+    """Performs a head request against a signed URL to check for read access."""
 
     # Choose a reasonable time in the future; if the user's system clock is
     # 60 or more seconds behind the server's this will generate an error.
@@ -570,7 +570,7 @@ class UrlSignCommand(Command):
           raise CommandException('Resumable signed URLs require an object '
                                  'name.')
       else:
-        # Need to url encode the object name as Google Cloud Storage does when
+        # Need to URL encode the object name as Google Cloud Storage does when
         # computing the string to sign when checking the signature.
         gcs_path = '{0}/{1}'.format(
             url.bucket_name,

@@ -317,8 +317,10 @@ class MetricsCollector(object):
       cls._disabled_cache = False
       cls.StartTestCollector()
 
-    # Non-testing cases involve checking the cloud SDK wrapper and the analytics
-    # uuid file.
+    # Non-testing cases involve checking for shim usage, the cloud SDK wrapper
+    # and the analytics uuid file.
+    elif boto.config.getbool('GSUtil', 'use_gcloud_storage', False):
+      cls._disabled_cache = True
     elif system_util.InvokedViaCloudSdk():
       cls._disabled_cache = not os.environ.get('GA_CID')
     elif os.path.exists(_UUID_FILE_PATH):

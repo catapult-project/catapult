@@ -19,17 +19,20 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
 
+import os
 import re
+from unittest import mock
 
 import six
 
+from gslib.commands import setmeta
 from gslib.cs_api_map import ApiSelector
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.integration_testcase import SkipForS3
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import SetBotoConfigForTest
+from gslib.tests.util import SetEnvironmentForTest
 from gslib.tests.util import unittest
-from gslib.utils.constants import UTF8
 from gslib.utils.retry_util import Retry
 
 if six.PY3:
@@ -96,7 +99,10 @@ class TestSetMeta(testcase.GsUtilIntegrationTestCase):
     ],
                             expected_status=1,
                             return_stderr=True)
-    self.assertIn('Precondition', stderr)
+    if self._use_gcloud_storage:
+      self.assertIn('pre-condition', stderr)
+    else:
+      self.assertIn('Precondition', stderr)
 
     self.RunGsUtil([
         '-h',
@@ -122,7 +128,11 @@ class TestSetMeta(testcase.GsUtilIntegrationTestCase):
     ],
                             expected_status=1,
                             return_stderr=True)
-    self.assertIn('Precondition', stderr)
+    if self._use_gcloud_storage:
+      self.assertIn('pre-condition', stderr)
+    else:
+      self.assertIn('Precondition', stderr)
+
     self.RunGsUtil([
         '-h', 'x-goog-metageneration-match:1', 'setmeta', '-h',
         'x-%s-meta-xyz:abc' % self.provider_custom_meta, '-h',
@@ -255,7 +265,10 @@ class TestSetMeta(testcase.GsUtilIntegrationTestCase):
     ],
                             expected_status=1,
                             return_stderr=True)
-    self.assertIn('must name an object', stderr)
+    if self._use_gcloud_storage:
+      self.assertIn('ERROR', stderr)
+    else:
+      self.assertIn('must name an object', stderr)
 
   def test_setmeta_valid_with_multiple_colons_in_value(self):
     obj_uri = self.CreateObject(contents=b'foo')
@@ -291,3 +304,30 @@ class TestSetMeta(testcase.GsUtilIntegrationTestCase):
     self.assertIn(
         'gsutil setmeta requires one or more headers to be provided with the'
         ' -h flag. See "gsutil help setmeta" for more information.', stderr)
+
+
+class TestSetMetaShim(testcase.GsUtilUnitTestCase):
+
+  @mock.patch.object(setmeta.SetMetaCommand, 'RunCommand', new=mock.Mock())
+  def test_shim_translates_setmeta_set_and_clear_flags(self):
+    with SetBotoConfigForTest([('GSUtil', 'use_gcloud_storage', 'True'),
+                               ('GSUtil', 'hidden_shim_mode', 'dry_run')]):
+      with SetEnvironmentForTest({
+          'CLOUDSDK_CORE_PASS_CREDENTIALS_TO_GSUTIL': 'True',
+          'CLOUDSDK_ROOT_DIR': 'fake_dir',
+      }):
+        mock_log_handler = self.RunCommand('setmeta', [
+            '-r',
+            '-h',
+            'Cache-Control:',
+            '-h',
+            'Content-Type:fake-content-type',
+            'gs://bucket/object',
+        ],
+                                           return_log_handler=True)
+        info_lines = '\n'.join(mock_log_handler.messages['info'])
+        self.assertIn(
+            ('Gcloud Storage Command: {} alpha storage objects update'
+             ' --recursive --clear-cache-control'
+             ' --content-type=fake-content-type gs://bucket/object').format(
+                 os.path.join('fake_dir', 'bin', 'gcloud')), info_lines)

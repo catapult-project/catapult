@@ -75,7 +75,7 @@ from gslib.utils.posix_util import ConvertDatetimeToPOSIX
 from gslib.utils.posix_util import ConvertModeToBase8
 from gslib.utils.posix_util import DeserializeFileAttributesFromObjectMetadata
 from gslib.utils.posix_util import GID_ATTR
-from gslib.utils.posix_util import InitializeUserGroups
+from gslib.utils.posix_util import InitializePreservePosixData
 from gslib.utils.posix_util import MODE_ATTR
 from gslib.utils.posix_util import MTIME_ATTR
 from gslib.utils.posix_util import NA_ID
@@ -140,8 +140,8 @@ _DETAILED_HELP_TEXT = ("""
   Note 1: Shells (like bash, zsh) sometimes attempt to expand wildcards in ways
   that can be surprising. Also, attempting to copy files whose names contain
   wildcard characters can result in problems. For more details about these
-  issues see the section "POTENTIALLY SURPRISING BEHAVIOR WHEN USING WILDCARDS"
-  under "gsutil help wildcards".
+  issues see `Wildcard behavior considerations
+  <https://cloud.google.com/storage/docs/wildcards#surprising-behavior>`_.
 
   Note 2: If you are synchronizing a large amount of data between clouds you
   might consider setting up a
@@ -275,13 +275,7 @@ _DETAILED_HELP_TEXT = ("""
 
 
 
-<B>CHECKSUM VALIDATION AND FAILURE HANDLING</B>
-  At the end of every upload or download, the gsutil rsync command validates
-  that the checksum of the source file/object matches the checksum of the
-  destination file/object. If the checksums do not match, gsutil deletes
-  the invalid copy and print a warning message. This very rarely happens, but
-  if it does, please contact gs-team@google.com.
-
+<B>FAILURE HANDLING</B>
   The rsync command retries failures when it is useful to do so, but if
   enough failures happen during a particular copy or delete operation, or if
   a failure isn't retryable, the overall command fails.
@@ -334,24 +328,10 @@ _DETAILED_HELP_TEXT = ("""
 
   Note that by default, the gsutil rsync command does not copy the ACLs of
   objects being synchronized and instead will use the default bucket ACL (see
-  "gsutil help defacl"). You can override this behavior with the -p option. See the
-  <a href="https://cloud.google.com/storage/docs/gsutil/commands/rsync#options">Options section</a>
-  to learn how.
-
-
-<B>SLOW CHECKSUMS</B>
-  If you find that CRC32C checksum computation runs slowly, this is likely
-  because you don't have a compiled CRC32c on your system. Try running:
-
-    gsutil ver -l
-
-  If the output contains:
-
-    compiled crcmod: False
-
-  you are running a Python library for computing CRC32C, which is much slower
-  than using the compiled code. For information on getting a compiled CRC32C
-  implementation, see 'gsutil help crc32c'.
+  "gsutil help defacl"). You can override this behavior with the -p option. See
+  the `Options section
+  <https://cloud.google.com/storage/docs/gsutil/commands/rsync#options>`_ to
+  learn how.
 
 
 <B>LIMITATIONS</B>
@@ -416,10 +396,8 @@ _DETAILED_HELP_TEXT = ("""
                  ignored. Note that gsutil does not follow directory symlinks,
                  regardless of whether -e is specified.
 
-  -i             This forces rsync to skip any files which exist on the destination
-                 and have a modified time that is newer than the source file.
-                 (If an existing destination file has a modification time equal to
-                 the source file's, it will be updated if the sizes are different.)
+  -i             Skip copying any files that already exist at the destination,
+                 regardless of their modification time.
 
   -j <ext,...>   Applies gzip transport encoding to any file upload whose
                  extension matches the -j extension list. This is useful when
@@ -512,7 +490,7 @@ _DETAILED_HELP_TEXT = ("""
                  path is always relative (similar to Unix rsync or tar exclude
                  options). For example, if you run the command:
 
-                   gsutil rsync -x "data./.*\\.txt$" dir gs://my-bucket
+                   gsutil rsync -x "data.[/\\\\].*\\.txt$" dir gs://my-bucket
 
                  it skips the file dir/data1/a.txt.
 
@@ -527,6 +505,21 @@ _DETAILED_HELP_TEXT = ("""
                  use ^ as an escape character instead of \\ and escape the |
                  character. When using Windows PowerShell, use ' instead of "
                  and surround the | character with ".
+
+  -y pattern     Similar to the -x option, but the command will first skip
+                 directories/prefixes using the provided pattern and then
+                 exclude files/objects using the same pattern. This is usually
+                 much faster, but won't work as intended with negative
+                 lookahead patterns. For example, if you run the command:
+
+                   gsutil rsync -y "^(?!.*\.txt$).*" dir gs://my-bucket
+
+                 This would first exclude all subdirectories unless they end in
+                 .txt before excluding all files except those ending in .txt.
+                 Running the same command with the -x option would result in all
+                 .txt files being included, regardless of whether they appear in
+                 subdirectories that end in .txt.
+
 """)
 # pylint: enable=anomalous-backslash-in-string
 
@@ -730,10 +723,15 @@ def _FieldedListingIterator(cls, gsutil_api, base_url_str, desc):
           'metadata/%s' % GID_ATTR,
           'metadata/%s' % UID_ATTR,
       ])
+    exclude_tuple = (
+        base_url, cls.exclude_dirs,
+        cls.exclude_pattern) if cls.exclude_pattern is not None else None
+
     iterator = CreateWildcardIterator(
         wildcard,
         gsutil_api,
         project_id=cls.project_id,
+        exclude_tuple=exclude_tuple,
         ignore_symlinks=cls.exclude_symlinks,
         logger=cls.logger).IterObjects(
             # Request just the needed fields, to reduce bandwidth usage.
@@ -757,7 +755,9 @@ def _FieldedListingIterator(cls, gsutil_api, base_url_str, desc):
         os.path.islink(url.object_name)):
       continue
     if cls.exclude_pattern:
-      str_to_check = url.url_string[len(base_url_str):]
+      # The wildcard_iterator may optionally use the exclude pattern to exclude
+      # directories while this section excludes individual files.
+      str_to_check = url.url_string[len(base_url.url_string):]
       if str_to_check.startswith(url.delim):
         str_to_check = str_to_check[1:]
       if cls.exclude_pattern.match(str_to_check):
@@ -1219,8 +1219,14 @@ class _DiffIterator(object):
           src_url_str_to_check = _EncodeUrl(
               src_url_str[base_src_url_len:].replace('\\', '/'))
           dst_url_str_would_copy_to = copy_helper.ConstructDstUrl(
-              self.base_src_url, StorageUrlFromString(src_url_str), True, True,
-              self.base_dst_url, False, self.recursion_requested).url_string
+              src_url=self.base_src_url,
+              exp_src_url=StorageUrlFromString(src_url_str),
+              src_url_names_container=True,
+              have_multiple_srcs=True,
+              has_multiple_top_level_srcs=False,
+              exp_dst_url=self.base_dst_url,
+              have_existing_dest_subdir=False,
+              recursion_requested=self.recursion_requested).url_string
       if dst_url_str is None:
         if not self.sorted_dst_urls_it.IsEmpty():
           # We don't need time created at the destination.
@@ -1580,7 +1586,7 @@ class RsyncCommand(Command):
       usage_synopsis=_SYNOPSIS,
       min_args=2,
       max_args=2,
-      supported_sub_args='a:cCdenpPriRuUx:j:J',
+      supported_sub_args='a:cCdenpPriRuUx:y:j:J',
       file_url_ok=True,
       provider_url_ok=False,
       urls_start_arg=0,
@@ -1667,6 +1673,17 @@ class RsyncCommand(Command):
     for signal_num in GetCaughtSignals():
       RegisterSignalHandler(signal_num, _HandleSignals)
 
+    process_count, thread_count = self._GetProcessAndThreadCount(
+        process_count=None,
+        thread_count=None,
+        parallel_operations_override=self.ParallelOverrideReason.SPEED,
+        print_macos_warning=False)
+    copy_helper.TriggerReauthForDestinationProviderIfNecessary(
+        dst_url,
+        self.gsutil_api,
+        worker_count=process_count * thread_count,
+    )
+
     # Perform sync requests in parallel (-m) mode, if requested, using
     # configured number of parallel processes and threads. Otherwise,
     # perform requests with sequential function calls in current process.
@@ -1717,6 +1734,7 @@ class RsyncCommand(Command):
     self.preserve_posix_attrs = False
     self.compute_file_checksums = False
     self.dryrun = False
+    self.exclude_dirs = False
     self.exclude_pattern = None
     self.skip_old_files = False
     self.ignore_existing = False
@@ -1763,7 +1781,7 @@ class RsyncCommand(Command):
         elif o == '-P':
           self.preserve_posix_attrs = True
           if not IS_WINDOWS:
-            InitializeUserGroups()
+            InitializePreservePosixData()
         elif o == '-r' or o == '-R':
           self.recursion_requested = True
         elif o == '-u':
@@ -1772,7 +1790,9 @@ class RsyncCommand(Command):
           self.ignore_existing = True
         elif o == '-U':
           self.skip_unsupported_objects = True
-        elif o == '-x':
+        elif o == '-x' or o == '-y':
+          if o == '-y':
+            self.exclude_dirs = True
           if not a:
             raise CommandException('Invalid blank exclude filter')
           try:

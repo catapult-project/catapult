@@ -30,12 +30,12 @@ import gslib.tests.testcase as testcase
 def _ConstructNameExpansionIterator(src_url_strs):
   for src_url_str in src_url_strs:
     storage_url = StorageUrlFromString(src_url_str)
-    yield NameExpansionResult(
-        storage_url,
-        False,  # is_multi_source_request
-        False,  # names_container
-        storage_url,  # expanded_storage_url
-        None)  # expanded_result
+    yield NameExpansionResult(source_storage_url=storage_url,
+                              is_multi_source_request=False,
+                              is_multi_top_level_source_request=False,
+                              names_container=False,
+                              expanded_storage_url=storage_url,
+                              expanded_result=None)
 
 
 def _ConstrcutNameExpansionIteratorDestinationTupleIterator(

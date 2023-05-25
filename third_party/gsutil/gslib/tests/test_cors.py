@@ -49,8 +49,6 @@ class TestCors(testcase.GsUtilIntegrationTestCase):
       '{"origin": ["http://origin3.example.com"], '
       '"responseHeader": ["foo2", "bar2"], "method": ["GET", "DELETE"]}])')
 
-  no_cors = 'has no CORS configuration'
-
   xml_cors_doc = parseString(
       '<CorsConfig><Cors><Origins>'
       '<Origin>http://origin1.example.com</Origin>'
@@ -86,6 +84,11 @@ class TestCors(testcase.GsUtilIntegrationTestCase):
       '"http://origin2.example.com"], '
       '"responseHeader": ["foo", "bar"], "method": ["GET", "PUT", "POST"]}]\n')
   cors_json_obj2 = json.loads(cors_doc2)
+
+  def setUp(self):
+    super(TestCors, self).setUp()
+    self.no_cors = ('[]' if self._use_gcloud_storage else
+                    'has no CORS configuration')
 
   def test_cors_translation(self):
     """Tests cors translation for various formats."""
@@ -143,7 +146,11 @@ class TestCors(testcase.GsUtilIntegrationTestCase):
                             [fpath, suri(bucket_uri)],
                             expected_status=1,
                             return_stderr=True)
-    self.assertNotIn('XML CORS data provided', stderr)
+
+    if self._use_gcloud_storage:
+      self.assertIn('JSONDecodeError', stderr)
+    else:
+      self.assertNotIn('XML CORS data provided', stderr)
 
   def test_cors_doc_not_wrapped_in_json_list(self):
     bucket_uri = self.CreateBucket()
@@ -153,9 +160,12 @@ class TestCors(testcase.GsUtilIntegrationTestCase):
                             [fpath, suri(bucket_uri)],
                             expected_status=1,
                             return_stderr=True)
-    self.assertIn('should be formatted as a list', stderr)
+    if self._use_gcloud_storage:
+      self.assertIn("'str' object has no attribute 'items'", stderr)
+    else:
+      self.assertIn('should be formatted as a list', stderr)
 
-  def set_cors_and_reset(self):
+  def test_set_cors_and_reset(self):
     """Tests setting CORS then removing it."""
     bucket_uri = self.CreateBucket()
     tmpdir = self.CreateTempDir()
@@ -163,7 +173,7 @@ class TestCors(testcase.GsUtilIntegrationTestCase):
     self.RunGsUtil(self._set_cmd_prefix + [fpath, suri(bucket_uri)])
     stdout = self.RunGsUtil(self._get_cmd_prefix + [suri(bucket_uri)],
                             return_stdout=True)
-    self.assertEqual(json.loads(stdout), self.valid_cors_obj)
+    self.assertEqual(json.loads(stdout), self.cors_json_obj)
 
     fpath = self.CreateTempFile(tmpdir=tmpdir, contents=self.empty_doc1)
     self.RunGsUtil(self._set_cmd_prefix + [fpath, suri(bucket_uri)])
@@ -171,7 +181,7 @@ class TestCors(testcase.GsUtilIntegrationTestCase):
                             return_stdout=True)
     self.assertIn(self.no_cors, stdout)
 
-  def set_partial_cors_and_reset(self):
+  def test_set_partial_cors_and_reset(self):
     """Tests setting CORS without maxAgeSeconds, then removing it."""
     bucket_uri = self.CreateBucket()
     tmpdir = self.CreateTempDir()
@@ -187,7 +197,7 @@ class TestCors(testcase.GsUtilIntegrationTestCase):
                             return_stdout=True)
     self.assertIn(self.no_cors, stdout)
 
-  def set_multi_non_null_cors(self):
+  def test_set_multi_non_null_cors(self):
     """Tests setting different CORS configurations."""
     bucket1_uri = self.CreateBucket()
     bucket2_uri = self.CreateBucket()
@@ -223,10 +233,16 @@ class TestCors(testcase.GsUtilIntegrationTestCase):
     fpath = self.CreateTempFile(contents=self.cors_doc.encode(UTF8))
 
     # Use @Retry as hedge against bucket listing eventual consistency.
-    expected = set([
-        'Setting CORS on %s/...' % suri(bucket1_uri),
-        'Setting CORS on %s/...' % suri(bucket2_uri)
-    ])
+    if self._use_gcloud_storage:
+      expected = set([
+          'Updating %s' % suri(bucket1_uri),
+          'Updating %s' % suri(bucket2_uri)
+      ])
+    else:
+      expected = set([
+          'Setting CORS on %s/...' % suri(bucket1_uri),
+          'Setting CORS on %s/...' % suri(bucket2_uri)
+      ])
     actual = set()
 
     @Retry(AssertionError, tries=3, timeout_secs=1)
@@ -243,8 +259,12 @@ class TestCors(testcase.GsUtilIntegrationTestCase):
           continue
         actual.add(line)
       for line in expected:
-        self.assertIn(line, actual)
-      self.assertEqual(stderr.count('Setting CORS'), 2)
+        if self._use_gcloud_storage:
+          # Not exact match because gcloud may print progress or other logs.
+          self.assertIn(line, stderr)
+        else:
+          self.assertIn(line, actual)
+          self.assertEqual(stderr.count('Setting CORS'), 2)
 
     _Check1()
 

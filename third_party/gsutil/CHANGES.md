@@ -1,3 +1,265 @@
+Release 5.24 (release date: 2023-05-17)
+======================================
+New Features
+------------------
+- Add shim support for du. (#1699)
+- Make state directory for mTLS certs configurable. (#1680)
+
+Bug Fixes
+------------------
+- mTLS: Add support for certificates without passphrase. (#1700)
+- Fix SSL missing error by updating Linux Python 3.5 version. (#1692)
+
+Other Changes
+------------------
+- Update google auth library to latest version. (#1689)
+- Several documentation updates and clarifications.
+
+Release 5.23 (release date: 2023-04-12)
+======================================
+Other Changes
+------------------
+- Modified gsutil config to reflect the recent OAuth2 flow deprecation.
+- Several documentation updates and clarifications.
+
+Release 5.21 (release date: 2023-03-01)
+======================================
+New Features
+------------------
+- Add shim for hmac command (#1670)
+
+Bug Fixes
+------------------
+- Fix external_account_authorized_user implementation in wrapped_credentials.py + update google-auth dependency (#1674)
+- Fix error message for external account authorized user credentials (#1671)
+- Handles OAuthException from google-auth (#1672)
+
+Other Changes
+------------------
+- Several documentation updates and clarifications.
+
+Release 5.20 (release date: 2023-02-02)
+======================================
+Other Changes
+------------------
+- Small help updates to acl examples and the cp -j flag (#1667)
+
+Release 5.19 (release date: 2023-01-26)
+======================================
+Bug Fixes
+------------------
+- Make reauth check opt-in and silence non-auth-related exceptions. (#1664)
+- Fix rpo get shim for s3 buckets (#1659)
+
+Other Changes
+------------------
+- Several documentation updates and clarifications.
+
+Release 5.18 (release date: 2023-01-12)
+======================================
+New Features
+------------------
+- Add shim support for DefAcl get & set (#1654)
+- Add shim support for rpo set (#1650)
+- Add shim support for the rpo flag in the mb command (#1649)
+- Add shim support for ACL commands (#1638)
+- Add shim support for custom dual regions (#1645)
+- Add shim support for the hash command (#1644)
+- Add rsync -y option to compliment -x (#1642)
+- Add shim support for retention commands (#1641)
+- Add shim support for additional headers (#1634)
+- Add shim support for labels commands (#1636)
+- Add shim support for CORS commands (#1635)
+- Add shim support for IAM commands (#1627)
+
+Bug Fixes
+------------------
+- Handle reauth challenges gracefully in transfer commands. (#1655)
+- Shim gsutil ls behavior of always attempting to fetch hashes. (#1640)
+
+Other Changes
+------------------
+- Add a warning about the deprecation of the OAuth2 flow. (#1658)
+- Several documentation updates and clarifications.
+
+Release 5.17 (release date: 2022-12-01)
+======================================
+New Features
+------------------
+- Shim autoclass command (#1618)
+- Updating WrappedCredentials to allow for External Account Authorized User Credentials (#1617)
+
+Bug Fixes
+------------------
+- Fix rsync -x test to address issue #1615 (#1629, #1623)
+
+Other Changes
+------------------
+- Pin httplib2 to 0.20.4 version (#1628)
+- Several documentation updates and clarifications.
+
+Release 5.16 (release date: 2022-10-27)
+======================================
+New Features
+------------------
+- Shim lifecycle command. (#1610)
+- Shim bucketpolicy only and ubla commands (#1608)
+ 
+Bug Fixes
+------------------
+- Fixed rsync -x test for Windows and updated docs to match (#1609)
+ 
+Other Changes
+------------------
+- Update google auth dependency for interactive mode, and url validation (#1614)
+
+Release 5.15 (release date: 2022-10-18)
+======================================
+Bug Fixes
+------------------
+- Wildcard iterator should exclude filepaths from rsync -x (#1602)
+- Ensure arbitrary headers are included in every rsync request. (#1600)
+
+Other Changes
+------------------
+- Disable mTLS E2E tests (#1604)
+
+Release 5.14 (release date: 2022-09-22)
+======================================
+New Features
+------------------
+- Support including arbitrary headers in requests. (#1598)
+- Translate retention flag output for mb shim (#1593)
+- Shim cp continue-on-error flag (#1591)
+- Add flag for shimming stat. Stop relying on 'run by shim' property. (#1587)
+
+Bug Fixes
+------------------
+- Update shim get keys (#1595)
+- Update google auth dependency (#1581)
+
+Other Changes
+------------------
+- Update formatting on shim.py (#1597)
+- Mb test parity minus retention. (#1592)
+- Several documentation updates and clarifications.
+
+Release 5.13 (release date: 2022-09-07)
+======================================
+New Features
+------------------
+- Shim now supports mv, compose.
+- The version command will now report on whether the shim is being used.
+
+Other changes
+------------------
+- Shim topic added to additional help.
+- Several documentation updates and clarifications.
+
+Release 5.12 (release date: 2022-08-11)
+======================================
+New Features
+------------------
+- Allow custom storage class flag for parallel composite upload (#1553)
+- Shim requesterpays command (#1552)
+- Shim logging command (#1551)
+- Shim web command (#1550)
+- Shim gsutil rb command (#1549)
+- Shim versioning command to gcloud storage (#1544)
+- Shim stat command (#1543)
+
+Bug Fixes
+------------------
+- Update URL for wrapped external creds test (#1568-#1571)
+- Update CDR regions to a working pair (#1566)
+- Add retries with exponential backoff to the flow that authorizes the service agent to use CMEKs (#1541)
+- Fix linter check in shim_util.py (#1546)
+- Edit test_nearline_applied_to_parallel_composite_upload so shim passes. (#1558)
+- Skip all CDR tests on XML API as there's no way to list placement. (#1556)
+
+Other Changes
+------------------
+- Increased test parity coverage
+- Updated the cat -r command error behavior (#1531)
+
+Release 5.11 (release date: 2022-07-07)
+======================================
+New Features
+------------------
+- Bring back placement flag for custom dual regions (#1525)
+- Shim rewrite command. (#1537)
+- Shim retention object-based subcommands. (#1536)
+- Test parity for streaming uploads. (#1533)
+- Add pap flag shim support. (#1522)
+- Shim support for kms (#1507)
+- Update rm shim test parity (#1521)
+- Shim cp -I flag (#1520)
+- Add shim support for notification commands. (#1518)
+- Add shim support for cp ACL flags (#1519)
+- Turning off metrics when the shim is enabled. (#1512)
+- Add shim support for gzip flags. (#1511)
+- Shim translation and test parity for cp manifest flag. (#1497)
+- Run by shim env var. (#1510)
+- Shim preserve posix (-P) flag. (#1506)
+
+Bug Fixes
+------------------
+- Added flush to cat\_helper.py (#1528)
+
+Other Changes
+------------------
+- Replace deprecated threading.currentThread with current\_thread (#1524)
+- Updated boto to latest commit
+- Several documentation updates and clarifications.
+
+Release 5.10 (release date: 2022-04-26)
+======================================
+New Features
+------------------
+- Shim support for defstorageclass (#1494)
+
+Bug Fixes
+------------------
+- Include Third Party Identification as a Credential Type supporting various use cases (#1501)
+
+Other Changes
+------------------
+- Several documentation updates and clarifications.
+
+Release 5.9 (release date: 2022-04-07)
+======================================
+New Features
+------------------
+- Add cp -v and -n flags for shim translation. (#1490)
+- Add cp -s flag to shim translation. (#1488)
+
+Bug Fixes
+------------------
+- Prevent copies outside of destination directory. (#1491)
+- Fix copying duplicate file name conflicts by preserving recursive copy (#1465)
+
+Other Changes
+------------------
+- Run Python 3.5 tests with 3.5.2 (#1482)
+- Backfill the changes required to skip the test\_gsutil tests for gsutil.par tests. (#1481)
+- Custom dual region: Drop placement flag as multiple locations can now be provided via -l flag (#1480)
+- Several documentation updates and clarifications.
+
+Release 5.8 (release date: 2022-03-07)
+======================================
+New Features
+------------------
+- Allow gsutil to transparently call gcloud storage cp or rm through a shim (enable via the Boto configuration GSUTil:use_gcloud_storage=True)
+- Allow external account based credentials (#1452)
+
+Bug Fixes
+------------------
+- Prevent error by only allowing super-user from changing file user when preserve POSIX is enabled. (#1461)
+
+Other Changes
+------------------
+- Several documentation updates and clarifications.
+
 Release 5.6 (release date: 2022-01-06)
 ======================================
 New Features

@@ -54,7 +54,7 @@ class TestParseSubOpts(testcase.GsUtilUnitTestCase):
     self._fake_command = FakeGsutilCommand(
         command_runner=mock.ANY,
         args=['-z', 'opt1', '-r', 'arg1', 'arg2'],
-        headers=mock.ANY,
+        headers={},
         debug=mock.ANY,
         trace_token=mock.ANY,
         parallel_operations=mock.ANY,
@@ -75,3 +75,18 @@ class TestParseSubOpts(testcase.GsUtilUnitTestCase):
     _, parsed_args = self._fake_command.ParseSubOpts(
         should_update_sub_opts_and_args=False)
     self.assertEqual(parsed_args, args_list)
+
+  @mock.patch.object(command, 'CreateOrGetGsutilLogger', autospec=True)
+  def test_quiet_mode_gets_set(self, mock_logger):
+    mock_logger.return_value.isEnabledFor.return_value = False
+    self._fake_command = FakeGsutilCommand(
+        command_runner=mock.ANY,
+        args=['-z', 'opt1', '-r', 'arg1', 'arg2'],
+        headers={},
+        debug=mock.ANY,
+        trace_token=mock.ANY,
+        parallel_operations=mock.ANY,
+        bucket_storage_uri_class=mock.ANY,
+        gsutil_api_class_map_factory=mock.MagicMock())
+    self.assertTrue(self._fake_command.quiet_mode)
+    mock_logger.assert_called_once_with('fake_gsutil')

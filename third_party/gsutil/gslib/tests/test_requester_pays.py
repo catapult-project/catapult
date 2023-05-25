@@ -260,15 +260,18 @@ class TestRequesterPays(testcase.GsUtilIntegrationTestCase):
 
   def test_rewrite(self):
     object_uri = self.CreateObject(contents=b'bar')
+    storage_class = 'nearline' if self._use_gcloud_storage else 'dra'
     self._run_non_requester_pays_test(
-        ['rewrite', '-s', 'dra', suri(object_uri)])
+        ['rewrite', '-s', storage_class,
+         suri(object_uri)])
 
     req_pays_bucket_uri = self.CreateBucket()
     self._set_requester_pays(req_pays_bucket_uri)
     req_pays_obj_uri = self.CreateObject(bucket_uri=req_pays_bucket_uri,
                                          contents=b'baz')
     self._run_requester_pays_test(
-        ['rewrite', '-s', 'dra', suri(req_pays_obj_uri)])
+        ['rewrite', '-s', storage_class,
+         suri(req_pays_obj_uri)])
 
   def test_rsync(self):
     req_pays_bucket_uri = self.CreateBucket(test_objects=2)

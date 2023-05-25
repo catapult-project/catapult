@@ -340,7 +340,7 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
                              debug=debug)
 
   @classmethod
-  def _test_wildcard_iterator(cls, uri_or_str, debug=0):
+  def _test_wildcard_iterator(cls, uri_or_str, exclude_tuple=None, debug=0):
     """Convenience method for instantiating a test instance of WildcardIterator.
 
     This makes it unnecessary to specify all the params of that class
@@ -353,6 +353,9 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
 
     Args:
       uri_or_str: StorageUri or string representing the wildcard string.
+      exclude_tuple: (base_url, exclude_pattern), where base_url is
+                     top-level URL to list; exclude_pattern is a regex
+                     of paths to ignore during iteration.
       debug: debug level to pass to the underlying connection (0..3)
 
     Returns:
@@ -364,7 +367,8 @@ class GsUtilUnitTestCase(base.GsUtilTestCase):
       uri_string = uri_or_str.uri
 
     return wildcard_iterator.CreateWildcardIterator(uri_string,
-                                                    cls.MakeGsUtilApi())
+                                                    cls.MakeGsUtilApi(debug),
+                                                    exclude_tuple=exclude_tuple)
 
   @staticmethod
   def _test_storage_uri(uri_str, default_scheme='file', debug=0, validate=True):

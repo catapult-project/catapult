@@ -159,6 +159,27 @@ _ACL_FIELDS_SET = set([
     'items/owner',
     'owner',
 ])
+_BUCKET_PREDEFINED_ACL_XML_TO_JSON_TRANSLATION = {
+    None: None,
+    'authenticated-read': 'authenticatedRead',
+    'private': 'private',
+    'project-private': 'projectPrivate',
+    'public-read': 'publicRead',
+    'public-read-write': 'publicReadWrite'
+}
+_OBJECT_PREDEFINED_ACL_XML_TO_JSON_TRANSLATION = {
+    None: None,
+    'authenticated-read': 'authenticatedRead',
+    'bucket-owner-read': 'bucketOwnerRead',
+    'bucket-owner-full-control': 'bucketOwnerFullControl',
+    'private': 'private',
+    'project-private': 'projectPrivate',
+    'public-read': 'publicRead'
+}
+FULL_PREDEFINED_ACL_XML_TO_JSON_TRANSLATION = _BUCKET_PREDEFINED_ACL_XML_TO_JSON_TRANSLATION.copy(
+)
+FULL_PREDEFINED_ACL_XML_TO_JSON_TRANSLATION.update(
+    _OBJECT_PREDEFINED_ACL_XML_TO_JSON_TRANSLATION)
 
 # Fields that may be encrypted.
 _ENCRYPTED_HASHES_SET = set(['crc32c', 'md5Hash'])
@@ -184,6 +205,7 @@ class GcsJsonApi(CloudApi):
                provider=None,
                credentials=None,
                debug=0,
+               http_headers=None,
                trace_token=None,
                perf_trace_token=None,
                user_project=None):
@@ -197,6 +219,7 @@ class GcsJsonApi(CloudApi):
       credentials: Credentials to be used for interacting with Google Cloud
                    Storage.
       debug: Debug level for the API implementation (0..3).
+      http_headers (dict|None): Arbitrary headers to be included in every request.
       trace_token: Trace token to pass to the API implementation.
       perf_trace_token: Performance trace token to use when making API calls.
       user_project: Project to be billed for this request.
@@ -208,6 +231,7 @@ class GcsJsonApi(CloudApi):
                                      status_queue,
                                      provider='gs',
                                      debug=debug,
+                                     http_headers=http_headers,
                                      trace_token=trace_token,
                                      perf_trace_token=perf_trace_token,
                                      user_project=user_project)
@@ -281,8 +305,7 @@ class GcsJsonApi(CloudApi):
     if gs_json_host_header and gs_json_host:
       additional_http_headers['Host'] = gs_json_host_header
 
-    self._AddPerfTraceTokenToHeaders(additional_http_headers)
-    self._AddReasonToHeaders(additional_http_headers)
+    self._UpdateHeaders(additional_http_headers)
 
     log_request = (debug >= 3)
     log_response = (debug >= 3)
@@ -324,11 +347,15 @@ class GcsJsonApi(CloudApi):
           'Cannot get service account email id for the given '
           'credential type.')
 
-  def _AddPerfTraceTokenToHeaders(self, headers):
+  def _UpdateHeaders(self, headers):
+    if self.http_headers:
+      headers.update(self.http_headers)
+
+    # The following functional headers potentially overwrite
+    # arbitrary ones provided by -h.
     if self.perf_trace_token:
       headers['cookie'] = self.perf_trace_token
 
-  def _AddReasonToHeaders(self, headers):
     request_reason = os.environ.get(REQUEST_REASON_ENV_VAR)
     if request_reason:
       headers[REQUEST_REASON_HEADER_KEY] = request_reason
@@ -1348,8 +1375,7 @@ class GcsJsonApi(CloudApi):
     AddAcceptEncodingGzipIfNeeded(additional_headers,
                                   compressed_encoding=compressed_encoding)
 
-    self._AddPerfTraceTokenToHeaders(additional_headers)
-    self._AddReasonToHeaders(additional_headers)
+    self._UpdateHeaders(additional_headers)
     additional_headers.update(
         self._EncryptionHeadersFromTuple(decryption_tuple))
 
@@ -1488,8 +1514,7 @@ class GcsJsonApi(CloudApi):
     additional_headers = {
         'user-agent': self.api_client.user_agent,
     }
-    self._AddPerfTraceTokenToHeaders(additional_headers)
-    self._AddReasonToHeaders(additional_headers)
+    self._UpdateHeaders(additional_headers)
 
     try:
       content_type = None
@@ -1541,8 +1566,7 @@ class GcsJsonApi(CloudApi):
             'user-agent': self.api_client.user_agent,
         }
         additional_headers.update(encryption_headers)
-        self._AddPerfTraceTokenToHeaders(additional_headers)
-        self._AddReasonToHeaders(additional_headers)
+        self._UpdateHeaders(additional_headers)
 
         return self._PerformResumableUpload(
             upload_stream, self.authorized_upload_http, content_type, size,
@@ -2180,17 +2204,8 @@ class GcsJsonApi(CloudApi):
       corresponds to a flavor of *PredefinedAclValueValuesEnum and can be
       used as input to apitools requests that affect bucket access controls.
     """
-    # XML : JSON
-    translation_dict = {
-        None: None,
-        'authenticated-read': 'authenticatedRead',
-        'private': 'private',
-        'project-private': 'projectPrivate',
-        'public-read': 'publicRead',
-        'public-read-write': 'publicReadWrite'
-    }
-    if canned_acl_string in translation_dict:
-      return translation_dict[canned_acl_string]
+    if canned_acl_string in _BUCKET_PREDEFINED_ACL_XML_TO_JSON_TRANSLATION:
+      return _BUCKET_PREDEFINED_ACL_XML_TO_JSON_TRANSLATION[canned_acl_string]
     raise ArgumentException('Invalid canned ACL %s' % canned_acl_string)
 
   def _ObjectCannedAclToPredefinedAcl(self, canned_acl_string):
@@ -2204,18 +2219,8 @@ class GcsJsonApi(CloudApi):
       corresponds to a flavor of *PredefinedAclValueValuesEnum and can be
       used as input to apitools requests that affect object access controls.
     """
-    # XML : JSON
-    translation_dict = {
-        None: None,
-        'authenticated-read': 'authenticatedRead',
-        'bucket-owner-read': 'bucketOwnerRead',
-        'bucket-owner-full-control': 'bucketOwnerFullControl',
-        'private': 'private',
-        'project-private': 'projectPrivate',
-        'public-read': 'publicRead'
-    }
-    if canned_acl_string in translation_dict:
-      return translation_dict[canned_acl_string]
+    if canned_acl_string in _OBJECT_PREDEFINED_ACL_XML_TO_JSON_TRANSLATION:
+      return _OBJECT_PREDEFINED_ACL_XML_TO_JSON_TRANSLATION[canned_acl_string]
     raise ArgumentException('Invalid canned ACL %s' % canned_acl_string)
 
   def _ValidateHttpAccessTokenRefreshError(self, e):
@@ -2418,7 +2423,7 @@ class GcsJsonApi(CloudApi):
         return NotFoundException(message or e.message, status=e.status_code)
 
       elif e.status_code == 409 and bucket_name:
-        if 'The bucket you tried to delete was not empty.' in str(e):
+        if 'The bucket you tried to delete is not empty.' in str(e):
           return NotEmptyException('BucketNotEmpty (%s)' % bucket_name,
                                    status=e.status_code)
         return ServiceException(

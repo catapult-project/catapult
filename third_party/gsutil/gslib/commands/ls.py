@@ -36,6 +36,8 @@ from gslib.utils.ls_helper import ENCRYPTED_FIELDS
 from gslib.utils.ls_helper import LsHelper
 from gslib.utils.ls_helper import PrintFullInfoAboutObject
 from gslib.utils.ls_helper import UNENCRYPTED_FULL_LISTING_FIELDS
+from gslib.utils.shim_util import GcloudStorageFlag
+from gslib.utils.shim_util import GcloudStorageMap
 from gslib.utils.text_util import InsistAscii
 from gslib.utils import text_util
 from gslib.utils.translation_helper import AclTranslation
@@ -74,10 +76,10 @@ ordered in the list lexicographically by name.
 
   gsutil currently supports ``gs://`` and ``s3://`` as valid providers
 
-  If you specify bucket URLs, or use `Wildcards
-  <https://cloud.google.com/storage/docs/gsutil/addlhelp/WildcardNames>`_ to
-  capture a set of buckets, ``gsutil ls`` lists objects at the top level of each
-  bucket, along with the names of each subdirectory. For example:
+  If you specify bucket URLs, or use `URI wildcards
+  <https://cloud.google.com/storage/docs/wildcards>`_ to capture a set of
+  buckets, ``gsutil ls`` lists objects at the top level of each bucket, along
+  with the names of each subdirectory. For example:
 
     gsutil ls gs://bucket
 
@@ -101,7 +103,8 @@ ordered in the list lexicographically by name.
   lists all files whose name matches the above wildcard at the top level of
   the bucket.
 
-  See "gsutil help wildcards" for more details on working with wildcards.
+  For more details, see `URI wildcards
+  <https://cloud.google.com/storage/docs/wildcards>`_.
 
 
 <B>DIRECTORY BY DIRECTORY, FLAT, and RECURSIVE LISTINGS</B>
@@ -326,6 +329,24 @@ class LsCommand(Command):
       help_one_line_summary='List providers, buckets, or objects',
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={},
+  )
+
+  # TODO(b/206151616) Add mappings for remaining flags.
+  gcloud_storage_map = GcloudStorageMap(
+      gcloud_command=[
+          'alpha', 'storage', 'ls', '--fetch-encrypted-object-hashes'
+      ],
+      flag_map={
+          '-r': GcloudStorageFlag('-r'),
+          '-R': GcloudStorageFlag('-r'),
+          '-l': GcloudStorageFlag('-l'),
+          '-L': GcloudStorageFlag('-L'),
+          '-b': GcloudStorageFlag('-b'),
+          '-e': GcloudStorageFlag('-e'),
+          '-a': GcloudStorageFlag('-a'),
+          '-h': GcloudStorageFlag('--readable-sizes'),
+          '-p': GcloudStorageFlag('--project'),
+      },
   )
 
   def _PrintBucketInfo(self, bucket_blr, listing_style):
