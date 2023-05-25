@@ -18,6 +18,8 @@ PENDING = 'pending'
 SAME = 'same'
 UNKNOWN = 'unknown'
 
+_MIN_HIGH_THRESHOLDS_FUNCTIONAL = 0.6
+_MIN_LOW_THRESHOLDS_FUNCTIONAL = 0.1
 
 class ComparisonResults(
     collections.namedtuple(
@@ -72,30 +74,55 @@ def Compare(values_a, values_b, attempt_count, mode, magnitude):
   #        a                     b               MWU(a, b)  KS(a, b)
   # [0]*20            [0]*15+[1]*5                0.0097     0.4973
   # range(10, 30)     range(10)+range(30, 40)     0.4946     0.0082
-  p_value = min(
-      kolmogorov_smirnov.KolmogorovSmirnov(values_a, values_b),
-      mann_whitney_u.MannWhitneyU(values_a, values_b))
+  kolmogorov_p_value = kolmogorov_smirnov.KolmogorovSmirnov(values_a, values_b)
+  mann_p_value = mann_whitney_u.MannWhitneyU(values_a, values_b)
+  p_value = min(kolmogorov_p_value, mann_p_value)
+  logging.debug(
+    'BisectDebug: kolmogorov_p_value: %s, mann_p_value: %s, actual_p_value: %s',
+    kolmogorov_p_value,
+    mann_p_value,
+    p_value)
+
+  new_low_threshold = max(low_threshold, _MIN_LOW_THRESHOLDS_FUNCTIONAL)
+  new_high_threshold = max(high_threshold, _MIN_HIGH_THRESHOLDS_FUNCTIONAL)
 
   logging.debug(
-    'BisectDebug: va: %s, vb: %s, lt: %s, ht: %s, pv: %s, mg: %s, ac: %s',
-    values_a,
-    values_b,
+    'BisectDebug: pv: %s, lt: %s, ht: %s, mg: %s, ac: %s, va: %s, vb: %s',
+    p_value,
     low_threshold,
     high_threshold,
-    p_value,
     magnitude,
-    attempt_count)
+    attempt_count,
+    values_a,
+    values_b)
+
+  if p_value <= new_low_threshold:
+    new_comparison_result = ComparisonResults(DIFFERENT, p_value,
+                                              new_low_threshold,
+                                              new_high_threshold)
+  elif p_value > new_high_threshold:
+    new_comparison_result = ComparisonResults(SAME, p_value, new_low_threshold,
+                                                   new_high_threshold)
+  else:
+    new_comparison_result = ComparisonResults(UNKNOWN, p_value,
+                                              new_low_threshold,
+                                              new_high_threshold)
+  logging.debug('BisectDebug: new_comparison_result: %s', new_comparison_result)
 
   if p_value <= low_threshold:
     # The p-value is less than the significance level. Reject the null
     # hypothesis.
-    return ComparisonResults(DIFFERENT, p_value, low_threshold, high_threshold)
-
-  if p_value <= thresholds.HighThreshold(mode, magnitude, attempt_count):
+    comparison_result = ComparisonResults(DIFFERENT, p_value, low_threshold,
+                                          high_threshold)
+  elif p_value <= high_threshold:
     # The p-value is not less than the significance level, but it's small
     # enough to be suspicious. We'd like to investigate more closely.
-    return ComparisonResults(UNKNOWN, p_value, low_threshold, high_threshold)
-
-  # The p-value is quite large. We're not suspicious that the two samples might
-  # come from different distributions, and we don't care to investigate more.
-  return ComparisonResults(SAME, p_value, low_threshold, high_threshold)
+    comparison_result = ComparisonResults(UNKNOWN, p_value, low_threshold,
+                                           high_threshold)
+  else:
+    # The p-value is quite large. We're not suspicious that the two samples might
+    # come from different distributions, and we don't care to investigate more.
+    comparison_result = ComparisonResults(SAME, p_value, low_threshold,
+                                          high_threshold)
+  logging.debug('BisectDebug: actual_comparison_result: %s', comparison_result)
+  return comparison_result
