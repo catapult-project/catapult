@@ -184,16 +184,27 @@ def try_builder(
     # /dashboard or /perf_issue_service.
     # Presubmit sees all changes
     if not is_presubmit:
+        verifier_kwargs["location_filters"] = [
+            cq.location_filter(path_regexp = ".*"),
+        ]
         if not is_dashboard:
-            verifier_kwargs["location_filters"] = [
-                cq.location_filter(path_regexp = ".*"),
-                cq.location_filter(path_regexp = DASHBOARD_RE, exclude = True),
-            ]
+            # non-dashboard try jobs should not run if changes are only
+            # in DASHBOARD_RE
+            verifier_kwargs["location_filters"].append(
+                cq.location_filter(
+                    path_regexp = DASHBOARD_RE,
+                    exclude = True,
+                ),
+            )
         if not is_perf_issue_service:
-            verifier_kwargs["location_filters"] = [
-                cq.location_filter(path_regexp = ".*"),
-                cq.location_filter(path_regexp = PERF_ISSUE_SERVICE_RE, exclude = True),
-            ]
+            # non-perf_issue_service try jobs should not run if changes
+            # are only in PERF_ISSUE_SERVICE_RE
+            verifier_kwargs["location_filters"].append(
+                cq.location_filter(
+                    path_regexp = PERF_ISSUE_SERVICE_RE,
+                    exclude = True,
+                ),
+            )
     if experiment != None:
         verifier_kwargs["experiment_percentage"] = experiment
 
