@@ -76,8 +76,9 @@ class SheriffConfigClient:
 
     if response.get('status', None) != '200':
       logging.error('Failed to generated signed jwt. Response: %s', response)
+      return
 
-    jwt_token = json.loads(content.decode('utf-8'))['signedJwt']
+    jwt_token = json.loads(content.decode('utf-8')).get('signedJwt')
     self.auth_header = {
         'Authorization': 'Bearer {}'.format(jwt_token),
         'Accept': 'application/json',

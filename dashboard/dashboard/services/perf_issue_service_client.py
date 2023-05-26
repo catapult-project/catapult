@@ -6,6 +6,7 @@
 from __future__ import absolute_import
 
 import logging
+import urllib.parse
 
 from dashboard.common import cloud_metric
 from dashboard.common import utils
@@ -193,7 +194,8 @@ def GetAlertGroupsForAnomaly(anomaly):
   end_rev = anomaly.end_revision
 
   url = _SERVICE_URL + _ALERT_GROUP_PREFIX
-  url += 'test/%s/start/%s/end/%s' % (test_key, start_rev, end_rev)
+  url += 'test/%s/start/%s/end/%s' % (urllib.parse.quote_plus(test_key),
+                                      start_rev, end_rev)
 
   try:
     cloud_metric.PublishPerfIssueServiceRequests('GetAlertGroupsForAnomaly',
@@ -212,7 +214,7 @@ def GetAlertGroupsForAnomaly(anomaly):
 
 def GetAllActiveAlertGroups():
   url = _SERVICE_URL + _ALERT_GROUP_PREFIX
-  url += 'all/'
+  url += 'all'
 
   try:
     cloud_metric.PublishPerfIssueServiceRequests('GetAllActiveAlertGroups',
