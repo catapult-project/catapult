@@ -106,6 +106,7 @@ class SourceEntry {
         this.description_ = e.params.key;
         break;
       case EventSourceType.CERT_VERIFIER_JOB:
+      case EventSourceType.CERT_VERIFIER_TASK:
       case EventSourceType.QUIC_SESSION:
         if (e.params.host !== undefined) {
           this.description_ = e.params.host;
@@ -232,6 +233,9 @@ class SourceEntry {
       }
 
       if (this.entries_[1].type === EventType.SOCKET_POOL_CONNECT_JOB_CREATED) {
+        return this.entries_[1];
+      }
+      if (this.entries_[1].type === EventType.CERT_VERIFY_PROC) {
         return this.entries_[1];
       }
     }
