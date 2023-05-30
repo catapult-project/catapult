@@ -194,8 +194,10 @@ def GetAlertGroupsForAnomaly(anomaly):
   end_rev = anomaly.end_revision
 
   url = _SERVICE_URL + _ALERT_GROUP_PREFIX
-  url += 'test/%s/start/%s/end/%s' % (urllib.parse.quote_plus(test_key),
-                                      start_rev, end_rev)
+  # use quote() instead of quote_plus. otherwise test_key with spaces
+  # will be encoded to '+'.
+  url += 'test/%s/start/%s/end/%s' % (urllib.parse.quote(test_key), start_rev,
+                                      end_rev)
 
   try:
     cloud_metric.PublishPerfIssueServiceRequests('GetAlertGroupsForAnomaly',
