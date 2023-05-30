@@ -24,7 +24,7 @@ class FindIsolateEvaluatorBase(test.TestCase):
 
   def setUp(self):
     super().setUp()
-    self.maxDiff = None  # pylint: disable=invalid-name
+    self.maxDiff = None
     with mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
                     mock.MagicMock(return_value=["a"])):
       self.job = job_module.Job.New((), ())
