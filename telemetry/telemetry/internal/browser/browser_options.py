@@ -289,7 +289,7 @@ class BrowserFinderOptions(optparse.Values):
     group.add_option(
         '--fuchsia-ssh-config',
         default=os.path.join(util.GetChromiumSrcDir(), 'build', 'fuchsia',
-                             'test', 'ssh_config'),
+                             'test', 'sshconfig'),
         help='Specify the ssh_config file used to connect to the Fuchsia OS.')
     group.add_option(
         '--fuchsia-device-address',
