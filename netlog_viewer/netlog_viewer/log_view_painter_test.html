@@ -61,6 +61,7 @@ found in the LICENSE file.
       runTestCase(painterTestBase64EncodedBytes());
       runTestCase(painterTestCertVerifierJob());
       runTestCase(painterTestCertVerifyResult());
+      runTestCase(painterTestCertVerifierTask());
       runTestCase(painterTestCheckedCert());
       runTestCase(painterTestProxyConfigOneProxyAllSchemes());
       runTestCase(painterTestProxyConfigTwoProxiesAllSchemes());
@@ -1182,6 +1183,154 @@ QuicError.QUIC_NETWORK_IDLE_TIMEOUT + ' (QUIC_NETWORK_IDLE_TIMEOUT)';
 
     return testCase;
   }
+
+  /**
+   * Tests the formatting of CERT_VERIFIER_TASK events.
+   */
+  function painterTestCertVerifierTask() {
+    const testCase = {};
+    testCase.tickOffset = 1684513085480;
+    testCase.baseTimeTicks = '636370702';
+
+    testCase.logEntries = [
+      {
+       "phase" : EventPhase.PHASE_BEGIN,
+       "source" : {
+          "id" : -2147483638,
+          "start_time" : "636385093",
+          "type" : EventSourceType.CERT_VERIFIER_TASK
+       },
+       "time" : "636385093",
+       "type" : EventType.CERT_VERIFIER_TASK
+      },
+      {
+         "params" : {
+            "certificates" : [
+               "-----BEGIN CERTIFICATE-----\n1\n-----END CERTIFICATE-----\n",
+               "-----BEGIN CERTIFICATE-----\n2\n-----END CERTIFICATE-----\n"
+            ],
+            "crlset_is_expired" : true,
+            "crlset_sequence" : 7957,
+            "host" : "example.com",
+            "verify_flags" : 17
+         },
+         "phase" : EventPhase.PHASE_BEGIN,
+         "source" : {
+            "id" : -2147483638,
+            "start_time" : "636385093",
+            "type" : EventSourceType.CERT_VERIFIER_TASK
+         },
+         "time" : "636385093",
+         "type" : EventType.CERT_VERIFY_PROC
+      },
+      {
+         "params" : {
+            "digest_policy" : 0
+         },
+         "phase" : EventPhase.PHASE_BEGIN,
+         "source" : {
+            "id" : -2147483638,
+            "start_time" : "636385093",
+            "type" : EventSourceType.CERT_VERIFIER_TASK
+         },
+         "time" : "636385094",
+         "type" : EventType.CERT_VERIFY_PROC_PATH_BUILD_ATTEMPT
+      },
+      {
+         "params" : {
+            "best_result_index" : 0,
+            "has_valid_path" : false
+         },
+         "phase" : EventPhase.PHASE_END,
+         "source" : {
+            "id" : -2147483638,
+            "start_time" : "636385093",
+            "type" : EventSourceType.CERT_VERIFIER_TASK
+         },
+         "time" : "636385097",
+         "type" : EventType.CERT_VERIFY_PROC_PATH_BUILD_ATTEMPT
+      },
+      {
+         "params" : {
+            "cert_status" : 2,
+            "is_issued_by_known_root" : true,
+            "net_error" : -201,
+            "public_key_hashes" : [
+               "sha256/9SLklscvzMYj8f+52lp5ze/hY0CFHyLSPQzSpYYIBm8=",
+               "sha256/5kJvNEMw0KjrCAu7eXY5HZdvyCS13BbA0VJG1RSP91w=",
+               "sha256/r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E="
+            ],
+            "scts" : {
+               "scts" : []
+            },
+            "verified_cert" : {
+               "certificates" : [
+                  "-----BEGIN CERTIFICATE-----\n1\n-----END CERTIFICATE-----\n",
+                  "-----BEGIN CERTIFICATE-----\n2\n-----END CERTIFICATE-----\n",
+                  "-----BEGIN CERTIFICATE-----\n3\n-----END CERTIFICATE-----\n"
+               ]
+            }
+         },
+         "phase" : EventPhase.PHASE_END,
+         "source" : {
+            "id" : -2147483638,
+            "start_time" : "636385093",
+            "type" : EventSourceType.CERT_VERIFIER_TASK
+         },
+         "time" : "636385097",
+         "type" : EventType.CERT_VERIFY_PROC
+      },
+      {
+         "phase" : EventPhase.PHASE_END,
+         "source" : {
+            "id" : -2147483638,
+            "start_time" : "636385093",
+            "type" : EventSourceType.CERT_VERIFIER_TASK
+         },
+         "time" : "636385111",
+         "type" : EventType.CERT_VERIFIER_TASK
+      }
+    ];
+
+    testCase.expectedText =
+'t=14391 [st= 0] +CERT_VERIFIER_TASK  [dt=18]\n' +
+'t=14391 [st= 0]   +CERT_VERIFY_PROC  [dt=4]\n' +
+'                   --> verify_flags = 17 (VERIFY_REV_CHECKING_ENABLED | VERIFY_DISABLE_NETWORK_FETCHES)\n' +
+'                   --> certificates = [\n' +
+'                         "-----BEGIN CERTIFICATE-----\\n1\\n-----END CERTIFICATE-----\\n",\n' +
+'                         "-----BEGIN CERTIFICATE-----\\n2\\n-----END CERTIFICATE-----\\n"\n' +
+'                       ]\n' +
+'                   --> crlset_is_expired = true\n' +
+'                   --> crlset_sequence = 7957\n' +
+'                   --> host = "example.com"\n' +
+'t=14392 [st= 1]     +CERT_VERIFY_PROC_PATH_BUILD_ATTEMPT  [dt=3]\n' +
+'                     --> digest_policy = 0 (kStrong)\n' +
+'t=14395 [st= 4]     -CERT_VERIFY_PROC_PATH_BUILD_ATTEMPT\n' +
+'                     --> best_result_index = 0\n' +
+'                     --> has_valid_path = false\n' +
+'t=14395 [st= 4]   -CERT_VERIFY_PROC\n' +
+'                   --> cert_status = 2 (DATE_INVALID)\n' +
+'                   --> is_issued_by_known_root = true\n' +
+'                   --> net_error = -201 (ERR_CERT_DATE_INVALID)\n' +
+'                   --> public_key_hashes = [\n' +
+'                         "sha256/9SLklscvzMYj8f+52lp5ze/hY0CFHyLSPQzSpYYIBm8=",\n' +
+'                         "sha256/5kJvNEMw0KjrCAu7eXY5HZdvyCS13BbA0VJG1RSP91w=",\n' +
+'                         "sha256/r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E="\n' +
+'                       ]\n' +
+'                   --> scts = {\n' +
+'                         "scts": []\n' +
+'                       }\n' +
+'                   --> verified_cert = {\n' +
+'                         "certificates": [\n' +
+'                           "-----BEGIN CERTIFICATE-----\\n1\\n-----END CERTIFICATE-----\\n",\n' +
+'                           "-----BEGIN CERTIFICATE-----\\n2\\n-----END CERTIFICATE-----\\n",\n' +
+'                           "-----BEGIN CERTIFICATE-----\\n3\\n-----END CERTIFICATE-----\\n"\n' +
+'                         ]\n' +
+'                       }\n' +
+'t=14409 [st=18] -CERT_VERIFIER_TASK';
+    return testCase;
+  }
+
 
   /**
    * Tests the formatting of checked certificates

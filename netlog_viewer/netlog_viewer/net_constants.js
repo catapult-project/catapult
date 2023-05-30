@@ -44,7 +44,8 @@ function setNetLogConstantsForTest() {
     SOCKET: 3,
     HOST_RESOLVER_IMPL_JOB: 4,
     HTTP_STREAM_JOB: 5,
-    CERT_VERIFIER_JOB: 6
+    CERT_VERIFIER_JOB: 6,
+    CERT_VERIFIER_TASK: 7
   };
 
   EventSourceTypeNames = makeInverseMap(EventSourceType);
@@ -89,7 +90,10 @@ function setNetLogConstantsForTest() {
     QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT: 35,
     HTTP_STREAM_PARSER_READ_HEADERS: 36,
     CERT_VERIFIER_JOB: 37,
-    CERT_CT_COMPLIANCE_CHECKED: 38
+    CERT_CT_COMPLIANCE_CHECKED: 38,
+    CERT_VERIFIER_TASK: 39,
+    CERT_VERIFY_PROC: 40,
+    CERT_VERIFY_PROC_PATH_BUILD_ATTEMPT: 41
   };
 
   EventTypeNames = makeInverseMap(EventType);
@@ -115,12 +119,24 @@ function setNetLogConstantsForTest() {
   // See net/cert/cert_status_flags.h in Chromium.
   CertStatusFlag = {
     AUTHORITY_INVALID: 1 << 2,
+    DATE_INVALID: 1 << 1,
     COMMON_NAME_INVALID: 1 << 0
   };
 
   // See net/cert/cert_verifier.h in Chromium.
   CertVerifierFlags = {
     VERIFY_DISABLE_NETWORK_FETCHES: 1 << 0
+  };
+
+  // See net/cert/cert_verify_proc.h in Chromium.
+  CertVerifyFlags = {
+    VERIFY_REV_CHECKING_ENABLED: 1 << 0,
+    VERIFY_DISABLE_NETWORK_FETCHES: 1 << 4
+  };
+
+  // See net/cert/pki/simple_path_builder_delegate.h in Chromium.
+  CertPathBuilderDigestPolicy = {
+    kStrong: 0
   };
 
   // See net/quic/core/quic_protocol.h in Chromium.
@@ -138,7 +154,8 @@ function setNetLogConstantsForTest() {
   NetError = {
     ERR_FAILED: -2,
     ERR_NAME_NOT_RESOLVED: -105,
-    ERR_SSL_PROTOCOL_ERROR: -107
+    ERR_SSL_PROTOCOL_ERROR: -107,
+    ERR_CERT_DATE_INVALID: -201
   };
 }
 
