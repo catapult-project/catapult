@@ -1238,6 +1238,26 @@ QuicError.QUIC_NETWORK_IDLE_TIMEOUT + ' (QUIC_NETWORK_IDLE_TIMEOUT)';
       },
       {
          "params" : {
+            "certificates" : [
+               "-----BEGIN CERTIFICATE-----\n1\n-----END CERTIFICATE-----\n",
+               "-----BEGIN CERTIFICATE-----\n2\n-----END CERTIFICATE-----\n",
+               "-----BEGIN CERTIFICATE-----\n3\n-----END CERTIFICATE-----\n"
+            ],
+            "errors" : "----- Certificate i=0 (CN=example.com) -----\nERROR: Time is after notAfter\n\n----- Certificate i=1 (CN=IntermediateCA) -----\nERROR: Time is after notAfter\n\n",
+            "is_valid" : false,
+            "last_cert_trust" : "TRUSTED_ANCHOR"
+         },
+         "phase" : EventPhase.PHASE_NONE,
+         "source" : {
+            "id" : -2147483638,
+            "start_time" : "636385093",
+            "type" : EventSourceType.CERT_VERIFIER_TASK
+         },
+         "time" : "636385097",
+         "type" : EventType.CERT_VERIFY_PROC_PATH_BUILT
+      },
+      {
+         "params" : {
             "best_result_index" : 0,
             "has_valid_path" : false
          },
@@ -1305,6 +1325,22 @@ QuicError.QUIC_NETWORK_IDLE_TIMEOUT + ' (QUIC_NETWORK_IDLE_TIMEOUT)';
 '                   --> host = "example.com"\n' +
 't=14392 [st= 1]     +CERT_VERIFY_PROC_PATH_BUILD_ATTEMPT  [dt=3]\n' +
 '                     --> digest_policy = 0 (kStrong)\n' +
+'t=14395 [st= 4]        CERT_VERIFY_PROC_PATH_BUILT\n' +
+'                       --> errors =\n' +
+'                              ----- Certificate i=0 (CN=example.com) -----\n' +
+'                              ERROR: Time is after notAfter\n' +
+'                              \n' +
+'                              ----- Certificate i=1 (CN=IntermediateCA) -----\n' +
+'                              ERROR: Time is after notAfter\n' +
+'                              \n' +
+'                              \n' +
+'                       --> certificates = [\n' +
+'                             "-----BEGIN CERTIFICATE-----\\n1\\n-----END CERTIFICATE-----\\n",\n' +
+'                             "-----BEGIN CERTIFICATE-----\\n2\\n-----END CERTIFICATE-----\\n",\n' +
+'                             "-----BEGIN CERTIFICATE-----\\n3\\n-----END CERTIFICATE-----\\n"\n' +
+'                           ]\n' +
+'                       --> is_valid = false\n' +
+'                       --> last_cert_trust = "TRUSTED_ANCHOR"\n' +
 't=14395 [st= 4]     -CERT_VERIFY_PROC_PATH_BUILD_ATTEMPT\n' +
 '                     --> best_result_index = 0\n' +
 '                     --> has_valid_path = false\n' +

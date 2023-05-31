@@ -370,6 +370,8 @@ let proxySettingsToString;
         return writeParamsForCertVerifyProc;
       case EventType.CERT_VERIFY_PROC_PATH_BUILD_ATTEMPT:
         return writeParamsForCertVerifyProcPathBuildAttempt;
+      case EventType.CERT_VERIFY_PROC_PATH_BUILT:
+        return writeParamsForCertVerifyProcPathBuilt;
       case EventType.CERT_CT_COMPLIANCE_CHECKED:
       case EventType.EV_CERT_CT_COMPLIANCE_CHECKED:
         return writeParamsForCheckedCertificates;
@@ -690,6 +692,14 @@ let proxySettingsToString;
             entry.params.digest_policy) + ')';
       out.writeArrowKeyValue('digest_policy', valueStr);
       consumedParams.digest_policy = true;
+    }
+  }
+
+  function writeParamsForCertVerifyProcPathBuilt(entry, out, consumedParams) {
+    if (typeof(entry.params.errors) === 'string') {
+      writeIndentedMultiLineParam(
+          entry.params.errors.split('\n'), out, consumedParams,
+          'errors');
     }
   }
 

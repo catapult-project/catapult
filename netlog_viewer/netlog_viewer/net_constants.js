@@ -93,7 +93,8 @@ function setNetLogConstantsForTest() {
     CERT_CT_COMPLIANCE_CHECKED: 38,
     CERT_VERIFIER_TASK: 39,
     CERT_VERIFY_PROC: 40,
-    CERT_VERIFY_PROC_PATH_BUILD_ATTEMPT: 41
+    CERT_VERIFY_PROC_PATH_BUILD_ATTEMPT: 41,
+    CERT_VERIFY_PROC_PATH_BUILT: 42
   };
 
   EventTypeNames = makeInverseMap(EventType);
