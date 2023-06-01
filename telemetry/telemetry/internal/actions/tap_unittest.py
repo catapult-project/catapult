@@ -15,8 +15,9 @@ class TapActionTest(tab_test_case.TabTestCase):
     action.RunAction(self._tab)
 
   # https://github.com/catapult-project/catapult/issues/3099 (Android)
-  # http://crbug.com/634343 (Windows)
-  @decorators.Disabled('android', 'win')
+  # https://crbug.com/634343 (Windows)
+  # https://crbug.com/1445887 (ChromeOS)
+  @decorators.Disabled('android', 'win', 'chromeos')
   def testTapSinglePage(self):
     self.Navigate('page_with_clickables.html')
 
