@@ -117,15 +117,6 @@ class APIMetricLogger:
     if self.is_disabled:
       return
     self._start = self._Now()
-    # Currently, Cloud Monitoring allows one write every 5 seconds for any
-    # unique tuple (metric_name, metric_label_value_1, metric_label_value_2, …).
-    #
-    # To avoid being throttled by Cloud Monitoring, add a UUID label_value to
-    # make the tuple unique.
-    # https://cloud.google.com/monitoring/quotas
-    label_dict = {API_NAME: self._api_name, REQUEST_STATUS: "started",
-                  UUID: str(uuid.uuid4())}
-    _PublishTSCloudMetric(self._service_name, API_METRIC_TYPE, label_dict)
 
   def __exit__(self, exception_type, exception_value, execution_traceback):
     if self.is_disabled:

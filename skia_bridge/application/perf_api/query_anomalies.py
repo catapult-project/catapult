@@ -26,6 +26,7 @@ ALLOWED_CLIENTS = [
     'eduardoyap@google.com',
     # Chrome (public) skia instance service account
     'perf-chrome-public@skia-infra-public.iam.gserviceaccount.com',
+    'perf-chrome-internal@skia-infra-corp.iam.gserviceaccount.com',
 ]
 
 DATASTORE_TEST_BATCH_SIZE = 25
