@@ -122,6 +122,7 @@ class ScrollActionTest(tab_test_case.TabTestCase):
 
   @decorators.Disabled('android-reference')  # crbug.com/934649
   @decorators.Disabled('win-reference')  # crbug.com/805523
+  @decorators.Disabled('chromeos')  # crbug.com/1450766
   def testWheelScrollDistanceWhileZoomed(self):
     # TODO(bokan): This API was added recently so only run the test once it's
     # available. Remove this check once it rolls into stable builds.
