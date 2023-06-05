@@ -42,7 +42,7 @@ Internal-only value diff:
 _NOTIFICATION_ADDRESS = 'browser-perf-engprod@google.com'
 _SENDER_ADDRESS = 'gasper-alerts@google.com'
 
-from flask import request
+from flask import request, make_response
 # Handles editing of site config values stored with stored_entity.
 
 
@@ -52,16 +52,23 @@ def EditSiteConfigHandlerGet():
   if not key:
     return request_handler.RequestHandlerRenderHtml('edit_site_config.html', {})
 
+  return_format = request.args.get('format')
+
   value = stored_object.Get(key)
   external_value = namespaced_stored_object.GetExternal(key)
   internal_value = namespaced_stored_object.Get(key)
-  res = request_handler.RequestHandlerRenderHtml(
-      'edit_site_config.html', {
-          'key': key,
-          'value': _FormatJson(value),
-          'external_value': _FormatJson(external_value),
-          'internal_value': _FormatJson(internal_value),
-      })
+  body = {
+      'key': key,
+      'value': _FormatJson(value),
+      'external_value': _FormatJson(external_value),
+      'internal_value': _FormatJson(internal_value),
+  }
+  if return_format == 'json':
+    res = make_response(body, 200)
+  else:
+    res = request_handler.RequestHandlerRenderHtml('edit_site_config.html',
+                                                   body)
+
   return res
 
 

@@ -10,6 +10,7 @@ import logging
 from apiclient import discovery
 from apiclient import errors
 from application import utils
+from application.clients import chromeperf_client
 
 _DISCOVERY_URI = ('https://monorail-prod.appspot.com'
                   '/_ah/api/discovery/v1/apis/{api}/{apiVersion}/rest')
@@ -50,6 +51,13 @@ class IssueTrackerClient:
         if attempt == MAX_DISCOVERY_RETRIES:
           raise
       attempt += 1
+
+
+  def _GetIssueTrackerByProject(self, project_name):
+    configs = chromeperf_client.GetBuganizerProjects()
+    issue_tracker = configs.get(project_name, 'monorail')
+    return issue_tracker
+
 
   def GetIssuesList(self, project='chromium', **kwargs):
     """Makes a request to the issue tracker to list issues."""
