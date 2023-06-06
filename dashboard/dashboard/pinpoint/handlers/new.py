@@ -81,6 +81,8 @@ _OLD_CHROME_TARGET = 'performance_test_suite_android_clank_chrome'
 REGULAR_TELEMETRY_TESTS_WITH_FALLBACKS[
     _NEW_MONOCHROME_TARGET] = _OLD_CHROME_TARGET
 
+_NON_CHROME_TARGETS = ['v8']
+
 
 def _CheckUser():
   if utils.IsDevAppserver():
@@ -118,10 +120,17 @@ def _CreateJob(req):
   _ValidateRequiredParams(original_arguments)
 
   arguments = _ArgumentsWithConfiguration(original_arguments)
+  if not arguments.get('target'):
+    arguments['target'] = GetIsolateTarget(
+        arguments.get('configuration', ''), arguments.get('benchmark'))
   logging.debug('Updated Params: %s', arguments)
 
   # Validate arguments and convert them to canonical internal representation.
   quests = _GenerateQuests(arguments)
+
+  # Check target param here
+  if not arguments.get('target'):
+    raise ValueError('Parameter target must not be empty')
 
   # Validate the priority, if it's present.
   priority = _ValidatePriority(arguments.get('priority'))
@@ -453,6 +462,73 @@ def _ValidateComparisonMagnitude(comparison_magnitude):
   return float(comparison_magnitude)
 
 
+def GetIsolateTarget(bot_name, suite):
+  if suite in _NON_CHROME_TARGETS:
+    return ''
+
+  # ChromeVR
+  if suite.startswith('xr.'):
+    return 'vr_perf_tests'
+
+  # WebRTC perf tests
+  if suite == 'webrtc_perf_tests':
+    return 'webrtc_perf_tests'
+
+  # This is a special-case for webview, which we probably don't need to handle
+  # in the Dashboard (instead should just support in Pinpoint through
+  # configuration).
+  if 'webview' in bot_name.lower():
+    return 'performance_webview_test_suite'
+
+  # Special cases for CrOS tests -
+  # performance_test_suites are device type specific.
+  if 'eve' in bot_name.lower():
+    return 'performance_test_suite_eve'
+  if bot_name == 'lacros-x86-perf':
+    return 'performance_test_suite_octopus'
+
+  # WebEngine tests are specific to Fuchsia devices only.
+  if 'fuchsia-perf' in bot_name.lower():
+    return 'performance_web_engine_test_suite'
+
+  # Each Android binary has its own target, and different bots use different
+  # binaries. Mapping based off of Chromium's
+  # //tools/perf/core/perf_data_generator.py
+  if bot_name == 'android-go-perf':
+    return 'performance_test_suite_android_clank_monochrome'
+  if bot_name == 'android-go-wembley-perf':
+    return 'performance_test_suite_android_clank_trichrome_bundle'
+  if bot_name == 'android-new-pixel-perf':
+    return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
+  if bot_name == 'android-new-pixel-pro-perf':
+    return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
+  if bot_name == 'android-pixel2-perf-calibration':
+    return 'performance_test_suite_android_clank_monochrome_64_32_bundle'
+  if bot_name == 'android-pixel2-perf-fyi':
+    return 'performance_test_suite_android_clank_monochrome'
+  if bot_name == 'android-pixel2-perf-aab-fyi':
+    return 'performance_test_suite_android_clank_monochrome_bundle'
+  if bot_name == 'Android Nexus5 Perf':
+    return 'performance_test_suite_android_chrome'
+  if bot_name == 'android-pixel2-perf':
+    return 'performance_test_suite_android_clank_monochrome_64_32_bundle'
+  if bot_name == 'android-pixel4-perf':
+    return 'performance_test_suite_android_clank_trichrome_bundle'
+  if bot_name == 'android-pixel4a_power-perf':
+    return 'performance_test_suite_android_clank_trichrome_bundle'
+  if bot_name == 'android-pixel6-perf':
+    return 'performance_test_suite_android_clank_trichrome_bundle'
+  if bot_name == 'android-pixel6-pro-perf':
+    return 'performance_test_suite_android_clank_trichrome_bundle'
+  if bot_name == 'android-samsung-foldable-perf':
+    return 'performance_test_suite_android_clank_trichrome_bundle'
+  if 'android' in bot_name.lower():
+    raise Exception(
+        'Given Android bot %s does not have an isolate mapped to it' % bot_name)
+
+  return 'performance_test_suite'
+
+
 def _GenerateQuests(arguments):
   """Generate a list of Quests from a dict of arguments.
 
@@ -467,6 +543,7 @@ def _GenerateQuests(arguments):
     request arguments that were used, and quests is a list of Quests.
   """
   quests = arguments.get('quests')
+
   if quests:
     if isinstance(quests, six.string_types):
       quests = quests.split(',')
@@ -551,7 +628,7 @@ def _ValidateUser(user):
   return user or utils.GetEmail()
 
 
-_REQUIRED_NON_EMPTY_PARAMS = {'target', 'benchmark'}
+_REQUIRED_NON_EMPTY_PARAMS = {'benchmark'}
 
 
 def _ValidateRequiredParams(params):

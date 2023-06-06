@@ -384,14 +384,14 @@ class NewTest(_NewTest):
   def testMissingTarget(self):
     request = dict(_BASE_REQUEST)
     del request['target']
-    response = self.Post('/api/new', request, status=400)
-    self.assertIn('error', json.loads(response.body))
+    response = self.Post('/api/new', request, status=200)
+    self.assertNotIn('error', json.loads(response.body))
 
   def testEmptyTarget(self):
     request = dict(_BASE_REQUEST)
     request['target'] = ''
-    response = self.Post('/api/new', request, status=400)
-    self.assertIn('error', json.loads(response.body))
+    response = self.Post('/api/new', request, status=200)
+    self.assertNotIn('error', json.loads(response.body))
 
   def testFallbackTarget(self):
     request = dict(_BASE_REQUEST)
