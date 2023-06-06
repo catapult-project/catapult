@@ -112,6 +112,7 @@ def NewHandlerPost():
 
 def _CreateJob(req):
   """Creates a new Pinpoint job from WebOb request arguments."""
+  logging.debug('Received new job request: %s', req)
   original_arguments = utils.RequestParamsMixed(req)
   logging.debug('Received Params: %s', original_arguments)
 
