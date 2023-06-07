@@ -198,8 +198,9 @@ class AlertGroupWorkflow:
 
     # Parity check for canonical group
     try:
-      canonical_group_key = perf_issue_service_client.GetCanonicalGroupByIssue(
+      canonical_group_new = perf_issue_service_client.GetCanonicalGroupByIssue(
           self._group.key.string_id(), merged_into, merged_issue_project)
+      canonical_group_key = canonical_group_new.get('key')
       original_canonical_key = canonical_group.key.string_id()
       if original_canonical_key != canonical_group_key:
         logging.warning('Imparity found for GetCanonicalGroupByIssue. %s, %s',

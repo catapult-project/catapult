@@ -25,8 +25,8 @@ def FindCanonicalGroupHandler(current_group_key, issue_id, project_name):
   canonical_group = alert_group.AlertGroup.FindCanonicalGroupByIssue(current_group_key, int(issue_id), project_name)
 
   if canonical_group:
-    return make_response(canonical_group)
-  return make_response('')
+    return make_response({'key': canonical_group})
+  return make_response({'key': ''})
 
 
 @alert_groups.route('/<group_id>/anomalies', methods=['GET'])
@@ -48,7 +48,8 @@ def GetAnomaliesHandler(group_id):
 @utils.BearerTokenAuthorizer
 def GetGroupsForAnomalyHandler(test_key, start_rev, end_rev):
   try:
-    group_keys = alert_group.AlertGroup.GetGroupsForAnomaly(
+    # TODO: remove the _ when parity is done.
+    group_keys, _ = alert_group.AlertGroup.GetGroupsForAnomaly(
       test_key, start_rev, end_rev)
   except alert_group.SheriffConfigRequestException as e:
     return make_response(str(e), 500)
@@ -63,9 +64,9 @@ def GetAllActiveGroups():
   return make_response(all_group_keys)
 
 
-@alert_groups.route('/ungrouped', methods=['GET'])
+@alert_groups.route('/ungrouped', methods=['POST'])
 @utils.BearerTokenAuthorizer
 def PostUngroupedGroupsHandler():
-  alert_group.AlertGroup.ProcessUngroupedAlerts()
+  parity_results = alert_group.AlertGroup.ProcessUngroupedAlerts()
 
-  return make_response('')
+  return make_response(parity_results)

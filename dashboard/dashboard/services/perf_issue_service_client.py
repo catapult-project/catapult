@@ -229,3 +229,20 @@ def GetAllActiveAlertGroups():
     logging.warning('[PerfIssueService] Error requesting all groups: %s',
                     str(e))
     return []
+
+
+def PostUngroupedAlerts():
+  url = _SERVICE_URL + _ALERT_GROUP_PREFIX
+  url += 'ungrouped'
+
+  try:
+    cloud_metric.PublishPerfIssueServiceRequests('PostUngroupedAlerts', 'POST',
+                                                 url, {})
+    resp = request.RequestJson(url, method='POST')
+    return resp
+  except request.RequestError as e:
+    cloud_metric.PublishPerfIssueServiceRequestFailures('PostUngroupedAlerts',
+                                                        'POST', url, {})
+    logging.warning('[PerfIssueService] Error updating ungrouped alerts: %s',
+                    str(e))
+    return []

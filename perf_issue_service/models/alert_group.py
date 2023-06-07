@@ -127,7 +127,8 @@ class AlertGroup(ndb.Model):
 
 
   @classmethod
-  def GetGroupsForAnomaly(cls, test_key, start_rev, end_rev, create_on_ungrouped=False):
+  def GetGroupsForAnomaly(
+    cls, test_key, start_rev, end_rev, create_on_ungrouped=False, parity=False):
     ''' Find the alert groups for the anomaly.
 
     Given the test_key and revision range of an anomaly:
@@ -153,6 +154,7 @@ class AlertGroup(ndb.Model):
 
     existing_groups = cls.Get(benchmark_name, 0)
     result_groups = set()
+    new_groups = set()
     for config in matched_configs:
       s = config['subscription']
       has_overlapped = False
@@ -185,7 +187,10 @@ class AlertGroup(ndb.Model):
               )
             )
             logging.info('Saving new group %s', new_id)
-            new_group.put()
+            if parity:
+              new_groups.add(new_id)
+            else:
+              new_group.put()
           result_groups.add(new_id)
         else:
           # return the id of the 'ungrouped'
@@ -193,7 +198,7 @@ class AlertGroup(ndb.Model):
           result_groups.add(ungrouped.key.integer_id())
 
     logging.debug('GetGroupsForAnomaly returning %s', result_groups)
-    return list(result_groups)
+    return list(result_groups), list(new_groups)
 
 
   @classmethod
@@ -232,6 +237,7 @@ class AlertGroup(ndb.Model):
     This alerts are added to the 'ungrouped' group during anomaly detection
     when no existing group is found to add them to.
     """
+    IS_PARITY = True
     ungrouped = cls._GetUngroupedGroup()
     if not ungrouped:
       return
@@ -241,6 +247,20 @@ class AlertGroup(ndb.Model):
       logging.info('Loaded %s ungrouped alerts from "ungrouped". ID(%s)',
                   len(ungrouped_anomalies), ungrouped.key.integer_id())
 
+    parity_results = {}
     for anomaly in ungrouped_anomalies:
-      cls.GetGroupsForAnomaly(anomaly.test.id(), anomaly.start_revision, anomaly.end_revision, create_on_ungrouped=True)
-    return
+      group_ids, new_ids = cls.GetGroupsForAnomaly(
+        anomaly.test.id(), anomaly.start_revision, anomaly.end_revision,
+        create_on_ungrouped=True, parity=IS_PARITY)
+      with client.context():
+        anomaly.groups = [ndb.Key('AlertGroup', group_id) for group_id in group_ids]
+        if IS_PARITY:
+          anomaly_id = anomaly.key.integer_id()
+          parity_results[anomaly_id] = {
+            "existing_groups": list(set(group_ids) - set(new_ids)),
+            "new_groups": new_ids
+          }
+        else:
+          anomaly.put()
+
+    return parity_results
