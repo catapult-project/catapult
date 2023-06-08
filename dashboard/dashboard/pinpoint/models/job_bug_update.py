@@ -14,6 +14,7 @@ import math
 import os.path
 
 from dashboard import update_bug_with_results
+from dashboard import sheriff_config_client
 from dashboard.common import utils
 from dashboard.models import histogram
 from dashboard.models import anomaly
@@ -395,6 +396,24 @@ def _FormatDocumentationUrls(tags):
   return footer
 
 
+def _ComputeAutobisectUpdate(tags):
+  if tags.get('auto_bisection') != 'true':
+    return None
+
+  test_key = tags.get('test_path')
+  if not test_key:
+    return None
+
+  client = sheriff_config_client.GetSheriffConfigClient()
+  subscriptions = client.Match(test_key, check=True)
+
+  components = set(c for s in subscriptions for c in s.bug_components)
+  cc = set(e for s in subscriptions for e in s.bug_cc_emails)
+  labels = set(l for s in subscriptions for l in s.bug_labels)
+
+  return list(components), list(cc), list(labels)
+
+
 def UpdatePostAndMergeDeferred(bug_update_builder, bug_id, tags, url, project,
                                improvement_dir):
   if not bug_id:
@@ -433,6 +452,20 @@ def UpdatePostAndMergeDeferred(bug_update_builder, bug_id, tags, url, project,
           owner,
       )
       cc_list.add(owner.get('email', ''))
+
+  # Calculate the info which is currently added on auto-triage and will
+  # be delayed to after auto-bisect finishes.
+  try:
+    auto_bisect_updates = _ComputeAutobisectUpdate(tags)
+    if auto_bisect_updates:
+      logging.info(
+          '[DelayAssignment] Issue ID: %s. Components: %s, CC: %s, Labels: %s.',
+          bug_id, auto_bisect_updates[0], auto_bisect_updates[1],
+          auto_bisect_updates[2])
+  except Exception as e:  # pylint: disable=broad-except
+    logging.warning(
+        '[DelayAssignment] Failed to compute auto bisect info. Bug ID: %s. %s',
+        bug_id, str(e))
 
   perf_issue_service_client.PostIssueComment(
       issue_id=bug_id,
