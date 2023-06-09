@@ -22,14 +22,15 @@ def IssuesGetHandler(project_name=None):
   status = request.args.get('status', 'open')
   labels = request.args.get('labels', '')
 
-  client = issue_tracker_client.IssueTrackerClient()
+  client = issue_tracker_client.IssueTrackerClient(project_name)
   response = client.GetIssuesList(
-      project=project_name,
-      q='opened>today-%s' % age,
-      can=status,
-      label=labels,
-      maxResults=limit,
-      sort='-id')
+    project=project_name,
+    limit=limit,
+    age=age,
+    status=status,
+    labels=labels
+  )
+
   return make_response(response)
 
 @issues.route('/<issue_id>/project/', methods=['GET'])
@@ -39,7 +40,7 @@ def IssuesGetByIdHandler(issue_id, project_name=None):
   # add handling before the fix on alert_group_workflow is deployed.
   if not project_name:
     project_name = 'chromium'
-  client = issue_tracker_client.IssueTrackerClient()
+  client = issue_tracker_client.IssueTrackerClient(project_name)
   response = client.GetIssue(
       issue_id=issue_id,
       project=project_name)
@@ -48,7 +49,7 @@ def IssuesGetByIdHandler(issue_id, project_name=None):
 @issues.route('/<issue_id>/project/<project_name>/comments', methods=['GET'])
 @utils.BearerTokenAuthorizer
 def CommentsHandler(issue_id, project_name):
-  client = issue_tracker_client.IssueTrackerClient()
+  client = issue_tracker_client.IssueTrackerClient(project_name)
   response = client.GetIssueComments(
       issue_id=issue_id,
       project=project_name)
@@ -62,7 +63,8 @@ def IssuesPostHandler():
   except json.JSONDecodeError as e:
     return make_response(str(e), http.HTTPStatus.BAD_REQUEST.value)
 
-  client = issue_tracker_client.IssueTrackerClient()
+  project_name = data.get('project')
+  client = issue_tracker_client.IssueTrackerClient(project_name)
   response = client.NewIssue(**data)
   return make_response(response)
 
@@ -74,7 +76,7 @@ def CommentsPostHandler(issue_id, project_name):
   except json.JSONDecodeError as e:
     return make_response(str(e), http.HTTPStatus.BAD_REQUEST.value)
 
-  client = issue_tracker_client.IssueTrackerClient()
+  client = issue_tracker_client.IssueTrackerClient(project_name)
   response = client.NewComment(
     issue_id=int(issue_id),
     project=project_name,
