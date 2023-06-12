@@ -1074,6 +1074,15 @@ def _teardown_process(child):
 
 
 def _run_one_test(child, test_input):
+    def _get_expected_results_and_retry_on_failure():
+        if child.has_expectations:
+            expectation = child.expectations.expectations_for(test_name)
+            expected_results, should_retry_on_failure = (
+                expectation.results, expectation.should_retry_on_failure)
+        else:
+            expected_results, should_retry_on_failure = {ResultType.Pass}, False
+        return expected_results, should_retry_on_failure
+
     h = child.host
     pid = h.getpid()
     test_name = test_input.name
@@ -1088,12 +1097,8 @@ def _run_one_test(child, test_input):
     # This comes up when using the FakeTestLoader and testing typ itself,
     # but could come up when testing non-typ code as well.
     h.capture_output(divert=not child.passthrough)
-    if child.has_expectations:
-        expectation = child.expectations.expectations_for(test_name)
-        expected_results, should_retry_on_failure = (
-            expectation.results, expectation.should_retry_on_failure)
-    else:
-        expected_results, should_retry_on_failure = {ResultType.Pass}, False
+    (expected_results,
+        should_retry_on_failure) = _get_expected_results_and_retry_on_failure()
     ex_str = ''
     try:
         orig_skip = unittest.skip
@@ -1173,6 +1178,12 @@ def _run_one_test(child, test_input):
         # use a stale instance.
         if isinstance(test_case, TypTestCase):
             test_case.set_artifacts(None)
+
+    # We retrieve the expected results again since it's possible that running
+    # the test changed something, e.g. restarted the browser with new browser
+    # arguments, leading to different tags being generated.
+    (expected_results,
+        should_retry_on_failure) = _get_expected_results_and_retry_on_failure()
 
     took = h.time() - started
     additional_tags = None
