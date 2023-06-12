@@ -1,2 +1,0 @@
-# Do check in generated protocol buffers. This overrides a parent .gitignore.
-!*_pb2.py
