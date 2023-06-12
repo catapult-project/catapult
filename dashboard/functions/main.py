@@ -5,8 +5,11 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import logging
+
 import functions_framework
 from flask import jsonify
+from google.protobuf import json_format
 
 from common import dashboard_service, pinpoint_service, cabe_service
 
@@ -117,12 +120,28 @@ def GetCabeAnalysis(request):
   statistic = None
 
   for result in results:
-    if measurement == result['experiment_spec']['analysis']['benchmark'][
-        'workload']:
-      statistic = result['statistic']
+    if len(result.experiment_spec.analysis.benchmark) > 1:
+      logging.warning(
+          "experiment_spect.analysis returned %d benchmarks instead of 1.",
+          len(result.experiment_spec.analysis.benchmark))
+    for benchmark in result.experiment_spec.analysis.benchmark:
+      for workload in benchmark.workload:
+        if measurement == workload:
+          statistic = result.statistic
   print("get_cabe_analysis statistic: %s" % statistic)
 
-  return jsonify({'statistic': statistic})
+  # If you don't use json_format.MessageToDict here and try to
+  # pass the `statistic` raw proto object, you'll get errors
+  # saying is "is not JSON serializable"
+  return jsonify({
+      'statistic':
+          json_format.MessageToDict(
+              statistic,
+              # This parameter tells it to use the field names as they appear
+              # in the orginal proto definition (snake_case) instead of the
+              # camelCaseNames you'd get otherwise.
+              preserving_proto_field_name=True)
+  })
 
 
 @functions_framework.http
