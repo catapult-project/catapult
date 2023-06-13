@@ -45,4 +45,6 @@ def GetBuganizerProjects():
         'Failure in request for `%s`; HTTP status code %s: %s' %
         (url, status, repr(content[0:200])), response, content)
 
-  return json.loads(content)
+  all_values = json.loads(content)
+
+  return json.loads(all_values['value'])

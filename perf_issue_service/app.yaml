@@ -19,3 +19,8 @@ readiness_check:
   failure_threshold: 2
   success_threshold: 2
   app_start_timeout_sec: 300
+
+beta_settings:
+  service_account_scopes: >
+    https://www.googleapis.com/auth/userinfo.email,
+    https://www.googleapis.com/auth/buganizer,
