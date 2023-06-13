@@ -6,13 +6,7 @@
 import logging
 
 from application.clients import monorail_client
-
-_DISCOVERY_URI = ('https://monorail-prod.appspot.com'
-                  '/_ah/api/discovery/v1/apis/{api}/{apiVersion}/rest')
-
-STATUS_DUPLICATE = 'Duplicate'
-MAX_DISCOVERY_RETRIES = 3
-MAX_REQUEST_RETRIES = 5
+from application.clients import buganizer_client
 
 BUGANIZER_PROJECTS = {
   "MigratedProject": "buganizer",
@@ -27,8 +21,7 @@ class IssueTrackerClient:
     if issue_tracker_service == 'monorail':
       self._client = monorail_client.MonorailClient()
     elif issue_tracker_service == 'buganizer':
-      raise NotImplementedError(
-        'Client for Buganizer is under construction.')
+      self._client = buganizer_client.BuganizerClient()
     else:
       raise NotImplementedError(
         'Unknow issue tracker service target: %s', issue_tracker_service)

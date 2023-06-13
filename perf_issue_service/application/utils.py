@@ -93,3 +93,14 @@ def BearerTokenAuthorizer(wrapped_handler):
     return wrapped_handler(*args, **kwargs)
 
   return Wrapper
+
+
+def FindBuganizerComponents(project_name):
+  """return a list of components in buganizer based on the monorail project
+
+  The current implementation is ad hoc as the component mappings are not
+  fully set up on buganizer yet.
+  """
+  if project_name == 'DummyMigratedProject':
+    return ['1325852']
+  return None
