@@ -28,7 +28,7 @@ To test local changes on your own version, you can specify a substitution for.
 _VERSION. Example:
 
 ```
-gcloud builds submit --region=us-central1 --config=cloudbuild.yaml --substitutions=_VERSION=eduardoyap .
+gcloud builds submit --region=us-central1 --config=cloudbuild.yaml --substitutions=_VERSION=$USER --project=chromeperf .
 ```
 
 This will deploy the workflows and functions with the provided suffix version
