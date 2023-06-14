@@ -471,7 +471,7 @@ found in the LICENSE file.
       },
 
       submit() {
-        if (this.initial_attempt_count == null) {
+        if (this.initial_attempt_count === null || this.initial_attempt_count === "") {
           this.initial_attempt_count = this.defaultAttemptCount(this.job, this.configuration, this.benchmark)
         }
         this.$.try_form.submit();
@@ -609,11 +609,13 @@ found in the LICENSE file.
         }
         // press benchmark on mac m1 iteration defaults
         if (configuration.startsWith('mac-m1_mini_2020')) {
-          if (benchmark.toLowerCase() == 'speedometer2' || benchmark.toLowerCase() == 'jetstream2') {
-            return 30;
+          if (benchmark.toLowerCase() == 'jetstream2') {
+            return 64;
+          } else if (benchmark.toLowerCase() == 'speedometer2') {
+            return 128;
           // MotionMark
           } else if (benchmark.toLowerCase().startsWith('rendering.desktop')) {
-            return 60;
+            return 96;
           }
         }
         // otherwise return default for all other configurations + benchmarks
