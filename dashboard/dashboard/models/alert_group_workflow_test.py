@@ -994,6 +994,37 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(['Chromeperf-Auto-Bisected'],
                      self._issue_tracker.add_comment_kwargs['labels'])
 
+  def testSandwich_TryVerifyRegression_OptOut(self):
+    anomalies = [self._AddAnomaly(), self._AddAnomaly()]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    self._issue_tracker.issue.update({
+        'state':
+            'open',
+        'labels':
+            self._issue_tracker.issue.get('labels') +
+            ['Chromeperf-Auto-BisectOptOut']
+    })
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+    )
+    self.assertIn('Chromeperf-Auto-BisectOptOut',
+                  self._issue_tracker.issue.get('labels'))
+
+    update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        )
+    w._TryVerifyRegression(update)
+    self.assertIsNone(self._pinpoint.new_job_request)
+
   def testBisect_GroupTriaged_WithSummary(self):
     anomalies = [
         self._AddAnomaly(
