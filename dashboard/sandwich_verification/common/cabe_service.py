@@ -7,26 +7,23 @@ import grpc
 import cabe_grpc.service_pb2_grpc as cabe_grpc
 import cabe_grpc.service_pb2 as cabe_pb
 
-from google import auth as google_auth
+from google.auth import compute_engine
 from google.auth.transport import grpc as google_auth_transport_grpc
 from google.auth.transport import requests as google_auth_transport_requests
 
 _CABE_SERVER_ADDRESS = 'cabe.skia.org'
 _CABE_USE_PLAINTEXT = False
 
-EMAIL_SCOPE = "https //www.googleapis.com/auth/userinfo.email"
-
-
 def GetAnalysis(job_id):
   "Return a TryJob CABE Analysis as a list."
-  credentials, _ = google_auth.default(scopes=(EMAIL_SCOPE,))
   request = google_auth_transport_requests.Request()
 
   if _CABE_USE_PLAINTEXT:
     channel = grpc.insecure_channel(_CABE_SERVER_ADDRESS)
   else:
+    credentials = compute_engine.Credentials()
     channel = google_auth_transport_grpc.secure_authorized_channel(
-        credentials, request, _CABE_SERVER_ADDRESS)
+        credentials=credentials, request=request, target=_CABE_SERVER_ADDRESS)
 
   try:
     stub = cabe_grpc.AnalysisStub(channel)
