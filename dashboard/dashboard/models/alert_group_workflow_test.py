@@ -994,6 +994,47 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(['Chromeperf-Auto-Bisected'],
                      self._issue_tracker.add_comment_kwargs['labels'])
 
+  def testSandwich_Allowlist(self):
+    test_cases = [
+        'master/bot/test_suite/measurement/test_case',
+        'master/bot/speedometer2/Speedometer2/test_case',
+        'master/win-10-perf/test_suite/measurement/test_case',
+        'master/mac-m1_mini_2020-perf/jetstream2/JetStream2/test_case',
+        'master/mac-m1_mini_2020-perf/jetstream2/JetStream2/test_case'
+    ]
+    test_improvements = [True, True, True, False, True]
+    anomalies = []
+    for test_case, improvement in zip(test_cases, test_improvements):
+      anomalies.append(
+          self._AddAnomaly(test=test_case, is_improvement=improvement))
+    group = self._AddAlertGroup(anomalies[0], anomalies=anomalies)
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(name='sheriff', auto_triage_enable=True)
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+    )
+    self._UpdateTwice(
+        workflow=w,
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue={},
+        ))
+
+    self.assertEqual(len(group.get().anomalies), 5)
+
+    allowed_regressions = w._CheckSandwichAllowlist(ndb.get_multi(anomalies))
+
+    self.assertEqual(len(allowed_regressions), 1)
+    r = allowed_regressions[0]
+    self.assertEqual(r.benchmark_name, 'jetstream2')
+    self.assertEqual(r.bot_name, 'mac-m1_mini_2020-perf')
+    self.assertTrue(r.is_improvement)
+
   def testSandwich_TryVerifyRegression_OptOut(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
     group = self._AddAlertGroup(

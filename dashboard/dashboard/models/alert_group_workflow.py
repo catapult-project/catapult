@@ -36,6 +36,7 @@ from dashboard import sheriff_config_client
 from dashboard import revision_info_client
 from dashboard.common import cloud_metric
 from dashboard.common import file_bug
+from dashboard.common import sandwich_allowlist
 from dashboard.common import utils
 from dashboard.models import alert_group
 from dashboard.models import anomaly
@@ -674,7 +675,8 @@ class AlertGroupWorkflow:
     return True
 
   def _CheckSandwichAllowlist(self, regressions): # pylint: disable=unused-argument
-    """Filter list of regressions against the sandwich verification allowlist
+    """Filter list of regressions against the sandwich verification
+    allowlist and improvement direction.
 
     Args:
       regressions: A list of regressions in the anomaly group.
@@ -682,7 +684,17 @@ class AlertGroupWorkflow:
     Returns:
       allowed_regressions: A list of sandwich verifiable regressions.
     """
-    raise NotImplementedError('crbug/1454620')
+    allowed_regressions = []
+
+    for regression in regressions:
+      benchmark = regression.benchmark_name
+      bot = regression.bot_name
+      if bot in sandwich_allowlist.ALLOWABLE_DEVICES and \
+        benchmark in sandwich_allowlist.ALLOWABLE_BENCHMARKS and \
+        regression.is_improvement:
+        allowed_regressions.append(regression)
+
+    return allowed_regressions
 
   def _TryVerifyRegression(self, update):
     """Verify the selected regression using the sandwich verification workflow.
