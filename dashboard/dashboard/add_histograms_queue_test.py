@@ -628,6 +628,8 @@ class AddHistogramsQueueTest(testing_common.TestCase):
                    mock.MagicMock(return_value=([], None)))
 @mock.patch('dashboard.common.cloud_metric._PublishTSCloudMetric',
             mock.MagicMock())
+@mock.patch('dashboard.services.skia_bridge_service.SkiaServiceClient',
+            mock.MagicMock())
 class AddHistogramsQueueTestWithUploadCompletionToken(testing_common.TestCase):
 
   def setUp(self):

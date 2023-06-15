@@ -27,6 +27,7 @@ from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import histogram
 from dashboard.models import upload_completion_token
+from dashboard.services import skia_bridge_service
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import diagnostic
@@ -117,9 +118,12 @@ def AddHistogramsQueuePost():
   histogram_futures = []
   token_state_futures = []
 
+  skia_client = skia_bridge_service.SkiaServiceClient()
+
   try:
     for p in params:
-      histogram_futures.append((p, _ProcessRowAndHistogram(p)))
+      histogram_futures.append((p, _ProcessRowAndHistogram(p, skia_client)))
+    skia_client.SendRowsToSkiaBridge()
   except Exception as e:  # pylint: disable=broad-except
     for param, futures_info in zip_longest(params, histogram_futures):
       if futures_info is not None:
@@ -180,7 +184,7 @@ def _PrewarmGets(params):
   ndb.get_multi_async(list(keys))
 
 
-def _ProcessRowAndHistogram(params):
+def _ProcessRowAndHistogram(params, skia_client):
   revision = int(params['revision'])
   test_path = params['test_path']
   benchmark_description = params['benchmark_description']
@@ -244,13 +248,15 @@ def _ProcessRowAndHistogram(params):
         **extra_args)
 
   return [
-      _AddRowsFromData(params, revision, parent_test, legacy_parent_tests),
+      _AddRowsFromData(params, revision, parent_test, legacy_parent_tests,
+                       skia_client),
       _AddHistogramFromData(params, revision, test_key, internal_only)
   ]
 
 
 @ndb.tasklet
-def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
+def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests,
+skia_client:skia_bridge_service.SkiaServiceClient):
   data_dict = params['data']
   test_key = parent_test.key
 
@@ -263,10 +269,7 @@ def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
   yield ndb.put_multi_async(rows) + [r.UpdateParentAsync() for r in rows]
 
   logging.info('Added %s rows to Datastore', str(len(rows)))
-
-  # Disable this log since it's killing the quota of Cloud Logging API -
-  # write requests per minute
-  # logging.debug('Processed %s row entities.', len(rows))
+  skia_client.AddRowsForUpload(rows, parent_test)
 
   def IsMonitored(client, test):
     reason = []

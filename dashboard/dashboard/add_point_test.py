@@ -192,6 +192,8 @@ def AddPointQueuePost():
                    mock.MagicMock(return_value=None))
 @mock.patch.object(SheriffConfigClient, 'Match',
                    mock.MagicMock(return_value=([], None)))
+@mock.patch('dashboard.services.skia_bridge_service.SkiaServiceClient',
+            mock.MagicMock())
 class AddPointTest(testing_common.TestCase):
 
   def setUp(self):
