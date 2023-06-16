@@ -16,3 +16,9 @@ steps:
     'app', 'services', 'set-traffic', 'skia-bridge',
     '--splits=cloud-build-db0de40=1'
   ]
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: '/bin/bash'
+  args: [
+    '-x', '-e', 'dashboard/dev_dockerfiles/cleanup_versions.sh',
+    '21', 'skia-bridge'
+  ]

@@ -17,3 +17,9 @@ steps:
     'app', 'services', 'set-traffic', 'perf-issue-service',
     '--splits=cloud-build-7f835d2=1'
   ]
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: '/bin/bash'
+  args: [
+    '-x', '-e', 'dashboard/dev_dockerfiles/cleanup_versions.sh',
+    '21', 'perf-issue-service'
+  ]

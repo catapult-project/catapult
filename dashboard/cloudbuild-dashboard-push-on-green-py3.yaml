@@ -92,6 +92,6 @@ steps:
   entrypoint: '/bin/bash'
   args: [
     '-x', '-e', 'dashboard/dev_dockerfiles/cleanup_versions.sh',
-    'api', 'default', 'pinpoint', 'upload-processing', 'upload'
+    '21', 'api', 'default', 'pinpoint', 'upload-processing', 'upload'
   ]
 images: ['gcr.io/$PROJECT_ID/dashboard-base:latest']
