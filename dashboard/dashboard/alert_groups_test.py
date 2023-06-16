@@ -15,12 +15,14 @@ import webtest
 
 from dashboard import alert_groups
 from dashboard import sheriff_config_client
+from dashboard.common import namespaced_stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import alert_group
 from dashboard.models import alert_group_workflow
 from dashboard.models import anomaly
 from dashboard.models import graph_data
+from dashboard.models import skia_helper
 from dashboard.models import subscription
 from dashboard.services import crrev_service
 from dashboard.services import pinpoint_service
@@ -57,6 +59,11 @@ class GroupReportTestBase(testing_common.TestCase):
     super().setUp()
     self.maxDiff = None
     self.testapp = webtest.TestApp(flask_app)
+    namespaced_stored_object.Set('repositories', {
+        'chromium': {
+            'repository_url': 'git://chromium'
+        },
+    })
 
   def _CallHandler(self):
     result = self.testapp.get('/alert_groups_update')
@@ -128,6 +135,7 @@ class GroupReportTestBase(testing_common.TestCase):
 
 @mock.patch.object(utils, 'ServiceAccountEmail',
                    lambda: _SERVICE_ACCOUNT_EMAIL)
+@mock.patch.object(skia_helper, 'GetSkiaUrlForRegression', mock.MagicMock())
 @mock.patch('dashboard.sheriff_config_client.GetSheriffConfigClient')
 class GroupReportTest(GroupReportTestBase):
   def testNoGroup(self, mock_get_sheriff_client):
@@ -620,6 +628,7 @@ class GroupReportTest(GroupReportTestBase):
 
 @mock.patch.object(utils, 'ServiceAccountEmail',
                    lambda: _SERVICE_ACCOUNT_EMAIL)
+@mock.patch.object(skia_helper, 'GetSkiaUrlForRegression', mock.MagicMock())
 @mock.patch('dashboard.sheriff_config_client.GetSheriffConfigClient')
 class RecoveredAlertsTests(GroupReportTestBase):
   def __init__(self, *args, **kwargs):
@@ -769,6 +778,7 @@ class RecoveredAlertsTests(GroupReportTestBase):
 
 @mock.patch.object(utils, 'ServiceAccountEmail',
                    lambda: _SERVICE_ACCOUNT_EMAIL)
+@mock.patch.object(skia_helper, 'GetSkiaUrlForRegression', mock.MagicMock())
 class NonChromiumAutoTriage(GroupReportTestBase):
   def testFileIssue_InChromiumExplicitly(self):
     self.mock_get_sheriff_client.Match.return_value = ([

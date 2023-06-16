@@ -31,10 +31,16 @@ if __name__ == '__main__':
   if 'PYTHONPATH' in os.environ:
     os.environ.pop('PYTHONPATH')
 
+  suffixes = None
+  if len(sys.argv) > 1:
+    suffixes = sys.argv[1:]
+    print('Filtered tests: %s' % suffixes)
+
   from catapult_build import run_with_typ
   import dashboard
   root = 'dashboard'
   return_code = run_with_typ.Run(
     os.path.join(_DASHBOARD_PATH, root),
-    path=dashboard.PathsForTesting())
+    path=dashboard.PathsForTesting(),
+    suffixes=suffixes)
   sys.exit(return_code)

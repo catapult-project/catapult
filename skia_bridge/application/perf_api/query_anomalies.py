@@ -142,7 +142,7 @@ def GetAnomalyData(anomaly_obj):
       end_revision=anomaly_obj.get('end_revision'),
       timestamp=anomaly_obj.get('timestamp'),
       id=anomaly_obj.id,
-      bug_id=anomaly_obj.get('bug_id'),
+      bug_id=anomaly_obj.get('bug_id', -1),
       is_improvement=anomaly_obj.get('is_improvement'),
       recovered=anomaly_obj.get('recovered'),
       state=anomaly_obj.get('state'),

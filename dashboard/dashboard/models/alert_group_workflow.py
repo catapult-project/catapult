@@ -40,6 +40,7 @@ from dashboard.common import sandwich_allowlist
 from dashboard.common import utils
 from dashboard.models import alert_group
 from dashboard.models import anomaly
+from dashboard.models import skia_helper
 from dashboard.models import subscription
 from dashboard.services import crrev_service
 from dashboard.services import gitiles_service
@@ -784,11 +785,15 @@ class AlertGroupWorkflow:
       return None, []
 
     auto_triage_regressions = []
+    skia_links = {}
     for r in regressions:
       if r.auto_triage_enable:
         auto_triage_regressions.append(r)
-    logging.info('auto_triage_enabled due to %s', auto_triage_regressions)
+        skia_links[r.test.string_id()] = skia_helper.GetSkiaUrlForRegression(
+            r, self._crrev, self._gitiles)
 
+    logging.info('auto_triage_enabled due to %s', auto_triage_regressions)
+    logging.info('Skia Perf Links: %s', skia_links)
     template_args = self._GetTemplateArgs(regressions)
     top_regression = template_args['regressions'][0]
     template_args['revision_infos'] = self._revision_info.GetRangeRevisionInfo(
@@ -796,6 +801,9 @@ class AlertGroupWorkflow:
         top_regression.start_revision,
         top_regression.end_revision,
     )
+
+    template_args['skia_links'] = skia_links
+
     # Rendering issue's title and content
     title = _TEMPLATE_ISSUE_TITLE.render(template_args)
     description = _TEMPLATE_ISSUE_CONTENT.render(template_args)
