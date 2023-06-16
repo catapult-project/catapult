@@ -150,7 +150,8 @@ def RegressionDetection(request):
 
   Given upper and lower confidence intervals, we currently use a simple
   formula to determine whether an anomaly is significant. If upper and lower
-  are both greater -5%, then we consider the anomaly a verified regression.
+  are both negative or both positive with a p-value < 0.05, then we consider
+  the anomaly a verified regression.
 
   Args:
     statistic: map with upper and lower confidence interval values.
@@ -165,10 +166,14 @@ def RegressionDetection(request):
 
   ci_lower = statistic.get('lower')
   ci_upper = statistic.get('upper')
+  p_value = statistic.get('pValue')
 
   decision = False
 
-  if ci_lower >= -5 and ci_upper >= -5:
+  # TODO(crbug/1455502): Define regression threshold based on story
+  # specific attributes such as the anomaly's magnitude or the
+  # subscription thresholds.
+  if ci_lower*ci_upper > 0 and p_value < 0.05:
     decision = True
 
   return jsonify({'decision': decision})
