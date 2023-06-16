@@ -78,23 +78,6 @@ steps:
     '--run-service-account=${_SERVICE_ACCOUNT}'
   ]
   waitFor: ['-']
-
-# Deploy Handler Callback Function
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  args: [
-    'gcloud',
-    'functions',
-    'deploy',
-    'handler-callback-${_VERSION}',
-    '--gen2',
-    '--runtime=python311',
-    '--region=${_REGION}',
-    '--source=.',
-    '--entry-point=HandlerCallback',
-    '--trigger-http',
-    '--run-service-account=${_SERVICE_ACCOUNT}',
-  ]
-  waitFor: ['-']
 substitutions:
   _RUNTIME: 'python311'
   _REGION: 'us-central1'

@@ -1,30 +1,35 @@
 main:
-    params: [input]
-    steps:
+  params: [input]
+  steps:
     - init:
         assign:
           - anomaly: ${input.anomaly}
-          - mode: ${input.mode}
           - version: ${text.replace_all(sys.get_env("GOOGLE_CLOUD_WORKFLOW_ID"),
                 "sandwich-verification-workflow-",
                 "")}
           - get_function_url: ${"https://cloudfunctions.googleapis.com/v2/projects/"+sys.get_env("GOOGLE_CLOUD_PROJECT_ID")+"/locations/"+sys.get_env("GOOGLE_CLOUD_LOCATION")+"/functions/"}
-          - job_id: null
+          - job_id: ${default(map.get(input, "job_id"), null)}
           - status: null
-          - error: null
           - statistic: null
           - decision: null
+    - checkJobId:
+        switch:
+          - condition: ${job_id != null}
+            next: pollPinpointJob
+        next: startPinpointJob
     - startPinpointJob:
-        try:
-          steps:
-            - getFunctionStartPinpointJob:
+        steps:
+          - getFunctionStartPinpointJob:
+              try:
                 call: http.get
                 args:
                   url: ${get_function_url+"start-pinpoint-job-"+version}
                   auth:
                     type: OAuth2
                 result: functionResponse
-            - postStartPinpointJob:
+              retry: ${http.default_retry}
+          - postStartPinpointJob:
+              try:
                 call: http.post
                 args:
                   url: ${functionResponse.body.serviceConfig.uri}
@@ -33,32 +38,23 @@ main:
                   auth:
                     type: OIDC
                 result: startPinpointJobResult
-            - assignJobId:
-                assign:
-                  - job_id: ${startPinpointJobResult.body.job_id}
-        retry:
-          predicate: ${http.default_retry_predicate}
-          max_retries: 8
-          backoff:
-            initial_delay: 1
-            max_delay: 60
-            multiplier: 2
-        except:
-          as: error
-          steps:
-            - errorStartPinpointJob:
-                next: handlerCallback
+              retry: ${http.default_retry_non_idempotent}
+          - assignJobId:
+              assign:
+              - job_id: ${startPinpointJobResult.body.job_id}
     - pollPinpointJob:
-        try:
-          steps:
-            - getFunctionPollPinpointJob:
+        steps:
+          - getFunctionPollPinpointJob:
+              try:
                 call: http.get
                 args:
                   url: ${get_function_url+"poll-pinpoint-job-"+version}
                   auth:
                     type: OAuth2
                 result: functionResponse
-            - postPollPinpointJob:
+              retry: ${http.default_retry}
+          - postPollPinpointJob:
+              try: 
                 call: http.post
                 args:
                   url: ${functionResponse.body.serviceConfig.uri}
@@ -67,38 +63,36 @@ main:
                   auth:
                     type: OIDC
                 result: pollPinpointJobResult
-            - assignStatus:
-                assign:
-                  - status: ${pollPinpointJobResult.body.status}
-            - checkIfJobDone:
-                switch:
-                  - condition: ${status == "Completed"}
-                    next: getCabeAnalysis
-                  - condition: ${status == "Failed"}
-                    raise: "Pinpoint Job failed."
-                  - condition: ${status == "Cancelled"}
-                    raise: "Pinpoint Job cancelled."
-            - wait:
-                call: sys.sleep
-                args:
-                  seconds: 60
-                next: pollPinpointJob
-        except:
-          as: error
-          steps:
-            - errorPollPinpointJob:
-                next: handlerCallback
+              retry: ${http.default_retry_non_idempotent}
+          - assignStatus:
+              assign:
+                - status: ${pollPinpointJobResult.body.status}
+          - checkIfJobDone:
+              switch:
+                - condition: ${status == "Completed"}
+                  next: getCabeAnalysis
+                - condition: ${status == "Failed"}
+                  raise: "Pinpoint Job failed."
+                - condition: ${status == "Cancelled"}
+                  raise: "Pinpoint Job cancelled."
+          - wait:
+              call: sys.sleep
+              args:
+                seconds: 60
+              next: pollPinpointJob
     - getCabeAnalysis:
-        try:
-          steps:
-            - getFunctionGetCabeAnalysis:
+        steps:
+          - getFunctionGetCabeAnalysis:
+              try:
                 call: http.get
                 args:
                   url: ${get_function_url+"get-cabe-analysis-"+version}
                   auth:
                     type: OAuth2
                 result: functionResponse
-            - postGetCabeAnalysis:
+              retry: ${http.default_retry}
+          - postGetCabeAnalysis:
+              try:
                 call: http.post
                 args:
                   url: ${functionResponse.body.serviceConfig.uri}
@@ -108,32 +102,23 @@ main:
                   auth:
                     type: OIDC
                 result: getCabeAnalysisResult
-            - assignStatistic:
-                assign:
-                  - statistic: ${getCabeAnalysisResult.body.statistic}
-        retry:
-          predicate: ${http.default_retry_predicate}
-          max_retries: 8
-          backoff:
-            initial_delay: 1
-            max_delay: 60
-            multiplier: 2
-        except:
-          as: error
-          steps:
-            - errorGetCabeAnalysis:
-                next: handlerCallback
+              retry: ${http.default_retry_non_idempotent}
+          - assignStatistic:
+              assign:
+                - statistic: ${getCabeAnalysisResult.body.statistic}
     - regressionDetection:
-        try:
-          steps:
-            - getFunctionRegressionDetection:
+        steps:
+          - getFunctionRegressionDetection:
+              try:
                 call: http.get
                 args:
                   url: ${get_function_url+"regression-detection-"+version}
                   auth:
                     type: OAuth2
                 result: functionResponse
-            - postRegressionDetection:
+              retry: ${http.default_retry}
+          - postRegressionDetection:
+              try:
                 call: http.post
                 args:
                   url: ${functionResponse.body.serviceConfig.uri}
@@ -142,48 +127,18 @@ main:
                   auth:
                     type: OIDC
                 result: regressionDetectionResult
-            - assignDecision:
-                assign:
-                  - decision: ${regressionDetectionResult.body.decision}
-        except:
-          as: error
-          steps:
-            - errorRegressionDetection:
-                next: handlerCallback
-    - handlerCallback:
-        try:
-          steps:
-            - getFunctionHandlerCallback:
-                call: http.get
-                args:
-                  url: ${get_function_url+"handler-callback-"+version}
-                  auth:
-                    type: OAuth2
-                result: functionResponse
-            - postHandlerCallback:
-                call: http.post
-                args:
-                  url: ${functionResponse.body.serviceConfig.uri}
-                  body:
-                    mode: ${mode}
+              retry: ${http.default_retry}
+          - assignDecision:
+              assign:
+                - decision: ${regressionDetectionResult.body.decision}
+    - finishExecution:
+        steps:
+          - createOutput:
+              assign:
+                - response:
                     anomaly: ${anomaly}
-                    decision: ${decision}
+                    job_id: ${job_id}
                     statistic: ${statistic}
-                    error: ${error}
-                    args: ${input}
-                  auth:
-                    type: OIDC
-                result: handlerCallbackResult
-            - completeExecution:
-                return: ${handlerCallbackResult.body}
-        retry:
-          predicate: ${http.default_retry_predicate}
-          max_retries: 8
-          backoff:
-            initial_delay: 1
-            max_delay: 60
-            multiplier: 2
-        except:
-          as: error
-          raise: ${error}
-
+                    decision: ${decision}
+          - returnOutput:
+              return: ${response}

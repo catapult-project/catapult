@@ -11,7 +11,7 @@ import functions_framework
 from flask import jsonify
 from google.protobuf import json_format
 
-from common import dashboard_service, pinpoint_service, cabe_service
+from common import pinpoint_service, cabe_service
 
 
 @functions_framework.http
@@ -172,46 +172,3 @@ def RegressionDetection(request):
     decision = True
 
   return jsonify({'decision': decision})
-
-
-@functions_framework.http
-def HandlerCallback(request):
-  """Call external service API with verification results.
-
-  Args:
-    anomaly: verified anomaly.
-    error: any error that occurred in the verification workflow.
-    decision: True or False, determines whether anomaly is significant.
-    statistic: analysis results of anomaly.
-    mode: String that helps determine which API to call.
-    args: any extra arguments that might be useful to the external API.
-  """
-  request_json = request.get_json(silent=True)
-
-  print('Original params: %s' % request_json)
-
-  mode = request_json.get('mode')
-  args = request_json.get('args')
-
-  verification = {
-      'anomaly': request_json.get('anomaly'),
-      'error': request_json.get('error'),
-      'decision': request_json.get('decision'),
-      'statistic': request_json.get('statistic'),
-  }
-
-  resp = None
-
-  if mode == 'alert_group':
-    req = {
-        'verification': verification,
-        'group': args.get('group_key'),
-    }
-    resp = dashboard_service.VerifiedAlertGroup(req)
-  elif mode == 'testing':
-    resp = {
-        'verification': verification,
-    }
-    print('Verification testing result:', resp)
-
-  return jsonify({'response': resp})

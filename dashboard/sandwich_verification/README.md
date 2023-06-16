@@ -13,7 +13,7 @@ cd dashboard/sandwich_verification
 To deploy local code to production, call:
 
 ```
-gcloud builds submit --region=us-central1 --config cloudbuild.yaml .
+gcloud builds submit --region=us-central1 --config cloudbuild.yaml --project=chromeperf .
 ```
 
 This will execute cloudbuild.yaml and will deploy the Cloud Workflow and all
@@ -48,18 +48,25 @@ Workflow to execute. For example:
     "anomaly": {
         "benchmark": "speedometer2",
         "bot_name": "mac-m1_mini_2020-perf",
-        "chart": "",
+        "chart": "AngularJS-TodoMVC",
         "end_git_hash": "777f2001441e9d82bad279fa84a3cb0d21eb2a9c",
         "start_git_hash": "777f2001441e9d82bad279fa84a3cb0d21eb2a9c",
         "story": "Speedometer2",
         "target": "performance_test_suite"
-    },
-    "mode": "testing"
+    }
 }
 ```
 
-Specifying the mode as "testing" will let handler callback just log the final
-results instead of sending them to a Chromeperf handler.
+You can skip waiting for a Pinpoint job to complete by providing your own job_id:
+
+```
+{
+    "anomaly": {
+        ...
+    },
+    "job_id": "172c55b2660000"
+}
+```
 
 ## Running Staging Cloud Functions
 
