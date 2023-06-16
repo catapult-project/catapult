@@ -158,7 +158,6 @@ def _ProcessTestStat(test, stat, rows, ref_rows):
         any(s.visibility != subscription.VISIBILITY.PUBLIC
             for s in subscriptions) or test.internal_only)
     alert_groups = alert_group.AlertGroup.GetGroupsForAnomaly(a, subscriptions)
-    a.groups = alert_groups
     try:
       # parity results from perf_issue_service
       groups_by_request = perf_issue_service_client.GetAlertGroupsForAnomaly(a)
@@ -168,6 +167,7 @@ def _ProcessTestStat(test, stat, rows, ref_rows):
                         group_keys, alert_groups)
         cloud_metric.PublishPerfIssueServiceGroupingImpariry(
             'GetAlertGroupsForAnomaly')
+      a.groups = group_keys
     except Exception as e:  # pylint: disable=broad-except
       logging.warning('Parity logic failed in GetAlertGroupsForAnomaly. %s',
                       str(e))

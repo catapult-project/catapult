@@ -87,6 +87,51 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         },
     })
 
+    perf_comment_post_patcher = mock.patch(
+        'dashboard.services.perf_issue_service_client.GetDuplicateGroupKeys',
+        self._FindDuplicateGroupsMock)
+    perf_comment_post_patcher.start()
+    self.addCleanup(perf_comment_post_patcher.stop)
+
+    perf_comment_post_patcher = mock.patch(
+        'dashboard.services.perf_issue_service_client.GetCanonicalGroupByIssue',
+        self._FindCanonicalGroupMock)
+    perf_comment_post_patcher.start()
+    self.addCleanup(perf_comment_post_patcher.stop)
+
+  def _FindDuplicateGroupsMock(self, key_string):
+    key = ndb.Key('AlertGroup', key_string)
+    query = alert_group.AlertGroup.query(
+        alert_group.AlertGroup.active == True,
+        alert_group.AlertGroup.canonical_group == key)
+    duplicated_groups = query.fetch()
+    duplicated_keys = [g.key.string_id() for g in duplicated_groups]
+    print('DUP: ', duplicated_keys)
+    return duplicated_keys
+
+  def _FindCanonicalGroupMock(self, key_string, merged_into,
+                              merged_issue_project):
+    key = ndb.Key('AlertGroup', key_string)
+    query = alert_group.AlertGroup.query(
+        alert_group.AlertGroup.active == True,
+        alert_group.AlertGroup.bug.project == merged_issue_project,
+        alert_group.AlertGroup.bug.bug_id == merged_into)
+    query_result = query.fetch(limit=1)
+    if not query_result:
+      return None
+
+    canonical_group = query_result[0]
+    visited = set()
+    while canonical_group.canonical_group:
+      visited.add(canonical_group.key)
+      next_group_key = canonical_group.canonical_group
+      # Visited check is just precaution.
+      # If it is true - the system previously failed to prevent loop creation.
+      if next_group_key == key or next_group_key in visited:
+        return None
+      canonical_group = next_group_key.get()
+    return {'key': canonical_group.key.string_id()}
+
   @staticmethod
   def _AddAnomaly(is_summary=False, **kwargs):
     default = {
@@ -2352,7 +2397,6 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             triage_delay=datetime.timedelta(hours=0),
         ),
     )
-
     update = w._PrepareGroupUpdate()
 
     self.assertEqual(update.anomalies, [a.get() for a in anomalies])

@@ -50,9 +50,10 @@ def _ProcessUngroupedAlerts():
   reserved = alert_group.AlertGroup.Type.reserved
   ungrouped_list = alert_group.AlertGroup.Get('Ungrouped', reserved)
   if not ungrouped_list:
-    alert_group.AlertGroup(name='Ungrouped', group_type=reserved,
-                           active=True).put()
+    alert_group.AlertGroup(
+        name='Ungrouped', group_type=reserved, active=True).put()
     return
+
   ungrouped = ungrouped_list[0]
   ungrouped_anomalies = ndb.get_multi(ungrouped.anomalies)
 
@@ -127,23 +128,23 @@ def ProcessAlertGroups():
   logging.info('Fetching alert groups.')
   groups = alert_group.AlertGroup.GetAll()
   logging.info('Found %s alert groups.', len(groups))
-
   # Parity on get all
   try:
-    group_keys = list(
-        map(str, perf_issue_service_client.GetAllActiveAlertGroups()))
+    group_keys = perf_issue_service_client.GetAllActiveAlertGroups()
     logging.info('Parity found %s alert groups.', len(group_keys))
     original_group_keys = [str(g.key.id()) for g in groups]
-    if sorted(group_keys) != sorted(original_group_keys):
+    parity_keys = list(map(str, group_keys))
+    if sorted(parity_keys) != sorted(original_group_keys):
       logging.warning('Imparity found for GetAllActiveAlertGroups. %s, %s',
                       group_keys, original_group_keys)
       cloud_metric.PublishPerfIssueServiceGroupingImpariry(
           'GetAllActiveAlertGroups')
+    new_groups = ndb.get_multi([ndb.Key('AlertGroup', k) for k in group_keys])
   except Exception as e:  # pylint: disable=broad-except
     logging.warning('Parity logic failed in GetAllActiveAlertGroups. %s',
                     str(e))
 
-  for group in groups:
+  for group in new_groups:
     deferred.defer(
         _ProcessAlertGroup,
         group.key,

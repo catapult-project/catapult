@@ -210,7 +210,7 @@ def GetAlertsForGroupID(group_id):
                     group.anomalies, anomaly_keys)
     cloud_metric.PublishPerfIssueServiceGroupingImpariry(
         'GetAnomaliesByAlertGroupID')
-  return ndb.get_multi(group.anomalies)
+  return ndb.get_multi(anomaly_keys)
 
 
 def _IsInt(x):
