@@ -72,7 +72,7 @@ steps:
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'upload',
-    '--splits=cloud-build-c684fe0=1'
+    '--splits=cloud-build-cef5cf0=1'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   id: 'Set traffic for upload-processing service'
