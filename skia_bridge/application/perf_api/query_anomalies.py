@@ -136,13 +136,18 @@ def TestPath(key: datastore.key.Key):
 
 
 def GetAnomalyData(anomaly_obj):
+  bug_id = anomaly_obj.get('bug_id')
+
+  if bug_id is None:
+    bug_id = '-1'
+
   return AnomalyData(
       test_path=TestPath(anomaly_obj.get('test')),
       start_revision=anomaly_obj.get('start_revision'),
       end_revision=anomaly_obj.get('end_revision'),
       timestamp=anomaly_obj.get('timestamp'),
       id=anomaly_obj.id,
-      bug_id=anomaly_obj.get('bug_id', -1),
+      bug_id=int(bug_id),
       is_improvement=anomaly_obj.get('is_improvement'),
       recovered=anomaly_obj.get('recovered'),
       state=anomaly_obj.get('state'),
