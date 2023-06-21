@@ -54,7 +54,7 @@ class SkiaServiceClient:
     # Take only the rows that have the r_commit_pos attribute set
     filtered_rows = []
     for row in rows:
-      if row.r_commit_pos:
+      if hasattr(row, 'r_commit_pos'):
         filtered_rows.append(row)
 
     if len(filtered_rows) == 0:

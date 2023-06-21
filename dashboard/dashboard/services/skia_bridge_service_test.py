@@ -47,7 +47,7 @@ class SkiaBridgeServiceTest(unittest.TestCase):
               '.SendSkiaBridgeRequest')
   def testRowWithoutCommitPos(self, request_mock):
     rows = _CreateRows(1)
-    rows[0].r_commit_pos = None
+    delattr(rows[0], 'r_commit_pos')
     parent_test = graph_data.TestMetadata(id='Chromeperf/skia/test')
     skia_client = skia_bridge_service.SkiaServiceClient()
     skia_client.AddRowsForUpload(rows, parent_test)
