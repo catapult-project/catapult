@@ -19,6 +19,12 @@ steps:
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: '/bin/bash'
   args: [
+    '-x', '-e', 'dashboard/dev_dockerfiles/stop_old_versions.sh',
+    'skia-bridge'
+  ]
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: '/bin/bash'
+  args: [
     '-x', '-e', 'dashboard/dev_dockerfiles/cleanup_versions.sh',
-    '21', 'skia-bridge'
+    '28', 'skia-bridge'
   ]
