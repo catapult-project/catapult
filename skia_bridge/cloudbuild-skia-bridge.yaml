@@ -14,7 +14,7 @@ steps:
   dir: 'skia_bridge'
   args: [
     'app', 'services', 'set-traffic', 'skia-bridge',
-    '--splits=cloud-build-db0de40=1'
+    '--splits=cloud-build-cef5cf0=1'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: '/bin/bash'
