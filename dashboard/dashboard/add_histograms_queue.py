@@ -123,7 +123,7 @@ def AddHistogramsQueuePost():
   try:
     for p in params:
       histogram_futures.append((p, _ProcessRowAndHistogram(p, skia_client)))
-    skia_client.SendRowsToSkiaBridge()
+
   except Exception as e:  # pylint: disable=broad-except
     for param, futures_info in zip_longest(params, histogram_futures):
       if futures_info is not None:
@@ -148,6 +148,7 @@ def AddHistogramsQueuePost():
             info.get('test_path'), info.get('token'), operation_state,
             error_message))
   ndb.Future.wait_all(token_state_futures)
+  skia_client.SendRowsToSkiaBridge()
   return make_response('')
 
 
