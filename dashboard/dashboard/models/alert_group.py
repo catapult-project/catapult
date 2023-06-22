@@ -51,6 +51,7 @@ class AlertGroup(ndb.Model):
     triaged = 2
     bisected = 3
     closed = 4
+    sandwiched = 5
 
   status = ndb.IntegerProperty(indexed=False)
 
