@@ -225,7 +225,7 @@ def _LogDebugInfo(histograms):
     logging.info('No LOG_URLS in data.')
 
   build_urls = hist.diagnostics.get(reserved_infos.BUILD_URLS.name)
-  if build_urls:
+  if build_urls and hasattr(build_urls, '__iter__'):
     build_urls = list(build_urls)
     msg = 'Build URL: %s' % str(build_urls)
     logging.info(msg)
