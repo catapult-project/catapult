@@ -58,7 +58,7 @@ steps:
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'default',
-    '--splits=cloud-build-cef5cf0=1'
+    '--splits=cloud-build-eae2987=1'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   id: 'Set traffic for api service'
