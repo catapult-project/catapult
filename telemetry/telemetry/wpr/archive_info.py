@@ -102,10 +102,7 @@ class WprArchiveInfo():
         else:
           logging.error("You either aren't authenticated or don't have "
                         "permission to use the archives for this page set."
-                        "\nYou may need to run gsutil config."
-                        "\nYou can find instructions for gsutil config at: "
-                        "http://www.chromium.org/developers/telemetry/"
-                        "upload_to_cloud_storage")
+                        "\nYou may need to run gcloud auth login.")
           raise
 
     try:

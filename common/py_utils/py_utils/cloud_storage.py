@@ -67,13 +67,18 @@ class CloudStorageError(Exception):
 
   @staticmethod
   def _GetConfigInstructions():
-    command = _GSUTIL_PATH
+    boto_command = ('export BOTO_CONFIG=$(gcloud info --format '
+                  '"value(config.paths.global_config_dir)"/legacy_credentials/'
+                  '$(gcloud config list --format="value(core.account)")/.boto')
+    retval = ('To configure your credentials, run \n%s\n'
+              'Next run "gcloud auth login" and follow its instructions.\n'
+              'To make this change persistent, add the export BOTO_CONFIG\n'
+              'command to your ~/.bashrc file.' % boto_command)
     if py_utils.IsRunningOnCrosDevice():
-      command = 'HOME=%s %s' % (_CROS_GSUTIL_HOME_WAR, _GSUTIL_PATH)
-    return ('To configure your credentials:\n'
-            '  1. Run "%s config" and follow its instructions.\n'
-            '  2. If you have a @google.com account, use that account.\n'
-            '  3. For the project-id, just enter 0.' % command)
+      retval += ('If running on Chrome OS, gcloud auth login may require\n'
+                 'setting the home directory to HOME=%s'
+                 % _CROS_GSUTIL_HOME_WAR)
+    return retval
 
 
 class CloudStoragePermissionError(CloudStorageError):
