@@ -12,7 +12,7 @@ import itertools
 import re
 import logging
 
-from collections import OrderedDict
+from collections import Counter, OrderedDict
 from collections import defaultdict
 
 from typ import python_2_3_compat
@@ -272,36 +272,36 @@ class TaggedTestListParser(object):
                 if not first_tag_line:
                     first_tag_line = lineno
                 right_bracket = line.find(']')
-                if right_bracket == -1:
-                    # multi-line tag set
-                    tag_set = set([t for t in line[len(token):].split()])
+
+                prefix_size = len(token)
+
+                tag_counts = Counter()
+
+                while lineno <= num_lines and right_bracket == -1:
+                    tag_counts.update(line[prefix_size:].split())
                     lineno += 1
-                    while lineno <= num_lines and right_bracket == -1:
-                        line = lines[lineno - 1].strip()
-                        if line[0] != '#':
-                            raise ParseError(
-                                lineno,
-                                'Multi-line tag set missing leading "#"')
-                        right_bracket = line.find(']')
-                        if right_bracket == -1:
-                            tag_set.update([t for t in line[1:].split()])
-                            lineno += 1
-                        else:
-                            tag_set.update(
-                                [t for t in line[1:right_bracket].split()])
-                            if line[right_bracket+1:]:
-                                raise ParseError(
-                                    lineno,
-                                    'Nothing is allowed after a closing tag '
-                                    'bracket')
-                else:
-                    if line[right_bracket+1:]:
+                    line = lines[lineno - 1].strip()
+                    prefix_size = 1
+                    if line[0] != '#':
                         raise ParseError(
                             lineno,
-                            'Nothing is allowed after a closing tag '
-                            'bracket')
-                    tag_set = set(
-                        [t for t in line[len(token):right_bracket].split()])
+                            'Multi-line tag set missing leading "#"')
+                    right_bracket = line.find(']')
+
+                if line[right_bracket+1:]:
+                    raise ParseError(
+                        lineno,
+                        'Nothing is allowed after a closing tag '
+                        'bracket')
+
+                tag_counts.update(line[prefix_size:right_bracket].split())
+                tag_set = set(tag_counts.keys())
+                duplicate_tags = {tag for tag, count in tag_counts.items() if count > 1}
+
+                if duplicate_tags:
+                    message = 'duplicate tag(s): {}'.format(', '.join(sorted(duplicate_tags)))
+                    raise ParseError(lineno, message)
+
                 if token == self.TAG_TOKEN:
                     tag_set = set([t.lower() for t in tag_set])
                     tag_sets_intersection.update(

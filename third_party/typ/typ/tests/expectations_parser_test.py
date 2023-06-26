@@ -1000,3 +1000,14 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
         assert not ret, errors
         self.assertEqual(list(test_exps.individual_exps),
                          ['test1','test2','test8', 'test9', 'test5', 'test.*'])
+
+    def testDuplicateTagsInTagsRaisesError(self):
+        raw_data = (
+            '# tags: [ Mac Win Linux Win ]\n'
+            '# tags: [ Batman Robin Superman ]\n'
+            '# results: [ Failure ]\n'
+            'crbug.com/23456 [ Batman ] b1/s1 [ Failure ]\n')
+        with self.assertRaises(expectations_parser.ParseError) as context:
+            expectations_parser.TaggedTestListParser(raw_data)
+        self.assertIn('1: duplicate tag(s): Win',
+                      str(context.exception))
