@@ -785,15 +785,11 @@ class AlertGroupWorkflow:
       return None, []
 
     auto_triage_regressions = []
-    skia_links = {}
     for r in regressions:
       if r.auto_triage_enable:
         auto_triage_regressions.append(r)
-        skia_links[r.test.string_id()] = skia_helper.GetSkiaUrlForRegression(
-            r, self._crrev, self._gitiles)
 
     logging.info('auto_triage_enabled due to %s', auto_triage_regressions)
-    logging.info('Skia Perf Links: %s', skia_links)
     template_args = self._GetTemplateArgs(regressions)
     top_regression = template_args['regressions'][0]
     template_args['revision_infos'] = self._revision_info.GetRangeRevisionInfo(
@@ -802,7 +798,13 @@ class AlertGroupWorkflow:
         top_regression.end_revision,
     )
 
-    template_args['skia_links'] = skia_links
+    try:
+      skia_url = skia_helper.GetSkiaUrlForRegressionGroup(
+          regressions, self._crrev, self._gitiles)
+      logging.info('Skia Perf Url: %s', skia_url)
+      template_args['skia_url'] = skia_url
+    except Exception as e:  # pylint: disable=broad-except
+      logging.error('Error generating skia perf links: %s', str(e))
 
     # Rendering issue's title and content
     title = _TEMPLATE_ISSUE_TITLE.render(template_args)

@@ -1,6 +1,6 @@
 All graphs for this regression group at {{ group.revision.start }}:{{ group.revision.end }}:
   https://chromeperf.appspot.com/group_report?group_id={{ group.key.string_id() }}
-
+  {# TODO(ashwinpv): Insert the SKIA perf link here #}
 {% set top_regressions = regressions[:10] -%}
 Top {{ top_regressions|length }} regressions (out of {{ group.anomalies|length }}, with {{ group.anomalies|length - regressions|length }} improvements) in this group:
 {%- for regression in top_regressions %}
@@ -8,7 +8,7 @@ Top {{ top_regressions|length }} regressions (out of {{ group.anomalies|length }
     {%- set before = regression.median_before_anomaly %}
     {%- set after = regression.median_after_anomaly %}
     {{ '%8.2f'|format(regression.relative_delta*100.0) }}%: {{ before }} -> {{ after }} {{ parse_unit(regression.units) }}
-    {# TODO(ashwinpv): Add the skia perf link for test here once enabled -#}
+
 {%- endfor -%}
 {# Show the benchmark groupings conditionally. #}
 {%- include 'benchmark_grouping.j2' -%}
