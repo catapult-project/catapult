@@ -11,76 +11,63 @@ from dashboard.common import namespaced_stored_object
 
 PUBLIC_HOST = 'https://perf.luci.app'
 INTERNAL_HOST = 'https://chrome-perf.corp.goog'
+SUPPORTED_REPOSITORIES = ['chromium']
 
 
 def GetSkiaUrlForRegressionGroup(regressions, crrev_service, gitiles_service):
-  repositories = namespaced_stored_object.Get('repositories')
-  repo_url = repositories['chromium']['repository_url']
+  # Filter out regressions that are only in the supported repositories
+  filtered_regressions = []
+  for r in regressions:
+    if r.project_id and r.project_id in SUPPORTED_REPOSITORIES:
+      filtered_regressions.append(r)
 
-  benchmarks = []
-  bots = []
-  tests = []
-  subtests = []
-  start_revision = regressions[0].start_revision
-  end_revision = regressions[0].end_revision
-  for regression in regressions:
-    regression_test = regression.test.get()
-    benchmarks.append(regression.benchmark_name)
-    bots.append(regression.bot_name)
-    tests.append(regression_test.test_part1_name)
-    subtests.append(regression_test.test_part2_name)
+  if len(filtered_regressions) > 0:
+    repositories = namespaced_stored_object.Get('repositories')
+    repo_url = repositories['chromium']['repository_url']
 
-    # Capture the earliest start_revision and latest end_revision from
-    # the regressions group
-    if regression.start_revision < start_revision:
-      start_revision = regression.start_revision
-    if regression.end_revision > end_revision:
-      end_revision = regression.end_revision
+    benchmarks = set()
+    bots = set()
+    tests = set()
+    subtests_1 = set()
+    start_revision = filtered_regressions[0].start_revision
+    end_revision = filtered_regressions[0].end_revision
+    for regression in filtered_regressions:
+      regression_test = regression.test.get()
+      benchmarks.add(regression.benchmark_name)
+      bots.add(regression.bot_name)
+      tests.add(regression_test.test_part1_name)
+      if regression_test.test_part2_name:
+        subtests_1.add(regression_test.test_part2_name)
 
-  benchmark_query_str = ''.join(
-      '&benchmark=%s' % benchmark for benchmark in benchmarks)
-  bot_query_str = ''.join('&bot=%s' % bot for bot in bots)
-  test_query_str = ''.join('&test=%s' % test for test in tests)
-  subtest_query_str = ''.join('&subtest_1=%s' % subtest for subtest in subtests)
+      # Capture the earliest start_revision and latest end_revision from
+      # the regressions group
+      if regression.start_revision < start_revision:
+        start_revision = regression.start_revision
+      if regression.end_revision > end_revision:
+        end_revision = regression.end_revision
 
-  query_str = encoder.quote(
-      'stat=value%s%s%s%s' %
-      (benchmark_query_str, bot_query_str, test_query_str, subtest_query_str))
-
-  start_commit_info = _GetCommitInfo(start_revision, crrev_service,
-                                     gitiles_service, repo_url)
-  end_commit_info = _GetCommitInfo(end_revision, crrev_service, gitiles_service,
-                                   repo_url)
-
-  if start_commit_info and start_commit_info.get('committer') and \
-      end_commit_info and end_commit_info.get('committer'):
-    begin_date = start_commit_info['committer']['time']
-    end_date = end_commit_info['committer']['time']
-    return _GenerateUrl(regressions[0].internal_only, query_str, begin_date,
-                        end_date)
-  return ''
-
-
-def GetSkiaUrlForRegression(regression, crrev_service, gitiles_service):
-  repositories = namespaced_stored_object.Get('repositories')
-  repo_url = repositories['chromium']['repository_url']
-
-  start_commit_info = _GetCommitInfo(regression.start_revision, crrev_service,
-                                     gitiles_service, repo_url)
-  end_commit_info = _GetCommitInfo(regression.end_revision, crrev_service,
-                                   gitiles_service, repo_url)
-  if start_commit_info and start_commit_info.get('committer') and \
-      end_commit_info and end_commit_info.get('committer'):
-    begin_date = start_commit_info['committer']['time']
-    end_date = end_commit_info['committer']['time']
+    benchmark_query_str = ''.join(
+        '&benchmark=%s' % benchmark for benchmark in benchmarks)
+    bot_query_str = ''.join('&bot=%s' % bot for bot in bots)
+    test_query_str = ''.join('&test=%s' % test for test in tests)
+    subtest_query_str = ''.join(
+        '&subtest_1=%s' % subtest for subtest in subtests_1)
 
     query_str = encoder.quote(
-        'benchmark=%s&bot=%s&test=%s&subtest_1=%s' %
-        (regression.benchmark_name, regression.bot_name,
-         regression.test.test_part1_name, regression.test.test_part2_name))
-    return _GenerateUrl(regression.internal_only, query_str, begin_date,
-                        end_date)
+        'stat=value%s%s%s%s' %
+        (benchmark_query_str, bot_query_str, test_query_str, subtest_query_str))
 
+    start_commit_info = _GetCommitInfo(start_revision, crrev_service,
+                                       gitiles_service, repo_url)
+    end_commit_info = _GetCommitInfo(end_revision, crrev_service,
+                                     gitiles_service, repo_url)
+
+    if start_commit_info and start_commit_info.get('committer') and \
+        end_commit_info and end_commit_info.get('committer'):
+      begin_date = start_commit_info['committer']['time']
+      end_date = end_commit_info['committer']['time']
+      return _GenerateUrl(filtered_regressions[0].internal_only, query_str,
+                          begin_date, end_date)
   return ''
 
 

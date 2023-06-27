@@ -135,7 +135,8 @@ class GroupReportTestBase(testing_common.TestCase):
 
 @mock.patch.object(utils, 'ServiceAccountEmail',
                    lambda: _SERVICE_ACCOUNT_EMAIL)
-@mock.patch.object(skia_helper, 'GetSkiaUrlForRegression', mock.MagicMock())
+@mock.patch.object(skia_helper, 'GetSkiaUrlForRegressionGroup',
+                   mock.MagicMock())
 @mock.patch('dashboard.sheriff_config_client.GetSheriffConfigClient')
 class GroupReportTest(GroupReportTestBase):
   def testNoGroup(self, mock_get_sheriff_client):
@@ -628,7 +629,8 @@ class GroupReportTest(GroupReportTestBase):
 
 @mock.patch.object(utils, 'ServiceAccountEmail',
                    lambda: _SERVICE_ACCOUNT_EMAIL)
-@mock.patch.object(skia_helper, 'GetSkiaUrlForRegression', mock.MagicMock())
+@mock.patch.object(skia_helper, 'GetSkiaUrlForRegressionGroup',
+                   mock.MagicMock())
 @mock.patch('dashboard.sheriff_config_client.GetSheriffConfigClient')
 class RecoveredAlertsTests(GroupReportTestBase):
   def __init__(self, *args, **kwargs):
@@ -778,7 +780,8 @@ class RecoveredAlertsTests(GroupReportTestBase):
 
 @mock.patch.object(utils, 'ServiceAccountEmail',
                    lambda: _SERVICE_ACCOUNT_EMAIL)
-@mock.patch.object(skia_helper, 'GetSkiaUrlForRegression', mock.MagicMock())
+@mock.patch.object(skia_helper, 'GetSkiaUrlForRegressionGroup',
+                   mock.MagicMock())
 class NonChromiumAutoTriage(GroupReportTestBase):
   def testFileIssue_InChromiumExplicitly(self):
     self.mock_get_sheriff_client.Match.return_value = ([
