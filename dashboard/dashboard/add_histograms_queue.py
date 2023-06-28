@@ -27,7 +27,6 @@ from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import histogram
 from dashboard.models import upload_completion_token
-from dashboard.services import skia_bridge_service
 from tracing.value import histogram as histogram_module
 from tracing.value import histogram_set
 from tracing.value.diagnostics import diagnostic
@@ -118,11 +117,12 @@ def AddHistogramsQueuePost():
   histogram_futures = []
   token_state_futures = []
 
-  skia_client = skia_bridge_service.SkiaServiceClient()
+  # TODO: Re-enable this once we scale up skia-bridge
+  # skia_client = skia_bridge_service.SkiaServiceClient()
 
   try:
     for p in params:
-      histogram_futures.append((p, _ProcessRowAndHistogram(p, skia_client)))
+      histogram_futures.append((p, _ProcessRowAndHistogram(p)))
 
   except Exception as e:  # pylint: disable=broad-except
     for param, futures_info in zip_longest(params, histogram_futures):
@@ -148,7 +148,9 @@ def AddHistogramsQueuePost():
             info.get('test_path'), info.get('token'), operation_state,
             error_message))
   ndb.Future.wait_all(token_state_futures)
-  skia_client.SendRowsToSkiaBridge()
+
+  # TODO: Re-enable this once we scale up skia-bridge
+  # skia_client.SendRowsToSkiaBridge()
   return make_response('')
 
 
@@ -185,7 +187,7 @@ def _PrewarmGets(params):
   ndb.get_multi_async(list(keys))
 
 
-def _ProcessRowAndHistogram(params, skia_client):
+def _ProcessRowAndHistogram(params):
   revision = int(params['revision'])
   test_path = params['test_path']
   benchmark_description = params['benchmark_description']
@@ -249,15 +251,13 @@ def _ProcessRowAndHistogram(params, skia_client):
         **extra_args)
 
   return [
-      _AddRowsFromData(params, revision, parent_test, legacy_parent_tests,
-                       skia_client),
+      _AddRowsFromData(params, revision, parent_test, legacy_parent_tests),
       _AddHistogramFromData(params, revision, test_key, internal_only)
   ]
 
 
 @ndb.tasklet
-def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests,
-skia_client:skia_bridge_service.SkiaServiceClient):
+def _AddRowsFromData(params, revision, parent_test, legacy_parent_tests):
   data_dict = params['data']
   test_key = parent_test.key
 
@@ -270,7 +270,9 @@ skia_client:skia_bridge_service.SkiaServiceClient):
   yield ndb.put_multi_async(rows) + [r.UpdateParentAsync() for r in rows]
 
   logging.info('Added %s rows to Datastore', str(len(rows)))
-  skia_client.AddRowsForUpload(rows, parent_test)
+
+  # TODO: Re-enable this once we scale up skia-bridge
+  # skia_client.AddRowsForUpload(rows, parent_test)
 
   def IsMonitored(client, test):
     reason = []
