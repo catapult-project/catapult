@@ -10,16 +10,16 @@ runtime_config:
 entrypoint: gunicorn -b:$PORT main:APP
 
 automatic_scaling:
-  min_num_instances: 20
+  min_num_instances: 40
   max_num_instances: 100
   cool_down_period_sec: 180
   cpu_utilization:
     target_utilization: 0.6
-  target_concurrent_requests: 20
+  target_concurrent_requests: 10
 
 resources:
-  cpu: 4
-  memory_gb: 8
+  cpu: 8
+  memory_gb: 16
 
 handlers:
 - url: /.*
@@ -28,7 +28,7 @@ handlers:
 
 readiness_check:
   path: "/"
-  check_interval_sec: 30
+  check_interval_sec: 60
   timeout_sec: 1
   failure_threshold: 2
   success_threshold: 2

@@ -153,6 +153,10 @@ def CreateRowGroups(rows):
   row_groups = {}
   for row in rows:
     test_data = row['parent_test']
+
+    if not row.get('a_bot_id'):
+      row['a_bot_id'] = ['Unspecified']
+
     # a_bot_id is a list, so let's get a str representation
     bot_list = ','.join(sorted(row['a_bot_id']))
     row_key = '%s->%s->%s->%s->%s->%s->%s' % (test_data['master_name'],
@@ -210,12 +214,12 @@ def UploadRowGroup(gcs_client, rows):
       random_suffix)
 
   # All data goes to internal bucket (both public and internal_only)
-  gcs_client.UploadDataToBucket(filename, json.dumps(skia_data), INTERNAL_BUCKET_NAME,
-                                'application/json')
+  gcs_client.UploadDataToBucket(filename, json.dumps(skia_data),
+                                INTERNAL_BUCKET_NAME, 'application/json')
   if not internal_only:
     # Upload to public bucket only if it's not internal_only
-    gcs_client.UploadDataToBucket(filename, json.dumps(skia_data), PUBLIC_BUCKET_NAME,
-                                'application/json')
+    gcs_client.UploadDataToBucket(filename, json.dumps(skia_data),
+                                  PUBLIC_BUCKET_NAME, 'application/json')
 
 
   logging.info('Uploaded row to %s', filename)
