@@ -68,7 +68,7 @@ class CloudStorageError(Exception):
   @staticmethod
   def _GetConfigInstructions():
     boto_command = ('export BOTO_CONFIG=$(gcloud info --format '
-                  '"value(config.paths.global_config_dir)"/legacy_credentials/'
+                  '"value(config.paths.global_config_dir)")/legacy_credentials/'
                   '$(gcloud config list --format="value(core.account)")/.boto')
     retval = ('To configure your credentials, run \n%s\n'
               'Next run "gcloud auth login" and follow its instructions.\n'
