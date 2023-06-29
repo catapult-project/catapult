@@ -9,18 +9,13 @@ steps:
     app, deploy, '--no-promote', '--version', 'cloud-build-${SHORT_SHA}',
     skia-bridge.yaml,
   ]
+# Stop the newly deployed version so that it doesn't consume resources
+# until it is configured to receive traffic
 - name: 'gcr.io/cloud-builders/gcloud'
-  id: 'Set traffic for skia-bridge service'
   dir: 'skia_bridge'
   args: [
-    'app', 'services', 'set-traffic', 'skia-bridge',
-    '--splits=cloud-build-735e7d4=1'
-  ]
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: '/bin/bash'
-  args: [
-    '-x', '-e', 'dashboard/dev_dockerfiles/stop_old_versions.sh',
-    'skia-bridge'
+    app, versions, 'stop', '-s', 'skia-bridge', 'cloud-build-${SHORT_SHA}',
+    skia-bridge.yaml,
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: '/bin/bash'
