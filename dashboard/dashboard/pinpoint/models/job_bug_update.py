@@ -129,34 +129,42 @@ class DifferencesFoundBugUpdateBuilder:
   def SetExaminedCount(self, examined_count):
     self._examined_count = examined_count
 
-  def AddDifference(self, change, values_a, values_b):
+  def AddDifference(self,
+                    change,
+                    values_a,
+                    values_b,
+                    kind=None,
+                    commit_dict=None):
     """Add a difference (a commit where the metric changed significantly).
 
     Args:
       change: a Change.
       values_a: (list) result values for the prior commit.
       values_b: (list) result values for this commit.
+      kind: commit kind.
+      commit_dict: commit dictionary.
     """
-    if change.patch:
-      kind = 'patch'
-      commit_dict = {
-          'server': change.patch.server,
-          'change': change.patch.change,
-          'revision': change.patch.revision,
-      }
-    else:
-      kind = 'commit'
-      commit_dict = {
-          'repository': change.last_commit.repository,
-          'git_hash': change.last_commit.git_hash,
-      }
+    if not kind and not commit_dict:
+      if change.patch:
+        kind = 'patch'
+        commit_dict = {
+            'server': change.patch.server,
+            'change': change.patch.change,
+            'revision': change.patch.revision,
+        }
+      else:
+        kind = 'commit'
+        commit_dict = {
+            'repository': change.last_commit.repository,
+            'git_hash': change.last_commit.git_hash,
+        }
 
     # Store just the commit repository + hash to ensure we don't attempt to
     # serialize too much data into datastore.  See https://crbug.com/1140309.
     self._differences.append(_Difference(kind, commit_dict, values_a, values_b))
     self._cached_ordered_diffs_by_delta = None
 
-  def BuildUpdate(self, tags, url, improvement_dir):
+  def BuildUpdate(self, tags, url, improvement_dir, sandwiched=False):
     """Return _BugUpdateInfo for the differences."""
     if len(self._differences) == 0:
       raise ValueError("BuildUpdate called with 0 differences")
@@ -169,11 +177,18 @@ class DifferencesFoundBugUpdateBuilder:
     # that have non-empty values, to consider whether we've found no, a single,
     # or multiple culprits.
     if differences:
-      labels = [
-          'Pinpoint-Culprit-Found'
-          if len(differences) == 1 else 'Pinpoint-Multiple-Culprits',
-          'Pinpoint-Job-Completed',
-      ]
+      if sandwiched:
+        labels = [
+            'Pinpoint-Culprit-Found'
+            if len(differences) == 1 else 'Pinpoint-Multiple-Culprits',
+            'Culprit-Verification-Completed',
+        ]
+      else:
+        labels = [
+            'Pinpoint-Culprit-Found'
+            if len(differences) == 1 else 'Pinpoint-Multiple-Culprits',
+            'Pinpoint-Job-Completed',
+        ]
       if missing_values:
         labels.append('Pinpoint-Multiple-MissingValues')
       labels = ComputeLabelUpdates(labels)
@@ -189,8 +204,13 @@ class DifferencesFoundBugUpdateBuilder:
       )
     elif missing_values:
       status = 'Assigned'
-      labels = ComputeLabelUpdates(
-          ['Pinpoint-Multiple-MissingValues', 'Pinpoint-Job-Completed'])
+      if sandwiched:
+        labels = ComputeLabelUpdates([
+            'Pinpoint-Multiple-MissingValues', 'Culprit-Verification-Completed'
+        ])
+      else:
+        labels = ComputeLabelUpdates(
+            ['Pinpoint-Multiple-MissingValues', 'Pinpoint-Job-Completed'])
       comment_text = _MISSING_VALUES_TMPL.render(
           missing_values=missing_values,
           metric=self._metric,
@@ -414,15 +434,21 @@ def _ComputeAutobisectUpdate(tags):
   return list(components), list(cc), list(labels)
 
 
-def UpdatePostAndMergeDeferred(bug_update_builder, bug_id, tags, url, project,
-                               improvement_dir):
+def UpdatePostAndMergeDeferred(bug_update_builder,
+                               bug_id,
+                               tags,
+                               url,
+                               project,
+                               improvement_dir,
+                               sandwiched=False):
   if not bug_id:
     return
   commit_cache_key = bug_update_builder.GenerateCommitCacheKey()
   if not commit_cache_key:
     logging.debug('UpdatePostAndMergeDeferred: commit_cache_key is None. Bug: "%s"',
                   bug_id)
-  bug_update = bug_update_builder.BuildUpdate(tags, url, improvement_dir)
+  bug_update = bug_update_builder.BuildUpdate(tags, url, improvement_dir,
+                                              sandwiched)
   merge_details, cc_list = _ComputePostMergeDetails(
       commit_cache_key,
       bug_update.cc_list,

@@ -24,6 +24,11 @@ cron:
   schedule: every 24 hours
   target: pinpoint
 
+- description: Update sandwich verification results for Pinpoint's bisection culprits.
+  url: /cron/update-culprit-verification-results
+  schedule: every 10 minutes
+  target: pinpoint
+
 - description: Poll luci-config for sheriff configurations.
   url: /configs/update
   schedule: every 1 minutes

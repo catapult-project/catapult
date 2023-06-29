@@ -79,6 +79,11 @@ def IsolateCleanupHandler():
   return handlers.isolate.IsolateCleanupHandler()
 
 
+@APP.route('/cron/update-culprit-verification-results')
+def CulpritVerificationResultsUpdateHandler():
+  return handlers.culprit.CulpritVerificationResultsUpdateHandler()
+
+
 @APP.route('/api/results2/<job_id>')
 def Results2Handler(job_id):
   return handlers.results2.Results2Handler(job_id)
