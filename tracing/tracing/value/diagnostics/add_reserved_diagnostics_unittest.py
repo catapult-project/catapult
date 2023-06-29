@@ -61,6 +61,22 @@ class AddReservedDiagnosticsUnittest(unittest.TestCase):
     for part in results:
       self.assertGreater(max_size, len(part))
 
+  # Verify AddReservedDiagnostics can handle a histogram larger than max_size,
+  # by passing it a very small max_size.
+  def testBatchSmallMaxSize(self):
+    hs = histogram_set.HistogramSet()
+    hs.CreateHistogram('name', 'count', [])
+    results = add_reserved_diagnostics.AddReservedDiagnostics(
+        hs.AsDicts(), {'benchmarks': 'motionmark'}, 10)
+
+    # Verify the resulting JSON can be imported, and contains valid diagnostics.
+    self.assertEqual(len(results), 1)
+    hs = histogram_set.HistogramSet()
+    hs.ImportDicts(json.loads(results[0]))
+    benchmarks = hs.GetFirstHistogram().diagnostics['benchmarks']
+    self.assertIsInstance(benchmarks, generic_set.GenericSet)
+    self.assertEqual(benchmarks.GetOnlyElement(), 'motionmark')
+
   def testAddReservedDiagnostics_InvalidDiagnostic_Raises(self):
     hs = histogram_set.HistogramSet([
         self._CreateHistogram('foo')])

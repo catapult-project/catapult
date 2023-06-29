@@ -122,8 +122,7 @@ def Batch(histograms, max_bytes, strict=False):
 
   def DumpsFirst(n):
     hs = histogram_set.HistogramSet(histograms[:n])
-    if n > 1:
-      hs.DeduplicateDiagnostics()
+    hs.DeduplicateDiagnostics()
     return Dumps(hs.AsDicts())
 
   batches = []
