@@ -92,6 +92,8 @@ steps:
   entrypoint: '/bin/bash'
   args: [
     '-x', '-e', 'dashboard/dev_dockerfiles/cleanup_versions.sh',
-    '21', 'api', 'default', 'pinpoint', 'upload-processing', 'upload'
+    '21', 'api', 'default', 'pinpoint', 'upload-processing', 'upload',
+    #(crbug/1459722) temp clean up to work around the limit of IN_USE_ADDRESSES
+    'perf-issue-service', 'skia-bridge'
   ]
 images: ['gcr.io/$PROJECT_ID/dashboard-base:latest']

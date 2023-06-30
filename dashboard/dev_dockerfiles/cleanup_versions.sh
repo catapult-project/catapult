@@ -24,11 +24,19 @@ fi
 
 date_to_remove=`date -I --date="-${days} day"`
 for SERVICE in "$@"; do
+  # Remove those versions which have no traffic and older than X days.
   gcloud app versions list \
     --format="table[no-heading](VERSION.ID)" \
     --filter="SERVICE=${SERVICE} AND
               TRAFFIC_SPLIT=0 AND
               LAST_DEPLOYED.date()<${date_to_remove}" \
   | xargs --no-run-if-empty gcloud app versions delete -s ${SERVICE}
+  # For the recent ones with no traffic, stop the them if they are not taking
+  # any traffic. This is to avoid exceeding the limit of in-use ip.
+  gcloud app versions list \
+    --format="table[no-heading](VERSION.ID)" \
+    --filter="SERVICE=${SERVICE} AND
+              TRAFFIC_SPLIT=0" \
+  | xargs --no-run-if-empty gcloud app versions stop -s ${SERVICE}
 done
 
