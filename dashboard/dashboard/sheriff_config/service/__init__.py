@@ -7,21 +7,22 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import base64
+import logging
+import time
+import os
+
 from flask import Flask, request, jsonify
 from flask_talisman import Talisman
 from google.cloud import datastore
 from google.protobuf import json_format
-import base64
 import google.auth
-import logging
-import luci_config
-import match_policy
-import os
-import service_client
 
 from dashboard.protobuf import sheriff_config_pb2
+import luci_config
+import match_policy
+import service_client
 import validator
-import time
 
 
 class Error(Exception):
