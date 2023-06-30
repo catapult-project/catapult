@@ -138,7 +138,7 @@ def GetDuplicateGroupKeys(group_key):
   except request.RequestError as e:
     cloud_metric.PublishPerfIssueServiceRequestFailures(
         'GetDuplicateGroupKeys', 'GET', url, {'group_key': group_key})
-    logging.warning(
+    logging.error(
         '[PerfIssueService] Error requesting duplicates by group key: %s. %s',
         group_key, str(e))
     return []
@@ -164,7 +164,7 @@ def GetCanonicalGroupByIssue(current_group_key, issue_id, project_name):
             'issue_id': issue_id,
             'project_name': project_name
         })
-    logging.warning(
+    logging.error(
         '[PerfIssueService] Error requesting canonical group. Group: %s. ID: %s. Project: %s. %s',
         current_group_key, issue_id, project_name, str(e))
     return []
@@ -182,7 +182,7 @@ def GetAnomaliesByAlertGroupID(group_id):
   except request.RequestError as e:
     cloud_metric.PublishPerfIssueServiceRequestFailures(
         'GetAnomaliesByAlertGroupID', 'GET', url, {'group_id': group_id})
-    logging.warning(
+    logging.error(
         '[PerfIssueService] Error requesting anomalies by group id: %s. %s',
         group_id, str(e))
     return []
@@ -208,7 +208,7 @@ def GetAlertGroupsForAnomaly(anomaly):
   except request.RequestError as e:
     cloud_metric.PublishPerfIssueServiceRequestFailures(
         'GetAlertGroupsForAnomaly', 'GET', url, {'test_key': test_key})
-    logging.warning(
+    logging.error(
         '[PerfIssueService] Error requesting groups by anomaly: %s. %s',
         test_key, str(e))
     return []
@@ -226,8 +226,7 @@ def GetAllActiveAlertGroups():
   except request.RequestError as e:
     cloud_metric.PublishPerfIssueServiceRequestFailures(
         'GetAllActiveAlertGroups', 'GET', url, {})
-    logging.warning('[PerfIssueService] Error requesting all groups: %s',
-                    str(e))
+    logging.error('[PerfIssueService] Error requesting all groups: %s', str(e))
     return []
 
 
@@ -243,6 +242,6 @@ def PostUngroupedAlerts():
   except request.RequestError as e:
     cloud_metric.PublishPerfIssueServiceRequestFailures('PostUngroupedAlerts',
                                                         'POST', url, {})
-    logging.warning('[PerfIssueService] Error updating ungrouped alerts: %s',
-                    str(e))
+    logging.error('[PerfIssueService] Error updating ungrouped alerts: %s',
+                  str(e))
     return []
