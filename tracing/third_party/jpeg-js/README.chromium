@@ -7,6 +7,7 @@ Date: Tue Apr 30 08:43:28 2019 -0500
 License: Apache-2.0
 License File: LICENSE
 Security Critical: no
+Shipped: yes
 
 Description:
 Pure JS jpeg decoder.

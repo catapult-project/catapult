@@ -5,6 +5,7 @@ Version: 3.7.2
 License: MIT
 License File: LICENSE.md
 Security Critical: no
+Shipped: yes
 
 Description:
 This directory contains only the compiled javascript source for Redux.

@@ -2,6 +2,7 @@ Name: Protobuf
 URL: https://developers.google.com/protocol-buffers/
 Version: 3.0.0
 License: BSD
+Shipped: yes
 
 Description:
 Protocol buffers are Google's language-neutral, platform-neutral,

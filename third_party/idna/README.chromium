@@ -2,6 +2,7 @@ Name: idna
 URL: https://github.com/kjd/idna
 Version: 2.8
 License: BSD
+Shipped: yes
 
 Description:
 Support for the Internationalised Domain Names in Applications (IDNA) protocol as specified in RFC 5891. This is the latest version of the protocol and is sometimes referred to as “IDNA 2008”.

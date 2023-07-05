@@ -7,6 +7,7 @@ Date: Thu Sep 14 14:38:19 2017 +0300
 License: MIT
 License File: LICENSE
 Security Critical: no
+Shipped: yes
 
 Description:
 high speed zlib port to javascript, works in browser & node.js http://nodeca.github.io/pako/

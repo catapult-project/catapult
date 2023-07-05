@@ -6,6 +6,7 @@ Revision: 1b5ef3c66bd676c24dd7337ca02ecc99e119e205
 License: LICENSE.markdown
 License File: MIT
 Security Critical: no
+Shipped: yes
 
 Description:
 Create, read and edit .zip files with Javascript

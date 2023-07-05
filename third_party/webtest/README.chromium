@@ -2,6 +2,7 @@ Name: webtest
 URL: https://github.com/Pylons/webtest
 Version: 2.0.19
 License: MIT
+Shipped: yes
 
 Description:
 This wraps any WSGI application and makes it easy to send test requests

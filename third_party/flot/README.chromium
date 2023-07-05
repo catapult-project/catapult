@@ -4,6 +4,7 @@ Version: 0.8.3
 License: MIT
 License File: LICENSE.txt
 Security Critical: No
+Shipped: yes
 
 Description:
 Flot is a JavaScript chart plotting library based on jQuery.

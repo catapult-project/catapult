@@ -2,6 +2,7 @@ Name: certifi
 URL: https://certifi.io/en/latest/
 Version: 2019.3.9
 License: Mozilla Public License 2.0
+Shipped: yes
 
 Description:
 Certifi is a carefully curated collection of Root Certificates for validating the trustworthiness of SSL certificates while verifying the identity of TLS hosts. It has been extracted from the Requests project.

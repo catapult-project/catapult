@@ -6,6 +6,7 @@ Date: 2023-05-17
 License: Apache 2.0
 License File: LICENSE
 Security Critical: no
+Shipped: yes
 
 Description:
 gsutil is a Python application that allow access Google Cloud Storage from

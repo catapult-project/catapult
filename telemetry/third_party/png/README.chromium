@@ -5,8 +5,8 @@ Version: 0
 Date: 2009-03-11
 Revision: dd1797c361eafa443878b0915f767b75bd518d3b
 License: MIT
-License File: NOT_SHIPPED
 Security Critical: no
+Shipped: no
 
 Description:
 A png encoder and decoder for python. Used by telemetry to decode screenshots

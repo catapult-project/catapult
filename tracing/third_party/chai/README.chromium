@@ -5,8 +5,9 @@ Version: 2.1.2
 Revision: 1abc3845e3ef96afa003d62478692a1cb9a435b0
 Date: Fri Mar 20 09:46:02 2015 +0000
 License: MIT
-License File: NOT_SHIPPED
+License File: LICENSE
 Security Critical: no
+Shipped: no
 
 Description:
 BDD / TDD assertion framework for node.js and the browser that can be paired with any testing framework.

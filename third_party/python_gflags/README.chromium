@@ -6,6 +6,7 @@ Revision: 41
 License: BSD 3-Clause License
 License File: COPYING
 Security Critical: no
+Shipped: yes
 
 Description:
   This project is the python equivalent of google-gflags, a Google commandline

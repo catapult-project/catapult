@@ -1,6 +1,7 @@
 Name: symbols module from Chromium
 URL: https://chromium.googlesource.com/chromium/src.git
 License: BSD
+Shipped: yes
 
 Description:
 

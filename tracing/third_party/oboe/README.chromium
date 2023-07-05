@@ -7,6 +7,7 @@ Date: Tue Jan 31 15:08:00 EST 2017
 License: BSD-2-Clause
 License File: LICENCE
 Security Critical: no
+Shipped: yes
 
 Description:
 Oboe.js is an open source Javascript library for loading JSON using streaming, combining the convenience of DOM with the speed and fluidity of SAX.

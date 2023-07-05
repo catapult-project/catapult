@@ -1,6 +1,7 @@
 Name: py_vulcanize
 URL: N/A
 Version: N/A
+Shipped: yes
 
 Description:
 Py-vulcanize, formerly known as TVCM (trace-viewer component model).

@@ -2,6 +2,7 @@ Name: mock
 URL: https://pypi.python.org/pypi/mock
 Version: 1.0.1
 License: BSD
+Shipped: yes
 
 Description:
 mock is a library for testing in Python. It allows you to replace parts of

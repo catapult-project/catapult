@@ -6,8 +6,9 @@ CPEPrefix: cpe:/a:d3.js_project:d3.js:4.11.0::~~~node.js~~
 Date: 2017-10-03T17:29:41Z
 Revision: ab88172058dcea479fd16b67f0220357a1932e8a
 License: BSD
-License File: NOT_SHIPPED
+License File: LICENSE
 Security Critical: no
+Shipped: no
 
 Description:
 JavaScript library for manipulating documents based on data.

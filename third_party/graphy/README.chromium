@@ -2,6 +2,7 @@ Name: Graphy
 URL: http://code.google.com/p/graphy/
 Version: 1.0.0
 License: Apache
+Shipped: yes
 
 Description:
 Graphy is a dependency of AppEngine MapReduce.

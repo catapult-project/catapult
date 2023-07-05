@@ -7,6 +7,7 @@ Date: Sat Oct 1 12:51:09 2016 -0800
 License: MIT
 License File: LICENSE
 Security Critical: no
+Shipped: yes
 
 Description:
 high speed zlib port to javascript, works in browser & node.js

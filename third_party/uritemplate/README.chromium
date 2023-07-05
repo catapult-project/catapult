@@ -2,6 +2,7 @@ Name: uritemplate
 URL: https://github.com/uri-templates/uritemplate-py/
 Version: 0.6
 License: Apache
+Shipped: yes
 
 Description:
 This library is a dependency of apiclient.

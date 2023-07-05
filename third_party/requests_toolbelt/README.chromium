@@ -2,6 +2,8 @@ Name: requests_toolbelt
 URL: https://github.com/requests/toolbelt
 Version: 0.9.1
 License: Apache 2.0
+License File: LICENSE
+Shipped: yes
 
 Description:
 requests_toolbelt is a collection of utilities for python-requests, but don’t really belong in requests proper.

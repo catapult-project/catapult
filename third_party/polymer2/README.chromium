@@ -6,6 +6,7 @@ Revision: (Run `bower install` and see bower_components/polymer/.bower.json)
 License: BSD
 License File: LICENSE.polymer
 Security Critical: no
+Shipped: yes
 
 Description:
 This directory contains a subset of the components provided by the

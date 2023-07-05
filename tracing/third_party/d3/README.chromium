@@ -5,8 +5,9 @@ Version: 0
 Revision: 0b2fe8fe9eaa529f70f6ab93bc8580b2a5328f43
 Date: Sat Mar 1 11:31:09 2014 -0800
 License: BSD
-License File: NOT_SHIPPED
+License File: LICENSE
 Security Critical: no
+Shipped: no
 
 Description:
 A JavaScript visualization library for HTML and SVG.

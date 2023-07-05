@@ -44,6 +44,7 @@ Revision: 943102cfb5fa8811a15a4c21bd12421aadb423b5
 Source: https://github.com/googleapis/googleapis/tree/943102cfb5fa8811a15a4c21bd12421aadb423b5/google/rpc
 Home-page: https://grpc.io/
 License: Apache License 2.0
+Shipped: yes
 
 Local modifications in ./rpc
 ```
