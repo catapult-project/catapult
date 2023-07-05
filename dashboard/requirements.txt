@@ -20,7 +20,7 @@ Jinja2==2.11.3
 MarkupSafe==1.1.1
 
 protobuf~=3.19.0
-PyCryptodome==3.14.1
+PyCryptodome==3.18.0
 
 #https://pypi.org/project/pyparsing/
 pyparsing==3.0.9
