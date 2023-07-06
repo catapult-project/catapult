@@ -11,11 +11,10 @@ steps:
     app.yaml,
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
-  id: 'Set traffic for perf-issue-service'
+  id: 'Stop the newly deployed instances'
   dir: 'perf_issue_service'
   args: [
-    'app', 'services', 'set-traffic', 'perf-issue-service',
-    '--splits=cloud-build-cef5cf0=1'
+    app, versions, 'stop', '-s', 'perf-issue-service', 'cloud-build-${SHORT_SHA}'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: '/bin/bash'

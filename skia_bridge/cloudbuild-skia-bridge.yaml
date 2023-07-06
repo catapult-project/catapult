@@ -14,8 +14,7 @@ steps:
 - name: 'gcr.io/cloud-builders/gcloud'
   dir: 'skia_bridge'
   args: [
-    app, versions, 'stop', '-s', 'skia-bridge', 'cloud-build-${SHORT_SHA}',
-    skia-bridge.yaml,
+    app, versions, 'stop', '-s', 'skia-bridge', 'cloud-build-${SHORT_SHA}'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: '/bin/bash'

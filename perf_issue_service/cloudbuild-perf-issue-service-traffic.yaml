@@ -6,22 +6,22 @@ options:
 steps:
 # Start the version so that it is ready to receive traffic
 - name: 'gcr.io/cloud-builders/gcloud'
-  dir: 'skia_bridge'
+  dir: 'perf_issue_service'
   args: [
-    app, versions, 'start', '-s', 'skia-bridge', '${_SERVICE_VERSION}'
+    app, versions, 'start', '-s', 'perf-issue-service', '${_SERVICE_VERSION}'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
-  id: 'Set traffic for skia-bridge service'
-  dir: 'skia_bridge'
+  id: 'Set traffic for perf_issue_service service'
+  dir: 'perf_issue_service'
   args: [
-    'app', 'services', 'set-traffic', 'skia-bridge',
+    'app', 'services', 'set-traffic', 'perf-issue-service',
     '--splits=${_SERVICE_VERSION}=1'
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: '/bin/bash'
   args: [
     '-x', '-e', 'dashboard/dev_dockerfiles/stop_old_versions.sh',
-    'skia-bridge'
+    'perf-issue-service'
   ]
 substitutions:
-    _SERVICE_VERSION: 'cloud-build-b118020'
+    _SERVICE_VERSION: 'cloud-build-7f835d2'
