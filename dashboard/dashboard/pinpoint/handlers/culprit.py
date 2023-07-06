@@ -17,11 +17,11 @@ from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
 from google.cloud.workflows.executions_v1.types import executions
 
-from dashboard.common import workflow_client
 from dashboard.models import anomaly
 from dashboard.pinpoint.models import job_bug_update
 from dashboard.pinpoint.models import sandwich_workflow_group
 from dashboard.services import perf_issue_service_client
+from dashboard.services import workflow_service
 
 
 _ROUND_PUSHPIN = u'\U0001f4cd'
@@ -31,12 +31,11 @@ RETRY_OPTIONS = taskqueue.TaskRetryOptions(
 
 def CulpritVerificationResultsUpdateHandler():
   workflow_groups = sandwich_workflow_group.SandwichWorkflowGroup.GetAll()
-  client = workflow_client.SandwichVerificationWorkflow()
   for group in workflow_groups:
-    if _AllExecutionCompleted(group, client):
+    if _AllExecutionCompleted(group):
       bug_update_builder = job_bug_update.DifferencesFoundBugUpdateBuilder(group.metric)
       num_succeeded, num_verified = _SummarizeResults(
-        group.cloud_workflows_keys, client, bug_update_builder)
+          group.cloud_workflows_keys, bug_update_builder)
       num_workflows = len(group.workflows)
       if num_succeeded == num_workflows and num_verified == 0:
         # Close the bug and update the comment.
@@ -68,12 +67,12 @@ def CulpritVerificationResultsUpdateHandler():
   return make_response('', 200)
 
 
-def _AllExecutionCompleted(group, client):
+def _AllExecutionCompleted(group):
   cloud_workflows_keys = group.cloud_workflows_keys
   completed = True
   for wk in cloud_workflows_keys:
     could_workflow = ndb.Key('CloudWorkflow', wk).get()
-    response = client.GetExecution(could_workflow.execution_name)
+    response = workflow_service.GetExecution(could_workflow.execution_name)
     if response.state == executions.Execution.State.SUCCEEDED:
       could_workflow.execution_status = 'SUCCEEDED'
     elif response.state == executions.Execution.State.FAILED:
@@ -88,17 +87,16 @@ def _AllExecutionCompleted(group, client):
   return completed
 
 
-def _SummarizeResults(cloud_workflows_keys, client, bug_update_builder):
+def _SummarizeResults(cloud_workflows_keys, bug_update_builder):
   num_succeeded, num_verified = 0, 0
   for wk in cloud_workflows_keys:
     w = ndb.Key('CloudWorkflow', wk)
-    response = client.GetExecution(w.execution_name)
+    response = workflow_service.GetExecution(w.execution_name)
     if response.state == executions.Execution.State.SUCCEEDED:
       num_succeeded += 1
       result_dict = json.loads(response.result)
-      if result_dict['response'] and result_dict['response']['verification'] \
-        and result_dict['response']['verification']['decision']:
-        decision = result_dict['response']['verification']['decision']
+      if 'decision' in result_dict:
+        decision = result_dict['decision']
         if decision:
           bug_update_builder.AddDifference(None, w.values_a, w.values_b, w.kind, w.commit_dict)
           num_verified += 1
