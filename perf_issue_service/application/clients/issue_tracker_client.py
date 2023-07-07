@@ -3,14 +3,8 @@
 # found in the LICENSE file.
 """Provides a layer of abstraction for the issue tracker API."""
 
-from http import client as http_client
-import json
 import logging
 
-from apiclient import discovery
-from apiclient import errors
-from application import utils
-from application.clients import chromeperf_client
 from application.clients import monorail_client
 
 _DISCOVERY_URI = ('https://monorail-prod.appspot.com'
@@ -20,6 +14,10 @@ STATUS_DUPLICATE = 'Duplicate'
 MAX_DISCOVERY_RETRIES = 3
 MAX_REQUEST_RETRIES = 5
 
+BUGANIZER_PROJECTS = {
+  "MigratedProject": "buganizer",
+  "ReadOnlyProject": "none"
+}
 
 class IssueTrackerClient:
   """Class for updating perf issues."""
@@ -37,9 +35,10 @@ class IssueTrackerClient:
 
 
   def _GetIssueTrackerByProject(self, project_name):
-    configs = chromeperf_client.GetBuganizerProjects()
-    issue_tracker = configs.get(project_name, 'monorail')
-
+    issue_tracker = BUGANIZER_PROJECTS.get(project_name, 'monorail')
+    logging.debug(
+      '[PerfIssueService] Project %s is using %s as issue tracker.',
+      project_name, issue_tracker)
     return issue_tracker
 
 
