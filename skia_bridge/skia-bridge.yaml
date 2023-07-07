@@ -10,7 +10,7 @@ runtime_config:
 entrypoint: gunicorn -b:$PORT main:APP
 
 automatic_scaling:
-  min_num_instances: 40
+  min_num_instances: 20
   max_num_instances: 100
   cool_down_period_sec: 180
   cpu_utilization:

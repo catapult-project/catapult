@@ -4,6 +4,7 @@
 
 from __future__ import absolute_import
 
+import datetime
 import logging
 import os
 import time
@@ -20,13 +21,33 @@ API_NAME = "api_name"
 REQUEST_STATUS = "request_status"
 UUID = "uuid"
 
+client_create_time:datetime = None
+metrics_client = None
+
+
+def GetClient():
+  curr_time = datetime.datetime.utcnow()
+  global client_create_time, metrics_client
+
+  if client_create_time is None:
+    client_create_time = curr_time
+
+  diff = curr_time - client_create_time
+
+  # Update the metrics service client
+  if diff.total_seconds() > 60 or metrics_client is None:
+    logging.info('Creating a new client')
+    metrics_client = monitoring_v3.MetricServiceClient()
+
+  return metrics_client
+
 
 def _PublishTSCloudMetric(
     service_name,
     metric_type,
     label_dict,
     metric_value=1):
-  client = monitoring_v3.MetricServiceClient()
+  client = GetClient()
   project_id = os.environ.get('GOOGLE_CLOUD_PROJECT')
   project_name = f"projects/{project_id}"
 
