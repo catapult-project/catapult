@@ -4,6 +4,7 @@
 
 from __future__ import absolute_import
 
+import datetime
 import logging
 import time
 import urllib.parse as encoder
@@ -12,6 +13,7 @@ from dashboard.common import namespaced_stored_object
 PUBLIC_HOST = 'https://perf.luci.app'
 INTERNAL_HOST = 'https://chrome-perf.corp.goog'
 SUPPORTED_REPOSITORIES = ['chromium']
+QUERY_TEST_LIMIT = 5
 
 
 def GetSkiaUrlForRegressionGroup(regressions, crrev_service, gitiles_service):
@@ -31,6 +33,7 @@ def GetSkiaUrlForRegressionGroup(regressions, crrev_service, gitiles_service):
     subtests_1 = set()
     start_revision = filtered_regressions[0].start_revision
     end_revision = filtered_regressions[0].end_revision
+
     for regression in filtered_regressions:
       regression_test = regression.test.get()
       benchmarks.add(regression.benchmark_name)
@@ -45,6 +48,10 @@ def GetSkiaUrlForRegressionGroup(regressions, crrev_service, gitiles_service):
         start_revision = regression.start_revision
       if regression.end_revision > end_revision:
         end_revision = regression.end_revision
+
+      # Avoid adding too many plots to the graph and crowding it
+      if len(tests) >= QUERY_TEST_LIMIT or len(subtests_1) >= QUERY_TEST_LIMIT:
+        break
 
     benchmark_query_str = ''.join(
         '&benchmark=%s' % benchmark for benchmark in benchmarks)
@@ -65,7 +72,14 @@ def GetSkiaUrlForRegressionGroup(regressions, crrev_service, gitiles_service):
     if start_commit_info and start_commit_info.get('committer') and \
         end_commit_info and end_commit_info.get('committer'):
       begin_date = start_commit_info['committer']['time']
-      end_date = end_commit_info['committer']['time']
+
+      # For end date, add one day to the date in end_commit_info.
+      # Otherwise the anomaly regression/improvement icon shows up right
+      # at the end of the graph in the UI which isn't ideal.
+      end_date_str = end_commit_info['committer']['time']
+      end_date_obj = datetime.datetime.strptime(
+          end_date_str, '%a %b %d %H:%M:%S %Y') + datetime.timedelta(days=1)
+      end_date = str(end_date_obj)
       return _GenerateUrl(filtered_regressions[0].internal_only, query_str,
                           begin_date, end_date)
   return ''
