@@ -17,6 +17,8 @@ A typical workflow includes these steps:
 But it provides the ability to mock any input and any service, which makes
 testing easier and we can have a more predictable behaviour.
 """
+# pylint: disable=too-many-lines
+
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
@@ -25,6 +27,7 @@ import collections
 import datetime
 import itertools
 import jinja2
+import json
 import logging
 import os
 import six
@@ -508,6 +511,75 @@ class AlertGroupWorkflow:
         labels=['Chromeperf-Auto-Reopened'],
         status='Unconfirmed',
         cc=cc,
+        send_email=False,
+    )
+
+  def _UpdateRegressionVerification(self, execution, regression):
+    '''Update regression verification results in monorail.
+
+    This is a placeholder function and will likely need to be refactored
+    once the rest of the sandwich verification workflow lands.
+
+    Args:
+      execution - the response from workflow_client.GetExecution()
+      regression - the candidate regression that was sent for verification
+    '''
+
+    status = 'Unconfirmed'
+    if execution.state == 'ACTIVE':
+      return
+    if execution.state == 'SUCCEEDED':
+      results_dict = json.loads(execution.result)
+      if 'decision' in results_dict:
+        decision = results_dict['decision']
+      else:
+        raise ValueError('execution %s result is missing parameters: %s' %
+                         (execution.name, results_dict))
+      logging.info(
+          'Regression verification %s for project: %s and '
+          'bug: %s succeeded with repro decision %s.', execution.name,
+          self._group.project_id, self._group.bug.bug_id, decision)
+      if decision:
+        comment = ('Regression verification %s job %s for test: %s\n'
+                   'reproduced the regression with statistic: %s\n.'
+                   'Proceed to bisection.' %
+                   (execution.name, results_dict['job_id'], regression.test,
+                    results_dict['statistic']))
+        label = 'Regression-Verification-Repro'
+        status = 'Available'
+      else:
+        comment = ('Regression verification %s job %s for test: %s\n'
+                   'did NOT reproduce the regression with statistic: %s.'
+                   'Issue closed.' %
+                   (execution.name, results_dict['job_id'], regression.test,
+                    results_dict['statistic']))
+        label = ['Regression-Verification-No-Repro', 'Chromeperf-Auto-Closed']
+        status = 'WontFix'
+      # TODO(sunxiaodi): add components to the monorail post.
+    elif execution.state == 'FAILED':
+      logging.error(
+          'Regression verification %s for project: %s and '
+          'bug: %s failed with error %s.', execution.name,
+          self._group.project_id, self._group.bug.bug_id, execution.error)
+      comment = ('Regression verification %s for test: %s\n'
+                 'failed. Proceed to bisection.' %
+                 (execution.name, regression.test))
+      label = 'Regression-Verification-Failed'
+    elif execution.state == 'CANCELLED':
+      logging.info(
+          'Regression verification %s for project: %s and '
+          'bug: %s cancelled with error %s.', execution.name,
+          self._group.project_id, self._group.bug.bug_id, execution.error)
+      comment = ('Regression verification %s for test: %s\n'
+                 'cancelled with message %s. Proceed to bisection.' %
+                 (execution.name, regression.test, execution.error))
+      label = 'Regression-Verification-Cancelled'
+    perf_issue_service_client.PostIssueComment(
+        self._group.bug.bug_id,
+        self._group.project_id,
+        comment=comment,
+        labels=label,
+        status=status,
         send_email=False,
     )
 
