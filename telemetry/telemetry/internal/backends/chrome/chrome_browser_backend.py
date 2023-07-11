@@ -251,12 +251,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       tracing_backend.FlushTracing()
 
     if self._devtools_client:
-      # Telemetry closes Chrome by killing the Chrome process. This doesn't
-      # happen on mac because on mac, chrome is started using `open` command
-      # and telemetry only kills the 'open' command, leaving Chrome still
-      # running. Therefore force a clean shutdown on mac.
-      if ("ENSURE_CLEAN_CHROME_SHUTDOWN" in os.environ or \
-          self.browser.platform.GetOSName() == 'mac'):
+      if "ENSURE_CLEAN_CHROME_SHUTDOWN" in os.environ:
         # Forces a clean shutdown by sending a command to close the browser via
         # the devtools client. Uses a long timeout as a clean shutdown can
         # sometime take a long time to complete.
