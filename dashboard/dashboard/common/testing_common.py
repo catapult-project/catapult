@@ -584,3 +584,14 @@ class FakeCASClient:
             'status': {},
         } for d in digests]
     }
+
+
+class FakeCloudWorkflows:
+
+  def __init__(self, new_execution_name='new execution name'):
+    self._new_execution_name = new_execution_name
+    self.create_execution_called_with_anomaly = None
+
+  def CreateExecution(self, anomaly):
+    self.create_execution_called_with_anomaly = anomaly
+    return self._new_execution_name

@@ -22,7 +22,8 @@ def CreateExecution(anomaly,
                     location=LOCATION,
                     workflow_name=WORKFLOW_NAME):
   '''
-    An anomaly should contain the following properties:
+    An anomaly should be a JSON-serializable object (notably, this means it
+    cannot be an instance of models.Anomaly) containing the following properties:
         - benchmark: e.g. speedometer2
         - bot_name: e.g. linux-perf
         - story: e.g. Speedometer2
@@ -35,6 +36,9 @@ def CreateExecution(anomaly,
     Returns:
         The name of the Workflow execution created. The name is of the form:
         'projects/{...}/locations/{...}/workflows/{...}/executions/{...}'
+    Raises:
+        request.NotFoundError: The underlying http response was 4xx
+        request.RequestError: The underlying http response was not 2xx
     '''
 
   body = {

@@ -75,6 +75,8 @@ class AlertGroup(ndb.Model):
   # duplicate.
   canonical_group = ndb.KeyProperty(indexed=True)
 
+  sandwich_verification_workflow_id = ndb.StringProperty(indexed=True)
+
   def IsOverlapping(self, b):
     return (self.name == b.name and self.domain == b.domain
             and self.subscription_name == b.subscription_name

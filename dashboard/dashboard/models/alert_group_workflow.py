@@ -1,6 +1,7 @@
 # Copyright 2020 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+# pylint: disable=too-many-lines
 """The workflow to manipulate an AlertGroup.
 
 We want to separate the workflow from data model. So workflow
@@ -39,6 +40,7 @@ from dashboard import pinpoint_request
 from dashboard import sheriff_config_client
 from dashboard import revision_info_client
 from dashboard.common import cloud_metric
+from dashboard.common import feature_flags
 from dashboard.common import file_bug
 from dashboard.common import sandwich_allowlist
 from dashboard.common import utils
@@ -50,6 +52,8 @@ from dashboard.services import crrev_service
 from dashboard.services import gitiles_service
 from dashboard.services import perf_issue_service_client
 from dashboard.services import pinpoint_service
+from dashboard.services import request
+from dashboard.services import workflow_service
 
 # Templates used for rendering issue contents
 _TEMPLATE_LOADER = jinja2.FileSystemLoader(
@@ -91,7 +95,6 @@ _ALERT_GROUP_TRIAGE_DELAY = datetime.timedelta(minutes=20)
 
 # The score is based on overall 60% reproduction rate of pinpoint bisection.
 _ALERT_GROUP_DEFAULT_SIGNAL_QUALITY_SCORE = 0.6
-
 
 class SignalQualityScore(ndb.Model):
   score = ndb.FloatProperty()
@@ -140,6 +143,7 @@ class AlertGroupWorkflow:
       config=None,
       sheriff_config=None,
       pinpoint=None,
+      cloud_workflows=None,
       crrev=None,
       gitiles=None,
       revision_info=None,
@@ -153,6 +157,7 @@ class AlertGroupWorkflow:
     self._sheriff_config = (
         sheriff_config or sheriff_config_client.GetSheriffConfigClient())
     self._pinpoint = pinpoint or pinpoint_service
+    self._cloud_workflows = cloud_workflows or workflow_service
     self._crrev = crrev or crrev_service
     self._gitiles = gitiles or gitiles_service
     self._revision_info = revision_info or revision_info_client
@@ -368,6 +373,7 @@ class AlertGroupWorkflow:
         # monorail if some operations keep failing.
         return self._CommitGroup()
 
+    regressions, _ = self._GetRegressions(update.anomalies)
     group = self._group
     if group.updated + self._config.active_window <= update.now:
       self._Archive()
@@ -377,13 +383,13 @@ class AlertGroupWorkflow:
                    group.created, self._config.triage_delay, update.now,
                    group.status)
       self._TryTriage(update.now, update.anomalies)
-    # TODO(crbug/1454620): Add logic to start sandwich verification when
-    # the regression has not yet been verified and to start bisection if
-    # the bug is verified or there are no regressions in sandwich allowlist
-    # TODO(crbug/1454620): replace with group.Status.verified_regressions
-    # and update
-    # third_party/catapult/dashboard/dashboard/models/alert_group.py;l=48
-    elif group.status in {group.Status.triaged}:
+    elif len(self._CheckSandwichAllowlist(regressions)) > 0 and (
+        group.status == group.Status.triaged):
+      logging.info('attempting sandwich verification for AlertGroup: %s',
+                   self._group.key.string_id())
+      sandwiched = self._TryVerifyRegression(update)
+      logging.info('sandwiched: %s', sandwiched)
+    elif group.status in {group.Status.sandwiched, group.Status.triaged}:
       self._TryBisect(update)
     return self._CommitGroup()
 
@@ -754,7 +760,7 @@ class AlertGroupWorkflow:
         project=self._group.project_id)
     return True
 
-  def _CheckSandwichAllowlist(self, regressions): # pylint: disable=unused-argument
+  def _CheckSandwichAllowlist(self, regressions):
     """Filter list of regressions against the sandwich verification
     allowlist and improvement direction.
 
@@ -765,13 +771,20 @@ class AlertGroupWorkflow:
       allowed_regressions: A list of sandwich verifiable regressions.
     """
     allowed_regressions = []
+    if not feature_flags.SANDWICH_VERIFICATION:
+      return allowed_regressions
 
     for regression in regressions:
+      if not isinstance(regression, anomaly.Anomaly):
+        raise TypeError('%s is not anomaly.Anomaly' % type(regression))
+
       benchmark = regression.benchmark_name
       bot = regression.bot_name
+      # TODO(https://bugs.chromium.org/p/chromium/issues/detail?id=1463839):
+      # sandwich_allowlist should have its own check method so that we do not
+      # have to update two separate versions in regression and culprit verification
       if bot in sandwich_allowlist.ALLOWABLE_DEVICES and \
-        benchmark in sandwich_allowlist.ALLOWABLE_BENCHMARKS and \
-        regression.is_improvement:
+        benchmark in sandwich_allowlist.ALLOWABLE_BENCHMARKS:
         allowed_regressions.append(regression)
 
     return allowed_regressions
@@ -783,7 +796,7 @@ class AlertGroupWorkflow:
       update: An alert group containing anomalies and potential regressions
 
     Returns:
-      True or False.
+      True or False, indicating whether or not it started a pinpoint job.
     """
     # Do not run sandwiching if anomaly subscription opts out of culprit finding
     if (update.issue
@@ -798,13 +811,61 @@ class AlertGroupWorkflow:
     if not regression:
       return False
 
-    self._StartPinpointTryJob(regression)
+    start_git_hash = pinpoint_request.ResolveToGitHash(
+      regression.start_revision - 1, regression.benchmark_name, crrev=self._crrev)
+    end_git_hash = pinpoint_request.ResolveToGitHash(
+      regression.end_revision, regression.benchmark_name, crrev=self._crrev)
 
-    # TODO(crbug/1454620): Update the issue associated with this group,
-    # using the same logic in _TryBisect. Use
-    # _TEMPLATE_AUTO_REGRESSION_VERIFICATION_COMMENT as the bug template
+    _, chart, _ = utils.ParseTelemetryMetricParts(
+        regression.test.get().test_path)
+    chart, _ = utils.ParseStatisticNameFromChart(chart)
 
-    return True
+    create_exectution_req = {
+        'benchmark':
+            regression.benchmark_name,
+        'bot_name':
+            regression.bot_name,
+        'story':
+            regression.test.get().unescaped_story_name,
+        'measurement':
+            chart,
+        'target':
+            pinpoint_request.GetIsolateTarget(regression.bot_name,
+                                              regression.benchmark_name),
+        'start_git_hash':
+          start_git_hash,
+        'end_git_hash':
+          end_git_hash,
+        'project':
+            self._group.project_id,
+    }
+
+    try:
+      sandwich_execution_id = self._cloud_workflows.CreateExecution(create_exectution_req)
+      self._group.sandwich_verification_workflow_id = sandwich_execution_id
+
+      self._group.status = self._group.Status.sandwiched
+      logging.info('sandwich_execution_id: %s', sandwich_execution_id)
+
+      self._group.updated = update.now
+
+      self._CommitGroup()
+      perf_issue_service_client.PostIssueComment(
+          self._group.bug.bug_id,
+          self._group.project_id,
+          comment=_TEMPLATE_AUTO_REGRESSION_VERIFICATION_COMMENT.render(
+              {'test': utils.TestPath(regression.test)}),
+          # Do not set labels yet on this issue, since we're only starting
+          # the sandwich verification to try and repro the regression before
+          # we alert any humans to the situation.
+          send_email=False,
+      )
+
+      return True
+    except request.NotFoundError:
+      return False
+    except request.RequestError:
+      return False
 
   def _TryBisect(self, update):
     if (update.issue
@@ -909,17 +970,6 @@ class AlertGroupWorkflow:
         project=self._group.project_id,
         bug_id=response['issue_id'],
     ), anomalies
-
-  def _StartPinpointTryJob(self, regression): # pylint: disable=unused-argument
-    """Call sandwich verification workflow to kick off a verification try job
-
-    Args:
-      regression: A regression in a CABE compatible benchmark/workload/device
-
-    Returns:
-      job_id: A string representing the Pinpoint job ID
-    """
-    raise NotImplementedError("crbug/1454620")
 
   def _StartPinpointBisectJob(self, regression):
     try:
