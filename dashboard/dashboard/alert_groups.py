@@ -134,12 +134,12 @@ def ProcessAlertGroups():
     logging.info('Parity found %s alert groups.', len(group_keys))
     original_group_keys = [str(g.key.id()) for g in groups]
     parity_keys = list(map(str, group_keys))
+    new_groups = ndb.get_multi([ndb.Key('AlertGroup', k) for k in group_keys])
     if sorted(parity_keys) != sorted(original_group_keys):
       logging.warning('Imparity found for GetAllActiveAlertGroups. %s, %s',
                       group_keys, original_group_keys)
       cloud_metric.PublishPerfIssueServiceGroupingImpariry(
           'GetAllActiveAlertGroups')
-    new_groups = ndb.get_multi([ndb.Key('AlertGroup', k) for k in group_keys])
   except Exception as e:  # pylint: disable=broad-except
     logging.warning('Parity logic failed in GetAllActiveAlertGroups. %s',
                     str(e))
