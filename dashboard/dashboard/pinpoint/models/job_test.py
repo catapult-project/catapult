@@ -127,6 +127,57 @@ class JobTest(test.TestCase):
     d = j.AsDict([job.OPTION_ESTIMATE])
     self.assertFalse('estimate' in d)
 
+  def testImprovementDirectionToStr(self):
+    j = job.Job.New((), (), bug_id=123456)
+    self.assertEqual(j._ImprovementDirectionToStr(anomaly.UP), 'UP')
+    self.assertEqual(j._ImprovementDirectionToStr(anomaly.DOWN), 'DOWN')
+    self.assertEqual(j._ImprovementDirectionToStr(anomaly.UNKNOWN), 'UNKNOWN')
+
+  def testGetGitHash(self):
+    j = job.Job.New((), (), bug_id=123456)
+    c = change.Change((change.Commit('chromium', 'test_git_hash'),))
+    self.assertEqual(j._GetGitHash(c), 'test_git_hash')
+
+  def testCreateWorkflowExecutionRequest(self):
+    j = job.Job.New((), (),
+                    arguments={
+                        'configuration': 'bot1',
+                        'benchmark': 'webrtc_perf_tests'
+                    },
+                    bug_id=123456)
+    c1 = change.Change((change.Commit('chromium', 'test_git_hash1'),))
+    c2 = change.Change((change.Commit('chromium', 'test_git_hash2'),))
+    request = j._CreateWorkflowExecutionRequest(c1, c2)
+    self.assertEqual(request['start_git_hash'], 'test_git_hash1')
+    self.assertEqual(request['end_git_hash'], 'test_git_hash2')
+    self.assertEqual(request['target'], 'webrtc_perf_tests')
+
+  def testCanSandwich(self):
+    j = job.Job.New((), (),
+                    arguments={
+                        'configuration': 'bot1',
+                        'benchmark': 'webrtc_perf_tests'
+                    },
+                    bug_id=123456)
+    self.assertFalse(j._CanSandwich())
+
+  @mock.patch('dashboard.services.workflow_service.CreateExecution',
+              mock.MagicMock(return_value='test'))
+  def testStartSandwichAndUpdateWorkflowGroup(self):
+    j = job.Job.New((), (),
+                    arguments={
+                        'configuration': 'bot1',
+                        'benchmark': 'webrtc_perf_tests'
+                    },
+                    bug_id=123456)
+    c0 = change.Change((change.Commit('chromium', 'git_hash_0'),))
+    c1 = change.Change((change.Commit('chromium', 'git_hash_1'),))
+    change_map = {c0: [0], c1: [10]}
+    differences = [(c0, c1)]
+    got_regression_cnt = j._StartSandwichAndUpdateWorkflowGroup(
+        anomaly.DOWN, differences, change_map)
+    self.assertEqual(got_regression_cnt, 1)
+
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=[]))

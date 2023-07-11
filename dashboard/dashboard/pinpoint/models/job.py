@@ -20,8 +20,10 @@ from google.appengine.ext import deferred
 from google.appengine.ext import ndb
 from google.appengine.runtime import apiproxy_errors
 
+from dashboard import pinpoint_request
 from dashboard.common import cloud_metric
 from dashboard.common import datastore_hooks
+from dashboard.common import sandwich_allowlist
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.pinpoint.models import change as change_module
@@ -31,6 +33,7 @@ from dashboard.pinpoint.models import event as event_module
 from dashboard.pinpoint.models import job_bug_update
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models import results2
+from dashboard.pinpoint.models import sandwich_workflow_group
 from dashboard.pinpoint.models import scheduler
 from dashboard.pinpoint.models import task as task_module
 from dashboard.pinpoint.models import timing_record
@@ -39,6 +42,7 @@ from dashboard.pinpoint.models.tasks import evaluator as task_evaluator
 from dashboard.services import gerrit_service
 from dashboard.services import perf_issue_service_client
 from dashboard.services import swarming
+from dashboard.services import workflow_service
 
 
 # We want this to be fast to minimize overhead while waiting for tasks to
@@ -585,6 +589,113 @@ class Job(ndb.Model):
         return t.improvement_direction
     return anomaly.UNKNOWN
 
+  def _ImprovementDirectionToStr(self, improvement_dir):
+    if improvement_dir == anomaly.UP:
+      return 'UP'
+    if improvement_dir == anomaly.DOWN:
+      return 'DOWN'
+    return 'UNKNOWN'
+
+  def _GetGitHash(self, change):
+    git_hash = None
+    if change.commits and change.commits[0].git_hash:
+      git_hash = change.commits[0].git_hash
+    return git_hash
+
+  def _CreateWorkflowExecutionRequest(self, change_a, change_b):
+    start_git_hash = self._GetGitHash(change_a)
+    end_git_hash = self._GetGitHash(change_b)
+
+    if not start_git_hash or not end_git_hash:
+      raise ValueError('start_git_hash (%s) or end_git_hash (%s) is None' \
+          % (start_git_hash, end_git_hash))
+
+    return {
+        'benchmark':
+            self.benchmark_arguments.benchmark,
+        'bot_name':
+            self.configuration,
+        'story':
+            self.benchmark_arguments.story,
+        'measurement':
+            self.benchmark_arguments.chart,
+        'target':
+            pinpoint_request.GetIsolateTarget(
+                self.configuration, self.benchmark_arguments.benchmark),
+        'start_git_hash':
+            start_git_hash,
+        'end_git_hash':
+            end_git_hash,
+        'project':
+            self.project,
+    }
+
+  def _CanSandwich(self):
+    # TODO (crbug.com/1456513): change to sandwich test subscription
+    # once it is enabled back.
+    # TODO (crbug.com/1456513): implement _CanSandwich in sandwich_allowlist
+    # to avoid duplicate code management.
+    sandwich_subscription = False
+    if self.benchmark_arguments.benchmark in \
+       sandwich_allowlist.ALLOWABLE_BENCHMARKS \
+       and self.configuration in sandwich_allowlist.ALLOWABLE_DEVICES \
+       and sandwich_subscription:
+      return True
+    return False
+
+  def _StartSandwichAndUpdateWorkflowGroup(self, improvement_dir, differences,
+                                           result_values):
+    # Create a SandwichWorkflowGroup data entity.
+    workflow_group = sandwich_workflow_group.SandwichWorkflowGroup(
+        bug_id=self.bug_id,
+        project=self.project,
+        active=True,
+        metric=self.state.metric,
+        tags=self.tags,
+        url=self.url,
+        improvement_dir=self._ImprovementDirectionToStr(improvement_dir))
+    workflow_group.put()
+    cloud_workflows_keys = []
+    regression_cnt = 0
+    for change_a, change_b in differences:
+      values_a = result_values[change_a]
+      values_b = result_values[change_b]
+      diff = job_state.Mean(values_b) - job_state.Mean(values_a)
+      # Check whether diff aligns with improvement direction or not.
+      if (improvement_dir == anomaly.UP
+          and diff > 0) or (improvement_dir == anomaly.DOWN and diff < 0):
+        continue
+
+      if change_b.patch:
+        kind = 'patch'
+        commit_dict = {
+            'server': change_b.patch.server,
+            'change': change_b.patch.change,
+            'revision': change_b.patch.revision,
+        }
+      else:
+        kind = 'commit'
+        commit_dict = {
+            'repository': change_b.last_commit.repository,
+            'git_hash': change_b.last_commit.git_hash,
+        }
+      regression_cnt += 1
+      # Call sandwich verification workflow.
+      wf_execution_request = self._CreateWorkflowExecutionRequest(
+          change_a, change_b)
+      execution_name = workflow_service.CreateExecution(wf_execution_request)
+      cloud_workflow = sandwich_workflow_group.CloudWorkflow(
+          execution_name=execution_name,
+          kind=kind,
+          commit_dict=commit_dict,
+          values_a=values_a,
+          values_b=values_b)
+      cloud_workflow_key = cloud_workflow.put()
+      cloud_workflows_keys.append(cloud_workflow_key.id())
+    workflow_group.cloud_workflows_keys = cloud_workflows_keys
+    workflow_group.put()
+    return regression_cnt
+
   def _FormatAndPostBugCommentOnComplete(self):
     logging.debug('Processing outputs.')
     if self._IsTryJob():
@@ -664,12 +775,46 @@ class Job(ndb.Model):
     bug_update_builder = job_bug_update.DifferencesFoundBugUpdateBuilder(
         self.state.metric)
     bug_update_builder.SetExaminedCount(changes_examined)
+    improvement_dir = self._GetImprovementDirection()
+
+    # If the job is CABE-compatible:
+    # call verification workflow for each difference.
+    if self._CanSandwich():
+      regression_cnt = self._StartSandwichAndUpdateWorkflowGroup(
+          improvement_dir, differences, result_values)
+      if regression_cnt == 0:
+        title = ("<b>%s Couldn't reproduce a difference in the"
+                 "regression direction.</b>") % _ROUND_PUSHPIN
+        deferred.defer(
+            _PostBugCommentDeferred,
+            self.bug_id,
+            self.project,
+            comment='\n'.join((title, self.url)),
+            labels=['Pinpoint-Job-Completed', 'Pinpoint-No-Regression'],
+            status='WontFix',
+            _retry_options=RETRY_OPTIONS)
+      else:
+        title1 = "<b>%s %s regressions found.</b>" % (_ROUND_PUSHPIN,
+                                                      regression_cnt)
+        title2 = "<b>Started sandwich verification process.</b>"
+        deferred.defer(
+            _PostBugCommentDeferred,
+            self.bug_id,
+            self.project,
+            comment='\n'.join((title1, self.url, title2)),
+            labels=[
+                'Pinpoint-Job-Completed',
+                'Culprit-Sandwich-Verification-Started'
+            ],
+            send_email=True,
+            _retry_options=RETRY_OPTIONS)
+      return
+
     for change_a, change_b in differences:
       values_a = result_values[change_a]
       values_b = result_values[change_b]
       bug_update_builder.AddDifference(change_b, values_a, values_b)
 
-    improvement_dir = self._GetImprovementDirection()
     deferred.defer(
         job_bug_update.UpdatePostAndMergeDeferred,
         bug_update_builder,
@@ -708,15 +853,15 @@ class Job(ndb.Model):
     self.done = True
 
     if not self.cancelled:
-      # What follows are the details we are providing when posting updates to the
-      # associated bug.
+      # What follows are the details we are providing when
+      # posting updates to the associated bug.
       tb = traceback.format_exc() or ''
       title = _CRYING_CAT_FACE + ' Pinpoint job stopped with an error.'
       exc_info = sys.exc_info()
       if exception is None:
         if exc_info[1] is None:
-          # We've been called without a exception in sys.exc_info or in our args.
-          # This should not happen.
+          # We've been called without a exception in sys.exc_info
+          # or in our args. This should not happen.
           exception = errors.JobError('Unknown job error')
           exception.category = 'pinpoint'
         else:
@@ -804,7 +949,8 @@ class Job(ndb.Model):
         # causing a race condition. This if statement takes an extra step to
         # ensure the job stops running after a user cancels the job.
         self.cancelled = True
-        logging.debug('Pinpoint job forced to stop because job meets cancellation conditions')
+        logging.debug(('Pinpoint job forced to stop because job meets'
+                       'cancellation conditions'))
 
         self._PrintJobStatusRunTimeMetrics("cancelled")
 

@@ -110,7 +110,7 @@ def GetCabeAnalysis(request):
 
   print('Original params: %s' % request_json)
 
-  measurement = request_json.get('anomaly').get('chart')
+  measurement = request_json.get('anomaly').get('measurement')
   job_id = request_json.get('job_id')
 
   print("Getting CABE Analysis from Job: %s" % job_id)
