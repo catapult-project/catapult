@@ -201,7 +201,8 @@ class GroupReportTest(GroupReportTestBase):
     # Put an anomaly before Ungrouped is created
     self._AddAnomaly()
 
-  def testCreatingUngrouped(self, _):
+  def testCreatingUngrouped(self, mock_get_sheriff_client):
+    self._SetUpMocks(mock_get_sheriff_client)
     self.assertIs(
         len(
             alert_group.AlertGroup.Get(

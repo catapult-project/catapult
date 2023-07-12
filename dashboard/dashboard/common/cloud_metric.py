@@ -193,6 +193,10 @@ def _PublishTSCloudMetric(project_id,
                          metric_type,
                          label_dict,
                          metric_value=1):
+  if app_identity.get_application_id() == 'testbed-test':
+    # do not proceed if it is running unit tests
+    return
+
   client = monitoring_v3.MetricServiceClient()
   project_name = f"projects/{project_id}"
 
