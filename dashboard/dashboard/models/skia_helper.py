@@ -79,7 +79,8 @@ def GetSkiaUrlForRegressionGroup(regressions, crrev_service, gitiles_service):
       # at the end of the graph in the UI which isn't ideal.
       end_date_str = end_commit_info['committer']['time']
       end_date_obj = parser.parse(end_date_str) + datetime.timedelta(days=1)
-      end_date = str(end_date_obj)
+      end_date = end_date_obj.strftime('%a %b %d %H:%M:%S %Y')
+
       return _GenerateUrl(filtered_regressions[0].internal_only, query_str,
                           begin_date, end_date)
   return ''
