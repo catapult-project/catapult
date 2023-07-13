@@ -74,7 +74,7 @@ def SkiaPerfUploadQueuePost():
     return 'Ok'
   except Exception as e:
     logging.error(e)
-    raise RuntimeError from e
+    return 'Unexpected error during data upload.', 500
 
 
 @blueprint.route('/upload', methods=['POST'])
@@ -115,7 +115,8 @@ def SkiaPerfUploadPost():
         raise RuntimeError from e
   except Exception as e:  # pylint: disable=broad-except
     logging.error(e)
-    raise RuntimeError from e
+    return 'Unexpected error during data upload.', 500
+
   return make_response('')
 
 
