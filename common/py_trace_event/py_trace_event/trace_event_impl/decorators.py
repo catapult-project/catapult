@@ -32,7 +32,7 @@ def traced(*args):
 
     category = "python"
 
-    arg_spec = inspect.getargspec(func)
+    arg_spec = inspect.getfullargspec(func)
     is_method = arg_spec.args and arg_spec.args[0] == "self"
 
     def arg_spec_tuple(name):
