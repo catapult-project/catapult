@@ -12,7 +12,8 @@ steps:
   dir: 'deploy-dashboard'
   args: [
     'app', 'services', 'set-traffic', 'upload-processing',
-    '--splits=${_SERVICE_VERSION}=.9,${_SECONDARY_VERSION}=.1',
+    '--splits=${_SERVICE_VERSION}=.7,${_SECONDARY_VERSION}=.3',
+    '--split-by=random',
   ]
 substitutions:
     _SERVICE_VERSION: 'cloud-build-e088b7d'
