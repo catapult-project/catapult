@@ -44,14 +44,18 @@ func (s byCreateTime) Len() int           { return len(s) }
 func (s byCreateTime) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s byCreateTime) Less(i, j int) bool { return s[i].CreateTime > s[j].CreateTime }
 
-func liveVersion(service *appengine.Service, versions []*appengine.Version) *appengine.Version {
+func liveVersion(service *appengine.Service, versions []*appengine.Version) (*appengine.Version, error) {
+	nonzeroSplits := []string{}
 	for _, v := range versions {
 		split := service.Split.Allocations[v.Id]
 		if split == 1.0 {
-			return v
+			return v, nil
+		}
+		if split > 0 {
+			nonzeroSplits = append(nonzeroSplits, fmt.Sprintf("%q: %v", v.Id, split))
 		}
 	}
-	return nil
+	return nil, fmt.Errorf("cannot determined which %q version is live; no version has full traffic allocation but the following versions each had non-zero traffic: %v",service.Id, nonzeroSplits)
 }
 
 type serviceUpdate struct {
@@ -82,7 +86,10 @@ func main() {
 			panic(err)
 		}
 		versions := versionsListResp.Versions
-		live := liveVersion(service, versions)
+		live, err := liveVersion(service, versions)
+		if err != nil {
+			panic(err)
+		}
 		sort.Sort(byCreateTime(versions))
 		latest := versions[1]
 
