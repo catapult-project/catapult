@@ -774,6 +774,10 @@ class AlertGroupWorkflow:
     if not feature_flags.SANDWICH_VERIFICATION:
       return allowed_regressions
 
+    if (self._group.subscription_name not in
+        sandwich_allowlist.ALLOWABLE_SUBSCRIPTIONS):
+      return allowed_regressions
+
     for regression in regressions:
       if not isinstance(regression, anomaly.Anomaly):
         raise TypeError('%s is not anomaly.Anomaly' % type(regression))

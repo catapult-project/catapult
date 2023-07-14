@@ -1067,8 +1067,12 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     ]
     anomalies = []
     for test_case in test_cases:
-      anomalies.append(self._AddAnomaly(test=test_case))
-    group = self._AddAlertGroup(anomalies[0], anomalies=anomalies)
+      anomalies.append(
+          self._AddAnomaly(test=test_case))
+    test_subscription = sandwich_allowlist.ALLOWABLE_SUBSCRIPTIONS[0]
+    group = self._AddAlertGroup(anomalies[0],
+                                anomalies=anomalies,
+                                subscription_name=test_subscription)
     self._sheriff_config.patterns = {
         '*': [
             subscription.Subscription(name='sheriff', auto_triage_enable=True)
@@ -1101,6 +1105,41 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
 
     self.assertEqual(len(allowed_regressions), 0)
 
+  def testSandwich_Allowlist_banned(self):
+    # Test banned subscription
+    test_name = '/'.join([
+        "master", sandwich_allowlist.ALLOWABLE_DEVICES[0],
+        sandwich_allowlist.ALLOWABLE_BENCHMARKS[0], 'dummy', 'metric', 'parts'
+    ])
+    anomalies = []
+    anomalies.append(self._AddAnomaly(test=test_name, is_improvement=True))
+    test_subscription = 'Banned subscription'
+    group = self._AddAlertGroup(anomalies[0],
+                                anomalies=anomalies,
+                                subscription_name=test_subscription)
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name=test_subscription, auto_triage_enable=True)
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+    )
+    self._UpdateTwice(
+        workflow=w,
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue={},
+        ))
+
+    self.assertEqual(len(group.get().anomalies), 1)
+    feature_flags.SANDWICH_VERIFICATION = True
+    allowed_regressions = w._CheckSandwichAllowlist(ndb.get_multi(anomalies))
+    self.assertEqual(len(allowed_regressions), 0)
+
   def testSandwich_TryVerifyRegression_triaged(self):
     # Pre-coditions:
     # - feature_flags.SANDWICH_VERIFICATION is True
@@ -1128,12 +1167,13 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         anomalies[0],
         issue=self._issue_tracker.issue,
         status=alert_group.AlertGroup.Status.triaged,
+        subscription_name=sandwich_allowlist.ALLOWABLE_SUBSCRIPTIONS[0],
     )
     self._issue_tracker.issue.update({'state': 'open'})
     self._sheriff_config.patterns = {
         '*': [
             subscription.Subscription(
-                name='sheriff',
+                name=sandwich_allowlist.ALLOWABLE_SUBSCRIPTIONS[0],
                 auto_triage_enable=True,
                 auto_bisect_enable=True)
         ],
@@ -1196,12 +1236,13 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         anomalies[0],
         issue=self._issue_tracker.issue,
         status=alert_group.AlertGroup.Status.triaged,
+        subscription_name=sandwich_allowlist.ALLOWABLE_SUBSCRIPTIONS[0],
     )
     self._issue_tracker.issue.update({'state': 'open'})
     self._sheriff_config.patterns = {
         '*': [
             subscription.Subscription(
-                name='sheriff',
+                name=sandwich_allowlist.ALLOWABLE_SUBSCRIPTIONS[0],
                 auto_triage_enable=True,
                 auto_bisect_enable=True)
         ],
