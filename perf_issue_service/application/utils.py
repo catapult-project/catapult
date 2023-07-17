@@ -25,11 +25,9 @@ def IsStagingEnvironment():
 
 
 def AllowList():
-  allowed = {'catapult-try-builder@chops-service-accounts.iam.gserviceaccount.com'}
   if IsStagingEnvironment():
-    allowed.add('chromeperf-stage@appspot.gserviceaccount.com')
-  allowed.add('chromeperf@appspot.gserviceaccount.com')
-  return allowed
+    return {'chromeperf-stage@appspot.gserviceaccount.com'}
+  return {'chromeperf@appspot.gserviceaccount.com'}
 
 
 def ServiceAccountHttp(scope=EMAIL_SCOPE, timeout=None):
@@ -79,7 +77,6 @@ def AuthorizeBearerToken(request):
   content_dict = json.loads(content)
   email = content_dict.get('email')
   if email and content_dict.get('email_verified') and email in AllowList():
-    logging.debug('[Auth] Email validated: %s. Response: %s.', email, content_dict)
     return True
 
   logging.warning(
