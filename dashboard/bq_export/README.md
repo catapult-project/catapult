@@ -121,22 +121,21 @@ page to manually re-run daily job.
 You can execute one-off jobs with the `gcloud` tool.  For example:
 
 ```
-$ gcloud dataflow jobs run export-anomalies-example-job \
+$ gcloud dataflow jobs run export-anomalies-backfill \
   --service-account-email=bigquery-exporter@chromeperf.iam.gserviceaccount.com \
   --gcs-location=gs://chromeperf-dataflow/templates/export_anomalies \
   --disable-public-ips \
   --max-workers=10 \
   --region=us-central1 \
   --staging-location=gs://chromeperf-dataflow-temp/export_anomalies \
-  --subnetwork=regions/us-central1/subnetworks/dashboard-batch \
-  --parameters=experiments=shuffle_mode=service
+  --subnetwork=regions/us-central1/subnetworks/dashboard-batch
 ```
 
 To execute a manual backfill, specify the `end_date` and/or `num_days`
 parameters.  For example, this will regenerate the anomalies for December 2019:
 
 ```
-$ gcloud dataflow jobs run export-anomalies-backfill-example \
+$ gcloud dataflow jobs run export-anomalies-backfill \
   --service-account-email=bigquery-exporter@chromeperf.iam.gserviceaccount.com \
   --gcs-location=gs://chromeperf-dataflow/templates/export_anomalies \
   --disable-public-ips \
@@ -144,8 +143,23 @@ $ gcloud dataflow jobs run export-anomalies-backfill-example \
   --region=us-central1 \
   --staging-location=gs://chromeperf-dataflow-temp/export_anomalies \
   --subnetwork=regions/us-central1/subnetworks/dashboard-batch \
-  --parameters=experiments=shuffle_mode=service,end_date=20191231,num_days=31
+  --parameters=end_date=20191231,num_days=31
 ```
+
+Example for row backfill:
+```
+$ gcloud dataflow jobs run export-rows-backfill \
+  --service-account-email=bigquery-exporter@chromeperf.iam.gserviceaccount.com \   --gcs-location=gs://chromeperf-dataflow/templates/export_rows \
+  --disable-public-ips \
+  --max-workers=70 \
+  --region=us-central1 \
+  --staging-location=gs:/chromeperf-dataflow-temp/export-rows-daily \
+  --subnetwork=regions/us-central1/subnetworks/dashboard-batch \
+  --parameters=end_date=20230710,num_days=1 \
+  --worker-machine-type=e2-standard-4
+```
+
+Due to the amount of data this job handles, it requires a more powerful worker machine and more concurrent workers.
 
 **Tips:**
 
@@ -179,5 +193,5 @@ $ PYTHONPATH=$PYTHONPATH:"$(pwd)/bq_export" python bq_export/export_rows.py \
   --setup_file=bq_export/setup.py \
   --no_use_public_ips \
   --subnetwork=regions/us-central1/subnetworks/dashboard-batch \
-  --dataset=chromeperf_dashboard_rows
+  --dataset=chromeperf_dashboard_data
 ```

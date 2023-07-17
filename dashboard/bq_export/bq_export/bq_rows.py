@@ -127,6 +127,8 @@ def main():
         if key in d or key in ['parent_test', 'error']:
           # skip properties with dedicated columns.
           continue
+        if isinstance(value, datetime.date):
+          value = value.isoformat()
         if isinstance(value, float):
           value = FloatHack(value)
         properties[key] = value
