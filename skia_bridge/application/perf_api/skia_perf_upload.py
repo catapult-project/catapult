@@ -13,7 +13,7 @@ import string
 import sys
 import zlib
 from dateutil.parser import parse
-from common import cloud_metric, utils
+from common import utils
 from application.perf_api.clients import cloud_storage_client, \
   cloud_tasks_client
 
@@ -35,7 +35,6 @@ def SkiaPerfUploadGet():
 
 @blueprint.route(
     '/upload_queue', methods=['POST'], endpoint='SkiaPerfUploadQueuePost')
-@cloud_metric.APIMetric("skia-bridge", "/skia_perf_upload_queue")
 def SkiaPerfUploadQueuePost():
   try:
     task_client = cloud_tasks_client.CloudTasksClient()
@@ -78,7 +77,6 @@ def SkiaPerfUploadQueuePost():
 
 
 @blueprint.route('/upload', methods=['POST'])
-@cloud_metric.APIMetric("skia-bridge", "/skia_perf_upload")
 def SkiaPerfUploadPost():
   """ Upload a list of ChromePerf Rows to Skia Perf.
   """
