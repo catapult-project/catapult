@@ -263,12 +263,8 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
       if self.browser_options.show_stdout:
         # Tee the symbolized output to stdout and the temp file.
-        # tee is known to fail if it's running out of buffer. But since it's for
-        # debugging purpose only, we can ignore the error and move forward.
-        # E.g. https://forums.gentoo.org/viewtopic-t-1094162-start-0.html
         self._browser_log_writer = subprocess.Popen(
-            ['tee', '--output-error=warn', self._tmp_output_file.name],
-            stdin=symbolized_output_stream)
+            ['tee', self._tmp_output_file.name], stdin=symbolized_output_stream)
       else:
         # Cat the symbolized output to the temp file.
         self._browser_log_writer = subprocess.Popen('cat',
