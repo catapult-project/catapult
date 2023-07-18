@@ -80,6 +80,9 @@ func main() {
 
 	updates := []serviceUpdate{}
 	for _, service := range serviceListResp.Services {
+		if *serviceId != "" && service.Id != *serviceId {
+			continue
+		}
 		versionsListCall := appengineService.Apps.Services.Versions.List(*app, service.Id)
 		versionsListResp, err := versionsListCall.Do()
 		if err != nil {
@@ -93,9 +96,7 @@ func main() {
 		sort.Sort(byCreateTime(versions))
 		latest := versions[1]
 
-		if *serviceId != "" && service.Id != *serviceId {
-			continue
-		}
+
 		updates = append(updates, serviceUpdate{
 			serviceId: service.Id,
 			fromHash:  gitHash(live.Id),
