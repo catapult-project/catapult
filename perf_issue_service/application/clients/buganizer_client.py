@@ -9,6 +9,7 @@ import logging
 
 from apiclient import discovery
 from application import utils
+from application import buganizer_utils as b_utils
 
 
 _DISCOVERY_URI = ('https://issuetracker.googleapis.com/$discovery/rest?version=v1&labels=GOOGLE_PUBLIC')
@@ -42,39 +43,49 @@ class BuganizerClient:
 
   def GetIssuesList(self, limit, age, status, labels, project='chromium'):
     """Makes a request to the issue tracker to list issues."""
-    del labels  # removed for now as the hotlist are not ready
     project = 'chromium' if project is None or not project.strip() else project
-    components = utils.FindBuganizerComponents(project_name=project)
+
+    components = b_utils.FindBuganizerComponents(monorail_project_name=project)
     if not components:
       logging.warning(
         '[Buganizer API] Failed to find components for the given project: %s',
         project)
       return []
     components_string = '|'.join(components)
-
     query_string = 'componentid:%s' % components_string
-    if status:
+
+    # by default, buganizer return all.
+    if status and status != 'all':
       query_string += ' AND status:%s' % status
+
     if age:
       query_string += ' AND created:%sd' % age
 
+    if labels:
+      label_list = labels.split(',')
+      hotlists = b_utils.FindBuganizerHotlists(label_list)
+      if hotlists:
+        query_string += ' AND hotlistid:%s' % '|'.join(hotlists)
+
+    logging.info('[PerfIssueService] GetIssueList Query: %s', query_string)
     request = self._service.issues().list(
       query=query_string,
-      pageSize=min(500, int(limit))
+      pageSize=min(500, int(limit)),
+      view='FULL'
     )
     response = self._ExecuteRequest(request)
 
-    return response
+    return response.get('issues', []) if response else []
 
   def GetIssue(self, issue_id, project='chromium'):
     """Makes a request to the issue tracker to get an issue."""
     del project
-    request = self._service.issues().get(issueId=issue_id)
+    request = self._service.issues().get(issueId=issue_id, view='FULL')
     response = self._ExecuteRequest(request)
 
     return response
 
-  def GetIssueComments(self, issue_id, project='chromium', page_size=200):
+  def GetIssueComments(self, issue_id, project='chromium'):
     """Gets all the comments for the given issue."""
     del project
     request = self._service.issues().comments().list(
@@ -82,12 +93,12 @@ class BuganizerClient:
     response = self._ExecuteRequest(request)
 
     if not response:
-      return None
+      return []
     return [{
         'id': comment.get('commentNumber'),
-        'author': 'Not Yet Exposed',
+        'author': comment.get('lastEditor', {}).get('emailAddress', ''),
         'content': comment.get('comment', ''),
-        'published': 'Not Yet Exposed',
+        'published': comment.get('modifiedTime'),
         'updates': 'Not Yet Exposed'
     } for comment in response.get('issueComments')]
 
