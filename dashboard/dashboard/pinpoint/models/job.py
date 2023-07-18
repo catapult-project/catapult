@@ -632,14 +632,11 @@ class Job(ndb.Model):
 
   def _CanSandwich(self):
     # TODO (crbug.com/1456513): change to sandwich test subscription
-    # once it is enabled back.
-    # TODO (crbug.com/1456513): implement _CanSandwich in sandwich_allowlist
-    # to avoid duplicate code management.
-    sandwich_subscription = False
-    if self.benchmark_arguments.benchmark in \
-       sandwich_allowlist.ALLOWABLE_BENCHMARKS \
-       and self.configuration in sandwich_allowlist.ALLOWABLE_DEVICES \
-       and sandwich_subscription:
+    # once it is enabled back and remove _CanSandwich
+    sandwich_subscription = 'banned subscription'
+    if sandwich_allowlist.CheckAllowlist(sandwich_subscription,
+                                         self.benchmark_arguments.benchmark,
+                                         self.configuration):
       return True
     return False
 

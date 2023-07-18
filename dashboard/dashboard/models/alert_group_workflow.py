@@ -774,21 +774,13 @@ class AlertGroupWorkflow:
     if not feature_flags.SANDWICH_VERIFICATION:
       return allowed_regressions
 
-    if (self._group.subscription_name not in
-        sandwich_allowlist.ALLOWABLE_SUBSCRIPTIONS):
-      return allowed_regressions
-
     for regression in regressions:
       if not isinstance(regression, anomaly.Anomaly):
         raise TypeError('%s is not anomaly.Anomaly' % type(regression))
 
-      benchmark = regression.benchmark_name
-      bot = regression.bot_name
-      # TODO(https://bugs.chromium.org/p/chromium/issues/detail?id=1463839):
-      # sandwich_allowlist should have its own check method so that we do not
-      # have to update two separate versions in regression and culprit verification
-      if bot in sandwich_allowlist.ALLOWABLE_DEVICES and \
-        benchmark in sandwich_allowlist.ALLOWABLE_BENCHMARKS:
+      if sandwich_allowlist.CheckAllowlist(self._group.subscription_name,
+                                           regression.benchmark_name,
+                                           regression.bot_name):
         allowed_regressions.append(regression)
 
     return allowed_regressions

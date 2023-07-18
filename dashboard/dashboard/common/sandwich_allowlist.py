@@ -22,3 +22,22 @@ ALLOWABLE_DEVICES = [
     'win-10_laptop_low_end-perf',
     'win-10-perf',
     ]
+
+
+def CheckAllowlist(subscription, benchmark, cfg):
+  '''Check that the subscription, benchmark, and device are
+    CABE compatible.
+
+    Args:
+      subscription: regression subscription
+      benchmark: regression benchmark
+      cfg: regression configuration
+
+    Returns:
+        True if allowed, False if not.
+    '''
+  if (subscription in ALLOWABLE_SUBSCRIPTIONS
+      and benchmark in ALLOWABLE_BENCHMARKS and cfg in ALLOWABLE_DEVICES):
+    return True
+
+  return False
