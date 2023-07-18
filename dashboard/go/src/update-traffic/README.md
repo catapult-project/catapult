@@ -7,7 +7,7 @@ It checks the list of available GAE service versions to find two specific versio
 # Usage
 
 Since this hasn't been evaluated very heavily, we don't have a deployed binary package for it yet.
-However you shouild be able to build and run it using the `go` command like so:
+However you should be able to build and run it using the `go` command like so:
 
 ```
 go run update-traffic.go [options]

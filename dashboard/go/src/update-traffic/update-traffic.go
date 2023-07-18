@@ -28,8 +28,8 @@ var (
 		"upload-processing":  "dashboard/cloudbuild_traffic/upload-processing.yaml",
 		"upload":             "dashboard/cloudbuild_traffic/upload.yaml",
 	}
-	app = flag.String("app", "chromeperf", "GAE project app name")
-	serviceId = flag.String("service-id", "", "check/update only this service")
+	app          = flag.String("app", "chromeperf", "GAE project app name")
+	serviceId    = flag.String("service-id", "", "check/update only this service")
 	checkoutBase = flag.String("checkout-base", "", "root directory for catapult repo checkout")
 )
 
@@ -55,7 +55,7 @@ func liveVersion(service *appengine.Service, versions []*appengine.Version) (*ap
 			nonzeroSplits = append(nonzeroSplits, fmt.Sprintf("%q: %v", v.Id, split))
 		}
 	}
-	return nil, fmt.Errorf("cannot determined which %q version is live; no version has full traffic allocation but the following versions each had non-zero traffic: %v",service.Id, nonzeroSplits)
+	return nil, fmt.Errorf("cannot determined which %q version is live; no version has full traffic allocation but the following versions each had non-zero traffic: %v", service.Id, nonzeroSplits)
 }
 
 type serviceUpdate struct {
@@ -94,8 +94,7 @@ func main() {
 			panic(err)
 		}
 		sort.Sort(byCreateTime(versions))
-		latest := versions[1]
-
+		latest := versions[0]
 
 		updates = append(updates, serviceUpdate{
 			serviceId: service.Id,
