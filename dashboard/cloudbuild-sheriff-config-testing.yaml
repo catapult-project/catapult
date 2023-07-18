@@ -38,9 +38,8 @@ steps:
     timeout: 900s  # Wait for 15 minutes for cleanup
   - name: 'gcr.io/cloud-builders/gcloud'
     args: [
-      'beta', 'app', 'deploy', 'dashboard/dashboard/sheriff_config/app.yaml',
-      # Provide the short git commit to the version of the deployment.
-      '--version', 'cloud-build-${SHORT_SHA}', '--promote',
+      app, deploy, '--no-promote', '--version', 'cloud-build-${SHORT_SHA}',
+      'dashboard/dashboard/sheriff_config/app.yaml',
       # Debug flags.
       '--log-http', '--verbosity=debug'
     ]

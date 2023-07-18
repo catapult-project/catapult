@@ -169,7 +169,7 @@ class ValidatorTest(unittest.TestCase):
                              """)
 
   def testInvalidRegexMatch(self):
-    with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
+    with self.assertRaisesRegex(validator.InvalidPattern, 'bad pattern'):
       _ = validator.Validate("""
                                subscriptions: [
                                  {
@@ -183,7 +183,7 @@ class ValidatorTest(unittest.TestCase):
                              """)
 
   def testInvalidRegexExclude(self):
-    with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
+    with self.assertRaisesRegex(validator.InvalidPattern, 'bad pattern'):
       _ = validator.Validate("""
                                subscriptions: [
                                  {
@@ -200,7 +200,7 @@ class ValidatorTest(unittest.TestCase):
                              """)
 
   def testInvalidRegexAutoTriage(self):
-    with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
+    with self.assertRaisesRegex(validator.InvalidPattern, 'bad pattern'):
       _ = validator.Validate("""
                                subscriptions: [
                                  {
@@ -220,7 +220,7 @@ class ValidatorTest(unittest.TestCase):
                                  }
                                ]
                              """)
-    with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
+    with self.assertRaisesRegex(validator.InvalidPattern, 'bad pattern'):
       _ = validator.Validate("""
                                subscriptions: [
                                  {
@@ -243,7 +243,7 @@ class ValidatorTest(unittest.TestCase):
                              """)
 
   def testInvalidRegexAutoBisect(self):
-    with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
+    with self.assertRaisesRegex(validator.InvalidPattern, 'bad pattern'):
       _ = validator.Validate("""
                                subscriptions: [
                                  {
@@ -267,7 +267,7 @@ class ValidatorTest(unittest.TestCase):
                                  }
                                ]
                              """)
-    with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
+    with self.assertRaisesRegex(validator.InvalidPattern, 'bad pattern'):
       _ = validator.Validate("""
                                subscriptions: [
                                  {
@@ -295,7 +295,7 @@ class ValidatorTest(unittest.TestCase):
                              """)
 
   def testInvalidRegexAutoMerge(self):
-    with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
+    with self.assertRaisesRegex(validator.InvalidPattern, 'bad pattern'):
       _ = validator.Validate("""
                                subscriptions: [
                                  {
@@ -319,7 +319,7 @@ class ValidatorTest(unittest.TestCase):
                                  }
                                ]
                              """)
-    with self.assertRaisesRegex(validator.InvalidPattern, 'no argument'):
+    with self.assertRaisesRegex(validator.InvalidPattern, 'bad pattern'):
       _ = validator.Validate("""
                                subscriptions: [
                                  {
