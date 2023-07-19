@@ -109,6 +109,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         alert_group.AlertGroup.canonical_group == key)
     duplicated_groups = query.fetch()
     duplicated_keys = [g.key.string_id() for g in duplicated_groups]
+    print('DUP: ', duplicated_keys)
     return duplicated_keys
 
   def _FindCanonicalGroupMock(self, key_string, merged_into,

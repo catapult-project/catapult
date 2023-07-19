@@ -189,7 +189,8 @@ class AlertGroup(ndb.Model):
             logging.info('Saving new group %s', new_id)
             if parity:
               new_groups.add(new_id)
-            new_group.put()
+            else:
+              new_group.put()
           result_groups.add(new_id)
         else:
           # return the id of the 'ungrouped'
@@ -259,6 +260,7 @@ class AlertGroup(ndb.Model):
             "existing_groups": list(set(group_ids) - set(new_ids)),
             "new_groups": new_ids
           }
-        anomaly.put()
+        else:
+          anomaly.put()
 
     return parity_results

@@ -31,6 +31,7 @@ from dashboard.services import pinpoint_service
 
 _SERVICE_ACCOUNT_EMAIL = 'service-account@chromium.org'
 
+
 flask_app = Flask(__name__)
 
 
@@ -108,47 +109,6 @@ class GroupReportTestBase(testing_common.TestCase):
     all_keys = [g.key.id() for g in all_groups]
     return all_keys
 
-  def _PostUngroupedAlertsMock(self):
-    groups = alert_group.AlertGroup.GetAll()
-
-    def FindGroup(group):
-      for g in groups:
-        if group.IsOverlapping(g):
-          return g.key
-      groups.append(group)
-      return None
-
-    reserved = alert_group.AlertGroup.Type.reserved
-    ungrouped_list = alert_group.AlertGroup.Get('Ungrouped', reserved)
-    if not ungrouped_list:
-      alert_group.AlertGroup(
-          name='Ungrouped', group_type=reserved, active=True).put()
-      return
-    ungrouped = ungrouped_list[0]
-    ungrouped_anomalies = ndb.get_multi(ungrouped.anomalies)
-
-    for anomaly_entity in ungrouped_anomalies:
-      new_count = 0
-      new_alert_groups = []
-      all_groups = alert_group.AlertGroup.GenerateAllGroupsForAnomaly(
-          anomaly_entity)
-      for g in all_groups:
-        found_group = FindGroup(g)
-        if found_group:
-          new_alert_groups.append(found_group)
-        else:
-          new_group = g.put()
-          new_alert_groups.append(new_group)
-          new_count += 1
-      anomaly_entity.groups = new_alert_groups
-    logging.info('Persisting anomalies')
-    ndb.put_multi(ungrouped_anomalies)
-
-  def _PatchPerfIssueService(self, function_name, mock_function):
-    perf_issue_post_patcher = mock.patch(function_name, mock_function)
-    perf_issue_post_patcher.start()
-    self.addCleanup(perf_issue_post_patcher.stop)
-
   def _SetUpMocks(self, mock_get_sheriff_client):
     sheriff = subscription.Subscription(name='sheriff',
                                         auto_triage_enable=True)
@@ -162,30 +122,47 @@ class GroupReportTestBase(testing_common.TestCase):
                      self.fake_revision_info)
     self.PatchObject(alert_group, 'NONOVERLAP_THRESHOLD', 100)
 
-    self._PatchPerfIssueService(
+    perf_issue_patcher = mock.patch(
         'dashboard.services.perf_issue_service_client.GetIssue',
         self.fake_issue_tracker.GetIssue)
-    self._PatchPerfIssueService(
+    perf_issue_patcher.start()
+    self.addCleanup(perf_issue_patcher.stop)
+
+    perf_comments_patcher = mock.patch(
         'dashboard.services.perf_issue_service_client.GetIssueComments',
         self.fake_issue_tracker.GetIssueComments)
-    self._PatchPerfIssueService(
+    perf_comments_patcher.start()
+    self.addCleanup(perf_comments_patcher.stop)
+
+    perf_issue_post_patcher = mock.patch(
         'dashboard.services.perf_issue_service_client.PostIssue',
         self.fake_issue_tracker.NewBug)
-    self._PatchPerfIssueService(
+    perf_issue_post_patcher.start()
+    self.addCleanup(perf_issue_post_patcher.stop)
+
+    perf_comment_post_patcher = mock.patch(
         'dashboard.services.perf_issue_service_client.PostIssueComment',
         self.fake_issue_tracker.AddBugComment)
-    self._PatchPerfIssueService(
+    perf_comment_post_patcher.start()
+    self.addCleanup(perf_comment_post_patcher.stop)
+
+    perf_comment_post_patcher = mock.patch(
         'dashboard.services.perf_issue_service_client.GetDuplicateGroupKeys',
         self._FindDuplicateGroupsMock)
-    self._PatchPerfIssueService(
+    perf_comment_post_patcher.start()
+    self.addCleanup(perf_comment_post_patcher.stop)
+
+    perf_comment_post_patcher = mock.patch(
         'dashboard.services.perf_issue_service_client.GetCanonicalGroupByIssue',
         self._FindCanonicalGroupMock)
-    self._PatchPerfIssueService(
+    perf_comment_post_patcher.start()
+    self.addCleanup(perf_comment_post_patcher.stop)
+
+    perf_comment_post_patcher = mock.patch(
         'dashboard.services.perf_issue_service_client.GetAllActiveAlertGroups',
         self._GetAllActiveAlertGroupsMock)
-    self._PatchPerfIssueService(
-        'dashboard.services.perf_issue_service_client.PostUngroupedAlerts',
-        self._PostUngroupedAlertsMock)
+    perf_comment_post_patcher.start()
+    self.addCleanup(perf_comment_post_patcher.stop)
 
   def _AddAnomaly(self, **kargs):
     default = {
