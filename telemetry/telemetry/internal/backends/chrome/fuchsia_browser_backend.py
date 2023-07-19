@@ -40,14 +40,14 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._browser_id_files = None
     # A temporary file into which the browser's stdout/stderr are written. In
     # case of error, the contents returned by GetStandardOutput.
-    self._tmp_output_file = None
+    self._browser_log_file = None
     # A system-wide log-listener used when starting Chrome.
     self._log_listener_proc = None
     # The process under test; Chrome browser or a shell.
     self._browser_process = None
     # The symbolizer process.
     self._symbolizer_proc = None
-    # The process that writes the symbolized log output to the temp file.
+    # The process that writes the unsymbolized log output to the temp file.
     self._browser_log_writer = None
     # Cached contents of symbolized stdout/stderr in case of error.
     self._browser_log = ''
@@ -80,7 +80,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         if tokens:
           break
       return int(tokens.group(1)) if tokens else None
-    with open(self._tmp_output_file.name, encoding='utf-8') as log_file:
+    with open(self._browser_log_file.name, encoding='utf-8') as log_file:
       return py_utils.WaitFor(TryReadingPort, timeout=60)
 
   def _ReadDevToolsPort(self):
@@ -220,12 +220,16 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def Start(self, startup_args):
     output_root = os.path.join(self._output_dir, 'gen', 'fuchsia_web')
+    if self.browser_options.show_stdout:
+      logging.warning('Printing browser output into stdout is not supported ' +
+                      'by fuchsia due to the known flakiness caused by tee. ' +
+                      'More details can be found in http://crbug.com/1280703.')
 
     # Create a temporary file into which the browser's logs are written. The top
     # of the file is parsed during startup to find the devtools port, and the
     # entirety of the file is returned by GetStandardOutput in case of
     # unexpected failure.
-    self._tmp_output_file = tempfile.NamedTemporaryFile()
+    self._browser_log_file = tempfile.NamedTemporaryFile()
     try:
       if self.browser_type == WEB_ENGINE_SHELL:
         browser_log_stream = self._StartWebEngineShell(startup_args)
@@ -250,26 +254,25 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
       # Run stdout of the browser proc through the symbolizer and into the temp
       # output file.
+      # TODO(crbug.com/1280703): The logic should respect
+      # self.browser_options.show_stdout, but using tee may cause resource
+      # exhausted failure randomly.
+      # E.g. https://forums.gentoo.org/viewtopic-t-1094162-start-0.html
+      # The ideal solution is to use a file-like object implementation of tee
+      # rather than the tee binary itself.
       self._symbolizer_proc = \
         fuchsia_interface.StartSymbolizerForProcessIfPossible(
-              browser_log_stream, subprocess.PIPE, self._browser_id_files)
-      if self._symbolizer_proc:
-        symbolized_output_stream = self._symbolizer_proc.stdout
-      else:
+              browser_log_stream,
+              self._browser_log_file,
+              self._browser_id_files)
+      if not self._symbolizer_proc:
         # Failed to start the symbolizer, so just use the raw browser output.
-        symbolized_output_stream = browser_log_stream
         logging.warning('Failed to start symbolizer process; browser output '
                         'will not be symbolized.')
-
-      if self.browser_options.show_stdout:
-        # Tee the symbolized output to stdout and the temp file.
-        self._browser_log_writer = subprocess.Popen(
-            ['tee', self._tmp_output_file.name], stdin=symbolized_output_stream)
-      else:
-        # Cat the symbolized output to the temp file.
+        # Cat the unsymbolized output to the temp file.
         self._browser_log_writer = subprocess.Popen('cat',
-                                     stdin=symbolized_output_stream,
-                                     stdout=self._tmp_output_file,
+                                     stdin=browser_log_stream,
+                                     stdout=self._browser_log_file,
                                      stderr=subprocess.PIPE)
 
       self._dump_finder = minidump_finder.MinidumpFinder(
@@ -347,9 +350,9 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._browser_log_writer = None
 
     # Delete the temporary output file.
-    if self._tmp_output_file:
-      self._tmp_output_file.close()
-      self._tmp_output_file = None
+    if self._browser_log_file:
+      self._browser_log_file.close()
+      self._browser_log_file = None
 
     self._browser_log = ''
     self._browser_id_files = None
@@ -363,15 +366,15 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def GetStandardOutput(self):
     # Cache the browser's output on the first call. There may not be an output
     # file at all in certain early failure modes.
-    if not self._browser_log and self._tmp_output_file:
+    if not self._browser_log and self._browser_log_file:
       self._CloseOnDeviceBrowsers()
 
-      self._tmp_output_file.flush()
+      self._browser_log_file.flush()
 
       output_data = None
 
-      self._tmp_output_file.seek(0, io.SEEK_SET)
-      output_data = self._tmp_output_file.read().decode()
+      self._browser_log_file.seek(0, io.SEEK_SET)
+      output_data = self._browser_log_file.read().decode()
 
       # Cache the data in case of repeat calls.
       self._browser_log = output_data
