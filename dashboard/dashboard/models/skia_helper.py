@@ -17,6 +17,32 @@ SUPPORTED_REPOSITORIES = ['chromium']
 QUERY_TEST_LIMIT = 5
 
 
+def GetSkiaUrl(start_time: datetime.datetime,
+               end_time: datetime.datetime,
+               bots: set() = None,
+               benchmarks: set() = None,
+               tests: set() = None,
+               subtests_1: set() = None,
+               subtests_2: set() = None,
+               internal_only: bool = True,
+               num_points: int = 500):
+  benchmark_query_str = ''.join(
+      '&benchmark=%s' % benchmark for benchmark in benchmarks)
+  bot_query_str = ''.join('&bot=%s' % bot for bot in bots)
+  test_query_str = ''.join('&test=%s' % test for test in tests)
+  subtest_query_str = ''.join(
+      '&subtest_1=%s' % subtest for subtest in subtests_1)
+  subtest_query_str = subtest_query_str.join(
+      '&subtest_2=%s' % subtest for subtest in subtests_2)
+
+  query_str = encoder.quote(
+      'stat=value%s%s%s%s' %
+      (benchmark_query_str, bot_query_str, test_query_str, subtest_query_str))
+
+  return _GenerateUrl(internal_only, query_str, _FormatTime(start_time),
+                      _FormatTime(end_time), num_points)
+
+
 def GetSkiaUrlForRegressionGroup(regressions, crrev_service, gitiles_service):
   # Filter out regressions that are only in the supported repositories
   filtered_regressions = []
@@ -32,6 +58,7 @@ def GetSkiaUrlForRegressionGroup(regressions, crrev_service, gitiles_service):
     bots = set()
     tests = set()
     subtests_1 = set()
+    subtests_2 = set()
     start_revision = filtered_regressions[0].start_revision
     end_revision = filtered_regressions[0].end_revision
 
@@ -42,6 +69,8 @@ def GetSkiaUrlForRegressionGroup(regressions, crrev_service, gitiles_service):
       tests.add(regression_test.test_part1_name)
       if regression_test.test_part2_name:
         subtests_1.add(regression_test.test_part2_name)
+      if regression_test.test_part3_name:
+        subtests_2.add(regression_test.test_part3_name)
 
       # Capture the earliest start_revision and latest end_revision from
       # the regressions group
@@ -54,17 +83,6 @@ def GetSkiaUrlForRegressionGroup(regressions, crrev_service, gitiles_service):
       if len(tests) >= QUERY_TEST_LIMIT or len(subtests_1) >= QUERY_TEST_LIMIT:
         break
 
-    benchmark_query_str = ''.join(
-        '&benchmark=%s' % benchmark for benchmark in benchmarks)
-    bot_query_str = ''.join('&bot=%s' % bot for bot in bots)
-    test_query_str = ''.join('&test=%s' % test for test in tests)
-    subtest_query_str = ''.join(
-        '&subtest_1=%s' % subtest for subtest in subtests_1)
-
-    query_str = encoder.quote(
-        'stat=value%s%s%s%s' %
-        (benchmark_query_str, bot_query_str, test_query_str, subtest_query_str))
-
     start_commit_info = _GetCommitInfo(start_revision, crrev_service,
                                        gitiles_service, repo_url)
     end_commit_info = _GetCommitInfo(end_revision, crrev_service,
@@ -72,25 +90,27 @@ def GetSkiaUrlForRegressionGroup(regressions, crrev_service, gitiles_service):
 
     if start_commit_info and start_commit_info.get('committer') and \
         end_commit_info and end_commit_info.get('committer'):
-      begin_date = start_commit_info['committer']['time']
+      begin_date_str = start_commit_info['committer']['time']
+      begin_date = parser.parse(begin_date_str)
 
       # For end date, add one day to the date in end_commit_info.
       # Otherwise the anomaly regression/improvement icon shows up right
       # at the end of the graph in the UI which isn't ideal.
       end_date_str = end_commit_info['committer']['time']
-      end_date_obj = parser.parse(end_date_str) + datetime.timedelta(days=1)
-      end_date = end_date_obj.strftime('%a %b %d %H:%M:%S %Y')
+      end_date = parser.parse(end_date_str) + datetime.timedelta(days=1)
+      internal_only = filtered_regressions[0].internal_only
+      return GetSkiaUrl(begin_date, end_date, bots, benchmarks, tests,
+                        subtests_1, subtests_2, internal_only)
 
-      return _GenerateUrl(filtered_regressions[0].internal_only, query_str,
-                          begin_date, end_date)
   return ''
 
 
-def _GenerateUrl(internal_only: bool, query_str: str, begin_date, end_date):
+def _GenerateUrl(internal_only: bool, query_str: str, begin_date: str,
+                 end_date: str, num_commits: int):
   begin = _GetTimeInt(begin_date)
   end = _GetTimeInt(end_date)
-  request_params_str = 'begin=%s&end=%s&numCommits=500&queries=%s' % (
-      begin, end, query_str)
+  request_params_str = 'begin=%i&end=%i&numCommits=%i&queries=%s' % (
+      begin, end, num_commits, query_str)
   host = INTERNAL_HOST if internal_only else PUBLIC_HOST
   return '%s/e/?%s' % (host, request_params_str)
 
@@ -110,3 +130,7 @@ def _GetCommitInfo(revision, crrev_service, gitiles_service, repo_url):
 def _GetTimeInt(timestamp: str):
   t = time.strptime(timestamp)
   return int(time.mktime(t))
+
+
+def _FormatTime(time_obj: datetime.datetime):
+  return time_obj.strftime('%a %b %d %H:%M:%S %Y')

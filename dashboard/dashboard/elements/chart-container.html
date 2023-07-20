@@ -187,6 +187,18 @@ triaging functionality in the chart.
       border-left: 1px solid black;
       display: none;
     }
+
+    #skiaLink {
+      visibility: hidden;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      color: rgb(44, 132, 255);
+      font-weight: bold;
+    }
+    #skiaLink > iron-icon {
+      margin-right: 1px;
+    }
     </style>
 
     <div id="container" compact$="{{showCompact}}">
@@ -194,6 +206,14 @@ triaging functionality in the chart.
         <div class="layout horizontal center-justified flex">
           <chart-title id="title" series-group-list="{{seriesGroupList}}"
                        test-suites="{{testSuites}}"></chart-title>
+        </div>
+        <div class="layout horizontal center" id="skiaLink">
+          <a href="{{skia_url}}" target="_blank">
+            <paper-button>
+              View this chart in Skia Perf
+              <iron-icon icon="open-in-new"></iron-icon>
+            </paper-button>
+          </a>
         </div>
         <div class="layout horizontal center">
           <paper-button id="close-chart" on-click="closeChartClicked">
@@ -398,7 +418,8 @@ triaging functionality in the chart.
             },
             data: {},
             error_bars: {},
-            warning: null
+            warning: null,
+            skia_url: null
           };
         }
       },
@@ -441,6 +462,11 @@ triaging functionality in the chart.
         notify: true,
         type: Array,
         value: () => [],
+      },
+
+      skia_url: {
+        type: String,
+        value: ''
       },
 
       // Data series index of the point that was most recently clicked.
@@ -936,6 +962,11 @@ triaging functionality in the chart.
           function(json) {
             if (this.jsonHasData(json)) {
               this.updateJson(json, isSelected);
+              this.skia_url = this.json.skia_url
+              if (this.skia_url != null && this.skia_url.length > 0) {
+                this.$['skiaLink'].style.visibility = 'visible'
+              }
+
             } else if (isSelected) {
               this.addWarnings('No data available.');
               this.checkForInternalUser();
@@ -1072,6 +1103,7 @@ triaging functionality in the chart.
         this.nextSeriesIndex = Object.keys(this.json.data).length;
       }
 
+      this.json.skia_url = newJson.skia_url
       const testPathToSeriesIndex = {};
       const series = this.json.annotations.series;
       for (const i in series) {

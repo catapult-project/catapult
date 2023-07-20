@@ -27,6 +27,7 @@ from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
+from dashboard.models import skia_helper
 from dashboard.models import graph_data
 
 from flask import request, make_response
@@ -400,6 +401,8 @@ def _GetFlotJson(revision_map, tests):
       }] for x, _ in enumerate(tests)
   }
 
+  start_time: datetime.datetime = None
+  end_time: datetime.datetime = None
   test_keys = [t.key.urlsafe() for t in tests]
   for revision in sorted(revision_map.keys()):
     for series_index, key in enumerate(test_keys):
@@ -409,6 +412,15 @@ def _GetFlotJson(revision_map, tests):
 
       timestamp = point_info.get('timestamp')
       if timestamp and isinstance(timestamp, datetime.datetime):
+        if not start_time:
+          start_time = timestamp
+        if not end_time:
+          end_time = timestamp
+
+        if timestamp < start_time:
+          start_time = timestamp
+        if timestamp > end_time:
+          end_time = timestamp
         point_info['timestamp'] = utils.TimestampMilliseconds(timestamp)
 
       # TODO(simonhatch): Need to filter out NaN values.
@@ -430,11 +442,16 @@ def _GetFlotJson(revision_map, tests):
       del data_dict['value']
       series_dict.setdefault(data_index, data_dict)
 
+  if utils.IsAdministrator():
+    skia_url = _GetSkiaUrl(tests, start_time, end_time)
+  else:
+    skia_url = ''
   return json.dumps(
       utils.ConvertBytesBeforeJsonDumps({
           'data': cols,
           'annotations': flot_annotations,
           'error_bars': error_bars,
+          'skia_url': skia_url
       }),
       allow_nan=False)
 
@@ -446,3 +463,25 @@ def _FlotSeries(index, test):
       'id': 'line_%d' % index,
       'testpath': test.test_path,
   }
+
+
+def _GetSkiaUrl(test_metadatas, start_time: datetime.datetime,
+                end_time: datetime.datetime):
+  benchmarks = set()
+  bots = set()
+  tests = set()
+  subtests_1 = set()
+  subtests_2 = set()
+  internal_only = False
+  for test_metadata in test_metadatas:
+    internal_only |= test_metadata.internal_only
+    benchmarks.add(test_metadata.suite_name)
+    bots.add(test_metadata.bot_name)
+    tests.add(test_metadata.test_part1_name)
+    if test_metadata.test_part2_name:
+      subtests_1.add(test_metadata.test_part2_name)
+    if test_metadata.test_part3_name:
+      subtests_2.add(test_metadata.test_part3_name)
+
+  return skia_helper.GetSkiaUrl(start_time, end_time, bots, benchmarks, tests,
+                                subtests_1, subtests_2, internal_only)
