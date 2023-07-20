@@ -223,7 +223,7 @@ try_builder("Catapult Mac Tryserver", "Mac", dimensions = {"cpu": "x86-64"})
 
 try_builder("Catapult Mac M1 Tryserver", "Mac", dimensions = {"cpu": "arm"})
 
-try_builder("Catapult Android Tryserver", "Android", dimensions = {"device_type": "bullhead"}, properties = {"platform": "android"})
+try_builder("Catapult Android Tryserver", "Android", experiment = 100, dimensions = {"device_type": "walleye"}, properties = {"platform": "android"})
 
 try_builder("Catapult Presubmit", "Ubuntu", is_presubmit = True)
 
