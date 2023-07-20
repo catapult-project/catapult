@@ -15,6 +15,12 @@ WORKFLOW_NAME = 'sandwich-verification-workflow-prod'
 REGRESSION, CULPRIT, TEST = ('regression', 'culprit', 'test')
 BASE_URL = 'https://workflowexecutions.googleapis.com/v1/'
 
+# https://cloud.google.com/workflows/docs/reference/executions/rest/v1beta/projects.locations.workflows.executions#State
+EXECUTION_STATE_ACTIVE = 'ACTIVE'
+EXECUTION_STATE_SUCCEEDED = 'SUCCEEDED'
+EXECUTION_STATE_FAILED = 'FAILED'
+EXECUTION_STATE_CANCELLED = 'CANCELLED'
+
 
 def CreateExecution(anomaly,
                     verification_type=TEST,

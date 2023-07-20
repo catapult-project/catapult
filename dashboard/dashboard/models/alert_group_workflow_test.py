@@ -24,6 +24,7 @@ from dashboard.models import alert_group_workflow
 from dashboard.models import anomaly
 from dashboard.common import sandwich_allowlist
 from dashboard.models import subscription
+from dashboard.services import workflow_service
 
 _SERVICE_ACCOUNT_EMAIL = 'service-account@chromium.org'
 
@@ -1271,18 +1272,23 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     workflow_anomaly = self._cloud_workflows.create_execution_called_with_anomaly
     self.assertIsNone(workflow_anomaly)
 
-  def testSandwich_TryVerifyRegression_sandwiched(self):
+  def testSandwich_TryVerifyRegression_sandwiched_FAILED(self):
     # Pre-coditions:
     # - feature_flags.SANDWICH_VERIFICATION is True
     # - New anomaly appears
     # - It's for a subscription is enabled for auto_triage and auto_bisect
     # - The anomaly's AlertGroup status is 'sandwiched`
     # - The anomaly's benchmark/workload/config is allowed for sandwich verification
+    # - The anomaly's AlertGroup has a sandwich_verification_workflow_id set
+    # - Cloud Workflow service has an execution with that workflow id, and its state is FAILED
+    # - The workflow execution has no results, just an error
     # Post-conditions:
-    # - The anomaly's AlertGroup state is now 'bisected'
-    # - A "Sandwich Verification" *cloud* workflow has *not* been requested
+    # - The anomaly's AlertGroup state is now 'bisected' (fail safe back to default behavior)
+    # - A new "Sandwich Verification" *cloud* workflow has *not* been requested
     # - The AlertGroup's sandwich_verification_workflow_id is not changed
     # - A pinpoint bisection job has been started for the alert group
+    # - The issue tracker has been called to update the bug label Regression-Verification-Failed
+    #.  and status Unconfirmed.
     feature_flags.SANDWICH_VERIFICATION = True
 
     test_name = '/'.join([
@@ -1294,11 +1300,23 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         self._AddAnomaly(test=test_name, statistic="also made up")
     ]
 
+    sandwich_verification_workflow_id = self._cloud_workflows.CreateExecution(
+        anomalies[0])
+    sandwich_workflow = self._cloud_workflows.GetExecution(
+        sandwich_verification_workflow_id)
+    sandwich_workflow['state'] = workflow_service.EXECUTION_STATE_FAILED
+
+    # https://cloud.google.com/workflows/docs/reference/executions/rest/v1beta/projects.locations.workflows.executions#Error
+    sandwich_workflow['error'] = {
+        'payload': 'payload string',
+        'context': 'context string',
+        'stackTrace': {}
+    }
     group = self._AddAlertGroup(
         anomalies[0],
         issue=self._issue_tracker.issue,
         status=alert_group.AlertGroup.Status.sandwiched,
-        sandwich_verification_workflow_id='monte cristo',
+        sandwich_verification_workflow_id=sandwich_verification_workflow_id,
     )
     self._issue_tracker.issue.update({'state': 'open'})
     self._sheriff_config.patterns = {
@@ -1327,11 +1345,213 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         ))
     self.assertNotIn('Chromeperf-Auto-BisectOptOut',
                      self._issue_tracker.issue.get('labels'))
-    self.assertEqual(w._group.status, alert_group.AlertGroup.Status.bisected)
     self.assertIsNotNone(w._group.sandwich_verification_workflow_id)
     self.assertIsNotNone(self._pinpoint.new_job_request)
-    workflow_anomaly = self._cloud_workflows.create_execution_called_with_anomaly
-    self.assertIsNone(workflow_anomaly)
+
+    # First is a NewBug call in the test itself.
+    self.assertEqual(len(self._issue_tracker.calls), 3)
+
+    self.assertEqual(self._issue_tracker.calls[1]['method'], 'AddBugComment')
+    self.assertEqual(len(self._issue_tracker.calls[1]['args']), 2)
+    self.assertEqual(self._issue_tracker.calls[1]['args'][0],
+                     self._issue_tracker.issue.get('id'))
+    self.assertEqual(self._issue_tracker.calls[1]['args'][1], 'chromium')
+
+    self.assertEqual(
+        self._issue_tracker.calls[1]['kwargs'], {
+            'comment': mock.ANY,
+            'labels': 'Regression-Verification-Failed',
+            'send_email': False,
+            'status': 'Unconfirmed'
+        })
+
+    self.assertEqual(w._group.status, alert_group.AlertGroup.Status.bisected)
+
+  def testSandwich_TryVerifyRegression_sandwiched_SUCCEEDED_skipBisect(self):
+    # Pre-coditions:
+    # - feature_flags.SANDWICH_VERIFICATION is True
+    # - New anomaly appears
+    # - It's for a subscription is enabled for auto_triage and auto_bisect
+    # - The anomaly's AlertGroup status is 'sandwiched`
+    # - The anomaly's benchmark/workload/config is allowed for sandwich verification
+    # - The anomaly's AlertGroup has a sandwich_verification_workflow_id set
+    # - Cloud Workflow service has an execution with that workflow id, and its state is SUCCEEDED
+    # - The workflow resulted in decision: False, meaning it should skip bisection.
+    # Post-conditions:
+    # - The anomaly's AlertGroup state is now 'closed'
+    # - A new "Sandwich Verification" *cloud* workflow has *not* been requested
+    # - The AlertGroup's sandwich_verification_workflow_id is not changed
+    # - A pinpoint bisection job has *not* been started for the alert group
+    # - The issue tracker has beeb called to update associated issue as closed / WontFix and
+    #   labels ['Regression-Verification-No-Repro', 'Chromeperf-Auto-Closed']
+    feature_flags.SANDWICH_VERIFICATION = True
+
+    test_name = '/'.join([
+        "master", sandwich_allowlist.ALLOWABLE_DEVICES[0],
+        sandwich_allowlist.ALLOWABLE_BENCHMARKS[0], 'dummy', 'metric', 'parts'
+    ])
+    anomalies = [
+        self._AddAnomaly(test=test_name, statistic="made up"),
+        self._AddAnomaly(test=test_name, statistic="also made up")
+    ]
+
+    sandwich_verification_workflow_id = self._cloud_workflows.CreateExecution(
+        anomalies[0])
+    sandwich_workflow = self._cloud_workflows.GetExecution(
+        sandwich_verification_workflow_id)
+    sandwich_workflow['state'] = workflow_service.EXECUTION_STATE_SUCCEEDED
+    sandwich_workflow['result'] = '''{
+        "job_id": "pinpoint-job-id-12345",
+        "anomaly": "",
+        "statistic": "",
+        "decision": false
+    }'''
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.sandwiched,
+        sandwich_verification_workflow_id=sandwich_verification_workflow_id,
+    )
+    self._issue_tracker.issue.update({'state': 'open'})
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+        cloud_workflows=self._cloud_workflows,
+    )
+    self.assertNotIn('Chromeperf-Auto-BisectOptOut',
+                     self._issue_tracker.issue.get('labels'))
+    self._UpdateTwice(
+        workflow=w,
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
+    self.assertNotIn('Chromeperf-Auto-BisectOptOut',
+                     self._issue_tracker.issue.get('labels'))
+    self.assertIsNotNone(w._group.sandwich_verification_workflow_id)
+    self.assertIsNone(self._pinpoint.new_job_request)
+
+    # First is a NewBug call in the test itself.
+    self.assertEqual(len(self._issue_tracker.calls), 2)
+
+    self.assertEqual(self._issue_tracker.calls[1]['method'], 'AddBugComment')
+    self.assertEqual(len(self._issue_tracker.calls[1]['args']), 2)
+    self.assertEqual(self._issue_tracker.calls[1]['args'][0],
+                     self._issue_tracker.issue.get('id'))
+    self.assertEqual(self._issue_tracker.calls[1]['args'][1], 'chromium')
+
+    self.assertEqual(
+        self._issue_tracker.calls[1]['kwargs'], {
+            'comment': mock.ANY,
+            'status': 'WontFix',
+            'labels': ['Regression-Verification-No-Repro', 'Chromeperf-Auto-Closed'],
+            'send_email': False
+        })
+
+    self.assertEqual(w._group.status, alert_group.AlertGroup.Status.closed)
+
+  def testSandwich_TryVerifyRegression_sandwiched_SUCCEEDED_doBisect(self):
+    # Pre-coditions:
+    # - feature_flags.SANDWICH_VERIFICATION is True
+    # - New anomaly appears
+    # - It's for a subscription is enabled for auto_triage and auto_bisect
+    # - The anomaly's AlertGroup status is 'sandwiched`
+    # - The anomaly's benchmark/workload/config is allowed for sandwich verification
+    # - The anomaly's AlertGroup has a sandwich_verification_workflow_id set
+    # - Cloud Workflow service has an execution with that workflow id, and its state is SUCCEEDED
+    # - The workflow resulted in decision: True, meaning we should proceed with auto-bisection.
+    # Post-conditions:
+    # - The anomaly's AlertGroup state is now 'bisected'
+    # - A new "Sandwich Verification" *cloud* workflow has *not* been requested
+    # - The AlertGroup's sandwich_verification_workflow_id is not changed
+    # - A pinpoint bisection job has been started for the alert group
+    # - The issue tracker has been called to update the issue with label Chromeperf-Auto-Bisected
+    feature_flags.SANDWICH_VERIFICATION = True
+
+    test_name = '/'.join([
+        "master", sandwich_allowlist.ALLOWABLE_DEVICES[0],
+        sandwich_allowlist.ALLOWABLE_BENCHMARKS[0], 'dummy', 'metric', 'parts'
+    ])
+    anomalies = [
+        self._AddAnomaly(test=test_name, statistic="made up"),
+        self._AddAnomaly(test=test_name, statistic="also made up")
+    ]
+
+    sandwich_verification_workflow_id = self._cloud_workflows.CreateExecution(
+        anomalies[0])
+    sandwich_workflow = self._cloud_workflows.GetExecution(
+        sandwich_verification_workflow_id)
+    sandwich_workflow['state'] = workflow_service.EXECUTION_STATE_SUCCEEDED
+    sandwich_workflow['result'] = '''{
+        "job_id": "pinpoint-job-id-12345",
+        "anomaly": "",
+        "statistic": "",
+        "decision": true
+    }'''
+    group = self._AddAlertGroup(
+        anomalies[0],
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.sandwiched,
+        sandwich_verification_workflow_id=sandwich_verification_workflow_id,
+    )
+    self._issue_tracker.issue.update({'state': 'open'})
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='sheriff',
+                auto_triage_enable=True,
+                auto_bisect_enable=True)
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+        cloud_workflows=self._cloud_workflows,
+    )
+    self.assertNotIn('Chromeperf-Auto-BisectOptOut',
+                     self._issue_tracker.issue.get('labels'))
+    self._UpdateTwice(
+        workflow=w,
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
+    self.assertNotIn('Chromeperf-Auto-BisectOptOut',
+                     self._issue_tracker.issue.get('labels'))
+    self.assertIsNotNone(w._group.sandwich_verification_workflow_id)
+    self.assertIsNotNone(self._pinpoint.new_job_request)
+
+    # First is a NewBug call in the test itself.
+    self.assertEqual(len(self._issue_tracker.calls), 3)
+
+    self.assertEqual(self._issue_tracker.calls[1]['method'], 'AddBugComment')
+    self.assertEqual(len(self._issue_tracker.calls[1]['args']), 2)
+    self.assertEqual(self._issue_tracker.calls[1]['args'][0],
+                     self._issue_tracker.issue.get('id'))
+    self.assertEqual(self._issue_tracker.calls[1]['args'][1], 'chromium')
+
+    self.assertEqual(
+        self._issue_tracker.calls[1]['kwargs'], {
+            'comment': mock.ANY,
+            'labels': 'Regression-Verification-Repro',
+            'send_email': False,
+            'status': 'Available'
+        })
+    self.assertEqual(w._group.status, alert_group.AlertGroup.Status.bisected)
 
   def testSandwich_TryVerifyRegression_OptOut(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]

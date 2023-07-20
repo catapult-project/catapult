@@ -31,6 +31,7 @@ from dashboard.common import datastore_hooks
 from dashboard.common import stored_object
 from dashboard.common import utils
 from dashboard.models import graph_data
+from dashboard.services import request as request_service
 
 _QUEUE_YAML_DIR = os.path.join(os.path.dirname(__file__), '..', '..')
 
@@ -588,10 +589,22 @@ class FakeCASClient:
 
 class FakeCloudWorkflows:
 
-  def __init__(self, new_execution_name='new execution name'):
-    self._new_execution_name = new_execution_name
+  def __init__(self):
+    self.executions = {}
     self.create_execution_called_with_anomaly = None
 
   def CreateExecution(self, anomaly):
     self.create_execution_called_with_anomaly = anomaly
-    return self._new_execution_name
+    new_id = ('execution-id-%s' % len(self.executions))
+    self.executions[new_id] = {
+        'name': new_id,
+        'state': 'ACTIVE',
+        'result': None,
+        'error': None,
+    }
+    return new_id
+
+  def GetExecution(self, execution_id):
+    if execution_id not in self.executions:
+      raise request_service.NotFoundError('HTTP status code 404: NOT FOUND', '', '')
+    return self.executions[execution_id]

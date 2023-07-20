@@ -520,7 +520,7 @@ class AlertGroupWorkflow:
         send_email=False,
     )
 
-  def _UpdateRegressionVerification(self, execution, regression):
+  def _UpdateRegressionVerification(self, execution, regression, update):
     '''Update regression verification results in monorail.
 
     This is a placeholder function and will likely need to be refactored
@@ -529,57 +529,69 @@ class AlertGroupWorkflow:
     Args:
       execution - the response from workflow_client.GetExecution()
       regression - the candidate regression that was sent for verification
+      update - the alert group workflow update being processed
+    Returns:
+      True if the workflow completed with status of SUCCESS and was able to reproduce the anomaly.
+      True if the worfklow completed with status of FAILED or CANCELLED.
+      False for any other condtion.
     '''
 
     status = 'Unconfirmed'
-    if execution.state == 'ACTIVE':
-      return
-    if execution.state == 'SUCCEEDED':
-      results_dict = json.loads(execution.result)
+    proceed_with_bisect = False
+    if execution['state'] == workflow_service.EXECUTION_STATE_ACTIVE:
+      return proceed_with_bisect
+    if execution['state']  == workflow_service.EXECUTION_STATE_SUCCEEDED:
+      results_dict = json.loads(execution['result'])
       if 'decision' in results_dict:
         decision = results_dict['decision']
       else:
         raise ValueError('execution %s result is missing parameters: %s' %
-                         (execution.name, results_dict))
+                         (execution['name'], results_dict))
       logging.info(
           'Regression verification %s for project: %s and '
-          'bug: %s succeeded with repro decision %s.', execution.name,
+          'bug: %s succeeded with repro decision %s.', execution['name'],
           self._group.project_id, self._group.bug.bug_id, decision)
       if decision:
         comment = ('Regression verification %s job %s for test: %s\n'
                    'reproduced the regression with statistic: %s\n.'
                    'Proceed to bisection.' %
-                   (execution.name, results_dict['job_id'], regression.test,
+                   (execution['name'], results_dict['job_id'], regression.test,
                     results_dict['statistic']))
         label = 'Regression-Verification-Repro'
         status = 'Available'
+        proceed_with_bisect = True
       else:
         comment = ('Regression verification %s job %s for test: %s\n'
                    'did NOT reproduce the regression with statistic: %s.'
                    'Issue closed.' %
-                   (execution.name, results_dict['job_id'], regression.test,
+                   (execution['name'], results_dict['job_id'], regression.test,
                     results_dict['statistic']))
         label = ['Regression-Verification-No-Repro', 'Chromeperf-Auto-Closed']
         status = 'WontFix'
-      # TODO(sunxiaodi): add components to the monorail post.
-    elif execution.state == 'FAILED':
+        self._group.updated = update.now
+        self._group.status = self._group.Status.closed
+        self._CommitGroup()
+    elif execution['state']  == workflow_service.EXECUTION_STATE_FAILED:
       logging.error(
           'Regression verification %s for project: %s and '
-          'bug: %s failed with error %s.', execution.name,
-          self._group.project_id, self._group.bug.bug_id, execution.error)
+          'bug: %s failed with error %s.', execution['name'],
+          self._group.project_id, self._group.bug.bug_id, execution['error'])
       comment = ('Regression verification %s for test: %s\n'
                  'failed. Proceed to bisection.' %
-                 (execution.name, regression.test))
+                 (execution['name'], regression.test))
       label = 'Regression-Verification-Failed'
-    elif execution.state == 'CANCELLED':
+      proceed_with_bisect = True
+    elif execution['state'] == workflow_service.EXECUTION_STATE_CANCELLED:
       logging.info(
           'Regression verification %s for project: %s and '
-          'bug: %s cancelled with error %s.', execution.name,
-          self._group.project_id, self._group.bug.bug_id, execution.error)
+          'bug: %s cancelled with error %s.', execution['name'],
+          self._group.project_id, self._group.bug.bug_id, execution['error'])
       comment = ('Regression verification %s for test: %s\n'
                  'cancelled with message %s. Proceed to bisection.' %
-                 (execution.name, regression.test, execution.error))
+                 (execution['name'], regression.test, execution['error']))
       label = 'Regression-Verification-Cancelled'
+      proceed_with_bisect = True
+
     perf_issue_service_client.PostIssueComment(
         self._group.bug.bug_id,
         self._group.project_id,
@@ -588,6 +600,8 @@ class AlertGroupWorkflow:
         status=status,
         send_email=False,
     )
+
+    return proceed_with_bisect
 
   def _FileNormalUpdate(self,
                         all_regressions,
@@ -876,7 +890,22 @@ class AlertGroupWorkflow:
       if regression is None:
         return
 
-      # We'll only bisect a range if the range at least one point.
+      if self._group.status == self._group.Status.sandwiched:
+        # Get the verdict from the workflow execution results.
+        try:
+          sandwich_exec = self._cloud_workflows.GetExecution(
+              self._group.sandwich_verification_workflow_id)
+        except request.NotFoundError:
+          logging.error(
+              'cloud workflow service could not find sandwich verification execution ID %s',
+              self._group.sandwich_verification_workflow_id)
+          return
+
+        proceed_with_bisect = self._UpdateRegressionVerification(sandwich_exec, regression, update)
+        if not proceed_with_bisect:
+          return
+
+     # We'll only bisect a range if the range at least one point.
       if regression.start_revision == regression.end_revision:
         # At this point we've decided that the range of the commits is a single
         # point, so we don't bother bisecting.
