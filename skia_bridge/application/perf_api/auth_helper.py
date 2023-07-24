@@ -33,6 +33,7 @@ def AuthorizeBearerToken(request, allow_list=None):
 
   content_dict = json.loads(content)
   email = content_dict.get('email')
+  logging.info('Client email: %s', email)
   if email and content_dict.get('email_verified'):
     if allow_list is None or email in allow_list:
       return True
