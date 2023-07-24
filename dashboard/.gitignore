@@ -1,0 +1,2 @@
+# Do not check in generated protocol buffers.
+*_pb2.py
