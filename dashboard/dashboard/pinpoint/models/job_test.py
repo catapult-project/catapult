@@ -90,6 +90,8 @@ def FakeCommitAsDict(commit_self):
                    mock.MagicMock(return_value='http://foo'))
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
+@mock.patch('dashboard.services.cabe_service.GetAnalysis',
+            mock.MagicMock(return_value={}))
 class JobTest(test.TestCase):
 
   @mock.patch.object(
@@ -354,6 +356,8 @@ class RetryTest(test.TestCase):
             mock.MagicMock(return_value=["a"]))
 @mock.patch('dashboard.common.cloud_metric._PublishTSCloudMetric',
             mock.MagicMock())
+@mock.patch('dashboard.services.cabe_service.GetAnalysis',
+            mock.MagicMock(return_value={}))
 class BugCommentTest(test.TestCase):
 
   def setUp(self):
