@@ -107,10 +107,14 @@ def GetSkiaUrlForRegressionGroup(regressions, crrev_service, gitiles_service):
 
 def _GenerateUrl(internal_only: bool, query_str: str, begin_date: str,
                  end_date: str, num_commits: int):
-  begin = _GetTimeInt(begin_date)
-  end = _GetTimeInt(end_date)
-  request_params_str = 'begin=%i&end=%i&numCommits=%i&queries=%s' % (
-      begin, end, num_commits, query_str)
+  request_params_str = 'numCommits=%i' % num_commits
+  if begin_date:
+    begin = _GetTimeInt(begin_date)
+    request_params_str += '&begin=%i' % begin
+  if end_date:
+    end = _GetTimeInt(end_date)
+    request_params_str += '&end=%i' % end
+  request_params_str += '&queries=%s' % query_str
   host = INTERNAL_HOST if internal_only else PUBLIC_HOST
   return '%s/e/?%s' % (host, request_params_str)
 
@@ -133,4 +137,6 @@ def _GetTimeInt(timestamp: str):
 
 
 def _FormatTime(time_obj: datetime.datetime):
-  return time_obj.strftime('%a %b %d %H:%M:%S %Y')
+  if time_obj:
+    return time_obj.strftime('%a %b %d %H:%M:%S %Y')
+  return ''
