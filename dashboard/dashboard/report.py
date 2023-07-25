@@ -13,6 +13,7 @@ from google.appengine.ext import ndb
 
 from dashboard import chart_handler
 from dashboard import list_tests
+from dashboard.common import cloud_metric
 from dashboard.common import request_handler
 from dashboard import short_uri
 from dashboard import update_test_suites
@@ -29,6 +30,7 @@ def ReportHandlerGet():
   return request_handler.RequestHandlerRenderStaticHtml('report.html')
 
 
+@cloud_metric.APIMetric("chromeperf", "/report")
 def ReportHandlerPost():
   """Gets dynamic data for selecting graphs"""
   values = {}

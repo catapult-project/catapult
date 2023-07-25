@@ -34,6 +34,7 @@ def GroupReportGet():
   return request_handler.RequestHandlerRenderStaticHtml('group_report.html')
 
 
+@cloud_metric.APIMetric("chromeperf", "/group_report")
 def GroupReportPost():
   """Returns dynamic data for /group_report with some set of alerts.
 

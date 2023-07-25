@@ -23,6 +23,7 @@ from google.appengine.ext import ndb
 from dashboard import alerts
 from dashboard import can_bisect
 from dashboard import list_tests
+from dashboard.common import cloud_metric
 from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
 from dashboard.common import utils
@@ -48,6 +49,7 @@ _BETTER_DICT = {
 }
 
 
+@cloud_metric.APIMetric("chromeperf", "/graph_json")
 def GraphJsonPost():
   graphs = request.values.get('graphs')
   arguments = _ParseRequestArguments(graphs)
