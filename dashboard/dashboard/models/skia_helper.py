@@ -83,10 +83,16 @@ def GetSkiaUrlForRegressionGroup(regressions, crrev_service, gitiles_service):
       if len(tests) >= QUERY_TEST_LIMIT or len(subtests_1) >= QUERY_TEST_LIMIT:
         break
 
-    start_commit_info = _GetCommitInfo(start_revision, crrev_service,
-                                       gitiles_service, repo_url)
-    end_commit_info = _GetCommitInfo(end_revision, crrev_service,
-                                     gitiles_service, repo_url)
+    try:
+      start_commit_info = _GetCommitInfo(start_revision, crrev_service,
+                                        gitiles_service, repo_url)
+      end_commit_info = _GetCommitInfo(end_revision, crrev_service,
+                                      gitiles_service, repo_url)
+    except Exception as e:
+      logging.warning(
+        'Error getting commit infos for start_revision:%s, end_revision:%s',
+         start_revision, end_revision)
+      raise e
 
     if start_commit_info and start_commit_info.get('committer') and \
         end_commit_info and end_commit_info.get('committer'):

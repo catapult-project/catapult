@@ -1,6 +1,6 @@
 All graphs for this regression group at {{ group.revision.start }}:{{ group.revision.end }}:
-  https://chromeperf.appspot.com/group_report?group_id={{ group.key.string_id() }}
-  {# TODO(ashwinpv): Insert the SKIA perf link here #}
+  {{ skia_url_text }}
+  [Legacy] https://chromeperf.appspot.com/group_report?group_id={{ group.key.string_id() }}
 {% set top_regressions = regressions[:10] -%}
 Top {{ top_regressions|length }} regressions (out of {{ group.anomalies|length }}, with {{ group.anomalies|length - regressions|length }} improvements) in this group:
 {%- for regression in top_regressions %}
