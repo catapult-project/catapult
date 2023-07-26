@@ -457,11 +457,11 @@ func (a *Archive) Merge(other *Archive) error {
 // Trim iterates over all requests in the archive. For each request, it calls f
 // to see if the request should be removed the archive.
 // The trimmed archive is returned, leaving the current archive unchanged.
-func (a *Archive) Trim(trimMatch func(r *http.Request) (bool, error)) (*Archive, error) {
+func (a *Archive) Trim(trimMatch func(req *http.Request, resp *http.Response) (bool, error)) (*Archive, error) {
 	var numRemovedRequests = 0
 	clone := newArchive()
 	err := a.ForEach(func(req *http.Request, resp *http.Response) error {
-		trimReq, err := trimMatch(req)
+		trimReq, err := trimMatch(req, resp)
 		if err != nil {
 			return err
 		}

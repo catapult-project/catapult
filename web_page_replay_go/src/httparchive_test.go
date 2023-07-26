@@ -12,7 +12,7 @@ import (
 
 func TestFlags(t *testing.T) {
 	cfg := &Config{}
-	baseFlags := []string{"command", "host", "full_path", "decode_response_body"}
+	baseFlags := []string{"command", "host", "full_path", "status_code", "decode_response_body"}
 	addFlags := []string{"skip-existing", "overwrite-existing"}
 	trimFlags := append([]string{"invert-match"}, baseFlags...)
 

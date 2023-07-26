@@ -23,7 +23,7 @@ func createArchivedRequest(t *testing.T, ustr string, header http.Header) *Archi
 	return archivedRequest
 }
 
-func validateTrim(t *testing.T, f func(req *http.Request) (bool, error), a Archive, expected int) {
+func validateTrim(t *testing.T, f func(req *http.Request, resp *http.Response) (bool, error), a Archive, expected int) {
 	b, err := a.Trim(f)
 	if err != nil {
 		t.Fatalf("Trim returned an error: %v", err)
@@ -429,13 +429,13 @@ func TestTrim(t *testing.T) {
 	a.Requests[host2] = make(map[string][]*ArchivedRequest)
 	a.Requests[host2][u2] = []*ArchivedRequest{createArchivedRequest(t, u2, nil)}
 
-	validateTrim(t, func(req *http.Request) (bool, error) { return true, nil }, a, 0)
+	validateTrim(t, func(req *http.Request, resp *http.Response) (bool, error) { return true, nil }, a, 0)
 
-	validateTrim(t, func(req *http.Request) (bool, error) { return false, nil }, a, 2)
+	validateTrim(t, func(req *http.Request, resp *http.Response) (bool, error) { return false, nil }, a, 2)
 
-	validateTrim(t, func(req *http.Request) (bool, error) { return req.Host == host1, nil }, a, 1)
+	validateTrim(t, func(req *http.Request, resp *http.Response) (bool, error) { return req.Host == host1, nil }, a, 1)
 
-	validateTrim(t, func(req *http.Request) (bool, error) { return req.Host == host2, nil }, a, 1)
+	validateTrim(t, func(req *http.Request, resp *http.Response) (bool, error) { return req.Host == host2, nil }, a, 1)
 
-	validateTrim(t, func(req *http.Request) (bool, error) { return req.Host == host3, nil }, a, 2)
+	validateTrim(t, func(req *http.Request, resp *http.Response) (bool, error) { return req.Host == host3, nil }, a, 2)
 }
