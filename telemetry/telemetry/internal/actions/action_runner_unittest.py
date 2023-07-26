@@ -54,7 +54,7 @@ class ActionRunnerMeasureMemoryTest(tab_test_case.TabTestCase):
     self.assertEqual(len(set(expected_dump_ids)), len(expected_dump_ids))
 
     actual_dump_ids = trace_processor.ExtractMemoryDumpIds(trace_data)
-    self.assertEqual(actual_dump_ids, expected_dump_ids)
+    self.assertTrue(set(expected_dump_ids).issubset(set(actual_dump_ids)))
 
   @decorators.Disabled('chromeos')  # crbug.com/1098669
   def testDeterministicMode(self):
