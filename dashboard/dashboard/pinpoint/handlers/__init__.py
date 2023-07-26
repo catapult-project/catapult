@@ -9,6 +9,7 @@ from __future__ import absolute_import
 import dashboard.pinpoint.handlers.jobs
 import dashboard.pinpoint.handlers.commit
 import dashboard.pinpoint.handlers.config
+import dashboard.pinpoint.handlers.culprit
 import dashboard.pinpoint.handlers.new
 import dashboard.pinpoint.handlers.job
 import dashboard.pinpoint.handlers.queue_stats

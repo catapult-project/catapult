@@ -15,7 +15,6 @@ from flask import make_response
 from google.appengine.ext import deferred
 from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
-from google.cloud.workflows.executions_v1.types import executions
 
 from dashboard.models import anomaly
 from dashboard.pinpoint.models import job_bug_update
@@ -36,7 +35,7 @@ def CulpritVerificationResultsUpdateHandler():
       bug_update_builder = job_bug_update.DifferencesFoundBugUpdateBuilder(group.metric)
       num_succeeded, num_verified = _SummarizeResults(
           group.cloud_workflows_keys, bug_update_builder)
-      num_workflows = len(group.workflows)
+      num_workflows = len(group.cloud_workflows_keys)
       if num_succeeded == num_workflows and num_verified == 0:
         # Close the bug and update the comment.
         title = ("<b>Sandwich verification can't verify the culprit(s) found by "
@@ -73,13 +72,13 @@ def _AllExecutionCompleted(group):
   for wk in cloud_workflows_keys:
     could_workflow = ndb.Key('CloudWorkflow', wk).get()
     response = workflow_service.GetExecution(could_workflow.execution_name)
-    if response.state == executions.Execution.State.SUCCEEDED:
+    if response.state == workflow_service.EXECUTION_STATE_SUCCEEDED:
       could_workflow.execution_status = 'SUCCEEDED'
-    elif response.state == executions.Execution.State.FAILED:
+    elif response.state == workflow_service.EXECUTION_STATE_FAILED:
       could_workflow.execution_status = 'FAILED'
-    elif response.state == executions.Execution.State.CANCELLED:
+    elif response.state == workflow_service.EXECUTION_STATE_CANCELLED:
       could_workflow.execution_status = 'CANCELLED'
-    elif response.state == executions.Execution.State.STATE_UNSPECIFIED:
+    elif response.state == workflow_service.EXECUTION_STATE_STATE_UNSPECIFIED:
       could_workflow.execution_status = 'STATE_UNSPECIFIED'
     else:
       completed = False
@@ -92,7 +91,7 @@ def _SummarizeResults(cloud_workflows_keys, bug_update_builder):
   for wk in cloud_workflows_keys:
     w = ndb.Key('CloudWorkflow', wk)
     response = workflow_service.GetExecution(w.execution_name)
-    if response.state == executions.Execution.State.SUCCEEDED:
+    if response.state == workflow_service.EXECUTION_STATE_SUCCEEDED:
       num_succeeded += 1
       result_dict = json.loads(response.result)
       if 'decision' in result_dict:
@@ -100,8 +99,11 @@ def _SummarizeResults(cloud_workflows_keys, bug_update_builder):
         if decision:
           bug_update_builder.AddDifference(None, w.values_a, w.values_b, w.kind, w.commit_dict)
           num_verified += 1
-    elif response.state in [executions.Execution.State.FAILED, executions.Execution.State.CANCELLED,
-      executions.Execution.State.STATE_UNSPECIFIED]:
+    elif response.state in [
+        workflow_service.EXECUTION_STATE_FAILED,
+        workflow_service.EXECUTION_STATE_CANCELLED,
+        workflow_service.EXECUTION_STATE_STATE_UNSPECIFIED
+    ]:
       bug_update_builder.AddDifference(None, w.values_a, w.values_b, w.kind, w.commit_dict)
   return num_succeeded, num_verified
 
