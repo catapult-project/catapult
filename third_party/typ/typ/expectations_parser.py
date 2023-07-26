@@ -243,7 +243,7 @@ class TaggedTestListParser(object):
     MATCHER = re.compile(_MATCH_STRING)
 
     def __init__(self, raw_data, conflict_resolution=ConflictResolutionTypes.UNION):
-        self.tag_sets = []
+        self.tag_sets = set()
         self.conflicts_allowed = False
         self.expectations = []
         self._allowed_results = set()
@@ -313,10 +313,10 @@ class TaggedTestListParser(object):
 
         tag_sets_intersection = set()
         if token == self.TAG_TOKEN:
-            tag_set = set([t.lower() for t in tag_set])
+            tag_set = frozenset([t.lower() for t in tag_set])
             tag_sets_intersection.update(
                 (t for t in tag_set if t in self._tag_to_tag_set))
-            self.tag_sets.append(tag_set)
+            self.tag_sets.add(tag_set)
             self._tag_to_tag_set.update(
                 {tg: id(tag_set) for tg in tag_set})
         else:
@@ -503,7 +503,7 @@ class TaggedTestListParser(object):
 class TestExpectations(object):
 
     def __init__(self, tags=None, ignored_tags=None):
-        self.tag_sets = []
+        self.tag_sets = set()
         self.ignored_tags = set(ignored_tags or [])
         self.set_tags(tags or [])
         # Expectations may either refer to individual tests, or globs of
@@ -541,19 +541,19 @@ class TestExpectations(object):
                         'have', 's are')
             else:
                 return (' %s is' % missing[0], 'has', ' is')
-        tags = [t.lower() for t in tags]
-        unknown_tags = sorted([
-            t for t in tags
-            if self.tag_sets and all(
-                    t not in tag_set and t not in self.ignored_tags
-                    for tag_set in self.tag_sets)])
+        tags = set(t.lower() for t in tags)
+        unknown_tags = set()
+        if self.tag_sets:
+            known_and_ignored_tags = set().union(
+                *self.tag_sets).union(self.ignored_tags)
+            unknown_tags = tags - known_and_ignored_tags
         if unknown_tags:
             msg = (
                 'Tag%s not declared in the expectations file and %s not been '
                 'explicitly ignored by the test. There may have been a typo in '
                 'the expectations file. Please make sure the aforementioned '
                 'tag%s declared at the top of the expectations file.' %
-                _pluralize_unknown(unknown_tags))
+                _pluralize_unknown(sorted(unknown_tags)))
             if raise_ex_for_bad_tags:
                 raise ValueError(msg)
             else:
@@ -569,9 +569,16 @@ class TestExpectations(object):
             parser = TaggedTestListParser(raw_data, conflict_resolution)
         except ParseError as e:
             return 1, str(e)
-        # TODO(crbug.com/1148060): Properly update self._tags as well using
-        # self.set_tags().
-        self.tag_sets = parser.tag_sets
+        # If we have parsed another tagged list before, ensure that the tag sets
+        # are the same in order to prevent any ambiguity about which set a tag
+        # belongs to.
+        if self.tag_sets:
+            if not self.tag_sets == parser.tag_sets:
+                raise RuntimeError(
+                    'Existing tag sets %s do not match incoming sets %s' % (
+                        sorted(self.tag_sets), sorted(parser.tag_sets)))
+        else:
+            self.tag_sets = parser.tag_sets
         self._tags_conflict = tags_conflict
         # Conflict resolution tag in raw data will take precedence
         self._conflict_resolution = parser.conflict_resolution
