@@ -166,7 +166,11 @@ def RegressionDetection(request):
 
   ci_lower = statistic.get('lower')
   ci_upper = statistic.get('upper')
-  p_value = statistic.get('pValue')
+  p_value = statistic.get('p_value')
+
+  if ci_lower is None or ci_upper is None or p_value is None:
+    return ("Bad request; ci_upper: %s, ci_lower: %s, p_value: %s" %  ci_lower,
+    ci_upper, p_value), 400
 
   decision = False
 
