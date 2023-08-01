@@ -41,8 +41,24 @@ class BuganizerClient:
           raise
       attempt += 1
 
+
   def GetIssuesList(self, limit, age, status, labels, project='chromium'):
-    """Makes a request to the issue tracker to list issues."""
+    """Makes a request to the issue tracker to list issues.
+
+    Args:
+      limit: the limit of results to fetch
+      age: the number of days after the issue was created
+      status: the status of the issues
+      labels: the labels (hotlists) of the issue.
+              The term 'labels' is what we use in Monorail and it is no longer
+              available in Buganizer. Instead, we will use hotlists.
+      project: the project name in Monorail. It is not needed in Buganizer. We
+              will use it to look for the corresponding 'component'.
+
+    Returns:
+      a list of issues.
+      (The issues are now in Monorail format before consumers are updated.)
+    """
     project = 'chromium' if project is None or not project.strip() else project
 
     components = b_utils.FindBuganizerComponents(monorail_project_name=project)
@@ -75,32 +91,76 @@ class BuganizerClient:
     )
     response = self._ExecuteRequest(request)
 
-    return response.get('issues', []) if response else []
+    buganizer_issues = response.get('issues', []) if response else []
+
+    logging.debug('Buganizer Issues: %s', buganizer_issues)
+
+    monorail_issues = [
+      b_utils.ReconcileBuganizerIssue(issue) for issue in buganizer_issues]
+
+    return monorail_issues
+
 
   def GetIssue(self, issue_id, project='chromium'):
-    """Makes a request to the issue tracker to get an issue."""
+    """Makes a request to the issue tracker to get an issue.
+
+    Args:
+      issue_id: the id of the issue
+
+    Returns:
+      an issue.
+      (The issues are now in Monorail format before consumers are updated.)
+    """
     del project
     request = self._service.issues().get(issueId=issue_id, view='FULL')
-    response = self._ExecuteRequest(request)
+    buganizer_issue = self._ExecuteRequest(request)
 
-    return response
+    logging.debug('Buganizer Comments for %s: %s', issue_id, buganizer_issue)
+
+    monorail_issue = b_utils.ReconcileBuganizerIssue(buganizer_issue)
+
+    return monorail_issue
+
 
   def GetIssueComments(self, issue_id, project='chromium'):
-    """Gets all the comments for the given issue."""
+    """Gets all the comments for the given issue.
+
+    The GetIssueComments is used only in the alert group workflow to check
+    whether the issue is closed by Pinpoint (chromeperf's service account).
+    Unlike Monorail, status update and comments are two independent workflows
+    in Buganizer. As the existing workflow only looks for the status update,
+    we will get the issue updates instead of issue comments.
+    To avoid changes on client side, I keep the field name in 'comments' in
+    the return value.
+
+    Args:
+      issue_id: the id of the issue.
+
+    Returns:
+      a list of updates of the issue.
+    (The updates are now in Monorail format before consumers are updated.)
+    """
     del project
-    request = self._service.issues().comments().list(
-      issueId=issue_id, pageSize=200)
+
+    request = self._service.issues().issueUpdates().list(issueId=issue_id)
     response = self._ExecuteRequest(request)
+
+    logging.debug('Buganizer Issue for %s: %s', issue_id, response)
+
+    schema = self._service._schema.get('IssueState')
+    status_enum = schema['properties']['status']['enum']
 
     if not response:
       return []
+
     return [{
-        'id': comment.get('commentNumber'),
-        'author': comment.get('lastEditor', {}).get('emailAddress', ''),
-        'content': comment.get('comment', ''),
-        'published': comment.get('modifiedTime'),
-        'updates': 'Not Yet Exposed'
-    } for comment in response.get('issueComments')]
+        'id': update.get('version'),
+        'author': update.get('author', {}).get('emailAddress', ''),
+        'content': update.get('issueComment', {}).get('comment', ''),
+        'published': update.get('timestamp'),
+        'updates': b_utils.GetBuganizerStatusUpdate(update, status_enum) or {}
+    } for update in response.get('issueUpdates')]
+
 
   def NewIssue(self,
              title,
