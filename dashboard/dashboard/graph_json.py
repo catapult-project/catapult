@@ -444,10 +444,7 @@ def _GetFlotJson(revision_map, tests):
       del data_dict['value']
       series_dict.setdefault(data_index, data_dict)
 
-  if utils.IsAdministrator():
-    skia_url = _GetSkiaUrl(tests, start_time, end_time)
-  else:
-    skia_url = ''
+  skia_url = _GetSkiaUrl(tests, start_time, end_time)
   return json.dumps(
       utils.ConvertBytesBeforeJsonDumps({
           'data': cols,
