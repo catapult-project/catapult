@@ -14,6 +14,7 @@ LOCATION = 'us-central1'
 WORKFLOW_NAME = 'sandwich-verification-workflow-prod'
 REGRESSION, CULPRIT, TEST = ('regression', 'culprit', 'test')
 BASE_URL = 'https://workflowexecutions.googleapis.com/v1/'
+CLOUD_SCOPE = 'https://www.googleapis.com/auth/cloud-platform'
 
 # https://cloud.google.com/workflows/docs/reference/executions/rest/v1beta/projects.locations.workflows.executions#State
 EXECUTION_STATE_STATE_UNSPECIFIED = 'STATE_UNSPECIFIED'
@@ -57,7 +58,10 @@ def CreateExecution(anomaly,
   workflow_id = 'projects/%s/locations/%s/workflows/%s/' % (project, location,
                                                             workflow_name)
   response = request.RequestJson(
-      BASE_URL + workflow_id + 'executions', method='POST', body=body)
+      BASE_URL + workflow_id + 'executions',
+      method='POST',
+      body=body,
+      scope=CLOUD_SCOPE)
   logging.info('Created Sandwich Verification execution: %s (Type: %s).',
                response['name'], verification_type)
   return response['name']
@@ -75,4 +79,5 @@ def GetExecution(execution_name):
         - result: output of the execution. Only present if state is SUCCEEDED.
         - error: object with error context. Only present if state is FAILED or CANCELLED.
     '''
-  return request.RequestJson(BASE_URL + execution_name, method='GET')
+  return request.RequestJson(
+      BASE_URL + execution_name, method='GET', scope=CLOUD_SCOPE)

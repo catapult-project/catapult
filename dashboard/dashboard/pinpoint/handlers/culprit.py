@@ -89,7 +89,7 @@ def _AllExecutionCompleted(group):
 def _SummarizeResults(cloud_workflows_keys, bug_update_builder):
   num_succeeded, num_verified = 0, 0
   for wk in cloud_workflows_keys:
-    w = ndb.Key('CloudWorkflow', wk)
+    w = ndb.Key('CloudWorkflow', wk).get()
     response = workflow_service.GetExecution(w.execution_name)
     if response.state == workflow_service.EXECUTION_STATE_SUCCEEDED:
       num_succeeded += 1
