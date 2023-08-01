@@ -28,8 +28,8 @@ crbug.com/12345 [ Mac ] b1/s1 [ Skip ] # foo
 crbug.com/23456 [ Mac Debug ] b1/s2 [ Skip ]
 """
         parser = expectations_parser.TaggedTestListParser(good_data)
-        tag_sets = set([frozenset(['debug', 'release']),
-                    frozenset(['linux', 'mac', 'mac10.1', 'mac10.2', 'win'])])
+        tag_sets = [{'debug', 'release'},
+                    {'linux', 'mac', 'mac10.1', 'mac10.2', 'win'}]
         self.assertEqual(tag_sets, parser.tag_sets)
         expected_outcome = [
             expectations_parser.Expectation('crbug.com/12345', 'b1/s1',
@@ -496,79 +496,6 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
                          Expectation(
                              test='b1/s4', results={ResultType.Pass}, retry_on_failure=False,
                              is_slow_test=False))
-
-    def testParseMultipleListsNonMatchingTagSets(self):
-        initial_data = (
-            '# tags: [ linux ]\n'
-            '# results: [ Failure RetryOnFailure Slow ]\n'
-            '[ linux ] foo.html [ Failure ]\n')
-        secondary_data = (
-            '# tags: [ win ]\n'
-            '# results: [ Failure RetryOnFailure Slow ]\n'
-            '[ win ] foo.html [ Failure ]\n')
-        parser = expectations_parser.TestExpectations()
-        parser.parse_tagged_list(initial_data)
-        with self.assertRaisesRegexp(RuntimeError,
-            'Existing tag sets .* do not match incoming sets .*'):
-            parser.parse_tagged_list(secondary_data)
-
-    def testParseMultipleListsMatchingTagSets(self):
-        """Verify parsing multiple lists is equivalent to a single combined list."""
-        initial_data = (
-            '# tags: [ linux ]\n'
-            '# results: [ Failure RetryOnFailure Slow ]\n'
-            '[ linux ] foo.html [ Failure ]\n'
-            '[ linux ] asdf* [ Failure ]\n')
-        secondary_data = (
-            '# tags: [ linux ]\n'
-            '# results: [ Failure RetryOnFailure Slow ]\n'
-            '[ linux ] bar.html [ Failure ]\n'
-            '[ linux ] qwer* [ Failure ]\n')
-        combined_data = (
-            '# tags: [ linux ]\n'
-            '# results: [ Failure RetryOnFailure Slow ]\n'
-            '[ linux ] foo.html [ Failure ]\n'
-            '[ linux ] bar.html [ Failure ]\n'
-            '[ linux ] asdf* [ Failure ]\n'
-            '[ linux ] qwer* [ Failure ]\n')
-
-        parser = expectations_parser.TestExpectations(['linux'])
-        parser.parse_tagged_list(initial_data)
-        parser.parse_tagged_list(secondary_data)
-        combined_parser = expectations_parser.TestExpectations(['linux'])
-        combined_parser.parse_tagged_list(combined_data)
-
-        foo_expectation = expectations_parser.Expectation(
-            test='foo.html', results=[json_results.ResultType.Failure],
-            tags=['linux'])
-        self.assertEqual(parser.expectations_for('foo.html'),
-                         foo_expectation)
-        self.assertEqual(combined_parser.expectations_for('foo.html'),
-                         foo_expectation)
-
-        bar_expectation = expectations_parser.Expectation(
-            test='bar.html', results=[json_results.ResultType.Failure],
-            tags=['linux'])
-        self.assertEqual(parser.expectations_for('bar.html'),
-                         bar_expectation)
-        self.assertEqual(combined_parser.expectations_for('bar.html'),
-                         bar_expectation)
-
-        asdf_expectation = expectations_parser.Expectation(
-            test='asdf/test.html', results=[json_results.ResultType.Failure],
-            tags=['linux'])
-        self.assertEqual(parser.expectations_for('asdf/test.html'),
-                         asdf_expectation)
-        self.assertEqual(combined_parser.expectations_for('asdf/test.html'),
-                         asdf_expectation)
-
-        qwer_expectation = expectations_parser.Expectation(
-            test='qwer/test.html', results=[json_results.ResultType.Failure],
-            tags=['linux'])
-        self.assertEqual(parser.expectations_for('qwer/test.html'),
-                         qwer_expectation)
-        self.assertEqual(combined_parser.expectations_for('qwer/test.html'),
-                         qwer_expectation)
 
     def testMergeExpectationsUsingUnionResolution(self):
         raw_data1 = (
