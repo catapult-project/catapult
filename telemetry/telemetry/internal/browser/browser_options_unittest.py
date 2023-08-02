@@ -201,6 +201,41 @@ class BrowserOptionsTest(unittest.TestCase):
     self.assertEqual(options.browser_options.extra_browser_args, {log_file})
     self.assertEqual(options.browser_options.extra_wpr_args, [log_file])
 
+  def testConsolidateValuesForArgNoOp(self):
+    """Tests behavior when there is nothing to consolidate."""
+    finder_options = browser_options.BrowserFinderOptions()
+    # Empty args.
+    finder_options.browser_options.ConsolidateValuesForArg('--to-merge')
+    self.assertEqual(finder_options.browser_options.extra_browser_args, set())
+
+    # Non-empty args, but requested arg not present.
+    extra_args = ['--foo', 'A', '--bar=B']
+    finder_options.AppendExtraBrowserArgs(extra_args)
+    finder_options.browser_options.ConsolidateValuesForArg('--to-merge')
+    self.assertEqual(finder_options.browser_options.extra_browser_args,
+                     set(extra_args))
+
+    # Requested arg is present, but only once.
+    extra_args += ['--to-merge=C']
+    finder_options.AppendExtraBrowserArgs(extra_args)
+    finder_options.browser_options.ConsolidateValuesForArg('--to-merge')
+    self.assertEqual(finder_options.browser_options.extra_browser_args,
+                     set(extra_args))
+
+  def testConsolidateValuesForArgFlagPresent(self):
+    """Tests behavior when there are flag values to consolidate."""
+    finder_options = browser_options.BrowserFinderOptions()
+    extra_args = ['--foo', 'A', '--to-merge=C', '--bar=B', '--to-merge=D']
+    finder_options.AppendExtraBrowserArgs(extra_args)
+    finder_options.browser_options.ConsolidateValuesForArg('--to-merge')
+    # Due to set order not being consistent, the order of the consolidated args
+    # is not guaranteed.
+    possible_merged_args = ('--to-merge=C,D', '--to-merge=D,C')
+    possible_browser_args = [
+        set(['--foo', 'A', '--bar=B'] + [pma]) for pma in possible_merged_args]
+    self.assertIn(finder_options.browser_options.extra_browser_args,
+                  possible_browser_args)
+
 
 class ParseAndroidEmulatorOptionsTest(unittest.TestCase):
   class EarlyExitException(Exception):

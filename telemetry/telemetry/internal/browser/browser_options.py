@@ -787,6 +787,38 @@ class BrowserOptions():
     else:
       self._extra_browser_args.add(args)
 
+  def ConsolidateValuesForArg(self, flag):
+    """Consolidates values from multiple instances of a browser arg.
+
+    As a concrete example from Chrome, the --enable-features flag can only be
+    passed to the browser once and uses a comma-separated list of feature names.
+    If the stored browser arguments originally have ['--enable-features=foo',
+    '--enable-features=bar'], then calling ConsolidateValuesForArg(
+    '--enable-features') will cause the stored browser arguments to instead
+    contain ['--enable-features=bar,foo'].
+
+    Args:
+      flag: A string containing the flag/argument to consolidate, including any
+          leading dashes.
+    """
+    consolidated_args = []
+    found_values = []
+    for arg in self.extra_browser_args:
+      if '=' in arg and arg.split('=', 1)[0] == flag:
+        # Syntax is `--flag=A,B`.
+        # Support for the `--flag A,B` syntax isn't present since the extra
+        # browser args are stored as a set, and thus there is no guarantee that
+        # space-separated flags will remain together.
+        _, value = arg.split('=', 1)
+        found_values.append(value)
+      else:
+        # No consolidation needed.
+        consolidated_args.append(arg)
+
+    if found_values:
+      consolidated_args.append('%s=%s' % (flag, ','.join(found_values)))
+    self._extra_browser_args = set(consolidated_args)
+
 
 def CreateChromeBrowserOptions(br_options):
   browser_type = br_options.browser_type
