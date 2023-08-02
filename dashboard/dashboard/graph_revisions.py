@@ -22,6 +22,7 @@ import math
 
 from google.appengine.ext import ndb
 
+from dashboard.common import cloud_metric
 from dashboard.common import datastore_hooks
 from dashboard.common import namespaced_stored_object
 from dashboard.common import utils
@@ -32,6 +33,7 @@ from flask import request, make_response
 _CACHE_KEY = 'num_revisions_%s'
 
 
+@cloud_metric.APIMetric("chromeperf", "/graph_revisions")
 def GraphRevisionsPost():
   test_path = request.values.get('test_path')
   rows = namespaced_stored_object.Get(_CACHE_KEY % test_path)
