@@ -23,5 +23,6 @@ def NavbarHandlerPost():
           'login_url': template_values['login_url'],
           'is_admin': template_values['is_admin'],
           'display_username': template_values['display_username'],
+          'is_internal_user': template_values['is_internal_user']
       }))
   return res

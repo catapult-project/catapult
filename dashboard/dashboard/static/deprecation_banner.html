@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+Copyright 2023 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<dom-module id="deprecation-banner">
+  <template>
+    <style>
+      .announcement-bar {
+        position: inherit;
+        width: 100%;
+        background-color: #fde073;
+        padding: 10px;
+        font-size: 14px;
+        text-align: center;
+      }
+    </style>
+    <div class="announcement-bar">
+      <p><b>This page will be deprecated by end of Q4 2023!</b></p>
+      <p>Please <b><a href="{{skiaLink}}" target="_blank">click here</a></b> to go to the new UI directly to query data.
+      You can also use the <i><b>View This Chart In Skia Perf</b></i> links on the charts to view the performance data</p>
+    </div>
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'deprecation-banner',
+      ready() {
+        simple_xhr.send('/navbar',
+          {'path': location.pathname + location.search},
+          function(response) {
+            var isInternal = JSON.parse(response.is_internal_user);
+            if(isInternal) {
+              this.skiaLink = 'https://chrome-perf.corp.goog/';
+            }
+            else {
+              this.skiaLink = 'https://perf.luci.app/';
+            }
+          }.bind(this));
+      }
+    });
+  </script>
+</dom-module>
