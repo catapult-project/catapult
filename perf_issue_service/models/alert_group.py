@@ -243,7 +243,7 @@ class AlertGroup:
     if not ungrouped:
       return
 
-    with cls.ds_client.transaction():
+    with cls.ds_client.Transaction():
       ungrouped_anomalies = cls.ds_client.get_multi(ungrouped.anomalies)
       logging.info('Loaded %s ungrouped alerts from "ungrouped". ID(%s)',
                     len(ungrouped_anomalies), ungrouped.key.id)

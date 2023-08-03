@@ -35,6 +35,10 @@ class DataStoreClient():
     return self._client.key(kind, id)
 
 
+  def Transaction(self):
+    return self._client.transaction()
+
+
   def QueryAlertGroup(self, active=True, extra_filters=[], limit=None):
     ''' Query the AlertGroup kind.
 
