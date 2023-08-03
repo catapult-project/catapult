@@ -244,7 +244,7 @@ class AlertGroup:
       return
 
     with cls.ds_client.Transaction():
-      ungrouped_anomalies = cls.ds_client.get_multi(ungrouped.anomalies)
+      ungrouped_anomalies = cls.ds_client.GetMultiEntitiesByKeys(dict(ungrouped).get('anomalies'))
       logging.info('Loaded %s ungrouped alerts from "ungrouped". ID(%s)',
                     len(ungrouped_anomalies), ungrouped.key.id)
 

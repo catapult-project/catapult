@@ -170,6 +170,18 @@ class DataStoreClient():
     return self._client.get(key)
 
 
+  def GetMultiEntitiesByKeys(self, keys):
+    ''' Load multiple entities using a list of keys
+
+    Args:
+      keys: the list of the entity keys.
+
+    Returns:
+      a list of entities
+    '''
+    return self._client.get_multi(keys)
+
+
   def GetEntityId(self, entity, key_type=None):
     '''Load the id the entity
 
