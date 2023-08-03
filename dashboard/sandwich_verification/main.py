@@ -111,11 +111,12 @@ def GetCabeAnalysis(request):
 
   print('Original params: %s' % request_json)
 
+  benchmark =  request_json.get('anomaly').get('benchmark')
   measurement = request_json.get('anomaly').get('measurement')
   job_id = request_json.get('job_id')
 
-  print("Getting CABE Analysis from Job: %s" % job_id)
-  results = cabe_service.GetAnalysis(job_id)
+  print("Getting CABE Analysis from Job: %s, %s, %s" % (job_id, benchmark, measurement))
+  results = cabe_service.GetAnalysis(job_id, benchmark, measurement)
   print("CABE Analysis response: %s" % results)
 
   statistic = None

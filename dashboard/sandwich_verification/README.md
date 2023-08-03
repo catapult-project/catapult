@@ -112,7 +112,7 @@ listening on. We'll assume that port is `8080` here.
 In a second terminal window, run this command (the `-d` json payload is just
 some example data; edit as necessary for your use case):
 ```
-> curl localhost:8080 -X POST  -H "Content-Type: application/json"  -d '{"job_id":"10f98c20660000", "anomaly":{"chart":"AngularJS-TodoMVC"}}'
+> curl localhost:4242 -X POST  -H "Content-Type: application/json"  -d '{"job_id":"1644c2ca160000", "anomaly":{"benchmark":"rendering.desktop", "measurement":"Compositing.Display.DrawToSwapUs"}}'
 ```
 
 and it should print something like this to stdout:
