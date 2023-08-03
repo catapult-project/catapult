@@ -36,8 +36,9 @@ def StartPinpointJob(request):
 
   bot_name = anomaly.get('bot_name')
   benchmark_name = anomaly.get('benchmark')
+  measurement = anomaly.get('measurement')
 
-  name = 'Regression Verification Try job on %s/%s' % (bot_name, benchmark_name)
+  name = 'Regression Verification Try job on %s/%s/%s' % (bot_name, benchmark_name, measurement)
 
   pinpoint_params = {
       'benchmark': benchmark_name,
