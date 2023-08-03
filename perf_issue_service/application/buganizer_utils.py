@@ -18,6 +18,11 @@ import logging
 # The mapping here are for ad hoc testing. The real mappings will be different
 # from project to project and will be added in future CLs.
 
+def FindBuganizerComponentId(monorail_component):
+  # temp. will have real mapping.
+  del monorail_component
+  return 1325852
+
 def FindBuganizerComponents(monorail_project_name):
   """return a list of components in buganizer based on the monorail project
 
@@ -64,7 +69,7 @@ def _FindMonorailLabel(buganizer_hotlist):
 
 def _FindMonorailStatus(buganizer_status):
   if buganizer_status == 'NEW':
-    return 'Untriaged'
+    return 'Unconfirmed'
   elif buganizer_status == 'ASSIGNED':
     return "Assigned"
   elif buganizer_status == 'ACCEPTED':
@@ -73,7 +78,21 @@ def _FindMonorailStatus(buganizer_status):
     return 'Fixed'
   elif buganizer_status == 'VERIFIED':
     return 'Verified'
-  return 'Unconfirmed'
+  return 'Untriaged'
+
+
+def FindBuganizerStatus(monorail_status):
+  if monorail_status == 'Unconfirmed':
+    return 'NEW'
+  elif monorail_status == 'Assigned':
+    return "ASSIGNED"
+  elif monorail_status == 'Started':
+    return 'ACCEPTED'
+  elif monorail_status == 'Fixed':
+    return 'FIXED'
+  elif monorail_status == 'Verified':
+    return 'VERIFIED'
+  return 'STATUS_UNSPECIFIED'
 
 # ============ mapping helpers end ============
 
@@ -125,6 +144,30 @@ def GetBuganizerStatusUpdate(issue_update, status_enum):
       }
       return status_update
   return None
+
+
+def LoadPriorityFromMonorailLabels(monorail_labels):
+  ''' Load the priority from monorail labels if it is set
+
+  In Monorail, a label like 'Pri-X' is used set the issue's priority to X.
+  X can be range from 0 to 4. Currently Monorail scan the labels in order
+  and set the priority as it sees any. Thus, the last X will be kept. Here
+  we changed the logic to keep the highest level (lowest value.)
+
+  Args:
+    monorail_labels: a list of labels in monorail fashion.
+
+  Returns:
+    the priority from the label if any, otherwise 2 by default.
+  '''
+  priority = 99
+  for label in monorail_labels:
+    if label.startswith('Pri-'):
+      label_priority = int(label[4])
+      priority = min(priority, label_priority)
+  if priority == 99:
+    return 2
+  return priority
 
 
 def ReconcileBuganizerIssue(buganizer_issue):
