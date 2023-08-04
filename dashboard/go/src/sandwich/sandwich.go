@@ -110,7 +110,8 @@ func main() {
 	createReq := &executionspb.CreateExecutionRequest{
 		Parent: fmt.Sprintf("projects/%s/locations/%s/workflows/%s", *app, *location, *workflowName),
 		Execution: &executionspb.Execution{
-			Argument: string(encodedArgs),
+			Argument:     string(encodedArgs),
+			CallLogLevel: executionspb.Execution_LOG_ALL_CALLS,
 		},
 	}
 	if *dryRun {
