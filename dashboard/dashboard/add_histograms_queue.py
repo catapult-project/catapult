@@ -400,7 +400,7 @@ def CreateRowEntities(
           **add_point.GetAndValidateRowProperties(row_dict)))
 
   if skia_client:
-    skia_client.AddRowsForUpload(rows, parent_test_key.get())
+    skia_client.AddRowsForUpload(rows, test_metadata_key.get())
 
   for stat_name, suffixed_key in stat_names_to_test_keys.items():
     suffixed_parent_test_key = utils.GetTestContainerKey(suffixed_key)
@@ -411,7 +411,7 @@ def CreateRowEntities(
         **add_point.GetAndValidateRowProperties(row_dict))
     rows.append(new_row)
     if skia_client:
-      skia_client.AddRowsForUpload([new_row], suffixed_parent_test_key.get())
+      skia_client.AddRowsForUpload([new_row], suffixed_key.get())
 
   return rows
 
