@@ -263,14 +263,13 @@ skia_client:skia_bridge_service.SkiaServiceClient):
 
   stat_names_to_test_keys = {k: v.key for k, v in legacy_parent_tests.items()}
   rows = CreateRowEntities(data_dict, test_key, stat_names_to_test_keys,
-                           revision)
+                           revision, skia_client)
   if not rows:
     raise ndb.Return()
 
   yield ndb.put_multi_async(rows) + [r.UpdateParentAsync() for r in rows]
 
   logging.info('Added %s rows to Datastore', str(len(rows)))
-  skia_client.AddRowsForUpload(rows, parent_test)
 
   def IsMonitored(client, test):
     reason = []
@@ -378,8 +377,12 @@ def GetUnitArgs(unit):
   return unit_args
 
 
-def CreateRowEntities(histogram_dict, test_metadata_key,
-                      stat_names_to_test_keys, revision):
+def CreateRowEntities(
+    histogram_dict,
+    test_metadata_key,
+    stat_names_to_test_keys,
+    revision,
+    skia_client: skia_bridge_service.SkiaServiceClient = None):
   h = histogram_module.Histogram.FromDict(histogram_dict)
   # TODO(#3564): Move this check into _PopulateNumericalFields once we
   # know that it's okay to put rows that don't have a value/error.
@@ -389,19 +392,26 @@ def CreateRowEntities(histogram_dict, test_metadata_key,
   rows = []
 
   row_dict = _MakeRowDict(revision, test_metadata_key.id(), h)
+  parent_test = utils.GetTestContainerKey(test_metadata_key)
   rows.append(
       graph_data.Row(
           id=revision,
-          parent=utils.GetTestContainerKey(test_metadata_key),
+          parent=parent_test,
           **add_point.GetAndValidateRowProperties(row_dict)))
 
+  if skia_client:
+    skia_client.AddRowsForUpload(rows, parent_test)
+
   for stat_name, suffixed_key in stat_names_to_test_keys.items():
+    suffixed_parent_test = utils.GetTestContainerKey(suffixed_key)
     row_dict = _MakeRowDict(revision, suffixed_key.id(), h, stat_name=stat_name)
-    rows.append(
-        graph_data.Row(
-            id=revision,
-            parent=utils.GetTestContainerKey(suffixed_key),
-            **add_point.GetAndValidateRowProperties(row_dict)))
+    new_row = graph_data.Row(
+        id=revision,
+        parent=suffixed_parent_test,
+        **add_point.GetAndValidateRowProperties(row_dict))
+    rows.append(new_row)
+    if skia_client:
+      skia_client.AddRowsForUpload([new_row], suffixed_parent_test)
 
   return rows
 

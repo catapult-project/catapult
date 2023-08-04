@@ -9,11 +9,16 @@ from dashboard.models import graph_data
 
 import logging
 import json
+import random
+import time
 
 
 SKIA_UPLOAD_URL = 'https://skia-bridge-dot-chromeperf.appspot.com/data/upload_queue'
 if utils.IsStagingEnvironment():
   SKIA_UPLOAD_URL = 'https://skia-bridge-dot-chromeperf-stage.uc.r.appspot.com/data/upload_queue'
+
+_RETRY_STATUS_CODES = ['502', '503']
+_MAX_RETRY_COUNT = 10
 
 
 class SkiaServiceClient:
@@ -31,19 +36,35 @@ class SkiaServiceClient:
           {
               'Content-Type': 'application/json'
           })
-      logging.info('Skia Bridge Response: %s', response)
       if response['status'] != '200':
         logging.error('Error sending data to skia-bridge')
       self._row_data_cache.clear()
 
   def SendSkiaBridgeRequest(self, http_method, body, headers):
     http = utils.ServiceAccountHttp()
-
-    response, content = http.request(
-        SKIA_UPLOAD_URL,
-        method=http_method,
-        body=json.dumps(body),
-        headers=headers)
+    is_complete = False
+    retry_count = 0
+    while not is_complete:
+      response, content = http.request(
+          SKIA_UPLOAD_URL,
+          method=http_method,
+          body=json.dumps(body),
+          headers=headers)
+      if response['status'] in _RETRY_STATUS_CODES:
+        retry_count += 1
+        if retry_count < _MAX_RETRY_COUNT:
+          # Use exponential retry
+          max_sleep_seconds = 2**retry_count
+          sleep_seconds = random.random() * max_sleep_seconds
+          logging.info(
+              'Received status code %s. Sleeping for %i seconds before retry',
+              response['status'], sleep_seconds)
+          time.sleep(sleep_seconds)
+        else:
+          logging.info('Exhausted max %i retry attempts', _MAX_RETRY_COUNT)
+          is_complete = True
+      else:
+        is_complete = True
     return response, content
 
 
