@@ -392,26 +392,26 @@ def CreateRowEntities(
   rows = []
 
   row_dict = _MakeRowDict(revision, test_metadata_key.id(), h)
-  parent_test = utils.GetTestContainerKey(test_metadata_key)
+  parent_test_key = utils.GetTestContainerKey(test_metadata_key)
   rows.append(
       graph_data.Row(
           id=revision,
-          parent=parent_test,
+          parent=parent_test_key,
           **add_point.GetAndValidateRowProperties(row_dict)))
 
   if skia_client:
-    skia_client.AddRowsForUpload(rows, parent_test)
+    skia_client.AddRowsForUpload(rows, parent_test_key.get())
 
   for stat_name, suffixed_key in stat_names_to_test_keys.items():
-    suffixed_parent_test = utils.GetTestContainerKey(suffixed_key)
+    suffixed_parent_test_key = utils.GetTestContainerKey(suffixed_key)
     row_dict = _MakeRowDict(revision, suffixed_key.id(), h, stat_name=stat_name)
     new_row = graph_data.Row(
         id=revision,
-        parent=suffixed_parent_test,
+        parent=suffixed_parent_test_key,
         **add_point.GetAndValidateRowProperties(row_dict))
     rows.append(new_row)
     if skia_client:
-      skia_client.AddRowsForUpload([new_row], suffixed_parent_test)
+      skia_client.AddRowsForUpload([new_row], suffixed_parent_test_key.get())
 
   return rows
 
