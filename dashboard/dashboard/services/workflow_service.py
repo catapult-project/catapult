@@ -23,6 +23,8 @@ EXECUTION_STATE_SUCCEEDED = 'SUCCEEDED'
 EXECUTION_STATE_FAILED = 'FAILED'
 EXECUTION_STATE_CANCELLED = 'CANCELLED'
 
+# https://cloud.google.com/workflows/docs/reference/executions/rest/v1beta/projects.locations.workflows.executions#CallLogLevel
+WORKFLOW_LOG_ALL_CALLS = 'LOG_ALL_CALLS'
 
 def CreateExecution(anomaly,
                     verification_type=TEST,
@@ -54,6 +56,7 @@ def CreateExecution(anomaly,
       'labels': {
           'type': verification_type,
       },
+      'callLogLevel': WORKFLOW_LOG_ALL_CALLS
   }
   workflow_id = 'projects/%s/locations/%s/workflows/%s/' % (project, location,
                                                             workflow_name)
