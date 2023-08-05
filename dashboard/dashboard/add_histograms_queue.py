@@ -262,12 +262,21 @@ skia_client:skia_bridge_service.SkiaServiceClient):
   test_key = parent_test.key
 
   stat_names_to_test_keys = {k: v.key for k, v in legacy_parent_tests.items()}
-  rows = CreateRowEntities(data_dict, test_key, stat_names_to_test_keys,
-                           revision, skia_client)
-  if not rows:
+  row, stat_name_row_dict = _CreateRowEntitiesInternal(data_dict, test_key,
+                                                       stat_names_to_test_keys,
+                                                       revision)
+  if not row:
     raise ndb.Return()
 
+  rows = [row]
+  if stat_name_row_dict:
+    rows.extend(stat_name_row_dict.values())
   yield ndb.put_multi_async(rows) + [r.UpdateParentAsync() for r in rows]
+
+  skia_client.AddRowsForUpload([row], parent_test)
+  for stat_name, stat_row in stat_name_row_dict.items():
+    stat_parent_test = legacy_parent_tests[stat_name]
+    skia_client.AddRowsForUpload([stat_row], stat_parent_test)
 
   logging.info('Added %s rows to Datastore', str(len(rows)))
 
@@ -376,32 +385,39 @@ def GetUnitArgs(unit):
     unit_args['improvement_direction'] = anomaly.UNKNOWN
   return unit_args
 
+def CreateRowEntities(histogram_dict, test_metadata_key,
+                      stat_names_to_test_keys, revision):
+  row, stat_name_row_dict = _CreateRowEntitiesInternal(histogram_dict,
+                                                       test_metadata_key,
+                                                       stat_names_to_test_keys,
+                                                       revision)
 
-def CreateRowEntities(
-    histogram_dict,
-    test_metadata_key,
-    stat_names_to_test_keys,
-    revision,
-    skia_client: skia_bridge_service.SkiaServiceClient = None):
+  if not row:
+    return None
+
+  rows = [row]
+  if stat_name_row_dict:
+    rows.extend(stat_name_row_dict.values())
+
+  return rows
+
+
+def _CreateRowEntitiesInternal(histogram_dict, test_metadata_key,
+                               stat_names_to_test_keys, revision):
   h = histogram_module.Histogram.FromDict(histogram_dict)
   # TODO(#3564): Move this check into _PopulateNumericalFields once we
   # know that it's okay to put rows that don't have a value/error.
   if h.num_values == 0:
-    return None
-
-  rows = []
+    return None, None
 
   row_dict = _MakeRowDict(revision, test_metadata_key.id(), h)
   parent_test_key = utils.GetTestContainerKey(test_metadata_key)
-  rows.append(
-      graph_data.Row(
-          id=revision,
-          parent=parent_test_key,
-          **add_point.GetAndValidateRowProperties(row_dict)))
+  row = graph_data.Row(
+      id=revision,
+      parent=parent_test_key,
+      **add_point.GetAndValidateRowProperties(row_dict))
 
-  if skia_client:
-    skia_client.AddRowsForUpload(rows, test_metadata_key.get())
-
+  stat_name_row_dict = {}
   for stat_name, suffixed_key in stat_names_to_test_keys.items():
     suffixed_parent_test_key = utils.GetTestContainerKey(suffixed_key)
     row_dict = _MakeRowDict(revision, suffixed_key.id(), h, stat_name=stat_name)
@@ -409,11 +425,9 @@ def CreateRowEntities(
         id=revision,
         parent=suffixed_parent_test_key,
         **add_point.GetAndValidateRowProperties(row_dict))
-    rows.append(new_row)
-    if skia_client:
-      skia_client.AddRowsForUpload([new_row], suffixed_key.get())
+    stat_name_row_dict[stat_name] = new_row
 
-  return rows
+  return row, stat_name_row_dict
 
 
 def _MakeRowDict(revision, test_path, tracing_histogram, stat_name=None):
