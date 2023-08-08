@@ -41,6 +41,7 @@ def CreateExecution(anomaly,
         - target: e.g. performance_test_suite
         - start_git_hash: git hash of A.
         - end_git_hash: git hash of B.
+        - attempt_count: (optional) default 30
     verification_type is either REGRESSION, CULPRIT or TEST. Default is TEST.
 
     Returns:

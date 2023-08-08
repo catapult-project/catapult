@@ -13,6 +13,7 @@ from google.protobuf import json_format
 
 from common import pinpoint_service, cabe_service
 
+DEFAULT_ATTEMPT_COUNT = 30
 
 @functions_framework.http
 def StartPinpointJob(request):
@@ -23,9 +24,10 @@ def StartPinpointJob(request):
       benchmark (e.g. "speedometer2")
       story (e.g. "Speedometer2")
       start_git_hash (a valid git hash)
-      base_git_hash (a valid git hash)
+      end_git_hash (a valid git hash)
       bot_name (e.g. "mac-m1_mini_2020-perf")
       target (e.g. "performance_test_suite")
+      attempt_count (optional, default 30)
   Returns:
     Job ID of started Pinpoint Job.
   """
@@ -38,6 +40,10 @@ def StartPinpointJob(request):
   benchmark_name = anomaly.get('benchmark')
   measurement = anomaly.get('measurement')
 
+  attempt_count = anomaly.get('attempt_count')
+  if not attempt_count:
+    attempt_count = DEFAULT_ATTEMPT_COUNT
+
   name = 'Regression Verification Try job on %s/%s/%s' % (bot_name, benchmark_name, measurement)
 
   pinpoint_params = {
@@ -46,6 +52,7 @@ def StartPinpointJob(request):
       'base_git_hash': anomaly.get('start_git_hash'),
       'end_git_hash': anomaly.get('end_git_hash'),
       'configuration': bot_name,
+      'initial_attempt_count': attempt_count,
       'target': anomaly.get('target'),
       'name': name,
       'comparison_mode': 'try',

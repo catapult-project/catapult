@@ -26,6 +26,7 @@ var (
 	location         = flag.String("location", "us-central1", "location for workflow execution")
 	workflowName     = flag.String("workflow", "sandwich-verification-workflow-prod", "name of workflow to execute")
 	pinpointJobIDStr = flag.String("pinpoint-job-id", "", "id of the pinpoint job")
+	attemptCount     = flag.Int("attempt-count", 30, "iterations verification job will run")
 	dryRun           = flag.Bool("dry-run", true, "dry run; just print CreateExecutionRequest to stdout")
 )
 
@@ -100,6 +101,7 @@ func main() {
 			"target":         target,
 			"start_git_hash": startGitHash,
 			"end_git_hash":   endGitHash,
+			"attempt_count":  attemptCount,
 		},
 	}
 	encodedArgs, err := json.Marshal(workflowArgs)
