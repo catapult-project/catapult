@@ -4,4 +4,4 @@
 """An *extremely* low-budget "feature flag" implementation."""
 
 # https://bugs.chromium.org/p/chromium/issues/detail?id=1419903
-SANDWICH_VERIFICATION = False
+SANDWICH_VERIFICATION = True
