@@ -1362,7 +1362,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             'comment': mock.ANY,
             'labels': 'Regression-Verification-Failed',
             'send_email': False,
-            'status': 'Unconfirmed'
+            'status': 'Unconfirmed',
+            'components': []
         })
 
     self.assertEqual(w._group.status, alert_group.AlertGroup.Status.bisected)
@@ -1456,7 +1457,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             'comment': mock.ANY,
             'status': 'WontFix',
             'labels': ['Regression-Verification-No-Repro', 'Chromeperf-Auto-Closed'],
-            'send_email': False
+            'send_email': False,
+            'components': []
         })
 
     self.assertEqual(w._group.status, alert_group.AlertGroup.Status.closed)
@@ -1549,7 +1551,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             'comment': mock.ANY,
             'labels': 'Regression-Verification-Repro',
             'send_email': False,
-            'status': 'Available'
+            'status': 'Available',
+            'components': {'Foo>Bar'}
         })
     self.assertEqual(w._group.status, alert_group.AlertGroup.Status.bisected)
 

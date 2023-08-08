@@ -537,6 +537,7 @@ class AlertGroupWorkflow:
     '''
 
     status = 'Unconfirmed'
+    components = []
     proceed_with_bisect = False
     if execution['state'] == workflow_service.EXECUTION_STATE_ACTIVE:
       return proceed_with_bisect
@@ -560,6 +561,7 @@ class AlertGroupWorkflow:
         label = 'Regression-Verification-Repro'
         status = 'Available'
         proceed_with_bisect = True
+        components = self._GetComponentsFromRegressions([regression])
       else:
         comment = ('Regression verification %s job %s for test: %s\n'
                    'did NOT reproduce the regression with statistic: %s.'
@@ -595,6 +597,7 @@ class AlertGroupWorkflow:
     perf_issue_service_client.PostIssueComment(
         self._group.bug.bug_id,
         self._group.project_id,
+        components=components,
         comment=comment,
         labels=label,
         status=status,
