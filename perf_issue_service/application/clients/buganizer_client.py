@@ -281,7 +281,104 @@ class BuganizerClient:
                   components=None,
                   labels=None,
                   send_email=True):
-    raise NotImplementedError('Buganizer API is under construction..')
+    ''' Add a new comment for an existing issue
+    '''
+    # TODO: need to handle the hotlists, merge_issue and send_email.
+
+    if not issue_id or issue_id < 0:
+      return {
+        'error': '[PerfIssueService] Missing issue id on PostIssueComment'
+        }
+
+    add_issue_state, remove_issue_state = {}, {}
+
+    if title:
+      add_issue_state['title'] = title
+
+    if status:
+      add_issue_state['status'] = b_utils.FindBuganizerStatus(status)
+
+    if owner:
+      add_issue_state['assignee'] = {'emailAddress': owner}
+
+    if components:
+      if len(components)>1:
+        logging.warning(
+          '[PerfIssueService] More than 1 components on issue create. Using the first one.')
+      add_issue_state['componentId'] = b_utils.FindBuganizerComponentId(components[0])
+
+    if labels and any(label.startswith('Pri-') for label in labels):
+      priority  = 'P%s' % b_utils.LoadPriorityFromMonorailLabels(labels)
+      add_issue_state['priority'] = priority
+      labels = [label for label in labels if not label.startswith('Pri-')]
+
+    if cc:
+      request = self._service.issues().get(issueId=str(issue_id), view='FULL')
+      current_state = self._ExecuteRequest(request)
+      if cc:
+        current_cc = [cc['emailAddress'] for cc in current_state['issueState'].get('ccs', [])]
+        to_add_cc = list(set(cc) - set(current_cc))
+        if to_add_cc:
+          add_issue_state['ccs'] = [
+            {'emailAddress': cc} for cc in to_add_cc if cc
+          ]
+        to_remove_cc = list(set(current_cc) - set(cc))
+        if to_remove_cc:
+          remove_issue_state['ccs'] = [
+            {'emailAddress': cc} for cc in to_remove_cc if cc
+          ]
+
+    modify_request = {}
+    if comment:
+      modify_request['issueComment'] = {'comment': comment}
+    if add_issue_state:
+      modify_request['addMask'] = ','.join(add_issue_state.keys())
+      modify_request['add'] = add_issue_state
+    if remove_issue_state:
+      modify_request['removeMask'] = ','.join(remove_issue_state.keys())
+      modify_request['remove'] = remove_issue_state
+
+    if not modify_request:
+      return {}
+
+    response = self._MakeCommentRequest(issue_id, modify_request)
+
+    return response
+
+
+  def _MakeCommentRequest(self, issue_id, modify_request, retry=True):
+    try:
+      logging.debug('[PerfIssueService] Post comment request body %s', modify_request)
+      request = self._service.issues().modify(issueId=str(issue_id), body=modify_request)
+      response = self._ExecuteRequest(request)
+      logging.debug('[PerfIssueService] Post comment response %s', response)
+      if response:
+        return response
+    except errors.HttpError as e:
+      logging.error(
+        '[PerfIssueService] Buganizer error on post comments: %s', str(e))
+      reason = self._GetErrorReason(e)
+      if reason is None:
+        reason = ''
+      if retry and 'The user does not exist' in reason:
+        if 'assignee' in modify_request.get('addMask', ''):
+          current_add_mask_list = modify_request.get('addMask').split(',')
+          current_add_mask_list.remove('assignee')
+          new_add_mask = ','.join(current_add_mask_list)
+          modify_request['addMask'] = new_add_mask
+          del modify_request['add']['assignee']
+        if 'ccs' in modify_request.get('addMask', ''):
+          current_add_mask_list = modify_request.get('addMask').split(',')
+          current_add_mask_list.remove('ccs')
+          new_add_mask = ','.join(current_add_mask_list)
+          modify_request['ccs'] = new_add_mask
+          del modify_request['add']['ccs']
+        return self._MakeCommentRequest(issue_id, modify_request, retry=False)
+
+    err_msg = 'Error updating issue %s with body %s' % (
+      issue_id, modify_request)
+    logging.error(err_msg)
+    return {'error': err_msg}
 
 
   def _ExecuteRequest(self, request):
