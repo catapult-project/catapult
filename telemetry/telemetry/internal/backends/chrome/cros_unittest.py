@@ -151,7 +151,7 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
 
     # Check for the existence of the device policy file.
     self.assertTrue(py_utils.WaitFor(lambda: self._cri.FileExistsOnDevice(
-        '/home/.shadow/install_attributes.pb'), 15))
+        '/run/lockbox/install_attributes.pb'), 15))
 
   @decorators.Enabled('chromeos')
   def testUnicornLogin(self):
