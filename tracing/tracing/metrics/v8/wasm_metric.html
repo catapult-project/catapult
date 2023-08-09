@@ -55,6 +55,10 @@ tr.exportTo('tr.metrics.v8', function() {
          'compiling a WebAssembly module synchronously'],
         ['wasm.Deserialize', 'deserialize',
          'deserializing a WebAssembly module'],
+        ['wasm.CompileLazy', 'lazy_compilation',
+         'compiling a WebAssembly function lazily'],
+        ['wasm.ExecuteCompilationUnits', 'background_compilation',
+         'compiling WebAssembly code in the background'],
       ]) {
       addHistogramOfWasmSamples(histograms, wasmEvents, eventTitle,
         histogramName, description);
