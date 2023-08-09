@@ -15,119 +15,25 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.v8', function() {
-  function computeSyncInstantiationTimeMetric(histograms, wasmEvents) {
-    if (!wasmEvents.hasOwnProperty('wasm.SyncInstantiate')) return;
+  function addHistogramOfWasmSamples(histograms, wasmEvents, eventTitle,
+      histogramName, description) {
+    if (!wasmEvents.hasOwnProperty(eventTitle)) return;
 
-    const wasmSyncInstantiationTimeCPU = new tr.v.Histogram(
-        'v8:wasm:sync_instantiate:cpu_time',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
-    wasmSyncInstantiationTimeCPU.description =
-      'cpu time spent instantiating a WebAssembly module';
-    const wasmSyncInstantiationTimeWall = new tr.v.Histogram(
-        'v8:wasm:sync_instantiate:wall_time',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
-    wasmSyncInstantiationTimeWall.description =
-      'wall time spent instantiating a WebAssembly module';
+    const unitMs = tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
+    const histogramCpu = new tr.v.Histogram(
+      `v8:wasm:${histogramName}:cpu_time`, unitMs);
+    histogramCpu.description = `cpu time spent ${description}`;
+    const histogramWallTime = new tr.v.Histogram(
+      `v8:wasm:${histogramName}:wall_time`, unitMs);
+    histogramWallTime.description = `wall time spent ${description}`;
 
-    for (const e of wasmEvents['wasm.SyncInstantiate']) {
-      wasmSyncInstantiationTimeCPU.addSample(e.cpuDuration);
-      wasmSyncInstantiationTimeWall.addSample(e.duration);
+    for (const e of wasmEvents[eventTitle]) {
+      histogramCpu.addSample(e.cpuDuration);
+      histogramWallTime.addSample(e.duration);
     }
 
-    histograms.addHistogram(wasmSyncInstantiationTimeCPU);
-    histograms.addHistogram(wasmSyncInstantiationTimeWall);
-  }
-
-  function computeSyncCompileTimeMetric(histograms, wasmEvents) {
-    if (!wasmEvents.hasOwnProperty('wasm.SyncCompile')) return;
-
-    const wasmSyncCompileTimeCPU = new tr.v.Histogram(
-        'v8:wasm:sync_compile:cpu_time',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
-    wasmSyncCompileTimeCPU.description =
-      'cpu time spent compiling a WebAssembly module synchronously';
-    const wasmSyncCompileTimeWall = new tr.v.Histogram(
-        'v8:wasm:sync_compile:wall_time',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
-    wasmSyncCompileTimeWall.description =
-      'wall time spent compiling a WebAssembly module synchronously';
-
-    for (const e of wasmEvents['wasm.SyncCompile']) {
-      wasmSyncCompileTimeCPU.addSample(e.cpuDuration);
-      wasmSyncCompileTimeWall.addSample(e.duration);
-    }
-
-    histograms.addHistogram(wasmSyncCompileTimeCPU);
-    histograms.addHistogram(wasmSyncCompileTimeWall);
-  }
-
-  function computeDeserializeTimeMetric(histograms, wasmEvents) {
-    if (!wasmEvents.hasOwnProperty('wasm.Deserialize')) return;
-
-    const wasmDeserializeTimeCPU = new tr.v.Histogram(
-        'v8:wasm:deserialize:cpu_time',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
-    wasmDeserializeTimeCPU.description =
-      'cpu time spent deserializing a WebAssembly module';
-    const wasmDeserializeTimeWall = new tr.v.Histogram(
-        'v8:wasm:deserialize:wall_time',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
-    wasmDeserializeTimeWall.description =
-      'wall time spent deserializing a WebAssembly module';
-
-    for (const e of wasmEvents['wasm.Deserialize']) {
-      wasmDeserializeTimeCPU.addSample(e.cpuDuration);
-      wasmDeserializeTimeWall.addSample(e.duration);
-    }
-
-    histograms.addHistogram(wasmDeserializeTimeCPU);
-    histograms.addHistogram(wasmDeserializeTimeWall);
-  }
-
-  function computeStreamingBaselineCompileTimeMetric(histograms, wasmEvents) {
-    // With streaming compilation, baseline compilation happens from when the
-    // first bytes get received until when baseline compilation finishes. If
-    // compilation speed is faster than download speed, then this metric also
-    // includes the time compilation is waiting for additional bytes.
-    if (!wasmEvents.hasOwnProperty('wasm.StartStreamingCompilation') ||
-        !wasmEvents.hasOwnProperty('wasm.BaselineFinished')) {
-      return;
-    }
-    const histogram = new tr.v.Histogram(
-        'v8:wasm:streaming_baseline_compilation:wall_time',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
-
-    for (const endEvent of wasmEvents['wasm.BaselineFinished']) {
-      const compilationEnd = endEvent.end;
-      const startEvent = wasmEvents['wasm.StartStreamingCompilation'].find(
-          e => e.args.id === endEvent.args.id);
-      if (!startEvent) continue;
-      const compilationStart = startEvent.start;
-      histogram.addSample(compilationEnd - compilationStart);
-    }
-    histograms.addHistogram(histogram);
-  }
-
-  function computeCompilationTierupWallTimeMetric(histograms, wasmEvents) {
-    if (!wasmEvents.hasOwnProperty('wasm.BaselineFinished') ||
-        !wasmEvents.hasOwnProperty('wasm.TopTierFinished')) {
-      return;
-    }
-
-    const histogram = new tr.v.Histogram(
-        'v8:wasm:compilation_tierup:wall_time',
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
-
-    for (const endEvent of wasmEvents['wasm.TopTierFinished']) {
-      const tierupEnd = endEvent.end;
-      const startEvent = wasmEvents['wasm.BaselineFinished'].find(
-          e => e.args.id === endEvent.args.id);
-      if (!startEvent) continue;
-      const tierupStart = startEvent.start;
-      histogram.addSample(tierupEnd - tierupStart);
-    }
-
-    histograms.addHistogram(histogram);
+    histograms.addHistogram(histogramCpu);
+    histograms.addHistogram(histogramWallTime);
   }
 
   function collectWasmEvents(model) {
@@ -141,11 +47,18 @@ tr.exportTo('tr.metrics.v8', function() {
   function wasmMetric(histograms, model) {
     const wasmEvents = collectWasmEvents(model);
 
-    computeSyncInstantiationTimeMetric(histograms, wasmEvents);
-    computeSyncCompileTimeMetric(histograms, wasmEvents);
-    computeDeserializeTimeMetric(histograms, wasmEvents);
-    computeStreamingBaselineCompileTimeMetric(histograms, wasmEvents);
-    computeCompilationTierupWallTimeMetric(histograms, wasmEvents);
+    for (let [eventTitle, histogramName, description] of
+      [
+        ['wasm.SyncInstantiate', 'sync_instantiate',
+         'instantiating a WebAssembly module'],
+        ['wasm.SyncCompile', 'sync_compile',
+         'compiling a WebAssembly module synchronously'],
+        ['wasm.Deserialize', 'deserialize',
+         'deserializing a WebAssembly module'],
+      ]) {
+      addHistogramOfWasmSamples(histograms, wasmEvents, eventTitle,
+        histogramName, description);
+    }
   }
 
   tr.metrics.MetricRegistry.register(wasmMetric);
