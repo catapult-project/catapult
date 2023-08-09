@@ -10,6 +10,7 @@ from dashboard.models import graph_data
 import logging
 import json
 import random
+import ssl
 import time
 
 
@@ -45,12 +46,20 @@ class SkiaServiceClient:
     is_complete = False
     retry_count = 0
     while not is_complete:
-      response, content = http.request(
-          SKIA_UPLOAD_URL,
-          method=http_method,
-          body=json.dumps(body),
-          headers=headers)
-      if response['status'] in _RETRY_STATUS_CODES:
+      should_retry = False
+      try:
+        response, content = http.request(
+            SKIA_UPLOAD_URL,
+            method=http_method,
+            body=json.dumps(body),
+            headers=headers)
+        should_retry = response['status'] in _RETRY_STATUS_CODES
+      except ssl.SSLEOFError:
+        # This error is intermittent and likely related to GAE proxies.
+        # Use the existing retry mechanism to retry in this scenario
+        should_retry = True
+
+      if should_retry:
         retry_count += 1
         if retry_count < _MAX_RETRY_COUNT:
           # Use exponential retry
@@ -65,6 +74,7 @@ class SkiaServiceClient:
           is_complete = True
       else:
         is_complete = True
+
     return response, content
 
 
