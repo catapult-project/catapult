@@ -9,6 +9,7 @@ from __future__ import absolute_import
 import traceback
 
 from dashboard.pinpoint.models import errors
+import logging
 import six
 
 from google.auth import exceptions
@@ -122,10 +123,12 @@ class Execution:
     try:
       self._Poll()
     except TokenRefreshError as e:
+      logging.warning('Execution failed with exception: %s', str(e))
       raise errors.RecoverableError(e)
-    except (errors.FatalError, RuntimeError):
+    except (errors.FatalError, RuntimeError) as e:
       # Some built-in exceptions are derived from RuntimeError which we'd like
       # to treat as errors.
+      logging.warning('Execution failed with exception: %s', str(e))
       raise
     except Exception as e:  # pylint: disable=broad-except
       # We allow broad exception handling here, because we log the exception and
@@ -135,6 +138,7 @@ class Execution:
       if hasattr(e, 'task_output'):
         tb += '\n%s' % getattr(e, 'task_output')
       self._exception = {'message': str(e), 'traceback': tb}
+      logging.warning('Execution failed with exception: %s', str(e))
 
   def _Poll(self):
     raise NotImplementedError()
