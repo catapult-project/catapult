@@ -283,7 +283,7 @@ class BuganizerClient:
                   send_email=True):
     ''' Add a new comment for an existing issue
     '''
-    # TODO: need to handle the hotlists, merge_issue and send_email.
+    # TODO: need to handle the merge_issue and send_email.
 
     if not issue_id or issue_id < 0:
       return {
@@ -312,7 +312,8 @@ class BuganizerClient:
       add_issue_state['priority'] = priority
       labels = [label for label in labels if not label.startswith('Pri-')]
 
-    if cc:
+    hotlist_ids = b_utils.FindBuganizerHotlists(labels)
+    if cc or hotlist_ids:
       request = self._service.issues().get(issueId=str(issue_id), view='FULL')
       current_state = self._ExecuteRequest(request)
       if cc:
@@ -327,6 +328,22 @@ class BuganizerClient:
           remove_issue_state['ccs'] = [
             {'emailAddress': cc} for cc in to_remove_cc if cc
           ]
+      if hotlist_ids:
+        current_hotlists = current_state['issueState'].get('hotlistIds', [])
+
+        to_add_hotlists = list(set(hotlist_ids) - set(current_hotlists))
+        for hotlist_id in to_add_hotlists:
+          hotlist_entry_request = {'hotlistEntry': {'issueId': issue_id}}
+          request = self._service.hotlists().createEntries(
+            hotlistId=hotlist_id, body=hotlist_entry_request)
+          response = self._ExecuteRequest(request)
+          logging.debug('[PerfIssueService] Add hotlist response: %s', response)
+        to_remove_hotlists = list(set(current_hotlists) - set(hotlist_ids))
+        for hotlist_id in to_remove_hotlists:
+          request = self._service.hotlists().entries().delete(
+            hotlistId=str(hotlist_id), issueId=str(issue_id))
+          response = self._ExecuteRequest(request)
+          logging.debug('[PerfIssueService] Delete hotlist response: %s', response)
 
     modify_request = {}
     if comment:
