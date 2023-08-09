@@ -970,10 +970,10 @@ class AlertGroupWorkflow:
       skia_url = skia_helper.GetSkiaUrlForRegressionGroup(
           regressions, self._crrev, self._gitiles)
       logging.info('Skia Perf Url: %s', skia_url)
-      template_args['skia_url_text'] = '[New] %s' % skia_url
+      template_args['skia_url_text'] = skia_url
     except Exception as e:  # pylint: disable=broad-except
       logging.error('Error generating skia perf links: %s', str(e))
-      template_args['skia_url_text'] = ''
+      template_args['skia_url_text'] = 'https://chromeperf.appspot.com/group_report?group_id=%s' % self._group.key.string_id() # pylint: disable=line-too-long
 
     # Rendering issue's title and content
     title = _TEMPLATE_ISSUE_TITLE.render(template_args)
