@@ -119,6 +119,7 @@ func main() {
 			fmt.Printf("\tUP-TO-DATE\t%s\t(%s)\n", update.toHash, update.toDate)
 		} else {
 			fmt.Printf("\tNEEDS UPDATE\t Current: %s (%s)\tLatest available: %s (%s)\n", update.fromHash, update.fromDate, update.toHash, update.toDate)
+			fmt.Printf("\tGitiles URL: https://chromium.googlesource.com/catapult.git/+log/%s..%s\n", update.fromHash, update.toHash)
 			if *checkoutBase == "" {
 				fmt.Printf("\t[no checkout-base flag specified; skipping file edit]\n")
 				continue
