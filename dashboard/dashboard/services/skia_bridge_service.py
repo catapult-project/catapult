@@ -54,10 +54,12 @@ class SkiaServiceClient:
             body=json.dumps(body),
             headers=headers)
         should_retry = response['status'] in _RETRY_STATUS_CODES
-      except ssl.SSLEOFError:
+      except ssl.SSLEOFError as e:
         # This error is intermittent and likely related to GAE proxies.
         # Use the existing retry mechanism to retry in this scenario
         should_retry = True
+        response = None
+        logging.info('Encountered retryable error %s', str(e))
 
       if should_retry:
         retry_count += 1
@@ -65,12 +67,12 @@ class SkiaServiceClient:
           # Use exponential retry
           max_sleep_seconds = 2**retry_count
           sleep_seconds = random.random() * max_sleep_seconds
-          logging.info(
-              'Received status code %s. Sleeping for %i seconds before retry',
-              response['status'], sleep_seconds)
+          if response:
+            logging.info('Received status code %s.', response['status'])
+          logging.info('Sleeping for %i seconds before retry', sleep_seconds)
           time.sleep(sleep_seconds)
         else:
-          logging.info('Exhausted max %i retry attempts', _MAX_RETRY_COUNT)
+          logging.error('Exhausted max %i retry attempts', _MAX_RETRY_COUNT)
           is_complete = True
       else:
         is_complete = True
