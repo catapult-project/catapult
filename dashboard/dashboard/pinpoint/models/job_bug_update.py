@@ -425,13 +425,22 @@ def _ComputeAutobisectUpdate(tags):
     return None
 
   client = sheriff_config_client.GetSheriffConfigClient()
-  subscriptions = client.Match(test_key, check=True)
+  matched_configs, _ = client.Match(test_key, check=True)
 
-  components = set(c for s in subscriptions for c in s.bug_components)
-  cc = set(e for s in subscriptions for e in s.bug_cc_emails)
-  labels = set(l for s in subscriptions for l in s.bug_labels)
+  logging.debug('[DelayAssignment] matched config: %s', matched_configs)
 
-  return list(components), list(cc), list(labels)
+  components, ccs, labels = set(), set(), set()
+
+  for config in matched_configs:
+    subscription = config.get('subscription', {})
+    if 'bug_components' in subscription:
+      components.update(subscription['bug_components'])
+    if 'bug_cc_emails' in subscription:
+      ccs.update(subscription['bug_cc_emails'])
+    if 'bug_labels' in subscription:
+      labels.update(subscription['bug_labels'])
+
+  return list(components), list(ccs), list(labels)
 
 
 def UpdatePostAndMergeDeferred(bug_update_builder,
@@ -482,6 +491,7 @@ def UpdatePostAndMergeDeferred(bug_update_builder,
   # Calculate the info which is currently added on auto-triage and will
   # be delayed to after auto-bisect finishes.
   try:
+    logging.debug('[DelayAssignment] Job tags: %s', tags)
     auto_bisect_updates = _ComputeAutobisectUpdate(tags)
     if auto_bisect_updates:
       logging.info(
