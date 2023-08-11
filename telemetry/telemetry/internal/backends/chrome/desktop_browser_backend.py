@@ -168,7 +168,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     cmd = [self._executable]
     if self.browser.platform.GetOSName() == 'mac':
-      if os.environ.get('START_BROWSER_WITH_DEFAULT_PRIORITY', False):
+      if int(os.environ.get('START_BROWSER_WITH_DEFAULT_PRIORITY', '0')):
         # Start chrome on mac using `open`, when running benchmarks
         # so that it starts with default priority. See crbug/1454294
         cmd = ['open', '-n', '-W', '-a', self._executable, '--args']
