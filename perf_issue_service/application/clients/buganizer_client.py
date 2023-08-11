@@ -188,8 +188,9 @@ class BuganizerClient:
     Args:
       title: a string as the issue title.
       description: a string as the initial description of the issue.
-      project: this is no longer needed in Buganizer. When creating an issue,
-          we will NOT use it to look for the corresponding components.
+      project: this is no longer needed in Buganizer when creating an issue.
+          It will be used look for project specific mappings between Monorail
+          and Buganizer (which are not available yet).
       labels: a list of Monorail labels, each of which will be mapped to a
           Buganizer hotlist id.
       components: a list of component names in Monorail. The size of the list
@@ -280,15 +281,56 @@ class BuganizerClient:
                   cc=None,
                   components=None,
                   labels=None,
-                  send_email=True):
+                  send_email='True'):
     ''' Add a new comment for an existing issue
-    '''
-    # TODO: need to handle the merge_issue and send_email.
 
+    Adding a new comment using the same set of arguments as in Monorail.
+    Those arguments will be restructured before sending to Buganizer. In
+    Buganizer, we need to have an issueState with the values to add, and
+    another issueState with the values to remove. Currently in Monorail,
+    the given value will simply override the existing one.
+
+    Notice that there are rules to follow, otherwise we will see 'invalid
+    argument' error. We don't have a complete list of the rules yet.
+
+    Args:
+      issue_id: the id of the issue.
+      project: this is no longer needed in Buganizer when creating an issue.
+          It will be used look for project specific mappings between Monorail
+          and Buganizer (which are not available yet).
+      comment: the new comment to add
+      title: the new title of the issue
+      status: the new Monorail status of the issue.
+          Monorail status will be mapped to Buganizer status.
+      merge_issue: the target issue which the current issue is being merged to.
+          (Need new API to be exposed.)
+      owner: the new assignee of the issue.
+      cc: a list of users to CC the updates.
+      components: a list of Monorail components.
+          Monorail components will be mapped to Buganizer components.
+      labels: a list of Monorail labels.
+          Monorail labels will be mapped to Buganizer hotlists.
+      send_email: whether to send email for a specific update.
+          In Buganizer we cannot force sending email to users. Instead, each
+          user chooses to receive emails based on the uers's role (assignee,
+          reporter, cc, etc.). Each update in Buganizer has a significance
+          level. By default, user receive only Major updates unless the user is
+          the assignee. Here, we send the update's significance level to be
+          Minor in those cases when send_email is set False, otherwise MAJOR
+          to enforce emails.
+
+    Returns:
+      The updates Issue, or error message.
+    '''
+    # TODO (wenbinzhang): handle the merge_issue when MarkIssueAsDuplicate() is ready.
     if not issue_id or issue_id < 0:
       return {
         'error': '[PerfIssueService] Missing issue id on PostIssueComment'
         }
+
+    significance_override = 'MAJOR'
+    if str(send_email).lower() == 'false':
+      significance_override = 'MINOR'
 
     add_issue_state, remove_issue_state = {}, {}
 
@@ -333,7 +375,10 @@ class BuganizerClient:
 
         to_add_hotlists = list(set(hotlist_ids) - set(current_hotlists))
         for hotlist_id in to_add_hotlists:
-          hotlist_entry_request = {'hotlistEntry': {'issueId': issue_id}}
+          hotlist_entry_request = {
+            'hotlistEntry': {'issueId': issue_id},
+            'significanceOverride': significance_override
+          }
           request = self._service.hotlists().createEntries(
             hotlistId=hotlist_id, body=hotlist_entry_request)
           response = self._ExecuteRequest(request)
@@ -341,7 +386,7 @@ class BuganizerClient:
         to_remove_hotlists = list(set(current_hotlists) - set(hotlist_ids))
         for hotlist_id in to_remove_hotlists:
           request = self._service.hotlists().entries().delete(
-            hotlistId=str(hotlist_id), issueId=str(issue_id))
+            hotlistId=str(hotlist_id), issueId=str(issue_id), significanceOverride=significance_override)
           response = self._ExecuteRequest(request)
           logging.debug('[PerfIssueService] Delete hotlist response: %s', response)
 
@@ -357,6 +402,8 @@ class BuganizerClient:
 
     if not modify_request:
       return {}
+
+    modify_request['significanceOverride'] = significance_override
 
     response = self._MakeCommentRequest(issue_id, modify_request)
 
