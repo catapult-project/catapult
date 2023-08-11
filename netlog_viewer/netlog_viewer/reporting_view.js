@@ -356,7 +356,13 @@ var ReportingView = (function() {
       }
 
       addNodeWithText(tr, 'td', policy.reportTo);
-      addNodeWithText(tr, 'td', policy.networkIsolationKey);
+      if ('NetworkAnonymizationKey' in policy) {
+        // In M108 this key was changed as part of the network state
+        // partitioning project.
+        addNodeWithText(tr, 'td', policy.NetworkAnonymizationKey);
+      } else {
+        addNodeWithText(tr, 'td', policy.networkIsolationKey);
+      }
 
       var successFractionNode = addNode(tr, 'td');
       successFractionNode.classList.add('reporting-right-justified');
