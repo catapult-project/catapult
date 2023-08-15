@@ -243,24 +243,23 @@ class AlertGroup:
     if not ungrouped:
       return
 
-    with cls.ds_client.Transaction():
-      ungrouped_anomalies = cls.ds_client.GetMultiEntitiesByKeys(dict(ungrouped).get('anomalies'))
-      logging.info('Loaded %s ungrouped alerts from "ungrouped". ID(%s)',
-                    len(ungrouped_anomalies), ungrouped.key.id)
+    ungrouped_anomalies = cls.ds_client.GetMultiEntitiesByKeys(dict(ungrouped).get('anomalies'))
+    logging.info('Loaded %s ungrouped alerts from "ungrouped". ID(%s)',
+                  len(ungrouped_anomalies), ungrouped.key.id)
 
-      parity_results = {}
-      for anomaly in ungrouped_anomalies:
-        group_ids, new_ids = cls.GetGroupsForAnomaly(
-          anomaly['test'].name, anomaly['start_revision'], anomaly['end_revision'],
-          create_on_ungrouped=True, parity=IS_PARITY)
-        anomaly['groups'] = [cls.ds_client.AlertGroupKey(group_id) for group_id in group_ids]
-        if IS_PARITY:
-          anomaly_id = anomaly.key.id
-          parity_results[anomaly_id] = {
-            "existing_groups": list(set(group_ids) - set(new_ids)),
-            "new_groups": new_ids
-          }
-        else:
-          cls.ds_client.SaveAnomaly(anomaly)
+    parity_results = {}
+    for anomaly in ungrouped_anomalies:
+      group_ids, new_ids = cls.GetGroupsForAnomaly(
+        anomaly['test'].name, anomaly['start_revision'], anomaly['end_revision'],
+        create_on_ungrouped=True, parity=IS_PARITY)
+      anomaly['groups'] = [cls.ds_client.AlertGroupKey(group_id) for group_id in group_ids]
+      if IS_PARITY:
+        anomaly_id = anomaly.key.id
+        parity_results[anomaly_id] = {
+          "existing_groups": list(set(group_ids) - set(new_ids)),
+          "new_groups": new_ids
+        }
+      else:
+        cls.ds_client.SaveAnomaly(anomaly)
 
     return parity_results
