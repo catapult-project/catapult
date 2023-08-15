@@ -611,6 +611,10 @@ found in the LICENSE file.
               benchmark == job.arguments.benchmark) {
             return job.arguments.initial_attempt_count;
         }
+        // return default for all bisections
+        if (this.isBisectJob(this.comparisonMode)) {
+          return _DEFAULT_ATTEMPT_COUNT;
+        }
         // press benchmark on mac m1 iteration defaults
         if (configuration.startsWith('mac-m1_mini_2020')) {
           if (benchmark.toLowerCase() == 'jetstream2') {
