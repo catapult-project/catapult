@@ -15,8 +15,22 @@ from google.auth.transport import requests as google_auth_transport_requests
 _CABE_SERVER_ADDRESS = 'cabe.skia.org'
 _CABE_USE_PLAINTEXT = False
 
-def GetAnalysis(job_id, benchmark_name, measurment_name):
-  "Return a TryJob CABE Analysis as a list."
+
+def GetAnalysis(job_id, benchmark_name=None, measurement_name=None):
+  """Return a TryJob CABE Analysis as a list.
+
+  Args:
+    job_id: a valid completed Pinpoint job id
+    benchmark_name: name of the benchmark in Pinpoint job (default None)
+    measurement_name: name of the workload in Pinpoint job (default None)
+
+  Returns:
+    A mapping of benchmark, workloads, and confidence intervals.
+    When benchmark_name and measurement_name are specified, will return
+    response = {benchmark: {workload: statistic}}
+    Otherwise, will return a response with benchmark and every workload.
+    Note that Pinpoint jobs only have one benchmark.
+  """
   request = google_auth_transport_requests.Request()
 
   if _CABE_USE_PLAINTEXT:
@@ -28,7 +42,13 @@ def GetAnalysis(job_id, benchmark_name, measurment_name):
 
   try:
     stub = cabe_grpc.AnalysisStub(channel)
-    bspec = cabe_spec_pb.Benchmark(name=benchmark_name, workload=[measurment_name])
+    if not benchmark_name or not measurement_name:
+      request = cabe_pb.GetAnalysisRequest(pinpoint_job_id=job_id)
+      response = stub.GetAnalysis(request)
+      return response.results
+
+    bspec = cabe_spec_pb.Benchmark(
+        name=benchmark_name, workload=[measurement_name])
     aspec = cabe_spec_pb.AnalysisSpec(benchmark=[bspec])
 
     request = cabe_pb.GetAnalysisRequest(
