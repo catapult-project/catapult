@@ -22,8 +22,8 @@ from flask import Blueprint, request, make_response
 _TASK_QUEUE_NAME = 'skia-upload'
 _TASK_QUEUE_LOCATION = 'us-central1'
 
-PUBLIC_BUCKET_NAME = 'test-chrome-perf-public'
-INTERNAL_BUCKET_NAME = 'test-chrome-perf-non-public'
+PUBLIC_BUCKET_NAME = 'chrome-perf-public'
+INTERNAL_BUCKET_NAME = 'chrome-perf-non-public'
 
 blueprint = Blueprint('skia_perf_upload', __name__)
 
