@@ -268,8 +268,16 @@ def _GetStatsForRow(row):
 def _GetMeasurementKey(row):
   measurement_key = {}
 
-  measurement_key['improvement_direction'] = \
-    row['parent_test']['improvement_direction']
+  # Row data specifies 0/1 as directions, but skia expects
+  # equivalent string representations
+  improvement_directions_map = {0: 'up', 1: 'down'}
+  original_imp_dir = row['parent_test']['improvement_direction']
+  if not improvement_directions_map.get(original_imp_dir):
+    measurement_key['improvement_direction'] = 'unknown'
+  else:
+    measurement_key['improvement_direction'] = \
+      improvement_directions_map[original_imp_dir]
+
 
   measurement_key['unit'] = row['parent_test']['units']
 
