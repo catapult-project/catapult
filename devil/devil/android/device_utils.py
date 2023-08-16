@@ -1972,10 +1972,11 @@ class DeviceUtils(object):
     self.RunShellCommand(cmd, check_return=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
-  def GetCurrentUser(self, timeout=None, retries=None):
+  def GetCurrentUser(self, cache=False, timeout=None, retries=None):
     """Return an integer representing the id of the current foreground user.
 
     Args:
+      cache: Whether to use cached properties when available.
       timeout: timeout in seconds
       retries: number of retries
 
@@ -1983,13 +1984,20 @@ class DeviceUtils(object):
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
-    # Android older than Nougat does not support get-current-user.
-    # Use dumpsys instead.
-    if self.build_version_sdk < version_codes.NOUGAT:
-      return self._GetCurrentUserDumpsys()
-    cmd = ['am', 'get-current-user']
-    # Only actual user id is extracted. Warning is skipped if it exists.
-    return int(self.RunShellCommand(cmd, check_return=True)[-1])
+    current_user = self._cache['current_user']
+    if cache and current_user is not None:
+      return current_user
+    with self._cache_lock:
+      # Android older than Nougat does not support get-current-user.
+      # Use dumpsys instead.
+      if self.build_version_sdk < version_codes.NOUGAT:
+        current_user = self._GetCurrentUserDumpsys()
+      else:
+        cmd = ['am', 'get-current-user']
+        # Only actual user id is extracted. Warning is skipped if it exists.
+        current_user = int(self.RunShellCommand(cmd, check_return=True)[-1])
+      self._cache['current_user'] = current_user
+    return current_user
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def _GetCurrentUserDumpsys(self, timeout=None, retries=None):
@@ -2009,7 +2017,7 @@ class DeviceUtils(object):
     """Switch to user with the given user id and put the user in the foreground.
 
     Args:
-      user_id: An integer representing the user id to switch to.
+      user_id: A specific user to switch to.
       timeout: timeout in seconds
       retries: number of retries
 
@@ -2019,6 +2027,7 @@ class DeviceUtils(object):
     """
     cmd = ['am', 'switch-user', str(user_id)]
     self.RunShellCommand(cmd, check_return=True)
+    self._cache['current_user'] = None
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GoHome(self, timeout=None, retries=None):
@@ -3975,6 +3984,8 @@ class DeviceUtils(object):
         'prev_token': None,
         # Path for tracing.
         'tracing_path': None,
+        # The id of the current foreground user.
+        'current_user': None,
     }
 
   @decorators.WithTimeoutAndRetriesFromInstance()
