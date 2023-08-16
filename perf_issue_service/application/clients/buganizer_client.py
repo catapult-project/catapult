@@ -303,7 +303,6 @@ class BuganizerClient:
       status: the new Monorail status of the issue.
           Monorail status will be mapped to Buganizer status.
       merge_issue: the target issue which the current issue is being merged to.
-          (Need new API to be exposed.)
       owner: the new assignee of the issue.
       cc: a list of users to CC the updates.
       components: a list of Monorail components.
@@ -322,7 +321,6 @@ class BuganizerClient:
     Returns:
       The updates Issue, or error message.
     '''
-    # TODO (wenbinzhang): handle the merge_issue when MarkIssueAsDuplicate() is ready.
     if not issue_id or issue_id < 0:
       return {
         'error': '[PerfIssueService] Missing issue id on PostIssueComment'
@@ -359,7 +357,8 @@ class BuganizerClient:
       request = self._service.issues().get(issueId=str(issue_id), view='FULL')
       current_state = self._ExecuteRequest(request)
       if cc:
-        current_cc = [cc['emailAddress'] for cc in current_state['issueState'].get('ccs', [])]
+        current_cc = [
+          cc['emailAddress'] for cc in current_state['issueState'].get('ccs', [])]
         to_add_cc = list(set(cc) - set(current_cc))
         if to_add_cc:
           add_issue_state['ccs'] = [
@@ -386,9 +385,23 @@ class BuganizerClient:
         to_remove_hotlists = list(set(current_hotlists) - set(hotlist_ids))
         for hotlist_id in to_remove_hotlists:
           request = self._service.hotlists().entries().delete(
-            hotlistId=str(hotlist_id), issueId=str(issue_id), significanceOverride=significance_override)
+            hotlistId=str(hotlist_id), issueId=str(issue_id),
+            significanceOverride=significance_override)
           response = self._ExecuteRequest(request)
           logging.debug('[PerfIssueService] Delete hotlist response: %s', response)
+
+    if merge_issue and int(merge_issue) != issue_id:
+      merge_request = {
+        'targetId': merge_issue,
+        'significanceOverride': significance_override
+      }
+      request = self._service.issues().duplicate(
+        issueId=str(issue_id), body=merge_request)
+      response = self._ExecuteRequest(request)
+      logging.info(
+        '[PerfIssueService] Issue %s marked as duplicate of %s',
+        issue_id, merge_issue)
+      logging.debug('[PerfIssueSeervice] Merge response: %s', response)
 
     modify_request = {}
     if comment:
