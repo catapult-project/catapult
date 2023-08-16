@@ -48,7 +48,7 @@ Workflow to execute. For example:
     "anomaly": {
         "benchmark": "speedometer2",
         "bot_name": "mac-m1_mini_2020-perf",
-        "chart": "AngularJS-TodoMVC",
+        "measurement": "AngularJS-TodoMVC",
         "end_git_hash": "777f2001441e9d82bad279fa84a3cb0d21eb2a9c",
         "start_git_hash": "777f2001441e9d82bad279fa84a3cb0d21eb2a9c",
         "story": "Speedometer2",

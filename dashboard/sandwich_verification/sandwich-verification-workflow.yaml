@@ -54,7 +54,7 @@ main:
                 result: functionResponse
               retry: ${http.default_retry}
           - postPollPinpointJob:
-              try: 
+              try:
                 call: http.post
                 args:
                   url: ${functionResponse.body.serviceConfig.uri}
@@ -105,7 +105,7 @@ main:
               retry: ${http.default_retry_non_idempotent}
           - assignStatistic:
               assign:
-                - statistic: ${getCabeAnalysisResult.body.statistic}
+                - statistic: ${getCabeAnalysisResult.body[anomaly.benchmark][anomaly.measurement]}
     - regressionDetection:
         steps:
           - getFunctionRegressionDetection:

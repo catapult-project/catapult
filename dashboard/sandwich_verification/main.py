@@ -100,13 +100,13 @@ def GetCabeAnalysis(request):
   Get a CABE Analysis object from a Pinpoint Job. It'll return a list of
   statistics for multiple workloads.
 
-  (optional) anomaly.chart input will specify which workload
+  (optional) anomaly.measurement input will specify which workload
   we're interested in.
 
   Args:
     job_id: a valid Completed Pinpoint job id.
     anomaly: (optional) an map with the following attribute:
-      chart: workload (e.g. "AngularJS-TodoMVC")
+      measurement: workload (e.g. "AngularJS-TodoMVC")
   Returns:
     A mapping of benchmark, workloads, and confidence intervals.
     If anomaly is specified, only the specified workload will
