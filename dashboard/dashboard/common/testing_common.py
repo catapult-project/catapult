@@ -448,6 +448,15 @@ class FakeIssueTrackerService:
           'state': ('closed'
                     if kwargs.get('status') in {'WontFix', 'Fixed'} else 'open')
       })
+
+    # It was not fun to discover that these lines had to be added before components
+    # passed to perf_issue_service_client.PostIssueComment would show up as side
+    # effects at assertion time in unit tests.
+    if 'components' in kwargs:
+      components = kwargs.get('components')
+      self.issues.setdefault(issue_key, {}).update({
+          'components': components
+      })
     self.calls.append({
         'method': 'AddBugComment',
         'args': args,

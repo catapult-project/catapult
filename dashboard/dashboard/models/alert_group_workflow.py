@@ -332,12 +332,14 @@ class AlertGroupWorkflow:
                      a.test.string_id(),
                      [s.name for s in matching_subs if s.auto_triage_enable])
 
-      a.auto_merge_enable = any(s.auto_merge_enable for s in matching_subs)
+      non_sandwich_subs = [
+        s for s in matching_subs if s.name not in sandwich_allowlist.ALLOWABLE_SUBSCRIPTIONS]
+      a.auto_merge_enable = any(s.auto_merge_enable for s in non_sandwich_subs)
 
       if a.auto_merge_enable:
         logging.info('auto_merge_enable for %s due to subscription: %s',
                      a.test.string_id(),
-                     [s.name for s in matching_subs if s.auto_merge_enable])
+                     [s.name for s in non_sandwich_subs if s.auto_merge_enable])
 
       a.auto_bisect_enable = any(s.auto_bisect_enable for s in matching_subs)
       a.relative_delta = (
@@ -561,7 +563,11 @@ class AlertGroupWorkflow:
         label = 'Regression-Verification-Repro'
         status = 'Available'
         proceed_with_bisect = True
-        components = self._GetComponentsFromRegressions([regression])
+        components = list(
+          self._GetComponentsFromSubscriptions(regression.subscriptions)
+          # Intentionally ignoring _GetComponentsFromRegressions in this case for sandwiched
+          # regressions. See https://bugs.chromium.org/p/chromium/issues/detail?id=1459035
+        )
       else:
         comment = ('Regression verification %s job %s for test: %s\n'
                    'did NOT reproduce the regression with statistic: %s.'
@@ -573,7 +579,7 @@ class AlertGroupWorkflow:
         self._group.updated = update.now
         self._group.status = self._group.Status.closed
         self._CommitGroup()
-    elif execution['state']  == workflow_service.EXECUTION_STATE_FAILED:
+    elif execution['state'] == workflow_service.EXECUTION_STATE_FAILED:
       logging.error(
           'Regression verification %s for project: %s and '
           'bug: %s failed with error %s.', execution['name'],
@@ -594,6 +600,10 @@ class AlertGroupWorkflow:
       label = 'Regression-Verification-Cancelled'
       proceed_with_bisect = True
 
+    # See https://bugs.chromium.org/p/chromium/issues/detail?id=1473151
+    logging.info('would have set issue components to %s for %s (ignoring sandwiched groups)',
+      components, regression.subscription_names)
+    components = []
     perf_issue_service_client.PostIssueComment(
         self._group.bug.bug_id,
         self._group.project_id,
@@ -696,6 +706,10 @@ class AlertGroupWorkflow:
     return self.BugUpdateDetails(components, cc, labels)
 
   def _GetComponentsFromSubscriptions(self, subscriptions):
+    # Don't use any issue components that come from sandwich subscriptions, even if
+    # they're in the sheriff configs.
+    subscriptions = [
+      s for s in subscriptions if s.name not in sandwich_allowlist.ALLOWABLE_SUBSCRIPTIONS]
     components = set(c for s in subscriptions for c in s.bug_components)
     if components:
       bug_id = self._group.bug or 'New'
