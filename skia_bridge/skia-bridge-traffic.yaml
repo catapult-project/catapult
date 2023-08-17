@@ -24,4 +24,4 @@ steps:
     'skia-bridge'
   ]
 substitutions:
-    _SERVICE_VERSION: 'cloud-build-fa05d99'
+    _SERVICE_VERSION: 'cloud-build-2c01420'
