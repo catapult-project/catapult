@@ -322,7 +322,7 @@ def _GetLinks(row):
   if row.get('a_stdio_uri'):
     links['Test stdio'] = row['a_stdio_uri']
   if row.get('a_os_detail_vers'):
-    links['OS Version'] = row['a_os_detail_vers']
+    links['OS Version'] = ','.join(row['a_os_detail_vers'])
   if row.get('a_default_rev'):
     links['Default Revision'] = row['a_default_rev']
   if row.get('a_jobname'):
