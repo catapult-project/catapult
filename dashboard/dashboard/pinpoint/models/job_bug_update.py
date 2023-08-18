@@ -15,6 +15,7 @@ import os.path
 
 from dashboard import update_bug_with_results
 from dashboard import sheriff_config_client
+from dashboard.common import cloud_metric
 from dashboard.common import utils
 from dashboard.models import histogram
 from dashboard.models import anomaly
@@ -202,6 +203,9 @@ class DifferencesFoundBugUpdateBuilder:
           examined_count=self._examined_count,
           missing_values=missing_values,
       )
+      if tags and tags.get('auto_bisection') == 'true':
+        cloud_metric.PublishAutoTriagedIssue(
+            cloud_metric.AUTO_TRIAGE_CULPRIT_FOUND)
     elif missing_values:
       status = 'Assigned'
       if sandwiched:
@@ -432,13 +436,12 @@ def _ComputeAutobisectUpdate(tags):
   components, ccs, labels = set(), set(), set()
 
   for config in matched_configs:
-    subscription = config.get('subscription', {})
-    if 'bug_components' in subscription:
-      components.update(subscription['bug_components'])
-    if 'bug_cc_emails' in subscription:
-      ccs.update(subscription['bug_cc_emails'])
-    if 'bug_labels' in subscription:
-      labels.update(subscription['bug_labels'])
+    if config.bug_components:
+      components.update(config.bug_components)
+    if config.bug_cc_emails:
+      ccs.update(config.bug_cc_emails)
+    if config.bug_labels:
+      labels.update(config.bug_labels)
 
   return list(components), list(ccs), list(labels)
 

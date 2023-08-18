@@ -33,6 +33,20 @@ SWARMING_BOT_OS = 'swarming_bot_os'
 SWARMING_TASK_PENDING_TIME = 'swarming_task_pending_time'
 SWARMING_TASK_RUNNING_TIME = 'swarming_task_running_time'
 
+#Auto Triaged Issue Status
+AUTO_TRIAGE_CREATED = 'issue_created'
+AUTO_TRIAGE_BISECTED = 'issue_bisected'
+AUTO_TRIAGE_CULPRIT_FOUND = 'culprit_found'
+
+
+def PublishAutoTriagedIssue(status):
+  label_dict = {'status': status}
+  _PublishTSCloudMetric(
+      project_id=app_identity.get_application_id(),
+      service_name='chromeperf',
+      metric_type='chromeperf/alerts/auto_triaged',
+      label_dict=label_dict)
+
 
 def PublishPerfIssueServiceGroupingImpariry(endpoint):
   label_dict = {'endpoint': endpoint}

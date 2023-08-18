@@ -764,6 +764,7 @@ class AlertGroupWorkflow:
     if not bug:
       return
 
+    cloud_metric.PublishAutoTriagedIssue(cloud_metric.AUTO_TRIAGE_CREATED)
     # Update the issue associated with his group, before we continue.
     self._group.bug = bug
     self._group.updated = now
@@ -922,7 +923,7 @@ class AlertGroupWorkflow:
         if not proceed_with_bisect:
           return
 
-     # We'll only bisect a range if the range at least one point.
+    # We'll only bisect a range if the range at least one point.
       if regression.start_revision == regression.end_revision:
         # At this point we've decided that the range of the commits is a single
         # point, so we don't bother bisecting.
@@ -937,6 +938,7 @@ class AlertGroupWorkflow:
         return
 
       job_id = self._StartPinpointBisectJob(regression)
+      cloud_metric.PublishAutoTriagedIssue(cloud_metric.AUTO_TRIAGE_BISECTED)
     except InvalidPinpointRequest as error:
       self._UpdateWithBisectError(update.now, error)
       return
