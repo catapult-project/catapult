@@ -308,7 +308,7 @@ _EMULATOR_RE = re.compile(r'^(generic_|emulator64_).*$')
 # Matches lines like "Package [com.google.android.youtube] (c491050):".
 # or "Package [org.chromium.trichromelibrary_425300033] (e476383):"
 _DUMPSYS_PACKAGE_RE_STR =\
-    r'^\s*Package\s*\[%s(_(?P<library_version>\d*))?\]\s*\(\w*\):$'
+    r'^\s*Package\s*\[{package}\]\s*\(\w*\):$'
 
 PS_COLUMNS = ('name', 'pid', 'ppid')
 ProcessInfo = collections.namedtuple('ProcessInfo', PS_COLUMNS)
@@ -819,12 +819,22 @@ class DeviceUtils(object):
 
     # Some packages do not properly show up via `pm list packages`, so fall back
     # to checking via `dumpsys package`.
-    matcher = re.compile(_DUMPSYS_PACKAGE_RE_STR % package)
+    return self._IsApplicationInstalledDumpsys(package,
+                                               library_version=library_version)
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def _IsApplicationInstalledDumpsys(self,
+                                     package,
+                                     library_version=None,
+                                     timeout=None,
+                                     retries=None):
     # If the package exists, only its information is outputted. Otherwise, all
     # packages are output making for very large output.
     package_with_version = package
     if library_version:
       package_with_version += '_' + str(library_version)
+    matcher = re.compile(
+        _DUMPSYS_PACKAGE_RE_STR.format(package=re.escape(package_with_version)))
     dumpsys_output = self.RunShellCommand(
         ['dumpsys', 'package', package_with_version],
         check_return=True,
@@ -832,10 +842,7 @@ class DeviceUtils(object):
     for line in dumpsys_output:
       match = matcher.match(line)
       if match:
-        installed_version = match.groupdict().get('library_version')
-        if (installed_version is None
-            or installed_version == str(library_version)):
-          return True
+        return True
     return False
 
   @decorators.WithTimeoutAndRetriesFromInstance()
