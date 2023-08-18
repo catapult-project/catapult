@@ -83,15 +83,23 @@ tr.exportTo('tr.metrics.sh', function() {
     let applicationStartEvents = [];
     let navigationPairs = [];
 
-    function organizeBrowserEventByTitle(event, process) {
+    function organizeBrowserEventByTitle(event, browserProcess, networkProcesses) {
       if (event.title === MESSAGE_LOOP_EVENT_NAME) {
         messageLoopStartEvents.push(event);
       } else if (event.title === APPLICATION_START_EVENT_NAME) {
         applicationStartEvents.push(event);
       } else if (event.title === NAVIGATION_EVENT_NAME) {
-        const networkEvents =
-            tr.e.chrome.EventFinderUtils.getNetworkEventsInRange(process,
+        let networkEvents =
+            tr.e.chrome.EventFinderUtils.getNetworkEventsInRange(browserProcess,
                 event.range);
+        if(networkProcesses) {
+          for (let np of networkProcesses) {
+            const networkEventsInNP =
+            tr.e.chrome.EventFinderUtils.getNetworkEventsInRange(np,
+                event.range);
+            networkEvents = networkEvents.concat(networkEventsInNP);
+          }
+        }
         const requestEvent = findRequestEventAfterNavigation(
             networkEvents, event.range);
         navigationPairs.push({
@@ -104,9 +112,14 @@ tr.exportTo('tr.metrics.sh', function() {
     const chromeHelper =
         model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
     if (!chromeHelper) return;
+
+    const networkProcesses = model.getAllProcesses((p)=>{
+      return p.name == "Service: network.mojom.NetworkService";
+    });
+
     for (const helper of chromeHelper.browserHelpers) {
       for (const ev of helper.mainThread.asyncSliceGroup.childEvents()) {
-        organizeBrowserEventByTitle(ev, helper.process);
+        organizeBrowserEventByTitle(ev, helper.process, networkProcesses);
       }
     }
 
@@ -144,7 +157,7 @@ tr.exportTo('tr.metrics.sh', function() {
       // Perfetto, may also cause this.
       for (const proc of Object.values(model.processes)) {
         for (const ev of proc.getDescendantEvents()) {
-          organizeBrowserEventByTitle(ev, proc);
+          organizeBrowserEventByTitle(ev, proc, networkProcesses);
         }
         for (const ev of proc.getDescendantEvents()) {
           if (ev.title === FIRST_CONTENTFUL_PAINT_EVENT_NAME) {
