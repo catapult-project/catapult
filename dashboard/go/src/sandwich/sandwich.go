@@ -27,7 +27,8 @@ var (
 	workflowName     = flag.String("workflow", "sandwich-verification-workflow-prod", "name of workflow to execute")
 	pinpointJobIDStr = flag.String("pinpoint-job-id", "", "id of the pinpoint job")
 	attemptCount     = flag.Int("attempt-count", 30, "iterations verification job will run")
-	dryRun           = flag.Bool("dry-run", true, "dry run; just print CreateExecutionRequest to stdout")
+	dryRun           = flag.Bool("dry-run", true, "dry run for StartWorkflow; just print CreateExecutionRequest to stdout")
+	execIDStr        = flag.String("execution-id", "", "execution id of the workflow")
 )
 
 type BenchmarkArguments struct {
@@ -44,20 +45,32 @@ type PinpointJob struct {
 	Configuration      string             `datastore:"configuration"`
 }
 
+type Stats struct {
+	Lower    float64 `json:lower`
+	Upper    float64 `json:upper`
+	PValue   float64 `json:"p_value"`
+	CtrlMed  float64 `json:"control_median"`
+	TreatMed float64 `json:"treatment_median"`
+}
+
+type WorkflowResult struct {
+	JobId    string `json:"job_id"`
+	Decision bool   `json:"decision"`
+	Stats    *Stats `json:"statistic"`
+}
+
 func exitWithError(err error) {
 	fmt.Printf("error: %v\n", err)
 	os.Exit(1)
 }
 
-func main() {
-	flag.Parse()
-
-	ctx := context.Background()
+func StartWorkflow(ctx context.Context) {
 	dsClient, err := datastore.NewClient(ctx, *app)
 	if err != nil {
 		exitWithError(err)
 	}
 	defer dsClient.Close()
+
 	pinpointJobID, err := strconv.ParseInt(*pinpointJobIDStr, 16, 64)
 	pinpointJobKey := datastore.IDKey("Job", pinpointJobID, nil)
 	job := &PinpointJob{}
@@ -125,5 +138,58 @@ func main() {
 		exitWithError(err)
 	}
 
-	fmt.Printf("Workflow execution created successfully. Run the following command to check on its progress:\n\ngcloud workflows executions describe %s\n\n", execution.Name)
+	fmt.Printf("Workflow execution created. Check status with\n\ngo run sandwich.go -execution-id %s\n\n", execution.Name)
+}
+
+func CheckWorkflow(ctx context.Context) {
+	executionsClient, err := executions.NewClient(ctx)
+	if err != nil {
+		exitWithError(err)
+	}
+	defer executionsClient.Close()
+
+	req := &executionspb.GetExecutionRequest{
+		// See https://pkg.go.dev/cloud.google.com/go/workflows/executions/apiv1beta/executionspb#GetExecutionRequest.
+		Name: fmt.Sprintf("projects/%s/locations/%s/workflows/%s/executions/%s",
+			*app, *location, *workflowName, *execIDStr),
+	}
+	resp, err := executionsClient.GetExecution(ctx, req)
+	if err != nil {
+		fmt.Printf("executionsClient failed to get execution %v\n", err)
+	}
+
+	if len(resp.Result) != 0 {
+		result := &WorkflowResult{}
+		err = json.Unmarshal([]byte(resp.Result), &result)
+		if err != nil {
+			exitWithError(err)
+		}
+		fmt.Printf("exec_id: %v verification job: %v decision: %v lower: %v upper: %v p-value %v ctrl_med %v treat_med %v \n",
+			*execIDStr,
+			result.JobId,
+			result.Decision,
+			result.Stats.Lower,
+			result.Stats.Upper,
+			result.Stats.PValue,
+			result.Stats.CtrlMed,
+			result.Stats.TreatMed,
+		)
+	} else {
+		fmt.Printf("exec_id: %v cabe failed", *execIDStr)
+	}
+}
+
+func main() {
+	flag.Parse()
+
+	ctx := context.Background()
+
+	if *pinpointJobIDStr != "" {
+		StartWorkflow(ctx)
+	} else if *execIDStr != "" {
+		CheckWorkflow(ctx)
+	} else {
+		fmt.Printf("Please provide a Pinpoint Job ID or a Workflow Execution ID")
+	}
+
 }
