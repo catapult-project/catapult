@@ -44,12 +44,14 @@ _LABEL_EXCLUSION_SETS = [
         'Pinpoint-Job-Failed',
         'Pinpoint-Job-Pending',
         'Pinpoint-Job-Cancelled',
+        'Culprit-Sandwich-Verification-Started',
     },
     {
         'Pinpoint-Culprit-Found',
         'Pinpoint-No-Repro',
         'Pinpoint-Multiple-Culprits',
         'Pinpoint-Multiple-MissingValues',
+        'Culprit-Verification-No-Repro',
     },
 ]
 
