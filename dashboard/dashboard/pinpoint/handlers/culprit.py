@@ -72,13 +72,14 @@ def _AllExecutionCompleted(group):
   for wk in cloud_workflows_keys:
     could_workflow = ndb.Key('CloudWorkflow', wk).get()
     response = workflow_service.GetExecution(could_workflow.execution_name)
-    if response.state == workflow_service.EXECUTION_STATE_SUCCEEDED:
+    if response['state'] == workflow_service.EXECUTION_STATE_SUCCEEDED:
       could_workflow.execution_status = 'SUCCEEDED'
-    elif response.state == workflow_service.EXECUTION_STATE_FAILED:
+    elif response['state'] == workflow_service.EXECUTION_STATE_FAILED:
       could_workflow.execution_status = 'FAILED'
-    elif response.state == workflow_service.EXECUTION_STATE_CANCELLED:
+    elif response['state'] == workflow_service.EXECUTION_STATE_CANCELLED:
       could_workflow.execution_status = 'CANCELLED'
-    elif response.state == workflow_service.EXECUTION_STATE_STATE_UNSPECIFIED:
+    elif response[
+        'state'] == workflow_service.EXECUTION_STATE_STATE_UNSPECIFIED:
       could_workflow.execution_status = 'STATE_UNSPECIFIED'
     else:
       completed = False
@@ -91,15 +92,15 @@ def _SummarizeResults(cloud_workflows_keys, bug_update_builder):
   for wk in cloud_workflows_keys:
     w = ndb.Key('CloudWorkflow', wk).get()
     response = workflow_service.GetExecution(w.execution_name)
-    if response.state == workflow_service.EXECUTION_STATE_SUCCEEDED:
+    if response['state'] == workflow_service.EXECUTION_STATE_SUCCEEDED:
       num_succeeded += 1
-      result_dict = json.loads(response.result)
+      result_dict = json.loads(response['result'])
       if 'decision' in result_dict:
         decision = result_dict['decision']
         if decision:
           bug_update_builder.AddDifference(None, w.values_a, w.values_b, w.kind, w.commit_dict)
           num_verified += 1
-    elif response.state in [
+    elif response['state'] in [
         workflow_service.EXECUTION_STATE_FAILED,
         workflow_service.EXECUTION_STATE_CANCELLED,
         workflow_service.EXECUTION_STATE_STATE_UNSPECIFIED
