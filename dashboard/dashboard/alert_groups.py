@@ -90,7 +90,7 @@ def _ProcessUngroupedAlerts():
       if found_group:
         alert_groups.append(found_group)
       else:
-        new_group = g.put()
+        new_group = g.key
         alert_groups.append(new_group)
         new_count += 1
     anomaly_entity.groups = alert_groups
@@ -119,9 +119,6 @@ def _ProcessUngroupedAlerts():
       logging.warning(
           'Parity failed in PostUngroupedAlerts - group match on %s. %s',
           anomaly_entity.key, str(e))
-
-  logging.info('Persisting anomalies')
-  ndb.put_multi(ungrouped_anomalies)
 
 
 def ProcessAlertGroups():

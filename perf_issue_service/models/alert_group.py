@@ -179,8 +179,7 @@ class AlertGroup:
           logging.info('Saving new group %s', new_group.key.name)
           if parity:
             new_groups.add(new_group.key.name)
-          else:
-            cls.ds_client.SaveAlertGroup(new_group)
+          cls.ds_client.SaveAlertGroup(new_group)
           result_groups.add(new_group.key.name)
         else:
           # return the id of the 'ungrouped'
@@ -259,7 +258,6 @@ class AlertGroup:
           "existing_groups": list(set(group_ids) - set(new_ids)),
           "new_groups": new_ids
         }
-      else:
-        cls.ds_client.SaveAnomaly(anomaly)
+      cls.ds_client.SaveAnomaly(anomaly)
 
     return parity_results
