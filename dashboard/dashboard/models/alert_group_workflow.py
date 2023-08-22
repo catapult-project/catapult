@@ -683,9 +683,12 @@ class AlertGroupWorkflow:
     return list(benchmarks_dict.values())
 
   def _ComputeBugUpdate(self, subscriptions, regressions):
-    components = list(
-        self._GetComponentsFromSubscriptions(subscriptions)
-        | self._GetComponentsFromRegressions(regressions))
+    # Skip the _GetComponentsFromRegressions if subs are all sandwich staging subs.
+    if all(s.name in sandwich_allowlist.ALLOWABLE_SUBSCRIPTIONS for s in subscriptions):
+      components = self._GetComponentsFromSubscriptions(subscriptions)
+    else:
+      components = set(self._GetComponentsFromSubscriptions(subscriptions)
+      | self._GetComponentsFromRegressions(regressions))
     if len(components) != 1:
       logging.warning('Invalid component count is found for bug update: %s',
                       components)

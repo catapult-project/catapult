@@ -1070,7 +1070,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     anomalies = []
     for test_case in test_cases:
       anomalies.append(
-          self._AddAnomaly(test=test_case))
+          self._AddAnomaly(test=test_case,
+            ownership={'component':'anomaly>should>not>set>component'}))
     test_subscription = sandwich_allowlist.ALLOWABLE_SUBSCRIPTIONS[0]
     group = self._AddAlertGroup(anomalies[0],
                                 anomalies=anomalies,
@@ -1081,12 +1082,21 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                 name=test_subscription,
                 auto_triage_enable=True,
                 auto_merge_enable=True,
-                bug_components=['should>not>set>component'])
+                bug_components=['sub>should>not>set>component'])
         ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
         group.get(),
         sheriff_config=self._sheriff_config,
+        # This part with triage_delay set to 0 is critical if you want the _UpdateTwice call to
+        # result in AlertGroupWorfklow.Process calling _TryTriage (and _FileIssue) to exercise
+        # the code path that creates new bugs during auto-triage. This code is *badly* in need of
+        # refactoring w/ e.g. a State Machine or Strategy pattern, or preferably just a complete
+        # ground-up rewrite.
+        config=alert_group_workflow.AlertGroupWorkflow.Config(
+            active_window=datetime.timedelta(days=7),
+            triage_delay=datetime.timedelta(hours=0),
+        )
     )
     self._UpdateTwice(
         workflow=w,
@@ -1110,6 +1120,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     allowed_regressions = w._CheckSandwichAllowlist(ndb.get_multi(anomalies))
 
     self.assertEqual(len(allowed_regressions), 0)
+
+    self.assertEqual(set(), self._issue_tracker.issue.get('components'))
 
   def testSandwich_Allowlist_banned(self):
     # Test banned subscription
@@ -1509,9 +1521,11 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         "master", sandwich_allowlist.ALLOWABLE_DEVICES[0],
         sandwich_allowlist.ALLOWABLE_BENCHMARKS[0], 'dummy', 'metric', 'parts'
     ])
+
     anomalies = [
         self._AddAnomaly(test=test_name, statistic="made up"),
-        self._AddAnomaly(test=test_name, statistic="also made up")
+        self._AddAnomaly(test=test_name, statistic="also made up",
+            ownership={'component':'anomaly>should>not>set>component'})
     ]
 
     sandwich_verification_workflow_id = self._cloud_workflows.CreateExecution(
@@ -1540,7 +1554,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                 name=sandwich_allowlist.ALLOWABLE_SUBSCRIPTIONS[0],
                 auto_triage_enable=True,
                 auto_bisect_enable=True,
-                bug_components=['should>not>set>component'])
+                bug_components=['sub>should>not>set>component'])
         ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
@@ -1561,7 +1575,10 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         ))
     self.assertNotIn('Chromeperf-Auto-BisectOptOut',
                      self._issue_tracker.issue.get('labels'))
-    self.assertNotIn('should>not>set>component', self._issue_tracker.issue.get('components'))
+
+    self.assertNotIn('anomaly>should>not>set>component',
+        self._issue_tracker.issue.get('components'))
+    self.assertNotIn('sub>should>not>set>component', self._issue_tracker.issue.get('components'))
     self.assertIsNotNone(w._group.sandwich_verification_workflow_id)
     self.assertIsNotNone(self._pinpoint.new_job_request)
 
