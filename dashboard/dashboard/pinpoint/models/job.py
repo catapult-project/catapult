@@ -980,6 +980,7 @@ class Job(ndb.Model):
       logging.info('JobQueueDebug: Scheduling jobrun. ID: %s', self.job_id)
       if not self._IsTryJob():
         logging.debug('BisectDebug: Exploring perf job. ID: %s', self.job_id)
+        self.state.SetImprovementDirection(self._GetImprovementDirection())
         self.state.Explore()
       work_left = self.state.ScheduleWork()
 
