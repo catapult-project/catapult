@@ -287,8 +287,7 @@ class BuganizerClient:
     Adding a new comment using the same set of arguments as in Monorail.
     Those arguments will be restructured before sending to Buganizer. In
     Buganizer, we need to have an issueState with the values to add, and
-    another issueState with the values to remove. Currently in Monorail,
-    the given value will simply override the existing one.
+    another issueState with the values to remove.
 
     Notice that there are rules to follow, otherwise we will see 'invalid
     argument' error. We don't have a complete list of the rules yet.
@@ -308,7 +307,9 @@ class BuganizerClient:
       components: a list of Monorail components.
           Monorail components will be mapped to Buganizer components.
       labels: a list of Monorail labels.
-          Monorail labels will be mapped to Buganizer hotlists.
+          Monorail labels will be mapped to Buganizer hotlists. Notice that
+          a format like -Some-Label is valid in Monorail. We need to add those
+          to the to-be-removed state.
       send_email: whether to send email for a specific update.
           In Buganizer we cannot force sending email to users. Instead, each
           user chooses to receive emails based on the uers's role (assignee,
@@ -326,11 +327,11 @@ class BuganizerClient:
         'error': '[PerfIssueService] Missing issue id on PostIssueComment'
         }
 
+    add_issue_state, remove_issue_state = {}, {}
+
     significance_override = 'MAJOR'
     if str(send_email).lower() == 'false':
       significance_override = 'MINOR'
-
-    add_issue_state, remove_issue_state = {}, {}
 
     if title:
       add_issue_state['title'] = title
@@ -347,48 +348,52 @@ class BuganizerClient:
           '[PerfIssueService] More than 1 components on issue create. Using the first one.')
       add_issue_state['componentId'] = b_utils.FindBuganizerComponentId(components[0])
 
+    if cc:
+      ccs_to_remove = [
+        email[1:] for email in cc if email.startswith('-') and len(email)>1
+      ]
+      ccs_to_add = [
+        email for email in cc if email and not email.startswith('-')
+      ]
+      if ccs_to_add:
+        add_issue_state['ccs'] = [
+          {'emailAddress': email} for email in ccs_to_add
+        ]
+      if ccs_to_remove:
+        remove_issue_state['ccs'] = [
+          {'emailAddress': email} for email in ccs_to_remove
+        ]
+
     if labels and any(label.startswith('Pri-') for label in labels):
-      priority  = 'P%s' % b_utils.LoadPriorityFromMonorailLabels(labels)
+      priority = 'P%s' % b_utils.LoadPriorityFromMonorailLabels(labels)
       add_issue_state['priority'] = priority
       labels = [label for label in labels if not label.startswith('Pri-')]
 
-    hotlist_ids = b_utils.FindBuganizerHotlists(labels)
-    if cc or hotlist_ids:
-      request = self._service.issues().get(issueId=str(issue_id), view='FULL')
-      current_state = self._ExecuteRequest(request)
-      if cc:
-        current_cc = [
-          cc['emailAddress'] for cc in current_state['issueState'].get('ccs', [])]
-        to_add_cc = list(set(cc) - set(current_cc))
-        if to_add_cc:
-          add_issue_state['ccs'] = [
-            {'emailAddress': cc} for cc in to_add_cc if cc
-          ]
-        to_remove_cc = list(set(current_cc) - set(cc))
-        if to_remove_cc:
-          remove_issue_state['ccs'] = [
-            {'emailAddress': cc} for cc in to_remove_cc if cc
-          ]
-      if hotlist_ids:
-        current_hotlists = current_state['issueState'].get('hotlistIds', [])
+    if labels:
+      labels_to_remove = [
+        label[1:] for label in labels if label.startswith('-') and len(label)>1
+      ]
+      hotlists_to_remove = b_utils.FindBuganizerHotlists(labels_to_remove)
+      labels_to_add = [
+        label for label in labels if label and not label.startswith('-')
+      ]
+      hotlists_to_add = b_utils.FindBuganizerHotlists(labels_to_add)
 
-        to_add_hotlists = list(set(hotlist_ids) - set(current_hotlists))
-        for hotlist_id in to_add_hotlists:
-          hotlist_entry_request = {
-            'hotlistEntry': {'issueId': issue_id},
-            'significanceOverride': significance_override
-          }
-          request = self._service.hotlists().createEntries(
-            hotlistId=hotlist_id, body=hotlist_entry_request)
-          response = self._ExecuteRequest(request)
-          logging.debug('[PerfIssueService] Add hotlist response: %s', response)
-        to_remove_hotlists = list(set(current_hotlists) - set(hotlist_ids))
-        for hotlist_id in to_remove_hotlists:
-          request = self._service.hotlists().entries().delete(
-            hotlistId=str(hotlist_id), issueId=str(issue_id),
-            significanceOverride=significance_override)
-          response = self._ExecuteRequest(request)
-          logging.debug('[PerfIssueService] Delete hotlist response: %s', response)
+      for hotlist_id in hotlists_to_add:
+        hotlist_entry_request = {
+          'hotlistEntry': {'issueId': issue_id},
+          'significanceOverride': significance_override
+        }
+        request = self._service.hotlists().createEntries(
+          hotlistId=hotlist_id, body=hotlist_entry_request)
+        response = self._ExecuteRequest(request)
+        logging.debug('[PerfIssueService] Add hotlist response: %s', response)
+      for hotlist_id in hotlists_to_remove:
+        request = self._service.hotlists().entries().delete(
+          hotlistId=str(hotlist_id), issueId=str(issue_id),
+          significanceOverride=significance_override)
+        response = self._ExecuteRequest(request)
+        logging.debug('[PerfIssueService] Delete hotlist response: %s', response)
 
     if merge_issue and int(merge_issue) != issue_id:
       merge_request = {
