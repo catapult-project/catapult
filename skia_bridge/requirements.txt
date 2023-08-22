@@ -12,8 +12,6 @@ google-cloud-tasks==2.13.1
 google-cloud-storage==2.9.0
 google-cloud-monitoring==2.9.1
 
-# The debugger is being deprecated Q2 2023
-google-python-cloud-debugger==3.2
 
 gunicorn==20.1.0
 python-dateutil>=2.8.2

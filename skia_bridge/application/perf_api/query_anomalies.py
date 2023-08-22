@@ -18,14 +18,9 @@ blueprint = Blueprint('query_anomalies', __name__)
 
 
 ALLOWED_CLIENTS = [
-    # TODO: Remove the user accounts below once skia service account
-    #       is validated.
-    'ashwinpv@google.com',
-    'sunpeng@google.com',
-    'funing@google.com',
-    'eduardoyap@google.com',
     # Chrome (public) skia instance service account
     'perf-chrome-public@skia-infra-public.iam.gserviceaccount.com',
+    # Chrome (internal) skia instance service account
     'perf-chrome-internal@skia-infra-corp.iam.gserviceaccount.com',
 ]
 

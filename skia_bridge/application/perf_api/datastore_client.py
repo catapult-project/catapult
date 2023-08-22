@@ -4,6 +4,7 @@
 
 from __future__ import absolute_import
 
+from enum import Enum
 from google.cloud import datastore
 
 
@@ -20,6 +21,12 @@ def TestKey(test_path, datastore_client):
       key_list += [('Bot', path_parts[1])]
     return datastore_client.key(pairs=key_list)
   return datastore_client.key('TestMetadata', test_path)
+
+
+class EntityType(Enum):
+  """Enum defining the entity types currently supported."""
+  Anomaly = 'Anomaly'
+  AlertGroup = 'AlertGroup'
 
 
 class DataStoreClient:
@@ -45,3 +52,14 @@ class DataStoreClient:
             post_filter(alert) for post_filter in post_query_filters)
     ]
     return filtered_results
+
+  def GetEntity(self, entity_type:EntityType, entity_id):
+    """Retrieves an entity of the specified type with the specified id."""
+    entity_key = self._client.key(entity_type.value, entity_id)
+    return self._client.get(entity_key)
+
+  def GetEntities(self, entity_type:EntityType, entity_ids:[]):
+    """Retrieves multiple entities of the specified type."""
+    entity_keys = [self._client.key(entity_type.value, entity_id)
+                   for entity_id in entity_ids]
+    return self._client.get_multi(entity_keys)
