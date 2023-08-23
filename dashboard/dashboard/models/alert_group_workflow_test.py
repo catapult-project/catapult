@@ -1120,7 +1120,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
 
     self.assertEqual(len(allowed_regressions), 0)
 
-    self.assertEqual(set(), self._issue_tracker.issue.get('components'))
+    self.assertEqual([], self._issue_tracker.issue.get('components'))
 
   def testSandwich_Allowlist_banned(self):
     # Test banned subscription

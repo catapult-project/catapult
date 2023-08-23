@@ -693,6 +693,7 @@ class AlertGroupWorkflow:
       logging.warning('Invalid component count is found for bug update: %s',
                       components)
       cloud_metric.PublistPerfIssueInvalidComponentCount(len(components))
+    components = list(components)
     cc = list(set(e for s in subscriptions for e in s.bug_cc_emails))
     labels = list(
         set(l for s in subscriptions for l in s.bug_labels)
