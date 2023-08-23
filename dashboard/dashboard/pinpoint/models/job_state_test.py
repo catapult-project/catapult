@@ -11,6 +11,7 @@ import math
 import unittest
 import sys
 
+from dashboard.models import anomaly
 from dashboard.pinpoint import test
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models.change import change_test
@@ -153,6 +154,26 @@ class ExploreTest(test.TestCase):
     state.AddChange(change_a)
     state.AddChange(change_b)
     self.assertEqual([], state.Differences())
+
+  def testNoImprovementDirection(self):
+    """This unit test replicates
+      if ((mean_diff > 0 and self._improvement_direction == anomaly.UP) ...
+      AttributeError: 'JobState' object has no attribute '_improvement_direction'
+    """
+    quests = [quest_test.QuestPass()]
+    state = job_state.JobState(quests, comparison_mode=job_state.PERFORMANCE)
+
+    state.AddChange(change_test.Change(1))
+    state.AddChange(change_test.Change(9))
+
+    self.assertEqual(state._improvement_direction, anomaly.UNKNOWN)
+    delattr(state, "_improvement_direction")
+    self.assertIsNone(getattr(state, "_improvement_direction", None))
+
+    state.ScheduleWork()
+    state.Explore()
+
+    self.assertEqual(state._improvement_direction, anomaly.UNKNOWN)
 
 
 class ScheduleWorkTest(unittest.TestCase):

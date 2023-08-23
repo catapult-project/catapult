@@ -16,6 +16,7 @@ from six.moves import http_client
 from six.moves import map  # pylint: disable=redefined-builtin
 
 from dashboard.common import math_utils
+from dashboard.models import anomaly
 from dashboard.pinpoint.models import attempt as attempt_module
 from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import compare
@@ -69,6 +70,9 @@ class JobState:
 
     self._comparison_mode = comparison_mode
     self._comparison_magnitude = comparison_magnitude
+    # only bisections and verification jobs care about the improvement direction
+    # assume unknown until specified
+    self._improvement_direction = anomaly.UNKNOWN
 
     self._pin = pin
 
@@ -133,6 +137,9 @@ class JobState:
 
     if len(self._changes) > MAX_BUILDS:
       raise errors.BuildNumberExceeded(MAX_BUILDS)
+
+  def SetImprovementDirection(self, improvement_direction):
+    self._improvement_direction = improvement_direction
 
   def Explore(self):
     """Compare Changes and bisect by adding additional Changes as needed.
@@ -381,6 +388,18 @@ class JobState:
         sample_count = (len(all_a_values) + len(all_b_values)) // 2
         logging.debug('BisectDebug: Comparing values: %s, %s',
             all_a_values, all_b_values)
+        mean_diff = Mean(all_b_values) - Mean(all_a_values)
+        # Pinpoint jobs that exist prior to this change will not
+        # have an improvement direction. See crbug/1351167#c4
+        if not getattr(self, '_improvement_direction', None):
+          self._improvement_direction = anomaly.UNKNOWN
+        # if improvement, return same
+        if ((mean_diff > 0 and self._improvement_direction == anomaly.UP)
+            or mean_diff < 0 and self._improvement_direction == anomaly.DOWN):
+          logging.debug(
+              'BisectDebug: Improvement found. Improvement direction: %s, mean diff: %s',
+              self._improvement_direction, mean_diff)
+          return compare.SAME
         comparison, _, _, _ = compare.Compare(
             all_a_values,
             all_b_values,
