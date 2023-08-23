@@ -157,10 +157,13 @@ class AlertGroup:
     for config in matched_configs:
       s = config['subscription']
       has_overlapped = False
+      if 'project_id' not in g:
+        # crbug/1475410. We noticed some alert group has no 'project_id'.
+        logging.warning('Project_id field does not exist in group: %s', g)
       for g in existing_groups:
         if (g['domain'] == master_name and
             g['subscription_name'] == s.get('name') and
-            g['project_id'] == s.get('monorail_project_id', '') and
+            g.get('project_id', '') == s.get('monorail_project_id', '') and
             max(g['revision']['start'], start_rev) <= min(g['revision']['end'], end_rev) and
             (abs(g['revision']['start'] - start_rev) + abs(g['revision']['end'] - end_rev) <= 100 or g['domain'] != 'ChromiumPerf')):
           has_overlapped = True
