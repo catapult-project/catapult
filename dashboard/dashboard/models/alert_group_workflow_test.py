@@ -1081,7 +1081,16 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                 name=test_subscription,
                 auto_triage_enable=True,
                 auto_merge_enable=True,
-                bug_components=['sub>should>not>set>component'])
+                bug_components=['sub>should>not>set>component'],
+                bug_labels=['sub-should-set-labels']),
+            # This subscription should get ignored by Process, since it doesn't match
+            # the AlertGroup's subscription_name property.
+            subscription.Subscription(
+                name='non-sandwich sub',
+                auto_triage_enable=True,
+                auto_merge_enable=True,
+                bug_components=['sub>should>not>set>component'],
+                bug_labels=['sub-should-not-set-labels'])
         ],
     }
     w = alert_group_workflow.AlertGroupWorkflow(
@@ -1121,6 +1130,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(len(allowed_regressions), 0)
 
     self.assertEqual([], self._issue_tracker.issue.get('components'))
+    self.assertNotIn('sub-should-not-set-labels', self._issue_tracker.issue.get('labels'))
+    self.assertIn('sub-should-set-labels', self._issue_tracker.issue.get('labels'))
 
   def testSandwich_Allowlist_banned(self):
     # Test banned subscription
