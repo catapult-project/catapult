@@ -4,8 +4,15 @@
 
 #!/bin/sh
 
-git checkout main
+# Exit early if any of the commands fails
+set -e
 
+if [[ -n $(git status -s) ]]; then
+  echo 'There are uncommitted changes, please stash them before proceeding.'
+  exit 1
+fi
+
+branch_suffix='-deploy'
 declare -a services=("default"
                         "api"
                         "pinpoint"
@@ -14,9 +21,11 @@ declare -a services=("default"
                         "skia-bridge"
                         "perf-issue-service")
 
+git fetch origin
 for service in "${services[@]}"; do
-    git branch -D $service
-    git checkout -b $service -t origin/main
+    branch_name="${service}${branch_suffix}"
+    git branch -D "${branch_name}" || true
+    git checkout -b "$branch_name" -t origin/main
     git pull --ff
     go run update-traffic.go -checkout-base ../../../.. -service-id $service
     git commit -am "update chromeperf deployment for $service"
