@@ -1,5 +1,6 @@
 All graphs for this regression group at {{ group.revision.start }}:{{ group.revision.end }}:
-  {{ skia_url_text }}
+  Public Report: {{ skia_url_text_public }}
+  Internal (Googlers-only) Report: {{ skia_url_text_internal }}
 
 {% set top_regressions = regressions[:10] -%}
 Top {{ top_regressions|length }} regressions (out of {{ group.anomalies|length }}, with {{ group.anomalies|length - regressions|length }} improvements) in this group:

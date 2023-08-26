@@ -43,6 +43,10 @@ def GetSkiaUrl(start_time: datetime.datetime,
                       _FormatTime(end_time), num_points)
 
 
+def GetSkiaUrlForAlertGroup(alert_group_id:str, internal_only:bool):
+  host = INTERNAL_HOST if internal_only else PUBLIC_HOST
+  return '%s/_/alertgroup?group_id=%s' % (host, alert_group_id)
+
 def GetSkiaUrlForRegressionGroup(regressions, crrev_service, gitiles_service):
   # Filter out regressions that are only in the supported repositories
   filtered_regressions = []
