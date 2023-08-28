@@ -2485,6 +2485,65 @@ class DeviceUtilGetCurrentUserTest(DeviceUtilsTest):
         self.assertEqual(user_id, self.device.GetCurrentUser())
 
 
+class DeviceUtilsListUsersTest(DeviceUtilsTest):
+  def testListUsers(self):
+    list_users_output = [
+        'Users:',
+        '    UserInfo{0:Driver:c13} running',
+        '    UserInfo{10:aa:bb:410}',
+        '    UserInfo{11:Driver:412} running',
+        '    UserInfo{14:guest3:400} (Secondary User, not-initialized)',
+    ]
+    expected_users = [
+        {'id': 0, 'name': 'Driver', 'flags': 0xc13},
+        {'id': 10, 'name': 'aa:bb', 'flags': 0x410},
+        {'id': 11, 'name': 'Driver', 'flags': 0x412},
+        {'id': 14, 'name': 'guest3', 'flags': 0x400},
+    ]
+    with self.assertCall(
+        self.call.device.RunShellCommand(['pm', 'list', 'users'],
+                                         check_return=True), list_users_output):
+      self.assertEqual(expected_users, self.device.ListUsers())
+
+
+class DeviceUtilsGetMainUserTest(DeviceUtilsTest):
+  def testGetMainUser_with_flag_main_hsum(self):
+    with self.assertCall(self.call.device.ListUsers(), [
+        {'id': 0, 'name': 'Driver', 'flags': 0x813},
+        {'id': 11, 'name': 'Driver', 'flags': 0x4412},
+    ]):
+      self.assertEqual(11, self.device.GetMainUser())
+
+  def testGetMainUser_with_flag_main_non_hsum(self):
+    with self.assertCall(self.call.device.ListUsers(), [
+        {'id': 0, 'name': 'Driver', 'flags': 0x4c13},
+        {'id': 11, 'name': 'Driver', 'flags': 0x412},
+    ]):
+      self.assertEqual(0, self.device.GetMainUser())
+
+  def testGetMainUser_with_fallback_hsum(self):
+    with self.assertCall(self.call.device.ListUsers(), [
+        {'id': 0, 'name': 'Driver', 'flags': 0x813},
+        {'id': 11, 'name': 'Driver', 'flags': 0x412},
+    ]):
+      self.assertEqual(11, self.device.GetMainUser())
+
+  def testGetMainUser_with_fallback_non_hsum(self):
+    with self.assertCall(self.call.device.ListUsers(), [
+        {'id': 0, 'name': 'Driver', 'flags': 0xc13},
+        {'id': 11, 'name': 'Driver', 'flags': 0x412},
+    ]):
+      self.assertEqual(0, self.device.GetMainUser())
+
+  def testGetMainUser_failed(self):
+    with self.assertCall(self.call.device.ListUsers(), [
+        {'id': 0, 'name': 'Driver', 'flags': 0x813},
+        {'id': 11, 'name': 'Driver', 'flags': 0x410},
+    ]):
+      with self.assertRaises(device_errors.CommandFailedError):
+        self.device.GetMainUser()
+
+
 class DeviceUtilSwitchUserTest(DeviceUtilsTest):
   def testSwitchUser(self):
     user_id = 10

@@ -319,6 +319,21 @@ ROCK960_DEVICE_LIST = [
 ]
 
 _USER_LRU_RE = re.compile(r"^\s*mUserLru:\s*\[([\d\s,]+)\]$")
+# Match user info like "UserInfo{0:Driver:813}" or "UserInfo{10:a:b:c:412}".
+#  * 0 and 10 are user ids in integer.
+#  * "Driver" and "a:b:c" are user names in string.
+#  * 813 and 412 are user flags in hex string.
+# More details can be found in https://bit.ly/3YQV03P
+_USER_INFO_RE = re.compile(
+    r'\s*UserInfo\{(?P<id>\d+):(?P<name>.+):(?P<flags>[0-9A-Fa-f]+)\}')
+# User with administrative privileges. Such a user can create and delete users.
+_USER_FLAG_ADMIN = 0x00000002
+# Indicates that this user is a non-profile human user.
+_USER_FLAG_FULL = 0x00000400
+# Flagged as main user on the device.
+#  * on Headless System User Mode (hsum), main user is the first human user.
+#  * on non-hsum, main user is the system user (user 0)
+_USER_FLAG_MAIN = 0x00004000
 
 
 # Namespaces for settings
@@ -2018,6 +2033,49 @@ class DeviceUtils(object):
         return int(user_ids[-1])
     raise device_errors.CommandFailedError(
         'mUserLru not found on dumpsys output')
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def ListUsers(self, timeout=None, retries=None):
+    """List all the users with their userinfo on the device.
+
+    Return a list of dict with the following keys:
+      * id: User id as an integer
+      * name: User name as a string
+      * flags: User flags as an integer
+    """
+    users = []
+    lines = self.RunShellCommand(['pm', 'list', 'users'], check_return=True)
+    for line in lines:
+      match = _USER_INFO_RE.match(line)
+      if match:
+        user_info = match.groupdict()
+        user_info['id'] = int(user_info['id'])
+        # flags from pm output is a hex string. Convert it to integer.
+        user_info['flags'] = int(user_info['flags'], 16)
+        users.append(user_info)
+    return users
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def GetMainUser(self, timeout=None, retries=None):
+    """Get the id of the main human user on the device.
+
+    On devices with Headless System User Mode (hsum) enabled, i.e. Android
+      Automotive OS, main user is the first human user.
+    On non-hsum, main user is the system user (user 0).
+
+    Such a user will have the admin permission, and may have access to certain
+    features which are limited to at most one user.
+    """
+    users = self.ListUsers()
+    # Since _USER_FLAG_MAIN is added in newer Android OS, if not found, fallback
+    # to the user that has both _USER_FLAG_ADMIN and the _USER_FLAG_FULL.
+    for flag_main in [_USER_FLAG_MAIN, (_USER_FLAG_ADMIN | _USER_FLAG_FULL)]:
+      for user_info in users:
+        if (user_info['flags'] & flag_main) == flag_main:
+          return user_info['id']
+
+    raise device_errors.CommandFailedError(
+        f'Failed to find the main user from existing users {users}')
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def SwitchUser(self, user_id, timeout=None, retries=None):
