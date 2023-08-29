@@ -8,8 +8,18 @@ press benchmarks and the available capacity on Pinpoint."""
 
 # TODO: Implement the allowable configs as a class so that each benchmark
 # can customize its own list of allowable stories and configurations.
-ALLOWABLE_SUBSCRIPTIONS = ['Sandwich Verification Test Speedometer2']
-ALLOWABLE_BENCHMARKS = ['jetstream2','speedometer2']
+ALLOWABLE_SUBSCRIPTIONS = [
+  'Sandwich Verification Test Speedometer2',
+  'Sandwich Verification Test JetStream2',
+  'Sandwich Verification Test Motionmark',
+  ]
+
+ALLOWABLE_BENCHMARKS = [
+  'speedometer2',
+  'jetstream2',
+  'rendering.desktop',
+  ]
+
 ALLOWABLE_DEVICES = [
     'android-pixel2-perf',
     'android-pixel2_webview-perf'
