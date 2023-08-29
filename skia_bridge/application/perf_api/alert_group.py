@@ -22,6 +22,10 @@ ALLOWED_CLIENTS = [
     'perf-chrome-internal@skia-infra-corp.iam.gserviceaccount.com',
 ]
 
+INTERNAL_CLIENTS = [
+  'perf-chrome-internal@skia-infra-corp.iam.gserviceaccount.com',
+  ]
+
 class AnomalyDetail:
   anomaly_id: int
   test_path: str
@@ -46,10 +50,12 @@ class AlertGroupDetailsResponse:
 @cloud_metric.APIMetric("skia-bridge", "/alert_group/details")
 def AlertGroupDetailsPostHandler():
   try:
-    is_authorized = auth_helper.AuthorizeBearerToken(request, ALLOWED_CLIENTS)
+    is_authorized, client_email = auth_helper.AuthorizeBearerToken(
+      request, ALLOWED_CLIENTS)
     if not is_authorized:
       return 'Unauthorized', 401
 
+    internal:bool = client_email in INTERNAL_CLIENTS
     group_key = request.args.get('key')
     if not group_key:
       return 'Alert group key is required in the request', 400
@@ -65,12 +71,19 @@ def AlertGroupDetailsPostHandler():
                                       anomaly_ids)
       logging.info('Retrieved %i anomalies for group id %s', len(anomalies),
                    group_key)
+      if not internal:
+        public_anomalies = []
+        for anomaly in anomalies:
+          if anomaly.get('internal_only') == False:
+            public_anomalies.append(anomaly)
+
+        anomalies = public_anomalies
 
       response = AlertGroupDetailsResponse()
-      response.group_id = group_key
-      response.anomalies = []
 
       if len(anomalies) > 0:
+        response.group_id = group_key
+        response.anomalies = []
         start_commit = anomalies[0].get('start_revision')
         end_commit = anomalies[0].get('end_revision')
         for anomaly in anomalies :
@@ -83,7 +96,11 @@ def AlertGroupDetailsPostHandler():
         response.start_commit = start_commit
         response.end_commit = end_commit
 
-      return response.ToDict()
+        return response.ToDict()
+      else:
+        logging.info('No anomalies exist for alert group or ' +
+                     'user does not have permission to view data.')
+        return {}
     else:
       logging.info('No alert group found with key %s', group_key)
       return {}

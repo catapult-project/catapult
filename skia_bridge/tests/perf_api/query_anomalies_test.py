@@ -23,6 +23,7 @@ import mock
 
 class QueryAnomaliesTest(unittest.TestCase):
 
+  _test_email = "test@chromium.org"
   def setUp(self):
     self.client = app.Create().test_client()
     os.environ['DISABLE_METRICS'] = 'True'
@@ -31,7 +32,7 @@ class QueryAnomaliesTest(unittest.TestCase):
     test_name = 'master/bot/test1/metric'
     with mock.patch('application.perf_api.auth_helper.AuthorizeBearerToken') \
         as auth_mock:
-      auth_mock.return_value = True
+      auth_mock.return_value = True, self._test_email
       response = self.client.post(
           '/anomalies/find',
           data='{"tests":["%s"],'  # Wrong request param
@@ -44,7 +45,7 @@ class QueryAnomaliesTest(unittest.TestCase):
     test_name = 'master/bot/test1/metric'
     with mock.patch('application.perf_api.auth_helper.AuthorizeBearerToken') \
         as auth_mock:
-      auth_mock.return_value = True
+      auth_mock.return_value = True, self._test_email
       response = self.client.post(
           '/anomalies/find',
           data='{"SearchTests":["%s"],'  # Wrong request param
@@ -61,7 +62,7 @@ class QueryAnomaliesTest(unittest.TestCase):
     test_name = 'master/bot/test1/metric'
     with mock.patch('application.perf_api.auth_helper.AuthorizeBearerToken') \
         as auth_mock:
-      auth_mock.return_value = True
+      auth_mock.return_value = True, self._test_email
       response = self.client.post(
           '/anomalies/find',
           data='{"tests":["%s"], "max_revision":"1234", "min_revision":"1233"}'
@@ -95,7 +96,7 @@ class QueryAnomaliesTest(unittest.TestCase):
 
     with mock.patch('application.perf_api.auth_helper.AuthorizeBearerToken') \
         as auth_mock:
-      auth_mock.return_value = True
+      auth_mock.return_value = True, self._test_email
       # Search for a test for which anomaly does not exist
       response = self.client.post(
           '/anomalies/find',
@@ -125,7 +126,7 @@ class QueryAnomaliesTest(unittest.TestCase):
 
     with mock.patch('application.perf_api.auth_helper.AuthorizeBearerToken') \
         as auth_mock:
-      auth_mock.return_value = True
+      auth_mock.return_value = True, self._test_email
 
       # Replace the single inverted comma with double to render the json
       test_str = str(tests).replace('\'', '"')
@@ -172,7 +173,7 @@ class QueryAnomaliesTest(unittest.TestCase):
     query_mock.side_effect = mock_query
     with mock.patch('application.perf_api.auth_helper.AuthorizeBearerToken') \
         as auth_mock:
-      auth_mock.return_value = True
+      auth_mock.return_value = True, self._test_email
       response = self.client.post(
           '/anomalies/find',
           data='{"tests":["%s"], "max_revision":"1234", "min_revision":"1233"}'

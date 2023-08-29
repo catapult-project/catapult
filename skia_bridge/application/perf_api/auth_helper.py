@@ -19,7 +19,7 @@ def AuthorizeBearerToken(request, allow_list=None):
 
   # Check that the request includes the `Authorization` header.
   if "Authorization" not in request.headers:
-    return False
+    return False, None
 
   access_token = request.headers["Authorization"].split("Bearer ")[1]
   token_info_url = '%s?bearer_token=%s' % (TOKEN_INFO_ENDPOINT, access_token)
@@ -29,14 +29,14 @@ def AuthorizeBearerToken(request, allow_list=None):
     logging.warning(
       'Invalid response status from token info endpoint: %s. Url: %s',
       response, token_info_url)
-    return False
+    return False, None
 
   content_dict = json.loads(content)
   email = content_dict.get('email')
   logging.info('Client email: %s', email)
   if email and content_dict.get('email_verified'):
     if allow_list is None or email in allow_list:
-      return True
+      return True, email
 
   logging.warning('No valid email is found in request token.')
-  return False
+  return False, None

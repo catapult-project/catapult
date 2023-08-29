@@ -81,7 +81,8 @@ class AnomalyResponse:
 def QueryAnomaliesPostHandler():
   try:
     logging.info('Received query request with data %s', request.data)
-    is_authorized = auth_helper.AuthorizeBearerToken(request, ALLOWED_CLIENTS)
+    is_authorized, _ = auth_helper.AuthorizeBearerToken(
+      request, ALLOWED_CLIENTS)
     if not is_authorized:
       return 'Unauthorized', 401
     try:
