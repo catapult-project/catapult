@@ -43,7 +43,7 @@ def HighThreshold(mode, magnitude, sample_size):
     magnitude_index = int(magnitude * 10) - 1
   elif mode == 'performance':
     thresholds = _HIGH_THRESHOLDS_PERFORMANCE
-    magnitude_index = int(magnitude * 10) - 5
+    magnitude_index = int(magnitude * 10) - 3
   else:
     raise NotImplementedError()
 
