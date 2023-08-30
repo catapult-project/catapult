@@ -114,9 +114,8 @@ class AndroidReverseForwarder(forwarders.Forwarder):
     super().__init__()
     self._device = device
     assert remote_port, 'Remote port must be given'
-    if not local_port:
-      local_port = util.GetUnreservedAvailableLocalPort()
-    self._device.adb.Forward('tcp:%d' % local_port, remote_port)
+    local_port = int(self._device.adb.Forward('tcp:%d' % (local_port or 0),
+                                              remote_port))
     self._StartedForwarding(local_port, remote_port)
 
   def Close(self):
