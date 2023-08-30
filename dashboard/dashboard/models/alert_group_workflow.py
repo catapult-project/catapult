@@ -1125,6 +1125,13 @@ class AlertGroupWorkflow:
                                             alert.benchmark_name)
 
     alert_magnitude = alert.median_after_anomaly - alert.median_before_anomaly
+    tags = {
+        'test_path': utils.TestPath(alert.test),
+        'alert': six.ensure_str(alert.key.urlsafe()),
+        'auto_bisection': 'true',
+    }
+    if self._group.status == self._group.Status.sandwiched:
+      tags['sandwiched'] = 'true'
     return pinpoint_service.MakeBisectionRequest(
         test=alert.test.get(),
         commit_range=pinpoint_service.CommitRange(
@@ -1138,11 +1145,7 @@ class AlertGroupWorkflow:
         comparison_magnitude=alert_magnitude,
         name=job_name,
         priority=10,
-        tags={
-            'test_path': utils.TestPath(alert.test),
-            'alert': six.ensure_str(alert.key.urlsafe()),
-            'auto_bisection': 'true',
-        },
+        tags=tags,
     )
 
   def _UpdateWithBisectError(self, now, error, labels=None):
