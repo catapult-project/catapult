@@ -252,10 +252,7 @@ wheel: <
 >
 wheel: <
   name: "infra/python/wheels/ijson/${vpython_platform}"
-  version: "version:3.1.4"
-  match_tag: <
-    platform: "manylinux1_x86_64"
-  >
+  version: "version:3.2.3"
 >
 wheel: <
   name: "infra/python/wheels/google-cloud-monitoring-py2_py3"
