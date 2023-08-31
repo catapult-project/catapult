@@ -387,15 +387,15 @@ def _ComputePostMergeDetails(commit_cache_key, cc_list):
   return merge_details, cc_list
 
 
-def _GetBugStatus(bug_id, project='chromium'):
+def _GetBugData(bug_id, project='chromium'):
   if not bug_id:
-    return None, None
+    return None
 
   issue_data = perf_issue_service_client.GetIssue(bug_id, project_name=project)
   if not issue_data:
-    return None, None
+    return None
 
-  return issue_data.get('owner'), issue_data.get('status')
+  return issue_data
 
 
 def _FormatDocumentationUrls(tags):
@@ -467,10 +467,11 @@ def UpdatePostAndMergeDeferred(bug_update_builder,
       commit_cache_key,
       bug_update.cc_list,
   )
-  owner, current_bug_status = _GetBugStatus(
-      bug_id,
-      project=project,
-  )
+
+  bug_data = _GetBugData(bug_id, project)
+  if not bug_data:
+    return
+  owner, current_bug_status = bug_data.get('owner'), bug_data.get('status')
   if not current_bug_status:
     return
 
@@ -507,6 +508,17 @@ def UpdatePostAndMergeDeferred(bug_update_builder,
     logging.warning(
         '[DelayAssignment] Failed to compute auto bisect info. Bug ID: %s. %s',
         bug_id, str(e))
+
+  current_bug_labels = bug_data.get('labels', [])
+  if len(current_bug_labels) > 0 and 'DoNotNotify' in current_bug_labels:
+    logging.info(
+      '[DoNotNotify] Removing owner: %s and cc_list: %s for bug_id: %s in project: %s',
+      bug_owner, cc_list, bug_id, project)
+    bug_owner = ''
+    cc_list = set()
+    # We cannot have "Assigned" status with no owner.
+    if status == 'Assigned':
+      status = 'Available'
 
   perf_issue_service_client.PostIssueComment(
       issue_id=bug_id,

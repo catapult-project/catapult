@@ -492,6 +492,50 @@ class BugCommentTest(test.TestCase):
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
   @mock.patch.object(job.job_state.JobState, 'Differences')
+  def testCompletedWithCommitDoNotNotify(self, differences, result_values,
+                                         commit_as_dict):
+    c = change.Change((change.Commit('chromium', 'git_hash'),))
+    differences.return_value = [(None, c)]
+    result_values.side_effect = [0], [1.23456]
+    commit_as_dict.return_value = {
+        'repository': 'chromium',
+        'git_hash': 'git_hash',
+        'url': 'https://example.com/repository/+/git_hash',
+        'author': 'author@chromium.org',
+        'subject': 'Subject.',
+        'message': 'Subject.\n\nCommit message.',
+    }
+    self.get_issue.return_value = {
+        'status': 'Untriaged',
+        'labels': ['DoNotNotify']
+    }
+    j = job.Job.New((), (), bug_id=123456, comparison_mode='performance')
+    scheduler.Schedule(j)
+    j.Run()
+    self.ExecuteDeferredTasks('default')
+    self.assertFalse(j.failed)
+    self.add_bug_comment.assert_called_once_with(
+        issue_id=123456,
+        project_name='chromium',
+        comment=mock.ANY,
+        status='Available',  # Status should be available since no owner
+        owner='',  # No owner expected
+        labels=mock.ANY,
+        cc=[],  # No cc list expected
+        merge_issue=None)
+    message = self.add_bug_comment.call_args.kwargs['comment']
+    self.assertIn('Found a significant difference at 1 commit.', message)
+    self.assertIn('<b>Subject.</b>', message)
+    self.assertIn('https://example.com/repository/+/git_hash', message)
+    labels = self.add_bug_comment.call_args.kwargs['labels']
+    self.assertIn('Pinpoint-Culprit-Found', labels)
+    self.assertNotIn('-Pinpoint-Culprit-Found', labels)
+    self.assertIn('Pinpoint-Job-Completed', labels)
+    self.assertNotIn('-Pinpoint-Job-Completed', labels)
+
+  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'ResultValues')
+  @mock.patch.object(job.job_state.JobState, 'Differences')
   def testCompletedMergeIntoExisting(self, differences, result_values,
                                      commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
