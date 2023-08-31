@@ -437,12 +437,15 @@ class BuganizerClient:
       if response:
         return response
     except errors.HttpError as e:
-      logging.error(
+      logging.warning(
         '[PerfIssueService] Buganizer error on post comments: %s', str(e))
       reason = self._GetErrorReason(e)
       if reason is None:
         reason = ''
       if retry and 'The user does not exist' in reason:
+        logging.debug(
+          'Removing assignee and ccs from issue modify request: %s',
+          modify_request)
         if 'assignee' in modify_request.get('addMask', ''):
           current_add_mask_list = modify_request.get('addMask').split(',')
           current_add_mask_list.remove('assignee')

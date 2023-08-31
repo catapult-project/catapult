@@ -199,7 +199,7 @@ class MonorailClient:
           'Content': response['content']
         }
     except errors.HttpError as e:
-      logging.error('Monorail error: %s', str(e))
+      logging.warning('Seeing Monorail error: %s. Could be handleable', str(e))
       reason = _GetErrorReason(e)
       if reason is None:
         reason = ''
@@ -209,13 +209,19 @@ class MonorailClient:
         # TODO (crbug.com/806392): We should probably figure out which user it
         # is rather than removing all of them.
         if 'owner' in body['updates']:
+          logging.debug(
+            'Removing owner %s as possible invalid user.', body['updates']['owner'])
           del body['updates']['owner']
         if 'cc' in body['updates']:
+          logging.debug(
+            'Removing cc list %s as possible invalid user.', body['updates']['cc'])
           del body['updates']['cc']
         return self._MakeCommentRequest(issue_id, body, retry=False)
       if retry and 'Issue owner must be a project member' in reason:
         # Remove the owner but retain the cc list.
         if 'owner' in body['updates']:
+          logging.debug(
+            'Removing owner %s as non-project member.', body['updates']['owner'])
           del body['updates']['owner']
         return self._MakeCommentRequest(issue_id, body, retry=False)
       # This error reason is received when issue is deleted.
