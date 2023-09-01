@@ -257,7 +257,7 @@ class AlertGroupWorkflow:
       Monorail API issue json and canonical AlertGroup if any.
     """
     duplicate_groups = self._FindDuplicateGroups()
-
+    duplicate_group_keys = []
     # Parity check for duplicated groups
     try:
       duplicate_group_keys = self._FindDuplicateGroupKeys()
