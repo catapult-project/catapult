@@ -453,6 +453,14 @@ class DeviceUtilsIsApplicationInstalledTest(DeviceUtilsTest):
                            ['package:some.installed.app'])):
       self.assertTrue(self.device.IsApplicationInstalled('some.installed.app'))
 
+  def testIsApplicationInstalled_installed_currentUser(self):
+    with self.patch_call(self.call.device.target_user, return_value=11):
+      with self.assertCalls((self.call.device.RunShellCommand(
+          ['pm', 'list', 'packages', '--user', '11', 'some.installed.app'],
+          check_return=True), ['package:some.installed.app'])):
+        self.assertTrue(
+            self.device.IsApplicationInstalled('some.installed.app'))
+
   def testIsApplicationInstalled_notInstalled(self):
     with self.assertCalls((self.call.device.RunShellCommand(
         ['pm', 'list', 'packages', 'not.installed.app'],
@@ -492,6 +500,38 @@ class DeviceUtilsIsApplicationInstalledTest(DeviceUtilsTest):
         large_output=True), ['Package [some.installed.app_1234] (a1245):'])):
       self.assertTrue(
           self.device.IsApplicationInstalled('some.installed.app', 1234))
+
+  def testIsApplicationInstalled_dumpsysFallbackVersioned_currentUserInstalled(
+      self):
+    dumpsys_output = [
+        'Package [some.installed.app_1234] (a1245):',
+        '  User 0: ceDataInode=0 installed=false hidden=false suspended=false',
+        '  User 10: ceDataInode=0 installed=false hidden=false suspended=false',
+        '  User 11: ceDataInode=0 installed=true hidden=false suspended=false',
+    ]
+    with self.patch_call(self.call.device.target_user, return_value=11):
+      with self.assertCalls((self.call.device.RunShellCommand(
+          ['dumpsys', 'package', 'some.installed.app_1234'],
+          check_return=True,
+          large_output=True), dumpsys_output)):
+        self.assertTrue(
+            self.device.IsApplicationInstalled('some.installed.app', 1234))
+
+  def testIsApplicationInstalled_dumpsysFallbackVersioned_currentUserNotInstalled(
+      self):
+    dumpsys_output = [
+        'Package [some.installed.app_1234] (a1245):',
+        '  User 0: ceDataInode=0 installed=true hidden=false suspended=false',
+        '  User 10: ceDataInode=0 installed=false hidden=false suspended=false',
+        '  User 11: ceDataInode=0 installed=false hidden=false suspended=false',
+    ]
+    with self.patch_call(self.call.device.target_user, return_value=11):
+      with self.assertCalls((self.call.device.RunShellCommand(
+          ['dumpsys', 'package', 'some.installed.app_1234'],
+          check_return=True,
+          large_output=True), dumpsys_output)):
+        self.assertFalse(
+            self.device.IsApplicationInstalled('some.installed.app', 1234))
 
   def testIsApplicationInstalled_dumpsysFallbackVersionNotInstalled(self):
     with self.assertCalls((self.call.device.RunShellCommand(
@@ -692,11 +732,19 @@ class DeviceUtilsGetApplicationDataDirectoryTest(DeviceUtilsTest):
   def testGetApplicationDataDirectory_exists(self):
     with self.assertCalls(
         (self.call.device.IsApplicationInstalled('foo.bar.baz'), True),
-        (self.call.device._RunPipedShellCommand(
-            'pm dump foo.bar.baz | grep dataDir='),
-         ['dataDir=/data/data/foo.bar.baz'])):
-      self.assertEqual('/data/data/foo.bar.baz',
+        (self.call.device.PathExists('/data/user/0/foo.bar.baz',
+                                     as_root=True), True)):
+      self.assertEqual('/data/user/0/foo.bar.baz',
                        self.device.GetApplicationDataDirectory('foo.bar.baz'))
+
+  def testGetApplicationDataDirectory_exists_currentUser(self):
+    with self.patch_call(self.call.device.target_user, return_value=11):
+      with self.assertCalls(
+          (self.call.device.IsApplicationInstalled('foo.bar.baz'), True),
+          (self.call.device.PathExists('/data/user/11/foo.bar.baz',
+                                       as_root=True), True)):
+        self.assertEqual('/data/user/11/foo.bar.baz',
+                         self.device.GetApplicationDataDirectory('foo.bar.baz'))
 
   def testGetApplicationDataDirectory_notInstalled(self):
     with self.assertCalls(
@@ -707,8 +755,8 @@ class DeviceUtilsGetApplicationDataDirectoryTest(DeviceUtilsTest):
   def testGetApplicationDataDirectory_notExists(self):
     with self.assertCalls(
         (self.call.device.IsApplicationInstalled('foo.bar.baz'), True),
-        (self.call.device._RunPipedShellCommand(
-            'pm dump foo.bar.baz | grep dataDir='), self.ShellError())):
+        (self.call.device.PathExists('/data/user/0/foo.bar.baz',
+                                     as_root=True), False)):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device.GetApplicationDataDirectory('foo.bar.baz')
 
@@ -2136,6 +2184,15 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
         'Starting: Intent { act=android.intent.action.VIEW }'):
       self.device.StartActivity(test_intent)
 
+  def testStartActivity_actionOnly_currentUser(self):
+    test_intent = intent.Intent(action='android.intent.action.VIEW')
+    with self.patch_call(self.call.device.target_user, return_value=11):
+      with self.assertCalls(
+          (self.call.adb.Shell('am start --user 11 '
+                               '-a android.intent.action.VIEW'),
+           'Starting: Intent { act=android.intent.action.VIEW }')):
+        self.device.StartActivity(test_intent)
+
   def testStartActivity_success(self):
     test_intent = intent.Intent(
         action='android.intent.action.VIEW',
@@ -2321,6 +2378,22 @@ class DeviceUtilsStartServiceTest(DeviceUtilsTest):
           'Starting service: Intent { act=android.intent.action.START }'):
         self.device.StartService(test_intent)
 
+  def testStartService_success_currentUser(self):
+    test_intent = intent.Intent(
+        action='android.intent.action.START',
+        package=TEST_PACKAGE,
+        activity='.Main')
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.NOUGAT), \
+         self.patch_call(self.call.device.target_user,
+                         return_value=11):
+      with self.assertCalls(
+          (self.call.adb.Shell('am startservice --user 11 '
+                               '-a android.intent.action.START '
+                               '-n test.package/.Main'),
+           'Starting service: Intent { act=android.intent.action.START }')):
+        self.device.StartService(test_intent)
+
   def testStartService_failure(self):
     test_intent = intent.Intent(
         action='android.intent.action.START',
@@ -2335,21 +2408,6 @@ class DeviceUtilsStartServiceTest(DeviceUtilsTest):
           'Error: Failed to start test service'):
         with self.assertRaises(device_errors.CommandFailedError):
           self.device.StartService(test_intent)
-
-  def testStartService_withUser(self):
-    test_intent = intent.Intent(
-        action='android.intent.action.START',
-        package=TEST_PACKAGE,
-        activity='.Main')
-    with self.patch_call(
-        self.call.device.build_version_sdk, return_value=version_codes.NOUGAT):
-      with self.assertCall(
-          self.call.adb.Shell('am startservice '
-                              '--user TestUser '
-                              '-a android.intent.action.START '
-                              '-n test.package/.Main'),
-          'Starting service: Intent { act=android.intent.action.START }'):
-        self.device.StartService(test_intent, user_id='TestUser')
 
   def testStartService_onOreo(self):
     test_intent = intent.Intent(
@@ -2422,6 +2480,19 @@ class DeviceUtilsStartInstrumentationTest(DeviceUtilsTest):
               'test.package.foo': 'Foo',
               'bar': 'Val test.package'
           })
+
+  def testStartInstrumentation_currentUser(self):
+    cmd = 'p=test.package;am instrument --user 11 "$p"/.TestInstrumentation'
+    with self.patch_call(self.call.device.target_user, return_value=11):
+      with self.assertCalls(
+          self.call.device.RunShellCommand(cmd,
+                                           shell=True,
+                                           check_return=True,
+                                           large_output=True)):
+        self.device.StartInstrumentation('test.package/.TestInstrumentation',
+                                         finish=False,
+                                         raw=False,
+                                         extras=None)
 
 
 class DeviceUtilsBroadcastIntentTest(DeviceUtilsTest):
@@ -2715,6 +2786,20 @@ class DeviceUtilsClearApplicationStateTest(DeviceUtilsTest):
         (self.call.device.GrantPermissions('this.package.exists', ['p1']), [])):
       self.device.ClearApplicationState(
           'this.package.exists', permissions=['p1'])
+
+  def testClearApplicationState_setPermissions_currentUser(self):
+    with self.patch_call(self.call.device.target_user, return_value=11):
+      with self.assertCalls(
+          (self.call.device.GetProp('ro.build.version.sdk', cache=True), '17'),
+          (self.call.device._GetApplicationPathsInternal('this.package.exists'),
+           ['/data/app/this.package.exists.apk']),
+          (self.call.device.RunShellCommand(
+              ['pm', 'clear', '--user', '11', 'this.package.exists'],
+              check_return=True), ['Success']),
+          (self.call.device.GrantPermissions('this.package.exists',
+                                             ['p1']), [])):
+        self.device.ClearApplicationState('this.package.exists',
+                                          permissions=['p1'])
 
   def testClearApplicationState_packageDoesntExist(self):
     with self.assertCalls(
@@ -4372,6 +4457,20 @@ class DeviceUtilsGrantPermissionsTest(DeviceUtilsTest):
           })):
         self.device.GrantPermissions('package', ['p1', 'p2'])
 
+  def testGrantPermissions_currentUser(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.MARSHMALLOW), \
+         self.patch_call(self.call.device.target_user,
+                         return_value=11):
+      with self.assertCalls((self.call.device.RunShellCommand(
+          AnyStringWith('do pm grant --user 11'),
+          shell=True,
+          raw_output=True,
+          large_output=True,
+          check_return=True), '{sep}p1{sep}0{sep}'.format(
+              sep=device_utils._SHELL_OUTPUT_SEPARATOR))):
+        self.device.GrantPermissions('package', ['p1'])
+
   def testGrantPermissions_WriteExtrnalStorage(self):
     WRITE = 'android.permission.WRITE_EXTERNAL_STORAGE'
     READ = 'android.permission.READ_EXTERNAL_STORAGE'
@@ -4393,11 +4492,31 @@ class DeviceUtilsGrantPermissionsTest(DeviceUtilsTest):
                            return_value=version_codes.R):
         with self.assertCalls(
             (self.call.device.RunShellCommand(
-                AnyStringWith('appops set pkg MANAGE_EXTERNAL_STORAGE allow'),
+                AnyStringWith('appops set  pkg MANAGE_EXTERNAL_STORAGE allow'),
                 shell=True,
                 raw_output=True,
                 large_output=True,
                 check_return=True),
+             '{sep}MANAGE_EXTERNAL_STORAGE{sep}0{sep}\n'.format(
+                 sep=device_utils._SHELL_OUTPUT_SEPARATOR))):
+          self.device.GrantPermissions(
+              'pkg', ['android.permission.MANAGE_EXTERNAL_STORAGE'])
+      self.assertEqual(logger.warnings, [])
+
+  def testGrantPermissions_ManageExtrnalStorage_currentUser(self):
+    with PatchLogger() as logger:
+      with self.patch_call(self.call.device.build_version_sdk,
+                           return_value=version_codes.R), \
+           self.patch_call(self.call.device.target_user,
+                           return_value=11):
+        with self.assertCalls(
+            (self.call.device.RunShellCommand(AnyStringWith(
+                'appops set --user 11 '
+                'pkg MANAGE_EXTERNAL_STORAGE allow'),
+                                              shell=True,
+                                              raw_output=True,
+                                              large_output=True,
+                                              check_return=True),
              '{sep}MANAGE_EXTERNAL_STORAGE{sep}0{sep}\n'.format(
                  sep=device_utils._SHELL_OUTPUT_SEPARATOR))):
           self.device.GrantPermissions(
