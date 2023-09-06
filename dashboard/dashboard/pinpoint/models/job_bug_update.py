@@ -433,7 +433,7 @@ def _ComputeAutobisectUpdate(tags):
   client = sheriff_config_client.GetSheriffConfigClient()
   matched_configs, _ = client.Match(test_key, check=True)
 
-  logging.debug('[DelayAssignment] matched config: %s', matched_configs)
+  logging.debug('[DelayTriage] matched config: %s', matched_configs)
 
   components, ccs, labels = set(), set(), set()
 
@@ -494,28 +494,49 @@ def UpdatePostAndMergeDeferred(bug_update_builder,
       )
       cc_list.add(owner.get('email', ''))
 
-  # Calculate the info which is currently added on auto-triage and will
-  # be delayed to after auto-bisect finishes.
+  current_bug_labels = bug_data.get('labels', [])
+
+  # If the label 'Chromeperf-Delay-Triage' exists in the filed issue,
+  # the issue is not triaged yet. We need to do triage here by adding
+  # the following info: component, cc list and labels.
+  components = []
+  labels = bug_update.labels
   try:
-    logging.debug('[DelayAssignment] Job tags: %s', tags)
-    auto_bisect_updates = _ComputeAutobisectUpdate(tags)
-    if auto_bisect_updates:
-      logging.info(
-          '[DelayAssignment] Issue ID: %s. Components: %s, CC: %s, Labels: %s.',
-          bug_id, auto_bisect_updates[0], auto_bisect_updates[1],
-          auto_bisect_updates[2])
+    if 'Chromeperf-Delay-Triage' in current_bug_labels:
+      logging.debug('[DelayTriage] Job tags: %s', tags)
+      auto_bisect_updates = _ComputeAutobisectUpdate(tags)
+
+      if not auto_bisect_updates:
+        logging.warning('[DelayTriage] Missing info needed for delayed triage.')
+      else:
+        components = auto_bisect_updates[0]
+        new_cc_list = auto_bisect_updates[1]
+        new_labels = auto_bisect_updates[2]
+        # Speed>Benchmarks is the place holder when creating an untriaged issue.
+        components.append('-Speed>Benchmarks')
+
+        logging.info(
+            '[DelayTriage] Issue ID: %s. Components: %s, CC: %s, Labels: %s.',
+            bug_id, components, new_cc_list, new_labels)
+
+        cc_list.update(set(new_cc_list))
+        labels_set = set(labels)
+        labels_set.update(set(new_labels))
+        labels = list(labels_set)
+
   except Exception as e:  # pylint: disable=broad-except
     logging.warning(
-        '[DelayAssignment] Failed to compute auto bisect info. Bug ID: %s. %s',
+        '[DelayTriage] Failed to compute auto bisect info. Bug ID: %s. %s',
         bug_id, str(e))
 
-  current_bug_labels = bug_data.get('labels', [])
   if len(current_bug_labels) > 0 and 'DoNotNotify' in current_bug_labels:
     logging.info(
-      '[DoNotNotify] Removing owner: %s and cc_list: %s for bug_id: %s in project: %s',
-      bug_owner, cc_list, bug_id, project)
+        '[DoNotNotify] Removing owner: %s, cc_list: %s and components: %s '
+        'for bug_id: %s in project: %s', bug_owner, cc_list, components, bug_id,
+        project)
     bug_owner = ''
     cc_list = set()
+    components = []
     # We cannot have "Assigned" status with no owner.
     if status == 'Assigned':
       status = 'Available'
@@ -526,8 +547,9 @@ def UpdatePostAndMergeDeferred(bug_update_builder,
       comment=bug_update.comment_text,
       status=status,
       cc=sorted(cc_list),
+      components=components,
       owner=bug_owner,
-      labels=bug_update.labels,
+      labels=labels,
       merge_issue=merge_details.get('id'))
   update_bug_with_results.UpdateMergeIssue(
       commit_cache_key, merge_details, bug_id, project=project)

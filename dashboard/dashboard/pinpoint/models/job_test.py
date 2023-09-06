@@ -14,12 +14,14 @@ import sys
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
 
+from dashboard import sheriff_config_client
 from dashboard.common import testing_common
 from dashboard.common import layered_cache
 from dashboard.common import utils
 from dashboard.models import histogram
 from dashboard.models import anomaly
 from dashboard.models import graph_data
+from dashboard.models import subscription
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import job
@@ -478,6 +480,7 @@ class BugCommentTest(test.TestCase):
         owner='author@chromium.org',
         labels=mock.ANY,
         cc=['author@chromium.org'],
+        components=[],
         merge_issue=None)
     message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found a significant difference at 1 commit.', message)
@@ -488,6 +491,64 @@ class BugCommentTest(test.TestCase):
     self.assertNotIn('-Pinpoint-Culprit-Found', labels)
     self.assertIn('Pinpoint-Job-Completed', labels)
     self.assertNotIn('-Pinpoint-Job-Completed', labels)
+
+  @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
+  @mock.patch.object(job.job_state.JobState, 'ResultValues')
+  @mock.patch.object(job.job_state.JobState, 'Differences')
+  @mock.patch.object(sheriff_config_client.SheriffConfigClient, 'Match')
+  @mock.patch.object(histogram.SparseDiagnostic, 'GetMostRecentDataByNamesSync')
+  def testCompletedWithCommitAndTriage(self, recent_data, match, differences,
+                                       result_values, commit_as_dict):
+    c = change.Change((change.Commit('chromium', 'git_hash'),))
+    differences.return_value = [(None, c)]
+    result_values.side_effect = [0], [1.23456]
+    commit_as_dict.return_value = {
+        'repository': 'chromium',
+        'git_hash': 'git_hash',
+        'url': 'https://example.com/repository/+/git_hash',
+        'author': 'author@chromium.org',
+        'subject': 'Subject.',
+        'message': 'Subject.\n\nCommit message.',
+    }
+    match.return_value = ([
+        subscription.Subscription(
+            name='sheriff subscription',
+            bug_components=['triage-component'],
+            bug_cc_emails=['triage@cc.email'],
+            bug_labels=['triaged-label'])
+    ], None)
+    recent_data.return_value = ''
+    self.get_issue.return_value = {
+        'status': 'Untriaged',
+        'labels': ['Chromeperf-Delay-Triage']
+    }
+    j = job.Job.New((), (),
+                    bug_id=123456,
+                    comparison_mode='performance',
+                    tags={
+                        'auto_bisection': 'true',
+                        'test_path': 'dummy/path'
+                    })
+    scheduler.Schedule(j)
+    app = Flask(__name__)
+    with app.test_request_context('dummy/path', 'GET'):
+      j.Run()
+    self.ExecuteDeferredTasks('default')
+    self.assertFalse(j.failed)
+    self.add_bug_comment.assert_called_once_with(
+        issue_id=123456,
+        project_name='chromium',
+        comment=mock.ANY,
+        status='Assigned',
+        owner='author@chromium.org',
+        labels=mock.ANY,
+        cc=['author@chromium.org', 'triage@cc.email'],
+        components=['triage-component', '-Speed>Benchmarks'],
+        merge_issue=None)
+    message = self.add_bug_comment.call_args.kwargs['comment']
+    self.assertIn('Found a significant difference at 1 commit.', message)
+    labels = self.add_bug_comment.call_args.kwargs['labels']
+    self.assertIn('triaged-label', labels)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')
@@ -522,6 +583,7 @@ class BugCommentTest(test.TestCase):
         owner='',  # No owner expected
         labels=mock.ANY,
         cc=[],  # No cc list expected
+        components=[],
         merge_issue=None)
     message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found a significant difference at 1 commit.', message)
@@ -567,6 +629,7 @@ class BugCommentTest(test.TestCase):
         status='Assigned',
         owner='author@chromium.org',
         cc=[],
+        components=[],
         labels=mock.ANY,
         merge_issue='111222')
     message = self.add_bug_comment.call_args.kwargs['comment']
@@ -627,6 +690,7 @@ class BugCommentTest(test.TestCase):
         owner='author@chromium.org',
         labels=mock.ANY,
         cc=['author@chromium.org'],
+        components=[],
         merge_issue=None)
     message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found a significant difference at 1 commit.', message)
@@ -705,6 +769,7 @@ class BugCommentTest(test.TestCase):
         owner='author@chromium.org',
         labels=mock.ANY,
         cc=['author@chromium.org'],
+        components=[],
         merge_issue=None)
     message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found a significant difference at 1 commit.', message)
@@ -745,6 +810,7 @@ class BugCommentTest(test.TestCase):
         owner='author@chromium.org',
         labels=mock.ANY,
         cc=['author@chromium.org'],
+        components=[],
         merge_issue=None)
     message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found a significant difference at 1 commit.', message)
@@ -788,6 +854,7 @@ class BugCommentTest(test.TestCase):
         owner='author@chromium.org',
         status=None,
         cc=['author@chromium.org', 'some-author@somewhere.org'],
+        components=[],
         labels=mock.ANY,
         merge_issue=None)
     message = self.add_bug_comment.call_args.kwargs['comment']
@@ -828,6 +895,7 @@ class BugCommentTest(test.TestCase):
         owner=None,
         status=None,
         cc=['author@chromium.org'],
+        components=[],
         labels=mock.ANY,
         merge_issue=None)
     message = self.add_bug_comment.call_args.kwargs['comment']
@@ -892,6 +960,7 @@ class BugCommentTest(test.TestCase):
         status='Assigned',
         owner='author1@chromium.org',
         cc=['author1@chromium.org'],
+        components=[],
         labels=mock.ANY,
         merge_issue=None,
     )
@@ -935,6 +1004,7 @@ class BugCommentTest(test.TestCase):
         status='Assigned',
         owner='author3@chromium.org',
         cc=['author3@chromium.org'],
+        components=[],
         labels=mock.ANY,
         merge_issue=None)
     message = self.add_bug_comment.call_args.kwargs['comment']
@@ -1014,6 +1084,7 @@ class BugCommentTest(test.TestCase):
         status='Assigned',
         owner=expected_ccs[0],
         cc=sorted(expected_ccs),
+        components=[],
         labels=mock.ANY,
         merge_issue=None)
     labels = self.add_bug_comment.call_args[1]['labels']
@@ -1074,6 +1145,7 @@ class BugCommentTest(test.TestCase):
         status='Assigned',
         owner='author1@chromium.org',
         cc=['author1@chromium.org'],
+        components=[],
         labels=mock.ANY,
         merge_issue=None)
     message = self.add_bug_comment.call_args.kwargs['comment']
@@ -1118,6 +1190,7 @@ class BugCommentTest(test.TestCase):
         status='Assigned',
         owner='sheriff@bar.com',
         cc=['chromium-autoroll@skia-public.iam.gserviceaccount.com'],
+        components=[],
         labels=mock.ANY,
         merge_issue=None)
     message = self.add_bug_comment.call_args.kwargs['comment']
@@ -1180,6 +1253,7 @@ class BugCommentTest(test.TestCase):
         status='Assigned',
         owner='sheriff@bar.com',
         cc=['chromium-autoroll@skia-public.iam.gserviceaccount.com'],
+        components=[],
         labels=mock.ANY,
         merge_issue=None)
 
