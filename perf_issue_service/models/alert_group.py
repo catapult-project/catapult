@@ -218,12 +218,12 @@ class AlertGroup:
       The 'ungrouped' entity if exists, otherwise create a new entity and
       return None.
     '''
-    ungrouped_groups = cls.Get('Ungrouped', 2)
+    ungrouped_groups = cls.Get('Ungrouped', datastore_client.AlertGroupType.ungrouped)
     if not ungrouped_groups:
       # initiate when there is no active group called 'Ungrouped'.
       new_group = cls.ds_client.NewAlertGroup(
         benchmark_name='Ungrouped',
-        group_type=0
+        group_type=datastore_client.AlertGroupType.ungrouped
       )
       cls.ds_client.SaveAlertGroup(new_group)
       return None
