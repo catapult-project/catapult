@@ -27,6 +27,7 @@ class EntityType(Enum):
   """Enum defining the entity types currently supported."""
   Anomaly = 'Anomaly'
   AlertGroup = 'AlertGroup'
+  TestMetadata = 'TestMetadata'
 
 
 class DataStoreClient:
@@ -53,6 +54,18 @@ class DataStoreClient:
     ]
     return filtered_results
 
+  def QueryAlertGroups(self, group_name, group_type):
+    query = self._client.query(kind='AlertGroup')
+    query.add_filter('active', '=', True)
+    query.add_filter('name', '=', group_name)
+
+    results = list(query.fetch())
+    filtered_results = [
+      group for group in results if group['group_type'] == group_type
+    ]
+
+    return filtered_results
+
   def GetEntity(self, entity_type:EntityType, entity_id):
     """Retrieves an entity of the specified type with the specified id."""
     entity_key = self._client.key(entity_type.value, entity_id)
@@ -63,3 +76,22 @@ class DataStoreClient:
     entity_keys = [self._client.key(entity_type.value, entity_id)
                    for entity_id in entity_ids]
     return self._client.get_multi(entity_keys)
+
+  def CreateEntity(self,
+                   entity_type:EntityType,
+                   entity_id,
+                   entity_values:dict,
+                   save:bool = False):
+    """Creates a new entity of the specified type with the supplied values"""
+    entity = datastore.Entity(self._client.key(entity_type.value, entity_id))
+    entity.update(entity_values)
+    if save:
+      self._client.put(entity)
+    return entity
+
+  def PutEntities(self, entities:[], transaction=False):
+    if transaction:
+      with self._client.transaction():
+        self._client.put_multi(entities)
+    else:
+      self._client.put_multi(entities)

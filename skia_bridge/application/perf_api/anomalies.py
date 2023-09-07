@@ -8,13 +8,13 @@ import datetime
 from flask import Blueprint, request, make_response
 import logging
 import json
+import uuid
 
-from common import cloud_metric
+from common import cloud_metric, utils
 from application.perf_api import datastore_client, auth_helper
 
-from google.cloud import datastore
 
-blueprint = Blueprint('query_anomalies', __name__)
+blueprint = Blueprint('anomalies', __name__)
 
 
 ALLOWED_CLIENTS = [
@@ -90,7 +90,9 @@ def QueryAnomaliesPostHandler():
     except json.decoder.JSONDecodeError:
       return 'Malformed Json', 400
 
-    is_valid, error = ValidateRequest(data)
+    is_valid, error = ValidateRequest(
+      data,
+      ['tests', 'min_revision', 'max_revision'])
     if not is_valid:
       return error, 400
 
@@ -115,21 +117,81 @@ def QueryAnomaliesPostHandler():
     logging.exception(e)
     raise
 
+@blueprint.route('/add', methods=['POST'], endpoint='AddAnomalyPostHandler')
+@cloud_metric.APIMetric("skia-bridge", "/anomalies/add")
+def AddAnomalyPostHandler():
+  try:
+    logging.info('Received query request with data %s', request.data)
+    is_authorized, _ = auth_helper.AuthorizeBearerToken(
+      request, ALLOWED_CLIENTS)
+    if not is_authorized:
+      return 'Unauthorized', 401
+    try:
+      data = json.loads(request.data)
+    except json.decoder.JSONDecodeError:
+      return 'Malformed Json', 400
+
+    required_keys = ['start_revision', 'end_revision', 'project_id',
+                     'test_path', 'is_improvement', 'bot_name',
+                     'internal_only']
+    is_valid, error = ValidateRequest(data, required_keys)
+    if not is_valid:
+      return error, 400
+
+    test_path = data['test_path']
+    # Create the anomaly entity with the required data
+    required_keys.remove('test_path')
+    anomaly_data = {key : data[key] for key in required_keys}
+    anomaly_data.update(GetTestFieldsFromPath(test_path))
+    anomaly_data['timestamp'] = datetime.datetime.utcnow()
+    anomaly_data['source'] = 'skia'
+    print('anomaly data: %s' % anomaly_data)
+    client = datastore_client.DataStoreClient()
+    anomaly = client.CreateEntity(datastore_client.EntityType.Anomaly,
+                                  str(uuid.uuid4()),
+                                  anomaly_data)
+    test_metadata = client.GetEntity(datastore_client.EntityType.TestMetadata,
+                                     test_path)
+    anomaly['test'] = test_metadata.key
+
+    skia_ungrouped_name = 'Ungrouped_Skia'
+    ungrouped_type = 2 # 2 is the type for "ungrouped" groups
+    alert_groups = client.QueryAlertGroups(skia_ungrouped_name, ungrouped_type)
+    if not alert_groups:
+      print('No ungrouped group found')
+      ungrouped_data = {
+        'project_id': anomaly_data['project_id'],
+        'group_type': ungrouped_type,
+        'active': True,
+        'anomalies': [anomaly.key],
+        'name': skia_ungrouped_name,
+        'created': datetime.datetime.utcnow(),
+        'updated': datetime.datetime.utcnow()
+      }
+      alert_group = client.CreateEntity(datastore_client.EntityType.AlertGroup,
+                                         str(uuid.uuid4()),
+                                         ungrouped_data,
+                                         save=True)
+    else:
+      alert_group = alert_groups[0]
+      alert_group['anomalies'].append(anomaly.key)
+      alert_group['updated'] = datetime.datetime.utcnow()
+
+    anomaly['groups'] = [alert_group]
+
+    client.PutEntities([anomaly, alert_group], transaction=True)
+    return {
+      'anomaly_id': anomaly.key.id_or_name,
+      'alert_group_id': alert_group.key.id_or_name
+    }
+  except Exception as e:
+    logging.exception(e)
+    raise
+
 
 def CreateTestBatches(testList):
   for i in range(0, len(testList), DATASTORE_TEST_BATCH_SIZE):
     yield testList[i:i + DATASTORE_TEST_BATCH_SIZE]
-
-
-def TestPath(key: datastore.key.Key):
-  if key.kind == 'Test':
-    # The Test key looks like ('Master', 'name', 'Bot', 'name', 'Test' 'name'..)
-    # Pull out every other entry and join with '/' to form the path.
-    return '/'.join(key.flat()[1::2])
-
-  assert key.kind == 'TestMetadata' or key.kind == 'TestContainer'
-  return key.id_or_name
-
 
 def GetAnomalyData(anomaly_obj):
   bug_id = anomaly_obj.get('bug_id')
@@ -138,7 +200,7 @@ def GetAnomalyData(anomaly_obj):
     bug_id = '-1'
 
   return AnomalyData(
-      test_path=TestPath(anomaly_obj.get('test')),
+      test_path=utils.TestPath(anomaly_obj.get('test')),
       start_revision=anomaly_obj.get('start_revision'),
       end_revision=anomaly_obj.get('end_revision'),
       timestamp=anomaly_obj.get('timestamp'),
@@ -159,8 +221,7 @@ def GetAnomalyData(anomaly_obj):
       t_statistic=anomaly_obj.get('t_statistic'),
   )
 
-def ValidateRequest(request_data):
-  required_keys = ['tests', 'min_revision', 'max_revision']
+def ValidateRequest(request_data, required_keys):
   missing_keys = []
   for key in required_keys:
     if not request_data.get(key):
@@ -173,3 +234,15 @@ def ValidateRequest(request_data):
     error = 'Required parameters %s missing from the request.' % missing_keys
 
   return result, error
+
+def GetTestFieldsFromPath(test_path: str):
+  # The test path is in the form master/bot/benchmark/test/...
+  test_fields = {}
+  test_parts = test_path.split('/')
+  if len(test_parts) < 4:
+    raise ValueError("Test path needs at least 4 parts")
+
+  test_keys = ['master_name', 'bot_name', 'benchmark_name']
+  for i in range(len(test_keys)):
+    test_fields[test_keys[i]] = test_parts[i]
+  return test_fields
