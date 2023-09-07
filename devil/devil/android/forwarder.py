@@ -39,42 +39,21 @@ def _GetProcessStartTime(pid):
   return p.create_time
 
 
-def _ReadAndDumpHostLog():
+def _DumpHostLog():
   # The host forwarder daemon logs to /tmp/host_forwarder_log, so print the end
   # of that.
   try:
     with open('/tmp/host_forwarder_log') as host_forwarder_log:
       logger.info('Last 50 lines of the host forwarder daemon log:')
-      contents = host_forwarder_log.read()
-      for line in contents.splitlines()[-50:]:
+      for line in host_forwarder_log.read().splitlines()[-50:]:
         logger.info('    %s', line)
-      return contents
   except Exception:  # pylint: disable=broad-except
     # Grabbing the host forwarder log is best-effort. Ignore all errors.
     logger.warning('Failed to get the contents of host_forwarder_log.')
-    return None
-
-
-def _DumpNetstat(device):
-  # Running as root allows us to get more useful information such as which
-  # program opened a port.
-  output_lines = device.RunShellCommand(['netstat', '-tuwxpa'],
-                                        check_return=True,
-                                        as_root=device.NeedsSU(),
-                                        large_output=True)
-  for line in output_lines:
-    logger.info('    %s', line)
 
 
 def _LogMapFailureDiagnostics(device):
-  log_contents = _ReadAndDumpHostLog()
-  if log_contents and 'has no more ports' in log_contents:
-    logger.info('Detected that device ran out of ports, dumping netstat:')
-    try:
-      _DumpNetstat(device)
-    except (device_errors.CommandFailedError,
-            device_errors.DeviceUnreachableError):
-      logger.warning('Failed to get the output of netstat.')
+  _DumpHostLog()
 
   # The device forwarder daemon logs to the logcat, so print the end of that.
   try:
@@ -476,7 +455,7 @@ class Forwarder(object):
         else:
           logger.error('No remaining host_forwarder processes?')
           return
-        _ReadAndDumpHostLog()
+        _DumpHostLog()
         error_msg = textwrap.dedent("""\
             `{kill_cmd}` failed to kill host_forwarder.
               exit_code: {exit_code}
