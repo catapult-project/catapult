@@ -2905,11 +2905,7 @@ class DeviceUtilsPushChangedFilesZippedTest(DeviceUtilsTest):
     def mock_zip_temp_dir():
       yield '/test/temp/dir'
 
-    expected_cmd = ''.join([
-        '\n  /data/local/tmp/bin/unzip %s &&',
-        ' (for dir in %s\n  do\n    chmod -R 777 "$dir" || exit 1\n',
-        '  done)\n'
-    ]) % ('/sdcard/foo123.zip', ' '.join(test_dirs))
+    expected_cmd = '/data/local/tmp/bin/unzip /sdcard/foo123.zip\n'
     with self.assertCalls(
         (self.call.device._MaybeInstallCommands(), True),
         (mock.call.py_utils.tempfile_ext.NamedTemporaryDirectory(),
