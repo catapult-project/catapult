@@ -80,6 +80,11 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
           ['cat', '/config/build-info/board'],
           stdout=subprocess.PIPE,
           stderr=subprocess.PIPE)
+
+    # Fuchsia changed its qemu-x64 board's name to x64, but for the sake of
+    # consistency we will still label it as qemu-x64
+    if self._device_type == 'x64':
+      self._device_type = 'qemu-x64'
     return 'fuchsia-board-' + self._device_type
 
   def GetOSVersionName(self):
