@@ -106,6 +106,10 @@ def _SetCorsHeadersIfAppropriate(req, resp):
     resp.headers['Access-Control-Max-Age'] = '3600'
 
 
-def _WriteErrorMessage(message, status):
-  logging.error(traceback.format_exc())
+def _WriteErrorMessage(message, status:int):
+  # Only log an error message if it's a 5xx error
+  if status >= 500:
+    logging.error(traceback.format_exc())
+  else:
+    logging.warning(traceback.format_exc())
   return make_response(json.dumps({'error': message}), status)
