@@ -37,6 +37,8 @@ class NetworkControllerBackend():
     self._ts_proxy_server = None
     self._forwarder = None
     self._wpr_server = None
+    self._open_attempted = False
+    self._previous_open_successful = False
 
   def Open(self, wpr_mode):
     """Get the target platform ready for network control.
@@ -54,6 +56,8 @@ class NetworkControllerBackend():
           wpr_modes.WPR_RECORD. Setting wpr_modes.WPR_OFF configures the
           network controller to use live traffic.
     """
+    self._open_attempted = True
+    self._previous_open_successful = False
     if self.is_open:
       use_live_traffic = wpr_mode == wpr_modes.WPR_OFF
       if self.use_live_traffic != use_live_traffic:
@@ -62,6 +66,7 @@ class NetworkControllerBackend():
         if self._wpr_mode != wpr_mode:
           self.StopReplay()  # Need to restart the WPR server, if any.
           self._wpr_mode = wpr_mode
+        self._previous_open_successful = True
         return
 
     self._wpr_mode = wpr_mode
@@ -72,10 +77,21 @@ class NetworkControllerBackend():
     except Exception:
       self.Close()
       raise
+    self._previous_open_successful = True
 
   @property
   def is_open(self):
     return self._ts_proxy_server is not None
+
+  @property
+  def is_intentionally_closed(self):
+    # We consider the server to be intentionally closed if it isn't open and
+    # either we've never attempted to open the server before or the previous
+    # open attempt was successful, in which case we assume that the reason we
+    # are not currently open is because something explicitly told the server to
+    # close and nothing has tried to open it since.
+    return (not self.is_open and (not self._open_attempted
+                                  or self._previous_open_successful))
 
   @property
   def use_live_traffic(self):

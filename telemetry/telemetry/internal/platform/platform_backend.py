@@ -169,7 +169,7 @@ class PlatformBackend():
     os_name = self.GetOSName()
     if os_name in ('android', 'chromeos'):
       if (not self.network_controller_backend or
-          not self.network_controller_backend.is_open):
+          self.network_controller_backend.is_intentionally_closed):
         logging.warning('Not restarting TsProxyServer since it is not running')
         return
       logging.warning(
