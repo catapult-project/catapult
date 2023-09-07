@@ -102,7 +102,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         self._FindCanonicalGroupMock)
     perf_comment_post_patcher.start()
     self.addCleanup(perf_comment_post_patcher.stop)
-    feature_flags.SANDWICH_VERIFICATION = False
+    feature_flags.SANDWICH_VERIFICATION = True
 
   def _FindDuplicateGroupsMock(self, key_string):
     key = ndb.Key('AlertGroup', key_string)
@@ -1169,6 +1169,11 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     feature_flags.SANDWICH_VERIFICATION = True
     allowed_regressions = w._CheckSandwichAllowlist(ndb.get_multi(anomalies))
     self.assertEqual(len(allowed_regressions), 0)
+
+  def testSandwich_CheckAllowList(self):
+    res = sandwich_allowlist.CheckAllowlist("Sandwich Verification Test JetStream2",
+        "jetstream2", "android-pixel4-perf")
+    self.assertTrue(res)
 
   def testSandwich_TryVerifyRegression_triaged(self):
     # Pre-coditions:

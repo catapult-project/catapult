@@ -22,7 +22,7 @@ ALLOWABLE_BENCHMARKS = [
 
 ALLOWABLE_DEVICES = [
     'android-pixel2-perf',
-    'android-pixel2_webview-perf'
+    'android-pixel2_webview-perf',
     'android-pixel4-perf',
     'linux-perf',
     'mac-laptop_high_end-perf',
