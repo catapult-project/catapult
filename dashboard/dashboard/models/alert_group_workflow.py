@@ -1015,6 +1015,30 @@ class AlertGroupWorkflow:
     components, cc, labels = self._ComputeBugUpdate(subscriptions, regressions)
     logging.info('Creating a new issue for AlertGroup %s', self._group.key)
 
+    # DelayTriage: we decided to delay the triaging until we find a root cause
+    # if any. The reason is: the alert group can be a false positive and thus
+    # the issue created is a cannot-reproduce.
+    # To delay the triage, the fields which trigger notifications (emails) will
+    # be removed when the issue is created. Those fields will be updated when
+    # bisection finds a culprit. A special label 'Chromeperf-Delay-Triage' is
+    # added to tell Pinpoint to triage.
+    # If auto-bisect is not enabled, we will still do triage because we cannot
+    # rely on manual bisects.
+    # NOTICE that we do not have benchmark class in Pinpoint workflow and thus
+    # do not have the component info from the @benchmark.info. E.g.:
+    # https://source.chromium.org/chromium/chromium/src/+/main:tools/perf/benchmarks/jetstream2.py;l=44
+    # We will only add component, cc and labels based on the settings from
+    # the Sheriff Config.
+    if utils.ShouldDelayIssueTriage():
+      should_bisect = any(
+          r.auto_bisect_enable and not r.is_improvement for r in regressions)
+      logging.debug('[DelayTriage] should_bisect %s for group %s.',
+                    should_bisect, self._group.key)
+      if should_bisect:
+        components = [utils.DELAY_TRIAGE_PLACEHOLDER]
+        cc = []
+        labels = [utils.DELAY_TRIAGE_LABEL]
+
     response = perf_issue_service_client.PostIssue(
         title=title,
         description=description,

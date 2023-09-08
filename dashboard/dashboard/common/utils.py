@@ -10,6 +10,7 @@ import collections
 import functools
 import logging
 import os
+import random
 import re
 import six
 import six.moves.urllib.parse
@@ -43,6 +44,8 @@ LEGACY_SERVICE_ACCOUNT = ('425761728072-pa1bs18esuhp2cp2qfa1u9vb6p1v6kfu'
                           '@developer.gserviceaccount.com')
 ADC_SERVICE_ACCOUNT = 'chromeperf@appspot.gserviceaccount.com'
 _CACHE_TIME = 60*60*2 # 2 hours
+DELAY_TRIAGE_PLACEHOLDER = 'Speed>Benchmarks'
+DELAY_TRIAGE_LABEL = 'Chromeperf-Delay-Triage'
 
 _AUTOROLL_DOMAINS = (
     'chops-service-accounts.iam.gserviceaccount.com',
@@ -877,3 +880,10 @@ def ConvertBytesBeforeJsonDumps(src):
   elif isinstance(src, bytes):
     return six.ensure_str(src)
   return src
+
+
+def ShouldDelayIssueTriage():
+  ''' Tells whether issue should not have the triage info when created.
+  '''
+  # At the beginning, we will randomly pick 5% of the issues.
+  return random.randrange(20) == 0
