@@ -778,6 +778,32 @@ class DeviceUtils(object):
       return posixpath.join(self.GetExternalStoragePath(), 'Download')
     return self.GetExternalStoragePath()
 
+  def GetShellWritablePath(self, device_path):
+    """Convert a path to one that is accessible by the shell.
+
+    Usually need root permission.
+
+    For example, system user 0 doesn't have the permission to access secondary
+    user 10's sdcard via the path "/sdcard" or "/storage/emulated/10". However
+    it can using the path like "/data/media/10" with the root permission.
+
+    Returns:
+      The converted path.
+    """
+    assert self.target_user is not None
+    if self.target_user == 0:
+      return device_path
+
+    if device_path.startswith('/sdcard'):
+      writable_path_base = f'/data/media/{self.target_user}'
+      return writable_path_base + device_path[len('/sdcard'):]
+
+    if device_path.startswith('/data/data'):
+      writable_path_base = f'/data/user/{self.target_user}'
+      return writable_path_base + device_path[len('/data/data'):]
+
+    return device_path
+
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetIMEI(self, timeout=None, retries=None):
     """Get the device's IMEI.
@@ -1452,6 +1478,9 @@ class DeviceUtils(object):
       tmp_dir = posixpath.join(self.MODULES_TMP_DIRECTORY_PATH, package_name)
       dest_dir = self.MODULES_LOCAL_TESTING_PATH_TEMPLATE.format(package_name)
       # Always clear MODULES_LOCAL_TESTING_PATH_TEMPLATE of stale files.
+      if self.target_user is not None:
+        # Convert to a path that is accessible by the system user
+        dest_dir = self.GetShellWritablePath(dest_dir)
       self.RunShellCommand(['rm', '-rf', dest_dir], as_root=True)
       if not fake_modules:
         return
@@ -2385,6 +2414,10 @@ class DeviceUtils(object):
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
+    if self.target_user is not None:
+      host_device_tuples = [(h, self.GetShellWritablePath(d))
+                            for h, d in host_device_tuples]
+
     # TODO(crbug.com/1005504): Experiment with this on physical devices after
     # upgrading devil's default adb beyond 1.0.39.
     # TODO(crbug.com/1020716): disabled as can result in extra directory.

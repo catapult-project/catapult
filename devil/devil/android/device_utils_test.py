@@ -446,6 +446,26 @@ class DeviceUtilsGetAppWritablePathTest(DeviceUtilsTest):
         self.device.GetAppWritablePath()
 
 
+class DeviceUtilsGetShellWritablePathTest(DeviceUtilsTest):
+  def testGetShellWritablePath_user0(self):
+    with self.patch_call(self.call.device.target_user, return_value=0):
+      self.assertEqual('/system',
+                       self.device.GetShellWritablePath('/system'))
+      self.assertEqual('/sdcard/foo',
+                       self.device.GetShellWritablePath('/sdcard/foo'))
+      self.assertEqual('/data/data/bar',
+                       self.device.GetShellWritablePath('/data/data/bar'))
+
+  def testGetShellWritablePath_user10(self):
+    with self.patch_call(self.call.device.target_user, return_value=10):
+      self.assertEqual('/system',
+                       self.device.GetShellWritablePath('/system'))
+      self.assertEqual('/data/media/10/foo',
+                       self.device.GetShellWritablePath('/sdcard/foo'))
+      self.assertEqual('/data/user/10/bar',
+                       self.device.GetShellWritablePath('/data/data/bar'))
+
+
 class DeviceUtilsIsApplicationInstalledTest(DeviceUtilsTest):
   def testIsApplicationInstalled_installed(self):
     with self.assertCalls((self.call.device.RunShellCommand(
