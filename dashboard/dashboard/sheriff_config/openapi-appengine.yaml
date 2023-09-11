@@ -23,6 +23,7 @@ paths:
           schema:
             $ref: "#/definitions/ServiceMetadata"
       security:
+        - legacy_luci_config_service_account: []
         - luci_config_service_account: []
   "/configs/validate":
     post:
@@ -43,6 +44,7 @@ paths:
             $ref: "#/definitions/ValidationRequest"
       security:
         - chromeperf_service_account: []
+        - legacy_luci_config_service_account: []
         - luci_config_service_account: []
   "/configs/update":
     get:
@@ -188,12 +190,18 @@ securityDefinitions:
     type: "oauth2"
     x-google-issuer: "chromeperf-stage@appspot.gserviceaccount.com"
     x-google-jwks_uri: "https://www.googleapis.com/robot/v1/metadata/x509/chromeperf-stage@appspot.gserviceaccount.com"
-  luci_config_service_account:
+  legacy_luci_config_service_account:
     authorizationUrl: ""
     flow: "implicit"
     type: "oauth2"
     x-google-issuer: "luci-config@appspot.gserviceaccount.com"
     x-google-jwks_uri: "https://www.googleapis.com/robot/v1/metadata/x509/luci-config@appspot.gserviceaccount.com"
+  luci_config_service_account:
+    authorizationUrl: ""
+    flow: "implicit"
+    type: "oauth2"
+    x-google-issuer: "config-service@luci-config.iam.gserviceaccount.com"
+    x-google-jwks_uri: "https://www.googleapis.com/robot/v1/metadata/x509/config-service@luci-config.iam.gserviceaccount.com"
   google_id_token:
     authorizationUrl: ""
     flow: "implicit"
