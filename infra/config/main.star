@@ -141,7 +141,7 @@ def try_builder(
 
     dims = {
         "pool": "luci.flex.try",
-        "os": os,
+        "os": "Ubuntu-18" if os == "Ubuntu" else os,
     }
     if dimensions:
         dims.update(dimensions)
