@@ -1,7 +1,7 @@
 Name: depot_tools
 Short Name: depot_tools
 URL: https://chromium.googlesource.com/chromium/tools/depot_tools.git
-Revision: 271a78ac35d784bf93b48831ad91c8d566e67bde
+Revision: 8babcb7e2ec9ffe4e0394a66378423242dd66e6c
 License: BSD
 
 Description:
@@ -12,5 +12,5 @@ Local Modifications:
 - Moved under depot_tools/ subdirectory and added __init__.py.
 - gclient_eval.py: Removed import of gclient_utils with inline definition of gclient_utils.Error.
 - gclient_eval.py: Added import of threading.
-- gclient_eval.py: Changed import of six to use existing catapult/third_party copy.
+- gclient_eval.py: Adjusted import of third_party/schema for our environment.
 - tests/gclient_eval_unittest.py: Changed imports.
