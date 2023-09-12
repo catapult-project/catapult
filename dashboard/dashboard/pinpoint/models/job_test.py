@@ -264,7 +264,7 @@ class JobTest(test.TestCase):
     self.assertFalse(j7._CanSandwich())
 
   @mock.patch('dashboard.services.workflow_service.CreateExecution',
-              mock.MagicMock(return_value='test'))
+              mock.MagicMock(return_value='test-workflow-execution-name'))
   def testStartSandwichAndUpdateWorkflowGroup(self):
     j = job.Job.New((), (),
                     arguments={
@@ -276,10 +276,10 @@ class JobTest(test.TestCase):
     c1 = change.Change((change.Commit('chromium', 'git_hash_1'),))
     change_map = {c0: [0], c1: [10]}
     differences = [(c0, c1)]
-    got_regression_cnt = j._StartSandwichAndUpdateWorkflowGroup(
+    got_regression_cnt, got_wf_executions = j._StartSandwichAndUpdateWorkflowGroup(
         anomaly.DOWN, differences, change_map)
     self.assertEqual(got_regression_cnt, 1)
-
+    self.assertEqual(got_wf_executions, ['test-workflow-execution-name'])
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=[]))

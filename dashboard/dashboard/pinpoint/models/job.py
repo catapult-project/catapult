@@ -53,6 +53,7 @@ _CRYING_CAT_FACE = u'\U0001f63f'
 _INFINITY = u'\u221e'
 _RIGHT_ARROW = u'\u2192'
 _ROUND_PUSHPIN = u'\U0001f4cd'
+_SANDWICH = u'\U0001f96a'
 
 _MAX_RECOVERABLE_RETRIES = 3
 
@@ -660,6 +661,7 @@ class Job(ndb.Model):
         improvement_dir=self._ImprovementDirectionToStr(improvement_dir))
     workflow_group.put()
     cloud_workflows_keys = []
+    workflow_executions = []
     regression_cnt = 0
     for change_a, change_b in differences:
       values_a = result_values[change_a]
@@ -696,9 +698,10 @@ class Job(ndb.Model):
           values_b=values_b)
       cloud_workflow_key = cloud_workflow.put()
       cloud_workflows_keys.append(cloud_workflow_key.id())
+      workflow_executions.append(execution_name)
     workflow_group.cloud_workflows_keys = cloud_workflows_keys
     workflow_group.put()
-    return regression_cnt
+    return regression_cnt, workflow_executions
 
   def _FormatAndPostBugCommentOnComplete(self):
     logging.debug('Processing outputs.')
@@ -784,11 +787,11 @@ class Job(ndb.Model):
     # If the job is CABE-compatible:
     # call verification workflow for each difference.
     if self._CanSandwich():
-      regression_cnt = self._StartSandwichAndUpdateWorkflowGroup(
+      regression_cnt, wf_executions = self._StartSandwichAndUpdateWorkflowGroup(
           improvement_dir, differences, result_values)
       if regression_cnt == 0:
-        title = ("<b>%s Couldn't reproduce a difference in the"
-                 "regression direction.</b>") % _ROUND_PUSHPIN
+        title = ("<b>%s %s Couldn't reproduce a difference in the"
+                 "regression direction.</b>") % (_ROUND_PUSHPIN, _SANDWICH)
         deferred.defer(
             _PostBugCommentDeferred,
             self.bug_id,
@@ -798,14 +801,15 @@ class Job(ndb.Model):
             status='WontFix',
             _retry_options=RETRY_OPTIONS)
       else:
-        title1 = "<b>%s %s regressions found.</b>" % (_ROUND_PUSHPIN,
+        title1 = "<b>%s %s %s regressions found.</b>" % (_ROUND_PUSHPIN, _SANDWICH,
                                                       regression_cnt)
-        title2 = "<b>Started sandwich verification process.</b>"
+        title2 = "<b>Started sandwich culprit verification process.</b>"
+        workflow_details = "culprit verification workflow keys: %s" % (wf_executions)
         deferred.defer(
             _PostBugCommentDeferred,
             self.bug_id,
             self.project,
-            comment='\n'.join((title1, self.url, title2)),
+            comment='\n'.join((title1, self.url, title2, workflow_details)),
             labels=[
                 'Pinpoint-Job-Completed',
                 'Culprit-Sandwich-Verification-Started'

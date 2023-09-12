@@ -96,6 +96,9 @@ _ALERT_GROUP_TRIAGE_DELAY = datetime.timedelta(minutes=20)
 # The score is based on overall 60% reproduction rate of pinpoint bisection.
 _ALERT_GROUP_DEFAULT_SIGNAL_QUALITY_SCORE = 0.6
 
+# Emoji to set sandwich-related issue comments apart from other comments, visually.
+_SANDWICH = u'\U0001f96a'
+
 class SignalQualityScore(ndb.Model):
   score = ndb.FloatProperty()
   updated_time = ndb.DateTimeProperty()
@@ -556,10 +559,10 @@ class AlertGroupWorkflow:
           'bug: %s succeeded with repro decision %s.', execution['name'],
           self._group.project_id, self._group.bug.bug_id, decision)
       if decision:
-        comment = ('Regression verification %s job %s for test: %s\n'
+        comment = ('%s Regression verification %s job %s for test: %s\n'
                    'reproduced the regression with statistic: %s\n.'
                    'Proceed to bisection.' %
-                   (execution['name'], results_dict['job_id'], regression.test,
+                   (_SANDWICH, execution['name'], results_dict['job_id'], regression.test,
                     results_dict['statistic']))
         label = 'Regression-Verification-Repro'
         status = 'Available'
@@ -570,10 +573,10 @@ class AlertGroupWorkflow:
           # regressions. See https://bugs.chromium.org/p/chromium/issues/detail?id=1459035
         )
       else:
-        comment = ('Regression verification %s job %s for test: %s\n'
-                   'did NOT reproduce the regression with statistic: %s.'
+        comment = ('%s Regression verification %s job %s for test: %s\n'
+                   'did NOT reproduce the regression with statistic: %s.\n'
                    'Issue closed.' %
-                   (execution['name'], results_dict['job_id'], regression.test,
+                   (_SANDWICH, execution['name'], results_dict['job_id'], regression.test,
                     results_dict['statistic']))
         label = ['Regression-Verification-No-Repro', 'Chromeperf-Auto-Closed']
         status = 'WontFix'
@@ -585,9 +588,9 @@ class AlertGroupWorkflow:
           'Regression verification %s for project: %s and '
           'bug: %s failed with error %s.', execution['name'],
           self._group.project_id, self._group.bug.bug_id, execution['error'])
-      comment = ('Regression verification %s for test: %s\n'
+      comment = ('%s Regression verification %s for test: %s\n'
                  'failed. Proceed to bisection.' %
-                 (execution['name'], regression.test))
+                 (_SANDWICH, execution['name'], regression.test))
       label = 'Regression-Verification-Failed'
       proceed_with_bisect = True
     elif execution['state'] == workflow_service.EXECUTION_STATE_CANCELLED:
@@ -595,9 +598,9 @@ class AlertGroupWorkflow:
           'Regression verification %s for project: %s and '
           'bug: %s cancelled with error %s.', execution['name'],
           self._group.project_id, self._group.bug.bug_id, execution['error'])
-      comment = ('Regression verification %s for test: %s\n'
+      comment = ('%s Regression verification %s for test: %s\n'
                  'cancelled with message %s. Proceed to bisection.' %
-                 (execution['name'], regression.test, execution['error']))
+                 (_SANDWICH, execution['name'], regression.test, execution['error']))
       label = 'Regression-Verification-Cancelled'
       proceed_with_bisect = True
 
