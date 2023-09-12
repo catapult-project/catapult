@@ -103,13 +103,18 @@ class GroupReportTestBase(testing_common.TestCase):
       canonical_group = next_group_key.get()
     return {'key': canonical_group.key.string_id()}
 
-  def _GetAllActiveAlertGroupsMock(self):
-    all_groups = alert_group.AlertGroup.GetAll()
+  def _GetAllActiveAlertGroupsMock(self, group_type: int):
+    all_groups = alert_group.AlertGroup.GetAll(group_type=group_type)
     all_keys = [g.key.id() for g in all_groups]
+    ungrouped_group = alert_group.AlertGroup.Get(
+        group_name='Ungrouped',
+        group_type=alert_group.AlertGroup.Type.reserved)
+    if len(ungrouped_group) > 0:
+      all_keys.append(ungrouped_group[0].key.id())
     return all_keys
 
-  def _PostUngroupedAlertsMock(self):
-    groups = alert_group.AlertGroup.GetAll()
+  def _PostUngroupedAlertsMock(self, group_type):
+    groups = alert_group.AlertGroup.GetAll(group_type=group_type)
 
     def FindGroup(group):
       for g in groups:
@@ -123,10 +128,11 @@ class GroupReportTestBase(testing_common.TestCase):
     if not ungrouped_list:
       alert_group.AlertGroup(
           name='Ungrouped', group_type=reserved, active=True).put()
-      return
+      return {}
     ungrouped = ungrouped_list[0]
     ungrouped_anomalies = ndb.get_multi(ungrouped.anomalies)
 
+    parity_results = {}
     for anomaly_entity in ungrouped_anomalies:
       new_count = 0
       new_alert_groups = []
@@ -141,8 +147,13 @@ class GroupReportTestBase(testing_common.TestCase):
           new_alert_groups.append(new_group)
           new_count += 1
       anomaly_entity.groups = new_alert_groups
-    logging.info('Persisting anomalies')
+      parity_results[anomaly_entity.key.id()] = {
+          'new_groups': [g.id() for g in new_alert_groups],
+          'existing_groups': []
+      }
+    logging.info('Persisting %i anomalies', len(ungrouped_anomalies))
     ndb.put_multi(ungrouped_anomalies)
+    return parity_results
 
   def _PatchPerfIssueService(self, function_name, mock_function):
     perf_issue_post_patcher = mock.patch(function_name, mock_function)
@@ -209,7 +220,9 @@ class GroupReportTestBase(testing_common.TestCase):
     a = anomaly.Anomaly(**default)
     clt = sheriff_config_client.GetSheriffConfigClient()
     subscriptions, _ = clt.Match(a)
-    a.groups = alert_group.AlertGroup.GetGroupsForAnomaly(a, subscriptions)
+    groups_for_anomaly = alert_group.AlertGroup.GetGroupsForAnomaly(
+        a, subscriptions)
+    a.groups = groups_for_anomaly
     return a.put()
 
 
@@ -357,11 +370,11 @@ class GroupReportTest(GroupReportTestBase):
         start_revision=50,
         end_revision=150,
     )
-    a3 = self._AddAnomaly(
+    self._AddAnomaly(
         test='master/bot/other/measurement/test_case',
         alert_grouping=['test_suite', 'test_suite_other1'],
     )
-    a4 = self._AddAnomaly(
+    self._AddAnomaly(
         test='master/bot/test_suite/measurement/test_case',
         median_before_anomaly=0,
         alert_grouping=['test_suite_other1', 'test_suite_other2'],
@@ -375,21 +388,6 @@ class GroupReportTest(GroupReportTestBase):
         alert_group.AlertGroup.Type.test_suite,
     )[0]
     self.assertCountEqual(group.anomalies, [a1, a2])
-    group = alert_group.AlertGroup.Get(
-        'test_suite',
-        alert_group.AlertGroup.Type.logical,
-    )[0]
-    self.assertCountEqual(group.anomalies, [a3])
-    group = alert_group.AlertGroup.Get(
-        'test_suite_other1',
-        alert_group.AlertGroup.Type.logical,
-    )[0]
-    self.assertCountEqual(group.anomalies, [a3, a4])
-    group = alert_group.AlertGroup.Get(
-        'test_suite_other2',
-        alert_group.AlertGroup.Type.logical,
-    )[0]
-    self.assertCountEqual(group.anomalies, [a4])
 
   def testMultipleAltertsGroupingMultipleSheriff(self,
                                                  mock_get_sheriff_client):

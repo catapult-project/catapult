@@ -166,6 +166,9 @@ class Anomaly(internal_only_model.InternalOnlyModel):
   earliest_input_timestamp = ndb.DateTimeProperty()
   latest_input_timestamp = ndb.DateTimeProperty()
 
+  # Source generating this anomaly entity (eg: chromeperf, skia)
+  source = ndb.StringProperty(indexed=False)
+
   @property
   def percent_changed(self):
     """The percent change from before the anomaly to after."""

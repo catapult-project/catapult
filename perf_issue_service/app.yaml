@@ -17,7 +17,7 @@ automatic_scaling:
 
 readiness_check:
   path: "/"
-  check_interval_sec: 5
+  check_interval_sec: 60
   timeout_sec: 4
   failure_threshold: 2
   success_threshold: 2

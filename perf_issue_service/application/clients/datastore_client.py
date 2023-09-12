@@ -22,6 +22,7 @@ class AlertGroupStatus:
 class AlertGroupType:
   test_suite = 0
   ungrouped = 2
+  test_suite_skia = 3
 
 
 class DataStoreClient():
@@ -89,7 +90,8 @@ class DataStoreClient():
     '''
     if group_type == AlertGroupType.ungrouped:
       new_group = datastore.Entity(self._client.key('AlertGroup'))
-    elif group_type == AlertGroupType.test_suite:
+    elif group_type == AlertGroupType.test_suite or \
+         group_type == AlertGroupType.test_suite_skia:
       new_id = str(uuid.uuid4())
       new_group = datastore.Entity(self._client.key('AlertGroup', new_id))
     else:
