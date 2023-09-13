@@ -356,6 +356,8 @@ class RetryTest(test.TestCase):
             mock.MagicMock(return_value=["a"]))
 @mock.patch('dashboard.common.cloud_metric._PublishTSCloudMetric',
             mock.MagicMock())
+@mock.patch.object(sheriff_config_client.SheriffConfigClient, '__init__',
+                     mock.MagicMock(return_value=None))
 class BugCommentTest(test.TestCase):
 
   def setUp(self):
