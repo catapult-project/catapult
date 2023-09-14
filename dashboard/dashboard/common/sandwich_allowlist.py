@@ -21,9 +21,13 @@ ALLOWABLE_BENCHMARKS = [
   ]
 
 ALLOWABLE_DEVICES = [
+    'android-go_webview-perf',
     'android-pixel2-perf',
     'android-pixel2_webview-perf',
     'android-pixel4-perf',
+    'android-pixel6-perf',
+    'android-pixel6-pro-perf',
+    'lacros-x86-perf',
     'linux-perf',
     'mac-laptop_high_end-perf',
     'mac-laptop_low_end-perf',
