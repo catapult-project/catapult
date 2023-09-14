@@ -773,7 +773,7 @@ class DeviceUtils(object):
       return posixpath.join(self.GetExternalStoragePath(), 'Download')
     return self.GetExternalStoragePath()
 
-  def GetShellWritablePath(self, device_path):
+  def ResolveSpecialPath(self, device_path):
     """Convert a path to one that is accessible by the shell.
 
     Usually need root permission.
@@ -1475,7 +1475,7 @@ class DeviceUtils(object):
       # Always clear MODULES_LOCAL_TESTING_PATH_TEMPLATE of stale files.
       if self.target_user is not None:
         # Convert to a path that is accessible by the system user
-        dest_dir = self.GetShellWritablePath(dest_dir)
+        dest_dir = self.ResolveSpecialPath(dest_dir)
       self.RunShellCommand(['rm', '-rf', dest_dir], as_root=True)
       if not fake_modules:
         return
@@ -2410,7 +2410,7 @@ class DeviceUtils(object):
       DeviceUnreachableError on missing device.
     """
     if self.target_user is not None:
-      host_device_tuples = [(h, self.GetShellWritablePath(d))
+      host_device_tuples = [(h, self.ResolveSpecialPath(d))
                             for h, d in host_device_tuples]
 
     # TODO(crbug.com/1005504): Experiment with this on physical devices after

@@ -69,7 +69,7 @@ class DeviceTempFile(object):
           device_path = self.name
           target_user = self._device_utils.target_user
           if target_user is not None:
-            device_path = self._device_utils.GetShellWritablePath(device_path)
+            device_path = self._device_utils.ResolveSpecialPath(device_path)
           self._device_utils.RunShellCommand(
               ['rm', '-rf', device_path],
               check_return=False,
@@ -137,7 +137,7 @@ class NamedDeviceTemporaryDirectory(object):
           device_path = self.name
           target_user = self._device_utils.target_user
           if target_user is not None:
-            device_path = self._device_utils.GetShellWritablePath(device_path)
+            device_path = self._device_utils.ResolveSpecialPath(device_path)
           self._device_utils.RunShellCommand(
               ['rm', '-rf', device_path],
               check_return=False,
@@ -163,7 +163,7 @@ class NamedDeviceTemporaryDirectory(object):
       device_path = self.name
       target_user = self._device_utils.target_user
       if target_user is not None:
-        device_path = self._device_utils.GetShellWritablePath(device_path)
+        device_path = self._device_utils.ResolveSpecialPath(device_path)
       self._device_utils.RunShellCommand(
           ['mkdir', '-p', device_path],
           check_return=True,
