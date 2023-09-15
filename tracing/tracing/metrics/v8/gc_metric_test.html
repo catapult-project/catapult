@@ -61,7 +61,7 @@ tr.b.unittest.testSuite(function() {
       'V8.GCIncrementalMarkingStart': 'v8-gc-incremental-start',
       'V8.GCPhantomHandleProcessingCallback': 'v8-gc-phantom-handle-callback',
       'V8.GCScavenger': 'v8-gc-scavenger',
-      'V8.GCMinorMC': 'v8-gc-minor-mark-compactor'
+      'V8.GCMinorMS': 'v8-gc-minor-mark-sweeper'
     };
     for (const [timelineName, telemetryName] of Object.entries(events)) {
       const slices = [
@@ -402,23 +402,23 @@ tr.b.unittest.testSuite(function() {
   test('minorPhases', function() {
     const mainSlices = [
       {
-        title: 'V8.GC_MINOR_MARK_COMPACTOR',
+        title: 'V8.GC_MINOR_MARK_SWEEPER',
         cat: 'v8',
         args: {'epoch': 0},
         start: 100, cpuStart: 100, end: 900, cpuEnd: 900,
       },
       {
-        title: 'V8.GC_MINOR_MC_MARK',
+        title: 'V8.GC_MINOR_MS_MARK',
         cat: 'v8.gc',
         start: 100, cpuStart: 100, end: 110, cpuEnd: 110,
       },
       {
-        title: 'V8.GC_MINOR_MC_CLEAR',
+        title: 'V8.GC_MINOR_MS_CLEAR',
         cat: 'v8.gc',
         start: 200, cpuStart: 200, end: 220, cpuEnd: 220,
       },
       {
-        title: 'V8.GC_MINOR_MC_SWEEP',
+        title: 'V8.GC_MINOR_MS_SWEEP',
         cat: 'v8.gc',
         start: 400, cpuStart: 400, end: 440, cpuEnd: 440,
       },
@@ -465,7 +465,7 @@ tr.b.unittest.testSuite(function() {
         start: 400, cpuStart: 400, end: 440, cpuEnd: 440,
       },
       {
-        title: 'V8.GC_MINOR_MARK_COMPACTOR',
+        title: 'V8.GC_MINOR_MARK_SWEEPER',
         cat: 'v8',
         args: {'epoch': 5},
         start: 500, cpuStart: 500, end: 550, cpuEnd: 550,
