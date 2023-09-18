@@ -164,7 +164,7 @@ class ActionRunner(ActionRunnerBase):
     if deterministic_mode:
       self.Wait(_MEMORY_DUMP_WAIT_TIME)
       self.ForceGarbageCollection()
-    dump_id = self.tab.browser.DumpMemory()
+    dump_id = self.tab.browser.DumpMemory(deterministic=deterministic_mode)
     if not dump_id:
       raise exceptions.StoryActionError('Unable to obtain memory dump')
     return dump_id

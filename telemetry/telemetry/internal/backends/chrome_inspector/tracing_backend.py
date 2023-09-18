@@ -239,7 +239,7 @@ class TracingBackend():
     self._is_tracing_running = False
     self._can_collect_data = True
 
-  def DumpMemory(self, timeout=None, detail_level=None):
+  def DumpMemory(self, timeout=None, detail_level=None, deterministic=False):
     """Dumps memory.
 
     Args:
@@ -261,6 +261,8 @@ class TracingBackend():
     if detail_level:
       assert detail_level in ['background', 'light', 'detailed']
       params = {'levelOfDetail': detail_level}
+    if deterministic:
+      params['deterministic'] = True
     request = {'method': 'Tracing.requestMemoryDump', 'params': params}
     if timeout is None:
       timeout = 1200  # 20 minutes.

@@ -66,11 +66,12 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _FindDevToolsPortAndTarget(self):
     return self._devtools_port, None
 
-  def DumpMemory(self, timeout=None, detail_level=None):
+  def DumpMemory(self, timeout=None, detail_level=None, deterministic=False):
     if detail_level is None:
       detail_level = 'light'
     return self.devtools_client.DumpMemory(timeout=timeout,
-                                           detail_level=detail_level)
+                                           detail_level=detail_level,
+                                           deterministic=deterministic)
 
   def _ReadDevToolsPortFromLogFile(self, search_regex):
     def TryReadingPort():
