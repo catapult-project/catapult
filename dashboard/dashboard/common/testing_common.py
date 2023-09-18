@@ -460,11 +460,12 @@ class FakeIssueTrackerService:
     if 'labels' in kwargs and kwargs.get('labels') is not None:
       labels = kwargs.get('labels')
       existing_labels = self.issues.get(issue_key).get('labels')
+      issue_labels = set(labels)
       if existing_labels is not None:
-        labels = set(labels) | set(existing_labels)
-      self.issues.setdefault(issue_key, {}).update({
-          'labels': labels
-      })
+        issue_labels = issue_labels | set(existing_labels)
+      self.issues.setdefault(issue_key, {}).update({'labels': issue_labels})
+      if isinstance(labels, list):
+        labels.sort()
     self.calls.append({
         'method': 'AddBugComment',
         'args': args,

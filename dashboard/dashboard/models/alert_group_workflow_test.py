@@ -1504,9 +1504,11 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
 
     self.assertEqual(
         self._issue_tracker.calls[1]['kwargs'], {
-            'comment': mock.ANY,
+            'comment':
+                mock.ANY,
             'status': 'WontFix',
-            'labels': ['Regression-Verification-No-Repro', 'Chromeperf-Auto-Closed'],
+            'labels':
+                ['Chromeperf-Auto-Closed', 'Regression-Verification-No-Repro'],
             'send_email': False,
             'components': [],
         })
@@ -2213,7 +2215,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(
         six.ensure_str(anomalies[0].urlsafe()),
         json.loads(self._pinpoint.new_job_request['tags'])['alert'])
-    self.assertCountEqual(['abcdef', '123456'], group.get().bisection_ids)
+    self.assertEqual(['abcdef', '123456'], group.get().bisection_ids)
 
   def testBisect_GroupTriaged_CrrevFailed(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
@@ -2398,7 +2400,10 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self._sheriff_config.patterns = {
         '*': [
             subscription.Subscription(
-                name='sheriff', auto_triage_enable=True, auto_merge_enable=True)
+                name='sheriff',
+                bug_components=['Foo>Bar'],
+                auto_triage_enable=True,
+                auto_merge_enable=True)
         ],
     }
 
@@ -2457,21 +2462,23 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'send_email': False
     })
 
-    self.assertCountEqual(
+    self.assertEqual(
         self._issue_tracker.calls[3], {
             'method': 'AddBugComment',
-            'args': (42, None),
+            'args': (42, 'chromium'),
             'kwargs': {
-                'summary':
+                'title':
                     '[%s]: %d regressions in %s' % ('sheriff', 3, 'test_suite'),
                 'labels': [
-                    'Type-Bug-Regression', 'Chromeperf-Auto-Triaged',
-                    'Restrict-View-Google', 'Pri-2'
+                    'Chromeperf-Auto-Triaged',
+                    'Pri-2',
+                    'Restrict-View-Google',
+                    'Type-Bug-Regression',
                 ],
                 'cc': [],
+                'comment':
+                    None,
                 'components': ['Foo>Bar'],
-                'project':
-                    'chromium',
                 'send_email':
                     False
             },
@@ -2536,13 +2543,15 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                      self._issue_tracker.calls[2]['kwargs']['comment'])
     self.assertIn('Alert group updated:',
                   self._issue_tracker.calls[2]['kwargs']['comment'])
-    self.assertCountEqual(
+    self.assertEqual(
         self._issue_tracker.calls[2]['kwargs'], {
             'title':
                 '[%s]: %d regressions in %s' % ('sheriff', 3, 'test_suite'),
             'labels': [
-                'Type-Bug-Regression', 'Chromeperf-Auto-Triaged',
-                'Restrict-View-Google', 'Pri-2'
+                'Chromeperf-Auto-Triaged',
+                'Pri-2',
+                'Restrict-View-Google',
+                'Type-Bug-Regression',
             ],
             'cc': [],
             'components': ['Foo>Bar'],
@@ -2604,13 +2613,15 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                      self._issue_tracker.calls[1]['kwargs']['comment'])
     self.assertIn('Alert group updated:',
                   self._issue_tracker.calls[1]['kwargs']['comment'])
-    self.assertCountEqual(
+    self.assertEqual(
         self._issue_tracker.calls[1]['kwargs'], {
             'title':
                 '[%s]: %d regressions in %s' % ('sheriff', 3, 'test_suite'),
             'labels': [
-                'Type-Bug-Regression', 'Chromeperf-Auto-Triaged',
-                'Restrict-View-Google', 'Pri-2'
+                'Chromeperf-Auto-Triaged',
+                'Pri-2',
+                'Restrict-View-Google',
+                'Type-Bug-Regression',
             ],
             'cc': [],
             'components': ['Foo>Bar'],
@@ -2682,21 +2693,23 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(self._issue_tracker.calls[2]['args'][0], 42)
     self.assertEqual(self._issue_tracker.calls[2]['args'][1], 'chromium')
 
-    self.assertCountEqual(
+    self.assertEqual(
         self._issue_tracker.calls[2], {
             'method': 'AddBugComment',
-            'args': (42, None),
+            'args': (42, 'chromium'),
             'kwargs': {
-                'summary':
-                    '[%s]: %d regressions in %s' % ('sheriff', 3, 'test_suite'),
+                'title':
+                    '[Sandwich Verification Test Speedometer2]: 3 regressions in test_suite',
                 'labels': [
-                    'Type-Bug-Regression', 'Chromeperf-Auto-Triaged',
-                    'Restrict-View-Google', 'Pri-2'
+                    'Chromeperf-Auto-Triaged',
+                    'Pri-2',
+                    'Restrict-View-Google',
+                    'Type-Bug-Regression',
                 ],
                 'cc': [],
-                'components': ['Foo>Bar'],
-                'project':
-                    'chromium',
+                'components': [],
+                'comment':
+                   mock.ANY,
                 'send_email':
                     False
             },
@@ -2778,22 +2791,24 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'send_email': False
     })
 
-    self.assertCountEqual(
+    self.assertEqual(
         self._issue_tracker.calls[3], {
             'method': 'AddBugComment',
-            'args': (42, None),
+            'args': (42, 'chromium'),
             'kwargs': {
-                'summary':
+                'title':
                     '[%s]: %d regressions in %s' %
                     ('sheriff', 3, 'regular_suite'),
                 'labels': [
-                    'Type-Bug-Regression', 'Chromeperf-Auto-Triaged',
-                    'Restrict-View-Google', 'Pri-2'
+                    'Chromeperf-Auto-Triaged',
+                    'Pri-2',
+                    'Restrict-View-Google',
+                    'Type-Bug-Regression',
                 ],
                 'cc': [],
                 'components': ['Foo>Bar'],
-                'project':
-                    'chromium',
+                'comment':
+                    None,
                 'send_email':
                     False
             },
