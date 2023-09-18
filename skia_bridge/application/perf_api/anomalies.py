@@ -145,7 +145,6 @@ def AddAnomalyPostHandler():
     anomaly_data.update(GetTestFieldsFromPath(test_path))
     anomaly_data['timestamp'] = datetime.datetime.utcnow()
     anomaly_data['source'] = 'skia'
-    print('anomaly data: %s' % anomaly_data)
     client = datastore_client.DataStoreClient()
     anomaly = client.CreateEntity(datastore_client.EntityType.Anomaly,
                                   str(uuid.uuid4()),
@@ -174,7 +173,9 @@ def AddAnomalyPostHandler():
                                          save=True)
     else:
       alert_group = alert_groups[0]
-      alert_group['anomalies'].append(anomaly.key)
+      group_anomalies = alert_group.get('anomalies', [])
+      group_anomalies.append(anomaly.key)
+      alert_group['anomalies'] = group_anomalies
       alert_group['updated'] = datetime.datetime.utcnow()
 
     anomaly['groups'] = [alert_group]
@@ -224,7 +225,9 @@ def GetAnomalyData(anomaly_obj):
 def ValidateRequest(request_data, required_keys):
   missing_keys = []
   for key in required_keys:
-    if not request_data.get(key):
+    value = request_data.get(key, None)
+    # Not using "if not value" since value can be boolean False
+    if value == None:
       missing_keys.append(key)
 
   error = None
