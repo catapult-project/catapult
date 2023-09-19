@@ -257,10 +257,10 @@ class JobTest(test.TestCase):
                      bug_id=123456)
     self.assertFalse(j1._CanSandwich())
     self.assertTrue(j2._CanSandwich())
-    self.assertFalse(j3._CanSandwich())
-    self.assertFalse(j4._CanSandwich())
-    self.assertFalse(j5._CanSandwich())
-    self.assertFalse(j6._CanSandwich())
+    self.assertTrue(j3._CanSandwich())
+    self.assertTrue(j4._CanSandwich())
+    self.assertTrue(j5._CanSandwich())
+    self.assertTrue(j6._CanSandwich())
     self.assertFalse(j7._CanSandwich())
 
   @mock.patch('dashboard.services.workflow_service.CreateExecution',

@@ -43,6 +43,11 @@ EXTERNAL_USER = users.User(
     email='external@example.com', _auth_domain='example.com')
 
 
+def CheckSandwichAllowlist(subscription, benchmark, cfg):
+  return not ('blocked' in subscription or 'blocked' in benchmark
+              or 'blocked' in cfg)
+
+
 class FakeRequestObject:
   """Fake Request object which can be used by datastore_hooks mocks."""
 

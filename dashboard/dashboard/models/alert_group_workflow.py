@@ -336,14 +336,12 @@ class AlertGroupWorkflow:
                      a.test.string_id(),
                      [s.name for s in matching_subs if s.auto_triage_enable])
 
-      non_sandwich_subs = [
-        s for s in matching_subs if s.name not in sandwich_allowlist.ALLOWABLE_SUBSCRIPTIONS]
-      a.auto_merge_enable = any(s.auto_merge_enable for s in non_sandwich_subs)
+      a.auto_merge_enable = any(s.auto_merge_enable for s in matching_subs)
 
       if a.auto_merge_enable:
         logging.info('auto_merge_enable for %s due to subscription: %s',
                      a.test.string_id(),
-                     [s.name for s in non_sandwich_subs if s.auto_merge_enable])
+                     [s.name for s in matching_subs if s.auto_merge_enable])
 
       a.auto_bisect_enable = any(s.auto_bisect_enable for s in matching_subs)
       a.relative_delta = (
@@ -529,9 +527,6 @@ class AlertGroupWorkflow:
   def _UpdateRegressionVerification(self, execution, regression, update):
     '''Update regression verification results in monorail.
 
-    This is a placeholder function and will likely need to be refactored
-    once the rest of the sandwich verification workflow lands.
-
     Args:
       execution - the response from workflow_client.GetExecution()
       regression - the candidate regression that was sent for verification
@@ -541,7 +536,6 @@ class AlertGroupWorkflow:
       True if the worfklow completed with status of FAILED or CANCELLED.
       False for any other condtion.
     '''
-
     status = 'Unconfirmed'
     components = []
     proceed_with_bisect = False
@@ -604,10 +598,6 @@ class AlertGroupWorkflow:
       label = 'Regression-Verification-Cancelled'
       proceed_with_bisect = True
 
-    # See https://bugs.chromium.org/p/chromium/issues/detail?id=1473151
-    logging.info('would have set issue components to %s for %s (ignoring sandwiched groups)',
-      components, regression.subscription_names)
-    components = []
     perf_issue_service_client.PostIssueComment(
         self._group.bug.bug_id,
         self._group.project_id,
@@ -687,27 +677,27 @@ class AlertGroupWorkflow:
     return list(benchmarks_dict.values())
 
   def _ComputeBugUpdate(self, subscriptions, regressions):
-    # Skip the _GetComponentsFromRegressions if subs are all sandwich staging subs.
-    is_sandwich_staging = (
-      self._group.subscription_name in sandwich_allowlist.ALLOWABLE_SUBSCRIPTIONS)
-    if is_sandwich_staging:
-      components = set()
-    else:
-      components = set(self._GetComponentsFromSubscriptions(subscriptions)
-      | self._GetComponentsFromRegressions(regressions))
-    if len(components) != 1:
-      logging.warning('Invalid component count is found for bug update: %s',
-                      components)
-      cloud_metric.PublistPerfIssueInvalidComponentCount(len(components))
+    # NOTE: Previous sandwich_allowlist checks resulted in this
+    # logic ignoring _GetComponentsFromRegressions for sandwich-able
+    # retressions. It no longer ignores these, so some sandwiched regressions may
+    # now have components assigned due to data uploaded from benchmark runners,
+    # rather than what's specified in the sheriff config.
+    # NOTE 2: Regression issues should now only get components assigned in two cases:
+    #.   - regressions are NOT sandwich-able, due to _CheckSandwichAllowlist results
+    #.   - regressions are sandwich-able, AND issue has the Regression-Verification-Repro label
+    verifiable_regressions = self._CheckSandwichAllowlist(regressions)
+    components = []
+    if len(verifiable_regressions) == 0:
+      components = set(
+          self._GetComponentsFromSubscriptions(subscriptions)
+          | self._GetComponentsFromRegressions(regressions))
+      if len(components) != 1:
+        logging.warning('Invalid component count is found for bug update: %s',
+                        components)
+        cloud_metric.PublistPerfIssueInvalidComponentCount(len(components))
     components = list(components)
     cc = list(set(e for s in subscriptions for e in s.bug_cc_emails))
-    # Only use the sandwich-sub bug labels if it's a sandwich sub alert group.
-    if is_sandwich_staging:
-      for s in subscriptions:
-        if s.name == self._group.subscription_name:
-          labels = list(set(s.bug_labels) | {'Chromeperf-Auto-Triaged'})
-    else:
-      labels = list(
+    labels = list(
         set(l for s in subscriptions for l in s.bug_labels)
         | {'Chromeperf-Auto-Triaged'})
     # We layer on some default labels if they don't conflict with any of the
@@ -722,10 +712,6 @@ class AlertGroupWorkflow:
     return self.BugUpdateDetails(components, cc, labels)
 
   def _GetComponentsFromSubscriptions(self, subscriptions):
-    # Don't use any issue components that come from sandwich subscriptions, even if
-    # they're in the sheriff configs.
-    subscriptions = [
-      s for s in subscriptions if s.name not in sandwich_allowlist.ALLOWABLE_SUBSCRIPTIONS]
     components = set(c for s in subscriptions for c in s.bug_components)
     if components:
       bug_id = self._group.bug or 'New'

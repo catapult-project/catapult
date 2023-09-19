@@ -1,41 +1,23 @@
 # Copyright 2023 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+from __future__ import absolute_import
 
-"""The following benchmark and devices represents the allowlist for the
-sandwich verification workflow. The current allowlist is based on the
-press benchmarks and the available capacity on Pinpoint."""
+from dashboard.common import feature_flags
 
-# TODO: Implement the allowable configs as a class so that each benchmark
-# can customize its own list of allowable stories and configurations.
-ALLOWABLE_SUBSCRIPTIONS = [
-  'Sandwich Verification Test Speedometer2',
-  'Sandwich Verification Test JetStream2',
-  'Sandwich Verification Test Motionmark',
-  ]
+BLOCKED_SUBSCRIPTIONS = []
 
-ALLOWABLE_BENCHMARKS = [
-  'speedometer2',
-  'jetstream2',
-  'rendering.desktop',
-  ]
+BLOCKED_BENCHMARKS = []
 
-ALLOWABLE_DEVICES = [
-    'android-go_webview-perf',
-    'android-pixel2-perf',
-    'android-pixel2_webview-perf',
-    'android-pixel4-perf',
-    'android-pixel6-perf',
-    'android-pixel6-pro-perf',
-    'lacros-x86-perf',
-    'linux-perf',
-    'mac-laptop_high_end-perf',
-    'mac-laptop_low_end-perf',
-    'mac-m1_mini_2020-perf',
-    'win-10_amd_laptop-perf',
-    'win-10_laptop_low_end-perf',
-    'win-10-perf',
-    ]
+BLOCKED_DEVICES = [
+    'lacros-eve-perf',
+    'mac-m1_mini_2020-perf-pgo',
+    'mac-m1-pro-perf',
+    'mac-14-m1-pro-perf',
+    'win-10_amd-perf',
+    'Win 7 Perf',
+    'Win 7 Nvidia GPU Perf',
+]
 
 
 def CheckAllowlist(subscription, benchmark, cfg):
@@ -50,8 +32,9 @@ def CheckAllowlist(subscription, benchmark, cfg):
     Returns:
         True if allowed, False if not.
     '''
-  if (subscription in ALLOWABLE_SUBSCRIPTIONS
-      and benchmark in ALLOWABLE_BENCHMARKS and cfg in ALLOWABLE_DEVICES):
+  if (feature_flags.SANDWICH_VERIFICATION
+      and subscription not in BLOCKED_SUBSCRIPTIONS
+      and benchmark not in BLOCKED_BENCHMARKS and cfg not in BLOCKED_DEVICES):
     return True
 
   return False

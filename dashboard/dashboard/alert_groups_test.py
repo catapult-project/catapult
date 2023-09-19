@@ -1,6 +1,7 @@
 # Copyright 2020 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+# pylint: disable=too-many-lines
 
 from __future__ import print_function
 from __future__ import division
@@ -18,6 +19,7 @@ from google.appengine.ext import ndb
 from dashboard import alert_groups
 from dashboard import sheriff_config_client
 from dashboard.common import namespaced_stored_object
+from dashboard.common import sandwich_allowlist
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import alert_group
@@ -231,6 +233,8 @@ class GroupReportTestBase(testing_common.TestCase):
 @mock.patch.object(skia_helper, 'GetSkiaUrlForRegressionGroup',
                    mock.MagicMock())
 @mock.patch('dashboard.sheriff_config_client.GetSheriffConfigClient')
+@mock.patch.object(sandwich_allowlist, 'CheckAllowlist',
+                   testing_common.CheckSandwichAllowlist)
 class GroupReportTest(GroupReportTestBase):
   def testNoGroup(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
@@ -515,7 +519,7 @@ class GroupReportTest(GroupReportTestBase):
     )[0]
     self.assertEqual(group.name, 'test_suite')
 
-  def testTriageAltertsGroup(self, mock_get_sheriff_client):
+  def testTriageAltertsGroup_Sandwiched(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     self._CallHandler()
     # Add anomalies
@@ -535,6 +539,48 @@ class GroupReportTest(GroupReportTestBase):
     self._CallHandler()
     group = alert_group.AlertGroup.Get(
         'test_suite',
+        alert_group.AlertGroup.Type.test_suite,
+    )[0]
+    self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
+    self.assertEqual(self.fake_issue_tracker.new_bug_kwargs['components'], [])
+    self.assertEqual(
+        sorted(self.fake_issue_tracker.new_bug_kwargs['labels']),
+        sorted([
+            'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
+            'Chromeperf-Auto-Triaged'
+        ]))
+    self.assertRegex(self.fake_issue_tracker.new_bug_kwargs['description'],
+                     r'Top 1 affected measurements in bot:')
+    self.assertEqual(a.get().bug_id, 12345)
+    self.assertEqual(group.bug.bug_id, 12345)
+    # Make sure we don't file the issue again for this alert group.
+    self.fake_issue_tracker.new_bug_args = None
+    self.fake_issue_tracker.new_bug_kwargs = None
+    self._CallHandler()
+    self.assertIsNone(self.fake_issue_tracker.new_bug_args)
+    self.assertIsNone(self.fake_issue_tracker.new_bug_kwargs)
+
+  def testTriageAltertsGroup_NotSandwiched(self, mock_get_sheriff_client):
+    blocked_test_name = 'master/bot/blocked-test_suite/measurement/test_case'
+    self._SetUpMocks(mock_get_sheriff_client)
+    self._CallHandler()
+    # Add anomalies
+    a = self._AddAnomaly(test=blocked_test_name)
+    # Create Group
+    self._CallHandler()
+    # Update Group to associate alerts
+    self._CallHandler()
+    # Set Create timestamp to 2 hours ago
+    group = alert_group.AlertGroup.Get(
+        'blocked-test_suite',
+        alert_group.AlertGroup.Type.test_suite,
+    )[0]
+    group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
+    group.put()
+    # Submit issue
+    self._CallHandler()
+    group = alert_group.AlertGroup.Get(
+        'blocked-test_suite',
         alert_group.AlertGroup.Type.test_suite,
     )[0]
     self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
@@ -605,7 +651,7 @@ class GroupReportTest(GroupReportTestBase):
     self.assertIsNone(self.fake_issue_tracker.new_bug_args)
     self.assertIsNone(self.fake_issue_tracker.new_bug_kwargs)
 
-  def testTriageAltertsGroupNoOwners(self, mock_get_sheriff_client):
+  def testTriageAltertsGroupNoOwners_Sandwiched(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     self._CallHandler()
     # Add anomalies
@@ -631,15 +677,56 @@ class GroupReportTest(GroupReportTestBase):
         alert_group.AlertGroup.Type.test_suite,
     )[0]
     self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
-    self.assertCountEqual(self.fake_issue_tracker.new_bug_kwargs['components'],
-                          ['Foo>Bar'])
-    self.assertCountEqual(self.fake_issue_tracker.new_bug_kwargs['labels'], [
-        'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
-        'Chromeperf-Auto-Triaged'
-    ])
+    self.assertEqual(self.fake_issue_tracker.new_bug_kwargs['components'], [])
+    self.assertEqual(
+        sorted(self.fake_issue_tracker.new_bug_kwargs['labels']),
+        sorted([
+            'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
+            'Chromeperf-Auto-Triaged'
+        ]))
     self.assertEqual(a.get().bug_id, 12345)
 
-  def testAddAlertsAfterTriage(self, mock_get_sheriff_client):
+  def testTriageAltertsGroupNoOwners_NotSandwiched(self,
+                                                   mock_get_sheriff_client):
+    self._SetUpMocks(mock_get_sheriff_client)
+    self._CallHandler()
+    blocked_test_name = 'master/bot/blocked-test_suite/measurement/test_case'
+    # Add anomalies
+    a = self._AddAnomaly(
+        test=blocked_test_name,
+        ownership={
+            'component': 'Foo>Bar',
+            'emails': None,
+        })
+    # Create Group
+    self._CallHandler()
+    # Update Group to associate alerts
+    self._CallHandler()
+    # Set Create timestamp to 2 hours ago
+    group = alert_group.AlertGroup.Get(
+        'blocked-test_suite',
+        alert_group.AlertGroup.Type.test_suite,
+    )[0]
+    group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
+    group.put()
+    # Submit issue
+    self._CallHandler()
+    group = alert_group.AlertGroup.Get(
+        'blocked-test_suite',
+        alert_group.AlertGroup.Type.test_suite,
+    )[0]
+    self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
+    self.assertEqual(self.fake_issue_tracker.new_bug_kwargs['components'],
+                     ['Foo>Bar'])
+    self.assertEqual(
+        sorted(self.fake_issue_tracker.new_bug_kwargs['labels']),
+        sorted([
+            'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
+            'Chromeperf-Auto-Triaged'
+        ]))
+    self.assertEqual(a.get().bug_id, 12345)
+
+  def testAddAlertsAfterTriage_Sandwiched(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     self._CallHandler()
     # Add anomalies
@@ -667,10 +754,40 @@ class GroupReportTest(GroupReportTestBase):
     for a in anomalies:
       self.assertEqual(a.get().bug_id, 12345)
     self.assertEqual(self.fake_issue_tracker.add_comment_args[0], 12345)
-    self.assertCountEqual(
-        self.fake_issue_tracker.add_comment_kwargs['components'], ['Foo>Bar'])
-    self.assertRegex(self.fake_issue_tracker.add_comment_kwargs['comment'],
-                     r'Top 2 affected measurements in bot:')
+    self.assertEqual(self.fake_issue_tracker.add_comment_kwargs['components'],
+                     [])
+
+  def testAddAlertsAfterTriage_NotSandwiched(self, mock_get_sheriff_client):
+    self._SetUpMocks(mock_get_sheriff_client)
+    self._CallHandler()
+    blocked_test_name = 'master/blocked-bot/blocked-test_suite/measurement/test_case'
+    # Add anomalies
+    a = self._AddAnomaly(test=blocked_test_name)
+    # Create Group
+    self._CallHandler()
+    # Update Group to associate alerts
+    self._CallHandler()
+    # Set Create timestamp to 2 hours ago
+    group = alert_group.AlertGroup.Get(
+        'blocked-test_suite',
+        alert_group.AlertGroup.Type.test_suite,
+    )[0]
+    group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
+    group.put()
+    # Submit issue
+    self._CallHandler()
+
+    # Add anomalies
+    anomalies = [
+        self._AddAnomaly(test=blocked_test_name),
+        self._AddAnomaly(test=blocked_test_name, median_before_anomaly=0),
+    ]
+    self._CallHandler()
+    for a in anomalies:
+      self.assertEqual(a.get().bug_id, 12345)
+    self.assertEqual(self.fake_issue_tracker.add_comment_args[0], 12345)
+    self.assertEqual(self.fake_issue_tracker.add_comment_kwargs['components'],
+                     ['Foo>Bar'])
 
   def testMultipleAltertsNonoverlapThreshold(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
@@ -711,6 +828,8 @@ class GroupReportTest(GroupReportTestBase):
 @mock.patch.object(skia_helper, 'GetSkiaUrlForRegressionGroup',
                    mock.MagicMock())
 @mock.patch('dashboard.sheriff_config_client.GetSheriffConfigClient')
+@mock.patch.object(sandwich_allowlist, 'CheckAllowlist',
+                   testing_common.CheckSandwichAllowlist)
 class RecoveredAlertsTests(GroupReportTestBase):
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
@@ -820,14 +939,51 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self.assertRegex(self.fake_issue_tracker.add_comment_kwargs['comment'],
                      r'test_suite/measurement/other_test_case')
 
-  def testStartAutoBisection(self, mock_get_sheriff_client):
+  def testStartAutoBisection_Sandwiched_DoNotBisectYet(self,
+                                                       mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     mock_get_sheriff_client().Match.return_value = ([
-        subscription.Subscription(name='sheriff',
-                                  auto_triage_enable=True,
-                                  auto_bisect_enable=True)
+        subscription.Subscription(
+            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)
     ], None)
+    self._CallHandler()
+    # Add anomalies
+    self._AddAnomaly()
+    # Create Group
+    self._CallHandler()
+    # Update Group to associate alerts
+    self._CallHandler()
+    # Set Create timestamp to 2 hours ago
+    group = alert_group.AlertGroup.Get(
+        'test_suite',
+        alert_group.AlertGroup.Type.test_suite,
+    )[0]
+    group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
+    group.put()
+    # Submit issue
+    self._CallHandler()
+    group = alert_group.AlertGroup.Get(
+        'test_suite',
+        alert_group.AlertGroup.Type.test_suite,
+    )[0]
+    # Should not jump straight to bisecting because it should first run a
+    # verification workflow to verify the reported regression.
+    self._CallHandler()
+    group = alert_group.AlertGroup.Get(
+        'test_suite',
+        alert_group.AlertGroup.Type.test_suite,
+    )[0]
+    self.assertEqual(group.bisection_ids, [])
+    self.assertNotEqual(group.status, alert_group.AlertGroup.Status.bisected)
 
+  def testStartAutoBisection_NotSandwiched(self, mock_get_sheriff_client):
+    self._SetUpMocks(mock_get_sheriff_client)
+    mock_get_sheriff_client().Match.return_value = ([
+        subscription.Subscription(
+            name='blocked-sheriff',
+            auto_triage_enable=True,
+            auto_bisect_enable=True)
+    ], None)
     self._CallHandler()
     # Add anomalies
     self._AddAnomaly()
@@ -854,7 +1010,7 @@ class RecoveredAlertsTests(GroupReportTestBase):
         'test_suite',
         alert_group.AlertGroup.Type.test_suite,
     )[0]
-    self.assertCountEqual(group.bisection_ids, ['123456'])
+    self.assertEqual(group.bisection_ids, ['123456'])
 
 
 @mock.patch.object(utils, 'ServiceAccountEmail',
