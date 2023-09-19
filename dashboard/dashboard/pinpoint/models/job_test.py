@@ -499,7 +499,7 @@ class BugCommentTest(test.TestCase):
   @mock.patch.object(job.job_state.JobState, 'Differences')
   @mock.patch.object(sheriff_config_client.SheriffConfigClient, 'Match')
   @mock.patch.object(histogram.SparseDiagnostic, 'GetMostRecentDataByNamesSync')
-  def testCompletedWithCommitAndTriage(self, recent_data, match, differences,
+  def testCompletedWithCommitAndReport(self, recent_data, match, differences,
                                        result_values, commit_as_dict):
     c = change.Change((change.Commit('chromium', 'git_hash'),))
     differences.return_value = [(None, c)]
@@ -515,14 +515,14 @@ class BugCommentTest(test.TestCase):
     match.return_value = ([
         subscription.Subscription(
             name='sheriff subscription',
-            bug_components=['triage-component'],
-            bug_cc_emails=['triage@cc.email'],
-            bug_labels=['triaged-label'])
+            bug_components=['test-component'],
+            bug_cc_emails=['test@cc.email'],
+            bug_labels=['test-label'])
     ], None)
     recent_data.return_value = ''
     self.get_issue.return_value = {
         'status': 'Untriaged',
-        'labels': ['Chromeperf-Delay-Triage']
+        'labels': ['Chromeperf-Delay-Reporting']
     }
     j = job.Job.New((), (),
                     bug_id=123456,
@@ -544,13 +544,13 @@ class BugCommentTest(test.TestCase):
         status='Assigned',
         owner='author@chromium.org',
         labels=mock.ANY,
-        cc=['author@chromium.org', 'triage@cc.email'],
-        components=['triage-component', '-Speed>Benchmarks'],
+        cc=['author@chromium.org', 'test@cc.email'],
+        components=['test-component', '-Speed>Benchmarks'],
         merge_issue=None)
     message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found a significant difference at 1 commit.', message)
     labels = self.add_bug_comment.call_args.kwargs['labels']
-    self.assertIn('triaged-label', labels)
+    self.assertIn('test-label', labels)
 
   @mock.patch('dashboard.pinpoint.models.change.commit.Commit.AsDict')
   @mock.patch.object(job.job_state.JobState, 'ResultValues')

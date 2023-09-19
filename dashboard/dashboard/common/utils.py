@@ -44,8 +44,8 @@ LEGACY_SERVICE_ACCOUNT = ('425761728072-pa1bs18esuhp2cp2qfa1u9vb6p1v6kfu'
                           '@developer.gserviceaccount.com')
 ADC_SERVICE_ACCOUNT = 'chromeperf@appspot.gserviceaccount.com'
 _CACHE_TIME = 60*60*2 # 2 hours
-DELAY_TRIAGE_PLACEHOLDER = 'Speed>Benchmarks'
-DELAY_TRIAGE_LABEL = 'Chromeperf-Delay-Triage'
+DELAY_REPORTING_PLACEHOLDER = 'Speed>Benchmarks'
+DELAY_REPORTING_LABEL = 'Chromeperf-Delay-Reporting'
 
 _AUTOROLL_DOMAINS = (
     'chops-service-accounts.iam.gserviceaccount.com',
