@@ -4724,6 +4724,33 @@ class DeviceUtilsChangeSecurityContext(DeviceUtilsTest):
                                         ['/path', '/path2'])
 
 
+class DeviceUtilsPlaceNomediaFile(DeviceUtilsTest):
+  def testPlaceNomediaFile(self):
+    with self.assertCalls(
+        (self.call.device.RunShellCommand(
+            ['mkdir', '-p', '/sdcard/test_dir'],
+            check_return=True,
+            as_root=False)),
+        (self.call.device.WriteFile(
+            '/sdcard/test_dir/.nomedia',
+            'https://crbug.com/796640',
+            as_root=False))):
+      self.device.PlaceNomediaFile('/sdcard/test_dir')
+
+  def testPlaceNomediaFile_targetUser(self):
+    with self.patch_call(self.call.device.target_user, return_value=10):
+      with self.assertCalls(
+          (self.call.device.RunShellCommand(
+              ['mkdir', '-p', '/data/media/10/test_dir'],
+              check_return=True,
+              as_root=True)),
+          (self.call.device.WriteFile(
+              '/data/media/10/test_dir/.nomedia',
+              'https://crbug.com/796640',
+              as_root=True))):
+        self.device.PlaceNomediaFile('/sdcard/test_dir')
+
+
 class DeviceUtilsLocale(DeviceUtilsTest):
   def testLocaleLegacy(self):
     with self.assertCalls(
