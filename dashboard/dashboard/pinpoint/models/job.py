@@ -994,7 +994,8 @@ class Job(ndb.Model):
       else:
         self._Complete()
 
-      logging.info('JobQueueDebug: Scheduled jobrun. ID: %s', self.job_id)
+      logging.info('JobQueueDebug: Scheduled jobrun. ID: %s. Work left? %s',
+                   self.job_id, work_left)
 
       self.retry_count = 0
     except errors.RecoverableError as e:

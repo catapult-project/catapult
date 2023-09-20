@@ -6,6 +6,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import logging
+
 
 class Attempt:
   """One run of all the Quests on a Change.
@@ -48,6 +50,8 @@ class Attempt:
     Attempt's completed status.
     """
     if not self._executions:
+      logging.debug('JobQueueDebug: No execution. Requests: %s',
+                    [type(q) for q in self._quests])
       return not self._quests
 
     return self._last_execution.failed or (self._last_execution.completed
@@ -68,7 +72,9 @@ class Attempt:
 
   @property
   def _last_execution(self):
-    return self._executions[-1]
+    if self._executions:
+      return self._executions[-1]
+    return None
 
   def AsDict(self):
     return {'executions': [e.AsDict() for e in self._executions]}
@@ -77,22 +83,32 @@ class Attempt:
     """Run this Attempt and update its status."""
     assert not self.completed
 
-    self._StartNextExecutionIfReady()
-    self._Poll()
+    while True:
+      logging.debug('JobQueueDebug: current execution list: %s',
+                    self._executions)
+      self._Poll()
+      if self._CanStartNextExecution():
+        self._StartNextExecution()
+      else:
+        return
 
   def _Poll(self):
     """Update the Attempt status."""
-    self._last_execution.Poll()
+    if self._last_execution:
+      self._last_execution.Poll()
 
-  def _StartNextExecutionIfReady(self):
-    can_start_next_execution = not self._executions or (
-        self._last_execution.completed and not self.completed)
-    if not can_start_next_execution:
-      return
-
+  def _StartNextExecution(self):
     next_quest = self._quests[len(self._executions)]
     arguments = {'change': self._change}
     if self._executions:
       arguments.update(self._last_execution.result_arguments)
 
-    self._executions.append(next_quest.Start(**arguments))
+    new_execution = next_quest.Start(**arguments)
+    logging.debug('JobQueueDebug: new execution started. %s',
+                  type(new_execution))
+    self._executions.append(new_execution)
+
+  def _CanStartNextExecution(self):
+    can_start_next_execution = not self._executions or (
+        self._last_execution.completed and not self.completed)
+    return can_start_next_execution

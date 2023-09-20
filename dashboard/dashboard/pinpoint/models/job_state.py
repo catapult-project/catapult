@@ -210,8 +210,10 @@ class JobState:
     for attempts in self._attempts.values():
       for attempt in attempts:
         if attempt.completed:
+          logging.debug('JobQueueDebug: attempt completed. %s', attempt)
           continue
 
+        logging.debug('JobQueueDebug: attempt scheduling new work. %s', attempt)
         attempt.ScheduleWork()
         work_left = True
 
