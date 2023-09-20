@@ -30,6 +30,7 @@ from dashboard.models import skia_helper
 from dashboard.models import subscription
 from dashboard.services import crrev_service
 from dashboard.services import pinpoint_service
+from dashboard.services import workflow_service
 
 _SERVICE_ACCOUNT_EMAIL = 'service-account@chromium.org'
 
@@ -939,13 +940,16 @@ class RecoveredAlertsTests(GroupReportTestBase):
     self.assertRegex(self.fake_issue_tracker.add_comment_kwargs['comment'],
                      r'test_suite/measurement/other_test_case')
 
+  @mock.patch.object(workflow_service, 'CreateExecution', return_value='fake-execution-id')
   def testStartAutoBisection_Sandwiched_DoNotBisectYet(self,
+                                                       mock_workflow_service,
                                                        mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     mock_get_sheriff_client().Match.return_value = ([
         subscription.Subscription(
             name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)
     ], None)
+    self.assertIsNotNone(mock_workflow_service)
     self._CallHandler()
     # Add anomalies
     self._AddAnomaly()
@@ -974,7 +978,7 @@ class RecoveredAlertsTests(GroupReportTestBase):
         alert_group.AlertGroup.Type.test_suite,
     )[0]
     self.assertEqual(group.bisection_ids, [])
-    self.assertNotEqual(group.status, alert_group.AlertGroup.Status.bisected)
+    self.assertEqual(group.status, alert_group.AlertGroup.Status.sandwiched)
 
   def testStartAutoBisection_NotSandwiched(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
