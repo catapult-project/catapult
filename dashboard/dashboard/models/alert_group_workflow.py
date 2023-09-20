@@ -1024,9 +1024,9 @@ class AlertGroupWorkflow:
       logging.debug('[DelayTriage] should_bisect %s for group %s.',
                     should_bisect, self._group.key)
       if should_bisect:
-        components = [utils.DELAY_TRIAGE_PLACEHOLDER]
+        components = [utils.DELAY_REPORTING_PLACEHOLDER]
         cc = []
-        labels = [utils.DELAY_TRIAGE_LABEL]
+        labels = [utils.DELAY_REPORTING_LABEL]
 
     response = perf_issue_service_client.PostIssue(
         title=title,
