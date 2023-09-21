@@ -46,7 +46,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "linux2_x86_64": {
-          "cloud_storage_hash": "50f5ac2912b875073a0d7bd4e5ce1d5a47f906ce",
+          "cloud_storage_hash": "6efb1501c7c49e6ae84cc467648930eaf9f6a9e5",
           "download_path": "../bin/deps/linux2/x86_64/lib.java/chromium_commands.dex.jar"
         }
       }

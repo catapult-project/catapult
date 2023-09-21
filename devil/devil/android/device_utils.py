@@ -106,7 +106,12 @@ _FILE_LIST_SCRIPT = """
   done
 """
 
-_UNZIP_SCRIPT = "{bin_dir}/unzip {zip_file}\n"
+_UNZIP_AND_CHMOD_SCRIPT = """
+  {bin_dir}/unzip {zip_file} && (for dir in {dirs}
+  do
+    chmod -R 777 "$dir" || exit 1
+  done)
+"""
 
 # Not all permissions can be set.
 _PERMISSIONS_DENYLIST_RE = re.compile('|'.join(
@@ -2745,8 +2750,10 @@ class DeviceUtils(object):
           # is too long.
           self.WriteFile(
               script.name,
-              _UNZIP_SCRIPT.format(bin_dir=install_commands.BIN_DIR,
-                                   zip_file=device_temp.name))
+              _UNZIP_AND_CHMOD_SCRIPT.format(bin_dir=install_commands.BIN_DIR,
+                                             zip_file=device_temp.name,
+                                             dirs=' '.join(dirs)))
+
           self.RunShellCommand(['source', script.name],
                                check_return=True,
                                as_root=True)
