@@ -12,6 +12,12 @@ if [[ -n $(git status -s) ]]; then
   exit 1
 fi
 
+if [[ $# -ne 1 ]] ; then
+  echo "specify a deployment umbrella issue ID on the command line, e.g.:"
+  echo "$0 <issue id>"
+  exit 1
+fi
+
 branch_suffix='-deploy'
 declare -a services=("default"
                         "api"
@@ -29,5 +35,5 @@ for service in "${services[@]}"; do
     git pull --ff
     go run update-traffic.go -checkout-base ../../../.. -service-id $service
     git commit -am "update chromeperf deployment for $service"
-    git cl upload
+    git cl upload -b $1
 done;
