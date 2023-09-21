@@ -556,8 +556,8 @@ class AlertGroupWorkflow:
         comment = ('%s Regression verification %s job %s for test: %s\n'
                    'reproduced the regression with statistic: %s\n.'
                    'Proceed to bisection.' %
-                   (_SANDWICH, execution['name'], results_dict['job_id'], regression.test,
-                    results_dict['statistic']))
+                   (_SANDWICH, execution['name'], results_dict['job_id'],
+                    utils.TestPath(regression.test), results_dict['statistic']))
         label = 'Regression-Verification-Repro'
         status = 'Available'
         proceed_with_bisect = True
@@ -570,8 +570,8 @@ class AlertGroupWorkflow:
         comment = ('%s Regression verification %s job %s for test: %s\n'
                    'did NOT reproduce the regression with statistic: %s.\n'
                    'Issue closed.' %
-                   (_SANDWICH, execution['name'], results_dict['job_id'], regression.test,
-                    results_dict['statistic']))
+                   (_SANDWICH, execution['name'], results_dict['job_id'],
+                    utils.TestPath(regression.test), results_dict['statistic']))
         label = ['Regression-Verification-No-Repro', 'Chromeperf-Auto-Closed']
         status = 'WontFix'
         self._group.updated = update.now
@@ -582,9 +582,10 @@ class AlertGroupWorkflow:
           'Regression verification %s for project: %s and '
           'bug: %s failed with error %s.', execution['name'],
           self._group.project_id, self._group.bug.bug_id, execution['error'])
-      comment = ('%s Regression verification %s for test: %s\n'
-                 'failed. Proceed to bisection.' %
-                 (_SANDWICH, execution['name'], regression.test))
+      comment = (
+          '%s Regression verification %s for test: %s\n'
+          'failed. Proceed to bisection.' %
+          (_SANDWICH, execution['name'], utils.TestPath(regression.test)))
       label = 'Regression-Verification-Failed'
       proceed_with_bisect = True
     elif execution['state'] == workflow_service.EXECUTION_STATE_CANCELLED:
@@ -594,7 +595,8 @@ class AlertGroupWorkflow:
           self._group.project_id, self._group.bug.bug_id, execution['error'])
       comment = ('%s Regression verification %s for test: %s\n'
                  'cancelled with message %s. Proceed to bisection.' %
-                 (_SANDWICH, execution['name'], regression.test, execution['error']))
+                 (_SANDWICH, execution['name'], utils.TestPath(
+                     regression.test), execution['error']))
       label = 'Regression-Verification-Cancelled'
       proceed_with_bisect = True
 
@@ -884,8 +886,10 @@ class AlertGroupWorkflow:
       perf_issue_service_client.PostIssueComment(
           self._group.bug.bug_id,
           self._group.project_id,
-          comment=_TEMPLATE_AUTO_REGRESSION_VERIFICATION_COMMENT.render(
-              {'test': utils.TestPath(regression.test)}),
+          comment=_TEMPLATE_AUTO_REGRESSION_VERIFICATION_COMMENT.render({
+              'test': utils.TestPath(regression.test),
+              'verification_workflow_id': sandwich_execution_id
+          }),
           # Do not set labels yet on this issue, since we're only starting
           # the sandwich verification to try and repro the regression before
           # we alert any humans to the situation.
