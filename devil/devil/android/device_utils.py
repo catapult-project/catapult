@@ -2645,6 +2645,17 @@ class DeviceUtils(object):
     if not files:
       return
 
+    # If the target_user is set to a secondary user, it will need root in order
+    # to push to paths like user's /sdcard. But adb does not allow to
+    # "push with su", so we force to push via zip.
+    if self.target_user is not None:
+      if not self._PushChangedFilesZipped(files,
+                                          [d for _, d in host_device_tuples]):
+        raise device_errors.CommandFailedError(
+            'Failed to push changed files for user %s' % self.target_user,
+            str(self))
+      return
+
     size = sum(host_utils.GetRecursiveDiskUsage(h) for h, _ in files)
     file_count = len(files)
     dir_size = sum(
