@@ -13,6 +13,7 @@ import re
 import subprocess
 import sys
 import six
+from PIL import ImageGrab  # pylint: disable=import-error
 
 from telemetry.core import exceptions
 from telemetry.core import os_version as os_version_module
@@ -27,7 +28,6 @@ try:
   import win32con  # pylint: disable=import-error
   import win32gui  # pylint: disable=import-error
   import win32process  # pylint: disable=import-error
-  import win32ui  # pylint: disable=import-error
   import winerror  # pylint: disable=import-error
   try:
     import winreg  # pylint: disable=import-error
@@ -47,15 +47,8 @@ except ImportError as e:
   win32pipe = None
   win32process = None
   win32security = None
-  win32ui = None
   winerror = None
   winreg = None
-
-
-try:
-  from PIL import Image  # pylint: disable=import-error
-except ImportError:
-  Image = None
 
 
 class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
@@ -192,35 +185,9 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     return True
 
   def TakeScreenshot(self, file_path):
-    width, height = self.GetScreenResolution()
-    screen_win = win32gui.GetDesktopWindow()
-    win_dc = None
-    screen_dc = None
-    capture_dc = None
-    capture_bitmap = None
-    try:
-      win_dc = win32gui.GetWindowDC(screen_win)
-      screen_dc = win32ui.CreateDCFromHandle(win_dc)
-      capture_dc = screen_dc.CreateCompatibleDC()
-      capture_bitmap = win32ui.CreateBitmap()
-      capture_bitmap.CreateCompatibleBitmap(screen_dc, width, height)
-      capture_dc.SelectObject(capture_bitmap)
-      capture_dc.BitBlt(
-          (0, 0), (width, height), screen_dc, (0, 0), win32con.SRCCOPY)
-      pixels = capture_bitmap.GetBitmapBits(True)
-      image = Image.frombuffer(
-          'RGB', (width, height), pixels, 'raw', 'BGRX', 0, 1)
-      image.save(file_path, 'PNG')
-      image.close()
-    finally:
-      if capture_bitmap:
-        win32gui.DeleteObject(capture_bitmap.GetHandle())
-      if capture_dc:
-        capture_dc.DeleteDC()
-      if screen_dc:
-        screen_dc.DeleteDC()
-      if win_dc:
-        win32gui.ReleaseDC(screen_win, win_dc)
+    image = ImageGrab.grab(all_screens=True, include_layered_windows=True)
+    with open(file_path, 'wb') as f:
+      image.save(f, 'PNG')
     return True
 
   def GetScreenResolution(self):

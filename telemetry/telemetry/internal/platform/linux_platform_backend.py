@@ -10,6 +10,8 @@ import shlex
 import subprocess
 import sys
 
+from PIL import ImageGrab  # pylint: disable=import-error
+
 from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry.internal.util import binary_manager
@@ -106,12 +108,13 @@ class LinuxPlatformBackend(
     raise NotImplementedError('Missing Linux OS name or version')
 
   def CanTakeScreenshot(self):
-    return_code = subprocess.call(['which', 'gnome-screenshot'])
-    return return_code == 0
+    return True
 
   def TakeScreenshot(self, file_path):
-    return_code = subprocess.call(['gnome-screenshot', '-f', file_path])
-    return return_code == 0
+    image = ImageGrab.grab(xdisplay=os.environ['DISPLAY'])
+    with open(file_path, 'wb') as f:
+      image.save(f, 'PNG')
+    return True
 
   def CanFlushIndividualFilesFromSystemCache(self):
     return True
