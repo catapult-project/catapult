@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
+import os
 import time
 
 from telemetry import decorators
@@ -27,6 +28,29 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
     action.WillRunAction(self._tab)
     action.RunAction(self._tab)
 
+  @classmethod
+  def setUpClass(cls):
+    # Browser uses Google API keys to get access to Google services.
+    # If browser was built without Google API keys, then on start browser
+    # would try to fetch Google API keys from env variables. If those variables
+    # are not set a warning "Google API Keys Missing" will appear at the start.
+    # This warning disappears if any action is performed in the browser window.
+    # This behaviour causes flaky bug in tests. The warning occupies part
+    # of the window space and because of this method "_window_height" returns
+    # different values when the warning is on the screen and
+    # when it disappeared. It is critical for tests with scroll position checks
+    # like testPressEndAndHome.
+    # Tests in KeyPressActionTest class do not use any Google APIs,
+    # so it is not needed to provide Google API keys to browser
+    # to run those tests. If browser was built with Google API keys,
+    # the warning would not be shown on start, so it is no need to do anything.
+    # Otherwise we need to set specific env variables to 'no'
+    # to disable warning.
+    os.environ['GOOGLE_API_KEY'] = 'no'
+    os.environ['GOOGLE_DEFAULT_CLIENT_ID'] = 'no'
+    os.environ['GOOGLE_DEFAULT_CLIENT_SECRET'] = 'no'
+    super().setUpClass()
+
   def setUp(self):
     tab_test_case.TabTestCase.setUp(self)
     self.Navigate('blank.html')
@@ -34,7 +58,7 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
 
   # https://github.com/catapult-project/catapult/issues/3099
   # crbug.com/1005062
-  @decorators.Disabled('android', 'chromeos', 'linux')
+  @decorators.Disabled('android', 'chromeos')
   def testPressEndAndHome(self):
     # Make page taller than the window so it's scrollable.
     self._tab.ExecuteJavaScript(
