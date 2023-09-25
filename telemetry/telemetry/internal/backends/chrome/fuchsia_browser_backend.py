@@ -82,7 +82,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           break
       return int(tokens.group(1)) if tokens else None
     with open(self._browser_log_file.name, encoding='utf-8') as log_file:
-      return py_utils.WaitFor(TryReadingPort, timeout=60)
+      return py_utils.WaitFor(TryReadingPort, timeout=180)
 
   def _ReadDevToolsPort(self):
     if (self.browser_type == WEB_ENGINE_SHELL or
