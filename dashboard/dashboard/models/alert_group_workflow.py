@@ -1140,15 +1140,24 @@ class AlertGroupWorkflow:
     if not target:
       return None
 
-    job_name = 'Auto-Bisection on %s/%s' % (alert.bot_name,
-                                            alert.benchmark_name)
-
-    alert_magnitude = alert.median_after_anomaly - alert.median_before_anomaly
     tags = {
         'test_path': utils.TestPath(alert.test),
         'alert': six.ensure_str(alert.key.urlsafe()),
         'auto_bisection': 'true',
     }
+    if alert.source and alert.source == 'skia':
+      alert_magnitude = None
+      # Adding the tag below to distinguish jobs created for skia regressions.
+      # This should help us measure the culprit detection rate separately for
+      # skia regressions.
+      tags['source'] = 'skia'
+      job_name = '[Skia] Auto-Bisection on %s/%s' % (alert.bot_name,
+                                            alert.benchmark_name)
+    else:
+      alert_magnitude = alert.median_after_anomaly - alert.median_before_anomaly
+      job_name = 'Auto-Bisection on %s/%s' % (alert.bot_name,
+                                            alert.benchmark_name)
+
     if self._group.status == self._group.Status.sandwiched:
       tags['sandwiched'] = 'true'
     return pinpoint_service.MakeBisectionRequest(
