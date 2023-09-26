@@ -99,6 +99,7 @@ _ALERT_GROUP_DEFAULT_SIGNAL_QUALITY_SCORE = 0.6
 # Emoji to set sandwich-related issue comments apart from other comments, visually.
 _SANDWICH = u'\U0001f96a'
 
+
 class SignalQualityScore(ndb.Model):
   score = ndb.FloatProperty()
   updated_time = ndb.DateTimeProperty()
@@ -678,30 +679,41 @@ class AlertGroupWorkflow:
       benchmarks_dict[name] = benchmark
     return list(benchmarks_dict.values())
 
-  def _ComputeBugUpdate(self, subscriptions, regressions):
-    # NOTE: Previous sandwich_allowlist checks resulted in this
-    # logic ignoring _GetComponentsFromRegressions for sandwich-able
-    # retressions. It no longer ignores these, so some sandwiched regressions may
-    # now have components assigned due to data uploaded from benchmark runners,
-    # rather than what's specified in the sheriff config.
-    # NOTE 2: Regression issues should now only get components assigned in two cases:
-    #.   - regressions are NOT sandwich-able, due to _CheckSandwichAllowlist results
-    #.   - regressions are sandwich-able, AND issue has the Regression-Verification-Repro label
-    verifiable_regressions = self._CheckSandwichAllowlist(regressions)
-    components = []
-    if len(verifiable_regressions) == 0:
-      components = set(
-          self._GetComponentsFromSubscriptions(subscriptions)
-          | self._GetComponentsFromRegressions(regressions))
-      if len(components) != 1:
-        logging.warning('Invalid component count is found for bug update: %s',
-                        components)
-        cloud_metric.PublistPerfIssueInvalidComponentCount(len(components))
-    components = list(components)
-    cc = list(set(e for s in subscriptions for e in s.bug_cc_emails))
-    labels = list(
-        set(l for s in subscriptions for l in s.bug_labels)
-        | {'Chromeperf-Auto-Triaged'})
+  def _ComputeBugUpdate(self,
+                        subscriptions,
+                        regressions,
+                        delay_reporting=False):
+    if delay_reporting:
+      logging.debug('[DelayReporting] Ignoring reporting info for group %s',
+                    self._group.key)
+      components = [utils.DELAY_REPORTING_PLACEHOLDER]
+      cc = []
+      labels = [utils.DELAY_REPORTING_LABEL]
+    else:
+      # NOTE: Previous sandwich_allowlist checks resulted in this
+      # logic ignoring _GetComponentsFromRegressions for sandwich-able
+      # retressions. It no longer ignores these, so some sandwiched regressions may
+      # now have components assigned due to data uploaded from benchmark runners,
+      # rather than what's specified in the sheriff config.
+      # NOTE 2: Regression issues should now only get components assigned in two cases:
+      #.   - regressions are NOT sandwich-able, due to _CheckSandwichAllowlist results
+      #.   - regressions are sandwich-able, AND issue has the Regression-Verification-Repro label
+      verifiable_regressions = self._CheckSandwichAllowlist(regressions)
+      components = []
+      if len(verifiable_regressions) == 0:
+        components = set(
+            self._GetComponentsFromSubscriptions(subscriptions)
+            | self._GetComponentsFromRegressions(regressions))
+        if len(components) != 1:
+          logging.warning('Invalid component count is found for bug update: %s',
+                          components)
+          cloud_metric.PublishPerfIssueInvalidComponentCount(len(components))
+      components = list(components)
+      cc = list(set(e for s in subscriptions for e in s.bug_cc_emails))
+      labels = list(
+          set(l for s in subscriptions for l in s.bug_labels)
+          | {'Chromeperf-Auto-Triaged'})
+
     # We layer on some default labels if they don't conflict with any of the
     # provided ones.
     if not any(l.startswith('Pri-') for l in labels):
@@ -1004,33 +1016,33 @@ class AlertGroupWorkflow:
     title = _TEMPLATE_ISSUE_TITLE.render(template_args)
     description = _TEMPLATE_ISSUE_CONTENT.render(template_args)
 
-    # Fetching issue labels, components and cc from subscriptions and owner
-    components, cc, labels = self._ComputeBugUpdate(subscriptions, regressions)
-    logging.info('Creating a new issue for AlertGroup %s', self._group.key)
+    # DelayReporting: we decided to delay the reporting until we find a root
+    # cause if any. The reason is: the alert group can be a false positive and
+    # thus the issue created is a cannot-reproduce.
+    # To delay the reporting, the fields which trigger notifications (emails)
+    # will be removed when the issue is created. Those fields will be updated
+    # when bisection finds a culprit. A label 'Chromeperf-Delay-Reporting' is
+    # added to tell Pinpoint to do the reporting.
+    # If auto-bisect is not enabled, we will still do reporting because we
+    # cannot rely on manual bisects to add those inf.
 
-    # DelayTriage: we decided to delay the triaging until we find a root cause
-    # if any. The reason is: the alert group can be a false positive and thus
-    # the issue created is a cannot-reproduce.
-    # To delay the triage, the fields which trigger notifications (emails) will
-    # be removed when the issue is created. Those fields will be updated when
-    # bisection finds a culprit. A special label 'Chromeperf-Delay-Triage' is
-    # added to tell Pinpoint to triage.
-    # If auto-bisect is not enabled, we will still do triage because we cannot
-    # rely on manual bisects.
     # NOTICE that we do not have benchmark class in Pinpoint workflow and thus
     # do not have the component info from the @benchmark.info. E.g.:
     # https://source.chromium.org/chromium/chromium/src/+/main:tools/perf/benchmarks/jetstream2.py;l=44
     # We will only add component, cc and labels based on the settings from
     # the Sheriff Config.
-    if utils.ShouldDelayIssueTriage():
+
+    should_delay_reporting = utils.ShouldDelayIssueReporting()
+    if should_delay_reporting:
       should_bisect = any(
           r.auto_bisect_enable and not r.is_improvement for r in regressions)
-      logging.debug('[DelayTriage] should_bisect %s for group %s.',
+      logging.debug('[DelayReporting] should_bisect %s for group %s.',
                     should_bisect, self._group.key)
-      if should_bisect:
-        components = [utils.DELAY_REPORTING_PLACEHOLDER]
-        cc = []
-        labels = [utils.DELAY_REPORTING_LABEL]
+      should_delay_reporting = should_delay_reporting and should_bisect
+    # Fetching issue labels, components and cc from subscriptions and owner
+    components, cc, labels = self._ComputeBugUpdate(subscriptions, regressions,
+                                                    should_delay_reporting)
+    logging.info('Creating a new issue for AlertGroup %s', self._group.key)
 
     response = perf_issue_service_client.PostIssue(
         title=title,

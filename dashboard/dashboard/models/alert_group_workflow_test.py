@@ -825,6 +825,111 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'Chromium Commit Position: http://test-results.appspot.com/revision_range?start=0&end=100',
         self._issue_tracker.new_bug_kwargs['description'])
 
+  # === Delay Reporting ===
+  # Delay Reporting will be enabled when auto bisect is enabled.
+  # If it is enabled:
+  #  the component/cc/labels in subscription will not be added in issue.
+  @mock.patch('dashboard.common.utils.ShouldDelayIssueReporting',
+              mock.MagicMock(return_value=True))
+  def testTriage_GroupUntriaged_DelayReporting_Delayed(self):
+    test_subscription = 'AnySub'
+    enable_auto_bisect = True
+    anomalies = [self._AddAnomaly(), self._AddAnomaly()]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        status=alert_group.AlertGroup.Status.untriaged,
+        subscription_name=test_subscription)
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name=test_subscription,
+                bug_components=['test-component'],
+                bug_cc_emails=['test-cc'],
+                bug_labels=['test-label'],
+                auto_triage_enable=True,
+                auto_bisect_enable=enable_auto_bisect)
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        revision_info=self._revision_info,
+        config=alert_group_workflow.AlertGroupWorkflow.Config(
+            active_window=datetime.timedelta(days=7),
+            triage_delay=datetime.timedelta(hours=0),
+        ),
+        crrev=self._crrev,
+        gitiles=self._gitiles)
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=None,
+        ))
+    self.assertIn('2 regressions', self._issue_tracker.new_bug_kwargs['title'])
+    self.assertIn(
+        'Chromium Commit Position: http://test-results.appspot.com/revision_range?start=0&end=100',
+        self._issue_tracker.new_bug_kwargs['description'])
+    self.assertIn(utils.DELAY_REPORTING_PLACEHOLDER,
+                  self._issue_tracker.new_bug_kwargs['components'])
+    self.assertIn(utils.DELAY_REPORTING_LABEL,
+                  self._issue_tracker.new_bug_kwargs['labels'])
+    self.assertNotIn('test-component',
+                     self._issue_tracker.new_bug_kwargs['components'])
+    self.assertNotIn('test-cc', self._issue_tracker.new_bug_kwargs['cc'])
+    self.assertNotIn('test-label', self._issue_tracker.new_bug_kwargs['labels'])
+
+  @mock.patch('dashboard.common.utils.ShouldDelayIssueReporting',
+              mock.MagicMock(return_value=True))
+  def testTriage_GroupUntriaged_DelayReporting_NotDelayed_NoBisect(self):
+    test_subscription = 'AnySub-blocked'
+    enable_auto_bisect = False
+    anomalies = [self._AddAnomaly(), self._AddAnomaly()]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        status=alert_group.AlertGroup.Status.untriaged,
+        subscription_name=test_subscription)
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name=test_subscription,
+                bug_components=['test-component'],
+                bug_cc_emails=['test-cc'],
+                bug_labels=['test-label'],
+                auto_triage_enable=True,
+                auto_bisect_enable=enable_auto_bisect)
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        revision_info=self._revision_info,
+        config=alert_group_workflow.AlertGroupWorkflow.Config(
+            active_window=datetime.timedelta(days=7),
+            triage_delay=datetime.timedelta(hours=0),
+        ),
+        crrev=self._crrev,
+        gitiles=self._gitiles)
+    w.Process(
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=None,
+        ))
+    self.assertIn('2 regressions', self._issue_tracker.new_bug_kwargs['title'])
+    self.assertIn(
+        'Chromium Commit Position: http://test-results.appspot.com/revision_range?start=0&end=100',
+        self._issue_tracker.new_bug_kwargs['description'])
+    self.assertNotIn(utils.DELAY_REPORTING_PLACEHOLDER,
+                     self._issue_tracker.new_bug_kwargs['components'])
+    self.assertNotIn(utils.DELAY_REPORTING_LABEL,
+                     self._issue_tracker.new_bug_kwargs['labels'])
+    self.assertIn('Pri-2', self._issue_tracker.new_bug_kwargs['labels'])
+    self.assertIn('test-component',
+                  self._issue_tracker.new_bug_kwargs['components'])
+    self.assertIn('test-cc', self._issue_tracker.new_bug_kwargs['cc'])
+    self.assertIn('test-label', self._issue_tracker.new_bug_kwargs['labels'])
+
   def testTriage_GroupUntriaged_MultiSubscriptions(self):
     anomalies = [self._AddAnomaly(), self._AddAnomaly()]
     group = self._AddAlertGroup(

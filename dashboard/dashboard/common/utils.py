@@ -882,8 +882,8 @@ def ConvertBytesBeforeJsonDumps(src):
   return src
 
 
-def ShouldDelayIssueTriage():
-  ''' Tells whether issue should not have the triage info when created.
+def ShouldDelayIssueReporting():
+  ''' Tells whether issue should not have the component/label/cc when created.
   '''
   # At the beginning, we will randomly pick 5% of the issues.
   return random.randrange(20) == 0

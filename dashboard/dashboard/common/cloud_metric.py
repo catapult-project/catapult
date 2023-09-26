@@ -57,7 +57,7 @@ def PublishPerfIssueServiceGroupingImpariry(endpoint):
       label_dict=label_dict)
 
 
-def PublistPerfIssueInvalidComponentCount(component_count):
+def PublishPerfIssueInvalidComponentCount(component_count):
   label_dict = {'component_count': str(component_count)}
   _PublishTSCloudMetric(
       project_id=app_identity.get_application_id(),
