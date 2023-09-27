@@ -145,6 +145,8 @@ def AddAnomalyPostHandler():
     anomaly_data.update(GetTestFieldsFromPath(test_path))
     anomaly_data['timestamp'] = datetime.datetime.utcnow()
     anomaly_data['source'] = 'skia'
+
+    _ExtendRevisions(anomaly_data)
     client = datastore_client.DataStoreClient()
     anomaly = client.CreateEntity(datastore_client.EntityType.Anomaly,
                                   str(uuid.uuid4()),
@@ -157,7 +159,6 @@ def AddAnomalyPostHandler():
     ungrouped_type = 2 # 2 is the type for "ungrouped" groups
     alert_groups = client.QueryAlertGroups(skia_ungrouped_name, ungrouped_type)
     if not alert_groups:
-      print('No ungrouped group found')
       ungrouped_data = {
         'project_id': anomaly_data['project_id'],
         'group_type': ungrouped_type,
@@ -249,3 +250,10 @@ def GetTestFieldsFromPath(test_path: str):
   for i in range(len(test_keys)):
     test_fields[test_keys[i]] = test_parts[i]
   return test_fields
+
+def _ExtendRevisions(anomaly_data):
+  start_revision = int(anomaly_data['start_revision']) - 5
+  end_revision = int(anomaly_data['end_revision']) + 5
+
+  anomaly_data['start_revision'] = start_revision
+  anomaly_data['end_revision'] = end_revision
