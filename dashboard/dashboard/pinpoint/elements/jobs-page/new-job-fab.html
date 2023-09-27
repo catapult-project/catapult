@@ -711,7 +711,13 @@ found in the LICENSE file.
 
       validStoryTag(storyTag) {
         if (this.benchmarkConfig) {
-          return (storyTag in this.benchmarkConfig.caseTags);
+          if (storyTag.includes(",")){
+            tagList = storyTag.split(",")
+            return tagList.every((tag) => (tag.trim()==="" | tag.trim() in this.benchmarkConfig.caseTags))
+          }
+          else {
+            return (storyTag in this.benchmarkConfig.caseTags);
+          }
         }
         return false;
       },
