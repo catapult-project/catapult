@@ -139,6 +139,8 @@ def _ProcessTestStat(test, stat, rows, ref_rows):
 
   anomalies = yield [_MakeAnomalyEntity(*inputs) for inputs in anomaly_inputs]
 
+  anomalies = [a for a in anomalies if a is not None]
+
   # If no new anomalies were found, then we're done.
   if not anomalies:
     raise ndb.Return(None)
@@ -245,7 +247,8 @@ def _FetchRowsByStat(test_key, stat, last_alert_future, max_num_rows):
   # If stats are specified, we only want to alert on those, otherwise alert on
   # everything.
   if stat == 'avg':
-    query = graph_data.Row.query(projection=['revision', 'timestamp', 'value'])
+    query = graph_data.Row.query(
+        projection=['revision', 'timestamp', 'value', 'swarming_bot_id'])
   else:
     query = graph_data.Row.query()
 
@@ -377,6 +380,14 @@ def _GetDisplayRange(old_end, rows):
   return start_rev, end_rev
 
 
+def _GetBotIdForRevisionNumber(row_tuples, revision_number):
+  for _, row, _ in row_tuples:
+    if row.revision == revision_number:
+      if hasattr(row, 'swarming_bot_id') and row.swarming_bot_id:
+        return row.swarming_bot_id
+  return None
+
+
 @ndb.tasklet
 def _MakeAnomalyEntity(change_point, test, stat, rows, config, matching_sub):
   """Creates an Anomaly entity.
@@ -385,7 +396,7 @@ def _MakeAnomalyEntity(change_point, test, stat, rows, config, matching_sub):
     change_point: A find_change_points.ChangePoint object.
     test: The TestMetadata entity that the anomalies were found on.
     stat: The TestMetadata stat that the anomaly was found on.
-    rows: List of Row entities that the anomalies were found on.
+    rows: List of (revision, graph_data.Row, value) tuples that the anomalies were found on.
     config: A dict representing the anomaly detection configuration
         parameters used to produce this anomaly.
     matching_sub: A subscription to which this anomaly is associated.
@@ -402,10 +413,19 @@ def _MakeAnomalyEntity(change_point, test, stat, rows, config, matching_sub):
     display_start, display_end = _GetDisplayRange(change_point.x_value, rows)
   median_before = change_point.median_before
   median_after = change_point.median_after
+  bot_id_before = _GetBotIdForRevisionNumber(rows, change_point.extended_start)
+  bot_id_after = _GetBotIdForRevisionNumber(rows, change_point.extended_end)
 
   suite_key = test.key.id().split('/')[:3]
   suite_key = '/'.join(suite_key)
   suite_key = utils.TestKey(suite_key)
+
+  if bot_id_after is not None and bot_id_before is not None and bot_id_after != bot_id_before:
+    logging.info(
+        'ignoring anomaly for %s, range %s-%s, reason: swarming bot id changed (%s vs %s)',
+        utils.TestPath(suite_key), change_point.extended_start,
+        change_point.extended_end, bot_id_before, bot_id_after)
+    raise ndb.Return(None)
 
   queried_diagnostics = yield (
       histogram.SparseDiagnostic.GetMostRecentDataByNamesAsync(
