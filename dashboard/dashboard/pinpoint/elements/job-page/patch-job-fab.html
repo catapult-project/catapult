@@ -51,7 +51,7 @@ found in the LICENSE file.
             <template is="dom-repeat" items="[[getArguments(job)]]">
               <input type="hidden" name="[[item.key]]" value="[[item.value]]">
             </template>
-            <paper-input name="patch" label="Gerrit URL" required></paper-input>
+            <paper-input name="experiment_patch" label="Gerrit URL" required></paper-input>
           </form>
         </iron-form>
       </div>
@@ -93,6 +93,8 @@ found in the LICENSE file.
         delete args.start_git_hash;
         delete args.name;
         delete args.patch;
+        delete args.base_patch;
+        delete args.experiment_patch
         delete args.user;
 
         const tuples = [];
