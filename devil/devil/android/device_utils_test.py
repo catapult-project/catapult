@@ -2909,7 +2909,8 @@ class DeviceUtilsPushChangedFilesZippedTest(DeviceUtilsTest):
         '\n  /data/local/tmp/bin/unzip %s &&',
         ' (for dir in %s\n  do\n    chmod -R 777 "$dir" || exit 1\n',
         '  done)\n'
-    ]) % ('/sdcard/foo123.zip', ' '.join(test_dirs))
+    ]) % ('/sdcard/foo123.zip', ' '.join(
+        cmd_helper.SingleQuote(d) for d in test_dirs))
     with self.assertCalls(
         (self.call.device._MaybeInstallCommands(), True),
         (mock.call.py_utils.tempfile_ext.NamedTemporaryDirectory(),
@@ -2938,7 +2939,7 @@ class DeviceUtilsPushChangedFilesZippedTest(DeviceUtilsTest):
     self._testPushChangedFilesZipped_spec(
         [('/test/host/path/file1', '/test/device/path/file1'),
          ('/test/host/path/file2', '/test/device/path/file2')],
-        ['/test/dir1', '/test/dir2'])
+        ['/test/dir1', '/test/dir2', '/test/dir with space'])
 
 
 class DeviceUtilsPathExistsTest(DeviceUtilsTest):
