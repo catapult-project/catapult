@@ -1,6 +1,9 @@
 All graphs for this regression group at {{ group.revision.start }}:{{ group.revision.end }}:
-  Public Report: {{ skia_url_text_public }}
   Internal (Googlers-only) Report: {{ skia_url_text_internal }}
+{% if skia_url_text_public %}
+  Public Report: {{ skia_url_text_public }}
+{% endif %}
+  (Legacy) Chromeperf Report: https://chromeperf.appspot.com/group_report?group_id={{ group.key.string_id() }}
 
 {% set top_regressions = regressions[:10] -%}
 Top {{ top_regressions|length }} regressions (out of {{ group.anomalies|length }}, with {{ group.anomalies|length - regressions|length }} improvements) in this group:
@@ -23,6 +26,3 @@ Commits in this range:
 {%- for info in revision_infos %}
   {{ info.name }}: {{ info.url }}
 {%- endfor -%}
-
-Legacy Links:
-  Chromeperf Report: https://chromeperf.appspot.com/group_report?group_id={{ group.key.string_id() }}

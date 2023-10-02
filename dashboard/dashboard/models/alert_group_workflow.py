@@ -1002,10 +1002,15 @@ class AlertGroupWorkflow:
     )
 
     try:
+      # Add the public url only if at least one of the subscriptions in the group are public
+      if any(s.visibility == subscription.VISIBILITY.PUBLIC
+             for s in subscriptions):
+        skia_url_public = skia_helper.GetSkiaUrlForAlertGroup(
+            self._group.key.string_id(), False)
+        template_args['skia_url_text_public'] = skia_url_public
 
-      skia_url_public = skia_helper.GetSkiaUrlForAlertGroup(self._group.key.string_id(), False)
-      skia_url_internal = skia_helper.GetSkiaUrlForAlertGroup(self._group.key.string_id(), True)
-      template_args['skia_url_text_public'] = skia_url_public
+      skia_url_internal = skia_helper.GetSkiaUrlForAlertGroup(
+          self._group.key.string_id(), True)
       template_args['skia_url_text_internal'] = skia_url_internal
     except Exception as e:  # pylint: disable=broad-except
       logging.error('Error generating skia perf links: %s', str(e))
