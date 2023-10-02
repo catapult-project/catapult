@@ -14,6 +14,10 @@ from dashboard.models import graph_data
 
 class GraphDataTest(testing_common.TestCase):
 
+  def setUp(self):
+    super().setUp()
+    testing_common.SetIsInternalUser('x@google.com', True)
+
   def testPutTestTruncatesDescription(self):
     master = graph_data.Master(id='M').put()
     graph_data.Bot(parent=master, id='b').put()
@@ -23,6 +27,24 @@ class GraphDataTest(testing_common.TestCase):
     t.UpdateSheriff()
     key = t.put()
     self.assertEqual(long_string, key.get().description)
+
+  def testBotInternalOnly(self):
+    master = graph_data.Master(id='M').put()
+    graph_data.Bot(parent=master, id='B1').put()
+    graph_data.Bot(parent=master, id='B2', internal_only=True).put()
+
+    # Test default value internal_only is False
+    internal_only = graph_data.Bot.GetInternalOnlySync('M', 'B1')
+    self.assertFalse(internal_only)
+
+    # Test bot with internal_only True returns True.
+    self.SetCurrentUser('x@google.com')
+    internal_only = graph_data.Bot.GetInternalOnlySync('M', 'B2')
+    self.assertTrue(internal_only)
+
+    # Test default internal_only value for non-existing Bot is True
+    internal_only = graph_data.Bot.GetInternalOnlySync('M1', 'B1')
+    self.assertTrue(internal_only)
 
 
 if __name__ == '__main__':

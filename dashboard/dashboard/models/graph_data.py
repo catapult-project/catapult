@@ -111,6 +111,9 @@ class Bot(internal_only_model.InternalOnlyModel):
       internal_only = yield cls.GetInternalOnlyAsync(master, bot)
       raise ndb.Return(internal_only)
     except AssertionError as e:
+      logging.warning(
+          'Failed to get internal_only for (master: %s, bot: %s). Error: %s.',
+          master, bot, e)
       six.raise_from(ndb.Return(True), e)
 
   @staticmethod
@@ -118,6 +121,8 @@ class Bot(internal_only_model.InternalOnlyModel):
   def GetInternalOnlyAsync(master, bot):
     bot_entity = yield ndb.Key('Master', master, 'Bot', bot).get_async()
     if bot_entity is None:
+      logging.warning('Failed to find Bot Entity with master %s and bot %s.',
+                      master, bot)
       raise ndb.Return(True)
     raise ndb.Return(bot_entity.internal_only)
 
