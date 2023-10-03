@@ -45,7 +45,6 @@ from dashboard import pinpoint_request
 from dashboard import report
 from dashboard import sheriff_config_poller
 from dashboard import short_uri
-from dashboard import skia_perf_upload
 from dashboard import update_dashboard_stats
 from dashboard import update_test_suites
 from dashboard import update_test_suite_descriptors
@@ -280,11 +279,6 @@ def ShortUriHandlerGet():
 @flask_app.route('/short_uri', methods=['POST'])
 def ShortUriHandlerPost():
   return short_uri.ShortUriHandlerPost()
-
-
-@flask_app.route('/skia_perf_upload', methods=['POST'])
-def SkiaPerfUploadPost():
-  return skia_perf_upload.SkiaPerfUploadPost()
 
 
 @flask_app.route('/update_dashboard_stats')

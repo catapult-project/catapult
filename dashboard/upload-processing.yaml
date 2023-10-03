@@ -17,11 +17,6 @@ env_variables:
   GAE_USE_SOCKETS_HTTPLIB: 'true'
 
 handlers:
-- url: /skia_perf_upload
-  script: dashboard.dispatcher.APP
-  secure: always
-  login: admin
-
 - url: /.*
   script: dashboard.dispatcher.APP
   secure: always

@@ -18,7 +18,6 @@ from google.appengine.ext import ndb
 
 from dashboard import add_histograms_queue
 from dashboard import find_anomalies
-from dashboard import skia_perf_upload
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -82,11 +81,6 @@ flask_app = Flask(__name__)
 @flask_app.route('/add_histograms_queue', methods=['GET', 'POST'])
 def AddHistogramsQueuePost():
   return add_histograms_queue.AddHistogramsQueuePost()
-
-
-@flask_app.route('/skia_perf_upload', methods=['POST'])
-def SkiaPerfUploadPost():
-  return skia_perf_upload.SkiaPerfUploadPost()
 
 
 @mock.patch('dashboard.common.cloud_metric._PublishTSCloudMetric',
