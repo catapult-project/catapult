@@ -234,11 +234,13 @@ class AlertGroup:
       otherwise create a new entity and return None.
     '''
     group_name = cls._GetUngroupedGroupName(group_type)
+    logging.debug('[GroupingDebug] Loading ungrouped %s.', group_name)
     if not group_name:
       return []
     ungrouped_groups = cls.Get(group_name, datastore_client.AlertGroupType.ungrouped)
     if not ungrouped_groups:
       # initiate when there is no active group called 'Ungrouped'.
+      logging.debug('[GroupingDebug] Creating new ungrouped entity.')
       new_group = cls.ds_client.NewAlertGroup(
         benchmark_name=group_name,
         group_type=datastore_client.AlertGroupType.ungrouped
@@ -248,6 +250,7 @@ class AlertGroup:
     if len(ungrouped_groups) != 1:
       logging.warning('More than one active groups are named %s.', group_name)
     ungrouped = ungrouped_groups[0]
+    logging.debug('[GroupingDebug] Loaded ungrouped %s', ungrouped)
     return ungrouped
 
   @classmethod
@@ -263,6 +266,7 @@ class AlertGroup:
     IS_PARITY = True
     ungrouped = cls._GetUngroupedGroup(group_type)
     if not ungrouped:
+      logging.debug('[GroupingDebug] No Ungouped is found.')
       return
 
     ungrouped_anomalies = cls.ds_client.GetMultiEntitiesByKeys(dict(ungrouped).get('anomalies'))
@@ -275,6 +279,10 @@ class AlertGroup:
         anomaly['test'].name, anomaly['start_revision'], anomaly['end_revision'],
         create_on_ungrouped=True, parity=IS_PARITY, group_type=group_type)
       anomaly['groups'] = [cls.ds_client.AlertGroupKey(group_id) for group_id in group_ids]
+      logging.debug(
+        '[GroupingDebug] Ungrouped anomaly %s is associated with %s',
+        anomaly.key.id, anomaly['groups']
+      )
       if IS_PARITY:
         anomaly_id = anomaly.key.id
         parity_results[anomaly_id] = {

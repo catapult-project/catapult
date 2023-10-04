@@ -170,6 +170,8 @@ def _ProcessTestStat(test, stat, rows, ref_rows):
         cloud_metric.PublishPerfIssueServiceGroupingImpariry(
             'GetAlertGroupsForAnomaly')
       a.groups = group_keys
+      logging.debug('[GroupingDebug] Anomaly %s is associated with groups %s.',
+                    a.key, a.groups)
     except Exception as e:  # pylint: disable=broad-except
       logging.warning('Parity logic failed in GetAlertGroupsForAnomaly. %s',
                       str(e))

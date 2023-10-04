@@ -81,8 +81,8 @@ def _ProcessUngroupedAlerts(group_type: int):
   ungrouped = ungrouped_list[0]
   ungrouped_anomalies = ndb.get_multi(ungrouped.anomalies)
 
-  logging.info('%i anomalies found in %s group.', len(ungrouped_anomalies),
-               ungrouped_group_name)
+  logging.info('%i anomalies found in %s group: %s', len(ungrouped_anomalies),
+               ungrouped_group_name, ungrouped.anomalies)
 
   # Parity on anomaly counts under ungrouped
   try:

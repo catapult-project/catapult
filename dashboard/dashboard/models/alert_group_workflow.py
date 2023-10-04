@@ -240,6 +240,8 @@ class AlertGroupWorkflow:
       return group_keys
     except (ValueError, datastore_errors.BadValueError):
       # only 'ungrouped' has integer key, which we should not find duplicate.
+      logging.debug('[GroupingDebug] Failed to get duplicate groups. %s',
+                    self._group.key)
       return []
 
   def _FindDuplicateGroups(self):
@@ -272,12 +274,16 @@ class AlertGroupWorkflow:
         cloud_metric.PublishPerfIssueServiceGroupingImpariry(
             '_FindDuplicateGroups')
     except Exception as e:  # pylint: disable=broad-except
-      logging.warning('Parity logic failed in _FindDuplicateGroups. %s', str(e))
+      logging.warning('Parity logic failed in _FindDuplicateGroups(%s). %s.',
+                      self._group.key, str(e))
 
     duplicate_groups = [
         ndb.Key('AlertGroup', k).get() for k in duplicate_group_keys
     ]
     anomalies = self._FindRelatedAnomalies([self._group] + duplicate_groups)
+    logging.debug(
+        '[GroupingDebug] Anomalies %s found for group %s and duplicates %s',
+        anomalies, self._group.key, duplicate_group_keys)
 
     now = datetime.datetime.utcnow()
     issue = None
@@ -319,8 +325,9 @@ class AlertGroupWorkflow:
     # anomalies list.
     if (not update.anomalies and self._group.anomalies
         and self._group.group_type != alert_group.AlertGroup.Type.reserved):
-      logging.error('No anomalies detected. Skipping this run for %s.',
-                    self._group.key)
+      logging.error(
+          'No anomalies detected. Skipping this run for %s. with anomalies %s ',
+          self._group.key, self._group.anomalies)
       return self._group.key
 
     # Process input before we start processing the group.
@@ -399,11 +406,14 @@ class AlertGroupWorkflow:
     return self._CommitGroup()
 
   def _CommitGroup(self):
+    logging.debug('[GroupDebug] Group %s commited.', self._group.key)
     return self._group.put()
 
   def _UpdateAnomalies(self, anomalies):
     added = [a for a in anomalies if a.key not in self._group.anomalies]
     self._group.anomalies = [a.key for a in anomalies]
+    logging.debug('[GroupingDebug] Group %s is associated with anomalies %s.',
+                  self._group.key, self._group.anomalies)
     return added
 
   def _UpdateStatus(self, issue):
@@ -779,6 +789,7 @@ class AlertGroupWorkflow:
   def _TryTriage(self, now, anomalies):
     bug, anomalies = self._FileIssue(anomalies)
     if not bug:
+      logging.debug('[GroupingDebug] No issue created for %s.', self._group.key)
       return
 
     cloud_metric.PublishAutoTriagedIssue(cloud_metric.AUTO_TRIAGE_CREATED)
@@ -1056,8 +1067,11 @@ class AlertGroupWorkflow:
         components=components,
         cc=cc,
         project=self._group.project_id)
+    logging.debug('[GroupingDebug] PostIssue response for %s: %s',
+                  self._group.key, response)
     if 'error' in response:
-      logging.warning('AlertGroup file bug failed: %s', response['error'])
+      logging.warning('AlertGroup %s file bug failed: %s', self._group.key,
+                      response['error'])
       return None, []
 
     # Update the issue associated witht his group, before we continue.
