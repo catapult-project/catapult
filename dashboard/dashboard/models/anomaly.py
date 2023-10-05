@@ -96,8 +96,6 @@ class Anomaly(internal_only_model.InternalOnlyModel):
   # We'd like to be able to query Alerts by Master, Bot, and Benchmark names.
   master_name = ndb.ComputedProperty(
       lambda self: utils.TestPath(self.test).split('/')[0], indexed=True)
-  # This is not the "bot_name" as in "the id of the physical hardware device in the perf lab"
-  # but rather the "bot_name" as in "the name of device configuration" e.g. "win-10-perf"
   bot_name = ndb.ComputedProperty(
       lambda self: utils.TestPath(self.test).split('/')[1], indexed=True)
   benchmark_name = ndb.ComputedProperty(

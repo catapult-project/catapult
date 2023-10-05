@@ -437,8 +437,7 @@ class ProcessAlertsTest(testing_common.TestCase):
       find_anomalies.ProcessTests([test.key])
     self.ExecuteDeferredTasks('default')
 
-    query = graph_data.Row.query(
-        projection=['revision', 'timestamp', 'value', 'swarming_bot_id'])
+    query = graph_data.Row.query(projection=['revision', 'timestamp', 'value'])
     query = query.filter(graph_data.Row.revision > 10062)
     query = query.filter(
         graph_data.Row.parent_test == utils.OldStyleTestKey(test.key))
@@ -677,31 +676,6 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertEqual(anomaly.UP, new_anomalies[0].direction)
     self.assertEqual(241533, new_anomalies[0].start_revision)
     self.assertEqual(241546, new_anomalies[0].end_revision)
-
-  def testProcessTest_BotIdBeforeAndAfterNotNoneAndDiffer_ignoreAnomaly(self):
-    testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
-        'scrolling_benchmark': {
-            'ref': {}
-        },
-    })
-    ref = utils.TestKey(
-        'ChromiumGPU/linux-release/scrolling_benchmark/ref').get()
-    test_container_key = utils.GetTestContainerKey(ref.key)
-    for idx, row in enumerate(_TEST_ROW_DATA):
-      graph_data.Row(
-          id=row[0],
-          value=row[1],
-          parent=test_container_key,
-          swarming_bot_id='device-id-%d' % idx).put()
-    ref.UpdateSheriff()
-    ref.put()
-    s = Subscription(name='sheriff', visibility=VISIBILITY.PUBLIC)
-    with mock.patch.object(SheriffConfigClient, 'Match',
-                           mock.MagicMock(return_value=([s], None))) as m:
-      find_anomalies.ProcessTests([ref.key])
-      self.assertEqual(m.call_args_list, [mock.call(ref.key.id())])
-    new_anomalies = anomaly.Anomaly.query().fetch()
-    self.assertEqual(0, len(new_anomalies))
 
   def testProcessTest_RefineAnomalyPlacement_OffByOneBefore(self):
     testing_common.AddTests(

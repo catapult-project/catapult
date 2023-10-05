@@ -401,9 +401,6 @@ class Row(ndb.Expando):
   # The standard deviation at this point. Optional.
   error = ndb.FloatProperty(indexed=False)
 
-  # A *single* swarming device ID, or None. Never multiple.
-  swarming_bot_id = ndb.StringProperty(indexed=True)
-
   @ndb.ComputedProperty
   def expiry(self):  # pylint: disable=invalid-name
     if self.timestamp:
