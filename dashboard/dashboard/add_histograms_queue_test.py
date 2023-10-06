@@ -160,6 +160,57 @@ class AddHistogramsQueueTest(testing_common.TestCase):
 
     rows = graph_data.Row.query().fetch()
     self.assertEqual(7, len(rows))
+    self.assertEqual(None, rows[0].swarming_bot_id)
+
+  def testPostHistogram_Internal_swarmingBotId(self):
+    test_path = 'Chromium/win7/suite/metric'
+    h2 = copy.deepcopy(TEST_HISTOGRAM)
+    h2['diagnostics'][reserved_infos.BOT_ID.name] = {
+        'type': 'GenericSet',
+        'values': ['swarming-bot-id-0'],
+    }
+
+    params = [{
+        'data': h2,
+        'test_path': test_path,
+        'benchmark_description': None,
+        'revision': 123
+    }]
+    self.testapp.post('/add_histograms_queue', json.dumps(params))
+
+    histograms = histogram.Histogram.query().fetch()
+    self.assertEqual(1, len(histograms))
+
+    rows = graph_data.Row.query().fetch()
+    self.assertEqual(7, len(rows))
+    self.assertEqual('swarming-bot-id-0', rows[0].swarming_bot_id)
+
+  def testPostHistogram_Internal_invalidSwarmingBotId(self):
+    test_path = 'Chromium/win7/suite/metric'
+    h2 = copy.deepcopy(TEST_HISTOGRAM)
+    h2['diagnostics'][reserved_infos.BOT_ID.name] = {
+        'type':
+            'GenericSet',
+        'values': [
+            'swarming-bot-id-0', 'swarming-bot-id-1', 'swarming-bot-id-2',
+            'swarming-bot-id-3'
+        ],
+    }
+
+    params = [{
+        'data': h2,
+        'test_path': test_path,
+        'benchmark_description': None,
+        'revision': 123
+    }]
+    self.testapp.post('/add_histograms_queue', json.dumps(params))
+
+    histograms = histogram.Histogram.query().fetch()
+    self.assertEqual(1, len(histograms))
+
+    rows = graph_data.Row.query().fetch()
+    self.assertEqual(7, len(rows))
+    self.assertEqual(None, rows[0].swarming_bot_id)
 
   def testPostHistogram_WithFreshDiagnostics(self):
     graph_data.Bot(

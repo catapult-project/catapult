@@ -217,8 +217,9 @@ indexes:
   - name: parent_test
   - name: revision
     direction: desc
-  - name: value
+  - name: swarming_bot_id
   - name: timestamp
+  - name: value
 
 # Used in graph_revisions.py to do a projection query for timestamp, revision
 # and value for points from a particular test.
