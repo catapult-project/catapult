@@ -212,6 +212,8 @@ indexes:
 
 # Used in find_anomalies.GetRowsToAnalyze when getting latest points,
 # with projection query for properties revision, value, and timestamp.
+# This is a new version of the index introduced for filtering out
+# anomalies that span swarming_bot_id changes.
 - kind: Row
   properties:
   - name: parent_test
@@ -220,6 +222,19 @@ indexes:
   - name: swarming_bot_id
   - name: timestamp
   - name: value
+
+# Used in find_anomalies.GetRowsToAnalyze when getting latest points,
+# with projection query for properties revision, value, and timestamp.
+# This is the old version of the same index from line 217, and preserving
+# it here should allow us to deploy and rollback more safely so we don't
+# repeat the production errors we saw in b/303566284
+- kind: Row
+  properties:
+  - name: parent_test
+  - name: revision
+    direction: desc
+  - name: value
+  - name: timestamp
 
 # Used in graph_revisions.py to do a projection query for timestamp, revision
 # and value for points from a particular test.
