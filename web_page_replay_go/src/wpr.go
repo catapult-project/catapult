@@ -50,7 +50,7 @@ const longUsage = `
 
 type CertConfig struct {
 	// Flags common to all commands.
-	certFile, keyFile string
+	certFile, keyFile, certType string
 }
 
 type CommonConfig struct {
@@ -94,15 +94,21 @@ func (certCfg *CertConfig) Flags() []cli.Flag {
 	return []cli.Flag{
 		&cli.StringFlag{
 			Name:        "https_cert_file",
-			Value:       "wpr_cert.pem",
+			Value:       "",
 			Usage:       "File containing a PEM-encoded X509 certificate to use with SSL.",
 			Destination: &certCfg.certFile,
 		},
 		&cli.StringFlag{
 			Name:        "https_key_file",
-			Value:       "wpr_key.pem",
+			Value:       "",
 			Usage:       "File containing a PEM-encoded private key to use with SSL.",
 			Destination: &certCfg.keyFile,
+		},
+		&cli.StringFlag{
+			Name:        "cert_type",
+			Value:       "rsa",
+			Usage:       "Certificate type used by WPR, rsa or ecdsa, default to be rsa.",
+			Destination: &certCfg.certType,
 		},
 	}
 }
@@ -145,6 +151,22 @@ func (common *CommonConfig) Flags() []cli.Flag {
 	)
 }
 
+func (certCfg *CertConfig) CheckArgs(c *cli.Context) error {
+	if certCfg.certFile == "" && certCfg.keyFile == "" {
+		switch certCfg.certType {
+		case "rsa":
+			certCfg.certFile = "wpr_cert.pem"
+			certCfg.keyFile = "wpr_key.pem"
+		case "ecdsa":
+			certCfg.certFile = "ecdsa_cert.pem"
+			certCfg.keyFile = "ecdsa_key.pem"
+		default:
+			return errors.New("cert_type must be rsa or ecdsa")
+		}
+	}
+	return nil
+}
+
 func (common *CommonConfig) CheckArgs(c *cli.Context) error {
 	if c.Args().Len() > 1 {
 		return errors.New("too many args")
@@ -156,15 +178,18 @@ func (common *CommonConfig) CheckArgs(c *cli.Context) error {
 		return errors.New("must specify at least one port flag")
 	}
 
-	// Load common configs.
+	err := common.certConfig.CheckArgs(c)
+	if err != nil {
+		return err
+	}
+
+	// Load certs.
 	log.Printf("Loading cert from %v\n", common.certConfig.certFile)
 	log.Printf("Loading key from %v\n", common.certConfig.keyFile)
-	var err error
 	common.root_cert, err = tls.LoadX509KeyPair(common.certConfig.certFile, common.certConfig.keyFile)
 	if err != nil {
 		return fmt.Errorf("error opening cert or key files: %v", err)
 	}
-
 	return nil
 }
 
@@ -488,6 +513,7 @@ func main() {
 		Name:   "installroot",
 		Usage:  "Install a test root CA",
 		Flags:  installroot.Flags(),
+		Before: installroot.certConfig.CheckArgs,
 		Action: installroot.Install,
 	}
 
@@ -495,6 +521,7 @@ func main() {
 		Name:   "removeroot",
 		Usage:  "Remove a test root CA",
 		Flags:  removeroot.Flags(),
+		Before: removeroot.certConfig.CheckArgs,
 		Action: removeroot.Remove,
 	}
 

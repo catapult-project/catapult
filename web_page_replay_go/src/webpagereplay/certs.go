@@ -81,7 +81,8 @@ func MintServerCert(serverName string, rootCert *x509.Certificate, rootKey crypt
 		DualStack: true,
 	}
 	conn, err := tls.DialWithDialer(dialer, "tcp", fmt.Sprintf("%s:443", serverName), &tls.Config{
-		NextProtos: []string{"h2", "http/1.1"},
+		NextProtos:         []string{"h2", "http/1.1"},
+		InsecureSkipVerify: true,
 	})
 	if err != nil {
 		return nil, "", fmt.Errorf("Couldn't reach host %s: %v", serverName, err)
@@ -97,7 +98,6 @@ func MintServerCert(serverName string, rootCert *x509.Certificate, rootKey crypt
 	// Certs cannot be valid for longer than 12 mths.
 	template.NotAfter = dt.Add(12 * 30 * 24 * time.Hour)
 	template.SignatureAlgorithm = rootCert.SignatureAlgorithm
-	template.PublicKey = rootCert.PublicKey
 	var buf [20]byte
 	if _, err := io.ReadFull(rand.Reader, buf[:]); err != nil {
 		return nil, "", err
@@ -108,7 +108,7 @@ func MintServerCert(serverName string, rootCert *x509.Certificate, rootKey crypt
 	template.ExtKeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth}
 
 	negotiatedProtocol := conn.ConnectionState().NegotiatedProtocol
-	derBytes, err := x509.CreateCertificate(rand.Reader, template, rootCert, template.PublicKey, rootKey)
+	derBytes, err := x509.CreateCertificate(rand.Reader, template, rootCert, rootCert.PublicKey, rootKey)
 	return derBytes, negotiatedProtocol, err
 }
 

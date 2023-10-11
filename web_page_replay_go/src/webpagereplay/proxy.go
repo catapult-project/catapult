@@ -6,6 +6,7 @@ package webpagereplay
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -21,7 +22,7 @@ const errStatus = http.StatusInternalServerError
 
 func makeLogger(req *http.Request, quietMode bool) func(msg string, args ...interface{}) {
 	if quietMode {
-		return func(string, ...interface{}) { }
+		return func(string, ...interface{}) {}
 	}
 	prefix := fmt.Sprintf("ServeHTTP(%s): ", req.URL)
 	return func(msg string, args ...interface{}) {
@@ -67,7 +68,7 @@ func updateDates(h http.Header, now time.Time) {
 // NewReplayingProxy constructs an HTTP proxy that replays responses from an archive.
 // The proxy is listening for requests on a port that uses the given scheme (e.g., http, https).
 func NewReplayingProxy(a *Archive, scheme string, transformers []ResponseTransformer, quietMode bool) http.Handler {
-	return &replayingProxy{a, scheme, transformers, quietMode }
+	return &replayingProxy{a, scheme, transformers, quietMode}
 }
 
 type replayingProxy struct {
@@ -160,6 +161,7 @@ func (proxy *replayingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 // NewRecordingProxy constructs an HTTP proxy that records responses into an archive.
 // The proxy is listening for requests on a port that uses the given scheme (e.g., http, https).
 func NewRecordingProxy(a *WritableArchive, scheme string, transformers []ResponseTransformer) http.Handler {
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	return &recordingProxy{http.DefaultTransport.(*http.Transport), a, scheme, transformers}
 }
 
