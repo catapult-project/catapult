@@ -125,6 +125,23 @@ class GtestJsonConverterUnittest(unittest.TestCase):
     self.assertEqual(
         histograms.GetHistogramsNamed('metric2')[0].unit, 'V_smallerIsBetter')
 
+  def testConvertWithLabel(self):
+    data = {
+        'metric1': {
+            'units': 'V',
+            'traces': {
+                'story1': ['10', '1'],
+            },
+        },
+    }
+    label = 'Commit abc'
+    histograms = gtest_json_converter.ConvertGtestJson(data, label=label)
+    metric_histograms = histograms.GetHistogramsNamed('metric1')
+    self.assertEqual(len(metric_histograms), 1)
+    labels = metric_histograms[0].diagnostics[reserved_infos.LABELS.name]
+    self.assertEqual(len(labels), 1)
+    self.assertEqual(labels.GetOnlyElement(), 'Commit abc')
+
   def testConvertUnknownUnit(self):
     data = {
         'metric1': {
