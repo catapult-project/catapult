@@ -225,6 +225,15 @@ class DifferencesFoundBugUpdateBuilder:
 
     return _BugUpdateInfo(comment_text, owner, cc_list, labels, status)
 
+  def GetCommits(self):
+    commits = [
+        commit_module.Commit(**diff.commit_dict)
+        for diff in self._differences
+        if diff.commit_kind == 'commit'
+    ]
+    logging.debug('[GroupingQuality] %s commits are loaded', len(commits))
+    return commits
+
   def GenerateCommitCacheKey(self):
     commit_cache_key = None
     if len(self._differences) == 1:
@@ -448,6 +457,17 @@ def _ComputeAutobisectUpdate(tags):
   return list(components), list(ccs), list(labels)
 
 
+def GetAlertGroupingQuality(bug_update_builder, tags, url):
+  if not tags or tags.get('auto_bisection') != 'true':
+    logging.debug(
+      '[GroupingQuality] Skipping for non-auto-bisection. Job tags: %s', tags)
+    return
+  job_id = url.split('/')[-1]
+  for commit in bug_update_builder.GetCommits():
+    resp = perf_issue_service_client.GetAlertGroupQuality(job_id, commit)
+    logging.debug('[GroupingQuality] Grouping quality result: %s.', resp)
+
+
 def UpdatePostAndMergeDeferred(bug_update_builder,
                                bug_id,
                                tags,
@@ -542,6 +562,10 @@ def UpdatePostAndMergeDeferred(bug_update_builder,
     # We cannot have "Assigned" status with no owner.
     if status == 'Assigned':
       status = 'Available'
+
+  # Get Alert Grouping Quality for auto-bisects
+  GetAlertGroupingQuality(
+      bug_update_builder=bug_update_builder, tags=tags, url=url)
 
   perf_issue_service_client.PostIssueComment(
       issue_id=bug_id,

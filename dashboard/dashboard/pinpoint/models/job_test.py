@@ -356,6 +356,8 @@ class RetryTest(test.TestCase):
             mock.MagicMock(return_value=["a"]))
 @mock.patch('dashboard.common.cloud_metric._PublishTSCloudMetric',
             mock.MagicMock())
+@mock.patch('dashboard.services.perf_issue_service_client.GetAlertGroupQuality',
+            mock.MagicMock(return_value={'result': 'Good'}))
 @mock.patch.object(sheriff_config_client.SheriffConfigClient, '__init__',
                      mock.MagicMock(return_value=None))
 class BugCommentTest(test.TestCase):

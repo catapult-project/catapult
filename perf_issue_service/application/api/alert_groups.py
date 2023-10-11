@@ -79,3 +79,11 @@ def PostUngroupedGroupsHandler():
   parity_results = alert_group.AlertGroup.ProcessUngroupedAlerts(int(group_type))
 
   return make_response(parity_results)
+
+
+@alert_groups.route('/alert_group_quality/job_id/<job_id>/commit/<commit_position>', methods=['GET'])
+@utils.BearerTokenAuthorizer
+def GetAlertGroupQuality(job_id, commit_position):
+  result = alert_group.AlertGroup.GetAlertGroupQuality(job_id, commit_position)
+
+  return make_response({'result': result})

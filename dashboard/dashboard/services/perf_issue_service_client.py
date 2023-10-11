@@ -245,3 +245,30 @@ def PostUngroupedAlerts(group_type: int):
     logging.error('[PerfIssueService] Error updating ungrouped alerts: %s',
                   str(e))
     return {}
+
+
+def GetAlertGroupQuality(job_id, commit):
+  commit_dict = commit.AsDict()
+  logging.debug(
+      '[GroupingQuality] Getting grouping quality for %s on commit %s.', job_id,
+      commit_dict)
+  commit_position = commit_dict.get('commit_position', None)
+  if not commit_position:
+    logging.debug(
+        '[GroupingQuality] commit position is not found in commit %s.', commit)
+    return {}
+
+  url = _SERVICE_URL + _ALERT_GROUP_PREFIX
+  url += 'alert_group_quality/job_id/%s/commit/%s' % (job_id, commit_position)
+
+  try:
+    cloud_metric.PublishPerfIssueServiceRequests('GetAlertGroupQuality', 'GET',
+                                                 url, {})
+    resp = request.RequestJson(url, method='GET')
+    return resp
+  except request.RequestError as e:
+    cloud_metric.PublishPerfIssueServiceRequestFailures('GetAlertGroupQuality',
+                                                        'GET', url, {})
+    logging.error('[PerfIssueService] Error getting alert group quality: %s',
+                  str(e))
+    return {}

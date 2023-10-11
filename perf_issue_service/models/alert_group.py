@@ -298,3 +298,62 @@ class AlertGroup:
     if not group_name:
       logging.warning('Unsupported group type: %i', group_type)
     return group_name
+
+  @classmethod
+  def GetAlertGroupQuality(cls, job_id, commit_position):
+    filters = [
+      ('bisection_ids', '=', job_id)
+    ]
+
+    query_result = list(cls.ds_client.QueryAlertGroup(extra_filters=filters, limit=1))
+
+    if not query_result:
+      logging.info(
+        '[GroupingQuality] Cannot find an alert group with bisection id %s',
+        job_id)
+      return 'No alert group is found.', 404
+
+    if len(query_result) > 1:
+      logging.warning(
+        '[GroupingQuality] More than one group (%s) with the same bisect (%s)',
+        [g.key for g in query_result], job_id
+      )
+
+    group = query_result[0]
+    pos = int(commit_position)
+    out_of_range_group_revision = False
+
+    if 'revision' in group:
+      group_repo = group['revision'].get('repository', 'unknown')
+      if group_repo != 'chromium':
+        logging.debug(
+          '[GroupingQuality] Only support chromium repo. Skipping: %s',
+          group_repo)
+        return 'Non-chromium repo is skipped.'
+
+      if group['revision']['start'] > pos or group['revision']['end'] < pos:
+        out_of_range_group_revision = True
+        logging.debug(
+          '[GroupingQuality] The culprit commit %s is outside the group (%s) revision range %s:%s.',
+          pos, group.key, group['revision']['start'], group['revision']['end']
+          )
+
+    anomaly_keys = group.get('anomalies', [])
+    logging.debug('[GroupingQuality]: Found %s anomalies for group %s',
+                  len(anomaly_keys), group.key)
+    anomalies = cls.ds_client.GetMultiEntitiesByKeys(anomaly_keys)
+
+    out_of_range_anomalies = []
+    for anomaly in anomalies:
+      if anomaly['start_revision'] > pos or anomaly['end_revision'] < pos:
+        out_of_range_anomalies.append(anomaly.key)
+    if out_of_range_anomalies:
+      message = (
+          '[GroupingQuality]: The following anomalies are grouped in %s, '
+          'but their revision ranges have no overlaps with the culprit commit '
+          'position %s, found in bisect job %s: %s')
+      logging.debug(message, group.key, commit_position, job_id,
+                      out_of_range_anomalies)
+    if out_of_range_anomalies or out_of_range_group_revision:
+      return 'Out of range is found.'
+    return 'All good.'
