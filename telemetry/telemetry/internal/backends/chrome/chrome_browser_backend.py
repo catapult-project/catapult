@@ -280,6 +280,14 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         raise exceptions.BrowserGoneException(self.browser, e)
       raise exceptions.BrowserConnectionGoneException(self.browser, e)
 
+  def GetVersionInfo(self):
+    try:
+      return self.devtools_client.GetVersion()
+    except (inspector_websocket.WebSocketException, socket.error) as e:
+      if not self.IsBrowserRunning():
+        raise exceptions.BrowserGoneException(self.browser, e)
+      raise exceptions.BrowserConnectionGoneException(self.browser, e)
+
   @property
   def supports_memory_dumping(self):
     return True

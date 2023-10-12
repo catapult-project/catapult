@@ -453,6 +453,9 @@ class BrowserBackend(app_backend.AppBackend):
   def GetSystemInfo(self):
     return None
 
+  def GetVersionInfo(self):
+    return {}
+
   @property
   def supports_memory_dumping(self):
     return False
