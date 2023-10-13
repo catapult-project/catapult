@@ -15,7 +15,7 @@ if str(app_path) not in sys.path:
   sys.path.insert(0, str(app_path))
 
 from application import app
-from application.perf_api import query_anomalies
+from application.perf_api import anomalies
 from google.cloud import datastore
 
 import mock
@@ -117,7 +117,7 @@ class QueryAnomaliesTest(unittest.TestCase):
               '.DataStoreClient.QueryAnomalies')
   def testAnomalyRequestBatching(self, query_mock):
     query_mock.return_value = []
-    batch_size = query_anomalies.DATASTORE_TEST_BATCH_SIZE
+    batch_size = anomalies.DATASTORE_TEST_BATCH_SIZE
     batch_count = 2
     test_count = batch_size*batch_count
     tests = []

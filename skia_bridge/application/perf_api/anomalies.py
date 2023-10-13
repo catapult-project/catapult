@@ -134,6 +134,9 @@ def AddAnomalyPostHandler():
     required_keys = ['start_revision', 'end_revision', 'project_id',
                      'test_path', 'is_improvement', 'bot_name',
                      'internal_only']
+    # TODO: Make the below keys required once the changes are rolled
+    # out in to skia perf
+    optional_keys = ['median_before_anomaly', 'median_after_anomaly']
     is_valid, error = ValidateRequest(data, required_keys)
     if not is_valid:
       return error, 400
@@ -145,6 +148,10 @@ def AddAnomalyPostHandler():
     anomaly_data.update(GetTestFieldsFromPath(test_path))
     anomaly_data['timestamp'] = datetime.datetime.utcnow()
     anomaly_data['source'] = 'skia'
+
+    for optional_key in optional_keys:
+      if data.get(optional_key, None):
+        anomaly_data[optional_key] = data[optional_key]
 
     _ExtendRevisions(anomaly_data)
     client = datastore_client.DataStoreClient()

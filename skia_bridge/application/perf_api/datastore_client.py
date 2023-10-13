@@ -46,6 +46,8 @@ class DataStoreClient:
     post_query_filters = [
         lambda a: a.get('start_revision') >= int(min_revision),
         lambda a: a.get('start_revision') <= int(max_revision),
+        # TODO: Remove the check below once we fully enable anomalies from skia
+        lambda a: a.get('source', None) == None,
     ]
     results = list(ds_query.fetch())
     filtered_results = [
