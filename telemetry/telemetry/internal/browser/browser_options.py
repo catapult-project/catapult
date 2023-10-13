@@ -527,6 +527,7 @@ class BrowserFinderOptions(optparse.Values):
         # running.
         self.use_persistent_shell = False
         self.emulator_debug_tags = None
+        self.emulator_enable_network = False
 
     avd_args = AvdArgs(self.avd_config)
     BrowserFinderOptions.emulator_environment =\
