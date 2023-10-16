@@ -20,6 +20,8 @@ ALLOWED_CLIENTS = [
     'perf-chrome-public@skia-infra-public.iam.gserviceaccount.com',
     # Chrome (internal) skia instance service account
     'perf-chrome-internal@skia-infra-corp.iam.gserviceaccount.com',
+    # WebRTC (public) skia instance service account
+    'perf-webrtc-public@skia-infra-public.iam.gserviceaccount.com',
 ]
 
 INTERNAL_CLIENTS = [
