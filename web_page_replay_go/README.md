@@ -43,7 +43,9 @@ go mod init github.com/catapult-project
 ### Record mode
 * Terminal 1:
 
-  Start wpr in record mode.
+  Start wpr in record mode. Use --cert_type to choose default rsa or ecdsa
+  files, or provide them directly with --https_cert_file and --https_key_file
+  parameters.
 
   ```shell
   cd path/to/web_page_replay_go
