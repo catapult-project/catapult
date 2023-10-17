@@ -522,6 +522,10 @@ class GroupReportTest(GroupReportTestBase):
 
   def testTriageAltertsGroup_Sandwiched(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
+    mock_get_sheriff_client().Match.return_value = ([
+        subscription.Subscription(
+            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)
+    ], None)
     self._CallHandler()
     # Add anomalies
     a = self._AddAnomaly()
@@ -654,6 +658,10 @@ class GroupReportTest(GroupReportTestBase):
 
   def testTriageAltertsGroupNoOwners_Sandwiched(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
+    mock_get_sheriff_client().Match.return_value = ([
+        subscription.Subscription(
+            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)
+    ], None)
     self._CallHandler()
     # Add anomalies
     a = self._AddAnomaly(ownership={
@@ -751,6 +759,11 @@ class GroupReportTest(GroupReportTestBase):
         self._AddAnomaly(),
         self._AddAnomaly(median_before_anomaly=0),
     ]
+    mock_get_sheriff_client().Match.return_value = ([
+        subscription.Subscription(
+            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)
+    ], None)
+
     self._CallHandler()
     for a in anomalies:
       self.assertEqual(a.get().bug_id, 12345)

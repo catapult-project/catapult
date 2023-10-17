@@ -1272,6 +1272,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                 name=test_subscription,
                 auto_triage_enable=True,
                 auto_merge_enable=True,
+                auto_bisect_enable=True,
                 bug_components=['sub>should>set>component'],
                 bug_labels=['sub-should-set-labels']),
             # This subscription should get ignored by Process, since it doesn't match
@@ -1280,6 +1281,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                 name='blocked-sandwich-sub',
                 auto_triage_enable=True,
                 auto_merge_enable=True,
+                auto_bisect_enable=True,
                 bug_components=['other>sub>cannot>set>component'],
                 bug_labels=['other-sub-can-set-labels'])
         ],
@@ -1295,8 +1297,11 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         config=alert_group_workflow.AlertGroupWorkflow.Config(
             active_window=datetime.timedelta(days=7),
             triage_delay=datetime.timedelta(hours=0),
-        )
+        ),
+        crrev=self._crrev,
     )
+    self._issue_tracker.issue.update({'state': 'open'})
+
     self._UpdateTwice(
         workflow=w,
         update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
@@ -1439,6 +1444,76 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertIsNotNone(workflow_anomaly['start_git_hash'])
     self.assertIsNotNone(workflow_anomaly['end_git_hash'])
     self.assertIsNotNone(workflow_anomaly['project'])
+
+  def testSandwich_autoBisectDisabled_StillAddsIssueComponent(self):
+    # Pre-coditions:
+    # - feature_flags.SANDWICH_VERIFICATION is True
+    # - New anomaly appears
+    # - Its subscription is enabled for auto_triage=True and auto_bisect=False
+    # - The anomaly's AlertGroup status is 'triaged`
+    # - The anomaly's benchmark/workload/config is allowed for sandwich verification
+    # Post-conditions:
+    # - The anomaly's AlertGroup state is '?'
+    # - No "Sandwich Verification" *cloud* workflow has been requested
+    # - The AlertGroup's sandwich_verification_workflow_id is None
+    # - *No* pinpoint bisection job has been started for the alert group
+    # - The issue does have components from the sheriff config assigned to it
+    feature_flags.SANDWICH_VERIFICATION = True
+
+    test_name = '/'.join(
+        ["master", 'linux-perf', 'speedometer2', 'dummy', 'metric', 'parts'])
+    anomalies = [
+        self._AddAnomaly(test=test_name, statistic="made up"),
+        self._AddAnomaly(test=test_name, statistic="also made up")
+    ]
+
+    group = self._AddAlertGroup(
+        anomalies[0],
+        subscription_name='Sandwich-Allowed Subscription',
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.triaged,
+    )
+    self._issue_tracker.issue.update({'state': 'open'})
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='Sandwich-Allowed Subscription',
+                auto_triage_enable=True,
+                auto_bisect_enable=False,
+                auto_merge_enable=True,
+                bug_components=['should>set>component'])
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+        cloud_workflows=self._cloud_workflows,
+    )
+
+    # Not sure this should be the case...
+    self.assertNotIn('Chromeperf-Auto-BisectOptOut',
+                     self._issue_tracker.issue.get('labels'))
+    self._UpdateTwice(
+        workflow=w,
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
+
+    # Not sure this should be the case...
+    self.assertNotIn('Chromeperf-Auto-BisectOptOut',
+                     self._issue_tracker.issue.get('labels'))
+    self.assertIn('should>set>component',
+                  self._issue_tracker.issue.get('components'))
+    self.assertNotEqual(w._group.status,
+                        alert_group.AlertGroup.Status.sandwiched)
+    self.assertIsNone(w._group.sandwich_verification_workflow_id)
+    self.assertIsNone(self._pinpoint.new_job_request)
+    workflow_anomaly = self._cloud_workflows.create_execution_called_with_anomaly
+    self.assertIsNone(workflow_anomaly)
 
   def testSandwich_TryVerifyRegression_SANDWICH_VERIFICATION_disabled_noSandwichWorkflow(
       self):
@@ -2664,7 +2739,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                 'cc': [],
                 'comment':
                     None,
-                'components': [],
+                'components': ['Foo>Bar'],
                 'send_email':
                     False
             },
@@ -2740,7 +2815,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                 'Type-Bug-Regression',
             ],
             'cc': [],
-            'components': [],
+            'components': ['Foo>Bar'],
             'comment':
                 mock.ANY,
             'send_email':
@@ -2810,7 +2885,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                 'Type-Bug-Regression',
             ],
             'cc': [],
-            'components': [],
+            'components': ['Foo>Bar'],
             'comment':
                 mock.ANY,
             'send_email':
@@ -2989,7 +3064,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                     'Type-Bug-Regression',
                 ],
                 'cc': [],
-                'components': [],
+                'components': ['Foo>Bar'],
                 'comment':
                     None,
                 'send_email':

@@ -400,7 +400,9 @@ class AlertGroupWorkflow:
       logging.info('attempting sandwich verification for AlertGroup: %s',
                    self._group.key.string_id())
       sandwiched = self._TryVerifyRegression(update)
-      logging.info('sandwiched: %s', sandwiched)
+      if not sandwiched and not any(a.auto_bisect_enable
+                                    for a in update.anomalies):
+        self._UpdateIssue(update.issue, update.anomalies, added)
     elif group.status in {group.Status.sandwiched, group.Status.triaged}:
       self._TryBisect(update)
     return self._CommitGroup()
@@ -705,9 +707,10 @@ class AlertGroupWorkflow:
       # retressions. It no longer ignores these, so some sandwiched regressions may
       # now have components assigned due to data uploaded from benchmark runners,
       # rather than what's specified in the sheriff config.
-      # NOTE 2: Regression issues should now only get components assigned in two cases:
+      # NOTE 2: Regression issues should now only get components assigned in three cases:
       #.   - regressions are NOT sandwich-able, due to _CheckSandwichAllowlist results
       #.   - regressions are sandwich-able, AND issue has the Regression-Verification-Repro label
+      #.   - regressions are auto_triage=True AND auto_bisect=False
       verifiable_regressions = self._CheckSandwichAllowlist(regressions)
       components = []
       if len(verifiable_regressions) == 0:
@@ -838,9 +841,10 @@ class AlertGroupWorkflow:
       if not isinstance(regression, anomaly.Anomaly):
         raise TypeError('%s is not anomaly.Anomaly' % type(regression))
 
-      if sandwich_allowlist.CheckAllowlist(self._group.subscription_name,
-                                           regression.benchmark_name,
-                                           regression.bot_name):
+      if (regression.auto_triage_enable and regression.auto_bisect_enable
+          and sandwich_allowlist.CheckAllowlist(self._group.subscription_name,
+                                                regression.benchmark_name,
+                                                regression.bot_name)):
         allowed_regressions.append(regression)
 
     return allowed_regressions
