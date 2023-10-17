@@ -567,18 +567,23 @@ class AlertGroupWorkflow:
           self._group.project_id, self._group.bug.bug_id, decision)
       if decision:
         comment = ('%s Regression verification %s job %s for test: %s\n'
-                   'reproduced the regression with statistic: %s\n.'
+                   'reproduced the regression with statistic: %s.\n'
                    'Proceed to bisection.' %
                    (_SANDWICH, execution['name'], results_dict['job_id'],
                     utils.TestPath(regression.test), results_dict['statistic']))
         label = 'Regression-Verification-Repro'
         status = 'Available'
         proceed_with_bisect = True
-        components = list(
-          self._GetComponentsFromSubscriptions(regression.subscriptions)
-          # Intentionally ignoring _GetComponentsFromRegressions in this case for sandwiched
-          # regressions. See https://bugs.chromium.org/p/chromium/issues/detail?id=1459035
-        )
+        if (update.issue
+            and utils.DELAY_REPORTING_LABEL in update.issue.get('labels')):
+          # components will be added when culprit found in bisect.
+          components = []
+        else:
+          components = list(
+              self._GetComponentsFromSubscriptions(regression.subscriptions)
+              # Intentionally ignoring _GetComponentsFromRegressions in this case for sandwiched
+              # regressions. See https://bugs.chromium.org/p/chromium/issues/detail?id=1459035
+          )
       else:
         comment = ('%s Regression verification %s job %s for test: %s\n'
                    'did NOT reproduce the regression with statistic: %s.\n'

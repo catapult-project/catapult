@@ -1774,7 +1774,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     # - The AlertGroup's sandwich_verification_workflow_id is not changed
     # - A pinpoint bisection job has been started for the alert group
     # - The issue tracker has been called to update the issue with label Chromeperf-Auto-Bisected
-    # - The issue does not have components from the sandwich sheriff config assigned to it
+    # - The issue does have components from the sandwich sheriff config assigned to it
     # - The bisect tags include "sandwiched: True"
     feature_flags.SANDWICH_VERIFICATION = True
 
@@ -1846,6 +1846,103 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             'send_email': False,
             'status': 'Available',
             'components': ['sub>can>set>component'],
+        })
+    self.assertEqual(w._group.status, alert_group.AlertGroup.Status.bisected)
+
+  def testSandwich_RegressionVerification_Repro_doBisect_DelayReport(self):
+    # Pre-coditions:
+    # - feature_flags.SANDWICH_VERIFICATION is True
+    # - New anomaly appears
+    # - Its subscription is enabled for auto_triage and auto_bisect
+    # - The anomaly's AlertGroup status is 'sandwiched`
+    # - The anomaly's benchmark/workload/config is allowed for sandwich verification
+    # - The anomaly's AlertGroup has a sandwich_verification_workflow_id set
+    # - Cloud Workflow service has an execution with that workflow id, and its state is SUCCEEDED
+    # - The workflow resulted in decision: True, meaning we should proceed with auto-bisection.
+    # Post-conditions:
+    # - The anomaly's AlertGroup state is now 'bisected'
+    # - A new "Sandwich Verification" *cloud* workflow has *not* been requested
+    # - The AlertGroup's sandwich_verification_workflow_id is not changed
+    # - A pinpoint bisection job has been started for the alert group
+    # - The Chromeperf-Delay-Reporting label is in the issue.
+    # - The issue tracker has been called to update the issue with label Chromeperf-Auto-Bisected
+    # - The issue does not have components from the sandwich sheriff config assigned to it
+    # - The bisect tags include "sandwiched: True"
+    feature_flags.SANDWICH_VERIFICATION = True
+
+    test_name = '/'.join(
+        ["master", 'linux-perf', 'speedometer2', 'dummy', 'metric', 'parts'])
+
+    anomalies = [
+        self._AddAnomaly(test=test_name, statistic="made up"),
+        self._AddAnomaly(
+            test=test_name,
+            statistic="also made up",
+            ownership={'component': 'anomaly>should>not>set>component'})
+    ]
+    group = self._AddAlertGroup(
+        anomalies[0],
+        subscription_name='Sandwich-Allowed Subscription',
+        issue=self._issue_tracker.issue,
+        status=alert_group.AlertGroup.Status.sandwiched,
+    )
+    self._SandwichVerify(group, anomalies)
+    self._issue_tracker.issue.update({
+        'state': 'open',
+        'labels': [utils.DELAY_REPORTING_LABEL]
+    })
+
+    self._sheriff_config.patterns = {
+        '*': [
+            subscription.Subscription(
+                name='Sandwich-Allowed Subscription',
+                auto_triage_enable=True,
+                auto_bisect_enable=True,
+                bug_components=['should>not>set>component'])
+        ],
+    }
+    w = alert_group_workflow.AlertGroupWorkflow(
+        group.get(),
+        sheriff_config=self._sheriff_config,
+        pinpoint=self._pinpoint,
+        crrev=self._crrev,
+        cloud_workflows=self._cloud_workflows,
+    )
+    self.assertNotIn('Chromeperf-Auto-BisectOptOut',
+                     self._issue_tracker.issue.get('labels'))
+    self._UpdateTwice(
+        workflow=w,
+        update=alert_group_workflow.AlertGroupWorkflow.GroupUpdate(
+            now=datetime.datetime.utcnow(),
+            anomalies=ndb.get_multi(anomalies),
+            issue=self._issue_tracker.issue,
+        ))
+    self.assertNotIn('Chromeperf-Auto-BisectOptOut',
+                     self._issue_tracker.issue.get('labels'))
+
+    self.assertNotIn('should>not>set>component',
+                     self._issue_tracker.issue.get('components'))
+    self.assertIsNotNone(w._group.sandwich_verification_workflow_id)
+    self.assertIsNotNone(self._pinpoint.new_job_request)
+    tags = json.loads(self._pinpoint.new_job_request['tags'])
+    self.assertEqual(tags['sandwiched'], 'true')
+
+    # First is a NewBug call in the test itself.
+    self.assertEqual(len(self._issue_tracker.calls), 3)
+
+    self.assertEqual(self._issue_tracker.calls[1]['method'], 'AddBugComment')
+    self.assertEqual(len(self._issue_tracker.calls[1]['args']), 2)
+    self.assertEqual(self._issue_tracker.calls[1]['args'][0],
+                     self._issue_tracker.issue.get('id'))
+    self.assertEqual(self._issue_tracker.calls[1]['args'][1], 'chromium')
+
+    self.assertEqual(
+        self._issue_tracker.calls[1]['kwargs'], {
+            'comment': mock.ANY,
+            'labels': 'Regression-Verification-Repro',
+            'send_email': False,
+            'status': 'Available',
+            'components': [],
         })
     self.assertEqual(w._group.status, alert_group.AlertGroup.Status.bisected)
 
