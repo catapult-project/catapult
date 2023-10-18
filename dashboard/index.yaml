@@ -213,8 +213,9 @@ indexes:
   - name: parent_test
   - name: revision
     direction: desc
-  - name: value
+  - name: swarming_bot_id
   - name: timestamp
+  - name: value
 
 # Used in find_anomalies.GetRowsToAnalyze when getting latest points,
 # with projection query for properties revision, value, and timestamp.
