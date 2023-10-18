@@ -131,32 +131,6 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return self._browser_process.stdout
 
   def _StartCastStreamingShell(self, startup_args):
-    """Returns a stream from which browser logs can be read."""
-    # Swallow the output of the session commands unless the caller wants to see
-    # output.
-    output = None if self.browser_options.show_stdout else subprocess.DEVNULL
-    session_cmd = [
-      'session',
-      'launch',
-      'fuchsia-pkg://%s/smart_session#meta/smart_session.cm' %
-      self._managed_repo,
-    ]
-    logging.debug('Starting session: %s', ' '.join(session_cmd))
-    self._command_runner.run_ffx_command(
-        session_cmd,
-        stdout=output,
-        stderr=subprocess.STDOUT)
-
-    session_show_cmd = [
-      'session',
-      'show',
-    ]
-    logging.debug('Waiting for session: %s', ' '.join(session_show_cmd))
-    self._command_runner.run_ffx_command(
-        session_show_cmd,
-        stdout=output,
-        stderr=subprocess.STDOUT)
-
     browser_cmd = [
         'test',
         'run',
