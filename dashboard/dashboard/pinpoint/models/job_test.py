@@ -547,7 +547,7 @@ class BugCommentTest(test.TestCase):
         owner='author@chromium.org',
         labels=mock.ANY,
         cc=['author@chromium.org', 'test@cc.email'],
-        components=['test-component', '-Speed>Benchmarks'],
+        components=['test-component', '-Speed>Regressions'],
         merge_issue=None)
     message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found a significant difference at 1 commit.', message)

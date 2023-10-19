@@ -520,6 +520,8 @@ class GroupReportTest(GroupReportTestBase):
     )[0]
     self.assertEqual(group.name, 'test_suite')
 
+  @mock.patch('dashboard.common.utils.ShouldDelayIssueReporting',
+              mock.MagicMock(return_value=False))
   def testTriageAltertsGroup_Sandwiched(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     mock_get_sheriff_client().Match.return_value = ([
@@ -553,6 +555,55 @@ class GroupReportTest(GroupReportTestBase):
         sorted([
             'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
             'Chromeperf-Auto-Triaged'
+        ]))
+    self.assertRegex(self.fake_issue_tracker.new_bug_kwargs['description'],
+                     r'Top 1 affected measurements in bot:')
+    self.assertEqual(a.get().bug_id, 12345)
+    self.assertEqual(group.bug.bug_id, 12345)
+    # Make sure we don't file the issue again for this alert group.
+    self.fake_issue_tracker.new_bug_args = None
+    self.fake_issue_tracker.new_bug_kwargs = None
+    self._CallHandler()
+    self.assertIsNone(self.fake_issue_tracker.new_bug_args)
+    self.assertIsNone(self.fake_issue_tracker.new_bug_kwargs)
+
+  @mock.patch('dashboard.common.utils.ShouldDelayIssueReporting',
+              mock.MagicMock(return_value=True))
+  def testTriageAltertsGroup_Sandwiched_DelayReport(self,
+                                                    mock_get_sheriff_client):
+    self._SetUpMocks(mock_get_sheriff_client)
+    mock_get_sheriff_client().Match.return_value = ([
+        subscription.Subscription(
+            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)
+    ], None)
+    self._CallHandler()
+    # Add anomalies
+    a = self._AddAnomaly()
+    # Create Group
+    self._CallHandler()
+    # Update Group to associate alerts
+    self._CallHandler()
+    # Set Create timestamp to 2 hours ago
+    group = alert_group.AlertGroup.Get(
+        'test_suite',
+        alert_group.AlertGroup.Type.test_suite,
+    )[0]
+    group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
+    group.put()
+    # Submit issue
+    self._CallHandler()
+    group = alert_group.AlertGroup.Get(
+        'test_suite',
+        alert_group.AlertGroup.Type.test_suite,
+    )[0]
+    self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
+    self.assertEqual(self.fake_issue_tracker.new_bug_kwargs['components'],
+                     ['Speed>Regressions'])
+    self.assertEqual(
+        sorted(self.fake_issue_tracker.new_bug_kwargs['labels']),
+        sorted([
+            'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
+            'Chromeperf-Auto-Triaged', 'Chromeperf-Delay-Reporting'
         ]))
     self.assertRegex(self.fake_issue_tracker.new_bug_kwargs['description'],
                      r'Top 1 affected measurements in bot:')
@@ -656,6 +707,8 @@ class GroupReportTest(GroupReportTestBase):
     self.assertIsNone(self.fake_issue_tracker.new_bug_args)
     self.assertIsNone(self.fake_issue_tracker.new_bug_kwargs)
 
+  @mock.patch('dashboard.common.utils.ShouldDelayIssueReporting',
+              mock.MagicMock(return_value=False))
   def testTriageAltertsGroupNoOwners_Sandwiched(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     mock_get_sheriff_client().Match.return_value = ([
@@ -692,6 +745,49 @@ class GroupReportTest(GroupReportTestBase):
         sorted([
             'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
             'Chromeperf-Auto-Triaged'
+        ]))
+    self.assertEqual(a.get().bug_id, 12345)
+
+  @mock.patch('dashboard.common.utils.ShouldDelayIssueReporting',
+              mock.MagicMock(return_value=True))
+  def testTriageAltertsGroupNoOwners_Sandwiched_DelayReport(
+      self, mock_get_sheriff_client):
+    self._SetUpMocks(mock_get_sheriff_client)
+    mock_get_sheriff_client().Match.return_value = ([
+        subscription.Subscription(
+            name='sheriff', auto_triage_enable=True, auto_bisect_enable=True)
+    ], None)
+    self._CallHandler()
+    # Add anomalies
+    a = self._AddAnomaly(ownership={
+        'component': 'Foo>Bar',
+        'emails': None,
+    })
+    # Create Group
+    self._CallHandler()
+    # Update Group to associate alerts
+    self._CallHandler()
+    # Set Create timestamp to 2 hours ago
+    group = alert_group.AlertGroup.Get(
+        'test_suite',
+        alert_group.AlertGroup.Type.test_suite,
+    )[0]
+    group.created = datetime.datetime.utcnow() - datetime.timedelta(hours=2)
+    group.put()
+    # Submit issue
+    self._CallHandler()
+    group = alert_group.AlertGroup.Get(
+        'test_suite',
+        alert_group.AlertGroup.Type.test_suite,
+    )[0]
+    self.assertEqual(group.status, alert_group.AlertGroup.Status.triaged)
+    self.assertEqual(self.fake_issue_tracker.new_bug_kwargs['components'],
+                     ['Speed>Regressions'])
+    self.assertEqual(
+        sorted(self.fake_issue_tracker.new_bug_kwargs['labels']),
+        sorted([
+            'Pri-2', 'Restrict-View-Google', 'Type-Bug-Regression',
+            'Chromeperf-Auto-Triaged', 'Chromeperf-Delay-Reporting'
         ]))
     self.assertEqual(a.get().bug_id, 12345)
 

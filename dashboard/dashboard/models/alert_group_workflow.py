@@ -728,10 +728,9 @@ class AlertGroupWorkflow:
           cloud_metric.PublishPerfIssueInvalidComponentCount(len(components))
       components = list(components)
       cc = list(set(e for s in subscriptions for e in s.bug_cc_emails))
-      labels = list(
-          set(l for s in subscriptions for l in s.bug_labels)
-          | {'Chromeperf-Auto-Triaged'})
+      labels = list(set(l for s in subscriptions for l in s.bug_labels))
 
+    labels.append('Chromeperf-Auto-Triaged')
     # We layer on some default labels if they don't conflict with any of the
     # provided ones.
     if not any(l.startswith('Pri-') for l in labels):

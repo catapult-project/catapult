@@ -1249,6 +1249,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         ['Chromeperf-Auto-Closed', 'Regression-Verification-No-Repro'],
         self._issue_tracker.add_comment_kwargs['labels'])
 
+  @mock.patch('dashboard.common.utils.ShouldDelayIssueReporting',
+              mock.MagicMock(return_value=False))
   def testSandwich_Allowlist_enabled(self):
     test_cases = [
         'master/blocked-bot/test_suite/measurement/test_case',

@@ -534,8 +534,8 @@ def UpdatePostAndMergeDeferred(bug_update_builder,
         components = auto_bisect_updates[0]
         new_cc_list = auto_bisect_updates[1]
         new_labels = auto_bisect_updates[2]
-        # Speed>Benchmarks is a place holder when creating an unreported issue.
-        components.append('-Speed>Benchmarks')
+        # Speed>Regressions is a place holder when creating an unreported issue.
+        components.append('-Speed>Regressions')
 
         logging.info(
             '[DelayReporting] Issue ID: %s. Components: %s, CC: %s, Labels: %s.',

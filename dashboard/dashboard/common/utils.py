@@ -44,7 +44,7 @@ LEGACY_SERVICE_ACCOUNT = ('425761728072-pa1bs18esuhp2cp2qfa1u9vb6p1v6kfu'
                           '@developer.gserviceaccount.com')
 ADC_SERVICE_ACCOUNT = 'chromeperf@appspot.gserviceaccount.com'
 _CACHE_TIME = 60*60*2 # 2 hours
-DELAY_REPORTING_PLACEHOLDER = 'Speed>Benchmarks'
+DELAY_REPORTING_PLACEHOLDER = 'Speed>Regressions'
 DELAY_REPORTING_LABEL = 'Chromeperf-Delay-Reporting'
 
 _AUTOROLL_DOMAINS = (
@@ -885,5 +885,5 @@ def ConvertBytesBeforeJsonDumps(src):
 def ShouldDelayIssueReporting():
   ''' Tells whether issue should not have the component/label/cc when created.
   '''
-  # At the beginning, we will randomly pick 5% of the issues.
-  return random.randrange(20) == 0
+  # At the beginning, we will randomly pick 50% of the issues.
+  return random.randrange(2) == 0
