@@ -18,12 +18,12 @@ import (
 
 // Returns a TLS configuration that serves a recorded server leaf cert signed by
 // root CA.
-func ReplayTLSConfig(root tls.Certificate, a *Archive) (*tls.Config, error) {
-	root_cert, err := getRootCert(root)
+func ReplayTLSConfig(roots []tls.Certificate, a *Archive) (*tls.Config, error) {
+	root_certs, err := getRootCerts(roots)
 	if err != nil {
-		return nil, fmt.Errorf("bad local cert: %v", err)
+		return nil, fmt.Errorf("bad local certs: %v", err)
 	}
-	tp := &tlsProxy{&root, root_cert, a, nil, sync.Mutex{}, make(map[string][]byte)}
+	tp := &tlsProxy{roots, root_certs, a, nil, sync.Mutex{}, make(map[string][]byte)}
 	return &tls.Config{
 		GetConfigForClient: tp.getReplayConfigForClient,
 	}, nil
@@ -31,25 +31,29 @@ func ReplayTLSConfig(root tls.Certificate, a *Archive) (*tls.Config, error) {
 
 // Returns a TLS configuration that serves a server leaf cert fetched over the
 // network on demand.
-func RecordTLSConfig(root tls.Certificate, w *WritableArchive) (*tls.Config, error) {
-	root_cert, err := getRootCert(root)
+func RecordTLSConfig(roots []tls.Certificate, w *WritableArchive) (*tls.Config, error) {
+	root_certs, err := getRootCerts(roots)
 	if err != nil {
-		return nil, fmt.Errorf("bad local cert: %v", err)
+		return nil, fmt.Errorf("bad local certs: %v", err)
 	}
-	tp := &tlsProxy{&root, root_cert, nil, w, sync.Mutex{}, nil}
+	tp := &tlsProxy{roots, root_certs, nil, w, sync.Mutex{}, nil}
 	return &tls.Config{
 		GetConfigForClient: tp.getRecordConfigForClient,
 	}, nil
 }
 
-func getRootCert(root tls.Certificate) (*x509.Certificate, error) {
-	root_cert, err := x509.ParseCertificate(root.Certificate[0])
-	if err != nil {
-		return nil, err
+func getRootCerts(roots []tls.Certificate) ([]*x509.Certificate, error) {
+	root_certs := []*x509.Certificate{}
+	for _, root := range roots {
+		root_cert, err := x509.ParseCertificate(root.Certificate[0])
+		if err != nil {
+			return nil, err
+		}
+		root_cert.IsCA = true
+		root_cert.BasicConstraintsValid = true
+		root_certs = append(root_certs, root_cert)
 	}
-	root_cert.IsCA = true
-	root_cert.BasicConstraintsValid = true
-	return root_cert, nil
+	return root_certs, nil
 }
 
 // Mints a dummy server cert when the real one is not recorded.
@@ -113,8 +117,8 @@ func MintServerCert(serverName string, rootCert *x509.Certificate, rootKey crypt
 }
 
 type tlsProxy struct {
-	root             *tls.Certificate
-	root_cert        *x509.Certificate
+	roots            []tls.Certificate
+	root_certs       []*x509.Certificate
 	archive          *Archive
 	writable_archive *WritableArchive
 	mu               sync.Mutex
@@ -131,7 +135,7 @@ func (tp *tlsProxy) getReplayConfigForClient(clientHello *tls.ClientHelloInfo) (
 	h := clientHello.ServerName
 	if h == "" {
 		return &tls.Config{
-			Certificates: []tls.Certificate{*tp.root},
+			Certificates: tp.roots,
 		}, nil
 	}
 
@@ -140,21 +144,29 @@ func (tp *tlsProxy) getReplayConfigForClient(clientHello *tls.ClientHelloInfo) (
 	defer tp.mu.Unlock()
 	if err != nil || derBytes == nil {
 		if _, ok := tp.dummy_certs_map[h]; !ok {
-			derBytes, negotiatedProtocol, err = MintDummyCertificate(h, tp.root_cert, tp.root.PrivateKey)
-			if err != nil {
-				return nil, err
+			for i := 0; i < len(tp.root_certs); i++ {
+				derBytes, negotiatedProtocol, err = MintDummyCertificate(h, tp.root_certs[i], tp.roots[i].PrivateKey)
+				if err != nil {
+					return nil, err
+				}
+				tp.dummy_certs_map[h] = append(tp.dummy_certs_map[h], derBytes...)
 			}
-			tp.dummy_certs_map[h] = derBytes
 		}
 		derBytes = tp.dummy_certs_map[h]
 	}
+
+	certBytes := parseDerBytes(derBytes)
+
+	certificates := []tls.Certificate{}
+	for i := 0; i < len(certBytes); i++ {
+		certificates = append(certificates, tls.Certificate{
+			Certificate: [][]byte{certBytes[i]},
+			PrivateKey:  tp.roots[i].PrivateKey,
+		})
+	}
 	return &tls.Config{
-		Certificates: []tls.Certificate{
-			tls.Certificate{
-				Certificate: [][]byte{derBytes},
-				PrivateKey:  tp.root.PrivateKey,
-			}},
-		NextProtos: buildNextProtos(negotiatedProtocol),
+		Certificates: certificates,
+		NextProtos:   buildNextProtos(negotiatedProtocol),
 	}, nil
 }
 
@@ -165,37 +177,70 @@ func buildNextProtos(negotiatedProtocol string) []string {
 	return []string{"http/1.1"}
 }
 
+// Extract ASN.1 DER encoded certificates from byte array.
+// ASN.1 DER encoding is a tag, length, value encoding system for each element.
+// Depending on the length of the certificate, there are three possible sequence starts:
+//  1. 0x30, one byte of length field
+//  2. 0x30, 0x81, one byte of length field
+//  3. 0x30, 0x82, two bytes of length field
+func parseDerBytes(derBytes []byte) [][]byte {
+	var certBytes [][]byte
+	for i := 0; i < len(derBytes); {
+		certEndIndex := 0
+		switch derBytes[i+1] {
+		case 0x81:
+			certEndIndex = i + 3 + int(derBytes[i+2])
+		case 0x82:
+			certEndIndex = i + 4 + int(derBytes[i+2])*256 + int(derBytes[i+3])
+		default:
+			certEndIndex = i + 2 + int(derBytes[i+1])
+		}
+		certBytes = append(certBytes, derBytes[i:certEndIndex])
+		i = certEndIndex
+	}
+	return certBytes
+}
+
 func (tp *tlsProxy) getRecordConfigForClient(clientHello *tls.ClientHelloInfo) (*tls.Config, error) {
 	h := clientHello.ServerName
 	if h == "" {
 		return &tls.Config{
-			Certificates: []tls.Certificate{*tp.root},
+			Certificates: tp.roots,
 		}, nil
 	}
+
+	certificates := []tls.Certificate{}
 	derBytes, negotiatedProtocol, err := tp.writable_archive.Archive.FindHostTlsConfig(h)
 	if err == nil && derBytes != nil {
+		certBytes := parseDerBytes(derBytes)
+		for i := 0; i < len(certBytes); i++ {
+			certificates = append(certificates, tls.Certificate{
+				Certificate: [][]byte{certBytes[i]},
+				PrivateKey:  tp.roots[i].PrivateKey,
+			})
+		}
 		return &tls.Config{
-			Certificates: []tls.Certificate{
-				tls.Certificate{
-					Certificate: [][]byte{derBytes},
-					PrivateKey:  tp.root.PrivateKey,
-				}},
-			NextProtos: buildNextProtos(negotiatedProtocol),
+			Certificates: certificates,
+			NextProtos:   buildNextProtos(negotiatedProtocol),
 		}, nil
 	}
 
-	derBytes, negotiatedProtocol, err = MintServerCert(h, tp.root_cert, tp.root.PrivateKey)
-	if err != nil {
-		return nil, fmt.Errorf("create cert failed: %v", err)
+	totalDerBytes := []byte{}
+	for i := 0; i < len(tp.roots); i++ {
+		derBytes, negotiatedProtocol, err = MintServerCert(h, tp.root_certs[i], tp.roots[i].PrivateKey)
+		if err != nil {
+			return nil, fmt.Errorf("create cert failed: %v", err)
+		}
+		certificates = append(certificates, tls.Certificate{
+			Certificate: [][]byte{derBytes},
+			PrivateKey:  tp.roots[i].PrivateKey})
+		totalDerBytes = append(totalDerBytes, derBytes...)
 	}
 
-	tp.writable_archive.RecordTlsConfig(h, derBytes, negotiatedProtocol)
+	tp.writable_archive.RecordTlsConfig(h, totalDerBytes, negotiatedProtocol)
 
 	return &tls.Config{
-		Certificates: []tls.Certificate{
-			tls.Certificate{
-				Certificate: [][]byte{derBytes},
-				PrivateKey:  tp.root.PrivateKey}},
-		NextProtos: buildNextProtos(negotiatedProtocol),
+		Certificates: certificates,
+		NextProtos:   buildNextProtos(negotiatedProtocol),
 	}, nil
 }

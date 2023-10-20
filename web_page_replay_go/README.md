@@ -43,8 +43,8 @@ go mod init github.com/catapult-project
 ### Record mode
 * Terminal 1:
 
-  Start wpr in record mode. Use --cert_type to choose default rsa or ecdsa
-  files, or provide them directly with --https_cert_file and --https_key_file
+  Start wpr in record mode. By default wpr uses both rsa and ecdsa certificates,
+  or provide your certificate directly with --https_cert_file and --https_key_file
   parameters.
 
   ```shell
@@ -60,7 +60,7 @@ go mod init github.com/catapult-project
   ```shell
   google-chrome-beta --user-data-dir=$foo \
    --host-resolver-rules="MAP *:80 127.0.0.1:8080,MAP *:443 127.0.0.1:8081,EXCLUDE localhost"
-   --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=
+   --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=,2HcXCSKKJS0lEXLQEWhpHUfGuojiU0tiT5gOF9LP6IQ=
   ```
   ... wait for record servers to start
 
@@ -77,7 +77,7 @@ go mod init github.com/catapult-project
   ```shell
   google-chrome-beta --user-data-dir=$bar \
    --host-resolver-rules="MAP *:80 127.0.0.1:8080,MAP *:443 127.0.0.1:8081,EXCLUDE localhost"
-   --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=
+   --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=,2HcXCSKKJS0lEXLQEWhpHUfGuojiU0tiT5gOF9LP6IQ=
   ```
   ... wait for replay servers to start
 
@@ -98,7 +98,7 @@ adb reverse tcp:8081 tcp:8081
 
 ```shell
 build/android/adb_chrome_public_command_line --host-resolver-rules="MAP *:80 127.0.0.1:8080,MAP *:443 127.0.0.1:8081,EXCLUDE localhost" \
-  --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=
+  --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=,2HcXCSKKJS0lEXLQEWhpHUfGuojiU0tiT5gOF9LP6IQ=
 ```
 
 * Run wpr.go as usual on the linux machine
@@ -141,7 +141,7 @@ go run src/wpr.go replay --https_port=8081 --https_to_http_port=8082 \
 ```shell
 google-chrome-beta --user-data-dir=$foo \
   --host-resolver-rules="MAP *:443 127.0.0.1:8081,EXCLUDE localhost" \
-  --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I= \
+  --ignore-certificate-errors-spki-list=PhrPvGIaAMmd29hj8BCZOq096yj7uMpRNHpn5PDxI6I=,2HcXCSKKJS0lEXLQEWhpHUfGuojiU0tiT5gOF9LP6IQ= \
   --proxy-server=http=https://127.0.0.1:8082 \
   --trusted-spdy-proxy=127.0.0.1:8082
 ```
