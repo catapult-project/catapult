@@ -66,6 +66,11 @@ def StartPinpointJob(request):
 
   print('Starting job response: %s' % results)
 
+  job_id = results.get('jobId')
+  if not job_id:
+    error_msg = results.get('error')
+    return ('Pinpoint could not start the job. Error message: %s' % error_msg), 500
+
   return jsonify({'job_id': results.get('jobId')})
 
 
