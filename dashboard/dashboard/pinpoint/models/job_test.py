@@ -281,6 +281,27 @@ class JobTest(test.TestCase):
     self.assertEqual(got_regression_cnt, 1)
     self.assertEqual(got_wf_executions, ['test-workflow-execution-name'])
 
+  @mock.patch('dashboard.services.workflow_service.CreateExecution',
+              mock.MagicMock(return_value='test-workflow-execution-name'))
+  def testStartSandwichAndUpdateWorkflowGroup_multipleCulprits(self):
+    j = job.Job.New((), (),
+                    arguments={
+                        'configuration': 'bot1',
+                        'benchmark': 'webrtc_perf_tests'
+                    },
+                    bug_id=123456)
+    c0 = change.Change((change.Commit('chromium', 'git_hash_0'),))
+    c1 = change.Change((change.Commit('chromium', 'git_hash_1'),))
+    c2 = change.Change((change.Commit('chromium', 'git_hash_2'),))
+    c3 = change.Change((change.Commit('chromium', 'git_hash_3'),))
+    change_map = {c0: [0], c1: [10], c2: [11], c3: [20]}
+    differences = [(c0, c1), (c2, c3)]
+    got_regression_cnt, got_wf_executions = j._StartSandwichAndUpdateWorkflowGroup(
+        anomaly.DOWN, differences, change_map)
+    self.assertEqual(got_regression_cnt, 2)
+    self.assertEqual(got_wf_executions, ['test-workflow-execution-name',
+      'test-workflow-execution-name'])
+
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=[]))
 class JobTestNoBots(test.TestCase):
