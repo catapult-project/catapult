@@ -216,6 +216,11 @@ class AlertGroup:
       if g.get('group_type') == group_type:
         group_keys.append(cls.ds_client.GetEntityId(g))
 
+    # In the current use cases, we need to load the 'ungrouped' as well.
+    ungrouped = cls._GetUngroupedGroup(group_type)
+    if ungrouped:
+      group_keys.append(ungrouped.key.id)
+
     return group_keys
 
 
