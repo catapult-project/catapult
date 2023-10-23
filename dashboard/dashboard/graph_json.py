@@ -466,21 +466,26 @@ def _FlotSeries(index, test):
 
 def _GetSkiaUrl(test_metadatas, start_time: datetime.datetime,
                 end_time: datetime.datetime):
-  benchmarks = set()
-  bots = set()
-  tests = set()
-  subtests_1 = set()
-  subtests_2 = set()
+  if len(test_metadatas) == 0:
+    logging.info('_GetSkiaUrl received test_metadatas of length 0.')
+    return None
+
+  master = test_metadatas[0].master_name
+  benchmarks = []
+  bots = []
+  tests = []
+  subtests_1 = []
+  subtests_2 = []
   internal_only = False
   for test_metadata in test_metadatas:
     internal_only |= test_metadata.internal_only
-    benchmarks.add(test_metadata.suite_name)
-    bots.add(test_metadata.bot_name)
-    tests.add(test_metadata.test_part1_name)
+    benchmarks.append(test_metadata.suite_name)
+    bots.append(test_metadata.bot_name)
+    tests.append(test_metadata.test_part1_name)
     if test_metadata.test_part2_name:
-      subtests_1.add(test_metadata.test_part2_name)
+      subtests_1.append(test_metadata.test_part2_name)
     if test_metadata.test_part3_name:
-      subtests_2.add(test_metadata.test_part3_name)
+      subtests_2.append(test_metadata.test_part3_name)
 
-  return skia_helper.GetSkiaUrl(start_time, end_time, bots, benchmarks, tests,
-                                subtests_1, subtests_2, internal_only)
+  return skia_helper.GetSkiaUrl(start_time, end_time, master, bots, benchmarks,
+                                tests, subtests_1, subtests_2, internal_only)

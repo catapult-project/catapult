@@ -1,5 +1,7 @@
 All graphs for this regression group at {{ group.revision.start }}:{{ group.revision.end }}:
+{% if skia_url_text_internal %}
   Internal (Googlers-only) Report: {{ skia_url_text_internal }}
+{% endif %}
 {% if skia_url_text_public %}
   Public Report: {{ skia_url_text_public }}
 {% endif %}

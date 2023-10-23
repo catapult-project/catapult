@@ -26,7 +26,6 @@ from dashboard.models import alert_group
 from dashboard.models import alert_group_workflow
 from dashboard.models import anomaly
 from dashboard.models import graph_data
-from dashboard.models import skia_helper
 from dashboard.models import subscription
 from dashboard.services import crrev_service
 from dashboard.services import pinpoint_service
@@ -231,8 +230,6 @@ class GroupReportTestBase(testing_common.TestCase):
 
 @mock.patch.object(utils, 'ServiceAccountEmail',
                    lambda: _SERVICE_ACCOUNT_EMAIL)
-@mock.patch.object(skia_helper, 'GetSkiaUrlForRegressionGroup',
-                   mock.MagicMock())
 @mock.patch('dashboard.sheriff_config_client.GetSheriffConfigClient')
 @mock.patch.object(sandwich_allowlist, 'CheckAllowlist',
                    testing_common.CheckSandwichAllowlist)
@@ -935,8 +932,6 @@ class GroupReportTest(GroupReportTestBase):
 
 @mock.patch.object(utils, 'ServiceAccountEmail',
                    lambda: _SERVICE_ACCOUNT_EMAIL)
-@mock.patch.object(skia_helper, 'GetSkiaUrlForRegressionGroup',
-                   mock.MagicMock())
 @mock.patch('dashboard.sheriff_config_client.GetSheriffConfigClient')
 @mock.patch.object(sandwich_allowlist, 'CheckAllowlist',
                    testing_common.CheckSandwichAllowlist)
@@ -1128,8 +1123,6 @@ class RecoveredAlertsTests(GroupReportTestBase):
 
 @mock.patch.object(utils, 'ServiceAccountEmail',
                    lambda: _SERVICE_ACCOUNT_EMAIL)
-@mock.patch.object(skia_helper, 'GetSkiaUrlForRegressionGroup',
-                   mock.MagicMock())
 class NonChromiumAutoTriage(GroupReportTestBase):
   def testFileIssue_InChromiumExplicitly(self):
     self.mock_get_sheriff_client.Match.return_value = ([
