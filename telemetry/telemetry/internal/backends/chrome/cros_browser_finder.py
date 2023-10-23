@@ -4,6 +4,7 @@
 """Finds CrOS browsers that can be started and controlled by telemetry."""
 
 from __future__ import absolute_import
+import json
 import logging
 import os
 import platform
@@ -106,10 +107,34 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     cri.RunCmdOnDevice(
         ['mv', self._CROS_MINIDUMP_DIR, self._existing_minidump_dir])
 
+    if self._browser_options.clear_enterprise_policy:
+      cri.StopUI()
+      cri.RmRF('/var/lib/devicesettings/*')
+
+      local_state_path = '/home/chronos/Local State'
+      if self._browser_options.dont_override_profile:
+        # Ash keeps track of Lacros profile migration using local state prefs.
+        # Clobbering local state with Lacros enabled will re-initiate Lacros
+        # profile migration and effectively wipe the existing profile. In
+        # addition, the profile migration involves restarting Ash and
+        # CrOSBrowserBackend will lose its DevTools connection.
+        #
+        # Without knowing what clear_enterprise_policy specifically seeks to
+        # remove from local state, our solution here is to remove everything
+        # except the Lacros migration bits.
+        local_state = json.loads(cri.GetFileContents(local_state_path))
+        for key in list(local_state.keys()):
+          if not key == 'lacros':
+            del local_state[key]
+        cri.PushContents(json.dumps(local_state, separators=(',',':')),
+                         local_state_path)
+      else:
+        cri.RmRF(local_state_path)
+
     def browser_ready():
       return cri.GetChromePid() is not None
 
-    cri.RestartUI(self._browser_options.clear_enterprise_policy)
+    cri.RestartUI()
     py_utils.WaitFor(browser_ready, timeout=20)
 
     # Delete test user's cryptohome vault (user data directory).

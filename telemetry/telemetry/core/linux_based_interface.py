@@ -193,7 +193,7 @@ class LinuxBasedInterface:
   def GetBoard(self):
     raise NotImplementedError
 
-  def RestartUI(self, clear_enterprise_policy):
+  def RestartUI(self):
     raise NotImplementedError
 
   @property

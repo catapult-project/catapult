@@ -104,8 +104,7 @@ class LinuxInterface(linux_based_interface.LinuxBasedInterface):
     self.RmRF(self.path.join('/tmp', f'.X{self._current_display}-lock'))
     self._xserver_proc = None
 
-  def RestartUI(self, clear_enterprise_policy):
-    del clear_enterprise_policy
+  def RestartUI(self):
     logging.info('(Re)starting the ui')
     self.StopUI()
     displays = self.GetDisplays()

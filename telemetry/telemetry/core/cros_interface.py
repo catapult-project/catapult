@@ -186,21 +186,19 @@ class CrOSInterface(linux_based_interface.LinuxBasedInterface):
       return is_guestfs == is_guest and mount_info[1] == profile_path
     return False
 
-  def RestartUI(self, clear_enterprise_policy):
+  def StopUI(self):
+    stop_cmd = ['stop', 'ui']
+    if self.HasSystemd():
+      stop_cmd.insert(0, 'systemctl')
+    self.RunCmdOnDevice(stop_cmd)
+
+  def RestartUI(self):
     logging.info('(Re)starting the ui (logs the user out)')
     start_cmd = ['start', 'ui']
     restart_cmd = ['restart', 'ui']
-    stop_cmd = ['stop', 'ui']
     if self.HasSystemd():
       start_cmd.insert(0, 'systemctl')
       restart_cmd.insert(0, 'systemctl')
-      stop_cmd.insert(0, 'systemctl')
-    if clear_enterprise_policy:
-      self.RunCmdOnDevice(stop_cmd)
-      # TODO(b/187793661) Delete /var/lib/whitelist once migration is finished.
-      self.RmRF('/var/lib/whitelist/*')
-      self.RmRF('/var/lib/devicesettings/*')
-      self.RmRF(r'/home/chronos/Local\ State')
 
     if self.IsServiceRunning('ui'):
       self.RunCmdOnDevice(restart_cmd)
