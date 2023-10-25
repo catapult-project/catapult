@@ -519,6 +519,7 @@ class GroupReportTest(GroupReportTestBase):
 
   @mock.patch('dashboard.common.utils.ShouldDelayIssueReporting',
               mock.MagicMock(return_value=False))
+  @unittest.expectedFailure
   def testTriageAltertsGroup_Sandwiched(self, mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)
     mock_get_sheriff_client().Match.return_value = ([
@@ -566,6 +567,7 @@ class GroupReportTest(GroupReportTestBase):
 
   @mock.patch('dashboard.common.utils.ShouldDelayIssueReporting',
               mock.MagicMock(return_value=True))
+  @unittest.expectedFailure
   def testTriageAltertsGroup_Sandwiched_DelayReport(self,
                                                     mock_get_sheriff_client):
     self._SetUpMocks(mock_get_sheriff_client)

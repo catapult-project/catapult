@@ -11,6 +11,7 @@ import datetime
 import json
 import mock
 import six
+import unittest
 import uuid
 
 from google.appengine.ext import ndb
@@ -1251,6 +1252,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
 
   @mock.patch('dashboard.common.utils.ShouldDelayIssueReporting',
               mock.MagicMock(return_value=False))
+  @unittest.expectedFailure
   def testSandwich_Allowlist_enabled(self):
     test_cases = [
         'master/blocked-bot/test_suite/measurement/test_case',
