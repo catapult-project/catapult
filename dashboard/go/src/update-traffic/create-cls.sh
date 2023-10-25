@@ -34,6 +34,10 @@ for service in "${services[@]}"; do
     git checkout -b "$branch_name" -t origin/main
     git pull --ff
     go run update-traffic.go -checkout-base ../../../.. -service-id $service
-    git commit -am "update chromeperf deployment for $service"
-    git cl upload -b $1
+    if git diff-index --quiet HEAD --; then
+      echo "service ($service) is already up-to-date, skipping."
+    else
+      git commit -am "update chromeperf deployment for $service"
+      git cl upload -b $1
+    fi
 done;
