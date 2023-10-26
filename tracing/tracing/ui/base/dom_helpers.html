@@ -74,6 +74,7 @@ tr.exportTo('tr.ui.b', function() {
       if (opt_args.parent) Polymer.dom(opt_args.parent).appendChild(linkEl);
       if (opt_args.marginLeft) linkEl.style.marginLeft = opt_args.marginLeft;
       if (opt_args.marginRight) linkEl.style.marginRight = opt_args.marginRight;
+      if (opt_args.display) linkEl.style.display = opt_args.display;
       if (opt_args.backgroundColor) {
         linkEl.style.backgroundColor = opt_args.backgroundColor;
       }
