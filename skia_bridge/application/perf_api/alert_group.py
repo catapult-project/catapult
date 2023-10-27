@@ -92,7 +92,7 @@ def AlertGroupDetailsPostHandler():
           response.anomalies.append(GetAnomalyDetailFromEntity(anomaly))
           if anomaly.get('start_revision') < start_commit:
             start_commit = anomaly.get('start_revision')
-          if anomaly.get('end_revision') < end_commit:
+          if anomaly.get('end_revision') > end_commit:
             end_commit = anomaly.get('end_revision')
 
         response.start_commit = start_commit
