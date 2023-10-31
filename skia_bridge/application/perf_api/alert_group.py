@@ -16,6 +16,7 @@ blueprint = Blueprint('alert_group', __name__)
 
 ALLOWED_CLIENTS = [
     'ashwinpv@google.com',
+    'eduardoyap@google.com',
     # Chrome (public) skia instance service account
     'perf-chrome-public@skia-infra-public.iam.gserviceaccount.com',
     # Chrome (internal) skia instance service account
