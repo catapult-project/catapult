@@ -94,7 +94,7 @@ class Attempt:
 
   def _Poll(self):
     """Update the Attempt status."""
-    if self._last_execution:
+    if self._last_execution and not self._last_execution.completed:
       self._last_execution.Poll()
 
   def _StartNextExecution(self):
