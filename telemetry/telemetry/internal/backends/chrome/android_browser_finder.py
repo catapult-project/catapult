@@ -206,6 +206,10 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     startup_args = self.GetBrowserStartupArgs(self._browser_options)
     device.adb.Logcat(clear=True)
 
+    # Avoids a Chrome android permission dialog, see https://crbug.com/1498208.
+    device.GrantPermissions(self.browser_package,
+                            ['android.permission.POST_NOTIFICATIONS'])
+
     # use legacy commandline path if in compatibility mode
     self._flag_changer = flag_changer.FlagChanger(
         device, self._backend_settings.command_line_name, use_legacy_path=
