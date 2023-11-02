@@ -4,9 +4,9 @@
 from __future__ import absolute_import
 
 import grpc
-import cabe_grpc.service_pb2_grpc as cabe_grpc
-import cabe_grpc.service_pb2 as cabe_pb
-import cabe_grpc.spec_pb2 as cabe_spec_pb
+import cabe.proto.v1.service_pb2_grpc as cabe_grpc
+import cabe.proto.v1.service_pb2 as cabe_pb
+import cabe.proto.v1.spec_pb2 as cabe_spec_pb
 
 import google.auth
 from google.auth.transport import grpc as google_auth_transport_grpc
