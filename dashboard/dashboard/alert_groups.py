@@ -87,7 +87,7 @@ def _ProcessUngroupedAlerts(group_type: int):
   # Parity on anomaly counts under ungrouped
   try:
     ungrouped_anomaly_keys = [
-        str(a.key.integer_id()) for a in ungrouped_anomalies
+        str(a.key.id()) for a in ungrouped_anomalies
     ]
     new_ungrouped_anomaly_keys = [str(k) for k in list(parity_results.keys())]
     if sorted(ungrouped_anomaly_keys) != sorted(new_ungrouped_anomaly_keys):
@@ -124,7 +124,7 @@ def _ProcessUngroupedAlerts(group_type: int):
 
     # parity on changes on group changes on anomalies
     try:
-      single_parity = parity_results.get(anomaly_entity.key.integer_id(), None)
+      single_parity = parity_results.get(anomaly_entity.key.id(), None)
       if single_parity:
         existings = single_parity['existing_groups']
         news = single_parity['new_groups']
