@@ -104,7 +104,7 @@ class Oobe(web_contents.WebContents):
 
     url = self.EvaluateJavaScript("window.location.href")
     if url.startswith('chrome://oobe/gaia-signin'):
-      self.ExecuteJavaScript('Oobe.showAddUserForTesting()')
+      self._ExecuteOobeApi('OobeAPI.showGaiaDialog')
 
     py_utils.WaitFor(self._GaiaWebviewContext, 20)
     self._NavigateWebviewLogin(username, password,
