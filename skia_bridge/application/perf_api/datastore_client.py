@@ -97,3 +97,8 @@ class DataStoreClient:
         self._client.put_multi(entities)
     else:
       self._client.put_multi(entities)
+
+  def RunTransaction(self, func):
+    with self._client.transaction():
+      ret_value = func()
+      return ret_value
