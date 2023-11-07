@@ -20,6 +20,11 @@ This will execute cloudbuild.yaml and will deploy the Cloud Workflow and all
 Cloud functions in parallel. The deployed resources will have the "-prod"
 suffix. (e.g. start-pinpoint-job-prod).
 
+# How to Roll Production Back to a Previous Version
+
+You will have to `git checkout` to the previous commit you want to roll back
+to, and run the above deployment command from that commit.
+
 # Test Changes on Staging Version
 
 ## Deploying to Staging
