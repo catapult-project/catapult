@@ -1022,7 +1022,7 @@ class AlertGroupWorkflow:
 
     try:
       # Add the public url only if at least one of the anomalies in the group are public
-      if any(not r.internal_only for r in regressions):
+      if any(not r.test.get().internal_only for r in regressions):
         skia_url_public = skia_helper.GetSkiaUrlForAlertGroup(
             self._group.key.string_id(), False, self._group.project_id)
         template_args['skia_url_text_public'] = skia_url_public
