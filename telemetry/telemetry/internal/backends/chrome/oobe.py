@@ -100,7 +100,7 @@ class Oobe(web_contents.WebContents):
     # TODO(achuith): Get rid of this call. crbug.com/804216.
     self._ExecuteOobeApi('OobeAPI.skipToLoginForTesting')
     if for_user_triggered_enrollment:
-      self._ExecuteOobeApi('Oobe.switchToEnterpriseEnrollmentForTesting')
+      self._ExecuteOobeApi('OobeAPI.advanceToScreen', 'enterprise-enrollment')
 
     url = self.EvaluateJavaScript("window.location.href")
     if url.startswith('chrome://oobe/gaia-signin'):
