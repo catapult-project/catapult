@@ -190,14 +190,16 @@ def AddAnomalyPostHandler():
       alert_group = None
       for i in range(0,5):
         try:
+          alert_group = _GetOrCreateUngroupedGroup(client)
           def UpdateAnomalyInDatastore():
-            alert_group = _GetOrCreateUngroupedGroup(client)
             group_anomalies = alert_group.get('anomalies', [])
             group_anomalies.append(anomaly.key)
             alert_group['anomalies'] = group_anomalies
 
             anomaly['groups'] = [alert_group]
-            latest_alert_group = _GetOrCreateUngroupedGroup(client)
+            latest_alert_group = client.GetEntity(
+              datastore_client.EntityType.AlertGroup,
+              alert_group.key.id_or_name)
             if alert_group.get('updated') == latest_alert_group.get('updated'):
               alert_group['updated'] = datetime.datetime.utcnow()
               client.PutEntities([anomaly, alert_group])
