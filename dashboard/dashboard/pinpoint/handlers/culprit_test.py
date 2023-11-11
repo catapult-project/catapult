@@ -55,7 +55,11 @@ class CulpritTest(test.TestCase):
       mock.MagicMock(
           return_value={'state': workflow_service.EXECUTION_STATE_FAILED}))
   @mock.patch('google.appengine.ext.deferred.defer', mock.MagicMock())
-  def testCulpritVerificationAllExecutionCompletedNonZeroVerified(self):
+  @mock.patch(
+      'dashboard.pinpoint.models.job_bug_update.DifferencesFoundBugUpdateBuilder.AddDifference'
+  )
+  def testCulpritVerificationAllExecutionCompletedNonZeroVerified(
+      self, mock_bug_update_builder):
     sandwich_workflow_group.SandwichWorkflowGroup(
         key=ndb.Key('SandwichWorkflowGroup', 'group1'),
         metric='test_metric',
@@ -80,6 +84,12 @@ class CulpritTest(test.TestCase):
     updated_sandwich_workflow_group = ndb.Key('SandwichWorkflowGroup',
                                               'group1').get()
     self.assertEqual(updated_sandwich_workflow_group.active, False)
+    mock_bug_update_builder.assert_called_with(
+        None, [1.0], [2.0], 'patch', {
+            'server': 'change_b.patch.server',
+            'change': 'change_b.patch.change',
+            'revision': 'change_b.patch.revision'
+        })
 
   @mock.patch(
       'dashboard.pinpoint.models.sandwich_workflow_group.SandwichWorkflowGroup.GetAll',
