@@ -77,8 +77,12 @@ def AlertGroupDetailsPostHandler():
       if not internal:
         public_anomalies = []
         for anomaly in anomalies:
-          if anomaly.get('internal_only') == False:
-            public_anomalies.append(anomaly)
+          test_key = anomaly.get('test')
+          if test_key:
+            parent_test = client.GetEntity(datastore_client.EntityType.TestMetadata,
+              test_key.name)
+            if parent_test and parent_test.get('internal_only') == False:
+              public_anomalies.append(anomaly)
 
         anomalies = public_anomalies
 
