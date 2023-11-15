@@ -69,7 +69,7 @@ def AlertGroupDetailsPostHandler():
     alert_group = client.GetEntity(datastore_client.EntityType.AlertGroup,
                                     group_key)
     if alert_group:
-      anomaly_ids = [a.id for a in alert_group.get('anomalies')]
+      anomaly_ids = [a.id_or_name for a in alert_group.get('anomalies')]
       anomalies = client.GetEntities(datastore_client.EntityType.Anomaly,
                                       anomaly_ids)
       logging.info('Retrieved %i anomalies for group id %s', len(anomalies),
@@ -118,6 +118,6 @@ def AlertGroupDetailsPostHandler():
 
 def GetAnomalyDetailFromEntity(anomaly_entity):
   anomaly_detail = AnomalyDetail()
-  anomaly_detail.anomaly_id = anomaly_entity.key.id
+  anomaly_detail.anomaly_id = anomaly_entity.key.id_or_name
   anomaly_detail.test_path = utils.TestPath(anomaly_entity.get('test'))
   return anomaly_detail
