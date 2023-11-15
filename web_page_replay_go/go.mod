@@ -1,6 +1,6 @@
 module github.com/catapult-project/catapult/web_page_replay_go
 
-go 1.22
+go 1.21
 
 require (
 	github.com/kylelemons/godebug v1.1.0
