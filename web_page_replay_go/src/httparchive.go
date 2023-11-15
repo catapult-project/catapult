@@ -21,7 +21,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-const usage = "%s [ls|cat|edit|merge|add|addAll] [options] archive_file [output_file] [url]"
+const usage = "%s [ls|cat|edit|merge|add|addAll|trim] [options] archive_file [output_file] [url]"
 
 type Config struct {
 	method, host, fullPath                                           string
