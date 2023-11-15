@@ -10,8 +10,8 @@ runtime_config:
 entrypoint: gunicorn -b:$PORT -w 8 main:APP
 
 automatic_scaling:
-  min_num_instances: 15
-  max_num_instances: 20
+  min_num_instances: 30
+  max_num_instances: 40
   cpu_utilization:
     target_utilization: 0.7
 
