@@ -730,6 +730,8 @@ class AlertGroupWorkflow:
       cc = list(set(e for s in subscriptions for e in s.bug_cc_emails))
       labels = list(set(l for s in subscriptions for l in s.bug_labels))
 
+    if any(r for r in regressions if r.source and r.source == 'skia'):
+      labels.append('DoNotNotify')
     labels.append('Chromeperf-Auto-Triaged')
     # We layer on some default labels if they don't conflict with any of the
     # provided ones.
