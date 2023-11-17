@@ -205,10 +205,6 @@ class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
   def Navigate(self, url, script_to_evaluate_on_commit, timeout):
     self._page.Navigate(url, script_to_evaluate_on_commit, timeout)
 
-  @_HandleInspectorWebSocketExceptions
-  def GetCookieByName(self, name, timeout):
-    return self._page.GetCookieByName(name, timeout)
-
   # Console public methods.
 
   @_HandleInspectorWebSocketExceptions

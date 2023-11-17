@@ -25,11 +25,6 @@ class InspectorPageTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/blank.html')
 
-  def testGetCookieByName(self):
-    self.Navigate('blank.html')
-    self._tab.ExecuteJavaScript('document.cookie="foo=bar"')
-    self.assertEqual(self._tab.GetCookieByName('foo'), 'bar')
-
   def testScriptToEvaluateOnCommit(self):
     self.Navigate('blank.html',
                   script_to_evaluate_on_commit='var foo = "bar";')

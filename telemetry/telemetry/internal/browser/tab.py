@@ -134,16 +134,6 @@ class Tab(web_contents.WebContents):
     """
     return self._inspector_backend.FullScreenshot(timeout)
 
-  def GetCookieByName(self, name, timeout=DEFAULT_TAB_TIMEOUT):
-    """Returns the value of the cookie by the given |name|.
-
-    Raises:
-      exceptions.WebSocketDisconnected
-      exceptions.TimeoutException
-      exceptions.DevtoolsTargetCrashException
-    """
-    return self._inspector_backend.GetCookieByName(name, timeout)
-
   def CollectGarbage(self):
     """Forces a garbage collection.
 
