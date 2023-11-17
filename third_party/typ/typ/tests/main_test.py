@@ -232,7 +232,7 @@ class TestCli(test_case.MainTestCase):
     def test_basic(self):
         self.check([], files=PASS_TEST_FILES,
                    ret=0,
-                   out=('[1/1] pass_test.PassingTest.test_pass passed\n'
+                   out=('[1/1] pass_test.PassingTest.test_pass passed (worker 1)\n'
                         '1 test passed, 0 skipped, 0 failures.\n'), err='')
 
     def test_coverage(self):
@@ -249,7 +249,7 @@ class TestCli(test_case.MainTestCase):
             }
             self.check(['-c', 'pass_test'], files=files, ret=0, err='',
                        out=d("""\
-                             [1/1] pass_test.PassingTest.test_pass passed
+                             [1/1] pass_test.PassingTest.test_pass passed (worker 1)
                              1 test passed, 0 skipped, 0 failures.
 
                              Name           Stmts   Miss  Cover
@@ -276,7 +276,7 @@ class TestCli(test_case.MainTestCase):
     def test_dryrun(self):
         self.check(['-n'], files=PASS_TEST_FILES, ret=0, err='',
                    out=d("""\
-                         [1/1] pass_test.PassingTest.test_pass passed
+                         [1/1] pass_test.PassingTest.test_pass passed (worker 1)
                          1 test passed, 0 skipped, 0 failures.
                          """))
 
@@ -296,8 +296,8 @@ class TestCli(test_case.MainTestCase):
         self.check(
             ['--repeat', '2'], files=PASS_TEST_FILES, ret=0, err='',
             out=d("""\
-                  [1/2] pass_test.PassingTest.test_pass passed
-                  [2/2] pass_test.PassingTest.test_pass passed
+                  [1/2] pass_test.PassingTest.test_pass passed (worker 1)
+                  [2/2] pass_test.PassingTest.test_pass passed (worker 1)
                   1 test passed, 0 skipped, 0 failures.
                   """))
 
@@ -454,7 +454,7 @@ class TestCli(test_case.MainTestCase):
         _, out, _, _ = self.check(['--terminal-width=20'],
                                   files=FAIL_TEST_FILES, ret=1, err='')
         self.assertIn('[1/1] fail_test.FailingTest.test_fail failed '
-                      'unexpectedly:\n', out)
+                      'unexpectedly (worker 1):\n', out)
 
     def test_file_list(self):
         files = PASS_TEST_FILES
@@ -623,7 +623,7 @@ class TestCli(test_case.MainTestCase):
 
     def test_isolate(self):
         self.check(['--isolate', '*test_pass*'], files=PASS_TEST_FILES, ret=0,
-                   out=('[1/1] pass_test.PassingTest.test_pass passed\n'
+                   out=('[1/1] pass_test.PassingTest.test_pass passed (worker 1)\n'
                         '1 test passed, 0 skipped, 0 failures.\n'), err='')
 
     def test_load_tests_failure(self):
@@ -673,7 +673,7 @@ class TestCli(test_case.MainTestCase):
         self.check(['-v', 'output_test.PassTest.test_out'],
                    files=OUTPUT_TEST_FILES, aenv={'NINJA_STATUS': 'ns: '},
                    out=d("""\
-                         ns: output_test.PassTest.test_out passed
+                         ns: output_test.PassTest.test_out passed (worker 1)
                          1 test passed, 0 skipped, 0 failures.
                          """), err='')
 
@@ -682,7 +682,7 @@ class TestCli(test_case.MainTestCase):
                                   files=OUTPUT_TEST_FILES,
                                   ret=1, err='')
         self.assertIn('[1/1] output_test.FailTest.test_out_err_fail '
-                      'failed unexpectedly:\n'
+                      'failed unexpectedly (worker 1):\n'
                       '  hello on stdout\n'
                       '  hello on stderr\n', out)
 
@@ -695,7 +695,7 @@ class TestCli(test_case.MainTestCase):
         self.assertIn('Retrying failed tests', out)
         lines = out.splitlines()
         self.assertEqual(len([l for l in lines
-                              if 'test_fail failed unexpectedly:' in l]),
+                              if 'test_fail failed unexpectedly (worker 1):' in l]),
                          3)
 
     def test_skip(self):
@@ -706,8 +706,8 @@ class TestCli(test_case.MainTestCase):
         files = {'fail_test.py': FAIL_TEST_PY,
                  'pass_test.py': PASS_TEST_PY}
         self.check(['-j', '1', '--skip', '*test_fail*'], files=files, ret=0,
-                   out=('[1/2] fail_test.FailingTest.test_fail was skipped\n'
-                        '[2/2] pass_test.PassingTest.test_pass passed\n'
+                   out=('[1/2] fail_test.FailingTest.test_fail was skipped (worker 0)\n'
+                        '[2/2] pass_test.PassingTest.test_pass passed (worker 1)\n'
                         '1 test passed, 1 skipped, 0 failures.\n'), err='')
 
         # This tests that we print test_started updates for skipped tests
@@ -723,12 +723,12 @@ class TestCli(test_case.MainTestCase):
             out.strip(),
             ('[0/2] fail_test.FailingTest.test_fail\r'
              '                                     \r'
-             '[1/2] fail_test.FailingTest.test_fail was skipped\r'
-             '                                                 \r'
+             '[1/2] fail_test.FailingTest.test_fail was skipped (worker 0)\r'
+             '                                                            \r'
              '[1/2] pass_test.PassingTest.test_pass\r'
              '                                     \r'
-             '[2/2] pass_test.PassingTest.test_pass passed\r'
-             '                                            \r'
+             '[2/2] pass_test.PassingTest.test_pass passed (worker 1)\r'
+             '                                                       \r'
              '1 test passed, 1 skipped, 0 failures.'))
 
     def test_skip_via_expectations(self):
@@ -744,28 +744,28 @@ class TestCli(test_case.MainTestCase):
 
         # We do a bunch of assertIn()'s to work around the non-portable
         # tracebacks.
-        self.assertIn(('[1/9] sf_test.ExpectedFailures.test_fail failed as expected:\n'
-                       '  Traceback '), out)
+        self.assertIn(('[1/9] sf_test.ExpectedFailures.test_fail failed as '
+                       'expected (worker 1):\n  Traceback '), out)
         self.assertIn(('[2/9] sf_test.ExpectedFailures.test_pass '
-                       'passed unexpectedly'), out)
+                       'passed unexpectedly (worker 1)'), out)
         self.assertIn(('[3/9] sf_test.SetupClass.test_method1 '
-                       'failed unexpectedly:\n'
+                       'failed unexpectedly (worker 1):\n'
                        '  in setupClass\n'), out)
         self.assertIn(('[4/9] sf_test.SetupClass.test_method2 '
-                       'failed unexpectedly:\n'
+                       'failed unexpectedly (worker 1):\n'
                        '  in setupClass\n'), out)
-        self.assertIn(('[5/9] sf_test.SkipClass.test_method was skipped:\n'
-                       '  skip class\n'), out)
-        self.assertIn(('[6/9] sf_test.SkipMethods.test_reason was skipped:\n'
-                       '  reason\n'), out)
+        self.assertIn(('[5/9] sf_test.SkipClass.test_method was skipped '
+                       '(worker 1):\n  skip class\n'), out)
+        self.assertIn(('[6/9] sf_test.SkipMethods.test_reason was skipped '
+                       '(worker 1):\n  reason\n'), out)
         self.assertIn(('[7/9] sf_test.SkipMethods.test_skip_if_false '
-                       'failed unexpectedly:\n'
+                       'failed unexpectedly (worker 1):\n'
                        '  Traceback'), out)
         self.assertIn(('[8/9] sf_test.SkipMethods.test_skip_if_true '
-                       'was skipped:\n'
+                       'was skipped (worker 1):\n'
                        '  reason\n'
-                       '[9/9] sf_test.SkipSetup.test_notrun was skipped:\n'
-                       '  setup failed\n'
+                       '[9/9] sf_test.SkipSetup.test_notrun was skipped '
+                       '(worker 1):\n  setup failed\n'
                        '1 test passed, 4 skipped, 4 failures.\n'), out)
 
     def test_skip_and_all(self):
@@ -821,8 +821,8 @@ class TestCli(test_case.MainTestCase):
             exp_out = ''
             total_tests = len(tests)
             for i, test in enumerate(tests):
-                exp_out += ('[%d/%d] shard_test.ShardTest.test_%s passed\n' %
-                            (i + 1, total_tests, test))
+                exp_out += ('[%d/%d] shard_test.ShardTest.test_%s passed '
+                            '(worker 1)\n' % (i + 1, total_tests, test))
             exp_out += '%d test%s passed, 0 skipped, 0 failures.\n' % (
                 total_tests, "" if total_tests == 1 else "s")
             self.assertEqual(out, exp_out)
@@ -840,14 +840,14 @@ class TestCli(test_case.MainTestCase):
         }
         self.check(['foo/bar'], files=files, ret=0, err='',
                    out=d("""\
-                         [1/1] foo.bar.pass_test.PassingTest.test_pass passed
+                         [1/1] foo.bar.pass_test.PassingTest.test_pass passed (worker 1)
                          1 test passed, 0 skipped, 0 failures.
                          """))
 
     def test_timing(self):
         self.check(['-t'], files=PASS_TEST_FILES, ret=0, err='',
                    rout=(r'\[1/1\] pass_test.PassingTest.test_pass passed '
-                         r'\d+.\d+s\n'
+                         r'\d+.\d+s \(worker 1\)\n'
                          r'1 test passed in \d+.\d+s, 0 skipped, 0 failures.'))
 
     def test_test_results_server(self):
@@ -867,7 +867,7 @@ class TestCli(test_case.MainTestCase):
                         '--test-type', 'typ_tests',
                         '--metadata', 'foo=bar'],
                        files=PASS_TEST_FILES, ret=0, err='',
-                       out=('[1/1] pass_test.PassingTest.test_pass passed\n'
+                       out=('[1/1] pass_test.PassingTest.test_pass passed (worker 1)\n'
                             '1 test passed, 0 skipped, 0 failures.\n'))
 
         finally:
@@ -936,9 +936,9 @@ class TestCli(test_case.MainTestCase):
                                        '--retry-limit','6',
                                        '--retry-only-retry-on-failure-tests'],
                                       files=files, ret=1, err='')
-        self.assertIn('[1/1] flaky_test.FlakyTest.test_flaky failed unexpectedly:\n',
-                      out)
-        self.assertNotIn('[1/1] flaky_test.FlakyTest.test_flaky passed\n',
+        self.assertIn('[1/1] flaky_test.FlakyTest.test_flaky failed '
+                      'unexpectedly (worker 1):\n', out)
+        self.assertNotIn('[1/1] flaky_test.FlakyTest.test_flaky passed',
                       out)
         self.assertIn('0 tests passed, 0 skipped, 1 failure.\n', out)
         results = json.loads(files['full_results.json'])
@@ -966,7 +966,7 @@ class TestCli(test_case.MainTestCase):
                                        '--test-name-prefix',
                                        'fail_test.FailingTest.'],
                                       files=files, ret=1, err='')
-        self.assertIn('[1/1] test_fail failed unexpectedly:\n',
+        self.assertIn('[1/1] test_fail failed unexpectedly (worker 1):\n',
                       out)
         self.assertIn('0 tests passed, 0 skipped, 1 failure.\n', out)
         results = json.loads(files['full_results.json'])
@@ -990,9 +990,9 @@ class TestCli(test_case.MainTestCase):
                                        '--retry-limit','6',
                                        '--retry-only-retry-on-failure-tests'],
                                       files=files, ret=0, err='')
-        self.assertIn('[1/1] flaky_test.FlakyTest.test_flaky failed unexpectedly:\n',
-                      out)
-        self.assertIn('[1/1] flaky_test.FlakyTest.test_flaky passed\n',
+        self.assertIn('[1/1] flaky_test.FlakyTest.test_flaky failed '
+                      'unexpectedly (worker 1):\n', out)
+        self.assertIn('[1/1] flaky_test.FlakyTest.test_flaky passed (worker 1)\n',
                       out)
         self.assertIn('1 test passed, 0 skipped, 0 failures.\n', out)
         results = json.loads(files['full_results.json'])
@@ -1017,8 +1017,8 @@ class TestCli(test_case.MainTestCase):
                                        '--retry-limit', '3',
                                        '--retry-only-retry-on-failure-tests', '-vv'],
                                       files=files, ret=0, err='')
-        self.assertIn('[1/1] fail_test.FailingTest.test_fail failed as expected:\n',
-                      out)
+        self.assertIn('[1/1] fail_test.FailingTest.test_fail failed as '
+                      'expected (worker 1):\n', out)
         self.assertIn('0 tests passed, 0 skipped, 1 failure.\n', out)
         results = json.loads(files['full_results.json'])
         test_results = results['tests']['fail_test']['FailingTest']['test_fail']
@@ -1044,8 +1044,9 @@ class TestCli(test_case.MainTestCase):
                                        '-X', 'expectations.txt',
                                        '-x', 'foo'],
                                       files=files, ret=0, err='')
-        self.assertIn('[1/1] fail_test.FailingTest.test_fail was skipped\n',
-                      out)
+        self.assertIn(
+                '[1/1] fail_test.FailingTest.test_fail was skipped (worker 0)\n',
+                out)
         self.assertIn('0 tests passed, 1 skipped, 0 failures.\n', out)
         results = json.loads(files['full_results.json'])
         results = results['tests']['fail_test']['FailingTest']['test_fail']
@@ -1067,8 +1068,9 @@ class TestCli(test_case.MainTestCase):
                                        '-x', 'foo',
                                        '--skip', '*test_pass'],
                                       files=files, ret=0, err='')
-        self.assertIn('[1/1] pass_test.PassingTest.test_pass was skipped\n',
-                      out)
+        self.assertIn(
+                '[1/1] pass_test.PassingTest.test_pass was skipped (worker 0)\n',
+                out)
         self.assertIn('0 tests passed, 1 skipped, 0 failures.\n', out)
         results = json.loads(files['full_results.json'])
         results = results['tests']['pass_test']['PassingTest']['test_pass']
@@ -1082,7 +1084,8 @@ class TestCli(test_case.MainTestCase):
         _, out, _, files = self.check(['--write-full-results-to',
                                        'full_results.json'],
                                       files=files, ret=0, err='')
-        self.assertIn('[1/1] skip_test.SkipTest.test_skip was skipped\n', out)
+        self.assertIn(
+            '[1/1] skip_test.SkipTest.test_skip was skipped (worker 1)\n', out)
         self.assertIn('0 tests passed, 1 skipped, 0 failures.\n', out)
         results = json.loads(files['full_results.json'])
         results = results['tests']['skip_test']['SkipTest']['test_skip']
@@ -1097,8 +1100,9 @@ class TestCli(test_case.MainTestCase):
                                        'full_results.json',
                                        '--skip','*test_pass'],
                                       files=files, ret=0, err='')
-        self.assertIn('[1/1] pass_test.PassingTest.test_pass was skipped\n',
-                      out)
+        self.assertIn(
+            '[1/1] pass_test.PassingTest.test_pass was skipped (worker 0)\n',
+            out)
         self.assertIn('0 tests passed, 1 skipped, 0 failures.\n', out)
         results = json.loads(files['full_results.json'])
         results = results['tests']['pass_test']['PassingTest']['test_pass']
@@ -1136,7 +1140,7 @@ class TestCli(test_case.MainTestCase):
             ['--write-full-results-to', 'full_results.json',
              '--test-name-prefix', 'pass_test.PassingTest.'],
             files=files, ret=0, err='')
-        self.assertIn('[1/1] test_pass passed\n', out)
+        self.assertIn('[1/1] test_pass passed (worker 1)\n', out)
 
     def test_implement_test_name_prefix_exclusion_in_test_filter(self):
         files = OUTPUT_TEST_FILES
@@ -1147,7 +1151,7 @@ class TestCli(test_case.MainTestCase):
             files=files, ret=0, err='')
         results = json.loads(files['full_results.json'])
         self.assertEqual(len(results['tests']), 1)
-        self.assertIn('[1/1] PassTest.test_out passed\n', out)
+        self.assertIn('[1/1] PassTest.test_out passed (worker 1)\n', out)
 
     def test_implement_test_name_prefix_exclusion_in_expectations_files(self):
         files = {'fail_test.py': FAIL_TEST_PY,
@@ -1161,7 +1165,7 @@ class TestCli(test_case.MainTestCase):
              '--test-name-prefix', 'fail_test.FailingTest.',
              '-X', 'expectations.txt', '-x', 'foo', '-vv'],
             files=files, ret=0, err='')
-        self.assertIn('[1/1] test_fail failed as expected:\n', out)
+        self.assertIn('[1/1] test_fail failed as expected (worker 1):\n', out)
 
     def test_implement_test_name_prefix_exclusion_in_skip_glob(self):
         files = {'fail_test.py': FAIL_TEST_PY}
@@ -1275,9 +1279,9 @@ class TestCli(test_case.MainTestCase):
         self.check(['-vv', '-j', '1', 'output_test.PassTest'],
                    files=OUTPUT_TEST_FILES, ret=0,
                    out=d("""\
-                         [1/2] output_test.PassTest.test_err passed:
+                         [1/2] output_test.PassTest.test_err passed (worker 1):
                            hello on stderr
-                         [2/2] output_test.PassTest.test_out passed:
+                         [2/2] output_test.PassTest.test_out passed (worker 1):
                            hello on stdout
                          2 tests passed, 0 skipped, 0 failures.
                          """), err='')
@@ -1287,10 +1291,10 @@ class TestCli(test_case.MainTestCase):
                    files=OUTPUT_TEST_FILES, ret=0,
                    out=d("""\
                          [0/2] output_test.PassTest.test_err queued
-                         [1/2] output_test.PassTest.test_err passed:
+                         [1/2] output_test.PassTest.test_err passed (worker 1):
                            hello on stderr
                          [1/2] output_test.PassTest.test_out queued
-                         [2/2] output_test.PassTest.test_out passed:
+                         [2/2] output_test.PassTest.test_out passed (worker 1):
                            hello on stdout
                          2 tests passed, 0 skipped, 0 failures.
                          """), err='')

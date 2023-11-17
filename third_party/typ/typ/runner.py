@@ -771,7 +771,8 @@ class Runner(object):
             timing_str = ' %.4fs' % result.took
         else:
             timing_str = ''
-        suffix = '%s%s' % (result_str, timing_str)
+        worker_str = ' (worker %d)' % result.worker
+        suffix = '%s%s%s' % (result_str, timing_str, worker_str)
         out = result.out
         err = result.err
         if result.is_regression:
