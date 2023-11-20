@@ -625,23 +625,27 @@ class AdbWrapper(object):
       if remaining:
         # Use a slightly smaller timeout than remaining time to ensure that we
         # have time to collect output from the command.
-        timeout = 0.95 * remaining
+        cmd_timeout = 0.95 * remaining
       else:
-        timeout = None
+        cmd_timeout = None
+    else:
+      cmd_timeout = timeout
     env = cls._ADB_ENV.copy()
     if additional_env:
       env.update(additional_env)
+    adb_cmd = cls._BuildAdbCmd(args, device_serial, cpu_affinity=cpu_affinity)
     try:
-      adb_cmd = cls._BuildAdbCmd(args, device_serial, cpu_affinity=cpu_affinity)
       status, output = cmd_helper.GetCmdStatusAndOutputWithTimeout(adb_cmd,
-                                                                   timeout,
+                                                                   cmd_timeout,
                                                                    env=env)
     except OSError as e:
       if e.errno in (errno.ENOENT, errno.ENOEXEC):
         raise device_errors.NoAdbError(msg=str(e))
       raise
     except cmd_helper.TimeoutError:
-      logger.exception('Timeout on adb command: %r', adb_cmd)
+      logger.exception(
+          'Timeout on adb command (timeout=%r, retries=%r, '
+          'cmd_timeout=%r): %r', timeout, retries, cmd_timeout, adb_cmd)
       raise
 
     # Best effort to catch errors from adb; unfortunately adb is very
