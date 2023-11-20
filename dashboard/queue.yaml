@@ -29,9 +29,11 @@ queue:
 
 # AlertGroup
  - name: update-alert-group-queue
-   rate: 20/s
+   rate: 10/s
+   max_concurrent_requests: 100
    retry_parameters:
-     task_retry_limit: 0
+     task_retry_limit: 1
+     min_backoff_seconds: 30
 
  # Pinpoint
  - name: job-queue
