@@ -1108,12 +1108,17 @@ class AlertGroupWorkflow:
     # 2. has a valid bug_id
     # 3. hasn't start a bisection
     # 4. is not a summary metric (has story)
-    regressions = [
-        r for r in regressions or []
-        if (r.auto_bisect_enable and r.bug_id > 0
-            and not set(r.pinpoint_bisects) & set(self._group.bisection_ids)
-            and r.test.get().unescaped_story_name)
-    ]
+    filtered_regressions = []
+    for r in regressions:
+      if not r.bug_id:
+        logging.error('No bug_id found in anomaly %s', r.key.id())
+        continue
+      if (r.auto_bisect_enable and r.bug_id > 0
+          and not set(r.pinpoint_bisects) & set(self._group.bisection_ids)
+          and r.test.get().unescaped_story_name):
+        filtered_regressions.append(r)
+    regressions = filtered_regressions
+
     if not regressions:
       return None
 

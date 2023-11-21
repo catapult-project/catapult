@@ -152,7 +152,7 @@ class AlertGroup:
       raise SheriffConfigRequestException(err_msg)
 
     if not matched_configs:
-      return []
+      return [], []
 
     start_rev = int(start_rev)
     end_rev = int(end_rev)
