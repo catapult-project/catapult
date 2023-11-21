@@ -59,16 +59,15 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-_BOOT_TIMEOUT = 60
+_BOOT_TIMEOUT = adb_wrapper.DEFAULT_TIMEOUT * 2
 _BOOT_RETRIES = 2
-_DEFAULT_TIMEOUT = 30
+_DEFAULT_TIMEOUT = adb_wrapper.DEFAULT_TIMEOUT
 _DEFAULT_RETRIES = 3
-
 
 # TODO(agrieve): Would be better to make this timeout based off of data size.
 # Needs to be large for remote devices & speed depends on internet connection.
 # Debug Chrome builds can be 200mb+.
-_FILE_TRANSFER_TIMEOUT = 7 * 60
+_FILE_TRANSFER_TIMEOUT = adb_wrapper.DEFAULT_SUPER_LONG_TIMEOUT
 
 
 # A sentinel object for default values
@@ -1267,7 +1266,7 @@ class DeviceUtils(object):
     if decrypt:
       timeout_retry.WaitFor(is_decryption_completed)
 
-  REBOOT_DEFAULT_TIMEOUT = 10 * _DEFAULT_TIMEOUT
+  REBOOT_DEFAULT_TIMEOUT = adb_wrapper.DEFAULT_LONG_TIMEOUT
 
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=REBOOT_DEFAULT_TIMEOUT)
@@ -2900,7 +2899,8 @@ class DeviceUtils(object):
       self.RunShellCommand(cmd, shell=True, as_root=True, check_return=True)
       yield device_temp
 
-  @decorators.WithTimeoutAndRetriesFromInstance()
+  @decorators.WithTimeoutAndRetriesFromInstance(
+      min_default_timeout=_FILE_TRANSFER_TIMEOUT)
   def PullFile(self,
                device_path,
                host_path,

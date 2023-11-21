@@ -964,9 +964,9 @@ class AdbWrapper(object):
   def Pull(self,
            remote,
            local,
-           timeout=DEFAULT_LONG_TIMEOUT,
+           timeout=DEFAULT_SUPER_LONG_TIMEOUT,
            retries=DEFAULT_RETRIES):
-    """Pulls a file from the device to the host.
+    """Pulls a file or directory from the device to the host.
 
     Args:
       remote: Path on the device filesystem.
