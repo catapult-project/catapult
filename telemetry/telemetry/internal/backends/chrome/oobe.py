@@ -110,11 +110,6 @@ class Oobe(web_contents.WebContents):
     self._NavigateWebviewLogin(username, password,
                                wait_for_close=not enterprise_enroll)
 
-    if enterprise_enroll:
-      self.WaitForJavaScriptCondition(
-          'Oobe.isEnrollmentSuccessfulForTest()', timeout=120)
-      self._ExecuteOobeApi('Oobe.enterpriseEnrollmentDone')
-
   def _UnicornObfuscated(self, text):
     """Converts an email into an obfuscated email.
 

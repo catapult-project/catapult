@@ -131,29 +131,6 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
       self.assertTrue(py_utils.WaitFor(self._IsCryptohomeMounted, 10))
 
   @decorators.Enabled('chromeos')
-  def testEnterpriseEnroll(self):
-    """Tests enterprise enrollment. Credentials are expected to be found in a
-    credentials.txt file. The account must be from an enterprise domain and
-    have device enrollment permission. The device must be unowned."""
-    if self._is_guest:
-      return
-
-    try:
-      username, password = next(self._GetCredentialsIter())
-    except StopIteration:
-      return
-    # Enroll the device.
-    with self._CreateBrowser(auto_login=False) as browser:
-      browser.oobe.NavigateGaiaLogin(username=oobe.Oobe.Canonicalize(username),
-                                     password=password,
-                                     enterprise_enroll=True,
-                                     for_user_triggered_enrollment=True)
-
-    # Check for the existence of the device policy file.
-    self.assertTrue(py_utils.WaitFor(lambda: self._cri.FileExistsOnDevice(
-        '/run/lockbox/install_attributes.pb'), 15))
-
-  @decorators.Enabled('chromeos')
   def testUnicornLogin(self):
     """Tests unicorn account login."""
     if self._is_guest:
