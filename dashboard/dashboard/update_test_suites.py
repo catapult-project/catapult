@@ -86,6 +86,10 @@ def _ListTestSuitesAsync(test_suites, partial_tests, parent_test=None):
   query = graph_data.TestMetadata.query()
   query = query.filter(graph_data.TestMetadata.parent_test == parent_test)
   query = query.filter(graph_data.TestMetadata.deprecated == False)
+  # hack to use composite index and capture all descriptions in DataStore
+  # description is unfortunately defined as part of the composite index:
+  # https://chromium.googlesource.com/catapult.git/+/HEAD/dashboard/index.yaml#317
+  query = query.filter(graph_data.TestMetadata.description != "made_up_description")
   keys = yield query.fetch_async(keys_only=True)
   for key in keys:
     test_path = utils.TestPath(key)
