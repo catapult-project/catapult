@@ -197,7 +197,8 @@ class AlertGroup:
           # return the id of the 'ungrouped'
           ungrouped = cls._GetUngroupedGroup(group_type)
           if ungrouped:
-            result_groups.add(ungrouped.key.id)
+            ungrouped_id = cls.ds_client.GetEntityId(ungrouped)
+            result_groups.add(ungrouped_id)
 
     logging.debug('GetGroupsForAnomaly returning %s', result_groups)
     return list(result_groups), list(new_groups)
@@ -276,7 +277,7 @@ class AlertGroup:
 
     ungrouped_anomalies = cls.ds_client.GetMultiEntitiesByKeys(dict(ungrouped).get('anomalies'))
     logging.info('Loaded %i ungrouped alerts for group type %i. ID(%s)',
-                  len(ungrouped_anomalies), group_type, ungrouped.key.id)
+                  len(ungrouped_anomalies), group_type, cls.ds_client.GetEntityId(ungrouped))
 
     parity_results = {}
     for anomaly in ungrouped_anomalies:
@@ -286,10 +287,10 @@ class AlertGroup:
       anomaly['groups'] = [cls.ds_client.AlertGroupKey(group_id) for group_id in group_ids]
       logging.debug(
         '[GroupingDebug] Ungrouped anomaly %s is associated with %s',
-        anomaly.key.id, anomaly['groups']
+        cls.ds_client.GetEntityId(anomaly), anomaly['groups']
       )
       if IS_PARITY:
-        anomaly_id = anomaly.key.id
+        anomaly_id = cls.ds_client.GetEntityId(anomaly)
         parity_results[anomaly_id] = {
           "existing_groups": list(set(group_ids) - set(new_ids)),
           "new_groups": new_ids
