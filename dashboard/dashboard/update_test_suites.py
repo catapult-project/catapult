@@ -83,6 +83,8 @@ def _ListTestSuitesAsync(test_suites, partial_tests, parent_test=None):
   # Descriptor. When a TestMetadata key doesn't contain enough test path
   # components to compose a full test suite, add its key to partial_tests so
   # that the caller can run another query with parent_test.
+  logging.debug("list test suites async parent test: %s\npartial tests: %s",
+                parent_test, partial_tests)
   query = graph_data.TestMetadata.query()
   query = query.filter(graph_data.TestMetadata.parent_test == parent_test)
   query = query.filter(graph_data.TestMetadata.deprecated == False)
@@ -100,6 +102,7 @@ def _ListTestSuitesAsync(test_suites, partial_tests, parent_test=None):
       partial_tests.add(key)
     else:
       logging.error('Unable to parse "%s"', test_path)
+  logging.debug("list test suites: %s", test_suites)
 
 
 @ndb.synctasklet
