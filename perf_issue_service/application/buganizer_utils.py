@@ -18,10 +18,42 @@ import logging
 # The mapping here are for ad hoc testing. The real mappings will be different
 # from project to project and will be added in future CLs.
 
+# components, labels and hotlists for testing:
+# Buganizer component 1325852 is "ChromePerf testing"
+# Monorail labels "chromeperf-test" and "chromeperf-test-2"
+# Buganizer hotlists 5141966 and 5142065
+COMPONENT_MAP_CR2B = {
+  'UntriagedPerformanceAlerts': 1454999 # Trackers > Fuchsia > UntriagedPerformanceAlerts
+}
+
+COMPONENT_MAP_B2CR = {
+  '1454999' : 'fuchsia-b-test',
+  # test
+  '1325852' : 'MigratedProject'
+}
+
+PROJECT_MAP_CR2B = {
+  'fuchsia-b-test': ['1454999'],
+  # test
+  'MigratedProject': ['1325852']
+}
+
+# string to int
+LABEL_MAP_CR2B = {
+  'Performace': '5424295', # Performance
+  # test
+  'chromeperf-test': '5141966',
+  'chromeperf-test-2': '5142065'
+}
+
+HOTLIST_MAP_B2CR = {
+  hotlist:label for label, hotlist in LABEL_MAP_CR2B.items()
+}
+
+
 def FindBuganizerComponentId(monorail_component):
-  # temp. will have real mapping.
-  del monorail_component
-  return 1325852
+  return COMPONENT_MAP_CR2B.get(monorail_component, 1325852)
+
 
 def FindBuganizerComponents(monorail_project_name):
   """return a list of components in buganizer based on the monorail project
@@ -29,14 +61,11 @@ def FindBuganizerComponents(monorail_project_name):
   The current implementation is ad hoc as the component mappings are not
   fully set up on buganizer yet.
   """
-  if monorail_project_name == 'MigratedProject':
-    return ['1325852']
-  return []
+  return PROJECT_MAP_CR2B.get(monorail_project_name, [])
+
 
 def FindMonorailProject(buganizer_component_id):
-  if buganizer_component_id == '1325852':
-    return 'MigratedProject'
-  return ''
+  return COMPONENT_MAP_B2CR.get(buganizer_component_id, '')
 
 
 def FindBuganizerHotlists(monorail_labels):
@@ -52,11 +81,7 @@ def FindBuganizerHotlists(monorail_labels):
 
 
 def _FindBuganizerHotlist(monorail_label):
-  if monorail_label == 'chromeperf-test':
-    return '5141966'
-  elif monorail_label == 'chromeperf-test-2':
-    return '5142065'
-  return None
+  return LABEL_MAP_CR2B.get(monorail_label, None)
 
 
 def _FindMonorailLabel(buganizer_hotlist):
@@ -160,15 +185,13 @@ def LoadPriorityFromMonorailLabels(monorail_labels):
   Returns:
     the priority from the label if any, otherwise 2 by default.
   '''
-  priority = 99
-  for label in monorail_labels:
-    if label.startswith('Pri-'):
-      label_priority = int(label[4])
-      priority = min(priority, label_priority)
-  if priority == 99:
-    return 2
-  return priority
-
+  if monorail_labels:
+    for label in monorail_labels:
+      if label.startswith('Pri-'):
+        label_priority = int(label[4])
+        if 0 <= label_priority < 5:
+          return label_priority
+  return 2
 
 def ReconcileBuganizerIssue(buganizer_issue):
   '''Reconcile a Buganizer issue into the Monorail format

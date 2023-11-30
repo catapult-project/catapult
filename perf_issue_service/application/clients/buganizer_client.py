@@ -208,7 +208,8 @@ class BuganizerClient:
         'Componenet ID is required when creating a new issue on Buganizer.')
     if len(components)>1:
       logging.warning(
-        '[PerfIssueService] More than 1 components on issue create. Using the first one.')
+        '[PerfIssueService] %s components on NewIssue. Using the first one: %s',
+        len(components), components)
     buganizer_component_id = b_utils.FindBuganizerComponentId(components[0])
 
     if owner:
@@ -220,7 +221,6 @@ class BuganizerClient:
     buganizer_status = b_utils.FindBuganizerStatus(monorail_status)
 
     priority  = 'P%s' % b_utils.LoadPriorityFromMonorailLabels(labels)
-    labels = [label for label in labels if not label.startswith('Pri-')]
 
     new_issue_state = {
       'title': title,
@@ -245,6 +245,7 @@ class BuganizerClient:
         {'emailAddress': email} for email in emails if email
       ]
     if labels:
+      labels = [label for label in labels if not label.startswith('Pri-')]
       hotlist_list = b_utils.FindBuganizerHotlists(labels)
       new_issue_state['hotlistIds'] = [hotlist for hotlist in hotlist_list]
 
@@ -253,7 +254,7 @@ class BuganizerClient:
       'issueComment': new_description
     }
 
-    logging.warning('[PerfIssueService] PostIssue request: %s', new_issue)
+    logging.info('[PerfIssueService] PostIssue request: %s', new_issue)
     request = self._service.issues().create(body=new_issue)
 
     try:
