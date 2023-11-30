@@ -341,6 +341,15 @@ class BaseApkHelper(object):
     except KeyError:
       return None
 
+  def Get32BitAbiOverride(self):
+    """Returns the value of android:use32bitAbi or None if not available."""
+    manifest_info = self._GetManifest()
+    try:
+      application = manifest_info['manifest'][0]['application'][0]
+      return application.get('android:use32bitAbi')
+    except KeyError:
+      return None
+
   def GetVersionCode(self):
     """Returns the versionCode as an integer, or None if not available."""
     manifest_info = self._GetManifest()
