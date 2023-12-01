@@ -261,7 +261,7 @@ class BuganizerClient:
       response = self._ExecuteRequest(request)
       logging.debug('[PerfIssueService] PostIssue response: %s', response)
       if response and 'issueId' in response:
-        return {'issue_id': response['issueId'], 'project_id': project}
+        return {'issue_id': int(response['issueId']), 'project_id': project}
       logging.error('Failed to create new issue; response %s', response)
     except errors.HttpError as e:
       reason = self._GetErrorReason(e)
