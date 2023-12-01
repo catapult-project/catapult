@@ -23,7 +23,8 @@ import logging
 # Monorail labels "chromeperf-test" and "chromeperf-test-2"
 # Buganizer hotlists 5141966 and 5142065
 COMPONENT_MAP_CR2B = {
-  'UntriagedPerformanceAlerts': 1454999 # Trackers > Fuchsia > UntriagedPerformanceAlerts
+  'UntriagedPerformanceAlerts': 1454999, # Trackers > Fuchsia > UntriagedPerformanceAlerts
+  'ChromePerf testing': 1325852
 }
 
 COMPONENT_MAP_B2CR = {
@@ -40,7 +41,7 @@ PROJECT_MAP_CR2B = {
 
 # string to int
 LABEL_MAP_CR2B = {
-  'Performace': '5424295', # Performance
+  'Performance': '5424295', # Performance
   # test
   'chromeperf-test': '5141966',
   'chromeperf-test-2': '5142065'
