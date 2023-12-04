@@ -111,6 +111,7 @@ class CrosPlatformBackend(
         release_data[key] = ' '.join(shlex.split(value.strip()))
     return release_data
 
+  @decorators.Cache
   def GetOSVersionName(self):
     lsb_release = self._ReadReleaseFile(CROS_INFO_PATH)
     if lsb_release and 'CHROMEOS_RELEASE_NAME' in lsb_release:
@@ -118,6 +119,7 @@ class CrosPlatformBackend(
 
     raise NotImplementedError('Missing CrOS name in lsb-release')
 
+  @decorators.Cache
   def GetOSVersionDetailString(self):
     lsb_release = self._ReadReleaseFile(CROS_INFO_PATH)
     if lsb_release and 'CHROMEOS_RELEASE_VERSION' in lsb_release:
