@@ -632,9 +632,7 @@ class Job(ndb.Model):
     }
 
   def _CanSandwich(self, differences=None):
-    # TODO(crbug/1507128): re-enable this check. Turn off in the short term to
-    # manually trigger culprit verification for testing.
-    if not self.user:  # or 'appspot.gserviceaccount.com' not in self.user:
+    if not self.user or 'appspot.gserviceaccount.com' not in self.user:
       return False
     # When a culprit is a non-chromium CL, culprit verification will use the
     # first commit in the roll, which sets up an A/A experiment. Any culprit CL
