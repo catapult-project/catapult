@@ -162,18 +162,20 @@ def _ProcessTestStat(test, stat, rows, ref_rows):
     alert_groups = alert_group.AlertGroup.GetGroupsForAnomaly(a, subscriptions)
     try:
       # parity results from perf_issue_service
-      groups_by_request = perf_issue_service_client.GetAlertGroupsForAnomaly(a)
+      groups_by_request = perf_issue_service_client.GetAlertGroupsForAnomalyById(
+          a)
       group_keys = [ndb.Key('AlertGroup', g) for g in groups_by_request]
       if sorted(group_keys) != sorted(alert_groups):
-        logging.warning('Imparity found for GetAlertGroupsForAnomaly. %s, %s',
-                        group_keys, alert_groups)
+        logging.warning(
+            'Imparity found for GetAlertGroupsForAnomalyById. %s, %s',
+            group_keys, alert_groups)
         cloud_metric.PublishPerfIssueServiceGroupingImpariry(
-            'GetAlertGroupsForAnomaly')
+            'GetAlertGroupsForAnomalyById')
       a.groups = group_keys
       logging.debug('[GroupingDebug] Anomaly %s is associated with groups %s.',
                     a.key, a.groups)
     except Exception as e:  # pylint: disable=broad-except
-      logging.warning('Parity logic failed in GetAlertGroupsForAnomaly. %s',
+      logging.warning('Parity logic failed in GetAlertGroupsForAnomalyById. %s',
                       str(e))
 
   yield ndb.put_multi_async(anomalies)

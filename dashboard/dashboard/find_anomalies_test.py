@@ -210,7 +210,7 @@ class ProcessAlertsTest(testing_common.TestCase):
   @mock.patch.object(find_anomalies.email_sheriff, 'EmailSheriff')
   def testProcessTest(self, mock_email_sheriff):
     perf_comment_post_patcher = mock.patch(
-        'dashboard.services.perf_issue_service_client.GetAlertGroupsForAnomaly',
+        'dashboard.services.perf_issue_service_client.GetAlertGroupsForAnomalyById',
         self._GetGroupsForAnomalyMock)
     perf_comment_post_patcher.start()
     self.addCleanup(perf_comment_post_patcher.stop)
