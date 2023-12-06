@@ -43,9 +43,25 @@ def GetAnomaliesHandler(group_id):
   return make_response(anomalies)
 
 
+@alert_groups.route('/anomaly_id/<anomaly_id>', methods=['GET'])
+@utils.BearerTokenAuthorizer
+def GetGroupsForAnomalyByIdHandler(anomaly_id):
+  try:
+    group_type = request.args.get('group_type', 0)
+    # TODO: remove the _ when parity is done.
+    group_keys, _ = alert_group.AlertGroup.GetGroupsForAnomalyById(
+      anomaly_id=int(anomaly_id),
+      group_type=int(group_type))
+  except alert_group.SheriffConfigRequestException as e:
+    return make_response(str(e), 500)
+
+  return make_response(group_keys)
+
+
 @alert_groups.route('/test/<path:test_key>/start/<start_rev>/end/<end_rev>', methods=['GET'])
 @utils.BearerTokenAuthorizer
 def GetGroupsForAnomalyHandler(test_key, start_rev, end_rev):
+  # TODO: retire this API. Use GetGroupsForAnomalyById instead.
   try:
     group_type = request.args.get('group_type', 0)
     # TODO: remove the _ when parity is done.
