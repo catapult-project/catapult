@@ -18,7 +18,7 @@ class HTMLGenerationController(object):
 
   def GetHTMLForInlineStylesheet(self, contents):
     if self.current_module is None:
-      if re.search('url\(.+\)', contents):
+      if re.search(r'url\(.+\)', contents):
         raise Exception(
             'Default HTMLGenerationController cannot handle inline style urls')
       return contents

@@ -293,6 +293,6 @@ class HTMLModuleParser():
       html = ''
     else:
       if html.find('< /script>') != -1:
-        raise Exception('Escape script tags with <\/script>')
+        raise Exception(r'Escape script tags with <\/script>')
 
     return HTMLModuleParserResults(html)

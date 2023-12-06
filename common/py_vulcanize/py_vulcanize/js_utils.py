@@ -4,4 +4,4 @@
 
 
 def EscapeJSIfNeeded(js):
-  return js.replace('</script>', '<\/script>')
+  return js.replace('</script>', r'<\/script>')
