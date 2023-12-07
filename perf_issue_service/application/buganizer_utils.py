@@ -14,6 +14,8 @@ be reconciled to the Monorail format on perf_issue_service.
 
 import logging
 
+from application.clients import monorail_client
+
 # ============ mapping helpers start ============
 # The mapping here are for ad hoc testing. The real mappings will be different
 # from project to project and will be added in future CLs.
@@ -230,3 +232,21 @@ def ReconcileBuganizerIssue(buganizer_issue):
   monorail_issue['labels'] = [label for label in label_names if label]
 
   return monorail_issue
+
+
+def FindBuganizerIdByMonorailId(monorail_project, monorail_id):
+  '''Try to find the buganizer id using the monorail id
+
+  After a monorail issue is migrated to buganizer, the buganizer id will
+  be populated to the monorail issue record, in a property 'migratedId'.
+  '''
+  client = monorail_client.MonorailClient()
+
+  issue = client.GetIssue(
+    issue_id=monorail_id,
+    project=monorail_project)
+  buganizer_id = issue.get('migratedId', None)
+  logging.debug('Migrated ID %s found for %s/%s.',
+                buganizer_id, monorail_project, monorail_id)
+
+  return buganizer_id

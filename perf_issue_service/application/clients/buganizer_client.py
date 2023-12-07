@@ -327,6 +327,22 @@ class BuganizerClient:
       return {
         'error': '[PerfIssueService] Missing issue id on PostIssueComment'
         }
+    if issue_id < 2000000:
+      # This is a hack to handle the use case that:
+      #  - we have the monorail issue id in our database
+      #  - the issue is migrated to buganizer
+      #  - we need to update the issue but we don't know the id on buganizer
+      # Assuming all monorail id are less than 2000000, trying to access an
+      # issue using buganizer client and a monorail id means the project has
+      # been migrated.
+      # In this case, we should find the buganizer id first.
+      logging.debug('Looking for b/ id for crbug %s in %s', issue_id, project)
+      b_issue_id = b_utils.FindBuganizerIdByMonorailId(project, issue_id)
+      if not b_issue_id:
+        err_msg = 'Cannot find the migrated id for crbug %s in %s' % (issue_id, project)
+        logging.error(err_msg)
+        return {'error': err_msg}
+      issue_id = b_issue_id
 
     add_issue_state, remove_issue_state = {}, {}
 
