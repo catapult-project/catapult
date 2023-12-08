@@ -123,7 +123,8 @@ class AlertGroup:
   @classmethod
   def GetGroupsForAnomaly(
     cls, test_key, start_rev, end_rev, create_on_ungrouped=False, parity=False,
-    group_type=datastore_client.AlertGroupType.test_suite):
+    group_type=datastore_client.AlertGroupType.test_suite,
+    subscription_name=None):
     ''' Find the alert groups for the anomaly.
 
     Given the test_key and revision range of an anomaly:
@@ -141,10 +142,15 @@ class AlertGroup:
           group created if this value is true; otherwise, the existing
           'upgrouped' group will be used.
       parity: testing flag for result parity
+      group_type: the group type to look for.
+      subscription_name: the matching subscription name of the anomaly.
 
     Returns:
       a list of group ids.
     '''
+    logging.debug('GetGroupsForAnomaly starts with %s, %s, %s, %s, %s',
+                   test_key, start_rev, end_rev, group_type, subscription_name)
+
     sc_client = sheriff_config_client.GetSheriffConfigClient()
     matched_configs, err_msg = sc_client.Match(test_key)
 
@@ -165,6 +171,8 @@ class AlertGroup:
 
     for config in matched_configs:
       s = config['subscription']
+      if subscription_name and s.get('name') != subscription_name:
+        continue
       has_overlapped = False
       for g in existing_groups:
         if 'project_id' not in g:
@@ -283,7 +291,9 @@ class AlertGroup:
     for anomaly in ungrouped_anomalies:
       group_ids, new_ids = cls.GetGroupsForAnomaly(
         anomaly['test'].name, anomaly['start_revision'], anomaly['end_revision'],
-        create_on_ungrouped=True, parity=IS_PARITY, group_type=group_type)
+        create_on_ungrouped=True, parity=IS_PARITY, group_type=group_type,
+        subscription_name=anomaly.get('matching_subscription', {}).get('name')
+        )
       anomaly['groups'] = [cls.ds_client.AlertGroupKey(group_id) for group_id in group_ids]
       logging.debug(
         '[GroupingDebug] Ungrouped anomaly %s is associated with %s',

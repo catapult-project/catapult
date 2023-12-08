@@ -44,14 +44,16 @@ def GetAnomaliesHandler(group_id):
 
 
 @alert_groups.route('/test/<path:test_key>/start/<start_rev>/end/<end_rev>', methods=['GET'])
+@alert_groups.route('/test/<path:test_key>/start/<start_rev>/end/<end_rev>/sub/<subscription_name>', methods=['GET'])
 @utils.BearerTokenAuthorizer
-def GetGroupsForAnomalyHandler(test_key, start_rev, end_rev):
+def GetGroupsForAnomalyHandler(test_key, start_rev, end_rev, subscription_name=None):
   try:
     group_type = request.args.get('group_type', 0)
     # TODO: remove the _ when parity is done.
     group_keys, _ = alert_group.AlertGroup.GetGroupsForAnomaly(
       test_key, start_rev, end_rev,
-      group_type=int(group_type))
+      group_type=int(group_type),
+      subscription_name=subscription_name)
   except alert_group.SheriffConfigRequestException as e:
     return make_response(str(e), 500)
 
