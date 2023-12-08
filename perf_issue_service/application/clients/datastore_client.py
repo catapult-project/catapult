@@ -58,16 +58,6 @@ class DataStoreClient():
 
     return query.fetch(limit=limit)
 
-  def AnomalyKey(self, anomaly_id):
-    ''' Generate a datastore Key for an anomaly
-
-    Args:
-      anomaly_id: the id of the anomaly
-
-    Returns:
-      the datastore.client.key() object.
-    '''
-    return self._Key('Anomaly', anomaly_id)
 
   def AlertGroupKey(self, group_id):
     ''' Generate a datastore Key for an alert group

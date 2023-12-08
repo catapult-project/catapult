@@ -119,41 +119,11 @@ class AlertGroup:
 
     return [g for g in groups if g.get('group_type') == group_type]
 
-  @classmethod
-  def GetGroupsForAnomalyById(
-    cls,
-    anomaly_id,
-    group_type=datastore_client.AlertGroupType.test_suite,
-    create_on_ungrouped=False):
-    ''' Find the alert groups for the anomaly by its ID.
-
-    Given the anomaly ID, return the anomaly groups for it.
-
-    This is a wrapper of GetGroupsForAnomaly, which uses an anomaly's test_key
-    and start/end revision to find grouping.
-    We noticed that subscriptions should also be considered in grouping, but it
-    is not in the current implementation of GetGroupsForAnomaly. We should pass
-    the anomaly ID and load the whole anomaly object.
-    Now we use this wrapper to load the anomaly and pass subscription info for
-    GetGroupsForAnomaly. Later, we should retire the previous API which takes
-    test_key, start/end revisions.
-    '''
-    anomaly_key = cls.ds_client.AnomalyKey(anomaly_id)
-    logging.debug('[PerfIssueService]: Loading Anomaly For: %s', anomaly_key)
-    anomaly = cls.ds_client.GetEntityByKey(anomaly_key)
-
-    return cls.GetGroupsForAnomaly(
-      anomaly['test'].name, anomaly['start_revision'], anomaly['end_revision'],
-      create_on_ungrouped=create_on_ungrouped, parity=False, group_type=group_type,
-      subscription=anomaly.get('matching_subscription', None)
-    )
-
 
   @classmethod
   def GetGroupsForAnomaly(
     cls, test_key, start_rev, end_rev, create_on_ungrouped=False, parity=False,
-    group_type=datastore_client.AlertGroupType.test_suite,
-    subscription=None):
+    group_type=datastore_client.AlertGroupType.test_suite):
     ''' Find the alert groups for the anomaly.
 
     Given the test_key and revision range of an anomaly:
@@ -175,18 +145,11 @@ class AlertGroup:
     Returns:
       a list of group ids.
     '''
-    if not subscription:
-      sc_client = sheriff_config_client.GetSheriffConfigClient()
-      matched_configs, err_msg = sc_client.Match(test_key)
-      if err_msg is not None:
-        raise SheriffConfigRequestException(err_msg)
-    else:
-      logging.debug(
-        '[PerfIssueService] Subscription for GetGroupsForAnomaly: %s',
-        subscription)
-      matched_configs = [
-        {'subscription': subscription}
-        ]
+    sc_client = sheriff_config_client.GetSheriffConfigClient()
+    matched_configs, err_msg = sc_client.Match(test_key)
+
+    if err_msg is not None:
+      raise SheriffConfigRequestException(err_msg)
 
     if not matched_configs:
       return [], []
@@ -320,8 +283,7 @@ class AlertGroup:
     for anomaly in ungrouped_anomalies:
       group_ids, new_ids = cls.GetGroupsForAnomaly(
         anomaly['test'].name, anomaly['start_revision'], anomaly['end_revision'],
-        create_on_ungrouped=True, parity=IS_PARITY, group_type=group_type,
-        subscription=anomaly.get('matching_subscription', None))
+        create_on_ungrouped=True, parity=IS_PARITY, group_type=group_type)
       anomaly['groups'] = [cls.ds_client.AlertGroupKey(group_id) for group_id in group_ids]
       logging.debug(
         '[GroupingDebug] Ungrouped anomaly %s is associated with %s',
