@@ -192,12 +192,17 @@ def GetAlertGroupsForAnomaly(anomaly):
   test_key = utils.TestPath(anomaly.test)
   start_rev = anomaly.start_revision
   end_rev = anomaly.end_revision
+  subs_name = anomaly.matching_subscription.name
 
   url = _SERVICE_URL + _ALERT_GROUP_PREFIX
   # use quote() instead of quote_plus. otherwise test_key with spaces
   # will be encoded to '+'.
-  url += 'test/%s/start/%s/end/%s' % (urllib.parse.quote(test_key), start_rev,
-                                      end_rev)
+  if subs_name:
+    url += 'test/%s/start/%s/end/%s/sub/%s' % (urllib.parse.quote(test_key),
+                                               start_rev, end_rev, subs_name)
+  else:
+    url += 'test/%s/start/%s/end/%s' % (urllib.parse.quote(test_key), start_rev,
+                                        end_rev)
 
   try:
     cloud_metric.PublishPerfIssueServiceRequests('GetAlertGroupsForAnomaly',
