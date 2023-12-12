@@ -359,12 +359,6 @@ class BuganizerClient:
     if owner:
       add_issue_state['assignee'] = {'emailAddress': owner}
 
-    if components:
-      if len(components)>1:
-        logging.warning(
-          '[PerfIssueService] More than 1 components on issue create. Using the first one.')
-      add_issue_state['componentId'] = b_utils.FindBuganizerComponentId(components[0])
-
     if cc:
       ccs_to_remove = [
         email[1:] for email in cc if email.startswith('-') and len(email)>1
@@ -385,6 +379,22 @@ class BuganizerClient:
       priority = 'P%s' % b_utils.LoadPriorityFromMonorailLabels(labels)
       add_issue_state['priority'] = priority
       labels = [label for label in labels if not label.startswith('Pri-')]
+
+    if components:
+      if len(components)>1:
+        logging.warning(
+          '[PerfIssueService] More than 1 components on issue create. Using the first one.')
+      new_component_id = b_utils.FindBuganizerComponentId(components[0])
+      move_issue_request = {
+        'componentId': str(new_component_id),
+        'significanceOverride': significance_override
+      }
+      logging.debug('Moving issue %s to component %s',
+                    issue_id, new_component_id)
+      request = self._service.issues().move(
+        issueId=str(issue_id), body=move_issue_request)
+      response = self._ExecuteRequest(request)
+      logging.debug('[PerfIssueService] Move issue response %s', response)
 
     if labels:
       labels_to_remove = [
