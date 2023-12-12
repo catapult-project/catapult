@@ -40,7 +40,7 @@ def IssuesGetByIdHandler(issue_id, project_name=None):
   # add handling before the fix on alert_group_workflow is deployed.
   if not project_name:
     project_name = 'chromium'
-  client = issue_tracker_client.IssueTrackerClient(project_name)
+  client = issue_tracker_client.IssueTrackerClient(project_name, issue_id)
   response = client.GetIssue(
       issue_id=issue_id,
       project=project_name)
@@ -49,7 +49,7 @@ def IssuesGetByIdHandler(issue_id, project_name=None):
 @issues.route('/<issue_id>/project/<project_name>/comments', methods=['GET'])
 @utils.BearerTokenAuthorizer
 def CommentsHandler(issue_id, project_name):
-  client = issue_tracker_client.IssueTrackerClient(project_name)
+  client = issue_tracker_client.IssueTrackerClient(project_name, issue_id)
   response = client.GetIssueComments(
       issue_id=issue_id,
       project=project_name)
@@ -76,7 +76,7 @@ def CommentsPostHandler(issue_id, project_name):
   except json.JSONDecodeError as e:
     return make_response(str(e), http.HTTPStatus.BAD_REQUEST.value)
 
-  client = issue_tracker_client.IssueTrackerClient(project_name)
+  client = issue_tracker_client.IssueTrackerClient(project_name, issue_id)
   response = client.NewComment(
     issue_id=int(issue_id),
     project=project_name,

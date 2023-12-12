@@ -18,7 +18,22 @@ BUGANIZER_PROJECTS = {
 class IssueTrackerClient:
   """Class for updating perf issues."""
 
-  def __init__(self, project_name='chromium'):
+  def __init__(self, project_name='chromium', issue_id=None):
+    '''Choose between Monorail and Buganizer clients.
+
+    1. If the issue id is a Buganizer ID, the value should be assigned after
+       migration. We will use Buganizer client regardless of the project value.
+    2. If the issue id is a Monorail ID, we need the project value to tell
+       whether the project is migrated. If it is, use Buganizer client,
+       otherwise Monorail client.
+    '''
+    if issue_id and issue_id > 2000000:
+      logging.debug(
+        '[PerfIssueService] Project %s, issue id %s. Using Buganizer client.',
+        project_name, issue_id)
+      self._client = buganizer_client.BuganizerClient()
+      return
+
     issue_tracker_service = self._GetIssueTrackerByProject(project_name)
     if issue_tracker_service == 'monorail':
       self._client = monorail_client.MonorailClient()
