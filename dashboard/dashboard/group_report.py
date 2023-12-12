@@ -87,8 +87,10 @@ def GroupReportPost():
     else:
       raise request_handler.InvalidInputError('No anomalies specified.')
 
-    alert_dicts = alerts.AnomalyDicts(
-        [a for a in alert_list if a.key.kind() == 'Anomaly'])
+    alert_dicts = alerts.AnomalyDicts([
+        a for a in alert_list
+        if a.key.kind() == 'Anomaly' and a.source != 'skia'
+    ])
 
     values = {
         'alert_list': alert_dicts,
