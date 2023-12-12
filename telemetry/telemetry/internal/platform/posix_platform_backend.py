@@ -31,7 +31,7 @@ def _CanRunElevatedWithSudo(path):
   If this function returns true then the binary at |path| can be run via sudo
   without prompting for a password.
   """
-  sudoers = subprocess.check_output(['/usr/bin/sudo', '-l'])
+  sudoers = subprocess.check_output(['/usr/bin/sudo', '-l'], text=True)
   return _BinaryExistsInSudoersFiles(path, sudoers)
 
 
