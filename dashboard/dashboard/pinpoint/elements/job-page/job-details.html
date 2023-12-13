@@ -41,8 +41,8 @@ found in the LICENSE file.
       </template>
       <template is="dom-if" if="[[job.bug_id]]">
         <li>
-          <a href="https://crbug.com/[[getProject(job)]]/[[job.bug_id]]" target="_blank">
-            Issue [[getProject(job)]]:[[job.bug_id]]
+          <a href="[[getJobIssueLink(job)]]" target="_blank">
+            [[getJobIssueText(job)]]
           </a>
       </template>
       <li>
@@ -83,6 +83,38 @@ found in the LICENSE file.
           return false;
         }
         return !job.comparison_mode || job.comparison_mode === 'try';
+      },
+
+      getJobIssueLink(job) {
+        let link = ''
+        if (!job || !job.arguments || !job.arguments.bug_id) {
+          return link;
+        }
+        let bug_id = parseInt(job.arguments.bug_id);
+        if (bug_id > 2000000) {
+          link='https://b.corp.google.com/issues/'+bug_id;
+        }
+        else {
+          let project = this.getProject(job);
+          link='https://crbug.com/'+project+'/'+bug_id;
+        }
+        return link
+      },
+
+      getJobIssueText(job) {
+        let text = ''
+        if (!job || !job.arguments || !job.arguments.bug_id) {
+          return text;
+        }
+        let bug_id = parseInt(job.arguments.bug_id);
+        if (bug_id > 2000000) {
+          text='Issue '+bug_id;
+        }
+        else {
+          let project = this.getProject(job);
+          text='Issue '+project+':'+bug_id;
+        }
+        return text;
       },
 
       getCABELink(user, job) {

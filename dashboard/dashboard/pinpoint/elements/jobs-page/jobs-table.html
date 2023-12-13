@@ -70,8 +70,8 @@ found in the LICENSE file.
             <td>[[formatEmail(item.user)]]</td>
             <td>
               <template is="dom-if" if="[[item.bug_id]]">
-                <a href="https://crbug.com/[[getProject(item)]]/[[item.bug_id]]">
-                  [[getProject(item)]]:[[item.bug_id]]
+                <a href='[[getJobIssueLink(item)]]'>
+                  [[getJobIssueText(item)]]
                 </a>
               </template>
             </td>
@@ -237,6 +237,38 @@ found in the LICENSE file.
           return 'chromium';
         }
         return job.arguments.project;
+      },
+
+      getJobIssueLink(job) {
+        let link = ''
+        if (!job || !job.arguments || !job.arguments.bug_id) {
+          return link;
+        }
+        let bug_id = parseInt(job.arguments.bug_id);
+        if (bug_id > 2000000) {
+          link='https://b.corp.google.com/issues/'+bug_id;
+        }
+        else {
+          let project = this.getProject(job);
+          link='https://crbug.com/'+project+'/'+bug_id;
+        }
+        return link
+      },
+
+      getJobIssueText(job) {
+        let text = ''
+        if (!job || !job.arguments || !job.arguments.bug_id) {
+          return text;
+        }
+        let bug_id = parseInt(job.arguments.bug_id);
+        if (bug_id > 2000000) {
+          text=bug_id;
+        }
+        else {
+          let project = this.getProject(job);
+          text=project+':'+bug_id;
+        }
+        return text;
       },
     });
   </script>
