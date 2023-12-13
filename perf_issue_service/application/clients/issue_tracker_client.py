@@ -27,7 +27,7 @@ class IssueTrackerClient:
        whether the project is migrated. If it is, use Buganizer client,
        otherwise Monorail client.
     '''
-    if issue_id and issue_id > 2000000:
+    if issue_id and int(issue_id) > 2000000:
       logging.debug(
         '[PerfIssueService] Project %s, issue id %s. Using Buganizer client.',
         project_name, issue_id)
