@@ -9,7 +9,7 @@ from application.clients import monorail_client
 from application.clients import buganizer_client
 
 BUGANIZER_PROJECTS = {
-  "fuchsia-b-test": "buganizer",
+  "fuchsia": "buganizer",
   # Test
   "MigratedProject": "buganizer",
   "ReadOnlyProject": "none"

@@ -30,13 +30,13 @@ COMPONENT_MAP_CR2B = {
 }
 
 COMPONENT_MAP_B2CR = {
-  '1454999' : 'fuchsia-b-test',
+  '1454999' : 'fuchsia',
   # test
   '1325852' : 'MigratedProject'
 }
 
 PROJECT_MAP_CR2B = {
-  'fuchsia-b-test': ['1454999'],
+  'fuchsia': ['1454999'],
   # test
   'MigratedProject': ['1325852']
 }
