@@ -15,6 +15,10 @@ import six
 from google.auth import exceptions
 TokenRefreshError = exceptions.RefreshError
 
+from google.appengine.api import datastore_errors
+
+DataStoreTimeoutError = datastore_errors.Timeout
+
 
 class Execution:
   """Object tracking the execution of a Quest.
@@ -122,7 +126,7 @@ class Execution:
 
     try:
       self._Poll()
-    except TokenRefreshError as e:
+    except (TokenRefreshError, DataStoreTimeoutError) as e:
       logging.warning('Execution failed with exception: %s', str(e))
       raise errors.RecoverableError(e)
     except (errors.FatalError, RuntimeError) as e:
