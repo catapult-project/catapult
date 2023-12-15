@@ -244,6 +244,14 @@ class BuganizerClient:
       new_issue_state['ccs'] = [
         {'emailAddress': email} for email in emails if email
       ]
+
+    if 'Restrict-View-Google' in labels:
+      access_limit = {
+        'accessLevel': 'LIMIT_VIEW_TRUSTED'
+      }
+      new_issue_state['accessLimit'] = access_limit
+      labels.remove('Restrict-View-Google')
+
     if labels:
       labels = [label for label in labels if not label.startswith('Pri-')]
       hotlist_list = b_utils.FindBuganizerHotlists(labels)
@@ -379,6 +387,9 @@ class BuganizerClient:
       priority = 'P%s' % b_utils.LoadPriorityFromMonorailLabels(labels)
       add_issue_state['priority'] = priority
       labels = [label for label in labels if not label.startswith('Pri-')]
+
+    #TODO: Add handling for 'Restrict-View-Google'.
+    # Needs update on the public API to have UpdateIssueAccessLimitRequest.
 
     if components:
       if len(components)>1:
