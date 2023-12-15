@@ -261,7 +261,7 @@ def main():
   expected_devices = GetExpectedDevices(args.known_devices_files)
   usb_devices = set(lsusb.get_android_devices())
   devices = [
-      device_utils.DeviceUtils(s) for s in expected_devices.union(usb_devices)
+      device_utils.DeviceUtils(s) for s in (expected_devices & usb_devices)
   ]
 
   statuses = DeviceStatus(devices, denylist)
