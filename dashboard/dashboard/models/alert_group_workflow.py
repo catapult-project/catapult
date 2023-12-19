@@ -731,7 +731,14 @@ class AlertGroupWorkflow:
       labels = list(set(l for s in subscriptions for l in s.bug_labels))
 
     if any(r for r in regressions if r.source and r.source == 'skia'):
+      # If any priority is specified in the labels, let's remove it
+      # since we want the skia bugs to be low priority.
+      for l in labels:
+        if l.startswith('Pri-'):
+          labels.remove(l)
       labels.append('DoNotNotify')
+      labels.append('Pri-3')
+
     labels.append('Chromeperf-Auto-Triaged')
     # We layer on some default labels if they don't conflict with any of the
     # provided ones.
