@@ -139,8 +139,24 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
 
     # Delete test user's cryptohome vault (user data directory).
     if not self._browser_options.dont_override_profile:
+      username = self._browser_options.username
       cri.RunCmdOnDevice(['cryptohome', '--action=remove', '--force',
-                          '--user=%s' % self._browser_options.username])
+                          '--user=%s' % username])
+
+      # Chrome keeps a lot of information about user in Local State.
+      # Removing user's cryptohome without clearing corresponding data
+      # in Local State might lead to inconsistent behavior.
+      local_state_path = '/home/chronos/Local State'
+      local_state = json.loads(cri.GetFileContents(local_state_path))
+      if 'KnownUsers' in local_state:
+        local_state['KnownUsers'] =  [user
+            for user in local_state['KnownUsers']
+            if user['email'] != username]
+      if 'LoggedInUsers' in local_state:
+        local_state['LoggedInUsers'] = [email
+            for email in local_state['LoggedInUsers'] if email != username]
+      cri.PushContents(json.dumps(local_state, separators=(',',':')),
+                       local_state_path)
 
   def _TearDownEnvironment(self):
     cri = self._platform_backend.cri
