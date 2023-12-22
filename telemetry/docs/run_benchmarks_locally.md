@@ -12,7 +12,7 @@ If you just want Telemetry, cloning
 enough. If you also want the Chrome benchmarks built with Telemetry, get the
 [latest Chromium checkout](https://www.chromium.org/developers/how-tos/get-the-code).
 If you're running on Mac OS X, you're all set! For Windows, Linux, Android, or
-Chrome OS, read on.
+ChromeOS, read on.
 
 #### Windows
 
@@ -49,9 +49,9 @@ yet supported. There are also a few additional steps to set up:
   4. You can get the name of your device with `adb devices` and use it with
      Telemetry via --device=<device\_name>.
 
-#### Chrome OS
+#### ChromeOS
 
-See [Running Telemetry on Chrome OS](https://chromium.googlesource.com/chromiumos/docs/+/master/cros_vm.md#Run-telemetry-unit-tests).
+See [Running Telemetry on ChromeOS](https://www.chromium.org/chromium-os/developer-library/guides/containers/cros-vm/#run-telemetry-tests).
 
 ## Benchmark Commands
 

@@ -24,12 +24,12 @@ and see the usage info at the top.
 
 ### Running tests on ChromeOS?
 
-See [this page](https://chromium.googlesource.com/chromiumos/docs/+/master/cros_vm.md#Run-telemetry-unit-tests).
+See [this page](https://www.chromium.org/chromium-os/developer-library/guides/containers/cros-vm/#run-telemetry-tests).
 
 ## Design Principles
 
 *   Write one performance test that runs on major platforms - Windows, Mac,
-    Linux, Chrome OS, and Android for both Chrome and ContentShell.
+    Linux, ChromeOS, and Android for both Chrome and ContentShell.
 *   Run on browser binaries, without a full Chromium checkout, and without
     having to build the browser yourself.
 *   Use Web Page Replay to get repeatable test results.
@@ -42,7 +42,7 @@ See [this page](https://chromium.googlesource.com/chromiumos/docs/+/master/cros_
   your friend.**
 
 **If you are a Chromium developer looking to add a new Telemetry benchmark to
-[`src/tools/perf/`](https://code.google.com/p/chromium/codesearch#chromium/src/tools/perf/),
+[`src/tools/perf/`](https://source.chromium.org/chromium/chromium/src/+/main:tools/perf/),
 please make sure to read our
 [Benchmark Policy](https://docs.google.com/document/d/1ni2MIeVnlH4bTj4yvEDMVNxgL73PqK_O9_NUm3NW3BA/preview)
 first.**
