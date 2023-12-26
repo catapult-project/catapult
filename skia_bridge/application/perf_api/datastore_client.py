@@ -33,6 +33,18 @@ class EntityType(Enum):
 class DataStoreClient:
   _client = datastore.Client()
 
+  def QueryAnomaliesAroundRevision(self, revision:int):
+    ds_query = self._client.query(kind='Anomaly', order=['end_revision'])
+    ds_query.add_filter('end_revision', '>=', revision)
+
+    results = list(ds_query.fetch(limit=1000))
+    filtered_results = [
+      a for a in results
+      if a.get('start_revision') <= revision and a.get('source') != 'skia'
+    ]
+
+    return filtered_results
+
   def QueryAnomalies(self, tests, min_revision, max_revision):
     ds_query = self._client.query(kind='Anomaly')
     test_keys = [TestKey(test_path, self._client) for test_path in tests]

@@ -95,21 +95,24 @@ def QueryAnomaliesPostHandler():
     except json.decoder.JSONDecodeError:
       return 'Malformed Json', 400
 
-    is_valid, error = ValidateRequest(
-      data,
-      ['tests', 'min_revision', 'max_revision'])
-    if not is_valid:
-      return error, 400
-
     client = datastore_client.DataStoreClient()
-    batched_tests = list(CreateTestBatches(data['tests']))
-    logging.info('Created %i batches for DataStore query', len(batched_tests))
-    anomalies = []
-    for batch in batched_tests:
-      batch_anomalies = client.QueryAnomalies(
-        batch, data['min_revision'], data['max_revision'])
-      if batch_anomalies and len(batch_anomalies) > 0:
-        anomalies.extend(batch_anomalies)
+    if data.get('revision', None):
+      anomalies = client.QueryAnomaliesAroundRevision(int(data['revision']))
+    else:
+      is_valid, error = ValidateRequest(
+        data,
+        ['tests', 'min_revision', 'max_revision'])
+      if not is_valid:
+        return error, 400
+
+      batched_tests = list(CreateTestBatches(data['tests']))
+      logging.info('Created %i batches for DataStore query', len(batched_tests))
+      anomalies = []
+      for batch in batched_tests:
+        batch_anomalies = client.QueryAnomalies(
+          batch, data['min_revision'], data['max_revision'])
+        if batch_anomalies and len(batch_anomalies) > 0:
+          anomalies.extend(batch_anomalies)
 
     logging.info('%i anomalies returned from DataStore', len(anomalies))
     response = AnomalyResponse()
