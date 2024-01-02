@@ -50,8 +50,8 @@ def AlertsHandlerPost():
   Outputs:
     JSON data for an XHR request to show a table of alerts.
   """
-  sheriff_name = request.values.get('sheriff', 'Chromium Perf Sheriff')
-  if not _SheriffIsFound(sheriff_name):
+  sheriff_name = request.values.get('sheriff', None)
+  if sheriff_name and not _SheriffIsFound(sheriff_name):
     return make_response(
         json.dumps({'error': 'Sheriff "%s" not found.' % sheriff_name}))
 
@@ -76,9 +76,12 @@ def AlertsHandlerPost():
   if request.values.get('max_anomalies_to_show'):
     max_anomalies_to_show = int(request.values.get('max_anomalies_to_show'))
 
+  subs = None
+  if sheriff_name:
+    subs = [sheriff_name]
   anomalies, next_cursor, count = anomaly.Anomaly.QueryAsync(
       start_cursor=anomaly_cursor,
-      subscriptions=[sheriff_name],
+      subscriptions=subs,
       bug_id=bug_id,
       is_improvement=is_improvement,
       recovered=recovered,

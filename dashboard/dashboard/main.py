@@ -19,7 +19,6 @@ from dashboard.models import anomaly
 _ANOMALY_FETCH_LIMIT = 1000
 _DEFAULT_DAYS_TO_SHOW = 7
 _DEFAULT_CHANGES_TO_SHOW = 10
-_DEFAULT_SHERIFF_NAME = 'Chromium Perf Sheriff'
 
 from flask import request
 
@@ -27,14 +26,20 @@ from flask import request
 def MainHandlerGet():
   days = int(request.args.get('days', _DEFAULT_DAYS_TO_SHOW))
   num_changes = int(request.args.get('num_changes', _DEFAULT_CHANGES_TO_SHOW))
-  sheriff_name = request.args.get('sheriff', _DEFAULT_SHERIFF_NAME)
-  sheriff = ndb.Key('Sheriff', sheriff_name)
+  sheriff_name = request.args.get('sheriff', None)
+  sheriff = None
+  if sheriff_name:
+    sheriff = ndb.Key('Sheriff', sheriff_name)
 
   anomalies = _GetRecentAnomalies(days, sheriff)
 
   top_improvements = _TopImprovements(anomalies, num_changes)
   top_regressions = _TopRegressions(anomalies, num_changes)
   tests = _GetKeyToTestDict(top_improvements + top_regressions)
+
+  # Set the sheriff name to "all subscriptions" for the UI if not specified.
+  if not sheriff_name:
+    sheriff_name = 'all subscriptions'
 
   template_dict = {
       'num_days': days,
@@ -56,9 +61,12 @@ def _GetRecentAnomalies(days, sheriff):
   Returns:
     A list of Anomaly entities sorted from large to small relative change.
   """
+  sheriff_ids = None
+  if sheriff:
+    sheriff_ids = [sheriff.id()]
   anomalies, _, _ = anomaly.Anomaly.QueryAsync(
       min_timestamp=datetime.datetime.now() - datetime.timedelta(days=days),
-      subscriptions=[sheriff.id()],
+      subscriptions=sheriff_ids,
       limit=_ANOMALY_FETCH_LIMIT).get_result()
   # We only want to list alerts that aren't marked invalid or ignored.
   anomalies = [a for a in anomalies if a.bug_id is None or a.bug_id > 0]
