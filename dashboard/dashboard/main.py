@@ -69,7 +69,10 @@ def _GetRecentAnomalies(days, sheriff):
       subscriptions=sheriff_ids,
       limit=_ANOMALY_FETCH_LIMIT).get_result()
   # We only want to list alerts that aren't marked invalid or ignored.
-  anomalies = [a for a in anomalies if a.bug_id is None or a.bug_id > 0]
+  anomalies = [
+      a for a in anomalies
+      if ((a.bug_id is None or a.bug_id > 0) and (a.source != 'skia'))
+  ]
   anomalies.sort(key=lambda a: abs(a.percent_changed), reverse=True)
   return anomalies
 
