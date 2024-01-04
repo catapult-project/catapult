@@ -24,7 +24,7 @@ tr.exportTo('tr.e.v8', function() {
     this.callFrame_ = tr.b.deepCopy(callFrame);
     this.deoptReason_ = '';
     this.colorId_ = tr.b.ColorScheme.getColorIdForGeneralPurposeString(
-        callFrame.functionName);
+        callFrame.functionName || '');
   }
 
   V8CpuProfileNode.prototype = {
