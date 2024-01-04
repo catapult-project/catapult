@@ -388,8 +388,23 @@ class BuganizerClient:
       add_issue_state['priority'] = priority
       labels = [label for label in labels if not label.startswith('Pri-')]
 
-    #TODO: Add handling for 'Restrict-View-Google'.
-    # Needs update on the public API to have UpdateIssueAccessLimitRequest.
+    # Update the access limit if 'Restrict-View-Google' exists
+    if 'Restrict-View-Google' in labels:
+      access_limit = {
+        'accessLevel': 'LIMIT_VIEW_TRUSTED'
+      }
+      update_issue_access_request = {
+        'issueAccessLimit': access_limit
+      }
+      logging.debug(
+        '[PerfIssueService] Updating Access level to trusted only: %s',
+        update_issue_access_request)
+      request = self._service.issues().updateIssueAccessLimit(
+        issueId=str(issue_id), body=update_issue_access_request)
+      response = self._ExecuteRequest(request)
+      logging.debug('[PerfIssueService] Update access response %s', response)
+
+      labels.remove('Restrict-View-Google')
 
     if components:
       if len(components)>1:
