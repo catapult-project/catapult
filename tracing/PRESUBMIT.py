@@ -59,7 +59,7 @@ def _WarnOnReservedInfosChanges(input_api, output_api):
 
 def _CheckHistogramProtoIsGated(input_api, output_api):
   source_file_filter = lambda x: input_api.FilterSourceFile(
-      x, files_to_check=[r'.*\.py$'], block_list=['.*PRESUBMIT.py$'])
+      x, files_to_check=[r'.*\.py$'], files_to_skip=['.*PRESUBMIT.py$'])
 
   files = []
   for f in input_api.AffectedSourceFiles(source_file_filter):
