@@ -148,16 +148,17 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
       # in Local State might lead to inconsistent behavior.
       # Note that we need to quote whitespace here.
       local_state_path = r'/home/chronos/Local\ State'
-      local_state = json.loads(cri.GetFileContents(local_state_path))
-      if 'KnownUsers' in local_state:
-        local_state['KnownUsers'] =  [user
-            for user in local_state['KnownUsers']
-            if user['email'] != username]
-      if 'LoggedInUsers' in local_state:
-        local_state['LoggedInUsers'] = [email
-            for email in local_state['LoggedInUsers'] if email != username]
-      cri.PushContents(json.dumps(local_state, separators=(',',':')),
-                       local_state_path)
+      if cri.IsFile(local_state_path):
+        local_state = json.loads(cri.GetFileContents(local_state_path))
+        if 'KnownUsers' in local_state:
+          local_state['KnownUsers'] =  [user
+              for user in local_state['KnownUsers']
+              if user['email'] != username]
+        if 'LoggedInUsers' in local_state:
+          local_state['LoggedInUsers'] = [email
+              for email in local_state['LoggedInUsers'] if email != username]
+        cri.PushContents(json.dumps(local_state, separators=(',',':')),
+                        local_state_path)
 
   def _TearDownEnvironment(self):
     cri = self._platform_backend.cri

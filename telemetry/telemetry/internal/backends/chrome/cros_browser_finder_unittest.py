@@ -42,6 +42,8 @@ class CrOSBrowserMockCreationTest(unittest.TestCase):
     # We expect the browser to be restarted, and it's pid change, a few times.
     self.cri.GetChromePid.side_effect = itertools.count(123)
 
+    self.cri.IsFile.return_value = True
+
     def file_contents(filename):
       # `Local State` file, only checking for the first part to avoid
       # whitespace quotation sheneningans.
