@@ -5,7 +5,7 @@
 from __future__ import absolute_import
 from flask import Flask
 
-from application.perf_api import skia_perf_upload, alert_group, anomalies
+from application.perf_api import skia_perf_upload, alert_group, anomalies, deps
 from application import health_checks
 
 
@@ -15,4 +15,5 @@ def Create():
   app.register_blueprint(anomalies.blueprint, url_prefix='/anomalies')
   app.register_blueprint(skia_perf_upload.blueprint, url_prefix='/data')
   app.register_blueprint(alert_group.blueprint, url_prefix='/alert_group')
+  app.register_blueprint(deps.blueprint, url_prefix='/deps')
   return app
