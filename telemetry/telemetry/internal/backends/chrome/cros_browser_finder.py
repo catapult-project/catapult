@@ -147,7 +147,7 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
       # Removing user's cryptohome without clearing corresponding data
       # in Local State might lead to inconsistent behavior.
       # Note that we need to quote whitespace here.
-      local_state_path = r'/home/chronos/Local\ State'
+      local_state_path = r'/home/chronos/Local State'
       if cri.IsFile(local_state_path):
         local_state = json.loads(cri.GetFileContents(local_state_path))
         if 'KnownUsers' in local_state:
