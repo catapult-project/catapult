@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import
 import datetime
-
+from dateutil import parser
 from flask import Blueprint, request, make_response
 import logging
 import json
@@ -124,6 +124,54 @@ def QueryAnomaliesPostHandler():
   except Exception as e:
     logging.exception(e)
     raise
+
+@blueprint.route('/find_time', methods=['POST'],
+                 endpoint='QueryAnomaliesByTimePostHandler')
+@cloud_metric.APIMetric("skia-bridge", "/anomalies/find_time")
+def QueryAnomaliesByTimePostHandler():
+  try:
+    logging.info('Received query request with data %s', request.data)
+    is_authorized, _ = auth_helper.AuthorizeBearerToken(
+      request, ALLOWED_CLIENTS)
+    if not is_authorized:
+      return 'Unauthorized', 401
+    try:
+      data = json.loads(request.data)
+    except json.decoder.JSONDecodeError:
+      return 'Malformed Json', 400
+
+    client = datastore_client.DataStoreClient()
+    is_valid, error = ValidateRequest(
+        data,
+        ['tests', 'start_time', 'end_time'])
+    if not is_valid:
+        return error, 400
+
+    start_time = parser.parse(data['start_time'])
+    end_time = parser.parse(data['end_time'])
+    if end_time < start_time:
+      return 'end_time needs to be after start_time', 400
+
+    batched_tests = list(CreateTestBatches(data['tests']))
+    logging.info('Created %i batches for DataStore query', len(batched_tests))
+    anomalies = []
+    for batch in batched_tests:
+      batch_anomalies = client.QueryAnomaliesTimestamp(
+        batch, start_time, end_time)
+      if batch_anomalies and len(batch_anomalies) > 0:
+        anomalies.extend(batch_anomalies)
+
+    logging.info('%i anomalies returned from DataStore', len(anomalies))
+    response = AnomalyResponse()
+    for found_anomaly in anomalies:
+      anomaly_data = GetAnomalyData(found_anomaly)
+      response.AddAnomaly(anomaly_data.test_path, anomaly_data)
+
+    return make_response(response.ToDict())
+  except Exception as e:
+    logging.exception(e)
+    raise
+
 
 @blueprint.route('/add', methods=['POST'], endpoint='AddAnomalyPostHandler')
 @cloud_metric.APIMetric("skia-bridge", "/anomalies/add")

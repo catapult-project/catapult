@@ -22,6 +22,13 @@ def TestKey(test_path, datastore_client):
     return datastore_client.key(pairs=key_list)
   return datastore_client.key('TestMetadata', test_path)
 
+def RunQuery(ds_query, post_query_filters):
+  results = list(ds_query.fetch())
+  filtered_results = [
+      alert for alert in results if all(
+          post_filter(alert) for post_filter in post_query_filters)
+  ]
+  return filtered_results
 
 class EntityType(Enum):
   """Enum defining the entity types currently supported."""
@@ -45,6 +52,26 @@ class DataStoreClient:
 
     return filtered_results
 
+  def QueryAnomaliesTimestamp(self, tests, start_time, end_time):
+    ds_query = self._client.query(kind='Anomaly')
+    test_keys = [TestKey(test_path, self._client) for test_path in tests]
+    ds_query.add_filter('test', 'IN', test_keys)
+
+    # Due to the way the indexes in Datastore work, we can one inequality
+    # property we can filter on. With the 'test' filter above, the key
+    # becomes the inequality property. Hence, in order to filter by revision,
+    # we need to apply the filters after the results are retrieved from
+    # datastore.
+    post_query_filters = [
+        lambda a: a.get('timestamp') >= start_time,
+        lambda a: a.get('timestamp') <= end_time,
+        # TODO: Remove the check below once we fully enable anomalies from skia
+        lambda a: a.get('source', None) == None,
+    ]
+
+    return RunQuery(ds_query, post_query_filters)
+
+
   def QueryAnomalies(self, tests, min_revision, max_revision):
     ds_query = self._client.query(kind='Anomaly')
     test_keys = [TestKey(test_path, self._client) for test_path in tests]
@@ -61,12 +88,8 @@ class DataStoreClient:
         # TODO: Remove the check below once we fully enable anomalies from skia
         lambda a: a.get('source', None) == None,
     ]
-    results = list(ds_query.fetch())
-    filtered_results = [
-        alert for alert in results if all(
-            post_filter(alert) for post_filter in post_query_filters)
-    ]
-    return filtered_results
+
+    return RunQuery(ds_query, post_query_filters)
 
   def QueryAlertGroups(self, group_name, group_type):
     query = self._client.query(kind='AlertGroup')
