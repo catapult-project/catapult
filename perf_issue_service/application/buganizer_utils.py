@@ -240,13 +240,27 @@ def FindBuganizerIdByMonorailId(monorail_project, monorail_id):
   After a monorail issue is migrated to buganizer, the buganizer id will
   be populated to the monorail issue record, in a property 'migratedId'.
   '''
-  client = monorail_client.MonorailClient()
+  logging.debug('Looking for b/ id for crbug %s in %s', monorail_id, monorail_project)
+  if int(monorail_id) < 2000000:
+    # This is a hack to handle the use case that:
+    #  - we have the monorail issue id in our database
+    #  - the issue is migrated to buganizer
+    #  - we need to update the issue but we don't know the id on buganizer
+    # Assuming all monorail id are less than 2000000, trying to access an
+    # issue using buganizer client and a monorail id means the project has
+    # been migrated.
+    # In this case, we should find the buganizer id first.
 
-  issue = client.GetIssue(
-    issue_id=monorail_id,
-    project=monorail_project)
-  buganizer_id = issue.get('migratedId', None)
-  logging.debug('Migrated ID %s found for %s/%s.',
-                buganizer_id, monorail_project, monorail_id)
-
-  return buganizer_id
+    client = monorail_client.MonorailClient()
+    issue = client.GetIssue(
+      issue_id=monorail_id,
+      project=monorail_project)
+    buganizer_id = issue.get('migrated_id', None)
+    logging.debug('Migrated ID %s found for %s/%s.',
+                  buganizer_id, monorail_project, monorail_id)
+    if not buganizer_id:
+      err_msg = 'Cannot find the migrated id for crbug %s in %s' % (
+        monorail_id, monorail_project)
+      logging.error(err_msg)
+    return buganizer_id
+  return monorail_id
