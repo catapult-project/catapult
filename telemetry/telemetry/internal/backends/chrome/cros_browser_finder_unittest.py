@@ -41,17 +41,8 @@ class CrOSBrowserMockCreationTest(unittest.TestCase):
     self.cri.IsCryptohomeMounted.side_effect = itertools.cycle([True, False])
     # We expect the browser to be restarted, and it's pid change, a few times.
     self.cri.GetChromePid.side_effect = itertools.count(123)
-
-    def file_contents(filename):
-      # `Local State` file, only checking for the first part to avoid
-      # whitespace quotation sheneningans.
-      if '/home/chronos/Local' in filename:
-        return '{}'
-      if 'DevToolsActivePort' in filename:
-        return '8888\n'
-      return mock.DEFAULT
-
-    self.cri.GetFileContents.side_effect = file_contents
+    # This value is used when reading the DevToolsActivePort file.
+    self.cri.GetFileContents.return_value = '8888\n'
     # This value is used to compute the browser_directory.
     self.cri.GetChromeProcess.return_value = {
         'path': '/path/to/browser',
