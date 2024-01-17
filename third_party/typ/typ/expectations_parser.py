@@ -559,11 +559,12 @@ class TestExpectations(object):
                 logging.warning(msg)
 
     def parse_tagged_list(self, raw_data, file_name='',
-                          tags_conflict=_default_tags_conflict,
+                          tags_conflict=None,
                           conflict_resolution=ConflictResolutionTypes.UNION):
         ret = 0
         self.file_name = file_name
         self._conflict_resolution = conflict_resolution
+        tags_conflict = tags_conflict or _default_tags_conflict
         try:
             parser = TaggedTestListParser(raw_data, conflict_resolution)
         except ParseError as e:

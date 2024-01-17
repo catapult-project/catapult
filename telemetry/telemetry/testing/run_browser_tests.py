@@ -346,6 +346,7 @@ def RunTests(args):
   typ_runner.path_delimiter = test_class.GetJSONResultsDelimiter()
   typ_runner.setup_fn = _SetUpProcess
   typ_runner.teardown_fn = _TearDownProcess
+  typ_runner.tag_conflict_checker = test_class.GetTagConflictChecker()
 
   tests_to_run = LoadTestCasesToBeRun(
       test_class=test_class, finder_options=typ_runner.context.finder_options,

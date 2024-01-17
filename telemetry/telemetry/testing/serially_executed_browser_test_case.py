@@ -253,6 +253,18 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
     """
     return browser.GetTypExpectationsTags()
 
+  @classmethod
+  def GetTagConflictChecker(cls):
+    """Gets the non-standard tag checking function to use.
+
+    Passed on to typ for use when parsing expectation files. The default value
+    of None will cause the default conflict checker to be used.
+
+    If overridden, the returned callable should take two tags as strings and
+    return a boolean indicating whether the two tags conflict or not.
+    """
+    return None
+
   @staticmethod
   def GetJSONResultsDelimiter():
     """This method returns the path delimiter that will be used to seperate

@@ -163,6 +163,7 @@ class Runner(object):
         self.metadata = {}
         self.path_delimiter = json_results.DEFAULT_TEST_SEPARATOR
         self.artifact_output_dir = None
+        self.tag_conflict_checker = None
 
         # initialize self.args to the defaults.
         parser = ArgumentParser(self.host)
@@ -446,7 +447,8 @@ class Runner(object):
 
         expectations = TestExpectations(set(args.tags), args.ignored_tags)
         err, msg = expectations.parse_tagged_list(
-            contents, args.expectations_files[0])
+            contents, args.expectations_files[0],
+            tags_conflict=self.tag_conflict_checker)
         if err:
             self.print_(msg, stream=self.host.stderr)
             return err
