@@ -513,7 +513,6 @@ class TestExpectations(object):
         # a regular dict for reasons given below.
         self.individual_exps = OrderedDict()
         self.glob_exps = OrderedDict()
-        self._tags_conflict = _default_tags_conflict
         self._conflict_resolution = ConflictResolutionTypes.UNION
 
     def set_tags(self, tags, raise_ex_for_bad_tags=False):
@@ -579,7 +578,6 @@ class TestExpectations(object):
                         sorted(self.tag_sets), sorted(parser.tag_sets)))
         else:
             self.tag_sets = parser.tag_sets
-        self._tags_conflict = tags_conflict
         # Conflict resolution tag in raw data will take precedence
         self._conflict_resolution = parser.conflict_resolution
         # TODO(crbug.com/83560) - Add support for multiple policies
@@ -601,7 +599,8 @@ class TestExpectations(object):
 
         errors = ''
         if not parser.conflicts_allowed:
-            errors = self.check_test_expectations_patterns_for_conflicts()
+            errors = self.check_test_expectations_patterns_for_conflicts(
+                tags_conflict)
             ret = 1 if errors else 0
         return ret, errors
 
@@ -707,18 +706,18 @@ class TestExpectations(object):
         # Nothing matched, so by default, the test is expected to pass.
         return Expectation(test=test)
 
-    def tag_sets_conflict(self, s1, s2):
+    def tag_sets_conflict(self, s1, s2, tags_conflict_fn):
         # Tag sets s1 and s2 have no conflict when there exists a tag in s1
         # and tag in s2 that are from the same tag declaration set and do not
         # conflict with each other.
         for tag_set in self.tag_sets:
             for t1, t2 in itertools.product(s1, s2):
                 if (t1 in tag_set and t2 in tag_set and
-                    self._tags_conflict(t1, t2)):
+                    tags_conflict_fn(t1, t2)):
                     return False
         return True
 
-    def check_test_expectations_patterns_for_conflicts(self):
+    def check_test_expectations_patterns_for_conflicts(self, tags_conflict_fn):
         # This function makes sure that any test expectations that have the same
         # pattern do not conflict with each other. Test expectations conflict
         # if their tag sets do not have conflicting tags. Tags conflict when
@@ -732,7 +731,7 @@ class TestExpectations(object):
         for pattern, exps in patterns_to_exps.items():
             conflicts_exist = False
             for e1, e2 in itertools.combinations(exps, 2):
-                if self.tag_sets_conflict(e1.tags, e2.tags):
+                if self.tag_sets_conflict(e1.tags, e2.tags, tags_conflict_fn):
                     if not conflicts_exist:
                         error_msg += (
                             '\nFound conflicts for pattern %s%s:\n' %
