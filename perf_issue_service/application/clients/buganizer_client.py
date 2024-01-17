@@ -84,9 +84,13 @@ class BuganizerClient:
 
     if labels:
       label_list = labels.split(',')
-      hotlists = b_utils.FindBuganizerHotlists(label_list)
+      hotlists, extra_labels = b_utils.FindBuganizerHotlists(label_list)
       if hotlists:
         query_string += ' AND hotlistid:%s' % '|'.join(hotlists)
+      if extra_labels:
+        custom_field_name = b_utils.GetCustomField(project)
+        query_string += ' AND %s:(%s)' % (custom_field_name, '|'.join(extra_labels))
+
 
     logging.info('[PerfIssueService] GetIssueList Query: %s', query_string)
     request = self._service.issues().list(
@@ -263,8 +267,17 @@ class BuganizerClient:
 
     if labels:
       labels = [label for label in labels if not label.startswith('Pri-')]
-      hotlist_list = b_utils.FindBuganizerHotlists(labels)
+      hotlist_list, extra_labels = b_utils.FindBuganizerHotlists(labels)
       new_issue_state['hotlistIds'] = [hotlist for hotlist in hotlist_list]
+
+      custom_field_id = b_utils.GetCustomFieldId(project)
+      custom_field_value = {
+        'customFieldId': custom_field_id,
+        'repeatedTextValue': {
+          'values': extra_labels
+        }
+      }
+      new_issue_state['customFields'] = [custom_field_value]
 
     new_issue = {
       'issueState': new_issue_state,
@@ -424,11 +437,36 @@ class BuganizerClient:
       labels_to_remove = [
         label[1:] for label in labels if label.startswith('-') and len(label)>1
       ]
-      hotlists_to_remove = b_utils.FindBuganizerHotlists(labels_to_remove)
+      hotlists_to_remove, extra_labels_to_remove = b_utils.FindBuganizerHotlists(labels_to_remove)
       labels_to_add = [
         label for label in labels if label and not label.startswith('-')
       ]
-      hotlists_to_add = b_utils.FindBuganizerHotlists(labels_to_add)
+      hotlists_to_add, extra_labels_to_add = b_utils.FindBuganizerHotlists(labels_to_add)
+
+      if extra_labels_to_add or extra_labels_to_remove:
+        get_request = self._service.issues().get(issueId=str(issue_id))
+        current_state = self._ExecuteRequest(get_request)
+        logging.debug('[PerfIssueService] IssueState: %s', current_state)
+        custom_field_id = b_utils.GetCustomFieldId(project)
+        all_custom_fields = current_state['issueState'].get('customFields', [])
+        custom_labels = []
+        for custom_field in all_custom_fields:
+          if custom_field['customFieldId'] == str(custom_field_id):
+            custom_labels = custom_field['repeatedTextValue'].get('values', [])
+        logging.debug('[PerfIssueService] Loaded labels %s.', custom_labels)
+        if extra_labels_to_add:
+          custom_labels = set(custom_labels) | set(extra_labels_to_add)
+        if extra_labels_to_remove:
+          custom_labels = set(custom_labels) - set(extra_labels_to_remove)
+        logging.debug('[PerfIssueService] New labels %s', custom_labels)
+
+        custom_field_value = {
+          'customFieldId': custom_field_id,
+          'repeatedTextValue': {
+            'values': list(custom_labels)
+          }
+        }
+        add_issue_state['customFields'] = [custom_field_value]
 
       for hotlist_id in hotlists_to_add:
         hotlist_entry_request = {

@@ -72,15 +72,30 @@ def FindMonorailProject(buganizer_component_id):
 
 
 def FindBuganizerHotlists(monorail_labels):
+  '''Find the hotlist mappings for monorail labels.
+
+  Some of the Monorail labels are mapped to Buganizer hotlists. However,
+  some of them are not, and they will be copied over to a custome field
+  in Buganizer. For Fuchsia project, the custome field is 'Monorail labels',
+  for other project, the custome field is 'Chromium labels'.
+  Args:
+    monorail_labels: the labels in Monorail
+  Returns:
+    hotlists: the hotlists in Buganizer
+    extra_labels: the Monorail labels with no mapping in Buganizer
+  '''
   hotlists = []
+  extra_labels = []
   for label in monorail_labels:
     hotlist = _FindBuganizerHotlist(label)
     if hotlist:
       hotlists.append(hotlist)
+    else:
+      extra_labels.append(label)
   logging.debug(
-    '[PerfIssueService] labels (%s) -> hotlists (%s)',
-    monorail_labels, hotlists)
-  return hotlists
+    '[PerfIssueService] labels (%s) -> hotlists (%s). Leftover: %s',
+    monorail_labels, hotlists, extra_labels)
+  return hotlists, extra_labels
 
 
 def _FindBuganizerHotlist(monorail_label):
@@ -264,3 +279,23 @@ def FindBuganizerIdByMonorailId(monorail_project, monorail_id):
       logging.error(err_msg)
     return buganizer_id
   return monorail_id
+
+
+def GetCustomField(monorail_project):
+  '''Get the custom field name based on monorail project.
+
+  More context in FindBuganizerHotlists()
+  '''
+  if monorail_project == 'fuchsia':
+     return 'customfield1241047'
+  return 'customfield1223031'
+
+
+def GetCustomFieldId(monorail_project):
+  '''Get the custom field ID based on monorail project.
+
+  More context in FindBuganizerHotlists()
+  '''
+  if monorail_project == 'fuchsia':
+     return 1241047
+  return 1223031
