@@ -159,6 +159,8 @@ class TimelineBasedMeasurement(story_test.StoryTest):
         self._tbm_options.GetTimelineBasedMetrics() +
         results.current_story.GetExtraTracingMetrics())
     results.AddTraces(traces, tbm_metrics=tbm_metrics)
+    for value in results.current_story.GetMeasurements():
+      results.AddMeasurement(**value)
     traces.CleanUpTraceData()
 
   def DidRunStory(self, platform, results):

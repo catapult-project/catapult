@@ -80,6 +80,30 @@ class Story():
     self._grouping_keys = grouping_keys
     # A cache of the shared state wpr_mode to make it available to a story.
     self.wpr_mode = None
+    self._measurements = []
+
+  def AddMeasurement(self, name, unit, samples, description=None):
+    """Record an ad-hoc measurement.
+
+    Args:
+      name: A string with the name of the measurement (e.g. 'score', 'runtime',
+        etc).
+      unit: A string specifying the unit used for measurements (e.g. 'ms',
+        'count', etc).
+      samples: Either a single numeric value or a list of numeric values to
+        record as part of this measurement.
+      description: An optional string with a short human readable description
+        of the measurement.
+    """
+    # TODO(crbug.com/999484): Ideally, these should be recorded directly into
+    # the results object, rather than held on this temporary list. That needs,
+    # however, another slight refactor to make the results object available at
+    # this point.
+    self._measurements.append({'name': name, 'unit': unit, 'samples': samples,
+                               'description': description})
+
+  def GetMeasurements(self):
+    return self._measurements
 
   def Run(self, shared_state):
     """Execute the interactions with the applications and/or platforms."""
