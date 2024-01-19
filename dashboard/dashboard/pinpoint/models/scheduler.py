@@ -164,8 +164,10 @@ def Schedule(job, cost=1.0):
           cost=cost))
   queue.put()
   cloud_metric.PublishPinpointJobStatusMetric(
-      app_identity.get_application_id(), job.job_id, job.comparison_mode,
-      "queued", job.user, job.origin, models.job.GetJobTypeByName(job.name))
+      app_identity.get_application_id(), job.job_id,
+      job.comparison_mode, "queued", job.user, job.origin,
+      models.job.GetJobTypeByName(job.name), job.configuration,
+      job.benchmark_arguments.benchmark, job.benchmark_arguments.story)
 
 
 @ndb.transactional

@@ -542,7 +542,9 @@ class Job(ndb.Model):
     cloud_metric.PublishPinpointJobRunTimeMetric(
         app_identity.get_application_id(), self.job_id,
         self.comparison_mode, "wait-time-in-queue", self.user, self.origin,
-        GetJobTypeByName(self.name), pinpoint_job_queued_time.total_seconds())
+        GetJobTypeByName(self.name), self.configuration,
+        self.benchmark_arguments.benchmark, self.benchmark_arguments.story,
+        pinpoint_job_queued_time.total_seconds())
 
     title = _ROUND_PUSHPIN + ' Pinpoint job started.'
     comment = '\n'.join((title, self.url))
@@ -1029,8 +1031,9 @@ class Job(ndb.Model):
         cloud_metric.PublishPinpointJobDetailMetrics(
             app_identity.get_application_id(), self.job_id,
             self.comparison_mode, job_status, self.user, self.origin,
-            GetJobTypeByName(self.name), self.state.ChangesExamined(),
-            self.state.TotalAttemptsExecuted(),
+            GetJobTypeByName(self.name), self.configuration,
+            self.benchmark_arguments.benchmark, self.benchmark_arguments.story,
+            self.state.ChangesExamined(), self.state.TotalAttemptsExecuted(),
             0 if self.difference_count is None else self.difference_count)
 
       try:
@@ -1155,14 +1158,17 @@ class Job(ndb.Model):
 
     cloud_metric.PublishPinpointJobStatusMetric(
         app_identity.get_application_id(), self.job_id, self.comparison_mode,
-        job_status, self.user, self.origin, job_type_by_name)
+        job_status, self.user, self.origin, job_type_by_name,
+        self.configuration, self.benchmark_arguments.benchmark,
+        self.benchmark_arguments.story)
 
     if with_run_time:
       job_run_time = self.updated - self.started_time
       cloud_metric.PublishPinpointJobRunTimeMetric(
           app_identity.get_application_id(), self.job_id, self.comparison_mode,
           job_status, self.user, self.origin, job_type_by_name,
-          job_run_time.total_seconds())
+          self.configuration, self.benchmark_arguments.benchmark,
+          self.benchmark_arguments.story, job_run_time.total_seconds())
 
 
 def _PostBugCommentDeferred(bug_id, *args, **kwargs):

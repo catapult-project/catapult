@@ -26,6 +26,9 @@ USER = "user"
 ORIGIN = "origin"
 JOB_TYPE_BY_NAME = "job_type_by_name"
 UUID = "uuid"
+BOT_NAME = "bot_name"
+BENCHMARK = "benchmark"
+STORY = "story"
 
 # swarming metric label keys
 SWARMING_TASK_ID = 'swarming_task_id'
@@ -164,6 +167,9 @@ def PublishPinpointJobStatusMetric(project_id,
                                    job_user,
                                    origin,
                                    job_type_by_name,
+                                   bot_name,
+                                   benchmark,
+                                   story,
                                    metric_value=1):
   label_dict = {
       JOB_ID: job_id,
@@ -171,7 +177,10 @@ def PublishPinpointJobStatusMetric(project_id,
       JOB_STATUS: job_status,
       USER: job_user,
       ORIGIN: origin,
-      JOB_TYPE_BY_NAME: job_type_by_name
+      JOB_TYPE_BY_NAME: job_type_by_name,
+      BOT_NAME: bot_name,
+      BENCHMARK: benchmark,
+      STORY: story
   }
   _PublishTSCloudMetric(project_id, "pinpoint", "pinpoint/job/status_change",
                        label_dict, metric_value)
@@ -179,14 +188,17 @@ def PublishPinpointJobStatusMetric(project_id,
 
 def PublishPinpointJobRunTimeMetric(project_id, job_id, job_type, job_status,
                                     job_user, origin, job_type_by_name,
-                                    metric_value):
+                                    bot_name, benchmark, story, metric_value):
   label_dict = {
       JOB_ID: job_id,
       JOB_TYPE: job_type,
       JOB_STATUS: job_status,
       USER: job_user,
       ORIGIN: origin,
-      JOB_TYPE_BY_NAME: job_type_by_name
+      JOB_TYPE_BY_NAME: job_type_by_name,
+      BOT_NAME: bot_name,
+      BENCHMARK: benchmark,
+      STORY: story
   }
   _PublishTSCloudMetric(project_id, "pinpoint", "pinpoint/job/run_time",
                        label_dict, metric_value)
@@ -199,6 +211,9 @@ def PublishPinpointJobDetailMetrics(project_id,
                                     job_user,
                                     origin,
                                     job_type_by_name,
+                                    bot_name,
+                                    benchmark,
+                                    story,
                                     change_count,
                                     attempt_count,
                                     difference_count=0):
@@ -208,7 +223,10 @@ def PublishPinpointJobDetailMetrics(project_id,
       JOB_STATUS: job_status,
       USER: job_user,
       ORIGIN: origin,
-      JOB_TYPE_BY_NAME: job_type_by_name
+      JOB_TYPE_BY_NAME: job_type_by_name,
+      BOT_NAME: bot_name,
+      BENCHMARK: benchmark,
+      STORY: story
   }
   _PublishTSCloudMetric(project_id, "pinpoint",
                         "pinpoint/job/change_count_per_job", label_dict,
