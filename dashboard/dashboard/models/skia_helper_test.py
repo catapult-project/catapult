@@ -14,18 +14,17 @@ import mock
 from dashboard.common import testing_common
 from dashboard.models import skia_helper
 
-MOCK_MAPPING = {
-    'a': {
-        'public_host': 'https://a.com',
-        'internal_host': 'https://a.corp',
-        'masters': ['master_a', 'master_b']
-    },
-    'b': {
-        'public_host': 'https://b.com',
-        'internal_host': None,
-        'masters': ['master_c']
-    }
-}
+MOCK_MAPPING = [{
+    'label': 'label_1',
+    'public_host': 'https://a.com',
+    'internal_host': 'https://a.corp',
+    'masters': ['master_a', 'master_b']
+}, {
+    'label': 'label_2',
+    'public_host': 'https://b.com',
+    'internal_host': None,
+    'masters': ['master_c']
+}]
 
 
 class SkiaHelper(testing_common.TestCase):
@@ -150,55 +149,82 @@ class SkiaHelper(testing_common.TestCase):
   @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
               MOCK_MAPPING)
   def testGetSkiaUrlForAlertGroup_ValidGroupId(self):
-    url = skia_helper.GetSkiaUrlForAlertGroup(
+    urls = skia_helper.GetSkiaUrlsForAlertGroup(
         alert_group_id='abc',
         internal_only=True,
-        project_id='a',
+        masters=['master_a'],
     )
-    expected_url = 'https://a.corp/_/alertgroup?group_id=abc'
-    self.assertEqual(url, expected_url)
+    expected_url = 'label_1: https://a.corp/_/alertgroup?group_id=abc'
+    self.assertEqual(urls[0], expected_url)
 
   @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
               MOCK_MAPPING)
   def testGetSkiaUrlForAlertGroup_PublicHost(self):
-    url = skia_helper.GetSkiaUrlForAlertGroup(
+    urls = skia_helper.GetSkiaUrlsForAlertGroup(
         alert_group_id='abc',
         internal_only=False,
-        project_id='a',
+        masters=['master_a'],
     )
-    expected_url = 'https://a.com/_/alertgroup?group_id=abc'
-    self.assertEqual(url, expected_url)
+    expected_url = 'label_1: https://a.com/_/alertgroup?group_id=abc'
+    self.assertEqual(urls[0], expected_url)
 
   @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
               MOCK_MAPPING)
   def testGetSkiaUrlForAlertGroup_EmptyGroupId(self):
-    url = skia_helper.GetSkiaUrlForAlertGroup(
+    urls = skia_helper.GetSkiaUrlsForAlertGroup(
         alert_group_id='',
         internal_only=True,
-        project_id='a',
+        masters=['master_a'],
     )
-    expected_url = 'https://a.corp/_/alertgroup?group_id='
-    self.assertEqual(url, expected_url)
+    expected_url = 'label_1: https://a.corp/_/alertgroup?group_id='
+    self.assertEqual(urls[0], expected_url)
 
   @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
               MOCK_MAPPING)
-  def testGetSkiaUrlForAlertGroup_InvalidProjectId(self):
-    with self.assertRaises(RuntimeError):
-      skia_helper.GetSkiaUrlForAlertGroup(
-          alert_group_id='',
-          internal_only=True,
-          project_id='c',
-      )
+  def testGetSkiaUrlForAlertGroup_InvalidMaster(self):
+    urls = skia_helper.GetSkiaUrlsForAlertGroup(
+        alert_group_id='',
+        internal_only=True,
+        masters=['master_c'],
+    )
+    self.assertEqual(len(urls), 0)
+
+  @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
+              MOCK_MAPPING)
+  def testGetSkiaUrlForAlertGroup_MultipleMasters_SameHost(self):
+    urls = skia_helper.GetSkiaUrlsForAlertGroup(
+        alert_group_id='',
+        internal_only=True,
+        masters=['master_a', 'master_b'],
+    )
+    self.assertEqual(len(urls), 1)
+    expected_url = 'label_1: https://a.corp/_/alertgroup?group_id='
+    self.assertEqual(urls[0], expected_url)
+
+  @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
+              MOCK_MAPPING)
+  def testGetSkiaUrlForAlertGroup_MultipleMasters_DifferentHost(self):
+    urls = skia_helper.GetSkiaUrlsForAlertGroup(
+        alert_group_id='',
+        internal_only=False,
+        masters=['master_a', 'master_c'],
+    )
+    self.assertEqual(len(urls), 2)
+    expected = [
+        'label_1: https://a.com/_/alertgroup?group_id=',
+        'label_2: https://b.com/_/alertgroup?group_id='
+    ]
+    self.assertEqual(sorted(urls), expected)
 
   @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
               MOCK_MAPPING)
   def testGetSkiaUrlForAlertGroup_NonExistentHost(self):
-    with self.assertRaises(RuntimeError):
-      skia_helper.GetSkiaUrlForAlertGroup(
-          alert_group_id='',
-          internal_only=True,
-          project_id='b',
-      )
+    urls = skia_helper.GetSkiaUrlsForAlertGroup(
+        alert_group_id='',
+        internal_only=True,
+        masters=['master_d'],
+    )
+    self.assertEqual(len(urls), 0)
 
 
 if __name__ == '__main__':

@@ -10,39 +10,54 @@ import datetime
 import logging
 import urllib.parse as encoder
 
-REPOSITORY_HOST_MAPPING = {
-    'chromium': {
-        'public_host':
-            'https://perf.luci.app',
-        'internal_host':
-            'https://chrome-perf.corp.goog',
-        'masters': [
-            'ChromeFYIInternal',
-            'ChromiumAndroid',
-            'ChromiumChrome',
-            'ChromiumChromiumos',
-            'ChromiumClang',
-            'ChromiumFuchsia',
-            'ChromiumGPUFYI',
-            'ChromiumPerf',
-            'ChromiumPerfFyi',
-            'ChromiumPerfPGO',
-            'TryServerChromiumFuchsia',
-            'TryserverChromiumChromiumOS',
-            'ChromiumFuchsiaFyi',
-            'TryserverChromiumAndroid',
-            'ChromiumAndroidFyi',
-            'ChromiumFYI',
-            'ChromiumPerfFyi.all',
-            'ChromiumGPU',
-        ]
-    },
-    'webrtc': {
-        'public_host': 'https://webrtc-perf.luci.app',
-        'internal_host': None,
-        'masters': ['WebRTCPerf']
-    }
-}
+REPOSITORY_HOST_MAPPING = [{
+    'label':
+        'Chromium',
+    'public_host':
+        'https://perf.luci.app',
+    'internal_host':
+        'https://chrome-perf.corp.goog',
+    'masters': [
+        'ChromeFYIInternal',
+        'ChromiumAndroid',
+        'ChromiumChrome',
+        'ChromiumChromiumos',
+        'ChromiumClang',
+        'ChromiumFuchsia',
+        'ChromiumGPUFYI',
+        'ChromiumPerf',
+        'ChromiumPerfFyi',
+        'ChromiumPerfPGO',
+        'TryServerChromiumFuchsia',
+        'TryserverChromiumChromiumOS',
+        'ChromiumFuchsiaFyi',
+        'TryserverChromiumAndroid',
+        'ChromiumAndroidFyi',
+        'ChromiumFYI',
+        'ChromiumPerfFyi.all',
+        'ChromiumGPU',
+    ]
+}, {
+    'label': 'WebRTC',
+    'public_host': 'https://webrtc-perf.luci.app',
+    'internal_host': None,
+    'masters': ['WebRTCPerf']
+}, {
+    'label': 'Widevine CDM',
+    'public_host': None,
+    'internal_host': 'https://widevine-cdm-perf.corp.goog',
+    'masters': ['WidevineCdmPerf']
+}, {
+    'label': 'Widevine Whitebox',
+    'public_host': None,
+    'internal_host': 'https://widevine-whitebox-perf.corp.goog',
+    'masters': ['WidevineWhiteboxPerf_master']
+}, {
+    'label': 'V8',
+    'public_host': None,
+    'internal_host': 'https://v8-perf.corp.goog',
+    'masters': ['internal.client.v8', 'client.v8']
+}]
 
 QUERY_TEST_LIMIT = 5
 
@@ -57,12 +72,12 @@ def GetSkiaUrl(start_time: datetime.datetime,
                subtests_2: Optional[List[str]] = None,
                internal_only: bool = True,
                num_points: int = 500):
-  host = None
-  for repo_map in REPOSITORY_HOST_MAPPING.values():
-    if master in repo_map['masters']:
-      host = repo_map['internal_host'] if internal_only else repo_map[
-          'public_host']
-      break
+  repo_map = _GetRepoMapForMaster(master)
+  if not repo_map:
+    return None
+
+  host = repo_map['internal_host'] if internal_only else repo_map[
+    'public_host']
   if not host:
     logging.warning(
         'Skia instance does not exist for master %s and internal_only=%s',
@@ -93,20 +108,28 @@ def GetSkiaUrl(start_time: datetime.datetime,
   return _GenerateUrl(host, query_str, start_time, end_time, num_points)
 
 
-def GetSkiaUrlForAlertGroup(alert_group_id: str,
+def GetSkiaUrlsForAlertGroup(alert_group_id: str,
                             internal_only: bool,
-                            project_id: str = 'chromium'):
-  if project_id not in REPOSITORY_HOST_MAPPING.keys():
-    raise RuntimeError('Project Id not supported in Skia: %s ' % project_id)
+                            masters):
+  urls = set()
+  for master in masters:
+    repo_map = _GetRepoMapForMaster(master)
+    if repo_map:
+      label = repo_map['label']
+      host = repo_map['internal_host'] if internal_only else repo_map[
+          'public_host']
+      if host:
+        urls.add('%s: %s/_/alertgroup?group_id=%s' %
+                 (label, host, alert_group_id))
 
-  hosts = REPOSITORY_HOST_MAPPING[project_id]
+  return list(urls)
 
-  host = hosts['internal_host'] if internal_only else hosts['public_host']
-  if not host:
-    raise RuntimeError('Project Id %s has no host where internal_only=%s' %
-                       (project_id, str(internal_only)))
 
-  return '%s/_/alertgroup?group_id=%s' % (host, alert_group_id)
+def _GetRepoMapForMaster(master: str):
+  for repo_map in REPOSITORY_HOST_MAPPING:
+    if master in repo_map['masters']:
+      return repo_map
+  return None
 
 
 def _GenerateUrl(host: str, query_str: str, begin_date: datetime.datetime,

@@ -24,6 +24,12 @@ ALLOWED_CLIENTS = [
     'perf-chrome-internal@skia-infra-corp.iam.gserviceaccount.com',
     # WebRTC (public) skia instance service account
     'perf-webrtc-public@skia-infra-public.iam.gserviceaccount.com',
+    # Widevine CDM (internal) skia instance service account
+    'perf-widevine-cdm@skia-infra-corp.iam.gserviceaccount.com',
+    # Widevine Whitebox (internal) skia instance service account
+    'perf-widevine-whitebox@skia-infra-corp.iam.gserviceaccount.com',
+    # V8 (internal) skia instance service account
+    'perf-v8-internal@skia-infra-corp.iam.gserviceaccount.com',
 ]
 
 DATASTORE_TEST_BATCH_SIZE = 25
