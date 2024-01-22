@@ -30,6 +30,7 @@ WIN7 = OSVersion('win7', 6.1)
 WIN8 = OSVersion('win8', 6.2)
 WIN81 = OSVersion('win8.1', 6.3)
 WIN10 = OSVersion('win10', 10)
+WIN11 = OSVersion('win11', 11)
 
 LEOPARD = OSVersion('leopard', 105)
 SNOWLEOPARD = OSVersion('snowleopard', 106)

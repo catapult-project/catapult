@@ -212,6 +212,7 @@ ALL_MAC = _TestConditionByPlatformList(['mac'], 'Mac')
 ALL_WIN = _TestConditionByPlatformList(['win'], 'Win')
 WIN_7 = _TestConditionByWinVersion(os_version_module.WIN7, 'Win 7')
 WIN_10 = _TestConditionByWinVersion(os_version_module.WIN10, 'Win 10')
+WIN_11 = _TestConditionByWinVersion(os_version_module.WIN11, 'Win 11')
 ALL_LINUX = _TestConditionByPlatformList(['linux'], 'Linux')
 ALL_CHROMEOS = _TestConditionByPlatformList(['chromeos'], 'ChromeOS')
 ALL_ANDROID = _TestConditionByPlatformList(['android'], 'Android')
@@ -269,6 +270,7 @@ EXPECTATION_NAME_MAP = {
     'Win': ALL_WIN,
     'Win_7': WIN_7,
     'Win_10': WIN_10,
+    'Win_11': WIN_11,
     'Linux': ALL_LINUX,
     'ChromeOS': ALL_CHROMEOS,
     'Android': ALL_ANDROID,
