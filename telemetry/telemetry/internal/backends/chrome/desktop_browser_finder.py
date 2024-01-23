@@ -239,6 +239,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     if self.profile_directory is not None:
       if self._is_content_shell:
         startup_args.append('--data-path=%s' % self.profile_directory)
+        startup_args.append('--user-data-dir=%s' % self.profile_directory)
       else:
         startup_args.append('--user-data-dir=%s' % self.profile_directory)
 
