@@ -1848,7 +1848,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             'comment': mock.ANY,
             'labels': 'Regression-Verification-Repro',
             'send_email': False,
-            'status': 'Available',
+            'status': 'Untriaged',
             'components': ['sub>can>set>component'],
         })
     self.assertEqual(w._group.status, alert_group.AlertGroup.Status.bisected)
@@ -1945,7 +1945,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             'comment': mock.ANY,
             'labels': 'Regression-Verification-Repro',
             'send_email': False,
-            'status': 'Available',
+            'status': 'Untriaged',
             'components': [],
         })
     self.assertEqual(w._group.status, alert_group.AlertGroup.Status.bisected)

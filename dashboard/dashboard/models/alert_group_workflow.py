@@ -572,7 +572,7 @@ class AlertGroupWorkflow:
                    (_SANDWICH, execution['name'], results_dict['job_id'],
                     utils.TestPath(regression.test), results_dict['statistic']))
         label = 'Regression-Verification-Repro'
-        status = 'Available'
+        status = 'Untriaged'
         proceed_with_bisect = True
         if (update.issue
             and utils.DELAY_REPORTING_LABEL in update.issue.get('labels')):
