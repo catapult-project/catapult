@@ -288,9 +288,10 @@ class AlertGroupWorkflow:
     now = datetime.datetime.utcnow()
     issue = None
     canonical_group = None
+    logging.debug('Group status: %s. ID: %s', self._group.status, self._group.key)
     if self._group.status in {
         self._group.Status.triaged, self._group.Status.bisected,
-        self._group.Status.closed
+        self._group.Status.closed, self._group.Status.sandwiched
     }:
       project_name = self._group.bug.project or 'chromium'
       issue = perf_issue_service_client.GetIssue(
@@ -299,6 +300,7 @@ class AlertGroupWorkflow:
         issue['comments'] = perf_issue_service_client.GetIssueComments(
             self._group.bug.bug_id, project_name=project_name)
         canonical_group = self._FindCanonicalGroup(issue)
+        logging.debug('Update.issue: %s', issue)
     return self.GroupUpdate(now, anomalies, issue, canonical_group)
 
   def Process(self, update=None):
