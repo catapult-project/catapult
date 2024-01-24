@@ -18,11 +18,6 @@ from google.appengine.api import wrap_wsgi_app
 APP.wsgi_app = wrap_wsgi_app(APP.wsgi_app, use_deferred=True)
 
 
-@APP.route('/api/deps')
-def DepsHandlerGet():
-  return handlers.deps.DepsHandlerGet()
-
-
 @APP.route('/api/jobs')
 def JobsHandlerGet():
   return handlers.jobs.JobsHandlerGet()
