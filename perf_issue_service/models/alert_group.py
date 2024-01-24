@@ -169,6 +169,18 @@ class AlertGroup:
     result_groups = set()
     new_groups = set()
 
+    logging.debug(
+      '[Grouping] Matching between %s subscriptions and %s groups (%s)',
+      len(matched_configs), len(existing_groups), benchmark_name)
+    logging.debug(
+      '[Grouping] All matched subscriptions: %s',
+      [config['subscription'].get('name', 'nil') for config in matched_configs]
+    )
+    logging.debug(
+      '[Grouping] All existing groups: %s',
+      [g.key.name for g in existing_groups]
+    )
+
     for config in matched_configs:
       s = config['subscription']
       if subscription_name and s.get('name') != subscription_name:
