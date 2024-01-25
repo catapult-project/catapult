@@ -487,6 +487,32 @@ class ResultSinkReporterTest(unittest.TestCase):
                 summary_html=expected_html_summary)
         self.assertEqual(test_result, expected_result)
 
+    def testReportIndividualTestResultCustomSummary(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
+        rsr._post = StubWithRetval(2)
+        results = CreateResult({
+            'name': 'test_name',
+            'actual': json_results.ResultType.Pass,
+            'artifacts': {
+                'artifact_name': ['https://somelink.com'],
+            }
+        })
+        html_summary = '<h3>Overrides the default summary</h3>'
+        retval = rsr.report_individual_test_result(
+                results, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
+                FAKE_TEST_LINE, 'test_name_prefix.',
+                html_summary=html_summary)
+        self.assertEqual(retval, 2)
+
+        test_result = GetTestResultFromPostedJson(rsr._post.args[1])
+        expected_artifacts = {}
+        expected_artifacts.update(STDOUT_STDERR_ARTIFACTS)
+        expected_result = CreateExpectedTestResult(
+                artifacts=expected_artifacts,
+                summary_html=html_summary)
+        self.assertEqual(test_result, expected_result)
+
     def testReportIndividualTestResultLongTestName(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
         rsr = ResultSinkReporterWithFakeSrc(self._host)
