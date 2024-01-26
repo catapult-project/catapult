@@ -24,31 +24,129 @@ from application.clients import monorail_client
 # Buganizer component 1325852 is "ChromePerf testing"
 # Monorail labels "chromeperf-test" and "chromeperf-test-2"
 # Buganizer hotlists 5141966 and 5142065
+
+# Mappings from a monorail component to a buganizer component id.
 COMPONENT_MAP_CR2B = {
-  'UntriagedPerformanceAlerts': 1454999, # Trackers > Fuchsia > UntriagedPerformanceAlerts
+  # Chromium
+  'Blink>Accessibility': 1456587,
+  'Blink>Bindings': 1456743,
+  'Blink>CSS': 1456329,
+  'Blink>DOM': 1456718,
+  'Blink>DOM>ShadowDOM': 1456822,
+  'Blink>HTML>Parser': 1456175,
+  'Blink>JavaScript': 1456824,
+  'Blink>JavaScript>GarbageCollection': 1456490,
+  'Blink>JavaScript>WebAssembly': 1456332,
+  'Blink>Layout': 1456721,
+  'Blink>Paint': 1456440,
+  'Blink>ServiceWorker': 1456150,
+  'Blink>SVG': 1456414,
+  'Blink>Storage': 1456519,
+  'Blink>Storage>IndexedDB': 1456771,
+  'Blink>WebRTC>Perf': 1456207,
+  'Fuchsia': 1456675,
+  'Internals>GPU>ANGLE': 1456215,
+  'Internals>GPU>Metrics': 1456424,
+  'Internals>Network>Library': 1456244,
+  'Internals>Power': 1456482,
+  'Internals>Skia': 1457031,
+  'Internals>XR': 1456683,
+  'Mobile>Fundamentals>SystemHealth': 1457150,
+  'Platform>Apps>ARC': 1457293,
+  'Platform>DevTools>WebAssembly': 1456350,
+  'Speed>BinarySize>Android': 1457059,
+  'Speed>BinarySize>Desktop': 1456597,
+  'Speed>Regressions': 1457332,
+  'Test>Telemetry': 1456742,
+  'Speed>Tracing': 1457213,
+  'UI>Browser>AdFilter': 1456114,
+  'UI>Browser>NewTabPage': 1457163,
+  'UI>Browser>Omnibox': 1457180,
+  'UI>Browser>TopChrome': 1457234,
+
+  # Fuchsia
+  # Trackers > Fuchsia > UntriagedPerformanceAlerts
+  'UntriagedPerformanceAlerts': 1454999,
+
+  # Test only. Remove after migration.
   'ChromePerf testing': 1325852
 }
 
+# Mappings from a buganizer component id to a monorail project
 COMPONENT_MAP_B2CR = {
+  # Chromium
+  '1456587': 'chromium',
+  '1456743': 'chromium',
+  '1456329': 'chromium',
+  '1456718': 'chromium',
+  '1456822': 'chromium',
+  '1456175': 'chromium',
+  '1456824': 'chromium',
+  '1456490': 'chromium',
+  '1456332': 'chromium',
+  '1456721': 'chromium',
+  '1456440': 'chromium',
+  '1456414': 'chromium',
+  '1456519': 'chromium',
+  '1456771': 'chromium',
+  '1456207': 'chromium',
+  '1456675': 'chromium',
+  '1456215': 'chromium',
+  '1456424': 'chromium',
+  '1456244': 'chromium',
+  '1456482': 'chromium',
+  '1457031': 'chromium',
+  '1456683': 'chromium',
+  '1457150': 'chromium',
+  '1457293': 'chromium',
+  '1456350': 'chromium',
+  '1457059': 'chromium',
+  '1456597': 'chromium',
+  '1457332': 'chromium',
+  '1456742': 'chromium',
+  '1457213': 'chromium',
+  '1456114': 'chromium',
+  '1457163': 'chromium',
+  '1457180': 'chromium',
+  '1457234': 'chromium',
+  '1456150': 'chromium',
+
+  # Fuchsia
   '1454999' : 'fuchsia',
-  # test
+
+  # Test only. Remove after migration.
   '1325852' : 'MigratedProject'
 }
 
+# Mapping from monorail project to all the related components in buganizer
 PROJECT_MAP_CR2B = {
+  # Chromium
+  'chromium': [
+    '1456114', '1456150', '1456175', '1456207', '1456215', '1456244', '1456329',
+    '1456332', '1456350', '1456414', '1456424', '1456440', '1456482', '1456490',
+    '1456519', '1456587', '1456597', '1456675', '1456683', '1456718', '1456721',
+    '1456742', '1456743', '1456771', '1456822', '1456824', '1457031', '1457059',
+    '1457150', '1457163', '1457180', '1457213', '1457234', '1457293', '1457332'
+    ],
+
+  # Fuchsia
   'fuchsia': ['1454999'],
-  # test
+
+  # Test only. Remove after migration.
   'MigratedProject': ['1325852']
 }
 
-# string to int
+# Mappings from a monorail label to a buganizer hotlist, if any.
 LABEL_MAP_CR2B = {
+  # Fuchsia
   'Performance': '5424295', # Performance
-  # test
+
+  # Test only. Remove after migration.
   'chromeperf-test': '5141966',
   'chromeperf-test-2': '5142065'
 }
 
+# Mappings from a buganizer hotlist to a monorail label.
 HOTLIST_MAP_B2CR = {
   hotlist:label for label, hotlist in LABEL_MAP_CR2B.items()
 }
