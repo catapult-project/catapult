@@ -10,11 +10,15 @@ class InspectorStorage():
   def __init__(self, inspector_websocket):
     self._websocket = inspector_websocket
     self._websocket.RegisterDomain('Storage', self._OnNotification)
+    self._shared_storage_notifications_enabled = False
+    self._shared_storage_notifications = []
 
   def _OnNotification(self, msg):
-    # TODO: track storage events
+    if msg['method'] == 'Storage.sharedStorageAccessed':
+      self._shared_storage_notifications.append(msg['params'])
+
+    # TODO: track other storage events
     # (https://chromedevtools.github.io/devtools-protocol/tot/Storage/)
-    pass
 
   def ClearDataForOrigin(self, url, timeout):
     res = self._websocket.SyncRequest(
@@ -25,3 +29,36 @@ class InspectorStorage():
          }}, timeout)
     if 'error' in res:
       raise exceptions.StoryActionError(res['error']['message'])
+
+  def EnableSharedStorageNotifications(self, timeout=60):
+    if self._shared_storage_notifications_enabled:
+      return
+    request = {'method': 'Storage.setSharedStorageTracking',
+               'params': {'enable': True}}
+    res = self._websocket.SyncRequest(request, timeout)
+    if 'error' in res:
+      raise exceptions.StoryActionError(res['error']['message'])
+    assert len(res['result']) == 0
+    self._shared_storage_notifications_enabled = True
+
+  def DisableSharedStorageNotifications(self, timeout=60):
+    if not self._shared_storage_notifications_enabled:
+      return
+    request = {'method': 'Storage.setSharedStorageTracking',
+               'params': {'enable': False}}
+    res = self._websocket.SyncRequest(request, timeout)
+    if 'error' in res:
+      raise exceptions.StoryActionError(res['error']['message'])
+    assert len(res['result']) == 0
+    self._shared_storage_notifications_enabled = False
+
+  @property
+  def shared_storage_notifications(self):
+    return self._shared_storage_notifications
+
+  def ClearSharedStorageNotifications(self):
+    self._shared_storage_notifications = []
+
+  @property
+  def shared_storage_notifications_enabled(self):
+    return self._shared_storage_notifications_enabled
