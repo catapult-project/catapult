@@ -83,7 +83,7 @@ def GetTestResultFromPostedJson(json_string):
 
 def CreateExpectedTestResult(
         test_id=None, status=None, expected=None, duration=None,
-        summary_html=None, artifacts=None, tags=None, test_metadata=None,
+        summary_html=HTML_SUMMARY, artifacts=None, tags=None, test_metadata=None,
         primary_error_message=None):
     test_id = test_id or 'test_name_prefix.test_name'
     result = {
@@ -91,7 +91,7 @@ def CreateExpectedTestResult(
         'status': status or json_results.ResultType.Pass,
         'expected': expected if expected is not None else True,
         'duration': duration or '1.000000000s',
-        'summaryHtml': summary_html or HTML_SUMMARY,
+        'summaryHtml': summary_html,
         'artifacts': artifacts or STDOUT_STDERR_ARTIFACTS,
         'tags': tags or [
             {'key': 'test_name', 'value': test_id.split('.')[-1]},
@@ -485,6 +485,50 @@ class ResultSinkReporterTest(unittest.TestCase):
         expected_result = CreateExpectedTestResult(
                 artifacts=expected_artifacts,
                 summary_html=expected_html_summary)
+        self.assertEqual(test_result, expected_result)
+
+    def testResultIndividualTestResultNoStdout(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
+        rsr._post = StubWithRetval(2)
+        results = CreateResult({
+            'name': 'test_name',
+            'actual': json_results.ResultType.Pass,
+            'artifacts': {},
+            'out': '',
+        })
+        retval = rsr.report_individual_test_result(
+                results, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
+                FAKE_TEST_LINE, 'test_name_prefix.')
+        self.assertEqual(retval, 2)
+
+        test_result = GetTestResultFromPostedJson(rsr._post.args[1])
+        expected_result = CreateExpectedTestResult(
+            summary_html='<p><text-artifact artifact-id="typ_stderr"/></p>')
+        expected_result['artifacts'] = {
+            'typ_stderr': STDOUT_STDERR_ARTIFACTS['typ_stderr'],
+        }
+        self.assertEqual(test_result, expected_result)
+
+    def testReportIndividualTestResultNoStdoutOrStderr(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
+        rsr._post = StubWithRetval(2)
+        results = CreateResult({
+            'name': 'test_name',
+            'actual': json_results.ResultType.Pass,
+            'artifacts': {},
+            'out': '',
+            'err': '',
+        })
+        retval = rsr.report_individual_test_result(
+                results, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
+                FAKE_TEST_LINE, 'test_name_prefix.')
+        self.assertEqual(retval, 2)
+
+        test_result = GetTestResultFromPostedJson(rsr._post.args[1])
+        expected_result = CreateExpectedTestResult(summary_html='')
+        expected_result['artifacts'] = {}
         self.assertEqual(test_result, expected_result)
 
     def testReportIndividualTestResultCustomSummary(self):
