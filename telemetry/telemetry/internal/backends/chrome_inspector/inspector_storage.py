@@ -62,3 +62,27 @@ class InspectorStorage():
   @property
   def shared_storage_notifications_enabled(self):
     return self._shared_storage_notifications_enabled
+
+  def GetSharedStorageMetadata(self, origin, timeout=60):
+    request = {'method': 'Storage.getSharedStorageMetadata',
+               'params': {'ownerOrigin': origin}}
+    res = self._websocket.SyncRequest(request, timeout)
+    if 'error' in res:
+      raise exceptions.StoryActionError(res['error']['message'])
+    assert len(res['result']) > 0
+    if 'metadata' not in res['result']:
+      raise exceptions.StoryActionError("Response missing metadata: "
+                                        + res['result'])
+    return res['result']['metadata']
+
+  def GetSharedStorageEntries(self, origin, timeout=60):
+    request = {'method': 'Storage.getSharedStorageEntries',
+               'params': {'ownerOrigin': origin}}
+    res = self._websocket.SyncRequest(request, timeout)
+    if 'error' in res:
+      raise exceptions.StoryActionError(res['error']['message'])
+    assert len(res['result']) > 0
+    if 'entries' not in res['result']:
+      raise exceptions.StoryActionError("Response missing entries: "
+                                        + res['result'])
+    return res['result']['entries']

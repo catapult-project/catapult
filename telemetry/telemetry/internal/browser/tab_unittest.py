@@ -3,8 +3,11 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
+import json
 import logging
 import time
+
+import six.moves.urllib.parse # pylint: disable=import-error
 
 from telemetry.core import exceptions
 from telemetry import decorators
@@ -253,6 +256,30 @@ class SharedStorageTabTest(tab_test_case.TabTestCase):
       '--enable-privacy-sandbox-ads-apis'
     ])
 
+  @property
+  def origin(self):
+    parse_result = six.moves.urllib.parse.urlparse(self._tab.url)
+    return '://'.join([parse_result[0], parse_result[1]])
+
+  def VerifyMetadata(self, metadata, expected_length=1,
+                     expected_remaining_budget=12):
+    self.assertIsInstance(metadata, dict)
+    self.assertIn("creationTime", metadata)
+    self.assertIn("length", metadata)
+    self.assertIn("remainingBudget", metadata)
+    self.assertEqual(metadata.get("length"), expected_length)
+    self.assertEqual(metadata.get("remainingBudget"), expected_remaining_budget)
+
+  def VerifyEntries(self, entries, expected_entries=None):
+    # `expected_entries` must be provided as a list.
+    self.assertIsInstance(expected_entries, list)
+
+    self.assertIsInstance(entries, list)
+    self.assertEqual(len(entries), len(expected_entries))
+    entries_json = sorted([json.dumps(entry) for entry in entries])
+    expected_json = sorted([json.dumps(entry) for entry in expected_entries])
+    self.assertEqual(entries_json, expected_json)
+
   def testWaitForSharedStorageEventsStrict_Passes(self):
     if not self._shared_storage_testable:
       return
@@ -319,3 +346,68 @@ class SharedStorageTabTest(tab_test_case.TabTestCase):
     with self.assertRaises(py_utils.TimeoutException):
       self._tab.WaitForSharedStorageEvents(expected_events, mode='relaxed',
                                          timeout=10)
+
+  def testGetSharedStorageMetadata_Simple(self):
+    if not self._shared_storage_testable:
+      return
+
+    metadata = self._tab.GetSharedStorageMetadata(self.origin)
+    self.VerifyMetadata(metadata, expected_length=1,
+                        expected_remaining_budget=12)
+
+  def testGetSharedStorageEntries_Simple(self):
+    if not self._shared_storage_testable:
+      return
+
+    entries = self._tab.GetSharedStorageEntries(self.origin)
+    self.VerifyEntries(entries,
+                       expected_entries=[{'key': 'test', 'value': 'set'}])
+
+  def testGetSharedStorageMetadata_SetAdditional(self):
+    if not self._shared_storage_testable:
+      return
+
+    self.assertTrue(self._tab.shared_storage_notifications_enabled)
+    self._tab.EvaluateJavaScript("window.sharedStorage.set('z', 'a')",
+                               promise=True)
+    self._tab.EvaluateJavaScript("window.sharedStorage.append('y', 'b')",
+                               promise=True)
+    self._tab.EvaluateJavaScript("window.sharedStorage.set('x', 'c')",
+                                 promise=True)
+    expected_events = [{'type': 'documentSet',
+                        'params': {'key': 'z', 'value': 'a'}},
+                       {'type': 'documentAppend',
+                        'params': {'key': 'y', 'value': 'b'}},
+                       {'type': 'documentSet',
+                        'params': {'key': 'x', 'value': 'c'}}]
+    self._tab.WaitForSharedStorageEvents(expected_events, mode='strict')
+
+    metadata = self._tab.GetSharedStorageMetadata(self.origin)
+    self.VerifyMetadata(metadata, expected_length=4,
+                        expected_remaining_budget=12)
+
+  def testGetSharedStorageEntries_SetAdditional(self):
+    if not self._shared_storage_testable:
+      return
+
+    self.assertTrue(self._tab.shared_storage_notifications_enabled)
+    self._tab.EvaluateJavaScript("window.sharedStorage.set('z', 'a')",
+                               promise=True)
+    self._tab.EvaluateJavaScript("window.sharedStorage.append('y', 'b')",
+                               promise=True)
+    self._tab.EvaluateJavaScript("window.sharedStorage.set('x', 'c')",
+                                 promise=True)
+    expected_events = [{'type': 'documentSet',
+                        'params': {'key': 'z', 'value': 'a'}},
+                       {'type': 'documentAppend',
+                        'params': {'key': 'y', 'value': 'b'}},
+                       {'type': 'documentSet',
+                        'params': {'key': 'x', 'value': 'c'}}]
+    self._tab.WaitForSharedStorageEvents(expected_events, mode='strict')
+
+    entries = self._tab.GetSharedStorageEntries(self.origin)
+    self.VerifyEntries(entries,
+                       expected_entries=[{'key': 'test', 'value': 'set'},
+                                         {'key': 'z', 'value': 'a'},
+                                         {'key': 'y', 'value': 'b'},
+                                         {'key': 'x', 'value': 'c'}])

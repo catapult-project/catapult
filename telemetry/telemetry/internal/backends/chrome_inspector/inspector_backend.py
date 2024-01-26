@@ -153,6 +153,14 @@ class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
   def shared_storage_notifications_enabled(self):
     return self._storage.shared_storage_notifications_enabled
 
+  def GetSharedStorageMetadata(self, origin, timeout=60):
+    return self._storage.GetSharedStorageMetadata(origin=origin,
+                                                  timeout=timeout)
+
+  def GetSharedStorageEntries(self, origin, timeout=60):
+    return self._storage.GetSharedStorageEntries(origin=origin,
+                                                  timeout=timeout)
+
   def GetWebviewInspectorBackends(self):
     """Returns a list of InspectorBackend instances associated with webviews.
 
