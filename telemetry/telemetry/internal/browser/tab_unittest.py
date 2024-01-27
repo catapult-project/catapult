@@ -411,3 +411,22 @@ class SharedStorageTabTest(tab_test_case.TabTestCase):
                                          {'key': 'z', 'value': 'a'},
                                          {'key': 'y', 'value': 'b'},
                                          {'key': 'x', 'value': 'c'}])
+
+  def testGetSharedStorageMetadata_NotFound(self):
+    if not self._shared_storage_testable:
+      return
+
+    origin_not_using_shared_storage = 'https://google.com'
+    metadata = self._tab.GetSharedStorageMetadata(
+      origin_not_using_shared_storage)
+    self.VerifyMetadata(metadata, expected_length=0,
+                        expected_remaining_budget=None)
+
+  def testGetSharedStorageEntries_NotFound(self):
+    if not self._shared_storage_testable:
+      return
+
+    origin_not_using_shared_storage = 'https://google.com'
+    entries = self._tab.GetSharedStorageEntries(
+      origin_not_using_shared_storage)
+    self.VerifyEntries(entries, expected_entries=[])
