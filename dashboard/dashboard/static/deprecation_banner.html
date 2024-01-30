@@ -14,12 +14,66 @@ found in the LICENSE file.
         background-color: #fde073;
         padding: 10px;
         font-size: 14px;
+        table-layout: fixed;
         text-align: center;
+      }
+
+      #links {
+        margin-left: auto;
+        margin-right: auto;
+      }
+      #links tbody td {
+        padding: 3px 5px 3px 5px;
+        position: relative;
+        word-wrap: break-word;
+        text-align: left;
+      }
+      #links thead th, #alerts tbody td {
+        text-align: left;
+        font-weight: bold;
+        text-decoration: underline;
       }
     </style>
     <div class="announcement-bar">
-      <p><b>This page will be deprecated by end of Q4 2023!</b></p>
-      <p>Please <b><a href="{{skiaLink}}" target="_blank">click here</a></b> to go to the new UI directly to query data.
+      <p><b>This page is now deprecated. </b></p>
+      <p>While it will continue to work for some time, it is no longer supported. Please use the links below to use the new UI for your benchmarks.</p>
+      <p>If you have any questions, please <a href="http://go/berf-skia-chat"> reach out to us here.</a></p>
+        <table id="links">
+          <thead>
+            <tr>
+              <th>Repository</th>
+              <th>URL</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a href="https://chromium.googlesource.com/chromium/src">chromium/src</a></td>
+              <td><a href="{{chromium_url}}">{{chromium_url}}</a></td>
+            </tr>
+            <tr>
+              <td><a href="https://webrtc.googlesource.com/src">webrtc</a></td>
+              <td><a href="{{webrtc_url}}">{{webrtc_url}}</a></td>
+            </tr>
+            <template is="dom-if" if="{{isInternal}}">
+              <tr>
+                <td><a href="https://chromium.googlesource.com/v8/v8">v8/v8</a></td>
+                <td><a href="{{v8_url}}">{{v8_url}}</a></td>
+              </tr>
+              <tr>
+                <td><a href="https://chrome-internal.googlesource.com/cdm/src/">cdm/src</a></td>
+                <td><a href="{{cdm_url}}">{{cdm_url}}</a></td>
+              </tr>
+              <tr>
+                <td><a href="https://widevine-internal.googlesource.com/security/whitebox-api-intertrust-prod">security/whitebox-api-intertrust-prod</a></td>
+                <td><a href="{{whitebox_url}}">{{whitebox_url}}</a></td>
+              </tr>
+              <tr>
+                <td><a href="https://chromium.googlesource.com/devtools/devtools-frontend">devtools-frontend</a></td>
+                <td>TBD</td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
     </div>
   </template>
   <script>
@@ -32,10 +86,15 @@ found in the LICENSE file.
           function(response) {
             var isInternal = JSON.parse(response.is_internal_user);
             if(isInternal) {
-              this.skiaLink = 'https://chrome-perf.corp.goog/';
+              this.chromium_url = 'https://chrome-perf.corp.goog/';
+              this.webrtc_url = 'https://webrtc-perf.corp.goog';
+              this.v8_url = 'https://v8-perf.corp.goog';
+              this.cdm_url = 'https://widevine-cdm-perf.corp.goog';
+              this.whitebox_url = 'https://widevine-whitebox-perf.corp.goog';
             }
             else {
-              this.skiaLink = 'https://perf.luci.app/';
+              this.chromium_url = 'https://perf.luci.app/';
+              this.webrtc_url = 'https://webrtc-perf.luci.app';
             }
           }.bind(this));
       }
