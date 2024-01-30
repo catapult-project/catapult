@@ -12,7 +12,7 @@ RUN apt-get --allow-releaseinfo-change update && apt-get install -y \
   protobuf-compiler=${PROTOBUF_VERSION} \
   git \
   && git clone https://chromium.googlesource.com/chromium/tools/depot_tools /usr/local/depot_tools \
-  && /usr/local/depot_tools/vpython -c ''
+  && /usr/local/depot_tools/vpython3 -c ''
 
 ENV PYTHONPATH=/usr/lib/google-cloud-sdk/platform/google_appengine
 
