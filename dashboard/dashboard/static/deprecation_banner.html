@@ -84,8 +84,8 @@ found in the LICENSE file.
         simple_xhr.send('/navbar',
           {'path': location.pathname + location.search},
           function(response) {
-            var isInternal = JSON.parse(response.is_internal_user);
-            if(isInternal) {
+            this.isInternal = JSON.parse(response.is_internal_user);
+            if(this.isInternal) {
               this.chromium_url = 'https://chrome-perf.corp.goog/';
               this.webrtc_url = 'https://webrtc-perf.corp.goog';
               this.v8_url = 'https://v8-perf.corp.goog';
