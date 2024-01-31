@@ -138,6 +138,9 @@ PROJECT_MAP_CR2B = {
 
 # Mappings from a monorail label to a buganizer hotlist, if any.
 LABEL_MAP_CR2B = {
+  # Chromium
+  'Type-Bug-Regression': '5438261',
+
   # Fuchsia
   'Performance': '5424295', # Performance
 
@@ -201,11 +204,7 @@ def _FindBuganizerHotlist(monorail_label):
 
 
 def _FindMonorailLabel(buganizer_hotlist):
-  if buganizer_hotlist == '5141966':
-    return 'chromeperf-test'
-  elif buganizer_hotlist == '5142065':
-    return 'chromeperf-test-2'
-  return None
+  return HOTLIST_MAP_B2CR.get(buganizer_hotlist, None)
 
 
 def _FindMonorailStatus(buganizer_status):
@@ -319,7 +318,8 @@ def ReconcileBuganizerIssue(buganizer_issue):
   monorail_issue = {}
   issue_state = buganizer_issue.get('issueState')
 
-  monorail_issue['projectId'] = FindMonorailProject(issue_state['componentId'])
+  project_id = FindMonorailProject(issue_state['componentId'])
+  monorail_issue['projectId'] = project_id
 
   monorail_issue['id'] = buganizer_issue['issueId']
 
@@ -342,6 +342,13 @@ def ReconcileBuganizerIssue(buganizer_issue):
 
   hotlist_ids = buganizer_issue.get('hotlistIds', [])
   label_names = [_FindMonorailLabel(hotlist_id) for hotlist_id in hotlist_ids]
+  custom_field_id = GetCustomFieldId(project_id)
+  all_custom_fields = issue_state.get('customFields', [])
+  custom_labels = []
+  for custom_field in all_custom_fields:
+    if custom_field['customFieldId'] == str(custom_field_id):
+      custom_labels = custom_field['repeatedTextValue'].get('values', [])
+  label_names = list(set(label_names) | set(custom_labels))
   monorail_issue['labels'] = [label for label in label_names if label]
 
   return monorail_issue
