@@ -110,7 +110,8 @@ class SeriallyExecutedBrowserTestCase(test_case.TestCase):
     else:
       assert cls.platform == cls._browser_to_create.platform, (
           'All browser launches within same test suite must use browsers on '
-          'the same platform')
+          'the same platform (%s vs %s)' % (
+              cls.platform, cls._browser_to_create.platform))
 
   @classmethod
   def StartWPRServer(cls, archive_path=None, archive_bucket=None):
