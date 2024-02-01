@@ -258,6 +258,11 @@ class BuganizerClient:
         {'emailAddress': email} for email in emails if email
       ]
 
+    # Add the service account as collaborator in order to keep access
+    # to the issue even if it is set limit_view_trusted.
+    service_account = {'emailAddress': utils.ServiceAccount()}
+    new_issue_state['collaborators'] = [service_account]
+
     if labels and 'Restrict-View-Google' in labels:
       access_limit = {
         'accessLevel': 'LIMIT_VIEW_TRUSTED'
