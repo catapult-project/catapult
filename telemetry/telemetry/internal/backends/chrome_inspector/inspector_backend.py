@@ -11,6 +11,7 @@ import sys
 import time
 import six
 from six.moves import input # pylint: disable=redefined-builtin
+from six.moves.urllib.parse import urlparse
 
 from py_trace_event import trace_event
 
@@ -473,6 +474,24 @@ class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
     try:
       return py_utils.WaitFor(AreEventsReceived, timeout)
     except py_utils.TimeoutException as toe:
+      metadata_dump = ''
+      try:
+        # Try to request shared storage metadata. This will send a sync request
+        # to the websocket that will also open the websocket to receive any
+        # backlogged messages.
+        parse_result = urlparse(self.url)
+        origin = '://'.join([parse_result[0], parse_result[1]])
+        metadata = self.GetSharedStorageMetadata(origin)
+        metadata_dump = json.dumps(metadata, indent=2)
+        if AreEventsReceived():
+          logging.info('Expected events were received after getting metadata: ')
+          logging.info(metadata_dump)
+          return True
+      except Exception as me: # pylint: disable=broad-except
+        # If we are unable to get metadata, we move on. We don't want to
+        # confuse the debug message below by adding in another exception,
+        # so we keep it separate.
+        logging.info('Unable to get metadata: %s' % repr(me))
       # Try to make timeouts a little more actionable by dumping console output.
       debug_message = None
       try:
@@ -484,13 +503,17 @@ class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
             'Exception thrown when trying to capture console output: %s' %
             repr(e))
       # Rethrow with the original stack trace for better debugging.
+      actual_events = self.shared_storage_notifications
       six.reraise(
           py_utils.TimeoutException,
           py_utils.TimeoutException(
               ''.join(['Timeout after %d while waiting ' % timeout,
-                       'for Shared Storage Events:\n',
-                       json.dumps(expected_events), '\n',
-                       repr(toe), '\n', debug_message])
+                       'for Expected Shared Storage Events:\n',
+                       json.dumps(expected_events, indent=2), '\n',
+                       'Actual Events Received:\n',
+                       json.dumps(actual_events, indent=2),
+                       '\n', 'Metadata:\n', metadata_dump, '\n', repr(toe),
+                       '\n', debug_message])
           ),
           sys.exc_info()[2]
       )
