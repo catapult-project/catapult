@@ -24,4 +24,4 @@ steps:
     'perf-issue-service'
   ]
 substitutions:
-    _SERVICE_VERSION: 'cloud-build-de33c7d'
+    _SERVICE_VERSION: 'cloud-build-1bedc24'
