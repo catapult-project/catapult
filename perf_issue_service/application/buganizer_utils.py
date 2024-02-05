@@ -223,11 +223,15 @@ def _FindMonorailStatus(buganizer_status):
     return 'Fixed'
   elif buganizer_status == 'VERIFIED':
     return 'Verified'
+  elif buganizer_status == 'DUPLICATE':
+    return 'Duplicate'
+  elif buganizer_status == 'OBSOLETE':
+    return 'WontFix'
   return 'Untriaged'
 
 
 def FindBuganizerStatus(monorail_status):
-  if monorail_status == 'Unconfirmed':
+  if monorail_status in ('Unconfirmed', 'Untriaged', 'Available'):
     return 'NEW'
   elif monorail_status == 'Assigned':
     return "ASSIGNED"
@@ -237,6 +241,10 @@ def FindBuganizerStatus(monorail_status):
     return 'FIXED'
   elif monorail_status == 'Verified':
     return 'VERIFIED'
+  elif monorail_status == 'WontFix':
+    return 'OBSOLETE'
+  elif monorail_status == 'Duplicate':
+    return 'DUPLICATE'
   return 'STATUS_UNSPECIFIED'
 
 # ============ mapping helpers end ============
