@@ -445,6 +445,10 @@ def RunBenchmark(benchmark, finder_options):
     test = benchmark.CreatePageTest(finder_options)
     test.__name__ = benchmark.__class__.__name__
 
+    # Add the OS to the `finder_options` so that benchmarks can filter out
+    # stories that are only supported on subsets of OSes which the benchmark
+    # supports.
+    finder_options.os_name = possible_browser.platform.GetOSName()
     story_set = benchmark.CreateStorySet(finder_options)
 
     if isinstance(test, legacy_page_test.LegacyPageTest):
