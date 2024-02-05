@@ -108,6 +108,7 @@ class SourceEntry {
       case EventSourceType.CERT_VERIFIER_JOB:
       case EventSourceType.CERT_VERIFIER_TASK:
       case EventSourceType.QUIC_SESSION:
+      case EventSourceType.QUIC_SESSION_POOL_JOB:
         if (e.params.host !== undefined) {
           this.description_ = e.params.host;
         }
