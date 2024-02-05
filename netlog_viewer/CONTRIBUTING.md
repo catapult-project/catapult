@@ -53,20 +53,17 @@ This command will package all the HTML/JavaScript/CSS into a single
 build outputs will show up as an untracked files by `git`, and should not be
 committed).
 
-The bundled app can be served by any static server. To test it using a similar
-environment as App Engine, serve it with:
+The bundled app can be served by any static server. To test it using Flask,
+serve it with:
 
 ```
 cd catapult/netlog_viewer/appengine
-dev_appserver.py app.yaml
+pip3 install -r requirements.txt
+python3 main.py
 ```
 
-`dev_appserver.py` is part of the Google Cloud SDK, and can be installed using:
-
-```
-sudo apt-get install google-cloud-sdk google-cloud-sdk-app-engine-python
-```
-
+You may want to use [venv](https://docs.python.org/3/library/venv.html) to
+install Flask in a virtual environment.
 
 ## Deploying to netlog-viewer.appspot.com
 

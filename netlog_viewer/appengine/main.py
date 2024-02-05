@@ -2,10 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from flask import Flask
+from flask import Flask, send_file
 
 
 app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return send_file('static/vulcanized.html')
 
 
 if __name__ == '__main__':
