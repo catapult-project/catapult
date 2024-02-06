@@ -501,6 +501,15 @@ class BuganizerClient:
         '[PerfIssueService] Issue %s marked as duplicate of %s',
         issue_id, merge_issue)
       logging.debug('[PerfIssueSeervice] Merge response: %s', response)
+      if add_issue_state:
+        if 'assignee' in add_issue_state:
+          logging.debug(
+            '[PerfIssueSeervice] Assignee %s removed before merge.',
+            add_issue_state.pop('assignee'))
+        if 'status' in add_issue_state:
+          logging.debug(
+            '[PerfIssueSeervice] Status %s removed before merge.',
+            add_issue_state.pop('status'))
 
     modify_request = {}
     if comment:
