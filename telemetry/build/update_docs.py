@@ -2,8 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 from __future__ import absolute_import
+import argparse
 import logging
-import optparse  # pylint: disable=deprecated-module
 import os
 import pkgutil
 import pydoc
@@ -131,18 +131,19 @@ def IsUpdateDocsNeeded():
   return False
 
 
-def Main(args):
-  parser = optparse.OptionParser()
-  parser.add_option(
+def Main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
       '-v',
       '--verbose',
       action='count',
+      default=0,
       dest='verbosity',
       help='Increase verbosity level (repeat as needed)')
-  options, args = parser.parse_args(args)
-  if options.verbosity >= 2:
+  args = parser.parse_args()
+  if args.verbosity >= 2:
     logging.getLogger().setLevel(logging.DEBUG)
-  elif options.verbosity:
+  elif args.verbosity:
     logging.getLogger().setLevel(logging.INFO)
   else:
     logging.getLogger().setLevel(logging.WARNING)

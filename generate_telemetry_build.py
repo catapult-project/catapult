@@ -18,10 +18,10 @@ This is for the purpose of running try jobs in chromium.
 
 """
 
+import argparse
 import difflib
 import logging
 import os
-import optparse
 import sys
 import subprocess
 import textwrap
@@ -223,23 +223,24 @@ def CheckForChanges():
   return 0
 
 
-def main(argv):
-  parser = optparse.OptionParser()
-  parser.add_option("-v", "--verbose", action="store_true", default=False,
-                    help="print out debug information")
-  parser.add_option("-c", "--check", action="store_true", default=False,
-                    help="generate a temporary build file and compare if it "
-                    "is the same as the current BUILD.gn")
-  parser.add_option("--chromium", action="store_true", default=False,
-                    help="generate the build file into chromium workspace. "
-                    "This is for the purpose of running try jobs in Chrome.")
-  (options, _) = parser.parse_args(args=argv)
-  if options.verbose:
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('-v', '--verbose', action='store_true', default=False,
+                      help='Print out debug information')
+  parser.add_argument('-c', '--check', action='store_true', default=False,
+                      help=('Generate a temporary build file and compare if it '
+                            'is the same as the current BUILD.gn'))
+  parser.add_argument('--chromium', action='store_true', default=False,
+                      help=('Generate the build file into the Chromium '
+                            'workspace. This is for the purpose of running '
+                            'tryjobs in Chromium.'))
+  args = parser.parse_args()
+  if args.verbose:
     logging.basicConfig(level=logging.DEBUG)
 
-  if options.check:
+  if args.check:
     return CheckForChanges()
-  if options.chromium:
+  if args.chromium:
     root_path = os.path.dirname(os.path.realpath(__file__))
     output_path = os.path.join(
         root_path, "../../tools/perf/chrome_telemetry_build/BUILD.gn")
@@ -250,5 +251,6 @@ def main(argv):
     GenerateBuildFile(root_path, output_path, chromium=False)
   return 0
 
+
 if __name__ == '__main__':
-  sys.exit(main(sys.argv[1:]))
+  sys.exit(main())
