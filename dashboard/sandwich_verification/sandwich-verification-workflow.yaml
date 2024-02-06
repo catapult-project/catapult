@@ -101,8 +101,9 @@ main:
                     job_id: ${job_id}
                   auth:
                     type: OIDC
+                  timeout: 600
                 result: getCabeAnalysisResult
-              retry: ${http.default_retry_non_idempotent}
+              retry: ${http.default_retry}
           - assignStatistic:
               assign:
                 - statistic: ${getCabeAnalysisResult.body[anomaly.benchmark][anomaly.measurement]}
