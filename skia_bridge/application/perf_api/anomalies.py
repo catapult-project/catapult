@@ -63,7 +63,6 @@ class AnomalyData:
   segment_size_after:int
   segment_size_before:int
   std_dev_before_anomaly:float
-  t_statistic:float
 
   def __init__(
       self,
@@ -323,7 +322,6 @@ def GetAnomalyData(anomaly_obj):
       segment_size_after=anomaly_obj.get('segment_size_after'),
       segment_size_before=anomaly_obj.get('segment_size_before'),
       std_dev_before_anomaly=anomaly_obj.get('std_dev_before_anomaly'),
-      t_statistic=anomaly_obj.get('t_statistic'),
   )
 
 def ValidateRequest(request_data, required_keys):
