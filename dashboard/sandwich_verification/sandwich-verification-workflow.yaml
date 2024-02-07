@@ -63,7 +63,7 @@ main:
                   auth:
                     type: OIDC
                 result: pollPinpointJobResult
-              retry: ${http.default_retry_non_idempotent}
+              retry: ${http.default_retry}
           - assignStatus:
               assign:
                 - status: ${pollPinpointJobResult.body.status}
