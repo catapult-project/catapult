@@ -1663,7 +1663,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(
         self._issue_tracker.calls[1]['kwargs'], {
             'comment': mock.ANY,
-            'labels': 'Regression-Verification-Failed',
+            'labels': ['Regression-Verification-Failed'],
             'send_email': False,
             'status': 'Unconfirmed',
             'components': [],
@@ -1846,7 +1846,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(
         self._issue_tracker.calls[1]['kwargs'], {
             'comment': mock.ANY,
-            'labels': 'Regression-Verification-Repro',
+            'labels': ['Regression-Verification-Repro'],
             'send_email': False,
             'status': 'Untriaged',
             'components': ['sub>can>set>component'],
@@ -1943,7 +1943,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(
         self._issue_tracker.calls[1]['kwargs'], {
             'comment': mock.ANY,
-            'labels': 'Regression-Verification-Repro',
+            'labels': ['Regression-Verification-Repro'],
             'send_email': False,
             'status': 'Untriaged',
             'components': [],

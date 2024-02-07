@@ -573,7 +573,7 @@ class AlertGroupWorkflow:
                    'Proceed to bisection.' %
                    (_SANDWICH, execution['name'], results_dict['job_id'],
                     utils.TestPath(regression.test), results_dict['statistic']))
-        label = 'Regression-Verification-Repro'
+        label = ['Regression-Verification-Repro']
         status = 'Untriaged'
         proceed_with_bisect = True
         if (update.issue
@@ -606,7 +606,7 @@ class AlertGroupWorkflow:
           '%s Regression verification %s for test: %s\n'
           'failed. Proceed to bisection.' %
           (_SANDWICH, execution['name'], utils.TestPath(regression.test)))
-      label = 'Regression-Verification-Failed'
+      label = ['Regression-Verification-Failed']
       proceed_with_bisect = True
     elif execution['state'] == workflow_service.EXECUTION_STATE_CANCELLED:
       logging.info(
@@ -617,7 +617,7 @@ class AlertGroupWorkflow:
                  'cancelled with message %s. Proceed to bisection.' %
                  (_SANDWICH, execution['name'], utils.TestPath(
                      regression.test), execution['error']))
-      label = 'Regression-Verification-Cancelled'
+      label = ['Regression-Verification-Cancelled']
       proceed_with_bisect = True
 
     perf_issue_service_client.PostIssueComment(
