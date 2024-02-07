@@ -175,8 +175,7 @@ def IsDirectlyConstructable(cls):
     # Case |class A(object): pass|.
     return True
   # Case |class (object):| with |__init__| other than |object.__init__|.
-  # pylint: disable=deprecated-method
-  args, _, _, defaults = inspect.getargspec(cls.__init__)
+  args, _, _, defaults, _, _, _ = inspect.getfullargspec(cls.__init__)
   if defaults is None:
     defaults = ()
   # Return true if |self| is only arg without a default.
