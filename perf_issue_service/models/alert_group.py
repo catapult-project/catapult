@@ -190,9 +190,12 @@ class AlertGroup:
         if 'project_id' not in g:
           # crbug/1475410. We noticed some alert group has no 'project_id'.
           logging.warning('Project_id field does not exist in group: %s', g)
+        # replace empty project id using the default 'chromium'
+        project_id_in_group = g.get('project_id', '') or 'chromium'
+        project_id_in_subscription = s.get('monorail_project_id', '') or 'chromium'
         if (g['domain'] == master_name and
             g['subscription_name'] == s.get('name') and
-            g.get('project_id', '') == s.get('monorail_project_id', '') and
+            project_id_in_group == project_id_in_subscription and
             max(g['revision']['start'], start_rev) <= min(g['revision']['end'], end_rev) and
             (abs(g['revision']['start'] - start_rev) + abs(g['revision']['end'] - end_rev) <= 100 or g['domain'] != 'ChromiumPerf')):
           has_overlapped = True
