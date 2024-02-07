@@ -201,7 +201,11 @@ def RegressionDetection(request):
   # TODO(crbug/1455502): Define regression threshold based on story
   # specific attributes such as the anomaly's magnitude or the
   # subscription thresholds.
-  if ci_lower*ci_upper > 0 and p_value < 0.05:
+  # CI values might be Infinity if the result changes from zero to none zero
+  if ci_lower == "Infinity" or ci_upper == "Infinity":
+    if p_value < 0.05:
+      decision = True
+  elif ci_lower * ci_upper > 0 and p_value < 0.05:
     decision = True
 
   return jsonify({'decision': decision})
