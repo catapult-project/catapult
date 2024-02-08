@@ -4,10 +4,10 @@
 
 from __future__ import absolute_import
 import logging
-import optparse  # pylint: disable=deprecated-module
 import six
 
 from telemetry import decorators
+from telemetry.core import optparse_argparse_migration as oam
 from telemetry.internal import story_runner
 from telemetry.internal.util import command_line
 from telemetry.page import legacy_page_test
@@ -103,7 +103,7 @@ class Benchmark(command_line.Command):
 
   @classmethod
   def AddCommandLineArgs(cls, parser):
-    group = optparse.OptionGroup(parser, '%s test options' % cls.Name())
+    group = oam.CreateOptionGroup(parser, '%s test options' % cls.Name())
     cls.AddBenchmarkCommandLineArgs(group)
     if group.option_list:
       parser.add_option_group(group)

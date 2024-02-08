@@ -7,7 +7,6 @@ from __future__ import absolute_import
 import atexit
 import copy
 import logging
-import optparse  # pylint: disable=deprecated-module
 import os
 import shlex
 import socket
@@ -17,6 +16,7 @@ from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry import compat_mode_options
 from telemetry.core import cast_interface
+from telemetry.core import optparse_argparse_migration as oam
 from telemetry.core import platform
 from telemetry.core import util
 from telemetry.internal.browser import browser_finder
@@ -33,13 +33,13 @@ def _IsWin():
   return sys.platform == 'win32'
 
 
-class BrowserFinderOptions(optparse.Values):
+class BrowserFinderOptions(oam.ArgumentValues):
   """Options to be used for discovering a browser."""
 
   emulator_environment = None
 
   def __init__(self, browser_type=None):
-    optparse.Values.__init__(self)
+    super().__init__()
 
     self.browser_type = browser_type
     self.browser_executable = None
@@ -82,7 +82,7 @@ class BrowserFinderOptions(optparse.Values):
     return copy.deepcopy(self)
 
   def CreateParser(self, *args, **kwargs):
-    parser = optparse.OptionParser(*args, **kwargs)
+    parser = oam.CreateFromOptparseInputs(*args, **kwargs)
 
     # Options to interact with a potential external results processor.
     parser.set_defaults(
@@ -99,7 +99,7 @@ class BrowserFinderOptions(optparse.Values):
         upload_bucket=None)
 
     # Selection group
-    group = optparse.OptionGroup(parser, 'Which browser to use')
+    group = oam.CreateOptionGroup(parser, 'Which browser to use')
     group.add_option(
         '--browser',
         dest='browser_type',
@@ -185,7 +185,7 @@ class BrowserFinderOptions(optparse.Values):
     parser.add_option_group(group)
 
     # Debugging options
-    group = optparse.OptionGroup(parser, 'When things go wrong')
+    group = oam.CreateOptionGroup(parser, 'When things go wrong')
     group.add_option('--print-bootstrap-deps',
                      action='store_true',
                      help='Output bootstrap deps list.')
@@ -218,7 +218,7 @@ class BrowserFinderOptions(optparse.Values):
     parser.add_option_group(group)
 
     # Platform options
-    group = optparse.OptionGroup(parser, 'Platform options')
+    group = oam.CreateOptionGroup(parser, 'Platform options')
     group.add_option(
         '--performance-mode',
         choices=[android_device.HIGH_PERFORMANCE_MODE,
@@ -246,7 +246,7 @@ class BrowserFinderOptions(optparse.Values):
     parser.add_option_group(group)
 
     # Remote platform options
-    group = optparse.OptionGroup(parser, 'Remote platform options')
+    group = oam.CreateOptionGroup(parser, 'Remote platform options')
     group.add_option('--android-denylist-file',
                      help='Device denylist JSON file.')
     group.add_option(
@@ -275,7 +275,7 @@ class BrowserFinderOptions(optparse.Values):
     parser.add_option_group(group)
 
     # Cast browser options
-    group = optparse.OptionGroup(parser, 'Cast browser options')
+    group = oam.CreateOptionGroup(parser, 'Cast browser options')
     group.add_option('--cast-output-dir',
                      help='Output directory for Cast Core.')
     group.add_option('--cast-runtime-exe',
@@ -286,7 +286,7 @@ class BrowserFinderOptions(optparse.Values):
     group.add_option('--cast-device-ip',
                      help='IP address of the Cast device.')
 
-    group = optparse.OptionGroup(parser, 'Fuchsia platform options')
+    group = oam.CreateOptionGroup(parser, 'Fuchsia platform options')
     group.add_option(
         '--fuchsia-ssh-config',
         default=os.path.join(util.GetChromiumSrcDir(), 'build', 'fuchsia',
@@ -313,7 +313,7 @@ class BrowserFinderOptions(optparse.Values):
     parser.add_option_group(group)
 
     # CPU profiling on Android/Linux/ChromeOS.
-    group = optparse.OptionGroup(parser, (
+    group = oam.CreateOptionGroup(parser, (
         'CPU profiling over intervals of interest, '
         'Android, Linux, and ChromeOS only'))
     group.add_option(
@@ -666,7 +666,7 @@ class BrowserOptions():
     # options.                                                                 #
     ############################################################################
 
-    group = optparse.OptionGroup(parser, 'Browser options')
+    group = oam.CreateOptionGroup(parser, 'Browser options')
     profile_choices = profile_types.GetProfileTypes()
     group.add_option(
         '--profile-type',
@@ -710,7 +710,7 @@ class BrowserOptions():
         help='Assert the browser uses gpu compositing and not software path.')
     parser.add_option_group(group)
 
-    group = optparse.OptionGroup(parser, 'Compatibility options')
+    group = oam.CreateOptionGroup(parser, 'Compatibility options')
     group.add_option(
         '--gtest_output',
         help='Ignored argument for compatibility with runtest.py harness')

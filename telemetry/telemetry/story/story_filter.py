@@ -3,11 +3,11 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
-import optparse  # pylint:disable=deprecated-module
 import os
 import logging
 import re
 
+from telemetry.core import optparse_argparse_migration as oam
 from telemetry.story import typ_expectations
 
 
@@ -74,7 +74,7 @@ class StoryFilterFactory():
 
   @classmethod
   def AddCommandLineArgs(cls, parser):
-    group = optparse.OptionGroup(parser, 'User story filtering options')
+    group = oam.CreateOptionGroup(parser, 'User story filtering options')
     group.add_option(
         '--story-filter',
         help='Use only stories whose names match the given filter regexp.')

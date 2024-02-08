@@ -17,6 +17,11 @@ class ArgumentParser(optparse.OptionParser):
   pass
 
 
+class ArgumentValues(optparse.Values):
+  # To be filled in over time.
+  pass
+
+
 def CreateOptionGroup(parser, title, description=None):
   """Creates an ArgumentParser group using the same arguments as optparse.
 

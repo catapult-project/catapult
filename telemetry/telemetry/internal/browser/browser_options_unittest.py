@@ -2,10 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 from __future__ import absolute_import
-import optparse  # pylint: disable=deprecated-module
 import os
 import unittest
 
+from telemetry.core import optparse_argparse_migration as oam
 from telemetry.internal.browser import browser_options
 
 import mock
@@ -119,7 +119,7 @@ class BrowserOptionsTest(unittest.TestCase):
     options.override_to_true = False
     options.override_to_false = True
 
-    parser = optparse.OptionParser()
+    parser = oam.CreateFromOptparseInputs()
     parser.add_option('--already_true', action='store_true')
     parser.add_option('--already_false', action='store_true')
     parser.add_option('--unset', action='store_true')

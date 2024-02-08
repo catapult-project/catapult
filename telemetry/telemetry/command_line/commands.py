@@ -7,10 +7,10 @@ from __future__ import print_function
 from __future__ import absolute_import
 import json
 import logging
-import optparse  # pylint: disable=deprecated-module
 import sys
 
 from telemetry import benchmark
+from telemetry.core import optparse_argparse_migration as oam
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_options
 from telemetry.internal import story_runner
@@ -36,7 +36,7 @@ def _GetStoriesWithTags(b):
   """
   # Create a options object which hold default values that are expected
   # by Benchmark.CreateStoriesWithTags(options) method.
-  parser = optparse.OptionParser()
+  parser = oam.CreateFromOptparseInputs()
   b.AddBenchmarkCommandLineArgs(parser)
   options, _ = parser.parse_args([])
 
