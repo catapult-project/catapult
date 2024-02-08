@@ -50,7 +50,8 @@ class Command(ArgumentHandlerMixIn):
     """Main method to run this command as a standalone script."""
     parser = argparse.ArgumentParser()
     cls.AddCommandLineArgs(parser)
-    args = parser.parse_args(args=args)
+    args, positional_args = parser.parse_known_args(args=args)
+    args.positional_args = positional_args
     cls.ProcessCommandLineArgs(parser, args)
     return min(cls().Run(args), 255)
 
