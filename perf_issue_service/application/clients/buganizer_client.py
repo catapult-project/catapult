@@ -171,7 +171,7 @@ class BuganizerClient:
     if not response:
       return []
 
-    issueUpdates = response.get('issueUpdates', '')
+    issueUpdates = response.get('issueUpdates', [])
     # the issue updates are in reverse order that index 0 is the latest.
     # reverse the order to follow the monorail style.
     issueUpdates.reverse()
