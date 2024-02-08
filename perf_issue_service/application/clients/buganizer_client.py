@@ -171,13 +171,21 @@ class BuganizerClient:
     if not response:
       return []
 
-    return [{
-        'id': update.get('version'),
+    issueUpdates = response.get('issueUpdates', '')
+    # the issue updates are in reverse order that index 0 is the latest.
+    # reverse the order to follow the monorail style.
+    issueUpdates.reverse()
+    comments = []
+    for index, update in enumerate(issueUpdates):
+      comment = {
+        'id': index,
         'author': update.get('author', {}).get('emailAddress', ''),
         'content': update.get('issueComment', {}).get('comment', ''),
         'published': update.get('timestamp'),
         'updates': b_utils.GetBuganizerStatusUpdate(update, status_enum) or {}
-    } for update in response.get('issueUpdates')]
+      }
+      comments.append(comment)
+    return comments
 
 
   def NewIssue(self,
