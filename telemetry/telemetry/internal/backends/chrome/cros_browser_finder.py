@@ -242,12 +242,6 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
     if trace_config_file:
       startup_args.append('--trace-config-file=%s' % trace_config_file)
 
-    if not browser_options.dont_override_profile:
-      # Note that --oobe-skip-postlogin above would disable actual UI
-      # interaction but this flag would enforce "new user" logic
-      # if user cryptohome was removed.
-      startup_args.append('--force-first-run-ui')
-
     return startup_args
 
   def SupportsOptions(self, browser_options):
