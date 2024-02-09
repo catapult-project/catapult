@@ -221,6 +221,8 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
         '--vmodule=%s' % vmodule,
         # Enable crash dumping.
         '--enable-crash-reporter-for-testing',
+        # Do not trigger powerwash if tests misbehave.
+        '--cryptohome-ignore-cleanup-ownership-for-testing',
     ])
 
     if self._app_type == 'lacros-chrome':
