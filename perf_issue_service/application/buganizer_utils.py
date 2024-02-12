@@ -145,6 +145,7 @@ PROJECT_MAP_CR2B = {
 LABEL_MAP_CR2B = {
   # Chromium
   'Type-Bug-Regression': '5438261',
+  'Chromeperf-Auto-NeedsAttention': '5670048',
 
   # Fuchsia
   'Performance': '5424295', # Performance
