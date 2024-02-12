@@ -234,7 +234,7 @@ class TaggedTestListParser(object):
     RESULT_TOKEN = '# results: ['
     TAG_TOKEN = '# tags: ['
     # The bug field (optional), including optional subproject.
-    BUG_PREFIX_REGEX = '(?:crbug.com/|skbug.com/|webkit.org/)'
+    BUG_PREFIX_REGEX = '(?:crbug.com/|skbug.com/|webkit.org/|b/)'
     _MATCH_STRING = r'^(?:(' + BUG_PREFIX_REGEX + r'(?:[^/]*/)?\d+\s)*)'
     _MATCH_STRING += r'(?:\[ (.+) \] )?'  # The label field (optional).
     _MATCH_STRING += r'(\S+) '  # The test path field.
