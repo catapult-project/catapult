@@ -60,7 +60,7 @@ def _GetStoriesWithTags(b):
 
 def PrintBenchmarkList(
     benchmarks, possible_browser, output_pipe=None,
-    json_pipe=None):
+    json_pipe=None, detailed=False):
   """Print benchmarks that are not filtered in the same order of benchmarks in
   the |benchmarks| list.
 
@@ -93,6 +93,7 @@ def PrintBenchmarkList(
       which benchmarks are supported.
     output_pipe: the stream in which benchmarks are printed on.
     json_pipe: if available, also serialize the list into json_pipe.
+    detailed: if True, list out stories for each benchmark.
   """
   if output_pipe is None:
     output_pipe = sys.stdout
@@ -132,6 +133,9 @@ def PrintBenchmarkList(
     print('Available benchmarks %sare:' % browser_type_msg, file=output_pipe)
     for b in supported:
       print(format_string % (b['name'], b['description']), file=output_pipe)
+      if detailed:
+        for idx, s in enumerate(b['stories']):
+          print(f'    Story {idx}: {s}', file=output_pipe)
 
   not_supported = [b for b in all_benchmark_info if not b['supported']]
   if not_supported:
@@ -140,6 +144,10 @@ def PrintBenchmarkList(
           file=output_pipe)
     for b in not_supported:
       print(format_string % (b['name'], b['description']), file=output_pipe)
+
+  if not detailed:
+    print('Pass --detailed to show all stories and their tags.',
+          file=output_pipe)
 
   print('Pass --browser to list benchmarks for another browser.\n',
         file=output_pipe)
@@ -158,6 +166,8 @@ class List():
     del args, environment  # Unused.
     parser.add_option('--json', action='store', dest='json_filename',
                       help='Output the list in JSON')
+    parser.add_option('--detailed', action='store_true', default=False,
+                      help='Print more details in the output.')
 
   @classmethod
   def CreateParser(cls):
@@ -186,7 +196,8 @@ class List():
         PrintBenchmarkList(options.benchmarks, possible_browser,
                            json_pipe=json_out)
     else:
-      PrintBenchmarkList(options.benchmarks, possible_browser)
+      PrintBenchmarkList(options.benchmarks, possible_browser,
+                         detailed=options.detailed)
     return 0
 
 

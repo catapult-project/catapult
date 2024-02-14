@@ -331,7 +331,7 @@ def RunStorySet(test, story_set, finder_options, results,
               test, finder_options.Copy(), story_set, possible_browser)
 
         with results.CreateStoryRun(story, storyset_repeat_counter):
-          skip_reason = story_filter.ShouldSkip(story)
+          skip_reason = story_filter.ShouldSkip(story, should_log=True)
           if skip_reason:
             results.Skip(skip_reason)
             continue

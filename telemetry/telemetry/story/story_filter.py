@@ -264,35 +264,42 @@ class StoryFilter():
       included_stories.append(story)
     return self._ApplyShards(included_stories)
 
-  def ShouldSkip(self, story):
+  def ShouldSkip(self, story, should_log=False):
     """Decides whether a story should be marked skipped.
 
-    The difference between marking a story skipped and simply not running
-    it is important for tracking purposes. Officially skipped stories show
-    up in test results outputs.
+    The difference between marking a story skipped and simply not running it is
+    important for tracking purposes. Officially skipped stories show up in test
+    results outputs.
 
     Args:
       story: A story.Story object.
+      should_log: Whether the reason should be logged via logging. Default False
+                  to avoid logging the reason multiple times.
 
     Returns:
-      A skip reason string if the story should be skipped, otherwise an
-      empty string.
+      An empty string if the story should *not* be skipped, otherwise a string
+      with the reason why the story should be skipped.
     """
-    disabled = self._expectations.IsStoryDisabled(story)
-    if self._stories:
-      if story.name in self._stories:
-        if disabled:
-          logging.warning(
-              'Running story %s even though it is disabled because '
-              'it was specifically asked for by name in the --story '
-              'flag.', story.name)
-        return ''
-    if disabled and self._run_disabled_stories:
-      logging.warning(
-          'Force running a disabled story %s even though it was disabled with '
-          'the following reason: %s' % (story.name, disabled))
+    disabled_reason = self._expectations.IsStoryDisabled(story)
+    if not disabled_reason:
       return ''
-    return disabled
+
+    is_explicitly_named = self._stories and story.name in self._stories
+    is_enabled_by_flag = self._run_disabled_stories
+    if should_log:
+      if is_explicitly_named:
+        logging.warning(
+            'Running story %s even though it is disabled because '
+            'it was specifically asked for by name in the --story '
+            'flag.', story.name)
+      elif is_enabled_by_flag:
+        logging.warning(
+            'Force running a disabled story %s even though it was disabled '
+            'with the following reason: %s', story.name, disabled_reason)
+
+    if is_explicitly_named or is_enabled_by_flag:
+      return ''
+    return disabled_reason
 
   def _GetSelectedIndexes(self, length):
     indexes = []

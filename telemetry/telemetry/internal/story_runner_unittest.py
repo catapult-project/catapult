@@ -629,7 +629,8 @@ class FakeStoryFilter():
     return [story for story in story_set
             if story.name not in self._stories_to_filter]
 
-  def ShouldSkip(self, story):
+  def ShouldSkip(self, story, should_log=False):
+    del should_log  # unused
     return 'fake_reason' if story.name in self._stories_to_skip else ''
 
 
