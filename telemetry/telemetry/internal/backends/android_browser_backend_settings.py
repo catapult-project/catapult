@@ -113,18 +113,15 @@ class GenericChromeBundleBackendSettings(GenericChromeBackendSettings):
     # time like a normal APK.
     return os.path.join('..', 'bin', self.apk_name)
 
-  def FindSupportApks(self, apk_path):
-    # Trichrome bundles also require their corresponding library apks to be
-    # installed, but the library apks are in the apks directory and the bundles
-    # are in the bin directory.
-    if apk_path is None or self.additional_apk_name is None:
-      return []
-    additional_apk_path = os.path.normpath(
-        os.path.join(os.path.dirname(apk_path), '..', 'apks',
-                     self.additional_apk_name))
-    assert os.path.exists(additional_apk_path), (
-        f'{additional_apk_path} is missing for {apk_path}')
-    return [additional_apk_path]
+  def FindSupportApks(self, apk_path, chrome_root):
+    del chrome_root
+    all_apks = []
+    if apk_path is not None and self.additional_apk_name is not None:
+      additional_apk_path = os.path.join(
+          os.path.dirname(apk_path), '..', 'apks', self.additional_apk_name)
+      if os.path.exists(additional_apk_path):
+        all_apks.append(additional_apk_path)
+    return all_apks
 
 
 class ChromeBackendSettings(GenericChromeBackendSettings):
@@ -198,7 +195,8 @@ class WebViewBackendSettings(WebViewBasedBackendSettings):
       return 'MonochromePublic.apk'
     return 'SystemWebView.apk'
 
-  def FindSupportApks(self, apk_path):
+  def FindSupportApks(self, apk_path, chrome_root):
+    del chrome_root
     all_apks = []
     # Try to find the WebView embedder next to the local APK found.
     if apk_path is not None:
@@ -235,7 +233,8 @@ class WebViewBundleBackendSettings(WebViewBackendSettings):
     # time like a normal APK.
     return os.path.join('..', 'bin', self.apk_name)
 
-  def FindSupportApks(self, apk_path):
+  def FindSupportApks(self, apk_path, chrome_root):
+    del chrome_root
     # Try to find the WebView embedder in apk directory
     all_apks = []
     if apk_path is not None:
@@ -403,12 +402,11 @@ ANDROID_TRICHROME_BUNDLE = GenericChromeBundleBackendSettings(
     apk_name='trichrome_chrome_google_bundle',
     additional_apk_name='TrichromeLibraryGoogle.apk')
 
-ANDROID_TRICHROME_CHROME_GOOGLE_64_32_BUNDLE = (
-    GenericChromeBundleBackendSettings(
-        browser_type='android-trichrome-chrome-google-64-32-bundle',
-        package='com.google.android.apps.chrome',
-        apk_name='trichrome_chrome_google_64_32_bundle',
-        additional_apk_name='TrichromeLibraryGoogle6432.apk'))
+ANDROID_TRICHROME_CHROME_GOOGLE_64_32_BUNDLE = GenericChromeBundleBackendSettings(
+    browser_type='android-trichrome-chrome-google-64-32-bundle',
+    package='com.google.android.apps.chrome',
+    apk_name='trichrome_chrome_google_64_32_bundle',
+    additional_apk_name='TrichromeLibraryGoogle6432.apk')
 
 ANDROID_CHROME_64_BUNDLE = GenericChromeBundleBackendSettings(
     browser_type='android-chrome-64-bundle',

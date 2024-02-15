@@ -114,7 +114,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         self._support_apk_list = finder_options.webview_embedder_apk
       else:
         self._support_apk_list = self._backend_settings.FindSupportApks(
-            self._local_apk)
+            self._local_apk, finder_options.chrome_root)
     elif finder_options.webview_embedder_apk:
       logging.warning(
           'No embedder needed for %s, ignoring --webview-embedder-apk option',
@@ -321,7 +321,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   def UpdateExecutableIfNeeded(self):
     # TODO(crbug.com/815133): This logic should belong to backend_settings.
     for apk in self._support_apk_list:
-      logging.warning('Installing support apk (%s) on device if needed.', apk)
+      logging.warning('Installing %s on device if needed.', apk)
       self.platform.InstallApplication(apk)
 
     apk_name = self._backend_settings.GetApkName(
@@ -351,13 +351,10 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
             timeout=120)
 
     sdk_version = self._platform_backend.device.build_version_sdk
-    # Bundles are in the ../bin directory, so it's safer to just check that the
-    # correct name is part of the path. This includes names such as
-    # Monochrome.apk, MonochromePublic.apk, monochrome_bundle,
-    # monochrome_public_bundle, monochrome_64_32_bundle.
-    is_monochrome = (apk_name is not None and
-                     apk_name.startswith(('Monochrome', 'monochrome')) and
-                     apk_name.endswith(('.apk', '_bundle')))
+    # Bundles are in the ../bin directory, so it's safer to just check the
+    # correct name is part of the path.
+    is_monochrome = apk_name is not None and (apk_name == 'Monochrome.apk' or
+                                              'monochrome_bundle' in apk_name)
     if ((is_webview_apk or
          (is_monochrome and sdk_version < version_codes.Q)) and
         sdk_version >= version_codes.NOUGAT):
