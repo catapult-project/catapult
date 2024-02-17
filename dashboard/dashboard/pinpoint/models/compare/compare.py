@@ -18,8 +18,9 @@ PENDING = 'pending'
 SAME = 'same'
 UNKNOWN = 'unknown'
 
-_MIN_HIGH_THRESHOLDS_FUNCTIONAL = 0.6
-_MIN_LOW_THRESHOLDS_FUNCTIONAL = 0.1
+_MIN_HIGH_THRESHOLDS_FUNCTIONAL = 0.15
+_MIN_LOW_THRESHOLDS_FUNCTIONAL = 0.05
+
 
 class ComparisonResults(
     collections.namedtuple(
@@ -125,4 +126,10 @@ def Compare(values_a, values_b, attempt_count, mode, magnitude):
     comparison_result = ComparisonResults(SAME, p_value, low_threshold,
                                           high_threshold)
   logging.debug('BisectDebug: actual_comparison_result: %s', comparison_result)
+
+  if comparison_result.result != new_comparison_result.result:
+    logging.debug(
+        'BisectDebug: Found different comparison result, new result: %s, actual result: %s',
+        new_comparison_result, comparison_result)
+
   return comparison_result
