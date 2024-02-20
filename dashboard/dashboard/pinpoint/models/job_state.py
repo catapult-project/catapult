@@ -50,7 +50,8 @@ class JobState:
                comparison_mode=None,
                comparison_magnitude=None,
                pin=None,
-               initial_attempt_count=None):
+               initial_attempt_count=None,
+               benchmark_arguments=None):
     """Create a JobState.
 
     Args:
@@ -83,6 +84,8 @@ class JobState:
     # A mapping from a Change to a list of Attempts on that Change.
     self._attempts = {}
     self._initial_attempt_count = initial_attempt_count if initial_attempt_count else MIN_ATTEMPTS
+
+    self._benchmark_arguments = benchmark_arguments
 
   def PropagateJob(self, job):
     """Propagate a Job to every Quest.
@@ -360,7 +363,7 @@ class JobState:
             attempt_count,
             FUNCTIONAL,
             comparison_magnitude,
-        )
+            benchmark_arguments=self._benchmark_arguments)
         logging.debug('BisectDebug: Functional Compare result: %s', comparison)
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
@@ -408,7 +411,7 @@ class JobState:
             sample_count,
             PERFORMANCE,
             comparison_magnitude,
-        )
+            benchmark_arguments=self._benchmark_arguments)
         logging.debug('BisectDebug: Compare result: %s', comparison)
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
