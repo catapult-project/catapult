@@ -513,13 +513,24 @@ class _RunTestExecution(execution_module.Execution):
     properties.update(**input_ref)
 
     if self.command:
+      if 'chromeos-swarming' in self._swarming_server:
+        skylab_args = [
+            '--remote=%s' % self._bot_id,
+            '--device=%s' % self._bot_id
+        ]
+        # Replace 'variable_chromeos_device_hostname' with bot id. Magic variable
+        # doesn't exist in chromeos-swarming.
+        command = self.command[:-1] + skylab_args + self._extra_args
+      else:
+        command = self.command + self._extra_args
+
       properties.update({
           # Set the relative current working directory to be the root of the
           # isolate.
           'relative_cwd': self.relative_cwd,
 
           # Use the command provided in the creation of the execution.
-          'command': self.command + self._extra_args,
+          'command': command,
       })
 
       # Swarming requires that if 'command' is present in the request, that we
