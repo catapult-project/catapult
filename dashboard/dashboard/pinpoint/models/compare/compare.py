@@ -31,12 +31,7 @@ class ComparisonResults(
 
 # TODO(https://crbug.com/1051710): Make this return all the values useful in
 # decision making (and display).
-def Compare(values_a,
-            values_b,
-            attempt_count,
-            mode,
-            magnitude,
-            benchmark_arguments=None):
+def Compare(values_a, values_b, attempt_count, mode, magnitude):
   """Decide whether two samples are the same, different, or unknown.
 
   Arguments:
@@ -133,16 +128,8 @@ def Compare(values_a,
   logging.debug('BisectDebug: actual_comparison_result: %s', comparison_result)
 
   if comparison_result.result != new_comparison_result.result:
-    if benchmark_arguments is not None:
-      logging.debug(
-          'BisectDebug: Found different comparison result, '
-          'benchmark: %s, story: %s, chart: %s '
-          'new result: %s, actual result: %s', benchmark_arguments.benchmark,
-          benchmark_arguments.story, benchmark_arguments.chart,
-          new_comparison_result, comparison_result)
-    else:
-      logging.debug(
-          'BisectDebug: Found different comparison result, new result: %s, actual result: %s',
-          new_comparison_result, comparison_result)
+    logging.debug(
+        'BisectDebug: Found different comparison result, new result: %s, actual result: %s',
+        new_comparison_result, comparison_result)
 
   return comparison_result
