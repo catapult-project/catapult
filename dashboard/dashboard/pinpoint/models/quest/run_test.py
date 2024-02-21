@@ -512,6 +512,10 @@ class _RunTestExecution(execution_module.Execution):
     }
     properties.update(**input_ref)
 
+    for d in self._dimensions:
+      if d['key'] == 'id':
+        self._bot_id = d['value']
+
     if self.command:
       if 'chromeos-swarming' in self._swarming_server:
         skylab_args = [
@@ -573,10 +577,6 @@ class _RunTestExecution(execution_module.Execution):
                   },
               }),
       })
-
-    for d in self._dimensions:
-      if d['key'] == 'id':
-        self._bot_id = d['value']
 
     logging.debug('Requesting swarming task with parameters: %s', body)
     response = swarming.Swarming(self._swarming_server).Tasks().New(body)
