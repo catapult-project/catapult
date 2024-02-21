@@ -18,7 +18,7 @@ PENDING = 'pending'
 SAME = 'same'
 UNKNOWN = 'unknown'
 
-_MIN_HIGH_THRESHOLDS_FUNCTIONAL = 0.15
+_MIN_HIGH_THRESHOLDS_FUNCTIONAL = 0.10
 _MIN_LOW_THRESHOLDS_FUNCTIONAL = 0.05
 
 
@@ -31,7 +31,13 @@ class ComparisonResults(
 
 # TODO(https://crbug.com/1051710): Make this return all the values useful in
 # decision making (and display).
-def Compare(values_a, values_b, attempt_count, mode, magnitude):
+def Compare(values_a,
+            values_b,
+            attempt_count,
+            mode,
+            magnitude,
+            benchmark_arguments=None,
+            job_id=None):
   """Decide whether two samples are the same, different, or unknown.
 
   Arguments:
@@ -128,8 +134,16 @@ def Compare(values_a, values_b, attempt_count, mode, magnitude):
   logging.debug('BisectDebug: actual_comparison_result: %s', comparison_result)
 
   if comparison_result.result != new_comparison_result.result:
-    logging.debug(
-        'BisectDebug: Found different comparison result, new result: %s, actual result: %s',
-        new_comparison_result, comparison_result)
+    if benchmark_arguments is not None:
+      logging.debug(
+          'BisectDebug: Found different comparison result, '
+          'job_id: %s, benchmark: %s, chart: %s, story: %s, '
+          'new result: %s, actual result: %s', job_id,
+          benchmark_arguments.benchmark, benchmark_arguments.chart,
+          benchmark_arguments.story, new_comparison_result, comparison_result)
+    else:
+      logging.debug(
+          'BisectDebug: Found different comparison result, new result: %s, actual result: %s',
+          new_comparison_result, comparison_result)
 
   return comparison_result

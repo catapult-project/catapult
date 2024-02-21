@@ -996,7 +996,7 @@ class Job(ndb.Model):
       if not self._IsTryJob():
         logging.debug('BisectDebug: Exploring perf job. ID: %s', self.job_id)
         self.state.SetImprovementDirection(self._GetImprovementDirection())
-        self.state.Explore()
+        self.state.Explore(self.benchmark_arguments, self.job_id)
       work_left = self.state.ScheduleWork()
 
       # Schedule moar task.

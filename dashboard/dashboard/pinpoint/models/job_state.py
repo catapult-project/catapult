@@ -141,7 +141,7 @@ class JobState:
   def SetImprovementDirection(self, improvement_direction):
     self._improvement_direction = improvement_direction
 
-  def Explore(self):
+  def Explore(self, benchmark_arguments=None, job_id=None):
     """Compare Changes and bisect by adding additional Changes as needed.
 
     For every pair of adjacent Changes, compare their results as probability
@@ -158,8 +158,9 @@ class JobState:
     if not self._changes:
       return
 
-    def DetectChange(change_a, change_b):
-      comparison = self._Compare(change_a, change_b)
+    def DetectChange(change_a, change_b, benchmark_arguments=None, job_id=None):
+      comparison = self._Compare(change_a, change_b, benchmark_arguments,
+                                 job_id)
       # We return None if the comparison determines that the result is
       # inconclusive.
       if comparison == compare.UNKNOWN:
@@ -193,7 +194,9 @@ class JobState:
           change_detected=DetectChange,
           on_unknown=CollectChangesToRefine,
           midpoint=FindMidpoint,
-          levels=_DEFAULT_SPECULATION_LEVELS)
+          levels=_DEFAULT_SPECULATION_LEVELS,
+          benchmark_arguments=benchmark_arguments,
+          job_id=job_id)
       logging.debug('Refinement list: %s', changes_to_refine)
       for change in changes_to_refine:
         self.AddAttempts(change)
@@ -304,7 +307,7 @@ class JobState:
         ]
     }
 
-  def _Compare(self, change_a, change_b):
+  def _Compare(self, change_a, change_b, benchmark_arguments=None, job_id=None):
     """Compare the results of two Changes in this Job.
 
     Aggregate the exceptions and result_values across every Quest for both
@@ -354,13 +357,10 @@ class JobState:
 
         logging.debug('BisectDebug: Functional Comparing exceptions: %s, %s',
             exceptions_a, exceptions_b)
-        comparison, _, _, _ = compare.Compare(
-            exceptions_a,
-            exceptions_b,
-            attempt_count,
-            FUNCTIONAL,
-            comparison_magnitude,
-        )
+        comparison, _, _, _ = compare.Compare(exceptions_a, exceptions_b,
+                                              attempt_count, FUNCTIONAL,
+                                              comparison_magnitude,
+                                              benchmark_arguments, job_id)
         logging.debug('BisectDebug: Functional Compare result: %s', comparison)
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
@@ -402,13 +402,10 @@ class JobState:
               'BisectDebug: Improvement found. Improvement direction: %s, mean diff: %s',
               self._improvement_direction, mean_diff)
           return compare.SAME
-        comparison, _, _, _ = compare.Compare(
-            all_a_values,
-            all_b_values,
-            sample_count,
-            PERFORMANCE,
-            comparison_magnitude,
-        )
+        comparison, _, _, _ = compare.Compare(all_a_values, all_b_values,
+                                              sample_count, PERFORMANCE,
+                                              comparison_magnitude,
+                                              benchmark_arguments, job_id)
         logging.debug('BisectDebug: Compare result: %s', comparison)
         if comparison == compare.DIFFERENT:
           return compare.DIFFERENT
