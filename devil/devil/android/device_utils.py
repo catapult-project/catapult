@@ -142,6 +142,8 @@ _PERMISSIONS_DENYLIST_RE = re.compile('|'.join(
         'android.permission.DOWNLOAD_WITHOUT_NOTIFICATION',
         'android.permission.EXPAND_STATUS_BAR',
         'android.permission.FOREGROUND_SERVICE',
+        'android.permission.FOREGROUND_SERVICE_DATA_SYNC',
+        'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
         'android.permission.GET_PACKAGE_SIZE',
         'android.permission.INSTALL_SHORTCUT',
         'android.permission.INJECT_EVENTS',
@@ -160,6 +162,7 @@ _PERMISSIONS_DENYLIST_RE = re.compile('|'.join(
         'android.permission.REQUEST_INSTALL_PACKAGES',
         'android.permission.RESTRICTED_VR_ACCESS',
         'android.permission.RUN_INSTRUMENTATION',
+        'android.permission.RUN_USER_INITIATED_JOBS',
         'android.permission.SET_ALARM',
         'android.permission.SET_TIME_ZONE',
         'android.permission.SET_WALLPAPER',
@@ -4479,6 +4482,11 @@ class DeviceUtils(object):
     if ('android.permission.WRITE_EXTERNAL_STORAGE' in permissions
         and 'android.permission.READ_EXTERNAL_STORAGE' not in permissions):
       permissions.add('android.permission.READ_EXTERNAL_STORAGE')
+
+    # This was introduced in API level 33:
+    # https://developer.android.com/develop/ui/views/notifications/notification-permission
+    if self.build_version_sdk < 33:
+      permissions.discard('android.permission.POST_NOTIFICATIONS')
 
     script_raw = [
         'p={package}',
