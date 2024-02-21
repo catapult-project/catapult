@@ -354,22 +354,27 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       should_override_webview_provider = True
     elif sdk_version >= version_codes.Q:
       # For Android Q and above, WebView is the only provider that is allowed,
-      # so no other packages can be set as the WebView implementation.
+      # so no other Chrome packages can be set as the WebView implementation.
       should_override_webview_provider = False
     elif 'monochrome' in apk_name.lower():
       # From Android Nougat to Android P, some Chrome packages are also allowed
       # to be WebView providers. Monochrome is the only Chrome build variant
-      # that can also act as a WebView provider, but only a specific set of
-      # package names are allowed to be set as the WebView implementation, so we
-      # also need to make sure the package name is allowed.
-      allowed = device.GetWebViewUpdateServiceDump().get('WebViewPackages')
-      should_override_webview_provider = package_name in allowed
+      # that can also act as a WebView provider.
+      should_override_webview_provider = True
     else:
       should_override_webview_provider = False
 
     if should_override_webview_provider:
-      logging.warning('Setting %s as WebView implementation.', package_name)
-      device.SetWebViewImplementation(package_name)
+      # Only a specific set of package names are allowed to be set as the
+      # WebView implementation. Make sure the package name is in the allowlist
+      # before setting it as the WebView implementation.
+      allowed = device.GetWebViewUpdateServiceDump().get('WebViewPackages')
+      if package_name in allowed:
+        logging.warning('Setting %s as WebView implementation.', package_name)
+        device.SetWebViewImplementation(package_name)
+      else:
+        logging.warning('Cannot set %s as WebView implementation, not in %r.',
+                        package_name, allowed)
 
   def GetTypExpectationsTags(self):
     tags = super().GetTypExpectationsTags()
