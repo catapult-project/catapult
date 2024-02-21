@@ -339,7 +339,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
             check_return=True,
             timeout=120)
 
-    sdk_version = self._platform_backend.device.build_version_sdk
+    sdk_version = device.build_version_sdk
     # We can only switch WebView providers on Android Nougat and above.
     if sdk_version < version_codes.NOUGAT:
       return
@@ -364,6 +364,8 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       # also need to make sure the package name is allowed.
       allowed = device.GetWebViewUpdateServiceDump().get('WebViewPackages')
       should_override_webview_provider = package_name in allowed
+    else:
+      should_override_webview_provider = False
 
     if should_override_webview_provider:
       logging.warning('Setting %s as WebView implementation.', package_name)
