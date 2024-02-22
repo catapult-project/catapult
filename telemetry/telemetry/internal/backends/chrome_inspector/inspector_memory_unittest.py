@@ -18,7 +18,11 @@ class InspectorMemoryTest(tab_test_case.TabTestCase):
 
     self.Navigate('dom_counter_sample.html')
 
-    self._tab.ExecuteJavaScript('gc();')
+    # We need a GC here at the even loop in order clean up garbage. The GC call
+    # below is only scheduling a GC at the event loop. We cannot nicely await
+    # the JS promise here but calling through the inspector to get the DOM
+    # statistics anyways pumps the message loop for us.
+    self._tab.ExecuteJavaScript('gc({type:"major", execution:"async"});')
 
     # Document_count > 1 indicates that WebCore::Document loaded in Chrome
     # is leaking! The baseline should exactly match the numbers on:
