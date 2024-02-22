@@ -102,6 +102,8 @@ def DeleteAsync(key):
 class MultipartEntity(ndb.Model):
   """Container for PartEntity."""
 
+  _use_memcache = True
+
   # Number of entities use to store serialized.
   size = ndb.IntegerProperty(default=0, indexed=False)
 
