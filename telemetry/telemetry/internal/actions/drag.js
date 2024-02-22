@@ -17,6 +17,8 @@
     this.top_end_ratio_ = opt_options.top_end_ratio;
     this.speed_ = opt_options.speed;
     this.gesture_source_type_ = opt_options.gesture_source_type;
+    this.vsync_offset_ms_ = opt_options.vsync_offset_ms;
+    this.input_event_pattern_ = opt_options.input_event_pattern;
   }
 
   function supportedByBrowser() {
@@ -57,7 +59,7 @@
     chrome.gpuBenchmarking.smoothDrag(
         startLeft, startTop, endLeft, endTop,
         this.onGestureComplete_.bind(this), this.options_.gesture_source_type_,
-        speed);
+        speed, this.vsync_offset_ms_, this.input_event_pattern_);
   };
 
   DragAction.prototype.onGestureComplete_ = function() {

@@ -17,6 +17,8 @@ class PinchAction(page_action.PageAction):
                scale_factor=None,
                speed_in_pixels_per_second=800,
                synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT,
+               vsync_offset_ms=0.0,
+               input_event_pattern=page_action.INPUT_EVENT_PATTERN_DEFAULT,
                timeout=page_action.DEFAULT_TIMEOUT):
     super().__init__(timeout=timeout)
     self._left_anchor_ratio = left_anchor_ratio
@@ -25,6 +27,9 @@ class PinchAction(page_action.PageAction):
     self._speed = speed_in_pixels_per_second
     self._synthetic_gesture_source = (
         'chrome.gpuBenchmarking.%s_INPUT' % synthetic_gesture_source)
+    self._vsync_offset_ms = vsync_offset_ms
+    self._input_event_pattern = (
+        'chrome.gpuBenchmarking.%s_INPUT_PATTERN' % input_event_pattern)
 
   def WillRunAction(self, tab):
     utils.InjectJavaScript(tab, 'gesture_common.js')
@@ -59,12 +64,16 @@ class PinchAction(page_action.PageAction):
           left_anchor_ratio: {{ left_anchor_ratio }},
           top_anchor_ratio: {{ top_anchor_ratio }},
           scale_factor: {{ scale_factor }},
-          speed: {{ speed }}
+          speed: {{ speed }},
+          vsync_offset_ms: {{ vsync_offset_ms }},
+          input_event_pattern: {{ @input_event_pattern }}
         });""",
         left_anchor_ratio=self._left_anchor_ratio,
         top_anchor_ratio=self._top_anchor_ratio,
         scale_factor=scale_factor,
-        speed=self._speed)
+        speed=self._speed,
+        vsync_offset_ms=self._vsync_offset_ms,
+        input_event_pattern=self._input_event_pattern)
     tab.EvaluateJavaScript(code)
     tab.WaitForJavaScriptCondition(
         'window.__pinchActionDone', timeout=self.timeout)

@@ -30,6 +30,8 @@ class DragAction(page_action.ElementPageAction):
                top_end_ratio=None, speed_in_pixels_per_second=800,
                use_touch=False,
                synthetic_gesture_source=page_action.GESTURE_SOURCE_DEFAULT,
+               vsync_offset_ms=0.0,
+               input_event_pattern=page_action.INPUT_EVENT_PATTERN_DEFAULT,
                timeout=page_action.DEFAULT_TIMEOUT):
     super().__init__(
         selector, text, element_function, timeout=timeout)
@@ -41,6 +43,9 @@ class DragAction(page_action.ElementPageAction):
     self._use_touch = use_touch
     self._synthetic_gesture_source = (
         'chrome.gpuBenchmarking.%s_INPUT' % synthetic_gesture_source)
+    self._vsync_offset_ms = vsync_offset_ms
+    self._input_event_pattern = (
+        'chrome.gpuBenchmarking.%s_INPUT_PATTERN' % input_event_pattern)
 
   def WillRunAction(self, tab):
     utils.InjectJavaScript(tab, 'gesture_common.js')
@@ -90,7 +95,9 @@ class DragAction(page_action.ElementPageAction):
             left_end_ratio: {{ left_end_ratio }},
             top_end_ratio: {{ top_end_ratio }},
             speed: {{ speed }},
-            gesture_source_type: {{ @gesture_source_type }}
+            gesture_source_type: {{ @gesture_source_type }},
+            vsync_offset_ms: {{ vsync_offset_ms }},
+            input_event_pattern: {{ @input_event_pattern }}
           });
         }""",
         left_start_ratio=self._left_start_ratio,
@@ -98,7 +105,9 @@ class DragAction(page_action.ElementPageAction):
         left_end_ratio=self._left_end_ratio,
         top_end_ratio=self._top_end_ratio,
         speed=self._speed,
-        gesture_source_type=gesture_source_type)
+        gesture_source_type=gesture_source_type,
+        vsync_offset_ms=self._vsync_offset_ms,
+        input_event_pattern=self._input_event_pattern)
     self.EvaluateCallback(tab, code)
     tab.WaitForJavaScriptCondition(
         'window.__dragActionDone', timeout=self.timeout)

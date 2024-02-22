@@ -13,6 +13,8 @@
       this.direction_ = opt_options.direction;
       this.distance_ = opt_options.distance;
       this.speed_ = opt_options.speed;
+      this.vsync_offset_ms_ = opt_options.vsync_offset_ms;
+      this.input_event_pattern_ = opt_options.input_event_pattern;
     } else {
       this.element_ = document.body;
       this.left_start_ratio_ = 0.5;
@@ -20,6 +22,8 @@
       this.direction_ = 'left';
       this.distance_ = 0;
       this.speed_ = 800;
+      this.vsync_offset_ms_ = 0.0;
+      this.input_event_pattern_ = chrome.gpuBenchmarking.DEFAULT_INPUT_PATTERN;
     }
   }
 
@@ -57,11 +61,10 @@
     const startTop =
         rect.top + rect.height * this.options_.top_start_ratio_;
     chrome.gpuBenchmarking.swipe(
-        this.options_.direction_,
-        this.options_.distance_,
-        this.onGestureComplete_.bind(this),
-        startLeft, startTop,
-        speed);
+        this.options_.direction_, this.options_.distance_,
+        this.onGestureComplete_.bind(this), startLeft, startTop, speed,
+        0 /* velocity */, chrome.gpuBenchmarking.DEFAULT_INPUT,
+        this.vsync_offset_ms_, this.input_event_pattern_);
   };
 
   SwipeAction.prototype.onGestureComplete_ = function() {

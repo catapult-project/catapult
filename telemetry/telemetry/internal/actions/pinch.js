@@ -19,11 +19,15 @@
       // Speed of the pinch gesture in pixels per second. This is the speed of
       // the relative motion between the two touch points.
       this.speed_ = opt_options.speed;
+      this.vsync_offset_ms_ = opt_options.vsync_offset_ms;
+      this.input_event_pattern_ = opt_options.input_event_pattern;
     } else {
       this.left_anchor_ratio_ = 0.5;
       this.top_anchor_ratio_ = 0.5;
       this.scale_factor_ = 2.0;
       this.speed_ = 800;
+      this.vsync_offset_ms_ = 0.0;
+      this.input_event_pattern_ = chrome.gpuBenchmarking.DEFAULT_INPUT_PATTERN;
     }
   }
 
@@ -60,11 +64,13 @@
           __GestureCommon_GetWindowHeight() *
           this.options_.top_anchor_ratio_;
 
+    const kDefaultInput = 0;
+
     chrome.gpuBenchmarking.pinchBy(
-        this.options_.scale_factor_,
-        anchorLeft, anchorTop,
-        this.onGestureComplete_.bind(this),
-        this.options_.speed_);
+        this.options_.scale_factor_, anchorLeft, anchorTop,
+        this.onGestureComplete_.bind(this), this.options_.speed_,
+        chrome.gpuBenchmarking.DEFAULT_INPUT, this.options_.vsync_offset_ms_,
+        this.options_.input_event_pattern_);
   };
 
   PinchAction.prototype.onGestureComplete_ = function() {
