@@ -319,7 +319,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
   @decorators.Cache
   def UpdateExecutableIfNeeded(self):
-    package_name = apk_helper.GetPackageName(self._local_apk)
+    package_name = None
     device = self._platform_backend.device
 
     # TODO(crbug.com/815133): This logic should belong to backend_settings.
@@ -328,6 +328,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       self.platform.InstallApplication(apk)
 
     if self._local_apk:
+      package_name = apk_helper.GetPackageName(self._local_apk)
       logging.warning('Installing %s on device if needed.', self._local_apk)
       self.platform.InstallApplication(
           self._local_apk, modules=self._modules_to_install)
