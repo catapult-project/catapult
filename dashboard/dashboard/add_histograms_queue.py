@@ -73,6 +73,10 @@ DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES = {
         'r_fuchsia_zircon_git',
     reserved_infos.REVISION_TIMESTAMPS.name:
         'r_revision_timestamp',
+    reserved_infos.FUCHSIA_INTEGRATION_INTERNAL_REVISIONS.name:
+        'r_fuchsia_integration_internal_git',
+    reserved_infos.FUCHSIA_INTEGRATION_PUBLIC_REVISIONS.name:
+        'r_fuchsia_integration_public_git'
 }
 
 

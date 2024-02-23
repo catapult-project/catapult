@@ -44,6 +44,12 @@ DEVICE_IDS = _Info('deviceIds', 'GenericSet', str)
 DOCUMENTATION_URLS = _Info('documentationLinks', 'GenericSet', str)
 INFO_BLURB = _Info('infoBlurb', 'GenericSet', str)
 FUCHSIA_GARNET_REVISIONS = _Info('fuchsiaGarnetRevisions', 'GenericSet', str)
+# Git commit ids for the internal fuchsia integration.git repo
+FUCHSIA_INTEGRATION_INTERNAL_REVISIONS = _Info(
+  'fuchsiaIntegrationInternalRevisions', 'GenericSet', str)
+# Git commit ids for the public fuchsia integration.git repo
+FUCHSIA_INTEGRATION_PUBLIC_REVISIONS = _Info(
+  'fuchsiaIntegrationPublicRevisions', 'GenericSet', str)
 FUCHSIA_PERIDOT_REVISIONS = _Info('fuchsiaPeridotRevisions', 'GenericSet', str)
 FUCHSIA_TOPAZ_REVISIONS = _Info('fuchsiaTopazRevisions', 'GenericSet', str)
 FUCHSIA_ZIRCON_REVISIONS = _Info('fuchsiaZirconRevisions', 'GenericSet', str)
