@@ -14,6 +14,7 @@ import subprocess
 import tempfile
 import time
 import unittest
+from unittest import mock
 import random
 import string
 
@@ -22,8 +23,6 @@ from telemetry.core import linux_based_interface
 from telemetry import decorators
 from telemetry.testing import options_for_unittests
 from telemetry.util import cmd_util
-
-import mock
 
 class LinuxBasedInterfaceHelperMethodsTest(unittest.TestCase):
 

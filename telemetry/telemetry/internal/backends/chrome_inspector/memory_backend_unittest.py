@@ -4,8 +4,7 @@
 
 from __future__ import absolute_import
 import unittest
-
-import mock
+from unittest import mock
 
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import memory_backend

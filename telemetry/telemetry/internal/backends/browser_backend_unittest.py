@@ -6,12 +6,12 @@ from __future__ import absolute_import
 import os
 import tempfile
 import unittest
+from unittest import mock
 
 from telemetry.core import debug_data
 from telemetry.internal.backends import browser_backend
 from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
-import mock
 
 
 class BrowserBackendLogsUploadingUnittest(unittest.TestCase):

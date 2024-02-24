@@ -8,12 +8,11 @@ import os
 import shutil
 import tempfile
 import unittest
+from unittest import mock
 try:
   from StringIO import StringIO
 except ImportError:
   from io import StringIO
-
-import mock
 
 from telemetry.internal import snap_page_util
 from telemetry.testing import options_for_unittests

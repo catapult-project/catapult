@@ -4,11 +4,10 @@
 from __future__ import absolute_import
 import os
 import unittest
+from unittest import mock
 
 from telemetry.core import optparse_argparse_migration as oam
 from telemetry.internal.browser import browser_options
-
-import mock
 
 
 class BrowserOptionsTest(unittest.TestCase):

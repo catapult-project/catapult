@@ -13,6 +13,7 @@ among tests for the public facing telemetry.core.tracing_controller.
 
 from __future__ import absolute_import
 import unittest
+from unittest import mock
 
 from telemetry import decorators
 from telemetry.internal.platform import platform_backend
@@ -20,8 +21,6 @@ from telemetry.internal.platform import tracing_agent
 from telemetry.internal.platform.tracing_agent import telemetry_tracing_agent
 from telemetry.internal.platform import tracing_controller_backend
 from telemetry.timeline import tracing_config
-
-import mock
 
 
 class FakeTraceDataBuilder():

@@ -6,8 +6,7 @@ from __future__ import absolute_import
 import json
 import os
 import unittest
-
-import mock
+from unittest import mock
 
 from telemetry.internal.results import story_run
 from telemetry.story import shared_state

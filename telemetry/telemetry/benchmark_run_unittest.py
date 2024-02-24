@@ -6,6 +6,7 @@ from __future__ import absolute_import
 import shutil
 import tempfile
 import unittest
+from unittest import mock
 
 from telemetry import benchmark as benchmark_module
 from telemetry import page as page_module
@@ -13,7 +14,6 @@ from telemetry.page import legacy_page_test
 from telemetry import story as story_module
 from telemetry.testing import fakes
 from telemetry.testing import options_for_unittests
-import mock
 
 
 # pylint: disable=abstract-method

@@ -6,8 +6,8 @@ from __future__ import absolute_import
 import os
 import posixpath
 import unittest
+from unittest import mock
 
-import mock
 from pyfakefs import fake_filesystem_unittest
 from py_utils import tempfile_ext
 
