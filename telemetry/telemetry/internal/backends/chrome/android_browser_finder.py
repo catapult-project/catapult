@@ -319,26 +319,28 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
   @decorators.Cache
   def UpdateExecutableIfNeeded(self):
-    package_name = None
-    device = self._platform_backend.device
-
     # TODO(crbug.com/815133): This logic should belong to backend_settings.
     for apk in self._support_apk_list:
       logging.warning('Installing support apk (%s) on device if needed.', apk)
       self.platform.InstallApplication(apk)
 
-    if self._local_apk:
-      package_name = apk_helper.GetPackageName(self._local_apk)
-      logging.warning('Installing %s on device if needed.', self._local_apk)
-      self.platform.InstallApplication(
-          self._local_apk, modules=self._modules_to_install)
-      if self._compile_apk:
-        logging.warning('Compiling %s.', package_name)
-        device.RunShellCommand(
-            ['cmd', 'package', 'compile', '-m', self._compile_apk, '-f',
-             package_name],
-            check_return=True,
-            timeout=120)
+    # This may be the case if the apk containing the browser is installed some
+    # other way before telemetry runs (see example in crbug.com/326579345).
+    if not self._local_apk:
+      return
+
+    package_name = apk_helper.GetPackageName(self._local_apk)
+    device = self._platform_backend.device
+    logging.warning('Installing %s on device if needed.', self._local_apk)
+    self.platform.InstallApplication(self._local_apk,
+                                     modules=self._modules_to_install)
+    if self._compile_apk:
+      logging.warning('Compiling %s.', package_name)
+      cmd = [
+          'cmd', 'package', 'compile', '-m', self._compile_apk, '-f',
+          package_name
+      ]
+      device.RunShellCommand(cmd, check_return=True, timeout=120)
 
     sdk_version = device.build_version_sdk
     # We can only switch WebView providers on Android Nougat and above.
