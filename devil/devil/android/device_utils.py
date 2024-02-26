@@ -179,6 +179,8 @@ _PERMISSIONS_DENYLIST_RE = re.compile('|'.join(
         'com.chrome.permission.DEVICE_EXTRAS',
         'com.google.android.apps.now.CURRENT_ACCOUNT_ACCESS',
         'com.google.android.c2dm.permission.RECEIVE',
+        'com.google.android.finsky.permission.DSE',
+        'com.google.android.googlequicksearchbox.permission.LENS_SERVICE',
         'com.google.android.providers.gsf.permission.READ_GSERVICES',
         'com.google.vr.vrcore.permission.VRCORE_INTERNAL',
         'com.sec.enterprise.knox.MDM_CONTENT_PROVIDER',
