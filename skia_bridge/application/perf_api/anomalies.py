@@ -30,6 +30,8 @@ ALLOWED_CLIENTS = [
     'perf-widevine-whitebox@skia-infra-corp.iam.gserviceaccount.com',
     # V8 (internal) skia instance service account
     'perf-v8-internal@skia-infra-corp.iam.gserviceaccount.com',
+    # Devtools-Frontend skia instance service account
+    'perf-devtools-frontend@skia-infra-corp.iam.gserviceaccount.com',
 ]
 
 DATASTORE_TEST_BATCH_SIZE = 25

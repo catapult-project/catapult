@@ -57,6 +57,11 @@ REPOSITORY_HOST_MAPPING = [{
     'public_host': None,
     'internal_host': 'https://v8-perf.corp.goog',
     'masters': ['internal.client.v8', 'client.v8']
+}, {
+    'label': 'Devtools-Frontend',
+    'public_host': None,
+    'internal_host': 'https://devtools-frontend-perf.corp.goog',
+    'masters': ['client.devtools-frontend.integration']
 }]
 
 QUERY_TEST_LIMIT = 5

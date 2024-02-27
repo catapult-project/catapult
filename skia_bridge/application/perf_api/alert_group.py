@@ -29,6 +29,8 @@ ALLOWED_CLIENTS = [
     'perf-widevine-whitebox@skia-infra-corp.iam.gserviceaccount.com',
     # V8 (internal) skia instance service account
     'perf-v8-internal@skia-infra-corp.iam.gserviceaccount.com',
+    # Devtools-Frontend skia instance service account
+    'perf-devtools-frontend@skia-infra-corp.iam.gserviceaccount.com',
 ]
 
 INTERNAL_CLIENTS = [
@@ -36,6 +38,7 @@ INTERNAL_CLIENTS = [
   'perf-widevine-cdm@skia-infra-corp.iam.gserviceaccount.com',
   'perf-widevine-whitebox@skia-infra-corp.iam.gserviceaccount.com',
   'perf-v8-internal@skia-infra-corp.iam.gserviceaccount.com',
+  'perf-devtools-frontend@skia-infra-corp.iam.gserviceaccount.com',
   ]
 
 class AnomalyDetail:
