@@ -16,7 +16,7 @@ def ReadMachOTextLoadAddress(file_name):
   This function returns the load address of the TEXT segment of a Mach-O file.
   """
   regex = re.compile(r".* vmaddr 0x([\dabcdef]*)")
-  cmd = ["otool", "-l", file_name]
+  cmd = ["otool", "-l", "-m", file_name]
   output = six.ensure_str(subprocess.check_output(cmd)).split('\n')
   for i in range(len(output) - 3):
     # It's possible to use a regex here instead, but these conditionals are much
