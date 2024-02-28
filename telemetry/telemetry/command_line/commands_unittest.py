@@ -9,12 +9,12 @@ except ImportError:
   from io import StringIO
 import json
 import unittest
+from unittest import mock
 
 from telemetry import benchmark
 from telemetry.command_line import commands
 from telemetry import story as story_module
 from telemetry import page as page_module
-import mock
 
 
 class BenchmarkFoo(benchmark.Benchmark):

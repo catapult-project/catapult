@@ -6,8 +6,7 @@ from __future__ import absolute_import
 import argparse
 import sys
 import unittest
-
-import mock
+from unittest import mock
 
 from telemetry.command_line import parser
 from telemetry.core import optparse_argparse_migration as oam

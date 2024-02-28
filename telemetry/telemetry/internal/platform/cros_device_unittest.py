@@ -3,12 +3,11 @@
 # found in the LICENSE file.
 import argparse
 import unittest
+from unittest import mock
 
 from telemetry.core import platform
 from telemetry.internal.platform import cros_device
 from telemetry.util import cmd_util
-
-import mock
 
 
 class CrOSDeviceTest(unittest.TestCase):

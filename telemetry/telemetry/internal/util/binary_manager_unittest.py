@@ -4,10 +4,10 @@
 
 from __future__ import absolute_import
 import unittest
+from unittest import mock
 
 from telemetry.core import exceptions
 from telemetry.internal.util import binary_manager
-import mock
 
 
 class BinaryManagerTest(unittest.TestCase):
@@ -25,28 +25,38 @@ class BinaryManagerTest(unittest.TestCase):
                       binary_manager.InitDependencyManager, None)
 
   @mock.patch('py_utils.binary_manager.BinaryManager')
-  def testFetchPathInitialized(self, binary_manager_mock):
+  def testFetchPathInitialized(self, py_utils_binary_manager_mock):
     expected = [
-        mock.call.binary_manager.BinaryManager(['base_config_object']),
-        mock.call.binary_manager.BinaryManager().FetchPath('dep', 'plat_arch')
+        mock.call([
+            'base_config_object', binary_manager.TELEMETRY_PROJECT_CONFIG,
+            binary_manager.CHROME_BINARY_CONFIG
+        ]),
+        mock.call().FetchPath('dep', 'plat', 'arch', None),
+        mock.call().FetchPath('dep', 'plat', 'arch', 'version'),
     ]
-    binary_manager.InitDependencyManager(None)
+    binary_manager.InitDependencyManager(['base_config_object'])
     binary_manager.FetchPath('dep', 'plat', 'arch')
-    binary_manager_mock.assert_call_args(expected)
+    binary_manager.FetchPath('dep', 'plat', 'arch', 'version')
+    py_utils_binary_manager_mock.assert_has_calls(expected)
 
   def testFetchPathUninitialized(self):
     self.assertRaises(exceptions.InitializationError,
                       binary_manager.FetchPath, 'dep', 'plat', 'arch')
 
   @mock.patch('py_utils.binary_manager.BinaryManager')
-  def testLocalPathInitialized(self, binary_manager_mock):
+  def testLocalPathInitialized(self, py_utils_binary_manager_mock):
     expected = [
-        mock.call.binary_manager.BinaryManager(['base_config_object']),
-        mock.call.binary_manager.BinaryManager().LocalPath('dep', 'plat_arch')
+        mock.call([
+            'base_config_object', binary_manager.TELEMETRY_PROJECT_CONFIG,
+            binary_manager.CHROME_BINARY_CONFIG
+        ]),
+        mock.call().LocalPath('dep', 'plat', 'arch', None),
+        mock.call().LocalPath('dep', 'plat', 'arch', 'version'),
     ]
-    binary_manager.InitDependencyManager(None)
+    binary_manager.InitDependencyManager(['base_config_object'])
     binary_manager.LocalPath('dep', 'plat', 'arch')
-    binary_manager_mock.assert_call_args(expected)
+    binary_manager.LocalPath('dep', 'plat', 'arch', 'version')
+    py_utils_binary_manager_mock.assert_has_calls(expected)
 
   def testLocalPathUninitialized(self):
     self.assertRaises(exceptions.InitializationError,

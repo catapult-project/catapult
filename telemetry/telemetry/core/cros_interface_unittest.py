@@ -12,7 +12,7 @@ import shutil
 import socket
 import tempfile
 import unittest
-import mock
+from unittest import mock
 
 from devil.utils import cmd_helper
 from telemetry.core import cros_interface

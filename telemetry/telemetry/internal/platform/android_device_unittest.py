@@ -4,13 +4,13 @@
 
 from __future__ import absolute_import
 import unittest
+from unittest import mock
 
 from telemetry import decorators
 from telemetry.internal.browser import browser_options
 from telemetry.internal.platform import android_device
 from telemetry.internal.platform import remote_platform_options
 from telemetry.testing import system_stub
-import mock
 
 from devil.android import device_utils
 from devil.android import device_denylist

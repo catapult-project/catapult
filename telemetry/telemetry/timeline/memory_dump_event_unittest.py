@@ -4,10 +4,10 @@
 
 from __future__ import absolute_import
 import unittest
+from unittest import mock
 import six
 
 from telemetry.timeline import memory_dump_event
-import mock
 
 
 def MakeRawMemoryDumpEvent(dump_id='123456ABCDEF', pid=1234, start=0,

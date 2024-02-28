@@ -4,14 +4,13 @@
 
 from __future__ import absolute_import
 import unittest
+from unittest import mock
 
 from telemetry.testing import fakes
 from telemetry.core import exceptions
 from telemetry.internal.platform import network_controller_backend
 from telemetry.internal.platform import platform_backend
 from telemetry.util import wpr_modes
-
-import mock
 
 
 class NetworkControllerBackendTest(unittest.TestCase):

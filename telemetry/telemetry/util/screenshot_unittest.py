@@ -3,11 +3,10 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
+import os
 import tempfile
 import unittest
-import os
-
-import mock
+from unittest import mock
 
 from py_utils import cloud_storage  # pylint: disable=import-error
 from telemetry.testing import fakes

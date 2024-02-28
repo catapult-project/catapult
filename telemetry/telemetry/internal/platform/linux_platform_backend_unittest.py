@@ -5,11 +5,11 @@
 from __future__ import absolute_import
 import os
 import unittest
+from unittest import mock
 
 from telemetry import decorators
 from telemetry.core import util
 from telemetry.internal.platform import linux_platform_backend
-import mock
 
 
 def _PathMatches(wanted_path):

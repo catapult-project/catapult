@@ -4,6 +4,7 @@
 
 from __future__ import absolute_import
 import unittest
+from unittest import mock
 
 from telemetry import decorators
 from telemetry.internal.browser import browser_finder
@@ -11,8 +12,6 @@ from telemetry.testing import options_for_unittests
 from telemetry.testing import tab_test_case
 from telemetry.timeline import tracing_config
 from telemetry.util import trace_processor
-
-import mock
 
 
 class TracingControllerTest(tab_test_case.TabTestCase):

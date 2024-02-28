@@ -4,8 +4,7 @@
 
 from __future__ import absolute_import
 import unittest
-
-import mock
+from unittest import mock
 
 from systrace.tracing_agents import atrace_agent as systrace_atrace_agent
 from telemetry.core import exceptions

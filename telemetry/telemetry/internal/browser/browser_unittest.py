@@ -8,6 +8,7 @@ import os
 import re
 import tempfile
 import unittest
+from unittest import mock
 
 from telemetry.core import exceptions
 from telemetry import decorators
@@ -20,8 +21,6 @@ from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
 
 from devil.android import app_ui
-
-import mock
 
 
 class IntentionalException(Exception):

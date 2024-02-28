@@ -6,8 +6,7 @@ from __future__ import absolute_import
 import shutil
 import tempfile
 import unittest
-
-import mock
+from unittest import mock
 
 from telemetry import android
 from telemetry import benchmark

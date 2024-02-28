@@ -3,10 +3,10 @@
 # found in the LICENSE file.
 from __future__ import absolute_import
 import unittest
+from unittest import mock
 
 from telemetry import decorators
 from telemetry.core import fuchsia_interface
-import mock
 
 class FuchsiaInterfaceTests(unittest.TestCase):
 

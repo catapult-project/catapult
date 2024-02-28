@@ -18,10 +18,9 @@ classes to work with these kinds of stories.
 
 from __future__ import absolute_import
 import posixpath
+from unittest import mock
 import six
 import six.moves.urllib.parse # pylint: disable=import-error,wrong-import-order
-
-import mock
 
 from telemetry.core import platform as platform_module
 from telemetry.core import util
