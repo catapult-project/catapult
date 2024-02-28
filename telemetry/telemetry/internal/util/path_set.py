@@ -3,11 +3,11 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
-import collections
+import collections.abc
 import os
 
 
-class PathSet(collections.MutableSet):
+class PathSet(collections.abc.MutableSet):
   """A set of paths.
 
   All mutation methods can take both directories or individual files, but the
@@ -27,19 +27,19 @@ class PathSet(collections.MutableSet):
   def __len__(self):
     return len(self._paths)
 
-  def add(self, path):
-    path = os.path.realpath(path)
-    if os.path.isfile(path):
-      self._paths.add(path)
-    for root, _, files in os.walk(path):
+  def add(self, value):
+    value = os.path.realpath(value)
+    if os.path.isfile(value):
+      self._paths.add(value)
+    for root, _, files in os.walk(value):
       for basename in files:
         file_path = os.path.join(root, basename)
         if os.path.isfile(file_path):
           self._paths.add(file_path)
 
-  def discard(self, path):
-    path = os.path.realpath(path)
-    self._paths.discard(path)
-    for root, _, files in os.walk(path):
+  def discard(self, value):
+    value = os.path.realpath(value)
+    self._paths.discard(value)
+    for root, _, files in os.walk(value):
       for basename in files:
         self._paths.discard(os.path.join(root, basename))
