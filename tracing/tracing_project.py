@@ -26,8 +26,6 @@ def GetDependencyPaths():
       p.py_vulcanize_path,
       p.vinn_path,
       p.protobuf_py3_path if sys.version_info[0] >= 3 else p.protobuf_path,
-      os.path.join(p.catapult_third_party_path, 'WebOb'),
-      os.path.join(p.catapult_third_party_path, 'Paste'),
       os.path.join(p.catapult_third_party_path, 'six'),
       os.path.join(p.catapult_third_party_path, 'webapp2'),
       os.path.join(p.catapult_path, 'common', 'py_utils'),

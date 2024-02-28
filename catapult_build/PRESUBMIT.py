@@ -32,11 +32,9 @@ def _GetPathsToPrepend(input_api):
       input_api.os_path.join(catapult_dir, 'common', 'py_vulcanize'),
       input_api.os_path.join(catapult_dir, 'dashboard'),
       input_api.os_path.join(catapult_dir, 'netlog_viewer'),
-      input_api.os_path.join(catapult_dir, 'third_party', 'Paste'),
       input_api.os_path.join(catapult_dir, 'third_party', 'beautifulsoup4'),
       input_api.os_path.join(catapult_dir, 'third_party', 'mock'),
       input_api.os_path.join(catapult_dir, 'third_party', 'typ'),
       input_api.os_path.join(catapult_dir, 'third_party', 'webapp2'),
-      input_api.os_path.join(catapult_dir, 'third_party', 'WebOb'),
       input_api.os_path.join(catapult_dir, 'tracing'),
   ]

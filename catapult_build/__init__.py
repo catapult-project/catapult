@@ -24,9 +24,7 @@ def _UpdateSysPathIfNeeded():
   _AddToPathIfNeeded(
       os.path.join(catapult_third_party_path, 'webencodings-0.5.1'))
   _AddToPathIfNeeded(os.path.join(catapult_third_party_path, 'six'))
-  _AddToPathIfNeeded(os.path.join(catapult_third_party_path, 'Paste'))
   _AddToPathIfNeeded(os.path.join(catapult_third_party_path, 'webapp2'))
-  _AddToPathIfNeeded(os.path.join(catapult_third_party_path, 'WebOb'))
   _AddToPathIfNeeded(os.path.join(catapult_path, 'tracing'))
   _AddToPathIfNeeded(os.path.join(catapult_path, 'perf_insights'))
   _AddToPathIfNeeded(os.path.join(catapult_path, 'dashboard'))

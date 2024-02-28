@@ -14,8 +14,10 @@ import six.moves.urllib.parse # pylint: disable=import-error
 
 from hooks import install
 
+# pylint: disable=import-error
 from paste import fileapp
 from paste import httpserver
+# pylint: enable=import-error
 
 import webapp2
 from webapp2 import Route, RedirectHandler
