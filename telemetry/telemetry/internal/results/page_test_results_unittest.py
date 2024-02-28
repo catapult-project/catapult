@@ -8,7 +8,8 @@ import shutil
 import sys
 import tempfile
 import unittest
-from unittest import mock
+
+import mock
 
 from telemetry.core import exceptions
 from telemetry.internal.results import page_test_results

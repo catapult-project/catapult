@@ -4,7 +4,8 @@
 
 from __future__ import absolute_import
 import logging
-from unittest import mock
+
+import mock
 
 from telemetry.testing import browser_backend_test_case
 from telemetry import decorators

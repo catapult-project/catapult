@@ -4,8 +4,8 @@
 
 from __future__ import absolute_import
 import unittest
-from unittest import mock
 import six
+import mock
 
 from telemetry import project_config
 from telemetry.internal.backends.chrome import chrome_startup_args

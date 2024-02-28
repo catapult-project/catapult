@@ -4,14 +4,15 @@
 
 from __future__ import absolute_import
 import json
-import logging
 import os
 import shutil
 import sys
 import tempfile
 import unittest
-from unittest import mock
+import logging
 import six
+
+import mock
 
 from py_utils import cloud_storage
 from py_utils.constants import exit_codes

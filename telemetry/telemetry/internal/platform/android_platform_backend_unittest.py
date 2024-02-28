@@ -5,13 +5,13 @@
 from __future__ import absolute_import
 import os
 import unittest
-from unittest import mock
 
 from telemetry import decorators
 from telemetry.core import util
 from telemetry.internal.platform import android_device
 from telemetry.internal.platform import android_platform_backend
 from telemetry.testing import system_stub
+import mock
 
 from devil.android import battery_utils
 from devil.android import device_utils

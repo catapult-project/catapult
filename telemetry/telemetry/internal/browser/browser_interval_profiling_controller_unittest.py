@@ -4,7 +4,8 @@
 
 from __future__ import absolute_import
 import unittest
-from unittest import mock
+
+import mock
 
 from devil.android.sdk import version_codes
 

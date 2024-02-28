@@ -7,7 +7,8 @@ import os
 import shutil
 import tempfile
 import unittest
-from unittest import mock
+
+import mock
 
 from telemetry.core import exceptions
 from telemetry.internal.util import binary_manager

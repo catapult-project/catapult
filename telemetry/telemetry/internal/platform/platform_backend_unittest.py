@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import
 import unittest
-from unittest import mock
+import mock
 
 from telemetry.core import platform as platform_module
 from telemetry.internal.platform import platform_backend

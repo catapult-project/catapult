@@ -5,10 +5,11 @@
 from __future__ import absolute_import
 import os
 import unittest
-from unittest import mock
 
 from telemetry import story
 from telemetry.page import page
+
+import mock
 
 
 class TestPage(unittest.TestCase):

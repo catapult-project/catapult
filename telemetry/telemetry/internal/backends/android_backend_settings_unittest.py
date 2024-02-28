@@ -4,7 +4,8 @@
 
 from __future__ import absolute_import
 import unittest
-from unittest import mock
+
+import mock
 
 from telemetry.internal.backends import android_browser_backend_settings as \
     backends

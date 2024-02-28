@@ -4,8 +4,9 @@
 
 from __future__ import absolute_import
 import unittest
-from unittest import mock
 import six.moves.urllib.request # pylint: disable=import-error
+
+import mock
 
 import py_utils
 

@@ -8,11 +8,11 @@ import shutil
 import tarfile
 import tempfile
 import unittest
-from unittest import mock
 
 from telemetry.core import fuchsia_interface
 from telemetry.internal.browser import browser_options
 from telemetry.internal.platform import fuchsia_device
+import mock
 
 _FUCHSIA_DEVICE_IMPORT_PATH = 'telemetry.internal.platform.fuchsia_device'
 
@@ -24,7 +24,7 @@ class FuchsiaDeviceTest(unittest.TestCase):
                         '.fuchsia_interface.run_ffx_command',
                     return_value=argparse.Namespace(
                         stdout='{"device":"list"}')):
-      self.assertEqual(fuchsia_device._FindFuchsiaDevice(), {"device": "list"})
+      self.assertEqual(fuchsia_device._FindFuchsiaDevice(), {"device":"list"})
 
   def testFindAllAvailableDevicesFailsNonFuchsiaBrowser(self):
     options = browser_options.BrowserFinderOptions('not_fuchsia_browser')
@@ -155,10 +155,7 @@ class FuchsiaSDKUsageTest(unittest.TestCase):
   def testFoundOneFuchsiaDevice(self):
     with mock.patch('os.path.exists', return_value=True):
       with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH + '._FindFuchsiaDevice',
-                      return_value=[{
-                          "addresses": ["a0"],
-                          "nodename": "n0"
-                      }]):
+                      return_value=[{"addresses":["a0"], "nodename":"n0"}]):
         found_devices = fuchsia_device.FindAllAvailableDevices(self._options)
         self.assertEqual(len(found_devices), 1)
         device = found_devices[0]
@@ -168,13 +165,9 @@ class FuchsiaSDKUsageTest(unittest.TestCase):
   def testFoundMultipleFuchsiaDevices(self):
     with mock.patch('os.path.exists', return_value=True):
       with mock.patch(_FUCHSIA_DEVICE_IMPORT_PATH + '._FindFuchsiaDevice',
-                      return_value=[{
-                          "addresses": ["a0"],
-                          "nodename": "n0"
-                      }, {
-                          "addresses": ["a1"],
-                          "nodename": "n1"
-                      }]):
+                      return_value=[
+                          {"addresses":["a0"], "nodename":"n0"},
+                          {"addresses":["a1"], "nodename":"n1"}]):
         found_devices = fuchsia_device.FindAllAvailableDevices(self._options)
         self.assertEqual(len(found_devices), 1)
         device = found_devices[0]

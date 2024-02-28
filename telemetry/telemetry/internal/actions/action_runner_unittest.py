@@ -4,7 +4,8 @@
 # found in the LICENSE file.
 from __future__ import absolute_import
 import unittest
-from unittest import mock
+
+import mock
 
 from telemetry.core import exceptions
 from telemetry import decorators

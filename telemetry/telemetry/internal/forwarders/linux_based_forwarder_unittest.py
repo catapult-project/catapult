@@ -4,7 +4,8 @@
 
 from __future__ import absolute_import
 import unittest
-from unittest import mock
+
+import mock
 
 from telemetry.internal.forwarders import linux_based_forwarder
 

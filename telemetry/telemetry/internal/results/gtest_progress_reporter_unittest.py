@@ -8,7 +8,8 @@ try:
 except ImportError:
   from io import StringIO
 import unittest
-from unittest import mock
+
+import mock
 
 from telemetry.internal.results import page_test_results
 from telemetry.testing import test_stories

@@ -7,7 +7,7 @@ import os
 import shutil
 import tempfile
 import unittest
-from unittest import mock
+import mock
 
 from pyfakefs import fake_filesystem_unittest
 

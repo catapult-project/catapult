@@ -3,7 +3,8 @@
 # found in the LICENSE file.
 from __future__ import absolute_import
 import unittest
-from unittest import mock
+
+import mock
 
 from telemetry.internal.platform import android_platform_backend
 from telemetry.internal.platform.tracing_agent import display_tracing_agent

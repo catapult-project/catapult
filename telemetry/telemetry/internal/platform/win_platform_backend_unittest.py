@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import
 import unittest
-from unittest import mock
+import mock
 
 from telemetry import decorators
 from telemetry.internal.platform import win_platform_backend

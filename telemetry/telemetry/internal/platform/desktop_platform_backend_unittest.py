@@ -5,7 +5,7 @@
 from __future__ import absolute_import
 import sys
 import unittest
-from unittest import mock
+import mock
 
 from telemetry.internal.platform import linux_platform_backend
 from telemetry.internal.platform import win_platform_backend
