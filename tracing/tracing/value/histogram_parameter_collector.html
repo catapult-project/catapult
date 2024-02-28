@@ -117,10 +117,8 @@ tr.exportTo('tr.v', function() {
 
     get labels() {
       const displayLabels = Array.from(this.labelsToStartTimes_.keys());
-      // Stop sorting the display labels by the benchmark start time.
-      // The sort will confuse the base and exp variant of pinpoint UI.
-      // displayLabels.sort((x, y) =>
-      //  this.labelsToStartTimes_.get(x) - this.labelsToStartTimes_.get(y));
+      displayLabels.sort((x, y) =>
+        this.labelsToStartTimes_.get(x) - this.labelsToStartTimes_.get(y));
       return displayLabels;
     }
 

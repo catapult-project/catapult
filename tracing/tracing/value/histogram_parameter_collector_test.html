@@ -21,6 +21,44 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(collector.labels, 0);
   });
 
+  test('sortLabels', function() {
+    const collector = new tr.v.HistogramParameterCollector();
+    collector.process([
+      tr.v.Histogram.create('', tr.b.Unit.byName.count, 0, {
+        diagnostics: new Map([
+          [
+            tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['A']),
+          ], [
+            tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(1000),
+          ],
+        ]),
+      }),
+      tr.v.Histogram.create('', tr.b.Unit.byName.count, 0, {
+        diagnostics: new Map([
+          [
+            tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['B']),
+          ], [
+            tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(3000),
+          ],
+        ]),
+      }),
+      tr.v.Histogram.create('', tr.b.Unit.byName.count, 0, {
+        diagnostics: new Map([
+          [
+            tr.v.d.RESERVED_NAMES.LABELS, new tr.v.d.GenericSet(['C']),
+          ], [
+            tr.v.d.RESERVED_NAMES.BENCHMARK_START, new tr.v.d.DateRange(2000),
+          ],
+        ]),
+      }),
+    ]);
+    const labels = collector.labels;
+    assert.lengthOf(labels, 3);
+    assert.strictEqual(labels[0], 'A');
+    assert.strictEqual(labels[1], 'C');
+    assert.strictEqual(labels[2], 'B');
+  });
+
   test('possibleGroupings', function() {
     const collector = new tr.v.HistogramParameterCollector();
     collector.process([
