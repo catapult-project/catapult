@@ -1102,8 +1102,24 @@ class AlertGroupWorkflow:
     ), anomalies
 
   def _StartPinpointBisectJob(self, regression):
+    pp_request = None
     try:
-      results = self._pinpoint.NewJob(self._NewPinpointRequest(regression))
+      pp_request = self._NewPinpointRequest(regression)
+    except pinpoint_request.InvalidParamsError as e:
+      six.raise_from(
+          InvalidPinpointRequest('Invalid pinpoint request: %s' % (e,)), e)
+
+    # Simultaneously trigger the pinpoint job in skia.
+    # We currently ignore the result, just to collect data.
+    try:
+      results = self._pinpoint.NewJobInSkia(pp_request)
+      logging.info('[Pinpoint Skia] Triggering %s', results)
+    except Exception as e: # pylint: disable=broad-except
+      # Caught all exceptions as we only need to trigger and log the runs.
+      logging.warning('[Pinpoint Skia] Error on triggering: %s\n%s', pp_request, e)
+
+    try:
+      results = self._pinpoint.NewJob(pp_request)
     except pinpoint_request.InvalidParamsError as e:
       six.raise_from(
           InvalidPinpointRequest('Invalid pinpoint request: %s' % (e,)), e)

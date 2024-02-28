@@ -14,12 +14,15 @@ from dashboard.common import utils
 from dashboard.services import request
 
 _PINPOINT_URL = 'https://pinpoint-dot-chromeperf.appspot.com'
-
+_PINPOINT_SKIA_URL = 'https://perf.skia.org'
 
 def NewJob(params):
   """Submits a new job request to Pinpoint."""
   return _Request(_PINPOINT_URL + '/api/new', params)
 
+def NewJobInSkia(params):
+  """Submits a new job request to Pinpoint in Skia."""
+  return _Request(_PINPOINT_SKIA_URL + '/pinpoint/v1/schedule', params)
 
 def _Request(endpoint, params):
   """Sends a request to an endpoint and returns JSON data."""
