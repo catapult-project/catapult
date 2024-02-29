@@ -269,7 +269,7 @@ class WprArchiveInfoTest(unittest.TestCase):
 
     self.assertDictEqual(expected_archive_contents, archive_file_contents)
     # Ensure the saved JSON does not contain trailing spaces.
-    with open(self.story_set_archive_info_file, 'rU') as f:
+    with open(self.story_set_archive_info_file) as f:
       for line in f:
         self.assertFalse(line.rstrip('\n').endswith(' '))
     self.assertWprFileDoesExist('story_name_abcdef0006.wprgo')
@@ -313,7 +313,7 @@ class WprArchiveInfoTest(unittest.TestCase):
 
     self.assertDictEqual(expected_archive_contents, archive_file_contents)
     # Ensure the saved JSON does not contain trailing spaces.
-    with open(self.story_set_archive_info_file, 'rU') as f:
+    with open(self.story_set_archive_info_file) as f:
       for line in f:
         self.assertFalse(line.rstrip('\n').endswith(' '))
     self.assertWprFileDoesExist('story_name_abcdef0006.wprgo')
@@ -376,7 +376,7 @@ class WprArchiveInfoTest(unittest.TestCase):
 
     self.assertDictEqual(expected_archive_contents, archive_file_contents)
     # Ensure the saved JSON does not contain trailing spaces.
-    with open(self.story_set_archive_info_file, 'rU') as f:
+    with open(self.story_set_archive_info_file) as f:
       for line in f:
         self.assertFalse(line.rstrip('\n').endswith(' '))
     self.assertWprFileDoesExist('story_name_abcdef0006.wprgo')
