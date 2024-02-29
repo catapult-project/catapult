@@ -73,7 +73,7 @@ class _BitmapTools():
     response = self._RunCommand(_BitmapTools.HISTOGRAM,
                                 ignore_color_int, tolerance)
     out = array.array('i')
-    out.fromstring(response)
+    out.frombytes(response)
     assert len(out) == 768, (
         'The ColorHistogram has the wrong number of buckets: %s' % len(out))
     return color_histogram.ColorHistogram(
