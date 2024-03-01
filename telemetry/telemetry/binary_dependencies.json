@@ -227,6 +227,10 @@
         "android_x86": {
           "cloud_storage_hash": "f7e70cb564be222c41dfbe549476ab18dfdec015",
           "download_path": "bin/android/x86/memtrack_helper"
+        },
+        "android_x86_64": {
+          "cloud_storage_hash": "5703a35ec38302d9247f961f066e6dc357035bc1",
+          "download_path": "bin/android/x64/memtrack_helper"
         }
       }
     },
@@ -359,6 +363,10 @@
         "android_x86": {
           "cloud_storage_hash": "ecf22e749eeeb91baeccb067306cf08c5fd0aa22",
           "download_path": "bin/android/x86/PushAppsToBackground.apk"
+        },
+        "android_x86_64": {
+          "cloud_storage_hash": "c48a84ab4eda6c2d25fbcaab99b0626f0c5dd40c",
+          "download_path": "bin/android/x64/PushAppsToBackground.apk"
         }
       }
     },
