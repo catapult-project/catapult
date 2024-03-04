@@ -8,6 +8,7 @@ import logging
 import os
 import sys
 
+from telemetry.core import optparse_argparse_migration as oam
 from telemetry.core import util
 from telemetry.core import platform as platform_module
 from telemetry import decorators
@@ -72,16 +73,20 @@ class RunTestsCommand(command_line.OptparseCommand):
                       default=False, help='Configure logging (default on)')
     parser.add_option('--use-persistent-shell', action='store_true',
                       help='Uses a persistent shell adb connection when set.')
-    parser.add_option('-v', '--verbose', action='count', dest='verbosity',
+    parser.add_option('-v',
+                      '--verbose',
+                      action='count',
+                      dest='verbosity',
+                      default=0,
                       help='Increase verbosity level (repeat as needed)')
 
-    typ.ArgumentParser.add_option_group(parser,
-                                        "Options for running the tests",
-                                        running=True,
-                                        skip=['-d', '-v', '--verbose'])
-    typ.ArgumentParser.add_option_group(parser,
-                                        "Options for reporting the results",
-                                        reporting=True)
+    group = oam.CreateOptionGroup(parser, 'Options for running the tests')
+    typ.ArgumentParser.add_arguments_to_parser(group,
+                                               running=True,
+                                               skip=['-d', '-v', '--verbose'])
+
+    group = oam.CreateOptionGroup(parser, 'Options for reporting the results')
+    typ.ArgumentParser.add_arguments_to_parser(group, reporting=True)
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args, _):

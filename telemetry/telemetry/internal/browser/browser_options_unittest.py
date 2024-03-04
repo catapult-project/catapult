@@ -23,22 +23,22 @@ class BrowserOptionsTest(unittest.TestCase):
   def testDefaults(self):
     options = browser_options.BrowserFinderOptions()
     parser = options.CreateParser()
-    parser.add_option('-x', action='store', default=3)
+    parser.add_option('-x', action='store', default=3, type=int)
     parser.parse_args(['--browser', 'any'])
     self.assertEqual(options.x, 3)  # pylint: disable=no-member
 
   def testDefaultsPlusOverride(self):
     options = browser_options.BrowserFinderOptions()
     parser = options.CreateParser()
-    parser.add_option('-x', action='store', default=3)
-    parser.parse_args(['--browser', 'any', '-x', 10])
+    parser.add_option('-x', action='store', default=3, type=int)
+    parser.parse_args(['--browser', 'any', '-x', '10'])
     self.assertEqual(options.x, 10)  # pylint: disable=no-member
 
   def testDefaultsDontClobberPresetValue(self):
     options = browser_options.BrowserFinderOptions()
     setattr(options, 'x', 7)
     parser = options.CreateParser()
-    parser.add_option('-x', action='store', default=3)
+    parser.add_option('-x', action='store', default=3, type=int)
     parser.parse_args(['--browser', 'any'])
     self.assertEqual(options.x, 7)  # pylint: disable=no-member
 
@@ -131,7 +131,7 @@ class BrowserOptionsTest(unittest.TestCase):
 
     self.assertTrue(options.already_true)
     self.assertFalse(options.already_false)
-    self.assertTrue(options.unset is None)
+    self.assertFalse(options.unset)
     self.assertTrue(options.default_true)
     self.assertFalse(options.default_false)
     self.assertFalse(options.override_to_true)
