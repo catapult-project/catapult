@@ -45,6 +45,7 @@ ADC_SERVICE_ACCOUNT = 'chromeperf@appspot.gserviceaccount.com'
 _CACHE_TIME = 60*60*2 # 2 hours
 DELAY_REPORTING_PLACEHOLDER = 'Speed>Regressions'
 DELAY_REPORTING_LABEL = 'Chromeperf-Delay-Reporting'
+REGRESSION_VERIFICATION_FAIL_COMPONENT = 'Speed>Dashboard'
 
 _AUTOROLL_DOMAINS = (
     'chops-service-accounts.iam.gserviceaccount.com',

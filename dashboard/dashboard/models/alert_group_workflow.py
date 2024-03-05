@@ -604,10 +604,13 @@ class AlertGroupWorkflow:
           self._group.project_id, self._group.bug.bug_id, execution['error'])
       comment = (
           '%s Regression verification %s for test: %s\n'
-          'failed. Proceed to bisection.' %
+          'failed. Do not proceed to bisection.' %
           (_SANDWICH, execution['name'], utils.TestPath(regression.test)))
       label = ['Regression-Verification-Failed']
-      proceed_with_bisect = True
+      self._group.updated = update.now
+      self._group.status = self._group.Status.closed
+      self._CommitGroup()
+      components = [utils.REGRESSION_VERIFICATION_FAIL_COMPONENT]
     elif execution['state'] == workflow_service.EXECUTION_STATE_CANCELLED:
       logging.info(
           'Regression verification %s for project: %s and '

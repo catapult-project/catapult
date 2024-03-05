@@ -56,6 +56,7 @@ COMPONENT_MAP_CR2B = {
   'Platform>DevTools>WebAssembly': 1456350,
   'Speed>BinarySize>Android': 1457059,
   'Speed>BinarySize>Desktop': 1456597,
+  'Speed>Dashboard': 1457390,
   'Speed>Regressions': 1457332,
   'Test>Telemetry': 1456742,
   'Speed>Tracing': 1457213,
@@ -114,6 +115,7 @@ COMPONENT_MAP_B2CR = {
   '1457234': 'chromium',
   '1456150': 'chromium',
   '1456190': 'chromium',
+  '1457390': 'chromium',
 
   # Fuchsia
   '1454999' : 'fuchsia',
@@ -131,7 +133,7 @@ PROJECT_MAP_CR2B = {
     '1456519', '1456587', '1456597', '1456675', '1456683', '1456718', '1456721',
     '1456742', '1456743', '1456771', '1456822', '1456824', '1457031', '1457059',
     '1457150', '1457163', '1457180', '1457213', '1457234', '1457293', '1457332',
-    '1456190'
+    '1456190', '1457390'
     ],
 
   # Fuchsia
