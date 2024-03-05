@@ -237,11 +237,7 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
         startup_args.append('--ppapi-flash-version=99.9.999.999')
 
     if self.profile_directory is not None:
-      if self._is_content_shell:
-        startup_args.append('--data-path=%s' % self.profile_directory)
-        startup_args.append('--user-data-dir=%s' % self.profile_directory)
-      else:
-        startup_args.append('--user-data-dir=%s' % self.profile_directory)
+      startup_args.append('--user-data-dir=%s' % self.profile_directory)
 
     trace_config_file = (self._platform_backend.tracing_controller_backend
                          .GetChromeTraceConfigFile())
