@@ -14,7 +14,7 @@ from dashboard.common import utils
 from dashboard.services import request
 
 _PINPOINT_URL = 'https://pinpoint-dot-chromeperf.appspot.com'
-_PINPOINT_SKIA_URL = 'https://perf.skia.org'
+_PINPOINT_SKIA_URL = 'https://perf.luci.app'
 
 def NewJob(params):
   """Submits a new job request to Pinpoint."""
