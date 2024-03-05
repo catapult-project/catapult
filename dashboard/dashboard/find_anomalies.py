@@ -418,6 +418,12 @@ def _MakeAnomalyEntity(change_point, test, stat, rows, config, matching_sub):
   bot_id_before = _GetBotIdForRevisionNumber(rows, change_point.extended_start)
   bot_id_after = _GetBotIdForRevisionNumber(rows, change_point.extended_end)
 
+  new_bot_id_before = _GetBotIdForRevisionNumber(rows, start_rev - 1)
+  logging.debug('bot_id_before: %s, new_bot_id_before: %s, bot_id_after: %s',
+                bot_id_before, new_bot_id_before, bot_id_after)
+  logging.debug('start_rev: %s, extended_start: %s, end_rev: %s',
+                start_rev, change_point.extended_start, end_rev)
+
   suite_key = test.key.id().split('/')[:3]
   suite_key = '/'.join(suite_key)
   suite_key = utils.TestKey(suite_key)
