@@ -280,6 +280,10 @@ class SharedStorageTabTest(tab_test_case.TabTestCase):
     expected_json = sorted([json.dumps(entry) for entry in expected_entries])
     self.assertEqual(entries_json, expected_json)
 
+  # crbug.com/41494962: Temporarily disable until https://crrev.com/c/5348341
+  # can land, after which this test will need to be updated so that the
+  # `params` for `documentSet` include `ignoreIfPresent`.
+  @decorators.Disabled('all')
   def testWaitForSharedStorageEventsStrict_Passes(self):
     if not self._shared_storage_testable:
       return
@@ -363,6 +367,10 @@ class SharedStorageTabTest(tab_test_case.TabTestCase):
     self.VerifyEntries(entries,
                        expected_entries=[{'key': 'test', 'value': 'set'}])
 
+  # crbug.com/41494962: Temporarily disable until https://crrev.com/c/5348341
+  # can land, after which this test will need to be updated so that the
+  # `params` for `documentSet` include `ignoreIfPresent`.
+  @decorators.Disabled('all')
   def testGetSharedStorageMetadata_SetAdditional(self):
     if not self._shared_storage_testable:
       return
@@ -386,6 +394,10 @@ class SharedStorageTabTest(tab_test_case.TabTestCase):
     self.VerifyMetadata(metadata, expected_length=4,
                         expected_remaining_budget=12)
 
+  # crbug.com/41494962: Temporarily disable until https://crrev.com/c/5348341
+  # can land, after which this test will need to be updated so that the
+  # `params` for `documentSet` include `ignoreIfPresent`.
+  @decorators.Disabled('all')
   def testGetSharedStorageEntries_SetAdditional(self):
     if not self._shared_storage_testable:
       return
