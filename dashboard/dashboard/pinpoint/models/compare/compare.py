@@ -141,21 +141,18 @@ def Compare(values_a,
           'new result: %s, actual result: %s', job_id,
           benchmark_arguments.benchmark, benchmark_arguments.chart,
           benchmark_arguments.story, new_comparison_result, comparison_result)
-      # Apply the new comparison result to the top two benchmarks,
-      # against them autobisect jobs cannot find culprit.
-      if (benchmark_arguments.benchmark == 'rendering.desktop'
-          or benchmark_arguments.benchmark == 'system_health.common_desktop'):
-        logging.debug(
-            'BisectDebug: Return new comparison result, '
-            'job_id: %s, benchmark: %s, chart: %s, story: %s, '
-            'new result: %s, old result: %s', job_id,
-            benchmark_arguments.benchmark, benchmark_arguments.chart,
-            benchmark_arguments.story, new_comparison_result,
-            comparison_result)
-        return new_comparison_result
-    else:
+      # Apply the new comparison result to all benchmarks
       logging.debug(
-          'BisectDebug: Found different comparison result, new result: %s, actual result: %s',
-          new_comparison_result, comparison_result)
+          'BisectDebug: Return new comparison result, '
+          'job_id: %s, benchmark: %s, chart: %s, story: %s, '
+          'new result: %s, old result: %s', job_id,
+          benchmark_arguments.benchmark, benchmark_arguments.chart,
+          benchmark_arguments.story, new_comparison_result,
+          comparison_result)
+      return new_comparison_result
+
+    logging.debug(
+        'BisectDebug: Found different comparison result, new result: %s, actual result: %s',
+        new_comparison_result, comparison_result)
 
   return comparison_result
