@@ -100,6 +100,7 @@ def MakeBisectionRequest(test,
       'target': target,
       'priority': priority,
       'tags': json.dumps(tags or {}),
+      'initial_attempt_count': 20,
   }
 
   pinpoint_params.update({
