@@ -192,7 +192,7 @@ def RegressionDetection(request):
   ci_upper = statistic.get('upper')
   p_value = statistic.get('p_value')
 
-  if ci_lower is None or ci_upper is None or p_value is None:
+  if (ci_lower is None or ci_upper is None) and p_value is None:
     return ("Bad request; ci_upper: %s, ci_lower: %s, p_value: %s" %  ci_lower,
     ci_upper, p_value), 400
 
@@ -202,7 +202,10 @@ def RegressionDetection(request):
   # specific attributes such as the anomaly's magnitude or the
   # subscription thresholds.
   # CI values might be Infinity if the result changes from zero to none zero
-  if ci_lower == "Infinity" or ci_upper == "Infinity":
+  if p_value is None:
+    if (ci_lower != "Infinity" and ci_upper != "Infinity") and (ci_lower * ci_upper > 0):
+      decision = True
+  elif ci_lower is None or ci_upper is None or ci_lower == "Infinity" or ci_upper == "Infinity":
     if p_value < 0.05:
       decision = True
   elif ci_lower * ci_upper > 0 and p_value < 0.05:
