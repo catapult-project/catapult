@@ -607,10 +607,17 @@ class ResultSinkReporterTest(unittest.TestCase):
     def testReportResultEarlyReturnIfNotSupported(self):
         self.setLuciContextWithContent({})
         rsr = result_sink.ResultSinkReporter(self._host)
+        # We need to keep a reference to this and restore it later when we're
+        # done testing, otherwise subsequent tests can end up failing due to
+        # trying to use the monkey patched function.
+        original_function = result_sink._create_json_test_result
         result_sink._create_json_test_result = lambda: 1/0
-        self.assertEqual(rsr._report_result(
-                'test_id', json_results.ResultType.Pass, True, {}, {},
-                '<pre>summary</pre>', 1, {}, None), 0, {})
+        try:
+            self.assertEqual(rsr._report_result(
+                    'test_id', json_results.ResultType.Pass, True, {}, {},
+                    '<pre>summary</pre>', 1, {}, None), 0, {})
+        finally:
+            result_sink._create_json_test_result = original_function
 
     def testCreateJsonTestResultInvalidStatus(self):
         with self.assertRaises(ValueError):
