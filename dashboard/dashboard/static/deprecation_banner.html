@@ -85,9 +85,9 @@ found in the LICENSE file.
           {'path': location.pathname + location.search},
           function(response) {
             this.isInternal = JSON.parse(response.is_internal_user);
+            this.webrtc_url = 'https://webrtc-perf.luci.app';
             if(this.isInternal) {
               this.chromium_url = 'https://chrome-perf.corp.goog/';
-              this.webrtc_url = 'https://webrtc-perf.corp.goog';
               this.v8_url = 'https://v8-perf.corp.goog';
               this.cdm_url = 'https://widevine-cdm-perf.corp.goog';
               this.whitebox_url = 'https://widevine-whitebox-perf.corp.goog';
@@ -95,7 +95,6 @@ found in the LICENSE file.
             }
             else {
               this.chromium_url = 'https://perf.luci.app/';
-              this.webrtc_url = 'https://webrtc-perf.luci.app';
             }
           }.bind(this));
       }
