@@ -56,53 +56,6 @@ _NUMERAL_BUG_ID_RE = re.compile(r'[1-9]\d*')
 _MONORAIL_PROJECT_NAMES = frozenset(
     {'chromium', 'v8', 'angleproject', 'skia', 'dawn'})
 
-def CheckChangeLogBug(input_api, output_api):
-  # Show a presubmit message if there is no Bug line or an empty Bug line.
-  if not input_api.change.BugsFromDescription():
-    return [output_api.PresubmitNotifyResult(
-        'If this change has associated bugs on GitHub, Issuetracker or '
-        'Monorail, add a "Bug: <bug>(, <bug>)*" line to the patch description '
-        'where <bug> can be one of the following: catapult:#NNNN, b:NNNNNN, ' +
-        ', '.join('%s:NNNNNN' % n for n in _MONORAIL_PROJECT_NAMES) + '.')]
-
-  # Check that each bug in the BUG= line has the correct format.
-  error_messages = []
-  catapult_bug_provided = False
-
-  for index, bug in enumerate(input_api.change.BugsFromDescription()):
-    # Check if the bug can be split into a repository name and a bug ID (e.g.
-    # 'catapult:#1234' -> 'catapult' and '#1234').
-    bug_parts = bug.split(':')
-    if len(bug_parts) != 2:
-      error_messages.append('Invalid bug "%s". Bugs should be provided in the '
-                            '"<project-name>:<bug-id>" format.' % bug)
-      continue
-    project_name, bug_id = bug_parts
-
-    if project_name == 'catapult':
-      if not _GITHUB_BUG_ID_RE.match(bug_id):
-        error_messages.append('Invalid bug "%s". Bugs in the Catapult '
-                              'repository should be provided in the '
-                              '"catapult:#NNNN" format.' % bug)
-      catapult_bug_provided = True
-    elif project_name == 'b':
-      if not _NUMERAL_BUG_ID_RE.match(bug_id):
-        error_messages.append('Invalid bug "%s". Bugs in the Issuetracker '
-                              'should be provided in the '
-                              '"b:NNNNNN" format.' % bug)
-    elif project_name in _MONORAIL_PROJECT_NAMES:
-      if not _NUMERAL_BUG_ID_RE.match(bug_id):
-        error_messages.append('Invalid bug "%s". Bugs in the Monorail %s '
-                              'project should be provided in the '
-                              '"%s:NNNNNN" format.' % (bug, project_name,
-                                                       project_name))
-    else:
-      error_messages.append('Invalid bug "%s". Unknown repository "%s".' % (
-          bug, project_name))
-
-  return map(output_api.PresubmitError, error_messages)
-
-
 def CheckChange(input_api, output_api):
   results = []
   try:
@@ -117,7 +70,6 @@ def CheckChange(input_api, output_api):
         input_api, output_api, excluded_paths=_EXCLUDED_PATHS)
     results += input_api.RunTests(
         input_api.canned_checks.CheckVPythonSpec(input_api, output_api))
-    results += CheckChangeLogBug(input_api, output_api)
     results += js_checks.RunChecks(
         input_api, output_api, excluded_paths=_EXCLUDED_PATHS)
     results += input_api.RunTests(
