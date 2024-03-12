@@ -522,8 +522,8 @@ class _RunTestExecution(execution_module.Execution):
             '--remote=%s' % self._bot_id,
             '--device=%s' % self._bot_id
         ]
-        # Replace 'variable_chromeos_device_hostname' with bot id. Magic variable
-        # doesn't exist in chromeos-swarming.
+        # Replace 'variable_chromeos_device_hostname' with bot id.
+        # Magic variable doesn't exist in chromeos-swarming.
         command = self.command[:-1] + skylab_args + self._extra_args
       else:
         command = self.command + self._extra_args
@@ -563,19 +563,6 @@ class _RunTestExecution(execution_module.Execution):
       # tags, and we should add those to the Swarming Pub/Sub updates.
       body.update({
           'tags': ['%s:%s' % (k, v) for k, v in self._swarming_tags.items()],
-          # TODO(dberris): Consolidate constants in environment vars?
-          'pubsub_topic':
-              'projects/chromeperf/topics/pinpoint-swarming-updates',
-          'pubsub_auth_token':
-              'UNUSED',
-          'pubsub_userdata':
-              json.dumps({
-                  'job_id': self._swarming_tags.get('pinpoint_job_id'),
-                  'task': {
-                      'type': 'test',
-                      'id': self._swarming_tags.get('pinpoint_task_id'),
-                  },
-              }),
       })
 
     logging.debug('Requesting swarming task with parameters: %s', body)

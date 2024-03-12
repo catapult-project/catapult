@@ -139,12 +139,6 @@ class _RunTestExecutionTest(unittest.TestCase):
             mock.ANY,
         'priority':
             '100',
-        'pubsub_topic':
-            'projects/chromeperf/topics/pinpoint-swarming-updates',
-        'pubsub_auth_token':
-            'UNUSED',
-        'pubsub_userdata':
-            mock.ANY,
         'service_account':
             mock.ANY,
         'task_slices': [{
