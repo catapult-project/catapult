@@ -107,7 +107,7 @@ for your Chromium checkout and adding the following lines:
 ```
 
 In order to be able to land patches, you will most likely need to update the
-`origin` remote in your catapult checkout to point directly to this GitHub
+`origin` remote in your catapult checkout to point directly to this
 repository. You can do this by executing the following command inside the
 catapult folder (third_party/catapult):
 

@@ -143,13 +143,6 @@ sets.
 *   [Profile generation](https://sites.google.com/a/chromium.org/dev/developers/telemetry/telemetry-profile-generation)
 *   [Telemetry unittests](/telemetry/docs/run_telemetry_tests.md)
 
-## Contact Us or Follow Along
-
-If you have questions, please email telemetry@chromium.org.
-
-You can keep up with Telemetry related discussions by joining the
-[telemetry group](https://groups.google.com/a/chromium.org/forum/#!forum/telemetry).
-
 ## Frequently Asked Questions
 
 ### I get an error when I try to use recorded story sets.
