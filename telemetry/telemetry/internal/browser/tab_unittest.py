@@ -280,10 +280,6 @@ class SharedStorageTabTest(tab_test_case.TabTestCase):
     expected_json = sorted([json.dumps(entry) for entry in expected_entries])
     self.assertEqual(entries_json, expected_json)
 
-  # crbug.com/41494962: Temporarily disable until https://crrev.com/c/5348341
-  # can land, after which this test will need to be updated so that the
-  # `params` for `documentSet` include `ignoreIfPresent`.
-  @decorators.Disabled('all')
   def testWaitForSharedStorageEventsStrict_Passes(self):
     if not self._shared_storage_testable:
       return
@@ -295,11 +291,22 @@ class SharedStorageTabTest(tab_test_case.TabTestCase):
                                promise=True)
     self._tab.EvaluateJavaScript("window.sharedStorage.delete('a')",
                                promise=True)
-    expected_events = [{'type': 'documentSet',
-                        'params': {'key': 'a', 'value': 'b'}},
-                       {'type': 'documentAppend',
-                        'params': {'key': 'c', 'value': 'd'}},
-                       {'type': 'documentDelete'}]
+    expected_events = [{
+        'type': 'documentSet',
+        'params': {
+            'key': 'a',
+            'value': 'b',
+            'ignoreIfPresent': False
+        }
+    }, {
+        'type': 'documentAppend',
+        'params': {
+            'key': 'c',
+            'value': 'd'
+        }
+    }, {
+        'type': 'documentDelete'
+    }]
     self._tab.WaitForSharedStorageEvents(expected_events, mode='strict')
 
   def testWaitForSharedStorageEventsStrict_Fails(self):
@@ -311,9 +318,16 @@ class SharedStorageTabTest(tab_test_case.TabTestCase):
                                promise=True)
     self._tab.EvaluateJavaScript("window.sharedStorage.delete('a')",
                                promise=True)
-    expected_events = [{'type': 'documentDelete'},
-                       {'type': 'documentSet',
-                        'params': {'key': 'a', 'value': 'b'}}]
+    expected_events = [{
+        'type': 'documentDelete'
+    }, {
+        'type': 'documentSet',
+        'params': {
+            'key': 'a',
+            'value': 'b',
+            'ignoreIfPresent': False
+        }
+    }]
     with self.assertRaises(py_utils.TimeoutException):
       self._tab.WaitForSharedStorageEvents(expected_events, mode='strict',
                                          timeout=10)
@@ -343,10 +357,19 @@ class SharedStorageTabTest(tab_test_case.TabTestCase):
                                promise=True)
     self._tab.EvaluateJavaScript("window.sharedStorage.delete('a')",
                                promise=True)
-    expected_events = [{'type': 'documentSet',
-                        'params': {'key': 'a', 'value': 'b'}},
-                       {'type': 'documentDelete',
-                        'params': {'key': 'c'}}]
+    expected_events = [{
+        'type': 'documentSet',
+        'params': {
+            'key': 'a',
+            'value': 'b',
+            'ignoreIfPresent': False
+        }
+    }, {
+        'type': 'documentDelete',
+        'params': {
+            'key': 'c'
+        }
+    }]
     with self.assertRaises(py_utils.TimeoutException):
       self._tab.WaitForSharedStorageEvents(expected_events, mode='relaxed',
                                          timeout=10)
@@ -367,10 +390,6 @@ class SharedStorageTabTest(tab_test_case.TabTestCase):
     self.VerifyEntries(entries,
                        expected_entries=[{'key': 'test', 'value': 'set'}])
 
-  # crbug.com/41494962: Temporarily disable until https://crrev.com/c/5348341
-  # can land, after which this test will need to be updated so that the
-  # `params` for `documentSet` include `ignoreIfPresent`.
-  @decorators.Disabled('all')
   def testGetSharedStorageMetadata_SetAdditional(self):
     if not self._shared_storage_testable:
       return
@@ -380,24 +399,36 @@ class SharedStorageTabTest(tab_test_case.TabTestCase):
                                promise=True)
     self._tab.EvaluateJavaScript("window.sharedStorage.append('y', 'b')",
                                promise=True)
-    self._tab.EvaluateJavaScript("window.sharedStorage.set('x', 'c')",
-                                 promise=True)
-    expected_events = [{'type': 'documentSet',
-                        'params': {'key': 'z', 'value': 'a'}},
-                       {'type': 'documentAppend',
-                        'params': {'key': 'y', 'value': 'b'}},
-                       {'type': 'documentSet',
-                        'params': {'key': 'x', 'value': 'c'}}]
+    self._tab.EvaluateJavaScript(
+        "window.sharedStorage.set('x', 'c', {ignoreIfPresent: true})",
+        promise=True)
+    expected_events = [{
+        'type': 'documentSet',
+        'params': {
+            'key': 'z',
+            'value': 'a',
+            'ignoreIfPresent': False
+        }
+    }, {
+        'type': 'documentAppend',
+        'params': {
+            'key': 'y',
+            'value': 'b'
+        }
+    }, {
+        'type': 'documentSet',
+        'params': {
+            'key': 'x',
+            'value': 'c',
+            'ignoreIfPresent': True
+        }
+    }]
     self._tab.WaitForSharedStorageEvents(expected_events, mode='strict')
 
     metadata = self._tab.GetSharedStorageMetadata(self.origin)
     self.VerifyMetadata(metadata, expected_length=4,
                         expected_remaining_budget=12)
 
-  # crbug.com/41494962: Temporarily disable until https://crrev.com/c/5348341
-  # can land, after which this test will need to be updated so that the
-  # `params` for `documentSet` include `ignoreIfPresent`.
-  @decorators.Disabled('all')
   def testGetSharedStorageEntries_SetAdditional(self):
     if not self._shared_storage_testable:
       return
@@ -407,14 +438,30 @@ class SharedStorageTabTest(tab_test_case.TabTestCase):
                                promise=True)
     self._tab.EvaluateJavaScript("window.sharedStorage.append('y', 'b')",
                                promise=True)
-    self._tab.EvaluateJavaScript("window.sharedStorage.set('x', 'c')",
-                                 promise=True)
-    expected_events = [{'type': 'documentSet',
-                        'params': {'key': 'z', 'value': 'a'}},
-                       {'type': 'documentAppend',
-                        'params': {'key': 'y', 'value': 'b'}},
-                       {'type': 'documentSet',
-                        'params': {'key': 'x', 'value': 'c'}}]
+    self._tab.EvaluateJavaScript(
+        "window.sharedStorage.set('x', 'c', {ignoreIfPresent: true})",
+        promise=True)
+    expected_events = [{
+        'type': 'documentSet',
+        'params': {
+            'key': 'z',
+            'value': 'a',
+            'ignoreIfPresent': False
+        }
+    }, {
+        'type': 'documentAppend',
+        'params': {
+            'key': 'y',
+            'value': 'b'
+        }
+    }, {
+        'type': 'documentSet',
+        'params': {
+            'key': 'x',
+            'value': 'c',
+            'ignoreIfPresent': True
+        }
+    }]
     self._tab.WaitForSharedStorageEvents(expected_events, mode='strict')
 
     entries = self._tab.GetSharedStorageEntries(self.origin)
