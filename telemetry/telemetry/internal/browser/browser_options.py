@@ -4,6 +4,7 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
+import argparse
 import atexit
 import copy
 import logging
@@ -33,7 +34,7 @@ def _IsWin():
   return sys.platform == 'win32'
 
 
-class BrowserFinderOptions(oam.ArgumentValues):
+class BrowserFinderOptions(argparse.Namespace):
   """Options to be used for discovering a browser."""
 
   emulator_environment = None
@@ -570,7 +571,8 @@ class BrowserFinderOptions(oam.ArgumentValues):
 
   def MergeDefaultValues(self, defaults):
     for k, v in defaults.__dict__.items():
-      self.ensure_value(k, v)
+      if not hasattr(self, k) or getattr(self, k) is None:
+        setattr(self, k, v)
 
 
 class BrowserOptions():

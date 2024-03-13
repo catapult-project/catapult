@@ -82,7 +82,7 @@ class ArgumentParser(argparse.ArgumentParser):
         # it exists.
         assert defaults[k] == v
       defaults[k] = v
-    return ArgumentValues(**defaults)
+    return argparse.Namespace(**defaults)
 
   @property
   def option_list(self):
@@ -101,15 +101,6 @@ class _ArgumentGroup(argparse._ArgumentGroup):
   @property
   def option_list(self):
     return self._actions
-
-
-# Used by BrowserFinderOptions
-class ArgumentValues(argparse.Namespace):
-  # To be filled in over time.
-  def ensure_value(self, attr, value):
-    if not hasattr(self, attr) or getattr(self, attr) is None:
-      setattr(self, attr, value)
-    return getattr(self, attr)
 
 
 def CreateOptionGroup(parser, title, description=None):
