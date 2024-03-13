@@ -1645,9 +1645,9 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             issue=self._issue_tracker.issue,
         ))
     self.assertEqual([
-        'Chromeperf-Auto-Triaged', 'M-61', 'Pri-2',
-        'Pri-3', 'Regression-Verification-Failed', 'Restrict-View-Google',
-        'Type-Bug', 'Type-Bug-Regression'
+        'Chromeperf-Auto-Closed', 'Chromeperf-Auto-Triaged', 'M-61', 'Pri-2',
+        'Pri-3', 'Regression-Verification-Failed',
+        'Restrict-View-Google', 'Type-Bug', 'Type-Bug-Regression'
     ], sorted(self._issue_tracker.issue.get('labels')))
     self.assertEqual([utils.REGRESSION_VERIFICATION_FAIL_COMPONENT],
                      self._issue_tracker.issue.get('components'))
@@ -1667,9 +1667,9 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         self._issue_tracker.calls[1]['kwargs'], {
             'comment':
                 mock.ANY,
-            'status': 'Unconfirmed',
+            'status': 'WontFix',
             'labels':
-                ['Regression-Verification-Failed'],
+                ['Chromeperf-Auto-Closed', 'Regression-Verification-Failed'],
             'send_email': False,
             'components': [utils.REGRESSION_VERIFICATION_FAIL_COMPONENT],
         })

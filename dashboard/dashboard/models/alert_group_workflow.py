@@ -606,7 +606,8 @@ class AlertGroupWorkflow:
           '%s Regression verification %s for test: %s\n'
           'failed. Do not proceed to bisection.' %
           (_SANDWICH, execution['name'], utils.TestPath(regression.test)))
-      label = ['Regression-Verification-Failed']
+      label = ['Regression-Verification-Failed', 'Chromeperf-Auto-Closed']
+      status = 'WontFix'
       self._group.updated = update.now
       self._group.status = self._group.Status.closed
       self._CommitGroup()
