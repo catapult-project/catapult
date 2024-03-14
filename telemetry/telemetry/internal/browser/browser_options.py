@@ -324,10 +324,12 @@ class BrowserFinderOptions(oam.ArgumentValues):
         'which is supported only on Linux and Android, or system-wide, which '
         'is supported only on ChromeOS.')
     group.add_option(
-        '--interval-profiling-period', dest='interval_profiling_periods',
-        type='choice',
+        '--interval-profiling-period',
+        dest='interval_profiling_periods',
         choices=('navigation', 'interactions', 'story_run'),
-        action='append', default=[], metavar='PERIOD',
+        action='append',
+        default=[],
+        metavar='PERIOD',
         help='Run the CPU profiler during this test period. '
         'May be specified multiple times except when the story_run period is '
         'used; available choices are ["navigation", "interactions", '
@@ -364,7 +366,7 @@ class BrowserFinderOptions(oam.ArgumentValues):
         if k in self.__dict__ and self.__dict__[k] is not None:
           continue
         self.__dict__[k] = v
-      ret = real_parse(args, self)  # pylint: disable=E1121
+      ret = real_parse(args, self)
 
       if self.chromium_output_dir:
         os.environ['CHROMIUM_OUTPUT_DIR'] = self.chromium_output_dir
@@ -671,7 +673,6 @@ class BrowserOptions():
     group.add_option(
         '--profile-type',
         dest='profile_type',
-        type='choice',
         default='clean',
         choices=profile_choices,
         help=('The user profile to use. A clean profile is used by default. '
@@ -698,15 +699,15 @@ class BrowserOptions():
     group.add_option(
         '--browser-logging-verbosity',
         dest='logging_verbosity',
-        type='choice',
         choices=cls._LOGGING_LEVELS,
         help=('Browser logging verbosity. The log file is saved in temp '
               "directory. Note that logging affects the browser's "
-              'performance. Supported values: %s. Defaults to %s.' % (
-                  ', '.join(cls._LOGGING_LEVELS), cls._DEFAULT_LOGGING_LEVEL)))
+              'performance. Supported values: %s. Defaults to %s.' %
+              (', '.join(cls._LOGGING_LEVELS), cls._DEFAULT_LOGGING_LEVEL)))
     group.add_option(
         '--assert-gpu-compositing',
-        dest='assert_gpu_compositing', action='store_true',
+        dest='assert_gpu_compositing',
+        action='store_true',
         help='Assert the browser uses gpu compositing and not software path.')
     parser.add_option_group(group)
 
