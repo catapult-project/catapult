@@ -72,12 +72,12 @@ class ParseArgsTests(unittest.TestCase):
   def testRunHelp(self):
     with self.assertRaises(ParserExit):
       parser.ParseArgs(self.mock_config, ['run', '--help'])
-    self.assertIn('--browser BROWSER_TYPE', sys.stdout.getvalue())
+    self.assertIn('--browser=BROWSER_TYPE', sys.stdout.getvalue())
 
   def testRunBenchmarkHelp(self):
     with self.assertRaises(ParserExit):
       parser.ParseArgs(self.mock_config, ['example_benchmark', '--help'])
-    self.assertIn('--browser BROWSER_TYPE', sys.stdout.getvalue())
+    self.assertIn('--browser=BROWSER_TYPE', sys.stdout.getvalue())
 
   def testListBenchmarks(self):
     args = parser.ParseArgs(self.mock_config, ['list', '--json', 'output.json'])
@@ -178,7 +178,7 @@ class ParseArgsTests(unittest.TestCase):
     with self.assertRaises(ParserExit):
       parser.ParseArgs(
           self.mock_config, ['run', '--help'], results_arg_parser=my_parser)
-    self.assertIn('--browser BROWSER_TYPE', sys.stdout.getvalue())
+    self.assertIn('--browser=BROWSER_TYPE', sys.stdout.getvalue())
     self.assertIn('--extra-special-option', sys.stdout.getvalue())
 
   def testListBenchmarks_WithExternalHelp(self):
@@ -189,5 +189,5 @@ class ParseArgsTests(unittest.TestCase):
     with self.assertRaises(ParserExit):
       parser.ParseArgs(
           self.mock_config, ['list', '--help'], results_arg_parser=my_parser)
-    self.assertIn('--browser BROWSER_TYPE', sys.stdout.getvalue())
+    self.assertIn('--browser=BROWSER_TYPE', sys.stdout.getvalue())
     self.assertNotIn('--extra-special-option', sys.stdout.getvalue())
