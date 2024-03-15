@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 from __future__ import absolute_import
 import logging
+import os
 
 from telemetry.core import platform
 from telemetry.internal.platform import device
@@ -34,7 +35,8 @@ class LinuxBasedDevice(device.Device):
 
   @classmethod
   def FindAllAvailableDevices(cls, options):
-    use_ssh = options.remote and cmd_util.HasSSH()
+    use_ssh = (options.remote
+               or options.fetch_cros_remote) and cmd_util.HasSSH()
     if not use_ssh and not cls.PlatformIsRunningOS():
       logging.debug('No --remote specified, and not running on %s.',
                     cls.OS_NAME)
@@ -42,11 +44,18 @@ class LinuxBasedDevice(device.Device):
 
     logging.debug('Found a linux based device')
 
+    remote = options.remote
+    if options.fetch_cros_remote:
+      # In Skylab, we can extract hostname from bot ID, since
+      # bot ID is formatted as "{prefix}{hostname}".
+      bot_id = os.environ.get('SWARMING_BOT_ID')
+      if bot_id:
+        remote = _get_cros_hostname_from_bot_id(bot_id)
+
     # TODO: This will assume all remote devices are valid, even
     # if not reachable
     return [
-        cls(options.remote, options.remote_ssh_port,
-            options.ssh_identity, not use_ssh)
+        cls(remote, options.remote_ssh_port, options.ssh_identity, not use_ssh)
     ]
 
   @property
@@ -64,3 +73,11 @@ class LinuxBasedDevice(device.Device):
   @property
   def is_local(self):
     return self._is_local
+
+
+def _get_cros_hostname_from_bot_id(bot_id):
+  """Parse hostname from a ChromeOS Swarming bot id."""
+  for prefix in ['cros-', 'crossk-']:
+    if bot_id.startswith(prefix):
+      return bot_id[len(prefix):]
+  return bot_id

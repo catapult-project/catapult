@@ -259,8 +259,8 @@ def SelectDefaultBrowser(possible_browsers):
 
 
 def CanFindAvailableBrowsers(finder_options):
-  return (cros_device.IsRunningOnCrOS() or finder_options.remote or
-          linux_based_interface.HasSSH())
+  return (cros_device.IsRunningOnCrOS() or finder_options.fetch_cros_remote
+          or finder_options.remote or linux_based_interface.HasSSH())
 
 
 def FindAllBrowserTypes():

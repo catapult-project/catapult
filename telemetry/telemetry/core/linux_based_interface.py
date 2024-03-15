@@ -130,7 +130,7 @@ def _Unquote(s):
 
 class LinuxBasedInterface:
 
-  _DEFAULT_SSH_CONNECTION_TIMEOUT = 5
+  _DEFAULT_SSH_CONNECTION_TIMEOUT = 30
   _DEFAULT_SSH_COMMAND = [
       'ssh', '-o ForwardX11=no', '-o ForwardX11Trusted=no', '-n'
   ]
