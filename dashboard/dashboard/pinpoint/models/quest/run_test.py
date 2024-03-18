@@ -184,10 +184,7 @@ class RunTest(quest.Quest):
 
   def _GetDimensions(self, index):
     # Adds a bot_id to dimensions
-    if not hasattr(
-        self,
-        '_comparison_mode') or self._comparison_mode != 'try' or not hasattr(
-            self, '_bots'):
+    if not hasattr(self, '_bots') or self._bots is None:
       return self._dimensions
     dimensions = list(self._dimensions)
 
