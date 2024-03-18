@@ -611,7 +611,6 @@ class AlertGroupWorkflow:
       self._group.updated = update.now
       self._group.status = self._group.Status.closed
       self._CommitGroup()
-      components = [utils.REGRESSION_VERIFICATION_FAIL_COMPONENT]
     elif execution['state'] == workflow_service.EXECUTION_STATE_CANCELLED:
       logging.info(
           'Regression verification %s for project: %s and '

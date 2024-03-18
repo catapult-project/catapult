@@ -1649,8 +1649,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         'Pri-3', 'Regression-Verification-Failed',
         'Restrict-View-Google', 'Type-Bug', 'Type-Bug-Regression'
     ], sorted(self._issue_tracker.issue.get('labels')))
-    self.assertEqual([utils.REGRESSION_VERIFICATION_FAIL_COMPONENT],
-                     self._issue_tracker.issue.get('components'))
+    self.assertNotIn('should>not>set>component', self._issue_tracker.issue.get('components'))
     self.assertIsNotNone(w._group.sandwich_verification_workflow_id)
     self.assertIsNone(self._pinpoint.new_job_request)
 
@@ -1667,11 +1666,11 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
         self._issue_tracker.calls[1]['kwargs'], {
             'comment':
                 mock.ANY,
+            'components': [],
             'status': 'WontFix',
             'labels':
                 ['Chromeperf-Auto-Closed', 'Regression-Verification-Failed'],
             'send_email': False,
-            'components': [utils.REGRESSION_VERIFICATION_FAIL_COMPONENT],
         })
 
     self.assertEqual(w._group.status, alert_group.AlertGroup.Status.closed)
