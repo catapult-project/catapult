@@ -207,7 +207,9 @@ def GetAlertsForGroupID(group_id):
     raise request_handler.InvalidInputError('Invalid AlertGroup ID "%s".' %
                                             group_id)
   anomalies = perf_issue_service_client.GetAnomaliesByAlertGroupID(group_id)
-  anomaly_keys = [ndb.Key('Anomaly', a) for a in anomalies]
+  anomaly_keys = [
+      ndb.Key('Anomaly', a) for a in anomalies if isinstance(a, int)
+  ]
   if sorted(anomaly_keys) != sorted(group.anomalies):
     logging.warning('Imparity found for GetAnomaliesByAlertGroupID. %s, %s',
                     group.anomalies, anomaly_keys)
