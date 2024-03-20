@@ -124,7 +124,9 @@ main:
                 args:
                   url: ${functionResponse.body.serviceConfig.uri}
                   body:
+                    anomaly: ${anomaly}
                     statistic: ${statistic}
+                    job_id: ${job_id}
                   auth:
                     type: OIDC
                 result: regressionDetectionResult
