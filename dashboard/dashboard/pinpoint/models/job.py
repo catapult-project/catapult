@@ -605,9 +605,13 @@ class Job(ndb.Model):
       git_hash = change.commits[0].git_hash
     return git_hash
 
-  def _CreateWorkflowExecutionRequest(self, change_a, change_b):
+  def _CreateWorkflowExecutionRequest(self, change_a, change_b,
+                                      improvement_dir):
     start_git_hash = self._GetGitHash(change_a)
     end_git_hash = self._GetGitHash(change_b)
+    logging.debug(
+        'Pinpoint - job %s creating verification workflow with improvement direction %s',
+        self.job_id, improvement_dir)
 
     if not start_git_hash or not end_git_hash:
       raise ValueError('start_git_hash (%s) or end_git_hash (%s) is None' \
@@ -631,6 +635,8 @@ class Job(ndb.Model):
             end_git_hash,
         'project':
             self.project,
+        'improvement_dir':
+            improvement_dir,
     }
 
   def _CanSandwich(self, differences=None):
@@ -699,7 +705,7 @@ class Job(ndb.Model):
       regression_cnt += 1
       # Call sandwich verification workflow.
       wf_execution_request = self._CreateWorkflowExecutionRequest(
-          change_a, change_b)
+          change_a, change_b, workflow_group.improvement_dir)
       execution_name = workflow_service.CreateExecution(wf_execution_request)
       cloud_workflow = sandwich_workflow_group.CloudWorkflow(
           execution_name=execution_name,

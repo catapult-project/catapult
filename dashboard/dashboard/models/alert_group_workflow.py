@@ -46,6 +46,7 @@ from dashboard.common import sandwich_allowlist
 from dashboard.common import utils
 from dashboard.models import alert_group
 from dashboard.models import anomaly
+from dashboard.models import graph_data
 from dashboard.models import skia_helper
 from dashboard.models import subscription
 from dashboard.services import crrev_service
@@ -898,6 +899,9 @@ class AlertGroupWorkflow:
         regression.test.get().test_path)
     chart, _ = utils.ParseStatisticNameFromChart(chart)
 
+    improvement_dir = self._GetImprovementDirection(regression)
+    logging.debug('Alert Group Workflow Debug - got improvement_direction: %s',
+                  improvement_dir)
     create_exectution_req = {
         'benchmark':
             regression.benchmark_name,
@@ -911,12 +915,17 @@ class AlertGroupWorkflow:
             pinpoint_request.GetIsolateTarget(regression.bot_name,
                                               regression.benchmark_name),
         'start_git_hash':
-          start_git_hash,
+            start_git_hash,
         'end_git_hash':
-          end_git_hash,
+            end_git_hash,
         'project':
             self._group.project_id,
+        'improvement_dir':
+            improvement_dir,
     }
+    logging.debug(
+        'Alert Group Workflow Debug - creating verification workflow with request: %s',
+        create_exectution_req)
 
     try:
       sandwich_execution_id = self._cloud_workflows.CreateExecution(create_exectution_req)
@@ -946,6 +955,26 @@ class AlertGroupWorkflow:
       return False
     except request.RequestError:
       return False
+
+  def _GetImprovementDirection(self, regression):
+    if regression is None:
+      return 'UNKNOWN'
+
+    test_path = utils.TestPath(regression.test)
+    if test_path is None:
+      return 'UNKNOWN'
+    logging.debug('Alert Group Workflow Debug - got test_path: %s', test_path)
+
+    t = graph_data.TestMetadata.get_by_id(test_path)
+    if t is not None:
+      logging.debug(
+          'Alert Group Workflow Debug - got improvement_direction: %s',
+          t.improvement_direction)
+      if t.improvement_direction == anomaly.UP:
+        return 'UP'
+      if t.improvement_direction == anomaly.DOWN:
+        return 'DOWN'
+    return 'UNKNOWN'
 
   def _TryBisect(self, update):
     if (update.issue

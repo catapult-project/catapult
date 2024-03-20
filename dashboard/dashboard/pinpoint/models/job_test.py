@@ -149,10 +149,12 @@ class JobTest(test.TestCase):
                     bug_id=123456)
     c1 = change.Change((change.Commit('chromium', 'test_git_hash1'),))
     c2 = change.Change((change.Commit('chromium', 'test_git_hash2'),))
-    request = j._CreateWorkflowExecutionRequest(c1, c2)
+    improvement_dir = 'UP'
+    request = j._CreateWorkflowExecutionRequest(c1, c2, improvement_dir)
     self.assertEqual(request['start_git_hash'], 'test_git_hash1')
     self.assertEqual(request['end_git_hash'], 'test_git_hash2')
     self.assertEqual(request['target'], 'webrtc_perf_tests')
+    self.assertEqual(request['improvement_dir'], improvement_dir)
 
   @mock.patch('dashboard.services.perf_issue_service_client.GetIssue')
   def testCanSandwich(self, get_issue):

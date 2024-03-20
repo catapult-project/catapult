@@ -201,6 +201,11 @@ class GroupReportTestBase(testing_common.TestCase):
         self._PostUngroupedAlertsMock)
 
   def _AddAnomaly(self, **kargs):
+    t = graph_data.TestMetadata(
+        id='master/bot/test_suite/measurement/test_case',)
+    t.improvement_direction = anomaly.UP
+    t.put()
+
     default = {
         'test': 'master/bot/test_suite/measurement/test_case',
         'start_revision': 1,
