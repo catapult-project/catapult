@@ -361,13 +361,12 @@ def RetrieveCASOutput(cas_root_ref, path):
   for name in path[:-1]:
     node = _GetNodeByName(name, tree['directories'])
     tree = _GetTree({
-        'cas_instance': cas_root_ref['cas_instance'],
+        'casInstance': cas_root_ref['casInstance'],
         'digest': node['digest'],
     })
 
   node = _GetNodeByName(path[-1], tree['files'])
-  response = cas_client.BatchRead(
-      cas_root_ref['cas_instance'], [node['digest']])
+  response = cas_client.BatchRead(cas_root_ref['casInstance'], [node['digest']])
   data = response['responses'][0].get('data', '')
   return base64.b64decode(data)
 

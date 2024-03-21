@@ -307,6 +307,7 @@ def _FetchHistograms(job):
             swarming_task = swarming.Swarming(execution._swarming_server).Task(
                 execution._task_id)
             swarming_result = swarming_task.Result()
+            logging.debug('Task result from Swarming V2: %s', swarming_result)
           except Exception as e:  # pylint: disable=broad-except
             logging.error("_FetchHistograms swarming query failed: %s", str(e))
           continue

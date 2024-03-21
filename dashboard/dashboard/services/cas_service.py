@@ -51,14 +51,14 @@ class RBECASService:
     }
 
   def GetTree(self, cas_ref, page_size=None, page_token=None):
-    if 'cas_instance' not in cas_ref:
-      raise ValueError('cas_instance is required for RBE-CAS')
+    if 'casInstance' not in cas_ref:
+      raise ValueError('casInstance is required for RBE-CAS')
     digest = self._NormalizeDigest(cas_ref['digest'])
 
     for i in range(3):
       try:
         return self._service.blobs().getTree(
-            instanceName=cas_ref['cas_instance'],
+            instanceName=cas_ref['casInstance'],
             hash=digest['hash'],
             sizeBytes=digest['sizeBytes'],
             pageSize=page_size,

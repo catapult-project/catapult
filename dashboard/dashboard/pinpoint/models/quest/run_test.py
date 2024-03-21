@@ -324,9 +324,15 @@ class _RunTestExecution(execution_module.Execution):
       cas_root_ref = self._result_arguments.get('cas_root_ref')
       if cas_root_ref is not None:
         digest = cas_root_ref['digest']
+        # Backward compatibility for loading the job finished under the
+        # Swarming API V1. The field names was in snake_case for V1 and
+        # in camelCase in V2.
+        cas_instance = cas_root_ref.get('casInstance') or cas_root_ref.get(
+            'cas_instance')
+        digest_byte_size = digest.get('sizeBytes') or digest.get('size_bytes')
         url = 'https://cas-viewer.appspot.com/{}/blobs/{}/{}/tree'.format(
-            cas_root_ref['cas_instance'], digest['hash'], digest['size_bytes'])
-        value = '{}/{}'.format(digest['hash'], digest['size_bytes'])
+            cas_instance, digest['hash'], digest_byte_size)
+        value = '{}/{}'.format(digest['hash'], digest_byte_size)
       else:
         url = (self._result_arguments['isolate_server'] + '/browse?digest=' +
                self._result_arguments['isolate_hash'])
@@ -349,10 +355,10 @@ class _RunTestExecution(execution_module.Execution):
     result = swarming_task.Result()
     logging.debug('swarming response: %s', result)
 
-    if 'bot_id' in result:
+    if 'botId' in result:
       # For bisects, this will be set after the task is allocated to a bot.
       # A/Bs will set this elsewhere.
-      self._bot_id = result['bot_id']
+      self._bot_id = result['botId']
 
     if self._bot_id:
       if not swarming.IsBotAlive(self._bot_id, self._swarming_server):
@@ -362,7 +368,8 @@ class _RunTestExecution(execution_module.Execution):
       pool = 'chrome.tests.pinpoint-staging' if utils.IsStagingEnvironment(
       ) else 'chrome.tests.pinpoint'
       pending_count = swarming.Swarming(self._swarming_server).Tasks().Count(
-          bot_id=self._bot_id, state='PENDING', pool=pool).get('count', 0)
+          bot_id=self._bot_id, state='QUERY_PENDING',
+          pool=pool).get('count', 0)
       logging.debug('Bot %s has %s jobs in the pending queue.', self._bot_id,
                     pending_count)
       cloud_metric.PublishSwarmingBotPendingTasksMetric(
@@ -380,24 +387,23 @@ class _RunTestExecution(execution_module.Execution):
     # The swarming task is completed. Report the pending time
     self._ReportSwarmingJobsMetric(result)
 
-    if result['failure']:
-      if 'outputs_ref' not in result:
+    if result.get('failure', False):
+      if 'outputsRef' not in result:
         task_url = '%s/task?id=%s' % (self._swarming_server, self._task_id)
         raise errors.SwarmingTaskFailed('%s' % (task_url,))
-
       isolate_output_url = '%s/browse?digest=%s' % (
-          result['outputs_ref']['isolatedserver'],
-          result['outputs_ref']['isolated'])
+          result['outputsRef']['isolatedserver'],
+          result['outputsRef']['isolated'])
       raise errors.SwarmingTaskFailed('%s' % (isolate_output_url,))
 
-    if 'cas_output_root' in result:
+    if 'casOutputRoot' in result:
       result_arguments = {
-          'cas_root_ref': result['cas_output_root'],
+          'cas_root_ref': result['casOutputRoot'],  #CASReference
       }
     else:
       result_arguments = {
-          'isolate_server': result['outputs_ref']['isolatedserver'],
-          'isolate_hash': result['outputs_ref']['isolated'],
+          'isolate_server': result['outputsRef']['isolatedserver'],
+          'isolate_hash': result['outputsRef']['isolated'],
       }
 
     self._Complete(result_arguments=result_arguments)
@@ -485,27 +491,27 @@ class _RunTestExecution(execution_module.Execution):
       if instance.startswith('https://'):
         instance = _CAS_DEFAULT_INSTANCE
       input_ref = {
-          'cas_input_root': {
-              'cas_instance': instance,
+          'casInputRoot': {
+              'casInstance': instance,
               'digest': {
                   'hash': cas_hash,
-                  'size_bytes': int(cas_size),
+                  'sizeBytes': int(cas_size),
               }
           }
       }
     else:
       input_ref = {
-          'inputs_ref': {
+          'inputsRef': {
               'isolatedserver': self._isolate_server,
               'isolated': self._isolate_hash,
           }
       }
 
     properties = {
-        'extra_args': self._extra_args,
+        'extraArgs': self._extra_args,
         'dimensions': self._dimensions,
-        'execution_timeout_secs': str(self.execution_timeout_secs or 2700),
-        'io_timeout_secs': str(self.execution_timeout_secs or 2700),
+        'executionTimeoutSecs': str(self.execution_timeout_secs or 2700),
+        'ioTimeoutSecs': str(self.execution_timeout_secs or 2700),
     }
     properties.update(**input_ref)
 
@@ -517,15 +523,15 @@ class _RunTestExecution(execution_module.Execution):
       properties.update({
           # Set the relative current working directory to be the root of the
           # isolate.
-          'relative_cwd': self.relative_cwd,
+          'relativeCwd': self.relative_cwd,
 
           # Use the command provided in the creation of the execution.
           'command': self.command + self._extra_args,
       })
 
       # Swarming requires that if 'command' is present in the request, that we
-      # not provide 'extra_args'.
-      del properties['extra_args']
+      # not provide 'extraArgs'.
+      del properties['extraArgs']
 
     body = {
         'realm':
@@ -536,22 +542,21 @@ class _RunTestExecution(execution_module.Execution):
             'Pinpoint',
         'priority':
             '100',
-        'service_account':
+        'serviceAccount':
             _TESTER_SERVICE_ACCOUNT,
-        'task_slices': [{
+        'taskSlices': [{
             'properties': properties,
-            'expiration_secs': '86400',  # 1 day.
+            'expirationSecs': '86400',  # 1 day.
         }],
     }
 
     if self._swarming_tags:
       # This means we have additional information available about the Pinpoint
       # tags, and we should add those to the Swarming Pub/Sub updates.
-      body.update({
-          'tags': ['%s:%s' % (k, v) for k, v in self._swarming_tags.items()],
-      })
+      body.update(
+          {'tags': ['%s:%s' % (k, v) for k, v in self._swarming_tags.items()]})
 
     logging.debug('Requesting swarming task with parameters: %s', body)
     response = swarming.Swarming(self._swarming_server).Tasks().New(body)
     logging.debug('Response: %s', response)
-    self._task_id = response['task_id']
+    self._task_id = response['taskId']

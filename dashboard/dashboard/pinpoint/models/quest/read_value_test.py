@@ -161,7 +161,7 @@ class _ReadValueExecutionTest(unittest.TestCase):
       data_str = six.ensure_binary(str(data))
       return (
           hashlib.sha256(data_str).hexdigest(),
-          len(data_str),
+          str(len(data_str)),
       )
 
     file_content = json.dumps(content)
@@ -332,13 +332,14 @@ class ReadValueTest(_ReadValueExecutionTest):
         results_path=['base_perftests', 'perf_resultst.json'],
         chart='chart',
         trace_or_story='trace')
-    execution = quest.Start(None, None, None, {
-        'cas_instance': 'cas instance',
-        'digest': {
-            'hash': 'root hash',
-            'size_bytes': 123,
-        },
-    })
+    execution = quest.Start(
+        None, None, None, {
+            'casInstance': 'cas instance',
+            'digest': {
+                'hash': 'root hash',
+                'sizeBytes': 123,
+            },
+        })
     execution.Poll()
 
     self.assertReadValueSuccess(execution)
@@ -363,13 +364,14 @@ class ReadValueTest(_ReadValueExecutionTest):
         results_path=['base_perftests', 'chartjson-output.json'],
         chart='metric',
         trace_or_story='test')
-    execution = quest.Start(None, None, None, {
-        'cas_instance': 'cas instance',
-        'digest': {
-            'hash': 'root hash',
-            'size_bytes': 123,
-        },
-    })
+    execution = quest.Start(
+        None, None, None, {
+            'casInstance': 'cas instance',
+            'digest': {
+                'hash': 'root hash',
+                'sizeBytes': 123,
+            },
+        })
     execution.Poll()
     self.assertReadValueError(execution, 'ReadValueNoFile')
 
