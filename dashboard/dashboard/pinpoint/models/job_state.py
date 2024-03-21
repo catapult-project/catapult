@@ -27,7 +27,7 @@ from dashboard.pinpoint.models import exploration
 # attempts max (that's 4 iterations).
 MIN_ATTEMPTS = 10
 MAX_ATTEMPTS = 160
-MAX_BUILDS = 50
+MAX_BUILDS = 60
 _DEFAULT_SPECULATION_LEVELS = 1
 
 FUNCTIONAL = 'functional'
