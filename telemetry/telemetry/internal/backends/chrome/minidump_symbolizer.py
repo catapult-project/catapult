@@ -192,9 +192,10 @@ class MinidumpSymbolizer():
       processes_to_delete = []
       for p in processes:
         if p.poll() is not None:
-          stdout, _ = p.communicate()
+          stdout, stderr = p.communicate()
           if p.returncode:
             logging.error(stdout)
+            logging.error(stderr)
             logging.warning('Failed to execute %s', processes[p])
           processes_to_delete.append(p)
       for p in processes_to_delete:
