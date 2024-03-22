@@ -97,7 +97,8 @@ _ALERT_GROUP_TRIAGE_DELAY = datetime.timedelta(minutes=20)
 # The score is based on overall 60% reproduction rate of pinpoint bisection.
 _ALERT_GROUP_DEFAULT_SIGNAL_QUALITY_SCORE = 0.6
 
-# Emoji to set sandwich-related issue comments apart from other comments, visually.
+# Emoji to set sandwich-related issue comments apart from other comments
+# visually.
 _SANDWICH = u'\U0001f96a'
 
 
@@ -289,7 +290,8 @@ class AlertGroupWorkflow:
     now = datetime.datetime.utcnow()
     issue = None
     canonical_group = None
-    logging.debug('Group status: %s. ID: %s', self._group.status, self._group.key)
+    log_template = 'Group status: %s. ID: %s'
+    logging.debug(log_template, self._group.status, self._group.key)
     if self._group.status in {
         self._group.Status.triaged, self._group.Status.bisected,
         self._group.Status.closed, self._group.Status.sandwiched
@@ -517,7 +519,8 @@ class AlertGroupWorkflow:
     perf_issue_service_client.PostIssueComment(
         self._group.bug.bug_id,
         self._group.project_id,
-        comment='All regressions for this issue have been marked recovered; closing.',
+        comment=('All regressions for this issue have been marked '
+                 'recovered; closing.'),
         status='WontFix',
         labels='Chromeperf-Auto-Closed',
         send_email=False,
@@ -526,7 +529,13 @@ class AlertGroupWorkflow:
   def _ReopenWithNewRegressions(self, all_regressions, added, subscriptions):
     summary = _TEMPLATE_ISSUE_TITLE.render(
         self._GetTemplateArgs(all_regressions))
-    comment = _TEMPLATE_REOPEN_COMMENT.render(self._GetTemplateArgs(added))
+
+    template_args = self._GetTemplateArgs(added)
+
+    skia_args = self._GetSkiaTemplateArgs(added)
+    template_args.update(skia_args)
+
+    comment = _TEMPLATE_REOPEN_COMMENT.render(template_args)
     components, cc, _ = self._ComputeBugUpdate(subscriptions, added)
     perf_issue_service_client.PostIssueComment(
         self._group.bug.bug_id,
@@ -548,7 +557,8 @@ class AlertGroupWorkflow:
       regression - the candidate regression that was sent for verification
       update - the alert group workflow update being processed
     Returns:
-      True if the workflow completed with status of SUCCESS and was able to reproduce the anomaly.
+      True if the workflow completed with status of SUCCESS and
+        was able to reproduce the anomaly.
       True if the worfklow completed with status of FAILED or CANCELLED.
       False for any other condtion.
     '''
@@ -584,8 +594,9 @@ class AlertGroupWorkflow:
         else:
           components = list(
               self._GetComponentsFromSubscriptions(regression.subscriptions)
-              # Intentionally ignoring _GetComponentsFromRegressions in this case for sandwiched
-              # regressions. See https://bugs.chromium.org/p/chromium/issues/detail?id=1459035
+              # Intentionally ignoring _GetComponentsFromRegressions in this
+              # case for sandwiched regressions. See
+              # https://bugs.chromium.org/p/chromium/issues/detail?id=1459035
           )
       else:
         comment = ('%s Regression verification %s job %s for test: %s\n'
@@ -675,9 +686,8 @@ class AlertGroupWorkflow:
     subscriptions_dict = {}
     for a in anomalies:
       logging.info(
-          'GetRegressions: auto_triage_enable is %s for anomaly %s due to subscription: %s',
-          a.auto_triage_enable,
-          a.test.string_id(),
+          ('GetRegressions: auto_triage_enable is %s for anomaly %s due '
+           'to subscription: %s'), a.auto_triage_enable, a.test.string_id(),
           [s.name for s in a.subscriptions])
 
       subscriptions_dict.update({s.name: s for s in a.subscriptions})
@@ -715,13 +725,16 @@ class AlertGroupWorkflow:
     else:
       # NOTE: Previous sandwich_allowlist checks resulted in this
       # logic ignoring _GetComponentsFromRegressions for sandwich-able
-      # retressions. It no longer ignores these, so some sandwiched regressions may
-      # now have components assigned due to data uploaded from benchmark runners,
-      # rather than what's specified in the sheriff config.
-      # NOTE 2: Regression issues should now only get components assigned in three cases:
-      #.   - regressions are NOT sandwich-able, due to _CheckSandwichAllowlist results
-      #.   - regressions are sandwich-able, AND issue has the Regression-Verification-Repro label
-      #.   - regressions are auto_triage=True AND auto_bisect=False
+      # retressions. It no longer ignores these, so some sandwiched regressions
+      # may now have components assigned due to data uploaded from benchmark
+      # runners, rather than what's specified in the sheriff config.
+      # NOTE 2: Regression issues should now only get components assigned in
+      # three cases:
+      #   - regressions are NOT sandwich-able, due to _CheckSandwichAllowlist
+      #       results
+      #   - regressions are sandwich-able, AND issue has the
+      #       Regression-Verification-Repro label
+      #   - regressions are auto_triage=True AND auto_bisect=False
       verifiable_regressions = self._CheckSandwichAllowlist(regressions)
       components = []
       if len(verifiable_regressions) == 0:
@@ -763,8 +776,8 @@ class AlertGroupWorkflow:
       bug_id = self._group.bug or 'New'
       subsciption_names = [s.name for s in subscriptions]
       logging.debug(
-          'Components added from subscriptions. Bug: %s, subscriptions: %s, components: %s',
-          bug_id, subsciption_names, components)
+          ('Components added from subscriptions. Bug: %s, subscriptions: %s, '
+           'components: %s'), bug_id, subsciption_names, components)
     return components
 
   def _GetComponentsFromRegressions(self, regressions):
@@ -781,8 +794,8 @@ class AlertGroupWorkflow:
       bug_id = self._group.bug or 'New'
       benchmarks = [r.benchmark_name for r in regressions]
       logging.debug(
-          'Components added from benchmark.Info. Bug: %s, benchmarks: %s, components: %s',
-          bug_id, benchmarks, components)
+          ('Components added from benchmark.Info. Bug: %s, benchmarks: %s, '
+           'components: %s'), bug_id, benchmarks, components)
     return set(components)
 
   def _GetTemplateArgs(self, regressions):
@@ -891,9 +904,11 @@ class AlertGroupWorkflow:
       return False
 
     start_git_hash = pinpoint_request.ResolveToGitHash(
-      regression.start_revision - 1, regression.benchmark_name, crrev=self._crrev)
+        regression.start_revision - 1,
+        regression.benchmark_name,
+        crrev=self._crrev)
     end_git_hash = pinpoint_request.ResolveToGitHash(
-      regression.end_revision, regression.benchmark_name, crrev=self._crrev)
+        regression.end_revision, regression.benchmark_name, crrev=self._crrev)
 
     _, chart, _ = utils.ParseTelemetryMetricParts(
         regression.test.get().test_path)
@@ -924,11 +939,12 @@ class AlertGroupWorkflow:
             improvement_dir,
     }
     logging.debug(
-        'Alert Group Workflow Debug - creating verification workflow with request: %s',
-        create_exectution_req)
+        ('Alert Group Workflow Debug - creating verification workflow with '
+         'request: %s'), create_exectution_req)
 
     try:
-      sandwich_execution_id = self._cloud_workflows.CreateExecution(create_exectution_req)
+      sandwich_execution_id = self._cloud_workflows.CreateExecution(
+          create_exectution_req)
       self._group.sandwich_verification_workflow_id = sandwich_execution_id
 
       self._group.status = self._group.Status.sandwiched
@@ -996,11 +1012,13 @@ class AlertGroupWorkflow:
               self._group.sandwich_verification_workflow_id)
         except request.NotFoundError:
           logging.error(
-              'cloud workflow service could not find sandwich verification execution ID %s',
+              ('cloud workflow service could not find sandwich verification '
+               'execution ID %s'),
               self._group.sandwich_verification_workflow_id)
           return
 
-        proceed_with_bisect = self._UpdateRegressionVerification(sandwich_exec, regression, update)
+        proceed_with_bisect = self._UpdateRegressionVerification(
+            sandwich_exec, regression, update)
         if not proceed_with_bisect:
           return
 
@@ -1041,33 +1059,17 @@ class AlertGroupWorkflow:
     regression.pinpoint_bisects.append(job_id)
     regression.put()
 
-  def _FileIssue(self, anomalies):
-    regressions, subscriptions = self._GetRegressions(anomalies)
-    # Only file a issue if there is at least one regression
-    # We can't use subsciptions' auto_triage_enable here because it's
-    # merged across anomalies.
-    if not any(r.auto_triage_enable for r in regressions):
-      return None, []
-
-    auto_triage_regressions = []
+  def _GetSkiaTemplateArgs(self, regressions):
+    """Return skia template args to append to the existing template args"""
     masters = set()
     for r in regressions:
-      if r.auto_triage_enable:
-        auto_triage_regressions.append(r)
       if r.master_name:
         masters.add(r.master_name)
 
-    logging.info('auto_triage_enabled due to %s', auto_triage_regressions)
-    template_args = self._GetTemplateArgs(regressions)
-    top_regression = template_args['regressions'][0]
-    template_args['revision_infos'] = self._revision_info.GetRangeRevisionInfo(
-        top_regression.test,
-        top_regression.start_revision,
-        top_regression.end_revision,
-    )
-
+    template_args = {}
     try:
-      # Add the public url only if at least one of the anomalies in the group are public
+      # Add the public url only if at least one of the anomalies in the group
+      # are public
       if any(not r.test.get().internal_only for r in regressions):
         skia_urls_public = skia_helper.GetSkiaUrlsForAlertGroup(
             self._group.key.string_id(), False, list(masters))
@@ -1080,6 +1082,32 @@ class AlertGroupWorkflow:
       template_args['skia_urls_text_internal'] = skia_urls_internal
     except Exception:  # pylint: disable=broad-except
       template_args['skia_urls_text_internal'] = None
+    return template_args
+
+  def _FileIssue(self, anomalies):
+    regressions, subscriptions = self._GetRegressions(anomalies)
+    # Only file a issue if there is at least one regression
+    # We can't use subsciptions' auto_triage_enable here because it's
+    # merged across anomalies.
+    if not any(r.auto_triage_enable for r in regressions):
+      return None, []
+
+    auto_triage_regressions = []
+    for r in regressions:
+      if r.auto_triage_enable:
+        auto_triage_regressions.append(r)
+
+    logging.info('auto_triage_enabled due to %s', auto_triage_regressions)
+    template_args = self._GetTemplateArgs(regressions)
+    top_regression = template_args['regressions'][0]
+    template_args['revision_infos'] = self._revision_info.GetRangeRevisionInfo(
+        top_regression.test,
+        top_regression.start_revision,
+        top_regression.end_revision,
+    )
+
+    skia_args = self._GetSkiaTemplateArgs(regressions)
+    template_args.update(skia_args)
 
     # Rendering issue's title and content
     title = _TEMPLATE_ISSUE_TITLE.render(template_args)
@@ -1097,7 +1125,8 @@ class AlertGroupWorkflow:
 
     # NOTICE that we do not have benchmark class in Pinpoint workflow and thus
     # do not have the component info from the @benchmark.info. E.g.:
-    # https://source.chromium.org/chromium/chromium/src/+/main:tools/perf/benchmarks/jetstream2.py;l=44
+    # https://source.chromium.org/chromium/chromium/src/+/main:
+    # tools/perf/benchmarks/jetstream2.py;l=44
     # We will only add component, cc and labels based on the settings from
     # the Sheriff Config.
 
@@ -1148,7 +1177,8 @@ class AlertGroupWorkflow:
       logging.info('[Pinpoint Skia] Triggering %s', results)
     except Exception as e: # pylint: disable=broad-except
       # Caught all exceptions as we only need to trigger and log the runs.
-      logging.warning('[Pinpoint Skia] Error on triggering: %s\n%s', pp_request, e)
+      msg = '[Pinpoint Skia] Error on triggering: %s\n%s'
+      logging.warning(msg, pp_request, e)
 
     try:
       results = self._pinpoint.NewJob(pp_request)
