@@ -16,7 +16,12 @@ def GetFromBrowserOptions(browser_options):
       '--no-proxy-server flag is disallowed as Chrome needs to be route to '
       'ts_proxy_server')
 
-  # Sort to ensure determanism.
+  # Override privacy sandbox dialog feature to hide it (crbug.com/330241089).
+  browser_options.AppendExtraBrowserArgs(
+      ['--enable-features=PrivacySandboxSettings4'])
+  browser_options.ConsolidateValuesForArg('--enable-features')
+
+  # Sort to ensure determinism.
   args = list(sorted(browser_options.extra_browser_args))
   if browser_options.environment:
     args = browser_options.environment.AdjustStartupFlags(args)
