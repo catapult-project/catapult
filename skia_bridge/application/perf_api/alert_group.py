@@ -106,11 +106,15 @@ def AlertGroupDetailsPostHandler():
         start_commit = anomalies[0].get('start_revision')
         end_commit = anomalies[0].get('end_revision')
         for anomaly in anomalies :
-          response.anomalies.append(GetAnomalyDetailFromEntity(anomaly))
-          if anomaly.get('start_revision') < start_commit:
-            start_commit = anomaly.get('start_revision')
-          if anomaly.get('end_revision') > end_commit:
-            end_commit = anomaly.get('end_revision')
+          # Only return anomaly if it's not a "skia" anomaly.
+          # Chromeperf anomalies have source value None
+          # while skia ones have 'skia'
+          if anomaly.get('source') == None:
+            response.anomalies.append(GetAnomalyDetailFromEntity(anomaly))
+            if anomaly.get('start_revision') < start_commit:
+              start_commit = anomaly.get('start_revision')
+            if anomaly.get('end_revision') > end_commit:
+              end_commit = anomaly.get('end_revision')
 
         response.start_commit = start_commit
         response.end_commit = end_commit
