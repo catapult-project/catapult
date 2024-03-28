@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 """Provides a layer of abstraction for the buganizer API."""
 
+# pylint: disable=line-too-long
+
 from http import client as http_client
 import json
 import logging
@@ -269,7 +271,11 @@ class BuganizerClient:
     # Add the service account as collaborator in order to keep access
     # to the issue even if it is set limit_view_trusted.
     service_account = {'emailAddress': utils.ServiceAccount()}
-    new_issue_state['collaborators'] = [service_account]
+    pinpoint_sa = {'emailAddress': utils.PINPOINT_SKIA_SERVICE_ACCOUNT}
+    new_issue_state['collaborators'] = [
+        service_account,
+        pinpoint_sa,
+    ]
 
     if labels and 'Restrict-View-Google' in labels:
       access_limit = {
