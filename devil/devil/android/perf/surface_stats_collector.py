@@ -211,14 +211,18 @@ def ParseFrameData(lines, parse_timestamps):
   pending_fence_timestamp = (1 << 63) - 1
 
   for line in results[1:]:
+    if not line:
+      continue
+
     fields = line.split()
     if len(fields) != 3:
       logging.warning('Unexpected line: %s', line)
       continue
-    timestamp = to_long_int(fields[1])
 
+    timestamp = to_long_int(fields[1])
     if timestamp == pending_fence_timestamp:
       continue
+
     timestamp /= nanoseconds_per_millisecond
     timestamps.append(timestamp)
 
