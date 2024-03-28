@@ -18,8 +18,6 @@ TOKEN_INFO_ENDPOINT = 'https://oauth2.googleapis.com/tokeninfo'
 EMAIL_SCOPE = 'https://www.googleapis.com/auth/userinfo.email'
 PROD_SERVICE_ACCOUNT = 'chromeperf@appspot.gserviceaccount.com'
 STAGING_SERVICE_ACCOUNT = 'chromeperf-stage@appspot.gserviceaccount.com'
-# pylint: disable=line-too-long
-PINPOINT_SKIA_SERVICE_ACCOUNT = 'pinpoint-worker@skia-infra-public.iam.gserviceaccount.com'
 
 _STAGING_APP_ID = 'chromeperf-stage'
 
