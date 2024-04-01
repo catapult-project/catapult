@@ -46,6 +46,24 @@ class CommitRange(collections.namedtuple('CommitRange', ['start', 'end'])):
   __slots__ = ()
 
 
+def UpdateSkiaBisectionRequest(pinpoint_params, improvement_direction):
+  """Update a Pinpoint bisection request for the Skia backend.
+
+  Pinpoint is being migrated from catapult repo to skia repo.
+  The Skia backend accepts slightly different inputs. The Skia backend
+  accepts the improvement direction.
+
+  Args:
+    pinpoint_params: the bisection request used in catapult
+    improvement_direction: the improvement direction of the regression
+
+  Returns:
+    Pinpoint request to start a new skia bisection job
+  """
+  pinpoint_params['improvement_direction'] = improvement_direction
+
+  return pinpoint_params
+
 def MakeBisectionRequest(test,
                          commit_range,
                          issue,
