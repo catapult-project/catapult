@@ -174,6 +174,13 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       return os.path.getmtime(self._local_apk)
     return -1
 
+  def GetActivityForCurrentSdk(self):
+    return self._backend_settings.GetActivityNameForSdk(
+        self.device.build_version_sdk)
+
+  def GetActionForCurrentSdk(self):
+    return self._backend_settings.GetActionForSdk(self.device.build_version_sdk)
+
   def _GetPathsForOsPageCacheFlushing(self):
     return [self.profile_directory, self.browser_directory]
 

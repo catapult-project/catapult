@@ -4,8 +4,11 @@
 
 from __future__ import absolute_import
 import logging
-import collections
 import os
+import sys
+from typing import List, Optional
+
+import dataclasses  # Built-in, but pylint gives an ordering false positive.
 
 from telemetry.core import util
 
@@ -15,13 +18,67 @@ from devil.android.sdk import version_codes
 import py_utils
 
 
-_BackendSettingsTuple = collections.namedtuple('_BackendSettingsTuple', [
-    'browser_type', 'package', 'activity', 'command_line_name',
-    'devtools_port', 'apk_name', 'embedder_apk_name',
-    'supports_tab_control', 'supports_spki_list', 'additional_apk_name'])
+_ANDROID_EARLIEST = 0
+_ANDROID_T = 33
+_ANDROID_LATEST = sys.maxsize
 
 
-class AndroidBrowserBackendSettings(_BackendSettingsTuple):
+@dataclasses.dataclass
+class _SdkDependentActivity:
+  """Specifies when a certain activity should be used based on SDK version.
+
+  |activity_name| will be used if the SDK version is >= |min_version| and
+  < |max_version|.
+  """
+  activity_name: str
+  min_version: int
+  max_version: int
+
+  def ValidForSdkVersion(self, sdk_version: int) -> bool:
+    return self.min_version <= sdk_version < self.max_version
+
+
+@dataclasses.dataclass
+class _SdkDependentAction:
+  """Specifies when a certain action type should be used based on SDK version.
+
+  |action_name_ will be used if the SDK version is >= |min_version| and
+  < |max_version|.
+  """
+  action_name: Optional[str]
+  min_version: int
+  max_version: int
+
+  def ValidForSdkVersion(self, sdk_version: int) -> bool:
+    return self.min_version <= sdk_version < self.max_version
+
+
+@dataclasses.dataclass
+class _BackendSettings:
+  browser_type: str
+  package: str
+  command_line_name: str
+  devtools_port: str
+  apk_name: Optional[str]
+  supports_tab_control: bool
+  supports_spki_list: bool
+  embedder_apk_name: Optional[str] = None
+  additional_apk_name: Optional[str] = None
+  sdk_dependent_activities: List[_SdkDependentActivity] = dataclasses.field(
+      default_factory=list)
+  sdk_dependent_actions: List[_SdkDependentAction] = dataclasses.field(
+      default_factory=list)
+
+  @property
+  def activity(self):
+    # Kept for backwards-compatibility until all remaining uses are switched to
+    # the SDK-aware version.
+    # TODO(crbug.com/332350951): Remove this once all uses are converted.
+    assert self.sdk_dependent_activities
+    return self.sdk_dependent_activities[0].activity_name
+
+
+class AndroidBrowserBackendSettings(_BackendSettings):
   """Base class for backend settings of Android browsers.
 
   These abstract away the differences that may exist between different
@@ -48,6 +105,12 @@ class AndroidBrowserBackendSettings(_BackendSettingsTuple):
       certificate errors. See: crbug.com/753948
   """
   __slots__ = ()
+
+  def __init__(self, *args, **kwargs):
+    # This can be enforced via dataclasses' kw_only option when on Python 3.10
+    # or later.
+    assert not args
+    super().__init__(*args, **kwargs)
 
   def __str__(self):
     return '%s (%s)' % (self.browser_type, self.package)
@@ -89,11 +152,37 @@ class AndroidBrowserBackendSettings(_BackendSettingsTuple):
   def IsWebView(self):
     return False
 
+  def GetActivityNameForSdk(self, sdk_version):
+    for activity in self.sdk_dependent_activities:
+      if activity.ValidForSdkVersion(sdk_version):
+        return activity.activity_name
+    raise RuntimeError(
+        f'No valid activity name found for SDK version {sdk_version}')
+
+  def GetActionForSdk(self, sdk_version):
+    for action in self.sdk_dependent_actions:
+      if action.ValidForSdkVersion(sdk_version):
+        return action.action_name
+    raise RuntimeError(f'No valid action found for SDK version {sdk_version}')
+
 
 class GenericChromeBackendSettings(AndroidBrowserBackendSettings):
-  def __new__(cls, **kwargs):
-    # Provide some defaults common to Chrome based backends.
-    kwargs.setdefault('activity', 'com.google.android.apps.chrome.Main')
+
+  def __init__(self, *args, **kwargs):
+    # Provide some defaults common to Chrome-based backends.
+    # Android T+ has intent filters, so we need to use a different activity and
+    # action.
+    kwargs.setdefault('sdk_dependent_activities', [
+        _SdkDependentActivity('com.google.android.apps.chrome.Main',
+                              _ANDROID_EARLIEST, _ANDROID_T),
+        _SdkDependentActivity('com.google.android.apps.chrome.IntentDispatcher',
+                              _ANDROID_T, _ANDROID_LATEST),
+    ])
+    kwargs.setdefault('sdk_dependent_actions', [
+        _SdkDependentAction(None, _ANDROID_EARLIEST, _ANDROID_T),
+        _SdkDependentAction('android.intent.action.VIEW', _ANDROID_T,
+                            _ANDROID_LATEST),
+    ])
     kwargs.setdefault('command_line_name', 'chrome-command-line')
     kwargs.setdefault('devtools_port', 'localabstract:chrome_devtools_remote')
     kwargs.setdefault('apk_name', None)
@@ -101,7 +190,7 @@ class GenericChromeBackendSettings(AndroidBrowserBackendSettings):
     kwargs.setdefault('supports_tab_control', True)
     kwargs.setdefault('supports_spki_list', True)
     kwargs.setdefault('additional_apk_name', None)
-    return super(GenericChromeBackendSettings, cls).__new__(cls, **kwargs)
+    super().__init__(*args, **kwargs)
 
 
 class GenericChromeBundleBackendSettings(GenericChromeBackendSettings):
@@ -137,7 +226,8 @@ class ChromeBackendSettings(GenericChromeBackendSettings):
 
 
 class WebViewBasedBackendSettings(AndroidBrowserBackendSettings):
-  def __new__(cls, **kwargs):
+
+  def __init__(self, *args, **kwargs):
     # Provide some defaults common to WebView based backends.
     kwargs.setdefault('devtools_port',
                       'localabstract:webview_devtools_remote_{pid}')
@@ -148,7 +238,7 @@ class WebViewBasedBackendSettings(AndroidBrowserBackendSettings):
     # implemented on WebView.
     kwargs.setdefault('supports_spki_list', False)
     kwargs.setdefault('additional_apk_name', None)
-    return super(WebViewBasedBackendSettings, cls).__new__(cls, **kwargs)
+    super().__init__(*args, **kwargs)
 
   def GetDevtoolsRemotePort(self, device, package=None):
     # The DevTools port for WebView based backends depends on the browser PID.
@@ -178,16 +268,22 @@ class WebViewBasedBackendSettings(AndroidBrowserBackendSettings):
 
 
 class WebViewBackendSettings(WebViewBasedBackendSettings):
-  def __new__(cls, **kwargs):
+
+  def __init__(self, *args, **kwargs):
     # Provide some defaults for backends that work via system_webview_shell,
     # a testing app with source code available at:
     # https://cs.chromium.org/chromium/src/android_webview/tools/system_webview_shell
     kwargs.setdefault('package', 'org.chromium.webview_shell')
-    kwargs.setdefault('activity',
-                      'org.chromium.webview_shell.TelemetryActivity')
+    kwargs.setdefault('sdk_dependent_activities', [
+        _SdkDependentActivity('org.chromium.webview_shell.TelemetryActivity',
+                              _ANDROID_EARLIEST, _ANDROID_LATEST)
+    ])
+    kwargs.setdefault(
+        'sdk_dependent_actions',
+        [_SdkDependentActivity(None, _ANDROID_EARLIEST, _ANDROID_LATEST)])
     kwargs.setdefault('embedder_apk_name', 'SystemWebViewShell.apk')
     kwargs.setdefault('command_line_name', 'webview-command-line')
-    return super(WebViewBackendSettings, cls).__new__(cls, **kwargs)
+    super().__init__(*args, **kwargs)
 
   def GetApkName(self, device):
     if self.apk_name is not None:
@@ -254,7 +350,15 @@ class WebViewBundleBackendSettings(WebViewBackendSettings):
 ANDROID_CONTENT_SHELL = AndroidBrowserBackendSettings(
     browser_type='android-content-shell',
     package='org.chromium.content_shell_apk',
-    activity='org.chromium.content_shell_apk.ContentShellActivity',
+    #activity='org.chromium.content_shell_apk.ContentShellActivity',
+    sdk_dependent_activities=[
+        _SdkDependentActivity(
+            'org.chromium.content_shell_apk.ContentShellActivity',
+            _ANDROID_EARLIEST, _ANDROID_LATEST)
+    ],
+    sdk_dependent_actions=[
+        _SdkDependentAction(None, _ANDROID_EARLIEST, _ANDROID_LATEST)
+    ],
     command_line_name='content-shell-command-line',
     devtools_port='localabstract:content_shell_devtools_remote',
     apk_name='ContentShell.apk',
@@ -320,7 +424,15 @@ ANDROID_WEBVIEW_TRICHROME_GOOGLE_BUNDLE = WebViewBundleBackendSettings(
 ANDROID_WEBVIEW_INSTRUMENTATION = WebViewBasedBackendSettings(
     browser_type='android-webview-instrumentation',
     package='org.chromium.android_webview.shell',
-    activity='org.chromium.android_webview.shell.AwShellActivity',
+    sdk_dependent_activities=[
+        _SdkDependentActivity(
+            'org.chromium.android_webview.shell.AwShellActivity',
+            _ANDROID_EARLIEST, _ANDROID_LATEST)
+    ],
+    sdk_dependent_actions=[
+        _SdkDependentAction(None, _ANDROID_EARLIEST, _ANDROID_LATEST)
+    ],
+    #activity='org.chromium.android_webview.shell.AwShellActivity',
     command_line_name='android-webview-command-line',
     apk_name='WebViewInstrumentation.apk')
 

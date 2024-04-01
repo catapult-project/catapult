@@ -103,12 +103,17 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         self.browser.platform.GetOSName(), self.browser.platform.GetArchName())
     user_agent_dict = user_agent.GetChromeUserAgentDictFromType(
         self.browser_options.browser_user_agent_type)
-    self.device.StartActivity(
-        intent.Intent(package=self.browser_package,
-                      activity=self._backend_settings.activity,
-                      action=None, data='about:blank', category=None,
-                      extras=user_agent_dict),
-        blocking=True)
+    activity = self._backend_settings.GetActivityNameForSdk(
+        self.platform_backend.device.build_version_sdk)
+    action = self._backend_settings.GetActionForSdk(
+        self.platform_backend.device.build_version_sdk)
+    self.device.StartActivity(intent.Intent(package=self.browser_package,
+                                            activity=activity,
+                                            action=action,
+                                            data='about:blank',
+                                            category=None,
+                                            extras=user_agent_dict),
+                              blocking=True)
     try:
       self.BindDevToolsClient()
     except:
@@ -135,13 +140,16 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def Foreground(self):
     package = self.browser_package
-    activity = self._backend_settings.activity
-    self.device.StartActivity(
-        intent.Intent(package=package,
-                      activity=activity,
-                      action=None,
-                      flags=[intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED]),
-        blocking=False)
+    activity = self._backend_settings.GetActivityNameForSdk(
+        self.platform_backend.device.build_version_sdk)
+    action = self._backend_settings.GetActionForSdk(
+        self.platform_backend.device.build_version_sdk)
+    self.device.StartActivity(intent.Intent(
+        package=package,
+        activity=activity,
+        action=action,
+        flags=[intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED]),
+                              blocking=False)
     # TODO(crbug.com/601052): The following waits for any UI node for the
     # package launched to appear on the screen. When the referenced bug is
     # fixed, remove this workaround and just switch blocking above to True.

@@ -55,11 +55,12 @@ class SharedAndroidStoryState(story_module.SharedState):
     self._possible_browser.FlushOsPageCaches()
     # TODO: Android Go stories could, e.g., use the customtabs helper app to
     # start Chrome as a custom tab.
-    self.platform.StartActivity(
-        intent.Intent(package=self._possible_browser.settings.package,
-                      activity=self._possible_browser.settings.activity,
-                      action=None, data=url),
-        blocking=True)
+    self.platform.StartActivity(intent.Intent(
+        package=self._possible_browser.settings.package,
+        activity=self._possible_browser.GetActivityForCurrentSdk(),
+        action=self._possible_browser.GetActionForCurrentSdk(),
+        data=url),
+                                blocking=True)
 
   @contextlib.contextmanager
   def FindBrowser(self):
