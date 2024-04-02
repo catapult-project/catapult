@@ -164,10 +164,12 @@ class List():
   @classmethod
   def AddCommandLineArgs(cls, parser, args, environment):
     del args, environment  # Unused.
-    parser.add_option('--json', action='store', dest='json_filename',
-                      help='Output the list in JSON')
-    parser.add_option('--detailed', action='store_true', default=False,
-                      help='Print more details in the output.')
+    parser.add_argument('--json',
+                        dest='json_filename',
+                        help='Output the list in JSON')
+    parser.add_argument('--detailed',
+                        action='store_true',
+                        help='Print more details in the output.')
 
   @classmethod
   def CreateParser(cls):

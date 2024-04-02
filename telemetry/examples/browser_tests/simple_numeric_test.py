@@ -17,7 +17,7 @@ class SimpleTest(
 
   @classmethod
   def AddCommandlineArgs(cls, parser):
-    parser.add_option('--adder-sum', type=int, default=5)
+    parser.add_argument('--adder-sum', type=int, default=5)
 
   def setUp(self):
     self.extra = 5

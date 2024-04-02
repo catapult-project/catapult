@@ -197,16 +197,16 @@ class WprRecorder():
         report_progress=True)
 
   def _AddCommandLineArgs(self):
-    self._parser.add_option('--page-set-base-dir', action='store',
-                            type='string')
+    self._parser.add_argument('--page-set-base-dir')
     story_runner.AddCommandLineArgs(self._parser)
     if self._benchmark is not None:
       self._benchmark.AddCommandLineArgs(self._parser)
       self._benchmark.SetArgumentDefaults(self._parser)
-    self._parser.add_option('--upload', action='store_true')
-    self._parser.add_option('--use-local-wpr', action='store_true',
-                            help='Builds and runs WPR from Catapult. '
-                            'Also enables WPR debug output to STDOUT.')
+    self._parser.add_argument('--upload', action='store_true')
+    self._parser.add_argument('--use-local-wpr',
+                              action='store_true',
+                              help=('Builds and runs WPR from Catapult. Also '
+                                    'enables WPR debug output to STDOUT.'))
     self._SetArgumentDefaults()
 
   def _SetArgumentDefaults(self):

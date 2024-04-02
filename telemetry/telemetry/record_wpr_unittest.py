@@ -80,7 +80,7 @@ class MockBenchmark(benchmark.Benchmark):
 
   @classmethod
   def AddBenchmarkCommandLineArgs(cls, parser):
-    parser.add_option('--mock-benchmark-url', action='store', type='string')
+    parser.add_argument('--mock-benchmark-url')
 
   def CreateStorySet(self, options):
     kwargs = {}
@@ -101,7 +101,7 @@ class MockTimelineBasedMeasurementBenchmark(benchmark.Benchmark):
 
   @classmethod
   def AddBenchmarkCommandLineArgs(cls, parser):
-    parser.add_option('--mock-benchmark-url', action='store', type='string')
+    parser.add_argument('--mock-benchmark-url')
 
   def CreateStorySet(self, options):
     kwargs = {}

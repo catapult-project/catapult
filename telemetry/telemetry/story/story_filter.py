@@ -75,63 +75,73 @@ class StoryFilterFactory():
   @classmethod
   def AddCommandLineArgs(cls, parser):
     group = oam.CreateOptionGroup(parser, 'User story filtering options')
-    group.add_option(
+    group.add_argument(
         '--story-filter',
         help='Use only stories whose names match the given filter regexp.')
-    group.add_option(
+    group.add_argument(
         '--story-filter-exclude',
         help='Exclude stories whose names match the given filter regexp.')
-    group.add_option(
-        '--story-tag-filter',
-        help='Use only stories that have any of these tags')
-    group.add_option(
-        '--story-tag-filter-exclude',
-        help='Exclude stories that have any of these tags')
+    group.add_argument('--story-tag-filter',
+                       help='Use only stories that have any of these tags')
+    group.add_argument('--story-tag-filter-exclude',
+                       help='Exclude stories that have any of these tags')
     common_story_shard_help = (
         'Indices start at 0, and have the same rules as python slices,'
         ' e.g.  [4, 5, 6, 7, 8][0:3] -> [4, 5, 6])')
-    group.add_option(
-        '--story-shard-begin-index', type='int', dest='story_shard_begin_index',
-        help=('Beginning index of set of stories to run. If this is ommited, '
-              'the starting index will be from the first story in the benchmark'
-              + common_story_shard_help))
-    group.add_option(
-        '--story-shard-end-index', type='int', dest='story_shard_end_index',
+    group.add_argument(
+        '--story-shard-begin-index',
+        type=int,
+        help=(
+            'Beginning index of set of stories to run. If this is ommited, '
+            'the starting index will be from the first story in the benchmark' +
+            common_story_shard_help))
+    group.add_argument(
+        '--story-shard-end-index',
+        type=int,
         help=('End index of set of stories to run. Value will be '
               'rounded down to the number of stories. Negative values not'
               'allowed. If this is omited, the end index is the final story'
-              'of the benchmark. '+ common_story_shard_help))
-    group.add_option(
-        '--story-shard-indexes', type='string', dest='story_shard_indexes',
+              'of the benchmark. ' + common_story_shard_help))
+    group.add_argument(
+        '--story-shard-indexes',
         help=('Index ranges of sets of stories to run. (Negative values not '
               'allowed.) Each range can be a single index or a range in '
               '"begin-end" format. E.g., 2,4-6 means stories on index 2, 4, '
-              '5 and 6. Ranges should be ordered. '+ common_story_shard_help))
+              '5 and 6. Ranges should be ordered. ' + common_story_shard_help))
     # This should be renamed to --also-run-disabled-stories.
-    group.add_option('-d', '--also-run-disabled-tests',
-                     dest='run_disabled_stories',
-                     action='store_true', default=False,
-                     help='Ignore expectations.config disabling.')
+    group.add_argument('-d',
+                       '--also-run-disabled-tests',
+                       dest='run_disabled_stories',
+                       action='store_true',
+                       default=False,
+                       help='Ignore expectations.config disabling.')
     # TODO(crbug.com/965158): delete this flag.
-    group.add_option(
-        '--run-full-story-set', action='store_true', default=False,
-        help='DEPRECATED. Does not do anything. Use --run-abridged-story-set '
-        'instead.')
-    group.add_option(
-        '--run-abridged-story-set', action='store_true', default=None,
-        help='Whether to run the abridged set of stories from the benchmark '
-        'instead of the whole set of stories. Note that many benchmarks do not '
-        'have an abridged version: for those benchmarks this flag will have no '
-        'effect.')
-    group.add_option(
-        '--story', action='append', dest='stories',
-        help='An exact name of a story to run. These strings should be '
-        'the exact values as stored in the name attribute of a story object. '
-        'Passing in a story name this way will cause the story to run even '
-        'if it is marked as "Skip" in the expectations config. '
-        'This name does not include the benchmark name. This flag can be '
-        'provided multiple times to chose to run multiple stories. '
-        'The story flag is exclusive with other story selection flags.')
+    group.add_argument(
+        '--run-full-story-set',
+        action='store_true',
+        default=False,
+        help=('DEPRECATED. Does not do anything. Use --run-abridged-story-set '
+              'instead.'))
+    group.add_argument(
+        '--run-abridged-story-set',
+        action='store_true',
+        default=None,
+        help=('Whether to run the abridged set of stories from the benchmark '
+              'instead of the whole set of stories. Note that many benchmarks '
+              'do not have an abridged version: for those benchmarks this flag '
+              'will have no effect.'))
+    group.add_argument(
+        '--story',
+        action='append',
+        dest='stories',
+        help=('An exact name of a story to run. These strings should be '
+              'the exact values as stored in the name attribute of a story '
+              'object. Passing in a story name this way will cause the story '
+              'to run even if it is marked as "Skip" in the expectations '
+              'config. This name does not include the benchmark name. This '
+              'flag can be provided multiple times to chose to run multiple '
+              'stories. The story flag is exclusive with other story selection '
+              'flags.'))
     parser.add_option_group(group)
 
   @classmethod

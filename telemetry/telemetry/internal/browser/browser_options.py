@@ -101,92 +101,76 @@ class BrowserFinderOptions(argparse.Namespace):
 
     # Selection group
     group = oam.CreateOptionGroup(parser, 'Which browser to use')
-    group.add_option(
-        '--browser',
-        dest='browser_type',
-        default=None,
-        help='Browser type to run, '
-        'in order of priority. Supported values: list,%s' %
-        ', '.join(browser_finder.FindAllBrowserTypes()))
-    group.add_option(
-        '--cast-receiver',
-        dest='cast_receiver_type',
-        default=None,
-        help='Cast Receiver type to run, '
-        'Supported values: list,%s' %
-        ', '.join(cast_interface.CAST_BROWSERS))
-    group.add_option(
-        '--browser-executable',
-        dest='browser_executable',
-        help='The exact browser to run.')
-    group.add_option(
+    group.add_argument('--browser',
+                       dest='browser_type',
+                       choices=['list', 'any'] +
+                       browser_finder.FindAllBrowserTypes(),
+                       help='Browser type to run, in order of priority.')
+    group.add_argument('--cast-receiver',
+                       dest='cast_receiver_type',
+                       choices=['list'] + cast_interface.CAST_BROWSERS,
+                       help='Cast Receiver type to run')
+    group.add_argument('--browser-executable', help='The exact browser to run.')
+    group.add_argument(
         '--chrome-root',
-        dest='chrome_root',
-        help='Where to look for chrome builds. '
-             'Defaults to searching parent dirs by default.')
-    group.add_option(
+        help=('Where to look for chrome builds. Defaults to searching parent '
+              'dirs by default.'))
+    group.add_argument(
         '--chromium-output-directory',
         dest='chromium_output_dir',
-        help='Where to look for build artifacts. '
-        'Can also be specified by setting environment variable '
-        'CHROMIUM_OUTPUT_DIR.')
-    group.add_option(
-        '--remote',
-        dest='remote',
-        help='The hostname of a remote ChromeOS device to use.')
-    group.add_option(
+        help=('Where to look for build artifacts. Can also be specified by '
+              'setting environment variable CHROMIUM_OUTPUT_DIR.'))
+    group.add_argument('--remote',
+                       help='The hostname of a remote ChromeOS device to use.')
+    group.add_argument(
         '--remote-ssh-port',
         type=int,
         # This is set in ParseArgs if necessary.
         default=-1,
-        dest='remote_ssh_port',
-        help=
-        'The SSH port of the remote ChromeOS device (requires --remote or --fetch-cros-remote).'
-    )
-    group.add_option(
+        help=('The SSH port of the remote ChromeOS device (requires --remote '
+              'or --fetch-cros-remote).'))
+    group.add_argument(
         '--fetch-cros-remote',
         action='store_true',
-        dest='fetch_cros_remote',
-        help='Will extract device hostname from the SWARMING_BOT_ID env var if '
-        'running on ChromeOS Swarming.')
+        help=('Will extract device hostname from the SWARMING_BOT_ID env var '
+              'if running on ChromeOS Swarming.'))
     compat_mode_options_list = [
         compat_mode_options.NO_FIELD_TRIALS,
         compat_mode_options.IGNORE_CERTIFICATE_ERROR,
         compat_mode_options.LEGACY_COMMAND_LINE_PATH,
         compat_mode_options.GPU_BENCHMARKING_FALLBACKS,
-        compat_mode_options.DONT_REQUIRE_ROOTED_DEVICE]
-    parser.add_option(
+        compat_mode_options.DONT_REQUIRE_ROOTED_DEVICE
+    ]
+    parser.add_argument(
         '--compatibility-mode',
         action='append',
-        dest='compatibility_mode',
         choices=compat_mode_options_list,
         default=[],
-        help='Select the compatibility change that you want to enforce when '
-             'running benchmarks. The options are: %s' % ', '.join(
-                 compat_mode_options_list))
-    parser.add_option(
+        help=('Select the compatibility change that you want to enforce when '
+              'running benchmarks.'))
+    parser.add_argument(
         '--legacy-json-trace-format',
         action='store_true',
         help='Request traces from Chrome in legacy JSON format.')
-    parser.add_option(
+    parser.add_argument(
         '--experimental-system-tracing',
         action='store_true',
         help='Use system tracing from Perfetto to trace Chrome.')
-    parser.add_option(
+    parser.add_argument(
         '--experimental-system-data-sources',
         action='store_true',
         help='Use Perfetto tracing to collect power and CPU usage data.')
-    parser.add_option(
+    parser.add_argument(
         '--force-sideload-perfetto',
         action='store_true',
-        help='Sideload perfetto binaries from the cloud even if the device '
-             'already has Perfetto installed.')
+        help=('Sideload perfetto binaries from the cloud even if the device '
+              'already has Perfetto installed.'))
     identity = None
     testing_rsa = os.path.join(
         util.GetTelemetryThirdPartyDir(), 'chromite', 'ssh_keys', 'testing_rsa')
     if os.path.exists(testing_rsa):
       identity = testing_rsa
-    group.add_option(
+    group.add_argument(
         '--identity',
         dest='ssh_identity',
         default=identity,
@@ -195,174 +179,173 @@ class BrowserFinderOptions(argparse.Namespace):
 
     # Debugging options
     group = oam.CreateOptionGroup(parser, 'When things go wrong')
-    group.add_option('--print-bootstrap-deps',
-                     action='store_true',
-                     help='Output bootstrap deps list.')
-    group.add_option(
-        '--extra-chrome-categories', dest='extra_chrome_categories', type=str,
-        help='Filter string to enable additional chrome tracing categories. See'
-             ' documentation here: https://cs.chromium.org/chromium/src/base/'
-             'trace_event/trace_config.h?rcl='
-             'c8db6c6371ca047c24d41f3972d5819bc83d83ae&l=125')
-    group.add_option(
-        '--extra-atrace-categories', dest='extra_atrace_categories', type=str,
-        help='Comma-separated list of extra atrace categories. Use atrace'
-             ' --list_categories to get full list.')
-    group.add_option(
-        '--enable-systrace', dest='enable_systrace', action='store_true',
-        help='Enable collection of systrace. (Useful on ChromeOS where'
-             ' atrace is not supported; collects scheduling information.)')
-    group.add_option(
+    group.add_argument('--print-bootstrap-deps',
+                       action='store_true',
+                       help='Output bootstrap deps list.')
+    group.add_argument(
+        '--extra-chrome-categories',
+        help=('Filter string to enable additional chrome tracing categories. '
+              'See documentation here: '
+              'https://cs.chromium.org/chromium/src/base/trace_event/'
+              'trace_config.h?rcl='
+              'c8db6c6371ca047c24d41f3972d5819bc83d83ae&l=125'))
+    group.add_argument(
+        '--extra-atrace-categories',
+        help=('Comma-separated list of extra atrace categories. Use atrace'
+              ' --list_categories to get full list.'))
+    group.add_argument(
+        '--enable-systrace',
+        action='store_true',
+        help=('Enable collection of systrace. (Useful on ChromeOS where atrace '
+              'is not supported; collects scheduling information.)'))
+    group.add_argument(
         '--capture-screen-video',
-        dest='capture_screen_video', action='store_true',
-        help='Capture the screen during the test and save it to a video file '
-             '(note that it is supported only on some platforms)')
-    group.add_option(
+        action='store_true',
+        help=('Capture the screen during the test and save it to a video file '
+              '(note that it is supported only on some platforms)'))
+    group.add_argument(
         '--periodic-screenshot-frequency-ms',
-        dest='periodic_screenshot_frequency_ms', type=int,
-        help='During each story, capture a screenshot every x ms and '
-             'save it to a file (Linux/Windows/[La]CrOS only).'
-             'NOTE: This significantly impacts performance, '
-             'so it should only be used while debugging.')
+        type=int,
+        help=('During each story, capture a screenshot every x ms and save it '
+              'to a file (Linux/Windows/[La]CrOS only). NOTE: This '
+              'significantly impacts performance, so it should only be used '
+              'while debugging.'))
     parser.add_option_group(group)
 
     # Platform options
     group = oam.CreateOptionGroup(parser, 'Platform options')
-    group.add_option(
+    group.add_argument(
         '--performance-mode',
-        choices=[android_device.HIGH_PERFORMANCE_MODE,
-                 android_device.NORMAL_PERFORMANCE_MODE,
-                 android_device.LITTLE_ONLY_PERFORMANCE_MODE,
-                 android_device.KEEP_PERFORMANCE_MODE],
+        choices=[
+            android_device.HIGH_PERFORMANCE_MODE,
+            android_device.NORMAL_PERFORMANCE_MODE,
+            android_device.LITTLE_ONLY_PERFORMANCE_MODE,
+            android_device.KEEP_PERFORMANCE_MODE
+        ],
         default=android_device.HIGH_PERFORMANCE_MODE,
-        help='Some platforms run on "full performance mode" where the '
-        'test is executed at maximum CPU speed in order to minimize noise '
-        '(specially important for dashboards / continuous builds). '
-        'This option allows to choose performance mode. '
-        'Available choices: '
-        'high (default): high performance mode; '
-        'normal: normal performance mode; '
-        'little-only: execute the benchmark on little cores only; '
-        'keep: don\'t touch the device performance settings.')
+        help=(
+            'Some platforms run on "full performance mode" where the '
+            'test is executed at maximum CPU speed in order to minimize '
+            'noise (specially important for dashboards / continuous builds). '
+            'This option allows to choose performance mode. Available '
+            'choices: high (default): high performance mode; normal: normal '
+            'performance mode; little-only: execute the benchmark on little '
+            'cores only; keep: don\'t touch the device performance settings.'))
     # TODO(crbug.com/1025207): Rename this to --support-apk
-    group.add_option(
+    group.add_argument(
         '--webview-embedder-apk',
         action="append",
         default=[],
-        help='When running tests on android webview, more than one apk needs to'
-        ' be installed. The apk running the test is said to embed webview. More'
-        ' than one apk may be specified if needed.')
+        help=('When running tests on android webview, more than one apk needs '
+              'to be installed. The apk running the test is said to embed '
+              'webview. More than one apk may be specified if needed.'))
     parser.add_option_group(group)
 
     # Remote platform options
     group = oam.CreateOptionGroup(parser, 'Remote platform options')
-    group.add_option('--android-denylist-file',
-                     help='Device denylist JSON file.')
-    group.add_option(
+    group.add_argument('--android-denylist-file',
+                       help='Device denylist JSON file.')
+    group.add_argument(
         '--device',
-        help='The device ID to use. '
-        'If not specified, only 0 or 1 connected devices are supported. '
-        'If specified as "android", all available Android devices are '
-        'used.')
-    group.add_option(
+        help=('The device ID to use. If not specified, only 0 or 1 connected '
+              'devices are supported. If specified as "android", all available '
+              'Android devices are used.'))
+    group.add_argument(
         '--install-bundle-module',
         dest='modules_to_install',
         action='append',
         default=[],
-        help='Specify Android App Bundle modules to install in addition to the '
-        'base module. Ignored on Non-Android platforms.')
-    group.add_option(
+        help=('Specify Android App Bundle modules to install in addition to '
+              'the base module. Ignored on Non-Android platforms.'))
+    group.add_argument(
         '--compile-apk',
-        help='Compiles the APK under test using dex2oat in the specified mode. '
-        'Ignored on non-Android platforms.')
-    group.add_option(
+        help=('Compiles the APK under test using dex2oat in the specified '
+              'mode. Ignored on non-Android platforms.'))
+    group.add_argument(
         '--avd-config',
-        default=None,
-        help='A path to an AVD configuration to use for starting an Android '
-        'emulator.'
-    )
+        help=('A path to an AVD configuration to use for starting an Android '
+              'emulator.'))
     parser.add_option_group(group)
 
     # Cast browser options
     group = oam.CreateOptionGroup(parser, 'Cast browser options')
-    group.add_option('--cast-output-dir',
-                     help='Output directory for Cast Core.')
-    group.add_option('--cast-runtime-exe',
-                     help='Path to Cast Web Runtime executable.')
-    group.add_option('--local-cast',
-                     action="store_true", default=False,
-                     help='Use a local casting receiver on the host.')
-    group.add_option('--cast-device-ip',
-                     help='IP address of the Cast device.')
+    group.add_argument('--cast-output-dir',
+                       help='Output directory for Cast Core.')
+    group.add_argument('--cast-runtime-exe',
+                       help='Path to Cast Web Runtime executable.')
+    group.add_argument('--local-cast',
+                       action='store_true',
+                       help='Use a local casting receiver on the host.')
+    group.add_argument('--cast-device-ip',
+                       help='IP address of the Cast device.')
 
     group = oam.CreateOptionGroup(parser, 'Fuchsia platform options')
-    group.add_option(
+    group.add_argument(
         '--fuchsia-ssh-config',
         default=os.path.join(util.GetChromiumSrcDir(), 'build', 'fuchsia',
                              'test', 'sshconfig'),
         help='Specify the ssh_config file used to connect to the Fuchsia OS.')
-    group.add_option(
-        '--fuchsia-device-address',
-        help='The IP of the target Fuchsia device. Optional.')
-    group.add_option(
+    group.add_argument('--fuchsia-device-address',
+                       help='The IP of the target Fuchsia device. Optional.')
+    group.add_argument(
         '--fuchsia-ssh-port',
         type=int,
-        help='The port on the host to which the ssh service running on the '
-        'Fuchsia device was forwarded.')
-    group.add_option(
+        help=('The port on the host to which the ssh service running on the '
+              'Fuchsia device was forwarded.'))
+    group.add_argument(
         '--fuchsia-system-log-file',
         help='The file where Fuchsia system logs will be stored.')
-    group.add_option(
+    group.add_argument(
         '--fuchsia-repo',
         default='fuchsia.com',
         help='The name of the Fuchsia repo used to serve required packages.')
-    group.add_option(
-        '--fuchsia-target-id',
-        help='The Fuchsia target id used by the ffx tool.')
+    group.add_argument('--fuchsia-target-id',
+                       help='The Fuchsia target id used by the ffx tool.')
     parser.add_option_group(group)
 
     # CPU profiling on Android/Linux/ChromeOS.
     group = oam.CreateOptionGroup(parser, (
         'CPU profiling over intervals of interest, '
         'Android, Linux, and ChromeOS only'))
-    group.add_option(
-        '--interval-profiling-target', dest='interval_profiling_target',
+    group.add_argument(
+        '--interval-profiling-target',
         default='renderer:main',
         metavar='PROCESS_NAME[:THREAD_NAME]|"system_wide"',
-        help='Run the CPU profiler on this process/thread (default=%default), '
-        'which is supported only on Linux and Android, or system-wide, which '
-        'is supported only on ChromeOS.')
-    group.add_option(
+        help=('Run the CPU profiler on this process/thread '
+              '(default=%(default)s), which is supported only on Linux and '
+              'Android, or system-wide, which is supported only on ChromeOS.'))
+    group.add_argument(
         '--interval-profiling-period',
         dest='interval_profiling_periods',
         choices=('navigation', 'interactions', 'story_run'),
         action='append',
         default=[],
         metavar='PERIOD',
-        help='Run the CPU profiler during this test period. '
-        'May be specified multiple times except when the story_run period is '
-        'used; available choices are ["navigation", "interactions", '
-        '"story_run"]. Profile data will be written to '
-        'artifacts/*.perf.data (Android/ChromeOS) or '
-        'artifacts/*.profile.pb (Linux) files in the output directory. See '
-        'https://developer.android.com/ndk/guides/simpleperf for more info on '
-        'Android profiling via simpleperf.')
-    group.add_option(
-        '--interval-profiling-frequency', default=1000, metavar='FREQUENCY',
+        help=('Run the CPU profiler during this test period. May be specified '
+              'multiple times except when the story_run period is used. '
+              'Profile data will be written to artifacts/*.perf.data '
+              '(Android/ChromeOS) or artifacts/*.profile.pb (Linux) files in '
+              'the output directory. See '
+              'https://developer.android.com/ndk/guides/simpleperf for more '
+              'info on Android profiling via simpleperf.'))
+    group.add_argument(
+        '--interval-profiling-frequency',
+        default=1000,
+        metavar='FREQUENCY',
         type=int,
-        help='Frequency of CPU profiling samples, in samples per second '
-        '(default=%default). This flag is used only on Android')
-    group.add_option(
+        help=('Frequency of CPU profiling samples, in samples per second '
+              '(default=%(default)s). This flag is used only on Android'))
+    group.add_argument(
         '--interval-profiler-options',
-        dest='interval_profiler_options', type=str,
+        type=str,
         metavar='"--flag <options> ..."',
-        help='Addtional arguments to pass to the CPU profiler. This is used '
-        'only on ChromeOS. On ChromeOS, pass the linux perf\'s subcommand name '
-        'followed by the options to pass to the perf tool. Supported perf '
-        'subcommands are "record" and "stat". '
-        'Eg: "record -e cycles -c 4000000 -g". Note: "-a" flag is added to the '
-        'perf command by default. Do not pass options that are incompatible '
-        'with the system-wide profile collection.')
+        help=('Addtional arguments to pass to the CPU profiler. This is used '
+              'only on ChromeOS. On ChromeOS, pass the linux perf\'s '
+              'subcommand name followed by the options to pass to the perf '
+              'tool. Supported perf subcommands are "record" and "stat". E.g.: '
+              '"record -e cycles -c 4000000 -g". Note: "-a" flag is added to '
+              'the perf command by default. Do not pass options that are '
+              'incompatible with the system-wide profile collection.'))
     parser.add_option_group(group)
 
     # Browser options.
@@ -681,49 +664,45 @@ class BrowserOptions():
 
     group = oam.CreateOptionGroup(parser, 'Browser options')
     profile_choices = profile_types.GetProfileTypes()
-    group.add_option(
+    group.add_argument(
         '--profile-type',
-        dest='profile_type',
         default='clean',
         choices=profile_choices,
-        help=('The user profile to use. A clean profile is used by default. '
-              'Supported values: ' + ', '.join(profile_choices)))
-    group.add_option(
+        help='The user profile to use. A clean profile is used by default.')
+    group.add_argument(
         '--profile-dir',
-        dest='profile_dir',
-        help='Profile directory to launch the browser with. '
-             'A clean profile is used by default')
-    group.add_option(
+        help=('Profile directory to launch the browser with. A clean profile '
+              'is used by default'))
+    group.add_argument(
         '--extra-browser-args',
         dest='extra_browser_args_as_string',
         help='Additional arguments to pass to the browser when it starts')
-    group.add_option(
+    group.add_argument(
         '--extra-wpr-args',
         dest='extra_wpr_args_as_string',
         help=('Additional arguments to pass to Web Page Replay. '
               'See third_party/web-page-replay/replay.py for usage.'))
-    group.add_option(
+    group.add_argument(
         '--show-stdout',
         action='store_true',
         help='When possible, will display the stdout of the process')
 
-    group.add_option(
+    group.add_argument(
         '--browser-logging-verbosity',
         dest='logging_verbosity',
         choices=cls._LOGGING_LEVELS,
+        default=cls._DEFAULT_LOGGING_LEVEL,
         help=('Browser logging verbosity. The log file is saved in temp '
               "directory. Note that logging affects the browser's "
-              'performance. Supported values: %s. Defaults to %s.' %
-              (', '.join(cls._LOGGING_LEVELS), cls._DEFAULT_LOGGING_LEVEL)))
-    group.add_option(
+              'performance. Defaults to %(default)s.'))
+    group.add_argument(
         '--assert-gpu-compositing',
-        dest='assert_gpu_compositing',
         action='store_true',
         help='Assert the browser uses gpu compositing and not software path.')
     parser.add_option_group(group)
 
     group = oam.CreateOptionGroup(parser, 'Compatibility options')
-    group.add_option(
+    group.add_argument(
         '--gtest_output',
         help='Ignored argument for compatibility with runtest.py harness')
     parser.add_option_group(group)

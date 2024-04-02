@@ -19,12 +19,12 @@ def main(args):
   options = browser_options.BrowserFinderOptions()
   parser = options.CreateParser(
       usage='Create a static HTML snapshot of the page')
-  parser.add_option('--url', help='URL of the web page to record')
-  parser.add_option('--enable-browser-log', help='Enable browser log',
-      default=False, action='store_true')
-  parser.add_option('--interactive', action="store_true", default=False,
+  parser.add_argument('--url', help='URL of the web page to record')
+  parser.add_argument('--enable-browser-log', help='Enable browser log',
+      action='store_true')
+  parser.add_argument('--interactive', action='store_true',
       help='Activate interactive mode after loading the page')
-  parser.add_option('--snapshot-path', help='Where to save the snapshot',
+  parser.add_argument('--snapshot-path', help='Where to save the snapshot',
       default='snapshot.html')
   parser.parse_args(args)
 
