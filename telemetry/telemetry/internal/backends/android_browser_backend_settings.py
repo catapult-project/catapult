@@ -280,7 +280,7 @@ class WebViewBackendSettings(WebViewBasedBackendSettings):
     ])
     kwargs.setdefault(
         'sdk_dependent_actions',
-        [_SdkDependentActivity(None, _ANDROID_EARLIEST, _ANDROID_LATEST)])
+        [_SdkDependentAction(None, _ANDROID_EARLIEST, _ANDROID_LATEST)])
     kwargs.setdefault('embedder_apk_name', 'SystemWebViewShell.apk')
     kwargs.setdefault('command_line_name', 'webview-command-line')
     super().__init__(*args, **kwargs)
