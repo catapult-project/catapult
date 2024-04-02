@@ -51,6 +51,9 @@ FUCHSIA_INTEGRATION_INTERNAL_REVISIONS = _Info(
 FUCHSIA_INTEGRATION_PUBLIC_REVISIONS = _Info(
   'fuchsiaIntegrationPublicRevisions', 'GenericSet', str)
 FUCHSIA_PERIDOT_REVISIONS = _Info('fuchsiaPeridotRevisions', 'GenericSet', str)
+# Git commit ids for the fuchsia smart-integration.git repo
+FUCHSIA_SMART_INTEGRATION_REVISIONS = _Info(
+  'fuchsiaSmartIntegrationRevisions', 'GenericSet', str)
 FUCHSIA_TOPAZ_REVISIONS = _Info('fuchsiaTopazRevisions', 'GenericSet', str)
 FUCHSIA_ZIRCON_REVISIONS = _Info('fuchsiaZirconRevisions', 'GenericSet', str)
 GPUS = _Info('gpus', 'GenericSet', str)
