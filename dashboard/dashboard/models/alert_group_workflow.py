@@ -656,7 +656,10 @@ class AlertGroupWorkflow:
         self._GetTemplateArgs(all_regressions))
     comment = None
     if new_regression_notification:
-      comment = _TEMPLATE_ISSUE_COMMENT.render(self._GetTemplateArgs(added))
+      template_args = self._GetTemplateArgs(added)
+      skia_args = self._GetSkiaTemplateArgs(added)
+      template_args.update(skia_args)
+      comment = _TEMPLATE_ISSUE_COMMENT.render(template_args)
     components, cc, labels = self._ComputeBugUpdate(subscriptions, added)
     perf_issue_service_client.PostIssueComment(
         self._group.bug.bug_id,
