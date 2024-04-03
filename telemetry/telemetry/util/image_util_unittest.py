@@ -76,6 +76,8 @@ class ImageUtilTest(unittest.TestCase):
     file_bmp = image_util.FromPngFile(test_png_path)
     file_bmp_2 = image_util.FromPngFile(test_png_2_path)
 
+    file_bmp_2 = image_util.Crop(file_bmp_2, 0, 0, 3, 1)
+
     diff_bmp = image_util.Diff(file_bmp, file_bmp)
 
     self.assertEqual(2, image_util.Width(diff_bmp))
@@ -89,18 +91,15 @@ class ImageUtilTest(unittest.TestCase):
     diff_bmp = image_util.Diff(file_bmp, file_bmp_2)
 
     self.assertEqual(3, image_util.Width(diff_bmp))
-    self.assertEqual(3, image_util.Height(diff_bmp))
+    self.assertEqual(2, image_util.Height(diff_bmp))
 
     image_util.GetPixelColor(diff_bmp, 0, 0).AssertIsRGB(0, 255, 255)
-    image_util.GetPixelColor(diff_bmp, 1, 1).AssertIsRGB(255, 0, 255)
-    image_util.GetPixelColor(diff_bmp, 0, 1).AssertIsRGB(255, 255, 0)
     image_util.GetPixelColor(diff_bmp, 1, 0).AssertIsRGB(0, 0, 255)
-
-    image_util.GetPixelColor(diff_bmp, 0, 2).AssertIsRGB(255, 255, 255)
-    image_util.GetPixelColor(diff_bmp, 1, 2).AssertIsRGB(255, 255, 255)
     image_util.GetPixelColor(diff_bmp, 2, 0).AssertIsRGB(255, 255, 255)
-    image_util.GetPixelColor(diff_bmp, 2, 1).AssertIsRGB(255, 255, 255)
-    image_util.GetPixelColor(diff_bmp, 2, 2).AssertIsRGB(255, 255, 255)
+
+    image_util.GetPixelColor(diff_bmp, 0, 1).AssertIsRGB(0, 0, 255)
+    image_util.GetPixelColor(diff_bmp, 1, 1).AssertIsRGB(0, 255, 0)
+    image_util.GetPixelColor(diff_bmp, 2, 1).AssertIsRGB(0, 0, 0)
 
   def testGetBoundingBox(self):
     pixels = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

@@ -130,8 +130,8 @@ def Diff(image1, image2):
   if image1.shape[:2] != image2.shape[:2]:
     width = max(Width(image1), Width(image2))
     height = max(Height(image1), Height(image2))
-    self_image = np.zeros((width, height, image1.shape[2]), np.uint8)
-    other_image = np.zeros((width, height, image1.shape[2]), np.uint8)
+    self_image = np.zeros((height, width, image1.shape[2]), np.uint8)
+    other_image = np.zeros((height, width, image1.shape[2]), np.uint8)
     self_image[0:Height(image1), 0:Width(image1)] = image1
     other_image[0:Height(image2), 0:Width(image2)] = image2
   return _SimpleDiff(self_image, other_image)
