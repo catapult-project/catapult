@@ -67,7 +67,8 @@ _MAP_TO_USER_FRIENDLY_DEVICE_NAMES = {
     'gobo': 'go',
     'W6210': 'one',
     'AOSP on Shamu': 'nexus 6',
-    'AOSP on BullHead': 'nexus 5x'
+    'AOSP on BullHead': 'nexus 5x',
+    'wembley-2GB': 'wembley'
 }
 _NON_ROOT_OVERRIDES = {
     # The Samsung A23 uses the legacy sdcardfs which allows us to read/remove
