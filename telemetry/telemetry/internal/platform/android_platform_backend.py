@@ -68,7 +68,7 @@ _MAP_TO_USER_FRIENDLY_DEVICE_NAMES = {
     'W6210': 'one',
     'AOSP on Shamu': 'nexus 6',
     'AOSP on BullHead': 'nexus 5x',
-    'wembley-2GB': 'wembley'
+    'wembley_2GB': 'wembley'
 }
 _NON_ROOT_OVERRIDES = {
     # The Samsung A23 uses the legacy sdcardfs which allows us to read/remove
@@ -377,6 +377,7 @@ class AndroidPlatformBackend(
     tags = test_utils.sanitizeTypExpectationsTags(
         [self.GetOSName(), 'android-' + os_version])
     device_type_name = self.GetDeviceTypeName()
+    logging.info('Android device type name: %s', device_type_name)
     tags += test_utils.sanitizeTypExpectationsTags(
         ['android-' + _MAP_TO_USER_FRIENDLY_DEVICE_NAMES.get(
             device_type_name, device_type_name)])
