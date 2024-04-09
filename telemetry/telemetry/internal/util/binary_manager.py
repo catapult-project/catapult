@@ -7,6 +7,7 @@ from __future__ import absolute_import
 import contextlib
 import logging
 import os
+from typing import Optional
 
 import py_utils
 from py_utils import binary_manager
@@ -58,7 +59,7 @@ NoPathFoundError = dependency_manager.NoPathFoundError
 CloudStorageError = dependency_manager.CloudStorageError
 
 
-_binary_manager = None
+_binary_manager: Optional[binary_manager.BinaryManager] = None
 _installed_helpers = set()
 
 
