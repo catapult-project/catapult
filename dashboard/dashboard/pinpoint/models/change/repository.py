@@ -6,6 +6,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import logging
+
 from google.appengine.ext import ndb
 
 
@@ -83,11 +85,15 @@ def _AddRepository(url):
   """
   name = url.split('/')[-1]
 
-  if ndb.Key(Repository, name).get():
-    raise AssertionError("Attempted to add a repository that's already in the "
-                         'Datastore: %s: %s' % (name, url))
-
-  Repository(id=name, urls=[url]).put()
+  repository = ndb.Key(Repository, name).get()
+  if repository:
+    current_url = repository.urls[0] if len(repository.urls) > 0 else ''
+    logging.info('Replacing the repository %s. Old url %s, new url %s',
+                    name, current_url, url)
+    repository.urls = [url]
+    repository.put()
+  else:
+    Repository(id=name, urls=[url]).put()
   return name
 
 
