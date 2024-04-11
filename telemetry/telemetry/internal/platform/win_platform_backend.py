@@ -115,8 +115,22 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
               ' | Select-Object -Property PCSystemType']
     else:
       args = ['wmic', 'computersystem', 'get', 'pcsystemtype']
-    lines = six.ensure_str(
-        subprocess.Popen(args, stdout=subprocess.PIPE).communicate()[0]).split()
+
+    # Retry this up to 3 times. On Windows ARM64 devices, it is unlikely but
+    # possible for the powershell command to hang indefinitely. The
+    # -OperationTimeoutSec argument for the Get-CimInstance command does not
+    # prevent this.
+    lines = []
+    for _ in range(3):
+      try:
+        proc = subprocess.run(
+            args, text=True, timeout=10, check=True, capture_output=True)
+        lines = proc.stdout.split()
+        break
+      except subprocess.CalledProcessError as e:
+        logging.error('Error running %s: %s', args, e)
+      except subprocess.TimeoutExpired as e:
+        logging.error('Timeout running %s: %s', args, e)
 
     if len(lines) > 1 and lines[0] == 'PCSystemType':
       if use_powershell:
