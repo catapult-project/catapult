@@ -38,11 +38,6 @@ cron:
   url: /update_test_suites
   schedule: every 20 minutes
 
-- description: Restart pinpoint jobs that encounter failures
-  url: /cron/refresh-jobs
-  schedule: every 15 minutes
-  target: pinpoint
-
 - description: Purge Pinpoint's expired isolates from datastore.
   url: /cron/isolate-cleanup
   schedule: every 24 hours
