@@ -61,19 +61,60 @@ class AndroidPlatformBackendTest(unittest.TestCase):
                     return_value='foo'):
       with mock.patch.object(
           backend, 'GetDeviceTypeName', return_value='gobo'):
-        for version in android_os_versions:
-          with mock.patch.object(
-              backend, 'GetOSVersionName', return_value=version):
-            self.assertIn('android-' + android_os_versions[version],
-                          backend.GetTypExpectationsTags())
+        with mock.patch.object(backend,
+                               'GetOSReleaseVersion',
+                               return_value='10'):
+          for version in android_os_versions:
+            with mock.patch.object(backend,
+                                   'GetOSVersionName',
+                                   return_value=version):
+              self.assertIn('android-' + android_os_versions[version],
+                            backend.GetTypExpectationsTags())
+
+  @decorators.Disabled('chromeos', 'mac', 'win')
+  def testTypExpectationsContainAndroidLetterPriorToCutoff(self):
+
+    def side_effect(prop, *args, **kwargs):
+      del args, kwargs
+      if prop == 'ro.build.id':
+        return 'u'
+      if prop == 'ro.build.version.release':
+        return '14.0'
+      return 'foo'
+
+    backend = self.CreatePlatformBackendForTest()
+    with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
+                    side_effect=side_effect):
+      tags = backend.GetTypExpectationsTags()
+      self.assertIn('android-u', tags)
+      self.assertIn('android-14', tags)
+
+  @decorators.Disabled('chromeos', 'mac', 'win')
+  def testTypExpectationsMissingAndroidLetterAfterCutoff(self):
+
+    def side_effect(prop, *args, **kwargs):
+      del args, kwargs
+      if prop == 'ro.build.id':
+        return 'v'
+      if prop == 'ro.build.version.release':
+        return '15'
+      return 'foo'
+
+    backend = self.CreatePlatformBackendForTest()
+    with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
+                    side_effect=side_effect):
+      tags = backend.GetTypExpectationsTags()
+      self.assertNotIn('android-v', tags)
+      self.assertIn('android-15', tags)
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testTypExpectationsTagsContainsLowEndTagForSvelteBuild(self):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='svelte'):
       backend = self.CreatePlatformBackendForTest()
-      tags = backend.GetTypExpectationsTags()
-      self.assertIn('android-low-end', tags)
+      with mock.patch.object(backend, 'GetOSReleaseVersion', return_value='10'):
+        tags = backend.GetTypExpectationsTags()
+        self.assertIn('android-low-end', tags)
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testTypExpectationsTagsIncludesTagsForAndroidGo(self):
@@ -81,9 +122,12 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='foo'):
       with mock.patch.object(backend, 'GetDeviceTypeName', return_value='gobo'):
-        tags = backend.GetTypExpectationsTags()
-        self.assertIn('android-low-end', tags)
-        self.assertIn('android-go', tags)
+        with mock.patch.object(backend,
+                               'GetOSReleaseVersion',
+                               return_value='10'):
+          tags = backend.GetTypExpectationsTags()
+          self.assertIn('android-low-end', tags)
+          self.assertIn('android-go', tags)
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testTypExpectationsTagsIncludesTagsForAndroidOne(self):
@@ -92,17 +136,20 @@ class AndroidPlatformBackendTest(unittest.TestCase):
                     return_value='foo'):
       with mock.patch.object(backend, 'GetDeviceTypeName',
                              return_value='W6210'):
-        tags = backend.GetTypExpectationsTags()
-        self.assertIn('android-low-end', tags)
-        self.assertIn('android-one', tags)
+        with mock.patch.object(backend,
+                               'GetOSReleaseVersion',
+                               return_value='10'):
+          tags = backend.GetTypExpectationsTags()
+          self.assertIn('android-low-end', tags)
+          self.assertIn('android-one', tags)
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testTypExpectationsDoesNotIncludeLowEndTagForNonSvelteBuild(self):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='foo'):
       backend = self.CreatePlatformBackendForTest()
-      self.assertNotIn(
-          'android-low-end', backend.GetTypExpectationsTags())
+      with mock.patch.object(backend, 'GetOSReleaseVersion', return_value='10'):
+        self.assertNotIn('android-low-end', backend.GetTypExpectationsTags())
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testTypExpectationsTagsIncludesForNexus6(self):
@@ -111,8 +158,11 @@ class AndroidPlatformBackendTest(unittest.TestCase):
                     return_value='foo'):
       with mock.patch.object(backend, 'GetDeviceTypeName',
                              return_value='AOSP on Shamu'):
-        self.assertIn('android-nexus-6', backend.GetTypExpectationsTags())
-        self.assertIn('mobile', backend.GetTypExpectationsTags())
+        with mock.patch.object(backend,
+                               'GetOSReleaseVersion',
+                               return_value='10'):
+          self.assertIn('android-nexus-6', backend.GetTypExpectationsTags())
+          self.assertIn('mobile', backend.GetTypExpectationsTags())
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testTypExpectationsTagsIncludesForNexus5x(self):
@@ -121,8 +171,11 @@ class AndroidPlatformBackendTest(unittest.TestCase):
                     return_value='foo'):
       with mock.patch.object(backend, 'GetDeviceTypeName',
                              return_value='AOSP on BullHead'):
-        self.assertIn('android-nexus-5x', backend.GetTypExpectationsTags())
-        self.assertIn('mobile', backend.GetTypExpectationsTags())
+        with mock.patch.object(backend,
+                               'GetOSReleaseVersion',
+                               return_value='10'):
+          self.assertIn('android-nexus-5x', backend.GetTypExpectationsTags())
+          self.assertIn('mobile', backend.GetTypExpectationsTags())
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testIsSvelte(self):

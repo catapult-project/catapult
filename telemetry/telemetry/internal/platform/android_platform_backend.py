@@ -370,12 +370,24 @@ class AndroidPlatformBackend(
     return self._device.product_model
 
   def GetTypExpectationsTags(self):
+    os_release_version = self.GetOSReleaseVersion()
+    tags = [
+        self.GetOSName(),
+        f'android-{os_release_version}',
+    ]
+    # Starting in 2024, the Android image naming scheme changed so that the
+    # first letter no longer corresponds to the codename, e.g. Android 14 is
+    # no longer Android U. Instead, the release version should be used directly.
+    # The letter version is kept around for backwards compatibility until
+    # everything is switched over. See crbug.com/333795261 for details.
+    if int(os_release_version) <= 14:
+      os_version = self.GetOSVersionName().lower()
+      os_version = _MAP_TO_USER_FRIENDLY_OS_NAMES.get(os_version, os_version)
+      tags.append(f'android-{os_version}')
+    tags = test_utils.sanitizeTypExpectationsTags(tags)
+
     # telemetry benchmark's expectations need to know the model name
     # and if it is a low end device
-    os_version = self.GetOSVersionName().lower()
-    os_version = _MAP_TO_USER_FRIENDLY_OS_NAMES.get(os_version, os_version)
-    tags = test_utils.sanitizeTypExpectationsTags(
-        [self.GetOSName(), 'android-' + os_version])
     device_type_name = self.GetDeviceTypeName()
     logging.info('Android device type name: %s', device_type_name)
     tags += test_utils.sanitizeTypExpectationsTags(
@@ -392,6 +404,14 @@ class AndroidPlatformBackend(
 
   def GetOSVersionDetailString(self):
     return self._device.GetProp('ro.build.id')
+
+  @decorators.Cache
+  def GetOSReleaseVersion(self):
+    """Gets the numerical Android release version.
+
+    Any minor or patch versions are stripped off.
+    """
+    return self._device.GetProp('ro.build.version.release').split('.')[0]
 
   def GetDeviceHostClockOffset(self):
     """Returns the difference between the device and host clocks."""
