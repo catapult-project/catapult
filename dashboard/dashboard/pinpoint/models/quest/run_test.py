@@ -17,7 +17,6 @@ import random
 import shlex
 
 from dashboard.common import cloud_metric
-from dashboard.common import utils
 from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models.quest import execution as execution_module
 from dashboard.pinpoint.models.quest import quest
@@ -360,22 +359,10 @@ class _RunTestExecution(execution_module.Execution):
       # A/Bs will set this elsewhere.
       self._bot_id = result['botId']
 
-    if self._bot_id:
-      if not swarming.IsBotAlive(self._bot_id, self._swarming_server):
-        raise errors.SwarmingTaskError('Bot is dead.')
-
-    if result['state'] == 'PENDING' and self._bot_id:
-      pool = 'chrome.tests.pinpoint-staging' if utils.IsStagingEnvironment(
-      ) else 'chrome.tests.pinpoint'
-      pending_count = swarming.Swarming(self._swarming_server).Tasks().Count(
-          bot_id=self._bot_id, state='QUERY_PENDING',
-          pool=pool).get('count', 0)
-      logging.debug('Bot %s has %s jobs in the pending queue.', self._bot_id,
-                    pending_count)
-      cloud_metric.PublishSwarmingBotPendingTasksMetric(
-          bot_id=self._bot_id, pool=pool, count=int(pending_count))
-
     if result['state'] == 'PENDING' or result['state'] == 'RUNNING':
+      if self._bot_id:
+        if not swarming.IsBotAlive(self._bot_id, self._swarming_server):
+          raise errors.SwarmingTaskError('Bot is dead.')
       return
 
     if result['state'] == 'EXPIRED':

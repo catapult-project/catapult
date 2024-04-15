@@ -19,7 +19,7 @@ from dashboard.pinpoint.models import errors
 from dashboard.pinpoint.models import job as job_module
 
 _JOB_CACHE_KEY = 'pinpoint_refresh_jobs_%s'
-_JOB_MAX_RETRIES = 5
+_JOB_MAX_RETRIES = 1
 _JOB_FROZEN_THRESHOLD = datetime.timedelta(hours=1)
 
 
