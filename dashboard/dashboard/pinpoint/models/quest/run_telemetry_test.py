@@ -77,8 +77,6 @@ def ChangeDependentArgs(args, change):
   # Telemetry parameter `--results-label <change>` to the runs.
   extra_args = list(args)
   extra_args += ('--results-label', str(change))
-  if '--story-filter' in extra_args:
-    extra_args.append('--run-full-story-set')
   if change.change_args:
     extra_args.extend(change.change_args)
   return extra_args
@@ -144,16 +142,12 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
 
     story = arguments.get('story')
     if story:
-      # TODO(crbug.com/982027): Note that usage of "--run-full-story-set"
-      # and "--story-filter"
-      # may be replaced with --story=<story> (no regex needed). Support
-      # for --story flag landed in
-      # https://chromium-review.googlesource.com/c/catapult/+/1869800
-      # (Oct 22, 2019)
-      # so we cannot turn this on by default until we no longer need to
-      # be able to run revisions older than that. In the meantime, the
-      # following argument plus the --run-full-story-set argument added in
-      # Start() accomplish the same thing.
+      # TODO(crbug.com/982027): Note that usage of  "--story-filter" may be
+      # replaced with --story=<story> (no regex needed). Support for --story
+      # flag landed in
+      # https://chromium-review.googlesource.com/c/catapult/+/1869800 (Oct 22,
+      # 2019) so we cannot turn this on by default until we no longer need to be
+      # able to run revisions older than that.
       extra_test_args += ('--story-filter', _StoryToRegex(story))
 
     story_tags = arguments.get('story_tags')

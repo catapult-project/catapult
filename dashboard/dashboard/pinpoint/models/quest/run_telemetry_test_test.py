@@ -82,11 +82,7 @@ class StartTest(unittest.TestCase):
     change.base_commit = mock.MagicMock(spec=commit.Commit)
     change.base_commit.AsDict = mock.MagicMock(
         return_value={'commit_position': 675460})
-    with mock.patch(
-        'dashboard.pinpoint.models.quest.run_test.RunTest._Start',
-        wraps=quest._Start) as internal_start:
-      execution = quest.Start(change, 'https://isolate.server', 'isolate hash')
-      self.assertIn('--run-full-story-set', internal_start.call_args[0][3])
+    execution = quest.Start(change, 'https://isolate.server', 'isolate hash')
     self.assertEqual(
         execution._swarming_tags, {
             'benchmark': 'speedometer',
@@ -112,7 +108,6 @@ class StartTest(unittest.TestCase):
         wraps=quest._Start) as internal_start:
       execution = quest.Start(change, 'https://isolate.server', 'isolate hash')
       call_args = internal_start.call_args[0][3]
-      self.assertIn('--run-full-story-set', call_args)
       self.assertIn('--extra-browser-args', call_args)
     self.assertEqual(
         execution._swarming_tags, {
@@ -134,9 +129,8 @@ class StartTest(unittest.TestCase):
     change.base_commit.AsDict = mock.MagicMock(return_value={})
     with mock.patch(
         'dashboard.pinpoint.models.quest.run_test.RunTest._Start',
-        wraps=quest._Start) as internal_start:
+        wraps=quest._Start):
       quest.Start(change, 'https://isolate.server', 'isolate hash')
-      self.assertIn('--run-full-story-set', internal_start.call_args[0][3])
 
   def testSwarmingTagsWithStoryTagFilter(self):
     arguments = dict(_BASE_ARGUMENTS)
