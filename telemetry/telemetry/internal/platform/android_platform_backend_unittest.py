@@ -55,8 +55,13 @@ class AndroidPlatformBackendTest(unittest.TestCase):
   def testGetFriendlyOsVersionNameInPlatformTags(self):
     backend = self.CreatePlatformBackendForTest()
     android_os_versions = {
-        'l': 'lollipop', 'm': 'marshmallow', 'n': 'nougat',
-        'o': 'oreo', 'p': 'pie', 'q': '10', 'k': 'kitkat'}
+        'k': 'kitkat',
+        'l': 'lollipop',
+        'm': 'marshmallow',
+        'n': 'nougat',
+        'o': 'oreo',
+        'p': 'pie',
+    }
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='foo'):
       with mock.patch.object(
@@ -77,17 +82,17 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     def side_effect(prop, *args, **kwargs):
       del args, kwargs
       if prop == 'ro.build.id':
-        return 'u'
+        return 't'
       if prop == 'ro.build.version.release':
-        return '14.0'
+        return '13.0'
       return 'foo'
 
     backend = self.CreatePlatformBackendForTest()
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     side_effect=side_effect):
       tags = backend.GetTypExpectationsTags()
-      self.assertIn('android-u', tags)
-      self.assertIn('android-14', tags)
+      self.assertIn('android-t', tags)
+      self.assertIn('android-13', tags)
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testTypExpectationsMissingAndroidLetterAfterCutoff(self):
@@ -95,17 +100,17 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     def side_effect(prop, *args, **kwargs):
       del args, kwargs
       if prop == 'ro.build.id':
-        return 'v'
+        return 'u'
       if prop == 'ro.build.version.release':
-        return '15'
+        return '14'
       return 'foo'
 
     backend = self.CreatePlatformBackendForTest()
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     side_effect=side_effect):
       tags = backend.GetTypExpectationsTags()
-      self.assertNotIn('android-v', tags)
-      self.assertIn('android-15', tags)
+      self.assertNotIn('android-u', tags)
+      self.assertIn('android-14', tags)
 
   @decorators.Disabled('chromeos', 'mac', 'win')
   def testTypExpectationsTagsContainsLowEndTagForSvelteBuild(self):

@@ -55,13 +55,12 @@ _ARCH_TO_STACK_TOOL_ARCH = {
     'arm64-v8a': 'arm64',
 }
 _MAP_TO_USER_FRIENDLY_OS_NAMES = {
+    'k': 'kitkat',
     'l': 'lollipop',
     'm': 'marshmallow',
     'n': 'nougat',
     'o': 'oreo',
     'p': 'pie',
-    'q': '10',
-    'k': 'kitkat'
 }
 _MAP_TO_USER_FRIENDLY_DEVICE_NAMES = {
     'gobo': 'go',
@@ -378,9 +377,10 @@ class AndroidPlatformBackend(
     # Starting in 2024, the Android image naming scheme changed so that the
     # first letter no longer corresponds to the codename, e.g. Android 14 is
     # no longer Android U. Instead, the release version should be used directly.
-    # The letter version is kept around for backwards compatibility until
-    # everything is switched over. See crbug.com/333795261 for details.
-    if int(os_release_version) <= 14:
+    # The letter version is kept around for backwards compatibility for OS
+    # versions that stopped being updated prior to the naming change. See
+    # crbug.com/333795261 for details.
+    if int(os_release_version) <= 13:
       os_version = self.GetOSVersionName().lower()
       os_version = _MAP_TO_USER_FRIENDLY_OS_NAMES.get(os_version, os_version)
       tags.append(f'android-{os_version}')
