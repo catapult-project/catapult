@@ -620,7 +620,8 @@ found in the LICENSE file.
             configuration == 'mac-14-m1-pro-perf') {
           if (benchmark.toLowerCase() == 'jetstream2') {
             return 64;
-          } else if (benchmark.toLowerCase() == 'speedometer2') {
+          } else if (benchmark.toLowerCase() == 'speedometer2' ||
+              benchmark.toLowerCase() == 'speedometer3') {
             return 128;
           // MotionMark
           } else if (benchmark.toLowerCase().startsWith('rendering.desktop')) {
