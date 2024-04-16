@@ -35,6 +35,8 @@ _PP_TO_PERF_BUILDER_MAP = {
         'mac-builder-perf',
     'Mac arm Builder Perf':
         'mac-arm-builder-perf',
+    'Mac arm Builder Perf PGO':
+        'mac-arm-builder-perf-pgo',
     'Win x64 Builder Perf':
         'win64-builder-perf',
     'Chromeos Amd64 Generic Lacros Builder Perf':
