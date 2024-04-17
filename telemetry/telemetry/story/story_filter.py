@@ -115,13 +115,6 @@ class StoryFilterFactory():
                        action='store_true',
                        default=False,
                        help='Ignore expectations.config disabling.')
-    # TODO(crbug.com/965158): delete this flag.
-    group.add_argument(
-        '--run-full-story-set',
-        action='store_true',
-        default=False,
-        help=('DEPRECATED. Does not do anything. Use --run-abridged-story-set '
-              'instead.'))
     group.add_argument(
         '--run-abridged-story-set',
         action='store_true',
