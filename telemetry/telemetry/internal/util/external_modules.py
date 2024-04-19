@@ -15,7 +15,7 @@ from py_utils import modules_util
 # should be provided via vpython instead. See: crbug.com/777865.
 MODULES = {
     'cv2': ('4.5.3', None),
-    'numpy': ('1.8.0', '1.21.2'),
+    'numpy': ('1.8.0', '1.23.6'),
     'psutil': ('0.5.0', None),
 }
 

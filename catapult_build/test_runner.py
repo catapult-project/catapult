@@ -28,7 +28,7 @@ def _RunTest(test, chrome_command):
     return 0
   command = [test['path']]
   if sys.platform == 'win32':
-    command = ['python'] + command
+    command = ['python3'] + command
   if test.get('chrome_path_arg') and chrome_command:
     command += ['--chrome_path', chrome_command]
   try:

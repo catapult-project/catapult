@@ -55,7 +55,7 @@ class HeapProfilerUnitTest(unittest.TestCase):
 
     diag_map_size_hist = histograms.GetHistogramNamed('heap:DiagnosticMap')
     self.assertEqual(diag_map_size_hist.num_values, 10)
-    self.assertGreater(diag_map_size_hist.sum, 1000)
+    self.assertGreater(diag_map_size_hist.sum, 700)
 
     range_size_hist = histograms.GetHistogramNamed('heap:Range')
     self.assertEqual(range_size_hist.num_values, 22)

@@ -22,7 +22,7 @@
 # Read more about `vpython` and how to modify this file here:
 #   https://chromium.googlesource.com/infra/infra/+/master/doc/users/vpython.md
 
-python_version: "3.8"
+python_version: "3.11"
 
 # Used by:
 #   telemetry/
@@ -31,11 +31,11 @@ python_version: "3.8"
 # //telemetry/telemetry/internal/util/external_modules.py
 wheel: <
   name: "infra/python/wheels/numpy/${vpython_platform}"
-  version: "version:1.2x.supported.1"
+  version: "version:1.23.5.chromium.4"
 >
 wheel: <
   name: "infra/python/wheels/opencv_python/${vpython_platform}"
-  version: "version:4.5.3.56.chromium.4"
+  version: "version:4.8.1.78.chromium.1"
   # There is currently no Linux arm/arm64 version in CIPD.
   not_match_tag <
     platform: "linux_aarch64"
@@ -104,7 +104,7 @@ wheel: <
 
 wheel: <
   name: "infra/python/wheels/ruamel_yaml_clib/${vpython_platform}"
-  version: "version:0.2.6"
+  version: "version:0.2.8"
 >
 
 wheel: <
@@ -259,7 +259,7 @@ wheel: <
 
 wheel: <
   name: "infra/python/wheels/grpcio/${vpython_platform}"
-  version: "version:1.44.0"
+  version: "version:1.54.2"
 >
 
 wheel: <
@@ -284,14 +284,14 @@ wheel: <
 
 wheel: <
   name: "infra/python/wheels/paste-py3"
-  version: "version:2.0.2"
+  version: "version:3.7.1"
 >
 
 # Used by:
 #  telemetry/bin/fetch_telemetry_binary_dependencies
 wheel: <
   name: "infra/python/wheels/pywin32/${vpython_platform}"
-  version: "version:300"
+  version: "version:306"
   match_tag: <
     platform: "win32"
   >
@@ -325,7 +325,7 @@ wheel: <
 # //third_party/catapult/third_party/coverage/coverage/
 wheel: <
   name: "infra/python/wheels/coverage/${vpython_platform}"
-  version: "version:5.5.chromium.3"
+  version: "version:7.3.1"
 >
 
 # Common utilities.
@@ -428,7 +428,7 @@ wheel: <
 >
 wheel: <
   name: "infra/python/wheels/pillow/${vpython_platform}"
-  version: "version:8.3.1"
+  version: "version:9.5.0"
 >
 
 # Used by:
