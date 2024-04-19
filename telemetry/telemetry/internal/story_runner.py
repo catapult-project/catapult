@@ -22,7 +22,6 @@ from py_utils import logging_util  # pylint: disable=import-error
 from py_utils.constants import exit_codes
 
 from telemetry.core import exceptions
-from telemetry.core import optparse_argparse_migration as oam
 from telemetry.internal.actions import page_action
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
@@ -58,7 +57,7 @@ class ArchiveError(Exception):
 def AddCommandLineArgs(parser):
   story_filter_module.StoryFilterFactory.AddCommandLineArgs(parser)
 
-  group = oam.CreateOptionGroup(parser, 'Story runner options')
+  group = parser.add_argument_group('Story runner options')
   # Note that the default for pageset-repeat is 1 unless the benchmark
   # specifies a different default by adding
   # `options = {'pageset_repeat': X}` in their benchmark. Defaults are always
@@ -88,14 +87,12 @@ def AddCommandLineArgs(parser):
   group.add_argument('--skip-typ-expectations-tags-validation',
                      action='store_true',
                      help='Suppress typ expectation tags validation errors.')
-  parser.add_option_group(group)
 
-  group = oam.CreateOptionGroup(parser, 'Web Page Replay options')
+  group = parser.add_argument_group('Web Page Replay options')
   group.add_argument(
       '--use-live-sites',
       action='store_true',
       help='Run against live sites and ignore the Web Page Replay archives.')
-  parser.add_option_group(group)
 
   parser.add_argument('-p', '--print-only', choices=['stories', 'tags', 'both'])
   parser.add_argument(

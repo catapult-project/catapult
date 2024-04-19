@@ -100,7 +100,7 @@ class BrowserFinderOptions(argparse.Namespace):
         upload_bucket=None)
 
     # Selection group
-    group = oam.CreateOptionGroup(parser, 'Which browser to use')
+    group = parser.add_argument_group('Which browser to use')
     group.add_argument('--browser',
                        dest='browser_type',
                        choices=['list', 'any'] +
@@ -175,10 +175,9 @@ class BrowserFinderOptions(argparse.Namespace):
         dest='ssh_identity',
         default=identity,
         help='The identity file to use when ssh\'ing into the ChromeOS device')
-    parser.add_option_group(group)
 
     # Debugging options
-    group = oam.CreateOptionGroup(parser, 'When things go wrong')
+    group = parser.add_argument_group('When things go wrong')
     group.add_argument('--print-bootstrap-deps',
                        action='store_true',
                        help='Output bootstrap deps list.')
@@ -210,10 +209,9 @@ class BrowserFinderOptions(argparse.Namespace):
               'to a file (Linux/Windows/[La]CrOS only). NOTE: This '
               'significantly impacts performance, so it should only be used '
               'while debugging.'))
-    parser.add_option_group(group)
 
     # Platform options
-    group = oam.CreateOptionGroup(parser, 'Platform options')
+    group = parser.add_argument_group('Platform options')
     group.add_argument(
         '--performance-mode',
         choices=[
@@ -239,10 +237,9 @@ class BrowserFinderOptions(argparse.Namespace):
         help=('When running tests on android webview, more than one apk needs '
               'to be installed. The apk running the test is said to embed '
               'webview. More than one apk may be specified if needed.'))
-    parser.add_option_group(group)
 
     # Remote platform options
-    group = oam.CreateOptionGroup(parser, 'Remote platform options')
+    group = parser.add_argument_group('Remote platform options')
     group.add_argument('--android-denylist-file',
                        help='Device denylist JSON file.')
     group.add_argument(
@@ -272,10 +269,9 @@ class BrowserFinderOptions(argparse.Namespace):
         '--avd-config',
         help=('A path to an AVD configuration to use for starting an Android '
               'emulator.'))
-    parser.add_option_group(group)
 
     # Cast browser options
-    group = oam.CreateOptionGroup(parser, 'Cast browser options')
+    group = parser.add_argument_group('Cast browser options')
     group.add_argument('--cast-output-dir',
                        help='Output directory for Cast Core.')
     group.add_argument('--cast-runtime-exe',
@@ -286,7 +282,7 @@ class BrowserFinderOptions(argparse.Namespace):
     group.add_argument('--cast-device-ip',
                        help='IP address of the Cast device.')
 
-    group = oam.CreateOptionGroup(parser, 'Fuchsia platform options')
+    group = parser.add_argument_group('Fuchsia platform options')
     group.add_argument(
         '--fuchsia-ssh-config',
         default=os.path.join(util.GetChromiumSrcDir(), 'build', 'fuchsia',
@@ -308,12 +304,11 @@ class BrowserFinderOptions(argparse.Namespace):
         help='The name of the Fuchsia repo used to serve required packages.')
     group.add_argument('--fuchsia-target-id',
                        help='The Fuchsia target id used by the ffx tool.')
-    parser.add_option_group(group)
 
     # CPU profiling on Android/Linux/ChromeOS.
-    group = oam.CreateOptionGroup(parser, (
-        'CPU profiling over intervals of interest, '
-        'Android, Linux, and ChromeOS only'))
+    group = parser.add_argument_group(
+        ('CPU profiling over intervals of interest, Android, Linux, and '
+         'ChromeOS only'))
     group.add_argument(
         '--interval-profiling-target',
         default='renderer:main',
@@ -353,7 +348,6 @@ class BrowserFinderOptions(argparse.Namespace):
               '"record -e cycles -c 4000000 -g". Note: "-a" flag is added to '
               'the perf command by default. Do not pass options that are '
               'incompatible with the system-wide profile collection.'))
-    parser.add_option_group(group)
 
     # Browser options.
     self.browser_options.AddCommandLineArgs(parser)
@@ -669,7 +663,7 @@ class BrowserOptions():
     # options.                                                                 #
     ############################################################################
 
-    group = oam.CreateOptionGroup(parser, 'Browser options')
+    group = parser.add_argument_group('Browser options')
     profile_choices = profile_types.GetProfileTypes()
     group.add_argument(
         '--profile-type',
@@ -706,13 +700,11 @@ class BrowserOptions():
         '--assert-gpu-compositing',
         action='store_true',
         help='Assert the browser uses gpu compositing and not software path.')
-    parser.add_option_group(group)
 
-    group = oam.CreateOptionGroup(parser, 'Compatibility options')
+    group = parser.add_argument_group('Compatibility options')
     group.add_argument(
         '--gtest_output',
         help='Ignored argument for compatibility with runtest.py harness')
-    parser.add_option_group(group)
 
   def UpdateFromParseResults(self, finder_options):
     """Copies our options from finder_options."""

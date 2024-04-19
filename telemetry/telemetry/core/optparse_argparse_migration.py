@@ -40,11 +40,6 @@ class ArgumentParser(argparse.ArgumentParser):
         self.error(f'no such option: {unknown}')
     return known_args, unknown_args
 
-  def add_option_group(self, *args, **kwargs):
-    # We no-op since argparse's add_argument_group already associates the group
-    # with the argument parser.
-    pass
-
   def get_default_values(self):
     defaults = {}
     for action in self._actions:
@@ -61,31 +56,8 @@ class ArgumentParser(argparse.ArgumentParser):
     return argparse.Namespace(**defaults)
 
   @property
-  def option_list(self):
-    return self._actions
-
-  @property
   def defaults(self):
     return self._defaults
-
-
-class _ArgumentGroup(argparse._ArgumentGroup):
-
-  @property
-  def option_list(self):
-    return self._actions
-
-
-def CreateOptionGroup(parser, title, description=None):
-  """Creates an ArgumentParser group using the same arguments as optparse.
-
-  See Python's optparse.OptionGroup documentation for argument descriptions.
-  """
-  # Copied from argparse's source code for add_argument_group, but using our own
-  # class.
-  group = _ArgumentGroup(parser, title, description)
-  parser._action_groups.append(group)
-  return group
 
 
 def CreateFromOptparseInputs(usage=None, description=None):

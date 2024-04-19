@@ -7,7 +7,6 @@ import os
 import logging
 import re
 
-from telemetry.core import optparse_argparse_migration as oam
 from telemetry.story import typ_expectations
 
 
@@ -74,7 +73,7 @@ class StoryFilterFactory():
 
   @classmethod
   def AddCommandLineArgs(cls, parser):
-    group = oam.CreateOptionGroup(parser, 'User story filtering options')
+    group = parser.add_argument_group('User story filtering options')
     group.add_argument(
         '--story-filter',
         help='Use only stories whose names match the given filter regexp.')
@@ -135,7 +134,6 @@ class StoryFilterFactory():
               'flag can be provided multiple times to chose to run multiple '
               'stories. The story flag is exclusive with other story selection '
               'flags.'))
-    parser.add_option_group(group)
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args, environment=None):
