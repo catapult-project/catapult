@@ -251,6 +251,13 @@ class BrowserFinderOptions(argparse.Namespace):
               'devices are supported. If specified as "android", all available '
               'Android devices are used.'))
     group.add_argument(
+        '--initial-find-device-attempts',
+        type=int,
+        default=1,
+        help=('The max number of times devices will be looked for when '
+              'finding browsers, retrying if no devices are found. Used to '
+              'work around flaky, transient device disappearances.'))
+    group.add_argument(
         '--install-bundle-module',
         dest='modules_to_install',
         action='append',

@@ -6,6 +6,7 @@
 
 from __future__ import absolute_import
 import logging
+import time
 
 from telemetry import decorators
 from telemetry.internal.backends.chrome import android_browser_finder
@@ -101,7 +102,15 @@ def FindBrowser(options):
         '--remote requires --browser=[la]cros-chrome[-guest].')
 
   SetTargetPlatformsBasedOnBrowserType(options)
-  devices = device_finder.GetDevicesMatchingOptions(options)
+  devices = []
+  for iteration in range(options.initial_find_device_attempts):
+    devices = device_finder.GetDevicesMatchingOptions(options)
+    if devices:
+      break
+    if iteration + 1 < options.initial_find_device_attempts:
+      logging.warning('Did not find any devices while looking for browsers, '
+                      'retrying after waiting a bit.')
+      time.sleep(10)
   browsers = []
   default_browsers = []
 
