@@ -5,6 +5,7 @@
 """Finds android browsers that can be started and controlled by telemetry."""
 
 from __future__ import absolute_import
+import argparse
 import contextlib
 import logging
 import os
@@ -22,6 +23,8 @@ from py_utils import file_util
 from py_utils import tempfile_ext
 from telemetry import compat_mode_options
 from telemetry import decorators
+# Alias necessary to avoid name conflicts with `android_platform` variables.
+from telemetry.core import android_platform as android_platform_package
 from telemetry.core import exceptions
 from telemetry.core import platform as telemetry_platform
 from telemetry.core import util
@@ -30,7 +33,7 @@ from telemetry.internal.backends.chrome import android_browser_backend
 from telemetry.internal.backends.chrome import chrome_startup_args
 from telemetry.internal.browser import browser
 from telemetry.internal.browser import possible_browser
-from telemetry.internal.platform import android_device
+from telemetry.internal.platform import android_device, android_platform_backend
 from telemetry.internal.util import binary_manager
 from telemetry.internal.util import format_for_logging
 from telemetry.internal.util import local_first_binary_manager
@@ -77,15 +80,23 @@ def _ProfileWithExtraFiles(profile_dir, profile_files_to_copy):
 class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   """A launchable android browser instance."""
 
-  def __init__(self, browser_type, finder_options, android_platform,
-               backend_settings, local_apk=None, target_os='android'):
-    super().__init__(
-        browser_type, target_os, backend_settings.supports_tab_control)
+  # TODO(crbug.com/335891661): Replace argparse.Namespace with
+  #                            browser_options.BrowserFinderOptions.
+  def __init__(self,
+               browser_type: str,
+               finder_options: argparse.Namespace,
+               android_platform: android_platform_package.AndroidPlatform,
+               backend_settings: android_browser_backend_settings.
+               AndroidBrowserBackendSettings,
+               local_apk=None,
+               target_os='android'):
+    super().__init__(browser_type, target_os,
+                     backend_settings.supports_tab_control)
     assert browser_type in FindAllBrowserTypes(), (
         'Please add %s to android_browser_finder.FindAllBrowserTypes' %
         browser_type)
     self._platform = android_platform
-    self._platform_backend = (
+    self._platform_backend: android_platform_backend.AndroidPlatformBackend = (
         android_platform._platform_backend)  # pylint: disable=protected-access
     self._backend_settings = backend_settings
     self._local_apk = local_apk
@@ -211,6 +222,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     self._platform_backend.DismissCrashDialogIfNeeded()
     device = self._platform_backend.device
     startup_args = self.GetBrowserStartupArgs(self._browser_options)
+    assert device.adb is not None
     device.adb.Logcat(clear=True)
 
     # Avoids a Chrome android permission dialog, see https://crbug.com/1498208.
@@ -321,7 +333,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     """Returns True if the browser is or can be installed on the platform."""
     has_local_apks = self._local_apk and (
         not self._backend_settings.requires_embedder or self._support_apk_list)
-    return has_local_apks or self.platform.CanLaunchApplication(
+    return has_local_apks or self._platform_backend.CanLaunchApplication(
         self.settings.package)
 
   @decorators.Cache
@@ -329,7 +341,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     # TODO(crbug.com/815133): This logic should belong to backend_settings.
     for apk in self._support_apk_list:
       logging.warning('Installing support apk (%s) on device if needed.', apk)
-      self.platform.InstallApplication(apk)
+      self._platform_backend.InstallApplication(apk)
 
     # This may be the case if the apk containing the browser is installed some
     # other way before telemetry runs (see example in crbug.com/326579345).
@@ -339,8 +351,8 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     package_name = apk_helper.GetPackageName(self._local_apk)
     device = self._platform_backend.device
     logging.warning('Installing %s on device if needed.', self._local_apk)
-    self.platform.InstallApplication(self._local_apk,
-                                     modules=self._modules_to_install)
+    self._platform_backend.InstallApplication(self._local_apk,
+                                              modules=self._modules_to_install)
     if self._compile_apk:
       logging.warning('Compiling %s.', package_name)
       cmd = [
@@ -458,7 +470,11 @@ def _GetReferenceAndroidBrowser(android_platform, finder_options):
   return None
 
 
-def _FindAllPossibleBrowsers(finder_options, android_platform):
+def _FindAllPossibleBrowsers(
+    # TODO(crbug.com/335891661): Replace argparse.Namespace with
+    #                            browser_options.BrowserFinderOptions.
+    finder_options: argparse.Namespace,
+    android_platform: android_platform_package.AndroidPlatform):
   """Testable version of FindAllAvailableBrowsers."""
   if not android_platform:
     return []
@@ -531,7 +547,8 @@ def FindAllAvailableBrowsers(finder_options, device):
   try:
     android_platform = telemetry_platform.GetPlatformForDevice(
         device, finder_options)
-    return _FindAllPossibleBrowsers(finder_options, android_platform)
+    return _FindAllPossibleBrowsers(finder_options,
+                                    android_platform)  # type: ignore
   except base_error.BaseError as e:
     logging.error('Unable to find browsers on %s: %s', device.device_id, str(e))
     ps_output = subprocess.check_output(['ps', '-ef'])
