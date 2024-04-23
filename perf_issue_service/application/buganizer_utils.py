@@ -72,6 +72,14 @@ COMPONENT_MAP_CR2B = {
   # Trackers > Fuchsia > UntriagedPerformanceAlerts
   'UntriagedPerformanceAlerts': 1454999,
 
+  # WebRTC
+  'Audio': 1565681,
+  'Perf>Arcturus': 1565993,
+  'Perf>Canopus': 1565890,
+  'Perf>Migration': 1565319,
+  'Perf>Video': 1565864,
+  'Stats': 1565682,
+
   # Test only. Remove after migration.
   'ChromePerf testing': 1325852
 }
@@ -120,6 +128,14 @@ COMPONENT_MAP_B2CR = {
   # Fuchsia
   '1454999' : 'fuchsia',
 
+  # webrtc
+  '1565681': 'webrtc',
+  '1565993': 'webrtc',
+  '1565890': 'webrtc',
+  '1565319': 'webrtc',
+  '1565864': 'webrtc',
+  '1565682': 'webrtc',
+
   # Test only. Remove after migration.
   '1325852' : 'MigratedProject'
 }
@@ -138,6 +154,9 @@ PROJECT_MAP_CR2B = {
 
   # Fuchsia
   'fuchsia': ['1454999'],
+
+  # webrtc
+  'webrtc': ['1565681', '1565993', '1565890', '1565319', '1565864', '1565682'],
 
   # Test only. Remove after migration.
   'MigratedProject': ['1325852']
