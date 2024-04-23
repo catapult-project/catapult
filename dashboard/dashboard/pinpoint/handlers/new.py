@@ -530,6 +530,8 @@ def GetIsolateTarget(bot_name, suite):
     return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
   if bot_name in ['android-pixel6-pro-perf', 'android-pixel6-pro-perf-pgo']:
     return 'performance_test_suite_android_clank_trichrome_bundle'
+  if bot_name == 'android-pixel-fold-perf':
+    return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
   if 'android' in bot_name.lower():
     raise Exception(
         'Given Android bot %s does not have an isolate mapped to it' % bot_name)
