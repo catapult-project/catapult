@@ -83,6 +83,8 @@ REGULAR_TELEMETRY_TESTS_WITH_FALLBACKS[
 
 _NON_CHROME_TARGETS = ['v8']
 
+_ATTEMPT_COUNT_LIMIT = 128
+_ATTEMPT_LIMIT_EXCEPTION_USERS = []
 
 def _CheckUser():
   if utils.IsDevAppserver():
@@ -182,6 +184,13 @@ def _CreateJob(req):
     initial_attempt_count = int(initial_attempt_count)
   except (TypeError, ValueError):
     initial_attempt_count = None
+
+  if initial_attempt_count > _ATTEMPT_COUNT_LIMIT and \
+    user not in _ATTEMPT_LIMIT_EXCEPTION_USERS:
+    raise ValueError('Attempt count cannot be greater than %d. If you need a'
+                      ' high attempt count, please file an exemption request'
+                      ' at go/pinpoint-attempt-exemption-request'
+                       % _ATTEMPT_COUNT_LIMIT)
 
   # Create job.
   try:

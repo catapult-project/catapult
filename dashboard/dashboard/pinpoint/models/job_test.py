@@ -1370,18 +1370,10 @@ class GetIterationCountTest(test.TestCase):
 
   def testEvenlyDivisibleBots(self):
     self.assertEqual(
-        job.GetIterationCount(initial_attempt_count=6, bot_count=6), 6)
+        job.GetIterationCount(initial_attempt_count=6), 6)
     self.assertEqual(
-        job.GetIterationCount(initial_attempt_count=12, bot_count=6), 12)
+        job.GetIterationCount(initial_attempt_count=12), 12)
 
   def testOddAttemptCount(self):
     self.assertEqual(
-        job.GetIterationCount(initial_attempt_count=5, bot_count=6), 6)
-
-  def testMoreBots(self):
-    self.assertEqual(
-        job.GetIterationCount(initial_attempt_count=5, bot_count=17), 6)
-
-  def testLessBots(self):
-    self.assertEqual(
-        job.GetIterationCount(initial_attempt_count=10, bot_count=7), 14)
+        job.GetIterationCount(initial_attempt_count=5), 6)

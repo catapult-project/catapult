@@ -177,10 +177,8 @@ def IsRunning(job):
 
 
 
-def GetIterationCount(initial_attempt_count, bot_count):
+def GetIterationCount(initial_attempt_count):
   # We want to run at least initial_attempt_count iterations.
-  # In addition, attempts should be evenly distributed between all bots.
-  # bot_count will never be 0 (we'll exception out if that happens).
 
   # Bisections determine attempt count elsewhere.
   if initial_attempt_count is None:
@@ -190,13 +188,7 @@ def GetIterationCount(initial_attempt_count, bot_count):
   if initial_attempt_count % 2:
     initial_attempt_count += 1
 
-  if bot_count >= initial_attempt_count:
-    return initial_attempt_count
-
-  repeats = initial_attempt_count // bot_count
-  if repeats * bot_count < initial_attempt_count:
-    repeats += 1
-  return repeats * bot_count
+  return initial_attempt_count
 
 
 class Job(ndb.Model):
@@ -375,8 +367,7 @@ class Job(ndb.Model):
         comparison_mode=comparison_mode,
         comparison_magnitude=comparison_magnitude,
         pin=pin,
-        initial_attempt_count=GetIterationCount(initial_attempt_count,
-                                                len(bots)))
+        initial_attempt_count=GetIterationCount(initial_attempt_count))
     args = arguments or {}
     job = cls(
         state=state,
