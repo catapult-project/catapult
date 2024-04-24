@@ -115,6 +115,16 @@ class MinidumpSymbolizer():
           'minidumps')
       return
 
+    try:
+      dump_syms_path = local_first_binary_manager.GetInstance().FetchPath(
+          'dump_syms')
+    except dependency_exceptions.NoPathFoundError as e:
+      logging.warning('Failed to get dump_syms: %s', e)
+      dump_syms_path = None
+    if not dump_syms_path:
+      logging.warning('dump_syms binary not found, cannot symbolize minidumps')
+      return
+
     symbol_binaries = self.GetSymbolBinaries(minidump)
 
     cmds = []
@@ -135,10 +145,11 @@ class MinidumpSymbolizer():
       cmd = [
           sys.executable,
           generate_breakpad_symbols_command,
-          '--binary=%s' % binary_path,
-          '--symbols-dir=%s' % symbols_dir,
-          '--build-dir=%s' % self._build_dir,
-          ]
+          f'--binary={binary_path}',
+          f'--symbols-dir={symbols_dir}',
+          f'--build-dir={self._build_dir}',
+          f'--dump-syms-path={dump_syms_path}',
+      ]
       if self.GetBreakpadPlatformOverride():
         cmd.append('--platform=%s' % self.GetBreakpadPlatformOverride())
       cmds.append(cmd)
@@ -203,8 +214,10 @@ class MinidumpSymbolizer():
       # Add as many more processes as we can.
       while len(processes) < process_limit and cmds:
         cmd = cmds.pop(-1)
-        p = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(cmd,
+                             text=True,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT)
         processes[p] = cmd
       # 1 second is fairly arbitrary, but strikes a reasonable balance between
       # spending too many cycles checking the current state of running

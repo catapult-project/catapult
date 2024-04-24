@@ -182,6 +182,7 @@ class LocalFirstBinaryManager():
       raise exceptions.InitializationError(
           'Attempted to get LocalFirstBinaryManager without prior '
           'initialization.')
+    assert cls._instance is not None  # Necessary for type checker.
     return cls._instance
 
 
