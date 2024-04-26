@@ -6,6 +6,7 @@ from __future__ import absolute_import
 
 from enum import Enum
 from google.cloud import datastore
+from google.cloud.datastore.key import Key
 
 
 def TestKey(test_path, datastore_client):
@@ -108,7 +109,12 @@ class DataStoreClient:
     entity_key = self._client.key(entity_type.value, entity_id)
     return self._client.get(entity_key)
 
-  def GetEntities(self, entity_type:EntityType, entity_ids:[]):
+  def GetEntityFromUrlSafeKey(self, urlsafe_key):
+    """Retrieves an entity using a urlsafe key."""
+    entity_key = Key.from_legacy_urlsafe(urlsafe_key)
+    return self._client.get(entity_key)
+
+  def GetEntities(self, entity_type: EntityType, entity_ids: []):
     """Retrieves multiple entities of the specified type."""
     entity_keys = [self._client.key(entity_type.value, entity_id)
                    for entity_id in entity_ids]

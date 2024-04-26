@@ -191,6 +191,33 @@ class QueryAnomaliesTest(unittest.TestCase):
       self.assertEqual(test_anomaly_1['end_revision'],
                        anomaly_data['end_revision'])
 
+  @mock.patch('application.perf_api.datastore_client'
+              '.DataStoreClient.GetEntityFromUrlSafeKey')
+  def testGetAnomalyExist(self, query_mock):
+    client = datastore.Client()
+    anomaly_key = client.key('Anomaly', 1111)
+    test_key1 = client.key('TestMetadata', 'test')
+    test_anomaly = datastore.entity.Entity(anomaly_key)
+    test_anomaly['start_revision'] = 1234
+    test_anomaly['end_revision'] = 1237
+    test_anomaly['test'] = test_key1
+    query_mock.return_value = test_anomaly
+    with mock.patch('application.perf_api.auth_helper.AuthorizeBearerToken') \
+        as auth_mock:
+      auth_mock.return_value = True, self._test_email
+      response = self.client.get('/anomalies/get?key=sampleKey')
+
+      data = json.loads(response.get_data(as_text=True))
+      self.assertIsNotNone(data['anomalies'], 'Anomalies expected')
+      self.assertEqual(1, len(data['anomalies']))
+
+  def testGetAnomalyInvalidKey(self):
+    with mock.patch('application.perf_api.auth_helper.AuthorizeBearerToken') \
+        as auth_mock:
+      auth_mock.return_value = True, self._test_email
+      response = self.client.get('/anomalies/get?key=sampleKey')
+
+      self.assertEqual(400, response.status_code)
 
 if __name__ == '__main__':
   unittest.main()

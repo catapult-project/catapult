@@ -132,7 +132,42 @@ def QueryAnomaliesPostHandler():
     logging.exception(e)
     raise
 
-@blueprint.route('/find_time', methods=['POST'],
+
+@blueprint.route('/get', methods=['GET'], endpoint='GetAnomalyHandler')
+@cloud_metric.APIMetric("skia-bridge", "/anomalies/get")
+def GetAnomalyHandler():
+  try:
+    is_authorized, _ = auth_helper.AuthorizeBearerToken(request,
+                                                        ALLOWED_CLIENTS)
+    if not is_authorized:
+      return 'Unauthorized', 401
+    anomaly_key = request.args.get('key')
+    if not anomaly_key:
+      return 'Anomaly key is required in the request', 400
+
+    logging.info('Received request to get anomaly details with key: %s',
+                 anomaly_key)
+    client = datastore_client.DataStoreClient()
+    try:
+      anomaly_entity = client.GetEntityFromUrlSafeKey(anomaly_key)
+    except Exception as e:
+      logging.info('Error reading anomaly with key %s from datastore: %s',
+                   anomaly_key, str(e))
+      return 'Invalid key', 400
+
+    response = AnomalyResponse()
+    if anomaly_entity:
+      anomaly_data = GetAnomalyData(anomaly_entity)
+      response.AddAnomaly(anomaly_data.test_path, anomaly_data)
+
+    return make_response(response.ToDict())
+  except Exception as e:
+    logging.exception(e)
+    raise
+
+
+@blueprint.route('/find_time',
+                 methods=['POST'],
                  endpoint='QueryAnomaliesByTimePostHandler')
 @cloud_metric.APIMetric("skia-bridge", "/anomalies/find_time")
 def QueryAnomaliesByTimePostHandler():
@@ -152,7 +187,7 @@ def QueryAnomaliesByTimePostHandler():
         data,
         ['tests', 'start_time', 'end_time'])
     if not is_valid:
-        return error, 400
+      return error, 400
 
     start_time = parser.parse(data['start_time'])
     end_time = parser.parse(data['end_time'])
@@ -272,7 +307,7 @@ def AddAnomalyPostHandler():
             i, 5)
 
         if success:
-            break
+          break
 
       if success:
         return {
