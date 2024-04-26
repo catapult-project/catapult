@@ -87,6 +87,7 @@ def BuildTargetsForCpu(targets, cpu, output_dir):
       'symbol_level=1',
       'target_cpu="%s"' % cpu,
       'target_os="android"',
+      'use_goma=true',
   ]
 
   cmd = ['gn', 'gen', '--args=%s' % (' '.join(gn_args)), output_dir]
