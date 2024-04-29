@@ -185,8 +185,8 @@ def _CreateJob(req):
   except (TypeError, ValueError):
     initial_attempt_count = None
 
-  if initial_attempt_count > _ATTEMPT_COUNT_LIMIT and \
-    user not in _ATTEMPT_LIMIT_EXCEPTION_USERS:
+  if initial_attempt_count and initial_attempt_count > _ATTEMPT_COUNT_LIMIT \
+    and user not in _ATTEMPT_LIMIT_EXCEPTION_USERS:
     raise ValueError('Attempt count cannot be greater than %d. If you need a'
                       ' high attempt count, please file an exemption request'
                       ' at go/pinpoint-attempt-exemption-request'
