@@ -80,6 +80,9 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
           ['cat', '/config/build-info/board'],
           stdout=subprocess.PIPE,
           stderr=subprocess.PIPE)
+    # In case anything goes wrong with the above command, make the error sound
+    # and clear.
+    assert self._device_type
 
     # Fuchsia changed its qemu-x64 board's name to x64, but for the sake of
     # consistency we will still label it as qemu-x64
