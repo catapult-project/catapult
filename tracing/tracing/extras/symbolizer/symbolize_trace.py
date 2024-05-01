@@ -1294,11 +1294,21 @@ class BreakpadSymbolsModule(object):
           # FILE 0 /b/c/b/mac64/src/out/Release/../../base/at_exit.cc
           self.files.append(' '.join(fragments[2:]))
         elif fragments[0] == 'PUBLIC':
-          # PUBLIC db60 0 base::mac::CallWithEHFrame(void () block_pointer)
-          self.symbols[int(fragments[1], 16)] = ' '.join(fragments[3:])
+          if fragments[1] == 'm':
+            # PUBLIC m 29876e0 0 __typeid__ZTSFPvmE_global_addr
+            remainder = fragments[2:]
+          else:
+            # PUBLIC db60 0 base::mac::CallWithEHFrame(void () block_pointer)
+            remainder = fragments[1:]
+          self.symbols[int(remainder[0], 16)] = ' '.join(remainder[2:])
         elif fragments[0] == 'FUNC':
-          # FUNC 567e0 264 0 Cr_z_fill_window_sse
-          self.symbols[int(fragments[1], 16)] = ' '.join(fragments[4:])
+          if fragments[1] == 'm':
+            # FUNC m 2987000 16c 0 SkPath::~SkPath()
+            remainder = fragments[2:]
+          else:
+            # FUNC 567e0 264 0 Cr_z_fill_window_sse
+            remainder = fragments[1:]
+          self.symbols[int(remainder[0], 16)] = ' '.join(remainder[3:])
 
 
 class Symbolizer(object):
