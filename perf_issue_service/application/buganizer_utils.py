@@ -428,7 +428,7 @@ def GetCustomField(monorail_project):
   '''
   if monorail_project == 'fuchsia':
      return 'customfield1241047'
-  elif monorail_client == 'webrtc':
+  elif monorail_project == 'webrtc':
     return 'customfield1308691'
   return 'customfield1223031'
 
