@@ -440,4 +440,6 @@ def GetCustomFieldId(monorail_project):
   '''
   if monorail_project == 'fuchsia':
      return 1241047
+  elif monorail_project == 'webrtc':
+    return 1308691
   return 1223031
