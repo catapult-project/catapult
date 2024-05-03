@@ -62,7 +62,7 @@ _TEMPLATE_LOADER = jinja2.FileSystemLoader(
 _TEMPLATE_ENV = jinja2.Environment(loader=_TEMPLATE_LOADER)
 _TEMPLATE_ISSUE_TITLE = jinja2.Template(
     '[{{ group.subscription_name }}]: '
-    '{{ regressions|length }} regressions in {{ group.name }}')
+    '[{{ regressions|length }}] regressions in {{ group.name }}')
 _TEMPLATE_ISSUE_CONTENT = _TEMPLATE_ENV.get_template(
     'alert_groups_bug_description.j2')
 _TEMPLATE_ISSUE_COMMENT = _TEMPLATE_ENV.get_template(

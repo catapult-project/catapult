@@ -335,7 +335,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                        self._issue_tracker.add_comment_args[0])
       self.assertIn('Added 2 regressions to the group',
                     self._issue_tracker.add_comment_kwargs['comment'])
-      self.assertIn('4 regressions in test_suite',
+      self.assertIn('[4] regressions in test_suite',
                     self._issue_tracker.add_comment_kwargs['title'])
       self.assertIn('sheriff', self._issue_tracker.add_comment_kwargs['title'])
       self.assertFalse(self._issue_tracker.add_comment_kwargs['send_email'])
@@ -386,7 +386,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                        self._issue_tracker.add_comment_args[0])
       self.assertIn('Added 2 regressions to the group',
                     self._issue_tracker.add_comment_kwargs['comment'])
-      self.assertIn('4 regressions in test_suite',
+      self.assertIn('[4] regressions in test_suite',
                     self._issue_tracker.add_comment_kwargs['title'])
       self.assertIn('sheriff', self._issue_tracker.add_comment_kwargs['title'])
       self.assertFalse(self._issue_tracker.add_comment_kwargs['send_email'])
@@ -437,7 +437,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
                        self._issue_tracker.add_comment_args[0])
       self.assertIn('Added 2 regressions to the group',
                     self._issue_tracker.add_comment_kwargs['comment'])
-      self.assertIn('4 regressions in test_suite',
+      self.assertIn('[4] regressions in test_suite',
                     self._issue_tracker.add_comment_kwargs['title'])
       self.assertIn('sheriff', self._issue_tracker.add_comment_kwargs['title'])
       self.assertFalse(self._issue_tracker.add_comment_kwargs['send_email'])
@@ -821,7 +821,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             anomalies=ndb.get_multi(anomalies),
             issue=None,
         ))
-    self.assertIn('2 regressions', self._issue_tracker.new_bug_kwargs['title'])
+    self.assertIn('[2] regressions',
+                  self._issue_tracker.new_bug_kwargs['title'])
     self.assertIn(
         'Chromium Commit Position: http://test-results.appspot.com/revision_range?start=0&end=100',
         self._issue_tracker.new_bug_kwargs['description'])
@@ -867,7 +868,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             anomalies=ndb.get_multi(anomalies),
             issue=None,
         ))
-    self.assertIn('2 regressions', self._issue_tracker.new_bug_kwargs['title'])
+    self.assertIn('[2] regressions',
+                  self._issue_tracker.new_bug_kwargs['title'])
     self.assertIn(
         'Chromium Commit Position: http://test-results.appspot.com/revision_range?start=0&end=100',
         self._issue_tracker.new_bug_kwargs['description'])
@@ -917,7 +919,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             anomalies=ndb.get_multi(anomalies),
             issue=None,
         ))
-    self.assertIn('2 regressions', self._issue_tracker.new_bug_kwargs['title'])
+    self.assertIn('[2] regressions',
+                  self._issue_tracker.new_bug_kwargs['title'])
     self.assertIn(
         'Chromium Commit Position: http://test-results.appspot.com/revision_range?start=0&end=100',
         self._issue_tracker.new_bug_kwargs['description'])
@@ -1037,7 +1040,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             anomalies=ndb.get_multi(anomalies),
             issue=None,
         ))
-    self.assertIn('2 regressions', self._issue_tracker.new_bug_kwargs['title'])
+    self.assertIn('[2] regressions',
+                  self._issue_tracker.new_bug_kwargs['title'])
     self.assertIn(
         'Chromium Commit Position: http://test-results.appspot.com/revision_range?start=0&end=100',
         self._issue_tracker.new_bug_kwargs['description'])
@@ -2834,7 +2838,8 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             'args': (42, 'chromium'),
             'kwargs': {
                 'title':
-                    '[%s]: %d regressions in %s' % ('sheriff', 3, 'test_suite'),
+                    '[%s]: [%d] regressions in %s' %
+                    ('sheriff', 3, 'test_suite'),
                 'labels': [
                     'Chromeperf-Auto-Triaged',
                     'Pri-2',
@@ -2912,7 +2917,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(
         self._issue_tracker.calls[2]['kwargs'], {
             'title':
-                '[%s]: %d regressions in %s' % ('sheriff', 3, 'test_suite'),
+                '[%s]: [%d] regressions in %s' % ('sheriff', 3, 'test_suite'),
             'labels': [
                 'Chromeperf-Auto-Triaged',
                 'Pri-2',
@@ -2982,7 +2987,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
     self.assertEqual(
         self._issue_tracker.calls[1]['kwargs'], {
             'title':
-                '[%s]: %d regressions in %s' % ('sheriff', 3, 'test_suite'),
+                '[%s]: [%d] regressions in %s' % ('sheriff', 3, 'test_suite'),
             'labels': [
                 'Chromeperf-Auto-Triaged',
                 'Pri-2',
@@ -3064,7 +3069,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             'method': 'AddBugComment',
             'args': (42, 'chromium'),
             'kwargs': {
-                'title': '[blocked-sheriff]: 3 regressions in test_suite',
+                'title': '[blocked-sheriff]: [3] regressions in test_suite',
                 'labels': [
                     'Chromeperf-Auto-Triaged',
                     'Pri-2',
@@ -3160,7 +3165,7 @@ class AlertGroupWorkflowTest(testing_common.TestCase):
             'args': (42, 'chromium'),
             'kwargs': {
                 'title':
-                    '[%s]: %d regressions in %s' %
+                    '[%s]: [%d] regressions in %s' %
                     ('sheriff', 3, 'regular_suite'),
                 'labels': [
                     'Chromeperf-Auto-Triaged',
