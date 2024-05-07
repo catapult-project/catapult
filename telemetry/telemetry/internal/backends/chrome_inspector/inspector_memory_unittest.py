@@ -18,6 +18,9 @@ class InspectorMemoryTest(tab_test_case.TabTestCase):
 
     self.Navigate('dom_counter_sample.html')
 
+    # Prepare for LeakDetection.
+    self._tab.PrepareForLeakDetection()
+
     # We need a GC here at the even loop in order clean up garbage. The GC call
     # below is only scheduling a GC at the event loop. We cannot nicely await
     # the JS promise here but calling through the inspector to get the DOM
