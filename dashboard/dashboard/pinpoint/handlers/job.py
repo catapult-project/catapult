@@ -56,9 +56,10 @@ def MarshalToChange(change_data):
     url_name = cm.get('repository')
     if url_name:
       url_name = ParseRepoName(url_name)
+    gh = cm.get('gitHash', cm.get('git_hash'))
     commit_obj = commit.Commit(
         repository=url_name,
-        git_hash=cm.get('gitHash'),
+        git_hash=gh,
     )
     # this call ensures that self._repository_url is set from
     # repository datastore.
