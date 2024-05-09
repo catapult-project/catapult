@@ -40,7 +40,10 @@ TEST_CHANGE = {
                 'd9ac8dd553c566b8fe107dd8c8b2275c2c9c27f1'),
         'author': ('chromium-internal-autoroll@skia-corp.google.com.iam.'
                    'gserviceaccount.com'),
-        'created': '2024-04-11T20:09:17Z',
+        'created': {
+            'seconds': 1715203672,
+            'nanos': 523378460
+        },
         'subject':
             ('Roll clank/internal/apps from aa5f21626312 to cf4e4bc14dfa '
              '(1 revision)'),
@@ -135,8 +138,13 @@ TEST_JOB = {
     "comparisonMode": "performance",
     "name": "[Test Skia] Performance bisect test change",
     "user": "chromeperf@appspot.gserviceaccount.com",
-    "created": "2024-04-26T16:44:29.276460125Z",
-    "updated": "2024-04-26T17:23:07.131472176Z",
+    "created": {
+        "seconds": 1715203672,
+        "nanos": 523378460
+    },
+    "updated": {
+        "seconds": 1715203672
+    },
     "differenceCount": 2,
     "bots": [
         "win-78-e504",

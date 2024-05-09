@@ -18,7 +18,7 @@ from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import job_state, attempt
 from dashboard.pinpoint.models.change import change, commit, commit_cache
 from dashboard.pinpoint.models.quest import find_isolate, run_test, read_value
-from dateutil import parser
+from google.protobuf.timestamp_pb2 import Timestamp
 
 CAS_URL = "https://cas-viewer.appspot.com"
 SWARMING_URL = "https://chrome-swarming.appspot.com"
@@ -65,7 +65,10 @@ def MarshalToChange(change_data):
     _ = commit_obj.repository_url
     all_commits.append(commit_obj)
 
-    created_time = parser.parse(cm.get('created')).replace(tzinfo=None)
+    created_arg = cm.get('created')
+    created_time = Timestamp(
+        seconds=created_arg.get('seconds'),
+        nanos=created_arg.get('nanos')).ToDatetime()
     # store this commit in the commit cache
     commit_cache.Put(
         commit_obj.id_string,
@@ -80,14 +83,19 @@ def MarshalToChange(change_data):
 def MarshalToAttempt(quests, change_data, legacy_attempt):
   all_executions = []
 
-  def FindIsolateExecution():
-    iso_exec = find_isolate._FindIsolateExecution(None, '', None, None, None,
-                                                  None, None, None, None)
+  def FindIsolateExecution(find_iso_exec):
+    builder_details = find_iso_exec.get('details')[0]
+    builder_name = builder_details.get('value')
+    iso_exec = find_isolate._FindIsolateExecution(None, builder_name, None,
+                                                  None, None, None, None, None,
+                                                  None)
+    iso_details = find_iso_exec.get('details')[1]
+    dig_url = iso_details.get('url', '')
     iso_exec._result_arguments = {
         # digest hash and bytes
-        'isolate_hash': '',
+        'isolate_hash': iso_details.get('value'),
         # project, or casInstance
-        'isolate_server': '',
+        'isolate_server': dig_url[len(CAS_URL):].split('blobs')[0].strip('/'),
     }
     iso_exec._completed = True
     return iso_exec
@@ -126,11 +134,13 @@ def MarshalToAttempt(quests, change_data, legacy_attempt):
 
   # idx 0 is always find_isolate execution
   executions = legacy_attempt.get('executions', [])
-  all_executions.append(FindIsolateExecution())
+  all_executions.append(FindIsolateExecution(executions[0]))
   all_executions.append(RunTestExecution(executions[1]))
   # read value doesn't need anything from execution details and only requires
   # the results from the attempt.
-  all_executions.append(ReadValueExec(legacy_attempt.get('resultValues', [])))
+  result_values = legacy_attempt.get('resultValues',
+                                     legacy_attempt.get('result_values', []))
+  all_executions.append(ReadValueExec(result_values))
 
   a = attempt.Attempt(quests, change_data)
   a._executions = all_executions
@@ -161,8 +171,10 @@ def MarshalToState(args):
       comparison_mode=arguments.get('comparison_mode'),
       # only in arguments are they expected to be in string. elsewhere, they
       # need to be in int/float for calculations.
-      comparison_magnitude=float(arguments.get('comparison_magnitude')),
-      initial_attempt_count=int(arguments.get('initial_attempt_count')),
+      # skia default is 1.0.
+      comparison_magnitude=float(arguments.get('comparison_magnitude', 1.0)),
+      # skia default is 10, but the pinpoint skia service will set to 20
+      initial_attempt_count=int(arguments.get('initial_attempt_count', 20)),
   )
   direction_int = int(
       args.get('improvementDirection', args.get('improvement_direction', 4)))
@@ -212,8 +224,14 @@ def MarshalArguments(arguments):
 def MarshalToJob(args):
   job = job_module.Job()
 
-  created_timestamp = parser.parse(args.get('created')).replace(tzinfo=None)
-  updated_timestamp = parser.parse(args.get('updated')).replace(tzinfo=None)
+  created_arg = args.get('created')
+  created_timestamp = Timestamp(
+      seconds=created_arg.get('seconds'),
+      nanos=created_arg.get('nanos')).ToDatetime()
+  updated_arg = args.get('updated')
+  updated_timestamp = Timestamp(
+      seconds=updated_arg.get('seconds'),
+      nanos=updated_arg.get('nanos')).ToDatetime()
 
   arguments = MarshalArguments(args.get('arguments', {}))
   job.arguments = arguments
