@@ -93,5 +93,13 @@ def GetJobStatus(job_id):
   return request.RequestJson(
       API_BASE_URL2 + 'GetBuild', method='POST', body=body)
 
+def GetBuilds(project: str, bucket: str, builder: str):
+  builder = {'project': project, 'bucket': bucket, 'builder': builder}
+  predicate = {'builder': builder, 'status': 'SUCCESS'}
+  body = {'predicate': predicate}
+  return request.RequestJson(
+    API_BASE_URL2 + 'SearchBuilds', method='POST', body=body)
+
+
 
 # TODO(robertocn): Implement CancelJobByID

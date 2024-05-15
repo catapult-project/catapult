@@ -109,6 +109,11 @@ found in the LICENSE file.
       .error {
         color: var(--paper-red-500);
       }
+
+      .columnLabel {
+        text-align: center;
+        font-weight: bold;
+      }
     </style>
 
     <app-location route="{{route}}"></app-location>
@@ -142,6 +147,9 @@ found in the LICENSE file.
         </template>
         <iron-ajax method="post" headers="[[client.authHeaders]]" auto url="/api/config" loading="{{configLoading}}" last-response="{{config}}"></iron-ajax>
         <iron-ajax method="post" headers="[[client.authHeaders]]" auto url="{{generateChromeperfUrl('/api/test_suites')}}" loading="{{suitesLoading}}" last-response="{{testSuites}}"></iron-ajax>
+        <template is="dom-if" if="[[validConfiguration(configuration)]]">
+          <iron-ajax method="get" headers="[[client.authHeaders]]" auto url="/api/builds/{{configuration}}" last-response="{{buildCommits}}"></iron-ajax>
+        </template>
         <template is="dom-if" if="{{validBenchmark(benchmark)}}">
           <iron-ajax method="post" headers="[[client.authHeaders]]" auto url="{{generateChromeperfUrl('/api/describe')}}" params="{{describeParams(benchmark)}}" loading="{{benchmarkConfigLoading}}" last-response="{{benchmarkConfig}}"></iron-ajax>
         </template>
@@ -271,20 +279,61 @@ found in the LICENSE file.
 
             <template is="dom-if" if="[[!isBisectJob(comparisonMode)]]">
               <div class="horizontal">
-                <commit-details class="column rightPad"
+                <span class="column columnLabel">Base</span>
+                <span class="column columnLabel">Experiment</span>
+              </div>
+              <div class="horizontal">
+                <paper-radio-group id="commit_source" class="column" selected="{{commitSourceBase}}">
+                  <paper-radio-button class="radio" name="commit">Specific Commit</paper-radio-button>
+                  <paper-radio-button class="radio" name="builds">Recent Builds</paper-radio-button>
+                </paper-radio-group>
+                <paper-radio-group id="exp_radio_buttons" class="column" name="exp_radio_buttons" selected="{{commitSourceExp}}">
+                  <paper-radio-button class="radio" name="commit">Specific Commit</paper-radio-button>
+                  <paper-radio-button class="radio" name="builds">Recent Builds</paper-radio-button>
+                </paper-radio-group>
+              </div>
+              <div class="horizontal">
+                <template is="dom-if" if="[[shouldDisplayRecentBuildsError(commitSourceBase, commitSourceExp, comparisonMode, configuration)]]">
+                  <p class="error">Please select a bot config to load the corresponding recent builds</p>
+                </template>
+              </div>
+              <div class="horizontal">
+                <template is="dom-if" if="[[shouldGetBuilds(commitSourceBase, comparisonMode)]]">
+                  <commit-details class="column rightPad"
+                                  project="{{project}}"
+                                  value="{{base_git_hash}}"
+                                  label="Base Build"
+                                  items="[[latestBuildCommits(buildCommits)]]"
+                                  headers="[[client.authHeaders]]"
+                                  required disabled="[[isBisectJob(comparisonMode)]]"></commit-details>
+                </template>
+                <template is="dom-if" if="[[!shouldGetBuilds(commitSourceBase, comparisonMode)]]">
+                  <commit-details class="column rightPad"
                                 project="{{project}}"
                                 value="{{base_git_hash}}"
                                 label="Base Git Hash/Commit Position/-REF for cached REF"
                                 items="[[commitsListItems(commitsList)]]"
                                 headers="[[client.authHeaders]]"
                                 required disabled="[[isBisectJob(comparisonMode)]]"></commit-details>
-                <commit-details class="column rightPad"
+                </template>
+                <template is="dom-if" if="[[shouldGetBuilds(commitSourceExp, comparisonMode)]]">
+                  <commit-details class="column rightPad"
+                                  project="{{project}}"
+                                  value="{{end_git_hash}}"
+                                  label="Exp Build"
+                                  items="[[latestBuildCommits(buildCommits)]]"
+                                  headers="[[client.authHeaders]]"
+                                  required disabled="[[isBisectJob(comparisonMode)]]"></commit-details>
+                </template>
+                <template is="dom-if" if="[[!shouldGetBuilds(commitSourceExp, comparisonMode)]]">
+                  <commit-details class="column rightPad"
                                 project="{{project}}"
                                 value="{{end_git_hash}}"
                                 label="Exp Git Hash/Commit Position/-REF for cached REF"
                                 items="[[commitsListItems(commitsList)]]"
                                 headers="[[client.authHeaders]]"
                                 required disabled="[[isBisectJob(comparisonMode)]]"></commit-details>
+                </template>
               </div>
               <div class="horizontal">
                 <paper-input class="column" name="base_patch" value="{{base_patch}}" label="Base Patch (optional, Gerrit URL)" disabled="[[isBisectJob(comparisonMode)]]"></paper-input>
@@ -307,7 +356,6 @@ found in the LICENSE file.
                              value="{{experiment_extra_args}}" ></paper-input>
               </div>
             </template>
-
             <template is="dom-if" if="[[isBisectJob(comparisonMode)]]">
               <div class="horizontal">
                   <commit-details class="column rightPad"
@@ -373,6 +421,7 @@ found in the LICENSE file.
         bug_id: String,
         chart: String,
         commitsList: Object,
+        buildCommits: Object,
         commitRangeLoading: {
           type: Boolean,
           value: false
@@ -380,6 +429,14 @@ found in the LICENSE file.
         comparisonMode: {
           type: String,
           value: 'try'
+        },
+        commitSourceBase: {
+          type: String,
+          value: 'commit'
+        },
+        commitSourceExp: {
+          type: String,
+          value: 'commit'
         },
         config: Object,
         configuration: String,
@@ -396,6 +453,8 @@ found in the LICENSE file.
         base_patch: String,
         experiment_patch: String,
         statistic: String,
+        base_git_hash_backup: String,
+        end_git_hash_backup: String,
         base_git_hash: {
           type: String,
           value: '-HEAD'
@@ -438,6 +497,8 @@ found in the LICENSE file.
         'benchmarkConfigChanged(benchmarkConfig)',
         'benchmarkChanged(benchmark)',
         'jobChanged(job)',
+        'commitSourceChangedBase(commitSourceBase)',
+        'commitSourceChangedExp(commitSourceExp)'
       ],
 
       openDialog() {
@@ -449,6 +510,18 @@ found in the LICENSE file.
 
       validTestSuite() {
         return config.configurations.includes(this.configuration);
+      },
+
+      shouldGetBuilds(commitSource, comparisonMode) {
+        return commitSource == 'builds' && comparisonMode == 'try'
+      },
+
+      validConfiguration(configuration) {
+        if (configuration.length > 0) {
+          return true;
+        }
+
+        return false;
       },
 
       preSubmit(event) {
@@ -520,6 +593,36 @@ found in the LICENSE file.
         return vals;
       },
 
+      shouldDisplayRecentBuildsError(commitSourceBase, commitSourceExp, comparisonMode, configuration) {
+        // This error should be displayed if the user has selected "Recent Builds" for either base or experiment
+        // and the bot configuration is not selected.
+        return (this.shouldGetBuilds(commitSourceBase, comparisonMode) || this.shouldGetBuilds(commitSourceExp, comparisonMode))
+                && (configuration == null || configuration == undefined || configuration == '');
+      },
+
+      latestBuildCommits(buildCommits) {
+        if (!buildCommits) {
+          return [];
+        }
+
+        const vals = [];
+        for (const cur of buildCommits.builds) {
+          let change = ''
+          if (cur.input.gerritChanges && cur.input.gerritChanges.length > 0) {
+            change = cur.input.gerritChanges[0].change
+          }
+          let date = new Date(Date.parse(cur.endTime))
+          vals.push({
+            message: 'Build ' + cur.number,
+            name: cur.input.gitilesCommit.id,
+            author: date.toString(),
+            date: cur.endTime,
+            commit_position: cur.number,
+          });
+        }
+        return vals;
+      },
+
       configChanged(config) {
         this.$.botDropdown.tryReselectQuery();
       },
@@ -540,6 +643,30 @@ found in the LICENSE file.
         }
         if (!this.$.statisticDropdown.disabled) {
           this.$.statisticDropdown.tryReselectQuery();
+        }
+      },
+
+      commitSourceChangedBase(commitSource) {
+        if (commitSource == 'builds') {
+          // Clear the value in the base_git_hash and assign it to backup
+          this.base_git_hash_backup = this.base_git_hash;
+          this.base_git_hash = '';
+        } else {
+          // Restore the value in base_git_hash from backup
+          this.base_git_hash = this.base_git_hash_backup;
+          this.base_git_hash_backup = ''
+        }
+      },
+
+      commitSourceChangedExp(commitSource) {
+        if (commitSource == 'builds') {
+          // Clear the value in the end_git_hash and assign it to backup
+          this.end_git_hash_backup = this.end_git_hash;
+          this.end_git_hash = '';
+        } else {
+          // Restore the value in end_git_hash from backup
+          this.end_git_hash = this.end_git_hash_backup;
+          this.end_git_hash_backup = ''
         }
       },
 

@@ -6,12 +6,13 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import dashboard.pinpoint.handlers.jobs
+import dashboard.pinpoint.handlers.builds
 import dashboard.pinpoint.handlers.commit
 import dashboard.pinpoint.handlers.config
 import dashboard.pinpoint.handlers.culprit
 import dashboard.pinpoint.handlers.new
 import dashboard.pinpoint.handlers.job
+import dashboard.pinpoint.handlers.jobs
 import dashboard.pinpoint.handlers.queue_stats
 import dashboard.pinpoint.handlers.cancel
 import dashboard.pinpoint.handlers.commits
