@@ -362,6 +362,7 @@ class BrowserFinderOptions(argparse.Namespace):
       ret = real_parse(args, self)
 
       if self.chromium_output_dir:
+        self.chromium_output_dir = os.path.abspath(self.chromium_output_dir)
         os.environ['CHROMIUM_OUTPUT_DIR'] = self.chromium_output_dir
 
       # Set up Android emulator if necessary.
