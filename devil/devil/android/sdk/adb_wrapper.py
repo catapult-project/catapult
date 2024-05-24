@@ -400,7 +400,7 @@ class AdbWrapper(object):
         # Wait for process finish.
         # This could be simplified with |self._process.wait(5)| after
         # migration to py3-only.
-        timeout_if_no_finish = datetime.now() + timedelta(seconds=5)
+        timeout_if_no_finish = datetime.now() + timedelta(seconds=8)
         while self._process.poll() is None:
           if datetime.now() > timeout_if_no_finish:
             logging.warning('Adb wedged. Kill')
@@ -428,7 +428,7 @@ class AdbWrapper(object):
 
         self._process.stdin.write(six.ensure_binary(send_cmd))
         self._process.stdin.flush()  # Ensure underlying stdio flushes.
-        timeout_if_no_start_by = datetime.now() + timedelta(milliseconds=2500)
+        timeout_if_no_start_by = datetime.now() + timedelta(milliseconds=4000)
 
         # Enter select loop for subprocess to avoid deadlock problems
         # when reading/writing to children via pipes.
@@ -444,7 +444,7 @@ class AdbWrapper(object):
             self._process.stdin.write(send_cmd.encode('utf-8'))
             self._process.stdin.flush()  # Ensure underlying stdio flushes.
             timeout_if_no_start_by = datetime.now() + timedelta(
-                milliseconds=500)
+                milliseconds=2000)
 
           if self._process.poll() is not None:
             raise device_errors.AdbShellCommandFailedError(
