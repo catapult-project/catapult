@@ -145,7 +145,7 @@ def try_builder(
     }
     if dimensions:
         dims.update(dimensions)
-    if os == "Ubuntu":
+    if os.startswith("Ubuntu"):
         dims["cpu"] = "x86-64"
 
     executable = luci.recipe(
