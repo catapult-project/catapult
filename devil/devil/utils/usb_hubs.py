@@ -157,7 +157,7 @@ def _is_via_hub(node):
 
 
 def _is_v3_quadrant_hub(node):
-  """Check if a node is a quadrant of V3 Labs hub.
+  """Check if a node is a quadrant of V3 Labs USB 2.0 hub.
   One V3 Labs hub contains 4 quadrants. Each quadrant has 9 USB-C ports.
   See V3_QUADRANT_LAYOUT for the topology.
   """
@@ -168,6 +168,18 @@ def _is_v3_quadrant_hub(node):
   return '04b4:2347' in node.PortToDevice(4).desc
 
 
+def _is_v3_quadrant_usb3_hub(node):
+  """Check if a node is a quadrant of V3 Labs USB 3.1 hub.
+  One V3 Labs hub contains 4 quadrants. Each quadrant has 9 USB-C ports.
+  See V3_QUADRANT_LAYOUT for the topology.
+  """
+  if '04b4:4347' not in node.desc:
+    return False
+  if not node.HasPort(4):
+    return False
+  return '04b4:4347' in node.PortToDevice(4).desc
+
+
 PLUGABLE_7PORT = HubType(_is_plugable_7port_hub, PLUGABLE_7PORT_LAYOUT)
 PLUGABLE_7PORT_USB3_PART2 = HubType(_is_plugable_7port_usb3_part2_hub,
                                     PLUGABLE_7PORT_USB3_LAYOUT)
@@ -176,8 +188,9 @@ PLUGABLE_7PORT_USB3_PART3 = HubType(_is_plugable_7port_usb3_part3_hub,
 KEEDOX = HubType(_is_keedox_hub, KEEDOX_LAYOUT)
 VIA = HubType(_is_via_hub, VIA_LAYOUT)
 V3_QUADRANT = HubType(_is_v3_quadrant_hub, V3_QUADRANT_LAYOUT)
+V3_QUADRANT_USB3 = HubType(_is_v3_quadrant_usb3_hub, V3_QUADRANT_LAYOUT)
 
 ALL_HUBS = [
     PLUGABLE_7PORT, PLUGABLE_7PORT_USB3_PART2, PLUGABLE_7PORT_USB3_PART3,
-    KEEDOX, VIA, V3_QUADRANT
+    KEEDOX, VIA, V3_QUADRANT, V3_QUADRANT_USB3
 ]
