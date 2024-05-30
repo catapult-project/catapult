@@ -81,12 +81,7 @@ def JobFromId(job_id):
   Users of Job should not have to import ndb. This function maintains an
   abstraction layer that separates users from the Datastore details.
   """
-  try:
-    uuid_id = uuid.UUID(job_id)
-    job_key = ndb.Key('Job', str(uuid_id))
-  except ValueError:
-    # not a uuid meaning it didn't come from skia, so parse normally
-    job_key = ndb.Key('Job', int(job_id, 16))
+  job_key = ndb.Key('Job', int(job_id, 16))
   return job_key.get()
 
 
@@ -433,8 +428,6 @@ class Job(ndb.Model):
 
   @property
   def job_id(self):
-    if isinstance(self.key.id(), str):
-      return self.key.id()
     return '%x' % self.key.id()
 
   @property
@@ -609,8 +602,8 @@ class Job(ndb.Model):
     start_git_hash = self._GetGitHash(change_a)
     end_git_hash = self._GetGitHash(change_b)
     logging.debug(
-        ('Pinpoint - job %s creating verification workflow with improvement '
-         'direction %s'), self.job_id, improvement_dir)
+        'Pinpoint - job %s creating verification workflow with improvement direction %s',
+        self.job_id, improvement_dir)
 
     if not start_git_hash or not end_git_hash:
       raise ValueError('start_git_hash (%s) or end_git_hash (%s) is None' \
@@ -645,8 +638,7 @@ class Job(ndb.Model):
     # first commit in the roll, which sets up an A/A experiment. Any culprit CL
     # that is part of a roll will fail to verify. This issue occurs about 30% of
     # the time.
-    # TODO(crbug/1507128): Re-enable culprit verification for
-    # non-chromium culprits.
+    # TODO(crbug/1507128): Re-enable culprit verification for non-chromium culprits.
     if differences:
       for _, change_b in differences:
         if change_b.last_commit.repository != "chromium":
@@ -818,11 +810,10 @@ class Job(ndb.Model):
             status='WontFix',
             _retry_options=RETRY_OPTIONS)
       else:
-        title1 = ("<b>%s %s %s regressions found.</b>" %
-                  (_ROUND_PUSHPIN, _SANDWICH, regression_cnt))
+        title1 = "<b>%s %s %s regressions found.</b>" % (_ROUND_PUSHPIN, _SANDWICH,
+                                                      regression_cnt)
         title2 = "<b>Started sandwich culprit verification process.</b>"
-        workflow_details = ("culprit verification workflow keys: %s" %
-                            (wf_executions))
+        workflow_details = "culprit verification workflow keys: %s" % (wf_executions)
         deferred.defer(
             _PostBugCommentDeferred,
             self.bug_id,

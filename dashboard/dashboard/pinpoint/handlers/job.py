@@ -224,9 +224,6 @@ def MarshalArguments(arguments):
 
 def MarshalToJob(args):
   job = job_module.Job()
-  skia_job_id = args.get('job_id', args.get('JobId'))
-  if skia_job_id:
-    job = job_module.Job(id=skia_job_id)
 
   created_arg = args.get('created')
   created_timestamp = Timestamp(
@@ -238,8 +235,6 @@ def MarshalToJob(args):
       nanos=updated_arg.get('nanos')).ToDatetime()
 
   arguments = MarshalArguments(args.get('arguments', {}))
-  if args.get('skia_workflow_url'):
-    arguments['skia_workflow_url'] = args.get('skia_workflow_url')
   job.arguments = arguments
   # rewrite into args so that job state and other sub marshal commands use the
   # same arg set.
