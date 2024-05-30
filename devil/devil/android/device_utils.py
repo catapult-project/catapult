@@ -168,6 +168,7 @@ _PERMISSIONS_DENYLIST_RE = re.compile('|'.join(
         'android.permission.SET_WALLPAPER',
         'android.permission.SET_WALLPAPER_HINTS',
         'android.permission.TRANSMIT_IR',
+        'android.permission.USE_BIOMETRIC',
         'android.permission.USE_CREDENTIALS',
         'android.permission.USE_FINGERPRINT',
         'android.permission.VIBRATE',
