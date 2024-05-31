@@ -29,7 +29,6 @@ MIN_ATTEMPTS = 10
 MAX_ATTEMPTS = 160
 MAX_BUILDS = 60
 _DEFAULT_SPECULATION_LEVELS = 1
-_SMALL_REGRESSION_FILTER = 0.1
 
 FUNCTIONAL = 'functional'
 PERFORMANCE = 'performance'
@@ -392,12 +391,6 @@ class JobState:
         logging.debug('BisectDebug: Comparing values: %s, %s',
             all_a_values, all_b_values)
         mean_diff = Mean(all_b_values) - Mean(all_a_values)
-        # do not bisect further on regressions that are small relative to
-        # initial expected regression size
-        if (getattr(self, '_comparison_magnitude', None)
-            and abs(mean_diff) < _SMALL_REGRESSION_FILTER*abs(self._comparison_magnitude)):
-          logging.debug('BisectDebug: Small regression filtered. Mean diff: %s', mean_diff)
-          return compare.SAME
         # Pinpoint jobs that exist prior to this change will not
         # have an improvement direction. See crbug/1351167#c4
         if not getattr(self, '_improvement_direction', None):
