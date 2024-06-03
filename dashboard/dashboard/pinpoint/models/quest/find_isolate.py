@@ -343,7 +343,7 @@ def RequestBuild(builder_name, change, bucket, build_tags, task=None):
           # builder will clean out previous build artifacts instead of re-using
           # potentially already-built object files from a previous checkout.
           # Incremental builds will be much faster especially with the help of
-          # goma.
+          # RBE.
           'clobber': False,
           'deps_revision_overrides': deps_overrides,
           'git_repo': change.base_commit.repository_url,
