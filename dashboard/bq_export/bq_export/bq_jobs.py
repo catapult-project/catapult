@@ -49,9 +49,16 @@ def JobEntityToRowDict(entity):
       # Workaround for some entities in April/May 2018 with a comparison_mode of
       # 2 (the integer, not a string!).
       comparison_mode = str(comparison_mode)
+
+    # Skia based jobs uses UUID strings as IDs. As part of the deprecation plan,
+    # this is to be migrated to Skia and should be handled there. Thus, we
+    # ignore any string based ids.
+    if not isinstance(entity_id, int):
+      raise TypeError("Only int based IDs are exported.")
+
     d = {
         'id':
-            entity.key.id,
+            entity_id,
         'batch_id':
             entity.get('batch_id'),
         'arguments':
@@ -145,6 +152,9 @@ def main():
     entities_read.inc()
     try:
       row_dict = JobEntityToRowDict(entity)
+    except TypeError:
+      logging.getLogger().info('Ignoring jobs without int based ids.')
+      return []
     except UnconvertibleJobError:
       logging.getLogger().exception('Failed to convert Job')
       failed_entity_transforms.inc()
