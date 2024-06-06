@@ -11,7 +11,7 @@ import itertools
 import json
 
 import six
-import mock
+from unittest import mock
 import webtest
 
 from dashboard import pinpoint_request

@@ -9,7 +9,7 @@ from __future__ import absolute_import
 import json
 import unittest
 
-import mock
+from unittest import mock
 
 from dashboard import auto_bisect
 from dashboard.common import namespaced_stored_object

@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import datetime
 import json
-import mock
+from unittest import mock
 
 from dashboard.common import bot_configurations, namespaced_stored_object
 from dashboard.pinpoint import test

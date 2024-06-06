@@ -18,7 +18,7 @@ from application import app
 from application.perf_api import alert_group
 from google.cloud import datastore
 
-import mock
+from unittest import mock
 
 
 class AlertGroupTest(unittest.TestCase):
@@ -48,7 +48,7 @@ class AlertGroupTest(unittest.TestCase):
   def testAlertGroupExistWithTest(self, getEntities_mock, getEntity_mock):
     anomaly_key = datastore.Key('Anomaly', 123456, project='test')
     alert_group = {
-      "anomalies":[anomaly_key]
+      "anomalies": [anomaly_key]
     }
     getEntity_mock.return_value = alert_group
 
@@ -78,7 +78,7 @@ class AlertGroupTest(unittest.TestCase):
     anomaly_key = datastore.Key('Anomaly', 123456, project='test')
     anomaly_key_2 = datastore.Key('Anomaly', 654321, project='test')
     alert_group = {
-      "anomalies":[anomaly_key]
+      "anomalies": [anomaly_key]
     }
     getEntity_mock.return_value = alert_group
 

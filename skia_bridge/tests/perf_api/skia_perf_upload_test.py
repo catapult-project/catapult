@@ -18,7 +18,7 @@ if str(app_path) not in sys.path:
 from application import app
 from common import utils
 
-import mock
+from unittest import mock
 
 
 class SkiaUploadTest(unittest.TestCase):

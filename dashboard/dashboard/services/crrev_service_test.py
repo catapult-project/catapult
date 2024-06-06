@@ -9,7 +9,7 @@ from __future__ import absolute_import
 import json
 import unittest
 
-import mock
+from unittest import mock
 
 from dashboard.services import crrev_service
 

@@ -18,7 +18,7 @@ from application import app
 from application.perf_api import anomalies
 from google.cloud import datastore
 
-import mock
+from unittest import mock
 
 
 class QueryAnomaliesTest(unittest.TestCase):

@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from flask import Flask
 import json
-import mock
+from unittest import mock
 import unittest
 import webtest
 

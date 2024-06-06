@@ -4,7 +4,7 @@
 
 # pylint: disable=unused-argument
 
-import mock
+from unittest import mock
 
 from pyfakefs import fake_filesystem_unittest
 from py_utils import cloud_storage

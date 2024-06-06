@@ -9,7 +9,7 @@ from __future__ import absolute_import
 import datetime
 from flask import Flask
 from six.moves import http_client
-import mock
+from unittest import mock
 import unittest
 import webtest
 

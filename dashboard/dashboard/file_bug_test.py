@@ -11,7 +11,7 @@ import datetime
 from flask import Flask
 import json
 
-import mock
+from unittest import mock
 import sys
 import six
 import webtest

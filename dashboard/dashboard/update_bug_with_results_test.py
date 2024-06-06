@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import unittest
 
-import mock
+from unittest import mock
 
 from dashboard import update_bug_with_results
 from dashboard.common import layered_cache

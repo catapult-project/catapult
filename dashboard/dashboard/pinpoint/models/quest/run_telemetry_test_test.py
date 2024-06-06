@@ -7,7 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import unittest
-import mock
+from unittest import mock
 
 from dashboard.pinpoint.models.change import change as change_module
 from dashboard.pinpoint.models.change import commit

@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import unittest
 
-import mock
+from unittest import mock
 
 from dashboard.common import datastore_hooks
 from dashboard.services import pinpoint_service

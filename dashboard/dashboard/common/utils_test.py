@@ -10,7 +10,7 @@ import base64
 import json
 import unittest
 
-import mock
+from unittest import mock
 
 from google.appengine.ext import ndb
 

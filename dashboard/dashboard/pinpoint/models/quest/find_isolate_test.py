@@ -9,7 +9,7 @@ from __future__ import absolute_import
 import collections
 import unittest
 
-import mock
+from unittest import mock
 
 from dashboard.pinpoint import test
 from dashboard.pinpoint.models import errors

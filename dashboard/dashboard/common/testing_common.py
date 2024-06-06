@@ -12,7 +12,7 @@ import fnmatch
 import itertools
 import json
 import logging
-import mock
+from unittest import mock
 import os
 import re
 import sys

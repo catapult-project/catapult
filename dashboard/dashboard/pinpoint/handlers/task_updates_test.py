@@ -9,7 +9,7 @@ from __future__ import absolute_import
 import base64
 import itertools
 import json
-import mock
+from unittest import mock
 
 from dashboard.pinpoint.handlers import task_updates
 from dashboard.pinpoint.models import job as job_module

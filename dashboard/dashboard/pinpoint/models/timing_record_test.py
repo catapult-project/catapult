@@ -7,7 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import datetime
-import mock
+from unittest import mock
 
 from dashboard.common import math_utils
 from dashboard.pinpoint.models import job

@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import datetime
 import logging
-import mock
+from unittest import mock
 import sys
 import time
 

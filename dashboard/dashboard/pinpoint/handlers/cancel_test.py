@@ -5,7 +5,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import mock
+from unittest import mock
 
 from dashboard.common import testing_common
 from dashboard.api import api_auth

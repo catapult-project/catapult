@@ -7,7 +7,7 @@ from __future__ import division
 from __future__ import print_function
 
 import json
-import mock
+from unittest import mock
 
 from dashboard import sheriff_config_client
 from dashboard.common import testing_common

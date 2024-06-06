@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import unittest
 
-import mock
+from unittest import mock
 
 from dashboard.services import gerrit_service
 from dashboard.services import gitiles_service

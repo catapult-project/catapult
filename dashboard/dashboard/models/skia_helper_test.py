@@ -9,7 +9,7 @@ from __future__ import absolute_import
 import unittest
 
 import datetime
-import mock
+from unittest import mock
 
 from dashboard.common import testing_common
 from dashboard.models import skia_helper

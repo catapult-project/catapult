@@ -10,7 +10,7 @@ import collections
 import datetime
 import itertools
 import logging
-import mock
+from unittest import mock
 import unittest
 
 from google.appengine.api import taskqueue

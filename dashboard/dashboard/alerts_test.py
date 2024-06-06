@@ -7,7 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 from flask import Flask
-import mock
+from unittest import mock
 import sys
 import unittest
 import webtest

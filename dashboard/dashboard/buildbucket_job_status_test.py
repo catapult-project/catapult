@@ -10,7 +10,7 @@ from flask import Flask, Response
 import json
 import unittest
 
-import mock
+from unittest import mock
 import webtest
 
 from dashboard import common

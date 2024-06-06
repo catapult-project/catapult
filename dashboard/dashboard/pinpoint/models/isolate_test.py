@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import datetime
 
-import mock
+from unittest import mock
 
 from google.appengine.ext import ndb
 

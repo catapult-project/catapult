@@ -10,7 +10,7 @@ import base64
 import unittest
 import zlib
 
-import mock
+from unittest import mock
 
 from dashboard.services import isolate
 

@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import datetime
 import json
-import mock
+from unittest import mock
 
 from dashboard.pinpoint.handlers import results2
 from dashboard.pinpoint.models.results2 import Results2Error

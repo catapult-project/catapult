@@ -12,7 +12,7 @@ import json
 import math
 import unittest
 
-import mock
+from unittest import mock
 import six
 import webtest
 

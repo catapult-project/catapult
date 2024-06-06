@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import datetime
 from flask import Flask
-import mock
+from unittest import mock
 import sys
 
 from tracing.value.diagnostics import generic_set

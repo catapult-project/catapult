@@ -7,7 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
-import mock
+from unittest import mock
 
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint import test

@@ -6,7 +6,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import logging
-import mock
+from unittest import mock
 import sys
 import unittest
 

@@ -9,7 +9,7 @@ from __future__ import absolute_import
 import copy
 from flask import Flask
 import json
-import mock
+from unittest import mock
 import sys
 import uuid
 import webtest

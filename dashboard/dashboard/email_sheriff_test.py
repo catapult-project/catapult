@@ -9,7 +9,7 @@ from __future__ import absolute_import
 import sys
 import unittest
 
-import mock
+from unittest import mock
 
 from dashboard import email_sheriff
 from dashboard.common import testing_common

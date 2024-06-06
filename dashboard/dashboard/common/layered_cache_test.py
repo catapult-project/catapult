@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 import six.moves.cPickle as cPickle
 import datetime
-import mock
+from unittest import mock
 import unittest
 
 from google.appengine.ext import ndb

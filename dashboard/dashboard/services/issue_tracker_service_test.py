@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 from six.moves import http_client
 import json
-import mock
+from unittest import mock
 import unittest
 
 from apiclient import errors

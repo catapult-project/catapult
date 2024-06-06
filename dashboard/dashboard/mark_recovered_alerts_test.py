@@ -9,7 +9,7 @@ from __future__ import absolute_import
 from datetime import datetime
 from datetime import timedelta
 from flask import Flask
-import mock
+from unittest import mock
 import unittest
 import webtest
 

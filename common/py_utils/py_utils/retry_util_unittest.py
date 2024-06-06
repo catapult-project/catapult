@@ -4,7 +4,7 @@
 from __future__ import absolute_import
 import unittest
 
-import mock
+from unittest import mock
 
 from py_utils import retry_util
 

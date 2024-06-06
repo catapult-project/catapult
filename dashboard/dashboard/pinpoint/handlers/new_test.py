@@ -7,7 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 import json
-import mock
+from unittest import mock
 
 from dashboard.api import api_auth
 from dashboard.common import datastore_hooks

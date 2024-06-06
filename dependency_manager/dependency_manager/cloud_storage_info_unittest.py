@@ -6,7 +6,8 @@ import os
 import stat
 import unittest
 
-import mock
+from unittest import mock
+
 from pyfakefs import fake_filesystem_unittest
 from py_utils import cloud_storage
 

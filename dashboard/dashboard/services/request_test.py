@@ -10,7 +10,7 @@ from six.moves import http_client
 import socket
 import unittest
 
-import mock
+from unittest import mock
 
 from google.appengine.api import urlfetch_errors
 from google.appengine.ext import testbed

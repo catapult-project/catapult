@@ -10,7 +10,7 @@ import base64
 from flask import Flask
 import itertools
 import json
-import mock
+from unittest import mock
 import random
 import six
 import string
