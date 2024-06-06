@@ -4,6 +4,7 @@ main:
     - init:
         assign:
           - anomaly: ${input.anomaly}
+          - execution_id: ${sys.get_env("GOOGLE_CLOUD_WORKFLOW_EXECUTION_ID")}
           - version: ${text.replace_all(sys.get_env("GOOGLE_CLOUD_WORKFLOW_ID"),
                 "sandwich-verification-workflow-",
                 "")}
@@ -35,6 +36,7 @@ main:
                   url: ${functionResponse.body.serviceConfig.uri}
                   body:
                     anomaly: ${anomaly}
+                    execution_id: ${execution_id}
                   auth:
                     type: OIDC
                 result: startPinpointJobResult

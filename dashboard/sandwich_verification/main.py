@@ -7,6 +7,7 @@ from __future__ import absolute_import
 
 import logging
 
+import json
 import functions_framework
 from flask import jsonify
 from google.protobuf import json_format
@@ -28,6 +29,7 @@ def StartPinpointJob(request):
       bot_name (e.g. "mac-m1_mini_2020-perf")
       target (e.g. "performance_test_suite")
       attempt_count (optional, default 30)
+    execution_id: An optional Workflow execution ID to add to the tags.
   Returns:
     Job ID of started Pinpoint Job.
   """
@@ -35,6 +37,7 @@ def StartPinpointJob(request):
 
   print('Original params: %s' % request_json)
   anomaly = request_json.get('anomaly')
+  execution_id = request_json.get('execution_id')
 
   bot_name = anomaly.get('bot_name')
   benchmark_name = anomaly.get('benchmark')
@@ -45,6 +48,8 @@ def StartPinpointJob(request):
     attempt_count = DEFAULT_ATTEMPT_COUNT
 
   name = 'Regression Verification Try job on %s/%s/%s' % (bot_name, benchmark_name, measurement)
+
+  tags = json.dumps({'sandwich_execution_id': execution_id} if execution_id else {})
 
   pinpoint_params = {
       'benchmark': benchmark_name,
@@ -57,6 +62,7 @@ def StartPinpointJob(request):
       'name': name,
       'comparison_mode': 'try',
       'try': 'on',
+      'tags': tags,
       'project': anomaly.get('project', 'chromium')
   }
 
