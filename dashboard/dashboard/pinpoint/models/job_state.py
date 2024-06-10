@@ -187,6 +187,8 @@ class JobState:
         return change_module.Change.Midpoint(change_a, change_b)
       except change_module.NonLinearError:
         return None
+      except change_module.DepsParsingError as e:
+        raise errors.RecoverableError(e)
 
     try:
       additional_changes = exploration.Speculate(

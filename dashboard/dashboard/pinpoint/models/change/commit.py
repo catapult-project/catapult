@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import collections
 import datetime
+import logging
 import re
 import six
 
@@ -33,6 +34,10 @@ _REPO_EXCLUSION_KEY = 'pinpoint_repo_exclusion_map'
 
 class NonLinearError(Exception):
   """Raised when trying to find the midpoint of Changes that are not linear."""
+
+
+class DepsParsingError(Exception):
+  """Raised when we find a DEPS but fail to parse it."""
 
 
 Dep = collections.namedtuple('Dep', ('repository_url', 'git_hash'))
@@ -117,6 +122,7 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
           'DEPS',
       )
     except gitiles_service.NotFoundError:
+      logging.debug("No DEPS in this commit: %s", git_hash)
       return frozenset()  # No DEPS file => no DEPS.
 
     try:
@@ -125,15 +131,22 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
               self.repository_url,
               git_hash,
           ))
-    except gclient_eval.Error:
-      return frozenset()  # Invalid/unparseable DEPS file => no DEPS.
+    except gclient_eval.Error as e:
+      # Invalid/unparseable DEPS file.
+      logging.error(
+          'Failed to parse DEPS file in commit %s to do further bisect: %s',
+          git_hash, str(e))
+      raise DepsParsingError("Failed to parse DEPS file in commit %s@%s" %
+                             (self.repository_url, git_hash)) from e
 
     # Pull out deps dict, including OS-specific deps.
     deps_dict = deps_data.get('deps', {})
     if not deps_dict:
+      logging.debug("No deps key in DEPS data in this commit: %s", git_hash)
       return frozenset()
 
     # Convert deps strings to repository and git hash.
+    logging.debug("DEPS data loaded for commit %s: %s", git_hash, deps_dict)
     commits = []
     for dep_value in deps_dict.values():
       if dep_value.get('dep_type') != 'git':

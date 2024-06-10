@@ -93,8 +93,8 @@ deps = {
   'some_dep': {'invalid_key': ''}
 }
     """
-
-    self.assertEqual(Commit(0).Deps(), frozenset([]))
+    with self.assertRaises(commit.DepsParsingError):
+      Commit(0).Deps()
 
   def testAsDict(self):
     self.commit_info.side_effect = None

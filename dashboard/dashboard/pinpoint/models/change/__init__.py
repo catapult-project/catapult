@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from dashboard.pinpoint.models.change.change import Change
 from dashboard.pinpoint.models.change.commit import Commit
 from dashboard.pinpoint.models.change.commit import NonLinearError
+from dashboard.pinpoint.models.change.commit import DepsParsingError
 from dashboard.pinpoint.models.change.patch import GerritPatch
 
 
