@@ -53,6 +53,7 @@ def JobEntityToRowDict(entity):
     # Skia based jobs uses UUID strings as IDs. As part of the deprecation plan,
     # this is to be migrated to Skia and should be handled there. Thus, we
     # ignore any string based ids.
+    entity_id = entity.key.id
     if not isinstance(entity_id, int):
       raise TypeError("Only int based IDs are exported.")
 
