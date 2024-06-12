@@ -243,6 +243,12 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
                          .GetChromeTraceConfigFile())
     if trace_config_file:
       startup_args.append('--trace-config-file=%s' % trace_config_file)
+    trace_config = (self._platform_backend.tracing_controller_backend.
+                    GetChromeTraceConfig())
+    if trace_config:
+      if (trace_config.chrome_trace_config.trace_format is None
+          or trace_config.chrome_trace_config.trace_format != 'proto'):
+        startup_args.append('--trace-startup-format=json')
 
     if sys.platform.startswith('linux'):
       # All linux tests should use the --password-store=basic
