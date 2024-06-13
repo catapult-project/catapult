@@ -144,6 +144,7 @@ _PERMISSIONS_DENYLIST_RE = re.compile('|'.join(
         'android.permission.FOREGROUND_SERVICE',
         'android.permission.FOREGROUND_SERVICE_DATA_SYNC',
         'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
+        'android.permission.FOREGROUND_SERVICE_SPECIAL_USE',
         'android.permission.GET_PACKAGE_SIZE',
         'android.permission.INSTALL_SHORTCUT',
         'android.permission.INJECT_EVENTS',
