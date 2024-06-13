@@ -23,7 +23,7 @@ import endpoints.api_config as api_config
 from endpoints.api_config import ApiConfigGenerator
 from endpoints.api_config import AUTH_LEVEL
 import endpoints.api_exceptions as api_exceptions
-import mock
+from unittest import mock
 from protorpc import message_types
 from protorpc import messages
 from protorpc import remote

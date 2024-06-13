@@ -14,7 +14,7 @@
 
 import copy
 import flask
-import mock
+from unittest import mock
 import os
 import ssl
 import threading

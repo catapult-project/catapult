@@ -19,7 +19,7 @@ import json
 import os
 import sys
 
-import mock
+from unittest import mock
 import oauth2client.client
 import six
 from six.moves import http_client

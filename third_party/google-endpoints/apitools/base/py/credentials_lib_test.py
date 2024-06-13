@@ -15,7 +15,7 @@
 
 import re
 
-import mock
+from unittest import mock
 import six
 from six.moves import http_client
 import unittest2

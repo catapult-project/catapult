@@ -11,4 +11,4 @@ Install with:
   [sudo] pip install -t lib --ignore-installed google-endpoints
 
 Local Modifications:
-None.
+  Changed "import mock" calls to use "from unittest import mock".

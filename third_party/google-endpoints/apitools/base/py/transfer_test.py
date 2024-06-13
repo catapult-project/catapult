@@ -16,7 +16,7 @@
 """Tests for transfer.py."""
 import string
 
-import mock
+from unittest import mock
 import six
 from six.moves import http_client
 import unittest2

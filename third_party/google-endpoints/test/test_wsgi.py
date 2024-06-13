@@ -15,7 +15,7 @@
 from __future__ import absolute_import
 
 from apitools.base.py import encoding
-import mock
+from unittest import mock
 import os
 import tempfile
 import unittest2

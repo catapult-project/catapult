@@ -15,7 +15,7 @@
 import json
 import unittest
 import httmock
-import mock
+from unittest import mock
 
 from Crypto import PublicKey
 from jwkest import jwk

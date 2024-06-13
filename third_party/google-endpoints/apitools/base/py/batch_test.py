@@ -17,7 +17,7 @@
 
 import textwrap
 
-import mock
+from unittest import mock
 from six.moves import http_client
 from six.moves.urllib import parse
 import unittest2

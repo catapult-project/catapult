@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import copy
-import mock
+from unittest import mock
 import json
 import time
 import unittest
