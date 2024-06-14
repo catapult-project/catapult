@@ -2,7 +2,8 @@ Name: schema
 URL: https://github.com/keleshev/schema
 Version: 0.6.6
 License: MIT
-Shipped: yes
+License File: LICENSE-MIT
+Shipped: no
 
 Description:
 schema is a library for validating Python data structures, such as those

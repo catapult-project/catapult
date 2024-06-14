@@ -26,7 +26,6 @@ class Error(Exception):
       msg = '\n'.join('%d> %s' % (index, l) for l in msg.splitlines())
     super(Error, self).__init__(msg, *args, **kwargs)
 
-
 # TODO: Should fix these warnings.
 # pylint: disable=line-too-long
 
@@ -144,6 +143,24 @@ _GCLIENT_DEPS_SCHEMA = _NodeDictSchema({
             schema.Optional('condition'):
             str,
             schema.Optional('dep_type', default='cipd'):
+            str,
+        }),
+        # GCS content.
+        _NodeDictSchema({
+            'bucket':
+            str,
+            'objects': [
+                _NodeDictSchema({
+                    'object_name': str,
+                    'sha256sum': str,
+                    'size_bytes': int,
+                    'generation': int,
+                    schema.Optional('output_file'): str,
+                })
+            ],
+            schema.Optional('condition'):
+            str,
+            schema.Optional('dep_type', default='gcs'):
             str,
         }),
     ),
@@ -459,11 +476,11 @@ def Exec(content, filename='<unknown>', vars_override=None, builtin_vars=None):
 def _StandardizeDeps(deps_dict, vars_dict):
     """"Standardizes the deps_dict.
 
-  For each dependency:
-  - Expands the variable in the dependency name.
-  - Ensures the dependency is a dictionary.
-  - Set's the 'dep_type' to be 'git' by default.
-  """
+    For each dependency:
+    - Expands the variable in the dependency name.
+    - Ensures the dependency is a dictionary.
+    - Set's the 'dep_type' to be 'git' by default.
+    """
     new_deps_dict = {}
     for dep_name, dep_info in deps_dict.items():
         dep_name = dep_name.format(**vars_dict)
@@ -477,10 +494,10 @@ def _StandardizeDeps(deps_dict, vars_dict):
 def _MergeDepsOs(deps_dict, os_deps_dict, os_name):
     """Merges the deps in os_deps_dict into conditional dependencies in deps_dict.
 
-  The dependencies in os_deps_dict are transformed into conditional dependencies
-  using |'checkout_' + os_name|.
-  If the dependency is already present, the URL and revision must coincide.
-  """
+    The dependencies in os_deps_dict are transformed into conditional dependencies
+    using |'checkout_' + os_name|.
+    If the dependency is already present, the URL and revision must coincide.
+    """
     for dep_name, dep_info in os_deps_dict.items():
         # Make this condition very visible, so it's not a silent failure.
         # It's unclear how to support None override in deps_os.
@@ -508,8 +525,8 @@ def _MergeDepsOs(deps_dict, os_deps_dict, os_name):
 def UpdateCondition(info_dict, op, new_condition):
     """Updates info_dict's condition with |new_condition|.
 
-  An absent value is treated as implicitly True.
-  """
+    An absent value is treated as implicitly True.
+    """
     curr_condition = info_dict.get('condition')
     # Easy case: Both are present.
     if curr_condition and new_condition:
@@ -526,23 +543,23 @@ def UpdateCondition(info_dict, op, new_condition):
 def Parse(content, filename, vars_override=None, builtin_vars=None):
     """Parses DEPS strings.
 
-  Executes the Python-like string stored in content, resulting in a Python
-  dictionary specified by the schema above. Supports syntax validation and
-  variable expansion.
+    Executes the Python-like string stored in content, resulting in a Python
+    dictionary specified by the schema above. Supports syntax validation and
+    variable expansion.
 
-  Args:
-    content: str. DEPS file stored as a string.
-    filename: str. The name of the DEPS file, or a string describing the source
-      of the content, e.g. '<string>', '<unknown>'.
-    vars_override: dict, optional. A dictionary with overrides for the variables
-      defined by the DEPS file.
-    builtin_vars: dict, optional. A dictionary with variables that are provided
-      by default.
+    Args:
+        content: str. DEPS file stored as a string.
+        filename: str. The name of the DEPS file, or a string describing the source
+            of the content, e.g. '<string>', '<unknown>'.
+        vars_override: dict, optional. A dictionary with overrides for the variables
+            defined by the DEPS file.
+        builtin_vars: dict, optional. A dictionary with variables that are provided
+            by default.
 
-  Returns:
-    A Python dict with the parsed contents of the DEPS file, as specified by the
-    schema above.
-  """
+    Returns:
+        A Python dict with the parsed contents of the DEPS file, as specified by the
+        schema above.
+    """
     result = Exec(content, filename, vars_override, builtin_vars)
 
     vars_dict = result.get('vars', {})

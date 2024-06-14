@@ -11,6 +11,10 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import metrics_utils
+# We have to disable monitoring before importing gclient.
+metrics_utils.COLLECT_METRICS = False
+
 import gclient_eval
 
 # TODO: Should fix these warnings.
@@ -88,7 +92,7 @@ class GClientEvalTest(unittest.TestCase):
     def test_not_whitelisted(self):
         with self.assertRaises(ValueError) as cm:
             gclient_eval._gclient_eval('[x for x in [1, 2, 3]]')
-        self.assertIn('unexpected AST node: <_ast.ListComp object',
+        self.assertIn('unexpected AST node: <ast.ListComp object',
                       str(cm.exception))
 
     def test_dict_ordered(self):
