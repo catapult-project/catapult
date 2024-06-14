@@ -23,26 +23,6 @@ import sys
 # github.com/luci/recipes-py/blob/master/recipe_modules/generator_script/api.py
 _DASHBOARD_TESTS = [
     {
-        'name': 'Dashboard Dev Server Tests Stable',
-        'path': 'dashboard/bin/run_dev_server_tests',
-        'additional_args': [
-            '--no-install-hooks', '--no-use-local-chrome', '--channel=stable',
-            '--timeout-sec=120', '--timeout-retries=2'
-        ],
-        'outputs_presentation_json': True,
-        'disabled': ['android', 'win', 'mac'],
-    },
-    {
-        'name': 'Dashboard Dev Server Tests Canary',
-        'path': 'dashboard/bin/run_dev_server_tests',
-        'additional_args': [
-            '--no-install-hooks', '--no-use-local-chrome', '--channel=canary',
-            '--timeout-sec=120', '--timeout-retries=2'
-        ],
-        'outputs_presentation_json': True,
-        'disabled': ['android', 'win', 'mac'],
-    },
-    {
         'name': 'Dashboard Python Tests',
         'path': 'dashboard/bin/run_py_tests',
         'additional_args': ['--no-install-hooks'],

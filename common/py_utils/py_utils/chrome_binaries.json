@@ -77,10 +77,10 @@
           "version_in_cs": "83.0.4103.101"
         },
         "linux_x86_64": {
-          "cloud_storage_hash": "2eb0469024c127a4b99d6b20ac673e2be7ab1b2d",
+          "cloud_storage_hash": "1ee52db4a67f003a7a1073fd27c9f55380f1f01b",
           "download_path": "bin/reference_build/chrome-linux64.zip",
           "path_within_archive": "chrome-linux64/chrome",
-          "version_in_cs": "83.0.4103.97"
+          "version_in_cs": "125.0.6422.50"
         },
         "mac_x86_64": {
           "cloud_storage_hash": "012c5a5e7b1e69a0960462e7ba7f77f90464a10f",
