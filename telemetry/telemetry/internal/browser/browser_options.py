@@ -5,7 +5,6 @@
 from __future__ import print_function
 from __future__ import absolute_import
 import argparse
-import atexit
 import copy
 import logging
 import os
@@ -14,6 +13,7 @@ import socket
 import sys
 
 from py_utils import cloud_storage  # pylint: disable=import-error
+from py_utils import atexit_with_log
 
 from telemetry import compat_mode_options
 from telemetry.core import cast_interface
@@ -532,7 +532,7 @@ class BrowserFinderOptions(argparse.Namespace):
         local_emulator_environment.LocalEmulatorEnvironment(
             avd_args, None, None)
     BrowserFinderOptions.emulator_environment.SetUp()
-    atexit.register(BrowserFinderOptions.emulator_environment.TearDown)
+    atexit_with_log.Register(BrowserFinderOptions.emulator_environment.TearDown)
 
   # TODO(eakuefner): Factor this out into OptionBuilder pattern
   def BuildRemotePlatformOptions(self):
