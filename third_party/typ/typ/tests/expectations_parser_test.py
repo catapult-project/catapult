@@ -13,6 +13,71 @@ Expectation = expectations_parser.Expectation
 TestExpectations = expectations_parser.TestExpectations
 
 
+class ExpectationTest(unittest.TestCase):
+    def create_expectation_with_values(self,
+                                       reason='crbug.com/1234',
+                                       test='foo',
+                                       retry_on_failure=True,
+                                       is_slow_test=True,
+                                       tags=['win'],
+                                       results=['FAIL'],
+                                       lineno=10,
+                                       trailing_comments=' # comment',
+                                       encode_func=None):
+        return expectations_parser.Expectation(
+            reason=reason,
+            test=test,
+            retry_on_failure=retry_on_failure,
+            is_slow_test=is_slow_test,
+            tags=tags,
+            results=results,
+            lineno=lineno,
+            trailing_comments=trailing_comments,
+            encode_func=encode_func)
+
+    def testEquality(self):
+        e = self.create_expectation_with_values()
+        other = self.create_expectation_with_values()
+        self.assertEqual(e, other)
+
+        other = self.create_expectation_with_values(reason='crbug.com/2345')
+        self.assertNotEqual(e, other)
+
+        other = self.create_expectation_with_values(test='bar')
+        self.assertNotEqual(e, other)
+
+        other = self.create_expectation_with_values(retry_on_failure=False)
+        self.assertNotEqual(e, other)
+
+        other = self.create_expectation_with_values(is_slow_test=False)
+        self.assertNotEqual(e, other)
+
+        other = self.create_expectation_with_values(tags=['linux'])
+        self.assertNotEqual(e, other)
+
+        other = self.create_expectation_with_values(results=['Pass'])
+        self.assertNotEqual(e, other)
+
+        other = self.create_expectation_with_values(lineno=20)
+        self.assertNotEqual(e, other)
+
+        other = self.create_expectation_with_values(trailing_comments='c')
+        self.assertNotEqual(e, other)
+
+        other = self.create_expectation_with_values(encode_func=lambda x: x)
+        self.assertNotEqual(e, other)
+
+    def testEncodeApplied(self):
+        e = expectations_parser.Expectation(reason='crbug.com/1234',
+                                            test='foo',
+                                            tags=['win'],
+                                            results=['FAIL'],
+                                            trailing_comments=' # comment',
+                                            encode_func=lambda _: 'bar')
+        self.assertEqual(e.to_string(),
+                        'crbug.com/1234 [ Win ] bar [ Failure ] # comment')
+
+
 class TaggedTestListParserTest(unittest.TestCase):
     def testInitWithGoodData(self):
         good_data = """

@@ -67,7 +67,7 @@ class Expectation(object):
     def __init__(self, reason=None, test='*', tags=None, results=None, lineno=0,
                  retry_on_failure=False, is_slow_test=False,
                  conflict_resolution=ConflictResolutionTypes.UNION, raw_tags=None, raw_results=None,
-                 is_glob=False, trailing_comments=None):
+                 is_glob=False, trailing_comments=None, encode_func=None):
         """Constructor for expectations.
 
         Args:
@@ -79,6 +79,10 @@ class Expectation(object):
               then the test must be running with the 'Mac' and 'Debug' tags
               set; just 'Mac', or 'Mac' and 'Release', would not qualify.
           results: List of outcomes for test. Example: ['Skip', 'Pass']
+          encode_func: A reference that takes a string and returns an encoded
+              string. This encoding will be applied when creating a string
+              representation of the expectation. If unset, spaces and % will be
+              encoded to their URI counterparts.
         """
         tags = tags or []
         self._is_default_pass = not results
@@ -99,6 +103,9 @@ class Expectation(object):
         self.conflict_resolution = conflict_resolution
         self._is_glob = is_glob
         self._trailing_comments = trailing_comments
+        # TODO(crbug.com/346263468): Switch to always using the passed in
+        # encode_func and gate usage on it being set.
+        self.encode_func = encode_func or uri_encode_spaces
 
     def __eq__(self, other):
         return (self.reason == other.reason and self.test == other.test
@@ -106,7 +113,8 @@ class Expectation(object):
                 and self.is_slow_test == other.is_slow_test
                 and self.tags == other.tags and self.results == other.results
                 and self.lineno == other.lineno
-                and self.trailing_comments == other.trailing_comments)
+                and self.trailing_comments == other.trailing_comments
+                and self.encode_func == other.encode_func)
 
     def _set_string_value(self):
         """This method will create an expectation line in string form and set the
@@ -124,7 +132,7 @@ class Expectation(object):
             pattern = self._test[:-1].replace('*', '\\*') + '*'
         else:
             pattern = self._test.replace('*', '\\*')
-        pattern = uri_encode_spaces(pattern)
+        pattern = self.encode_func(pattern)
         self._string_value = ''
         if self._reason:
             self._string_value += self._reason + ' '
@@ -242,13 +250,19 @@ class TaggedTestListParser(object):
     _MATCH_STRING += r'(\s+#.*)?$'  # End comment (optional).
     MATCHER = re.compile(_MATCH_STRING)
 
-    def __init__(self, raw_data, conflict_resolution=ConflictResolutionTypes.UNION):
+    def __init__(self, raw_data,
+                 conflict_resolution=ConflictResolutionTypes.UNION,
+                 encode_func=None, decode_func=None):
         self.tag_sets = set()
         self.conflicts_allowed = False
         self.expectations = []
         self._allowed_results = set()
         self._tag_to_tag_set = {}
         self.conflict_resolution = conflict_resolution
+        self._encode_func = encode_func
+        # TODO(crbug.com/346263468): Switch to always using the passed in
+        # decode_func and gate usage on it being set.
+        self._decode_func = decode_func or uri_decode_spaces
         self._parse_raw_expectation_data(raw_data)
 
     def _parse_raw_expectation_data(self, raw_data):
@@ -396,8 +410,7 @@ class TaggedTestListParser(object):
         results, retry_on_failure, is_slow_test =\
             self._parse_and_validate_raw_results(lineno, raw_results)
 
-        # replace %20 in test path to ' '
-        test = uri_decode_spaces(test)
+        test = self._decode_func(test)
 
         # remove escapes for asterisks
         is_glob = not test.endswith('\\*') and test.endswith('*')
@@ -411,8 +424,9 @@ class TaggedTestListParser(object):
         # the Runner instance which are also stored in lower case.
         return Expectation(
             reason, test, tags, results, lineno, retry_on_failure, is_slow_test,
-            self.conflict_resolution, raw_tags=raw_tags, raw_results=raw_results,
-            is_glob=is_glob, trailing_comments=trailing_comments)
+            self.conflict_resolution, raw_tags=raw_tags,
+            raw_results=raw_results, is_glob=is_glob,
+            trailing_comments=trailing_comments, encode_func=self._encode_func)
 
     def _parse_expectation_line_into_components(self, lineno, line):
         """Helper function to break a single expectation line into components.
@@ -502,7 +516,8 @@ class TaggedTestListParser(object):
 
 class TestExpectations(object):
 
-    def __init__(self, tags=None, ignored_tags=None):
+    def __init__(self, tags=None, ignored_tags=None, encode_func=None,
+                 decode_func=None):
         self.tag_sets = set()
         self.ignored_tags = set(ignored_tags or [])
         self.set_tags(tags or [])
@@ -514,6 +529,9 @@ class TestExpectations(object):
         self.individual_exps = OrderedDict()
         self.glob_exps = OrderedDict()
         self._conflict_resolution = ConflictResolutionTypes.UNION
+        self._encode_func = encode_func
+        # TODO(crbug.com/346263468): Switch the default to a no-op.
+        self._decode_func = decode_func or uri_decode_spaces
 
     def set_tags(self, tags, raise_ex_for_bad_tags=False):
         self.validate_condition_tags(tags, raise_ex_for_bad_tags)
@@ -566,7 +584,10 @@ class TestExpectations(object):
         self._conflict_resolution = conflict_resolution
         tags_conflict = tags_conflict or _default_tags_conflict
         try:
-            parser = TaggedTestListParser(raw_data, conflict_resolution)
+            parser = TaggedTestListParser(raw_data,
+                                          conflict_resolution,
+                                          encode_func=self._encode_func,
+                                          decode_func=self._decode_func)
         except ParseError as e:
             return 1, str(e)
         # If we have parsed another tagged list before, ensure that the tag sets
@@ -644,7 +665,7 @@ class TestExpectations(object):
 
         # Ensure that the given test name is in the same decoded format that
         # is used internally so that %20 is handled properly.
-        test = uri_decode_spaces(test)
+        test = self._decode_func(test)
         self._results = set()
         self._reasons = set()
         self._exp_tags = set()
@@ -682,8 +703,10 @@ class TestExpectations(object):
                     test=test, results=self._results, tags=self._exp_tags,
                     retry_on_failure=self._should_retry_on_failure,
                     conflict_resolution=self._conflict_resolution,
-                    is_slow_test=self._is_slow_test, reason=' '.join(sorted(self._reasons)),
-                    trailing_comments=self._trailing_comments)
+                    is_slow_test=self._is_slow_test,
+                    reason=' '.join(sorted(self._reasons)),
+                    trailing_comments=self._trailing_comments,
+                    encode_func=self._encode_func)
 
         # If we didn't find an exact match, check for matching globs. Match by
         # the most specific (i.e., longest) glob first. Because self.globs_exps
@@ -698,14 +721,17 @@ class TestExpectations(object):
                 # globs.
                 if self._results or self._is_slow_test or self._should_retry_on_failure:
                     return Expectation(
-                            test=test, results=self._results, tags=self._exp_tags,
+                            test=test, results=self._results,
+                            tags=self._exp_tags,
                             retry_on_failure=self._should_retry_on_failure,
                             conflict_resolution=self._conflict_resolution,
-                            is_slow_test=self._is_slow_test, reason=' '.join(sorted(self._reasons)),
-                            trailing_comments=self._trailing_comments)
+                            is_slow_test=self._is_slow_test,
+                            reason=' '.join(sorted(self._reasons)),
+                            trailing_comments=self._trailing_comments,
+                            encode_func=self._encode_func)
 
         # Nothing matched, so by default, the test is expected to pass.
-        return Expectation(test=test)
+        return Expectation(test=test, encode_func=self._encode_func)
 
     def tag_sets_conflict(self, s1, s2, tags_conflict_fn):
         # Tag sets s1 and s2 have no conflict when there exists a tag in s1
@@ -754,7 +780,7 @@ class TestExpectations(object):
         broken_exps = []
         # Apply the same temporary encoding we do when ingesting/comparing
         # expectations.
-        test_names = [uri_decode_spaces(tn) for tn in test_names]
+        test_names = [self._decode_func(tn) for tn in test_names]
         test_names = set(test_names)
         for pattern, exps in self.individual_exps.items():
             if pattern not in test_names:
