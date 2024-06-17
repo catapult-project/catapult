@@ -52,7 +52,7 @@ from test import (
 )
 from threading import Event
 
-import mock
+from unittest import mock
 import pytest
 import trustme
 

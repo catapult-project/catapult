@@ -15,7 +15,7 @@
 import datetime
 import json
 
-import mock
+from unittest import mock
 import pytest  # type: ignore
 
 from google.auth import _jwt_async as jwt_async

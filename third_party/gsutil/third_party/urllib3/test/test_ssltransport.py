@@ -4,7 +4,7 @@ import socket
 import ssl
 import sys
 
-import mock
+from unittest import mock
 import pytest
 
 from dummyserver.server import DEFAULT_CA, DEFAULT_CERTS

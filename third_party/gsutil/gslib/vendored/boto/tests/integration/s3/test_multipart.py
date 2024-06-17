@@ -37,7 +37,7 @@ import unittest
 import time
 from boto.compat import StringIO
 
-import mock
+from unittest import mock
 
 import boto
 from boto.s3.connection import S3Connection

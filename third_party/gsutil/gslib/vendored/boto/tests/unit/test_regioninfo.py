@@ -20,7 +20,7 @@
 # IN THE SOFTWARE.
 #
 import os
-import mock
+from unittest import mock
 
 import boto
 from boto.pyami.config import Config

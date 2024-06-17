@@ -1,6 +1,6 @@
 #!/usr/bin env python
 import json
-import mock
+from unittest import mock
 from tests.unit import AWSMockServiceTestCase
 from boto.cloudsearch2.domain import Domain
 from boto.cloudsearch2.layer1 import CloudSearchConnection

@@ -14,7 +14,7 @@
 
 import datetime
 
-import mock
+from unittest import mock
 import pytest  # type: ignore
 
 from google.auth import app_engine

@@ -19,7 +19,7 @@ import threading
 import unittest
 
 import keyring
-import mock
+from unittest import mock
 
 import oauth2client
 from oauth2client import client

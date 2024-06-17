@@ -19,7 +19,7 @@ from test import (
     resolvesLocalhostFQDN,
 )
 
-import mock
+from unittest import mock
 import pytest
 import trustme
 

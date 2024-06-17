@@ -18,7 +18,7 @@ import unittest
 
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
-import mock
+from unittest import mock
 
 from oauth2client import client
 from oauth2client.contrib import appengine

@@ -23,7 +23,7 @@ import tempfile
 import unittest
 
 import fasteners
-import mock
+from unittest import mock
 import six
 from six.moves import urllib_parse
 

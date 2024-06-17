@@ -16,7 +16,7 @@ import base64
 import os
 import unittest
 
-import mock
+from unittest import mock
 
 from oauth2client import _helpers
 from oauth2client import client

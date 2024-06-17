@@ -14,7 +14,7 @@ import sys
 # been installed run `pip install -r docs/requirements.txt`.
 os.environ['DJANGO_SETTINGS_MODULE'] = 'tests.contrib.django_util.settings'
 import django
-import mock
+from unittest import mock
 from pkg_resources import get_distribution
 if django.VERSION[1] < 7:
     sys.path.insert(0, '.')

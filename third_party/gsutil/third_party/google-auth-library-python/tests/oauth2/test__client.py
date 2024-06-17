@@ -16,7 +16,7 @@ import datetime
 import json
 import os
 
-import mock
+from unittest import mock
 import pytest  # type: ignore
 import six
 from six.moves import http_client

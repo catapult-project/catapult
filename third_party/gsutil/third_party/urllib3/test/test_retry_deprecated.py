@@ -1,7 +1,7 @@
 # This is a copy-paste of test_retry.py with extra asserts about deprecated options. It will be removed for v2.
 import warnings
 
-import mock
+from unittest import mock
 import pytest
 
 from urllib3.exceptions import (

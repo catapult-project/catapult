@@ -1,6 +1,6 @@
 from test import notPyPy2
 
-import mock
+from unittest import mock
 import pytest
 
 from urllib3.exceptions import SNIMissingWarning

@@ -19,7 +19,7 @@ import json
 import os
 import unittest
 
-import mock
+from unittest import mock
 
 from google_reauth import challenges, errors
 

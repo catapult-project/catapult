@@ -17,7 +17,7 @@
 """Unittest for saving and loading keys."""
 
 import base64
-import mock
+from unittest import mock
 import os.path
 import pickle
 import unittest

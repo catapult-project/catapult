@@ -23,7 +23,7 @@ import os
 import tempfile
 import unittest
 
-import mock
+from unittest import mock
 import rsa
 import six
 from six.moves import http_client

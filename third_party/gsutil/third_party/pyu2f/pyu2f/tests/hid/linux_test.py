@@ -18,7 +18,7 @@ import base64
 import os
 import sys
 
-import mock
+from unittest import mock
 
 from pyu2f.hid import linux
 

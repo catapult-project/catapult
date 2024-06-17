@@ -10,7 +10,7 @@ import warnings
 from test import LONG_TIMEOUT, SHORT_TIMEOUT, onlyPy2
 from threading import Event
 
-import mock
+from unittest import mock
 import pytest
 import six
 

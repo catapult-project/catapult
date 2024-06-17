@@ -20,7 +20,7 @@ import logging
 import unittest
 
 import flask
-import mock
+from unittest import mock
 import six.moves.http_client as httplib
 import six.moves.urllib.parse as urlparse
 

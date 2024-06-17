@@ -18,7 +18,7 @@ import os
 import pickle
 import sys
 
-import mock
+from unittest import mock
 import pytest  # type: ignore
 
 from google.auth import _helpers

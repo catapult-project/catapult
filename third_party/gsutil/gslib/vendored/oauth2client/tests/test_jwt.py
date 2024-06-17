@@ -19,7 +19,7 @@ import tempfile
 import time
 import unittest
 
-import mock
+from unittest import mock
 from six.moves import http_client
 
 from oauth2client import _helpers

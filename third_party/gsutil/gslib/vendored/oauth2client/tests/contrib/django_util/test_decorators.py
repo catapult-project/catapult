@@ -19,7 +19,7 @@ import copy
 from django import http
 import django.conf
 from django.contrib.auth import models as django_models
-import mock
+from unittest import mock
 from six.moves import http_client
 from six.moves import reload_module
 from six.moves.urllib import parse

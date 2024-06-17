@@ -17,7 +17,7 @@ import datetime
 import json
 import os
 
-import mock
+from unittest import mock
 import pytest  # type: ignore
 import requests
 import six

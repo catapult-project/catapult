@@ -18,7 +18,7 @@ import sys
 import threading
 import unittest
 
-import mock
+from unittest import mock
 from six.moves.urllib import request
 
 from oauth2client import client

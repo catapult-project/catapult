@@ -16,7 +16,7 @@
 
 import unittest
 
-import mock
+from unittest import mock
 
 from oauth2client import _helpers
 from tests import test_client

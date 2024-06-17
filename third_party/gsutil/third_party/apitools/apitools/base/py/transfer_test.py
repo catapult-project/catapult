@@ -20,7 +20,7 @@ import unittest
 
 import httplib2
 import json
-import mock
+from unittest import mock
 import six
 from six.moves import http_client
 

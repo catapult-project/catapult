@@ -17,7 +17,7 @@
 import base64
 import unittest
 
-import mock
+from unittest import mock
 
 from oauth2client import _helpers
 from oauth2client.contrib import xsrfutil

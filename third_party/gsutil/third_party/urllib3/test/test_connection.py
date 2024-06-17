@@ -1,6 +1,6 @@
 import datetime
 
-import mock
+from unittest import mock
 import pytest
 
 from urllib3.connection import RECENT_DATE, CertificateError, _match_hostname

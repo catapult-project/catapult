@@ -24,7 +24,7 @@ import tempfile
 import unittest
 import warnings
 
-import mock
+from unittest import mock
 import six
 from six.moves import http_client
 from six.moves import urllib_parse

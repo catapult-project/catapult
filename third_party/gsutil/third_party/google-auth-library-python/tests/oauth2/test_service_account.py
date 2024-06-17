@@ -16,7 +16,7 @@ import datetime
 import json
 import os
 
-import mock
+from unittest import mock
 
 from google.auth import _helpers
 from google.auth import crypt

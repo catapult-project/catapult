@@ -15,7 +15,7 @@
 import json
 import os
 
-import mock
+from unittest import mock
 import pytest  # type: ignore
 
 from google.auth import environment_vars
