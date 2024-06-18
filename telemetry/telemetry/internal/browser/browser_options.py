@@ -56,6 +56,7 @@ class BrowserFinderOptions(argparse.Namespace):
     self.remote_ssh_port = None
 
     self.verbosity = 0
+    self.quiet = 0
 
     self.browser_options = BrowserOptions()
     self.output_file = None
