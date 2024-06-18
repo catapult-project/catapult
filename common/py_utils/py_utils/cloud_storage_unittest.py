@@ -374,20 +374,22 @@ class GetIfChangedTests(BaseFakeFsUnitTest):
     mock_get_locked.side_effect = _FakeGetLocked
 
     self.CreateFiles([file_path, hash_path])
+    self.assertEqual(mock_calculate_hash.call_count, 0)
     # hash_path and file_path exist, and have different hashes. This first call
     # will invoke a fetch.
     self.assertTrue(cloud_storage.GetIfChanged(file_path,
                                                cloud_storage.PUBLIC_BUCKET))
 
+    self.assertEqual(mock_calculate_hash.call_count, 1)
     # The fetch left a .fetchts file on machine.
     self.assertTrue(os.path.exists(file_path + '.fetchts'))
 
     # Subsequent invocations of GetIfChanged should not invoke CalculateHash.
-    mock_calculate_hash.assert_not_called()
     self.assertFalse(cloud_storage.GetIfChanged(file_path,
                                                 cloud_storage.PUBLIC_BUCKET))
     self.assertFalse(cloud_storage.GetIfChanged(file_path,
                                                 cloud_storage.PUBLIC_BUCKET))
+    self.assertEqual(mock_calculate_hash.call_count, 1)
 
   @mock.patch('py_utils.cloud_storage._FileLock')
   @mock.patch('py_utils.cloud_storage.CalculateHash')
