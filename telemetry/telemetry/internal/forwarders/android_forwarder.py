@@ -9,8 +9,6 @@ import subprocess
 from telemetry.core import util
 from telemetry.internal import forwarders
 
-from py_utils import atexit_with_log
-
 from devil.android import device_errors
 try:
   from devil.android import forwarder
@@ -92,7 +90,6 @@ class AndroidForwarder(forwarders.Forwarder):
     forwarder.Forwarder.Map([(remote_port or 0, local_port)], self._device)
     remote_port = forwarder.Forwarder.DevicePortForHostPort(local_port)
     self._StartedForwarding(local_port, remote_port)
-    atexit_with_log.Register(self.Close)
 
   def Close(self):
     if self.is_forwarding:

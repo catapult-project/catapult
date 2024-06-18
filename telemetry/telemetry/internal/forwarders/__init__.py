@@ -3,8 +3,9 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
-import collections
 import logging
+
+from py_utils import atexit_with_log
 
 
 class ForwarderFactory():
@@ -37,9 +38,9 @@ class Forwarder():
   def __init__(self):
     self._local_port = None
     self._remote_port = None
-
-  def __del__(self):
-    self.Close()
+    # Prefer atexit_with_log over __del__ to avoid deadlock hangs, see:
+    # https://crbug.com/41491803#comment32
+    atexit_with_log.Register(self.Close)
 
   def _StartedForwarding(self, local_port, remote_port):
     assert not self.is_forwarding, 'forwarder has already started'
