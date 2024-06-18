@@ -1,7 +1,7 @@
 Name: depot_tools
 Short Name: depot_tools
 URL: https://chromium.googlesource.com/chromium/tools/depot_tools.git
-Revision: 8babcb7e2ec9ffe4e0394a66378423242dd66e6c
+Revision: 66df2a3ec70d0628d47df1fdba69838a870a1303
 License: BSD
 
 Description:

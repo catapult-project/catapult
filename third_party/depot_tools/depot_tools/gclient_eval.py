@@ -151,11 +151,20 @@ _GCLIENT_DEPS_SCHEMA = _NodeDictSchema({
             str,
             'objects': [
                 _NodeDictSchema({
-                    'object_name': str,
-                    'sha256sum': str,
-                    'size_bytes': int,
-                    'generation': int,
-                    schema.Optional('output_file'): str,
+                    'object_name':
+                    str,
+                    'sha256sum':
+                    str,
+                    'size_bytes':
+                    int,
+                    'generation':
+                    int,
+                    schema.Optional('output_file'):
+                    str,
+                    # The object will only be processed if the condition
+                    # evaluates to True. This is AND with the parent condition.
+                    schema.Optional('condition'):
+                    str,
                 })
             ],
             schema.Optional('condition'):
@@ -801,6 +810,33 @@ def _GetVarName(node):
     return None
 
 
+def SetGCS(gclient_dict, dep_name, new_objects):
+    if not isinstance(gclient_dict, _NodeDict) or gclient_dict.tokens is None:
+        raise ValueError(
+            "Can't use SetGCS for the given gclient dict. It contains no "
+            "formatting information.")
+    tokens = gclient_dict.tokens
+
+    if 'deps' not in gclient_dict or dep_name not in gclient_dict['deps']:
+        raise KeyError("Could not find any dependency called %s." % dep_name)
+
+    node = gclient_dict['deps'][dep_name]
+    objects_node = node.GetNode('objects')
+    if len(objects_node.elts) != len(new_objects):
+        raise ValueError("Number of revision objects must match the current "
+                         "number of objects.")
+
+    # Allow only `keys_to_update` to be updated.
+    keys_to_update = ('object_name', 'sha256sum', 'size_bytes', 'generation')
+    for index, object_node in enumerate(objects_node.elts):
+        for key, value in zip(object_node.keys, object_node.values):
+            if key.s not in keys_to_update:
+                continue
+            _UpdateAstString(tokens, value, new_objects[index][key.s])
+
+    node.SetNode('objects', new_objects, objects_node)
+
+
 def SetCIPD(gclient_dict, dep_name, package_name, new_version):
     if not isinstance(gclient_dict, _NodeDict) or gclient_dict.tokens is None:
         raise ValueError(
@@ -949,4 +985,7 @@ def GetRevision(gclient_dict, dep_name):
         _, _, revision = dep['url'].partition('@')
         return revision or None
 
-    raise ValueError('%s is not a valid git dependency.' % dep_name)
+    if isinstance(gclient_dict, _NodeDict) and 'objects' in dep:
+        return dep['objects']
+
+    raise ValueError('%s is not a valid git or gcs dependency.' % dep_name)

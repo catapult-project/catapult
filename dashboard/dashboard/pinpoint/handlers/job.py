@@ -87,6 +87,7 @@ def MarshalToAttempt(quests, change_data, legacy_attempt):
   def FindIsolateExecution(find_iso_exec):
     builder_details = find_iso_exec.get('details')[0]
     builder_name = builder_details.get('value')
+    # TODO(b/322203189): Include buildbucket build ID in build info.
     iso_exec = find_isolate._FindIsolateExecution(None, builder_name, None,
                                                   None, None, None, None, None,
                                                   None)
