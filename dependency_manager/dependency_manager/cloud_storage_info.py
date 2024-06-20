@@ -102,6 +102,14 @@ class CloudStorageInfo():
   def has_archive_info(self):
     return bool(self._archive_info)
 
+  def __eq__(self, other):
+    return (self._archive_info == other._archive_info
+            and self._cs_bucket == other._cs_bucket
+            and self._cs_hash == other._cs_hash
+            and self._cs_remote_path == other._cs_remote_path
+            and self._download_path == other._download_path
+            and self._version_in_cs == other._version_in_cs)
+
   def __repr__(self):
     return (
         'CloudStorageInfo(download_path=%s, cs_remote_path=%s, cs_bucket=%s, '
