@@ -13,9 +13,7 @@ import unittest
 import six
 from six.moves import range
 
-sys.path.append(
-    os.path.join(os.path.dirname(__file__), '..', '..', 'mock'))
-import mock
+from unittest import mock
 
 import vinn
 from vinn import _vinn
