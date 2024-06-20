@@ -273,30 +273,6 @@ crbug.com/12345 [ tag1 ] b1/s1 [ Skip ]
         for i in range(len(parser.expectations)):
             self.assertEqual(parser.expectations[i], expected_outcomes[i])
 
-    def testParseExpectationSpaceEscapeInTestName(self):
-        raw_data = (
-            '# tags: [ Mac ]\n# results: [ Skip ]\ncrbug.com/123 [ Mac ] http://google.com/Foo%20Bar [ Skip ]'
-        )
-        expected_outcomes = [
-            expectations_parser.Expectation(
-                'crbug.com/123', 'http://google.com/Foo Bar', ['mac'], ['SKIP'], 3)
-        ]
-        parser = expectations_parser.TaggedTestListParser(raw_data)
-        for i in range(len(parser.expectations)):
-            self.assertEqual(parser.expectations[i], expected_outcomes[i])
-
-    def testParseExpectationPercentEscapeInTestName(self):
-        raw_data = (
-            '# tags: [ Mac ]\n# results: [ Skip ]\ncrbug.com/123 [ Mac ] http://google.com/Foo%2520Bar [ Skip ]'
-        )
-        expected_outcomes = [
-            expectations_parser.Expectation(
-                'crbug.com/123', 'http://google.com/Foo%20Bar', ['mac'], ['SKIP'], 3)
-        ]
-        parser = expectations_parser.TaggedTestListParser(raw_data)
-        for i in range(len(parser.expectations)):
-            self.assertEqual(parser.expectations[i], expected_outcomes[i])
-
     def testParseExpectationLineEndingComment(self):
         raw_data = ('# tags: [ Mac ]\n# results: [ Skip ]\n'
                     'crbug.com/23456 [ Mac ] b1/s2 [ Skip ] # abc 123')
@@ -1049,20 +1025,6 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
                           retry_on_failure=True)
         self.assertEqual(
             exp.to_string(), 'crbug.com/123 [ Intel ] test.html?\* [ Failure Pass RetryOnFailure Slow ]')
-
-    def testExpectationWithSpaceInTestNameToString(self):
-        exp = Expectation(reason='crbug.com/123', test='test.html?Foo Bar', tags=['intel'],
-                          results={ResultType.Pass, ResultType.Failure}, is_slow_test=False,
-                          retry_on_failure=False)
-        self.assertEqual(
-            exp.to_string(), 'crbug.com/123 [ Intel ] test.html?Foo%20Bar [ Failure Pass ]')
-
-    def testExpectationWithPercentInTestNameToString(self):
-        exp = Expectation(reason='crbug.com/123', test='test.html?Foo%Bar', tags=['intel'],
-                          results={ResultType.Pass, ResultType.Failure}, is_slow_test=False,
-                          retry_on_failure=False)
-        self.assertEqual(
-            exp.to_string(), 'crbug.com/123 [ Intel ] test.html?Foo%25Bar [ Failure Pass ]')
 
     def testGlobExpectationToString(self):
         exp = Expectation(reason='crbug.com/123', test='a/*/test.html?*', tags=['intel'],

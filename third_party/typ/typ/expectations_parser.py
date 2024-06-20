@@ -81,8 +81,8 @@ class Expectation(object):
           results: List of outcomes for test. Example: ['Skip', 'Pass']
           encode_func: A reference that takes a string and returns an encoded
               string. This encoding will be applied when creating a string
-              representation of the expectation. If unset, spaces and % will be
-              encoded to their URI counterparts.
+              representation of the expectation. If unset, no encoding will be
+              performed.
         """
         tags = tags or []
         self._is_default_pass = not results
@@ -103,9 +103,7 @@ class Expectation(object):
         self.conflict_resolution = conflict_resolution
         self._is_glob = is_glob
         self._trailing_comments = trailing_comments
-        # TODO(crbug.com/346263468): Switch to always using the passed in
-        # encode_func and gate usage on it being set.
-        self.encode_func = encode_func or uri_encode_spaces
+        self.encode_func = encode_func
 
     def __eq__(self, other):
         return (self.reason == other.reason and self.test == other.test
@@ -132,7 +130,8 @@ class Expectation(object):
             pattern = self._test[:-1].replace('*', '\\*') + '*'
         else:
             pattern = self._test.replace('*', '\\*')
-        pattern = self.encode_func(pattern)
+        if self.encode_func:
+            pattern = self.encode_func(pattern)
         self._string_value = ''
         if self._reason:
             self._string_value += self._reason + ' '
@@ -260,9 +259,7 @@ class TaggedTestListParser(object):
         self._tag_to_tag_set = {}
         self.conflict_resolution = conflict_resolution
         self._encode_func = encode_func
-        # TODO(crbug.com/346263468): Switch to always using the passed in
-        # decode_func and gate usage on it being set.
-        self._decode_func = decode_func or uri_decode_spaces
+        self._decode_func = decode_func
         self._parse_raw_expectation_data(raw_data)
 
     def _parse_raw_expectation_data(self, raw_data):
@@ -410,7 +407,8 @@ class TaggedTestListParser(object):
         results, retry_on_failure, is_slow_test =\
             self._parse_and_validate_raw_results(lineno, raw_results)
 
-        test = self._decode_func(test)
+        if self._decode_func:
+            test = self._decode_func(test)
 
         # remove escapes for asterisks
         is_glob = not test.endswith('\\*') and test.endswith('*')
@@ -530,8 +528,7 @@ class TestExpectations(object):
         self.glob_exps = OrderedDict()
         self._conflict_resolution = ConflictResolutionTypes.UNION
         self._encode_func = encode_func
-        # TODO(crbug.com/346263468): Switch the default to a no-op.
-        self._decode_func = decode_func or uri_decode_spaces
+        self._decode_func = decode_func
 
     def set_tags(self, tags, raise_ex_for_bad_tags=False):
         self.validate_condition_tags(tags, raise_ex_for_bad_tags)
@@ -664,8 +661,9 @@ class TestExpectations(object):
         # The longest matching test string (name or glob) has priority.
 
         # Ensure that the given test name is in the same decoded format that
-        # is used internally so that %20 is handled properly.
-        test = self._decode_func(test)
+        # is used internally if the user uses a special encoding.
+        if self._decode_func:
+            test = self._decode_func(test)
         self._results = set()
         self._reasons = set()
         self._exp_tags = set()
@@ -780,7 +778,8 @@ class TestExpectations(object):
         broken_exps = []
         # Apply the same temporary encoding we do when ingesting/comparing
         # expectations.
-        test_names = [self._decode_func(tn) for tn in test_names]
+        if self._decode_func:
+            test_names = [self._decode_func(tn) for tn in test_names]
         test_names = set(test_names)
         for pattern, exps in self.individual_exps.items():
             if pattern not in test_names:
@@ -808,14 +807,3 @@ class TestExpectations(object):
                     break
                 _trie = _trie[l]
         return broken_exps + broken_glob_exps
-
-def uri_encode_spaces(s):
-  s = s.replace('%', '%25')
-  s = s.replace(' ', '%20')
-  return s
-
-
-def uri_decode_spaces(s):
-  s = s.replace('%20', ' ')
-  s = s.replace('%25', '%')
-  return s
