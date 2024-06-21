@@ -74,11 +74,11 @@ DIAGNOSTIC_NAMES_TO_ANNOTATION_NAMES = {
     reserved_infos.REVISION_TIMESTAMPS.name:
         'r_revision_timestamp',
     reserved_infos.FUCHSIA_INTEGRATION_INTERNAL_REVISIONS.name:
-        'r_fuchsia_integration_internal_git',
+        'r_fuchsia_integ_int_git',
     reserved_infos.FUCHSIA_INTEGRATION_PUBLIC_REVISIONS.name:
-        'r_fuchsia_integration_public_git',
+        'r_fuchsia_integ_pub_git',
     reserved_infos.FUCHSIA_SMART_INTEGRATION_REVISIONS.name:
-        'r_fuchsia_smart_integration_git',
+        'r_fuchsia_smart_integ_git',
 }
 
 
