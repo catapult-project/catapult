@@ -15,20 +15,18 @@ import os
 import unittest
 import sys
 
+from unittest import mock
+
 import six
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from devil import devil_env
 from devil.android import device_errors
 from devil.android import device_utils
 from devil.android import fastboot_utils
 from devil.android.sdk import fastboot
 from devil.utils import mock_calls
-
-with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock  # pylint: disable=import-error
 
 _BOARD = 'board_type'
 _SERIAL = '0123456789abcdef'

@@ -6,17 +6,13 @@
 # pylint: disable=protected-access
 
 import logging
-import sys
+import sys  # pylint: disable=unused-import
 import unittest
+
+from unittest import mock
 
 from devil import devil_env
 from devil.android.ndk import abis
-
-_sys_path_before = list(sys.path)
-with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  _sys_path_with_pymock = list(sys.path)
-  import mock  # pylint: disable=import-error
-_sys_path_after = list(sys.path)
 
 
 class _MockDeviceUtils(object):
@@ -25,11 +21,6 @@ class _MockDeviceUtils(object):
 
 
 class DevilEnvTest(unittest.TestCase):
-  def testSysPath(self):
-    self.assertEqual(_sys_path_before, _sys_path_after)
-    self.assertEqual(_sys_path_before + [devil_env.PYMOCK_PATH],
-                     _sys_path_with_pymock)
-
   def testGetEnvironmentVariableConfig_configType(self):
     with mock.patch('os.environ.get',
                     mock.Mock(side_effect=lambda _env_var: None)):

@@ -1,9 +1,10 @@
 """Tests for httplib2 on Google App Engine."""
 
-import mock
 import os
 import sys
 import unittest
+
+from unittest import mock
 
 APP_ENGINE_PATH = "/usr/local/google_appengine"
 

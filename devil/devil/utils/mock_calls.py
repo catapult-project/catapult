@@ -5,12 +5,11 @@
 A test facility to assert call sequences while mocking their behavior.
 """
 
+# pylint: disable=protected-access
+
 import unittest
 
-from devil import devil_env
-
-with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock  # pylint: disable=import-error
+from unittest import mock
 
 
 class TestCase(unittest.TestCase):
@@ -46,8 +45,8 @@ class TestCase(unittest.TestCase):
       self._test_case = test_case
       self._expected_calls = [call_action(pair) for pair in expected_calls]
       watched = watched.copy()  # do not pollute the caller's dict
-      watched.update(
-          (call.parent.name, call.parent) for call, _ in self._expected_calls)
+      watched.update((call._mock_parent._mock_name, call._mock_parent)
+                     for call, _ in self._expected_calls)
       self._patched = [
           test_case.patch_call(call, side_effect=do_check(call))
           for call in watched.values()
@@ -87,9 +86,9 @@ class TestCase(unittest.TestCase):
       AttributeError if the path of the call does not specify a valid
           chain of attributes (without any calls) starting from "self".
     """
-    path = call.name.split('.')
+    path = call._mock_name.split('.')
     if path.pop(0) != 'self':
-      raise ValueError("Target %r outside of 'self' object" % call.name)
+      raise ValueError("Target %r outside of 'self' object" % call._mock_name)
     target = self
     for attr in path:
       target = getattr(target, attr)
@@ -105,9 +104,9 @@ class TestCase(unittest.TestCase):
     Returns:
       A context manager to mock/unmock the target of the call
     """
-    if call.name.startswith('self.'):
-      target = self.call_target(call.parent)
-      _, attribute = call.name.rsplit('.', 1)
+    if call._mock_name.startswith('self.'):
+      target = self.call_target(call._mock_parent)
+      _, attribute = call._mock_name.rsplit('.', 1)
       if (hasattr(type(target), attribute)
           and isinstance(getattr(type(target), attribute), property)):
         return mock.patch.object(
@@ -115,7 +114,7 @@ class TestCase(unittest.TestCase):
 
       return mock.patch.object(target, attribute, **kwargs)
 
-    return mock.patch(call.name, **kwargs)
+    return mock.patch(call._mock_name, **kwargs)
 
   def watchCalls(self, calls):
     """Add calls to the set of watched calls.
@@ -123,7 +122,7 @@ class TestCase(unittest.TestCase):
     Args:
       calls: a sequence of mock.call instances identifying targets to watch
     """
-    self._watched.update((call.name, call) for call in calls)
+    self._watched.update((call._mock_name, call) for call in calls)
 
   def watchMethodCalls(self, call, ignore=None):
     """Watch all public methods of the target identified by a self.call.

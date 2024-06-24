@@ -4,15 +4,12 @@
 """Unit tests for the app_ui module."""
 
 import unittest
+from unittest import mock
 from xml.etree import ElementTree as element_tree
 
-from devil import devil_env
 from devil.android import app_ui
 from devil.android import device_errors
 from devil.utils import geometry
-
-with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock  # pylint: disable=import-error
 
 MOCK_XML_LOADING = '''
 <?xml version='1.0' encoding='UTF-8' standalone='yes' ?>

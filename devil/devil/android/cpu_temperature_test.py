@@ -11,14 +11,12 @@ Unit tests for the contents of cpu_temperature.py
 import logging
 import unittest
 
-from devil import devil_env
+from unittest import mock
+
 from devil.android import cpu_temperature
 from devil.android import device_utils
 from devil.utils import mock_calls
 from devil.android.sdk import adb_wrapper
-
-with devil_env.SysPath(devil_env.PYMOCK_PATH):
-  import mock  # pylint: disable=import-error
 
 
 class CpuTemperatureTest(mock_calls.TestCase):
