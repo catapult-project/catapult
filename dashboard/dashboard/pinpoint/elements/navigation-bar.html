@@ -155,6 +155,9 @@ found in the LICENSE file.
           // the issue description.
           delete job.state;
           delete job.bots;
+          if (job.exception) {
+            delete job.exception.traceback;
+          }
           description.push(JSON.stringify(job, null, 1));
         }
         this.bugDescription = encodeURIComponent(description.join('\n'));
