@@ -215,9 +215,7 @@ def try_builder(
         **verifier_kwargs
     )
 
-try_builder("Catapult Linux Tryserver", "Ubuntu")
-
-try_builder("Catapult Linux Tryserver Ubuntu-22.04", "Ubuntu-22.04", experiment = 100)
+try_builder("Catapult Linux Tryserver", "Ubuntu-22.04")
 
 try_builder("Catapult Windows Tryserver", "Windows-10")
 
