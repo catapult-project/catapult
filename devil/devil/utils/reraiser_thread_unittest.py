@@ -42,9 +42,11 @@ class TestReraiserThread(unittest.TestCase):
     thread = reraiser_thread.ReraiserThread(f)
     thread.start()
     thread.join()
+    self.assertFalse(logging_critical.called)
     with self.assertRaises(TestException):
       thread.ReraiseIfException()
-    logging_critical.critical.assert_called()
+
+    self.assertTrue(logging_critical.called)
 
 
 class TestReraiserThreadGroup(unittest.TestCase):
