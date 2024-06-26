@@ -18,6 +18,7 @@ from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_label_patterns
+from dashboard.models import skia_helper
 
 # We need to import this last because importing it earlier causes issues with
 # module lookups when importing protobuf messages before loading the
@@ -139,6 +140,7 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False):
   project_id = anomaly_entity.project_id if (
       anomaly_entity.project_id != '') else 'chromium'
 
+  new_url = skia_helper.GetSkiaUrlForAnomaly(anomaly_entity)
   dct = {
       'bug_id': anomaly_entity.bug_id,
       'project_id': project_id,
@@ -151,6 +153,7 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False):
       'recovered': anomaly_entity.recovered,
       'start_revision': anomaly_entity.start_revision,
       'units': anomaly_entity.units,
+      'new_url': new_url
   }
 
   if v2:

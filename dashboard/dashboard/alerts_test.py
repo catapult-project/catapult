@@ -175,6 +175,7 @@ class AlertsTest(testing_common.TestCase):
             'key': alert.key.urlsafe(),
             'median_after_anomaly': 30,
             'median_before_anomaly': 40,
+            'new_url': '',
             'recovered': True,
             'start_revision': 5,
             'units': 'ms',

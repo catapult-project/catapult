@@ -402,6 +402,9 @@ found in the LICENSE file.
                             end="{{getDisplayEndRev(item)}}"
                             alert-key="{{item.key}}">
             </revision-range>
+            <a href="{{item.new_url}}" target="_blank">
+              <iron-icon icon="open-in-new"></iron-icon>
+            </a>
           </td>
           <td class="master">{{item.master}}</td>
           <td class="bot">{{item.bot}}</td>
