@@ -3,6 +3,8 @@
 import io
 import json
 import logging
+import os
+import platform
 import socket
 import sys
 import time
@@ -10,7 +12,7 @@ import warnings
 from test import LONG_TIMEOUT, SHORT_TIMEOUT, onlyPy2
 from threading import Event
 
-from unittest import mock
+import mock
 import pytest
 import six
 
@@ -284,7 +286,7 @@ class TestConnectionPool(HTTPDummyServerTestCase):
             assert r.status == 200, r.data
 
     def test_nagle(self):
-        """ Test that connections have TCP_NODELAY turned on """
+        """Test that connections have TCP_NODELAY turned on"""
         # This test needs to be here in order to be run. socket.create_connection actually tries
         # to connect to the host provided so we need a dummyserver to be running.
         with HTTPConnectionPool(self.host, self.port) as pool:
@@ -354,7 +356,7 @@ class TestConnectionPool(HTTPDummyServerTestCase):
                 s.close()
 
     def test_connection_error_retries(self):
-        """ ECONNREFUSED error should raise a connection error, with retries """
+        """ECONNREFUSED error should raise a connection error, with retries"""
         port = find_unused_port()
         with HTTPConnectionPool(self.host, port) as pool:
             with pytest.raises(MaxRetryError) as e:
@@ -694,6 +696,12 @@ class TestConnectionPool(HTTPDummyServerTestCase):
             r = pool.request("GET", "/echo_params?q=\r&k=\n \n")
             assert r.data == b"[('k', '\\n \\n'), ('q', '\\r')]"
 
+    @pytest.mark.skipif(
+        six.PY2
+        and platform.system() == "Darwin"
+        and os.environ.get("GITHUB_ACTIONS") == "true",
+        reason="fails on macOS 2.7 in GitHub Actions for an unknown reason",
+    )
     def test_source_address(self):
         for addr, is_ipv6 in VALID_SOURCE_ADDRESSES:
             if is_ipv6 and not HAS_IPV6_AND_DNS:
@@ -705,6 +713,12 @@ class TestConnectionPool(HTTPDummyServerTestCase):
                 r = pool.request("GET", "/source_address")
                 assert r.data == b(addr[0])
 
+    @pytest.mark.skipif(
+        six.PY2
+        and platform.system() == "Darwin"
+        and os.environ.get("GITHUB_ACTIONS") == "true",
+        reason="fails on macOS 2.7 in GitHub Actions for an unknown reason",
+    )
     def test_source_address_error(self):
         for addr in INVALID_SOURCE_ADDRESSES:
             with HTTPConnectionPool(
@@ -794,13 +808,13 @@ class TestConnectionPool(HTTPDummyServerTestCase):
             assert response.status == 200
 
     def test_preserves_path_dot_segments(self):
-        """ ConnectionPool preserves dot segments in the URI """
+        """ConnectionPool preserves dot segments in the URI"""
         with HTTPConnectionPool(self.host, self.port) as pool:
             response = pool.request("GET", "/echo_uri/seg0/../seg2")
             assert response.data == b"/echo_uri/seg0/../seg2"
 
     def test_default_user_agent_header(self):
-        """ ConnectionPool has a default user agent """
+        """ConnectionPool has a default user agent"""
         default_ua = _get_default_user_agent()
         custom_ua = "I'm not a web scraper, what are you talking about?"
         custom_ua2 = "Yet Another User Agent"
@@ -829,8 +843,31 @@ class TestConnectionPool(HTTPDummyServerTestCase):
             request_headers = json.loads(r.data.decode("utf8"))
             assert request_headers.get("User-Agent") == custom_ua2
 
+    @pytest.mark.parametrize(
+        "headers",
+        [
+            None,
+            {},
+            {"User-Agent": "key"},
+            {"user-agent": "key"},
+            {b"uSeR-AgEnT": b"key"},
+            {b"user-agent": "key"},
+        ],
+    )
+    @pytest.mark.parametrize("chunked", [True, False])
+    def test_user_agent_header_not_sent_twice(self, headers, chunked):
+        with HTTPConnectionPool(self.host, self.port) as pool:
+            r = pool.request("GET", "/headers", headers=headers, chunked=chunked)
+            request_headers = json.loads(r.data.decode("utf8"))
+
+            if not headers:
+                assert request_headers["User-Agent"].startswith("python-urllib3/")
+                assert "key" not in request_headers["User-Agent"]
+            else:
+                assert request_headers["User-Agent"] == "key"
+
     def test_no_user_agent_header(self):
-        """ ConnectionPool can suppress sending a user agent header """
+        """ConnectionPool can suppress sending a user agent header"""
         custom_ua = "I'm not a web scraper, what are you talking about?"
         with HTTPConnectionPool(self.host, self.port) as pool:
             # Suppress user agent in the request headers.
@@ -1002,7 +1039,7 @@ class TestRetry(HTTPDummyServerTestCase):
                 pool.request("GET", "/redirect", fields={"target": "/"}, retries=0)
 
     def test_disabled_retry(self):
-        """ Disabled retries should disable redirect handling. """
+        """Disabled retries should disable redirect handling."""
         with HTTPConnectionPool(self.host, self.port) as pool:
             r = pool.request("GET", "/redirect", fields={"target": "/"}, retries=False)
             assert r.status == 303
@@ -1022,7 +1059,7 @@ class TestRetry(HTTPDummyServerTestCase):
                 pool.request("GET", "/test", retries=False)
 
     def test_read_retries(self):
-        """ Should retry for status codes in the whitelist """
+        """Should retry for status codes in the whitelist"""
         with HTTPConnectionPool(self.host, self.port) as pool:
             retry = Retry(read=1, status_forcelist=[418])
             resp = pool.request(
@@ -1034,7 +1071,7 @@ class TestRetry(HTTPDummyServerTestCase):
             assert resp.status == 200
 
     def test_read_total_retries(self):
-        """ HTTP response w/ status code in the whitelist should be retried """
+        """HTTP response w/ status code in the whitelist should be retried"""
         with HTTPConnectionPool(self.host, self.port) as pool:
             headers = {"test-name": "test_read_total_retries"}
             retry = Retry(total=1, status_forcelist=[418])
@@ -1056,7 +1093,7 @@ class TestRetry(HTTPDummyServerTestCase):
             assert resp.status == 418
 
     def test_default_method_whitelist_retried(self):
-        """ urllib3 should retry methods in the default method whitelist """
+        """urllib3 should retry methods in the default method whitelist"""
         with HTTPConnectionPool(self.host, self.port) as pool:
             retry = Retry(total=1, status_forcelist=[418])
             resp = pool.request(
@@ -1084,7 +1121,7 @@ class TestRetry(HTTPDummyServerTestCase):
             assert resp.status == 418
 
     def test_retry_reuse_safe(self):
-        """ It should be possible to reuse a Retry object across requests """
+        """It should be possible to reuse a Retry object across requests"""
         with HTTPConnectionPool(self.host, self.port) as pool:
             headers = {"test-name": "test_retry_safe"}
             retry = Retry(total=1, status_forcelist=[418])

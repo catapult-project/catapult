@@ -17,7 +17,7 @@
 import os
 import unittest
 
-from unittest import mock
+import mock
 from pyasn1_modules import pem
 import rsa
 import six

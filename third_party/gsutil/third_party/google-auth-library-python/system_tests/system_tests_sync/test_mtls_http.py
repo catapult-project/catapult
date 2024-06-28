@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import json
-from unittest import mock
+import mock
 import os
 import time
 from os import path

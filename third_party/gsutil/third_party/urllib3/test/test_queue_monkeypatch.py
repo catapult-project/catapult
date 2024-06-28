@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from unittest import mock
+import mock
 import pytest
 
 from urllib3 import HTTPConnectionPool

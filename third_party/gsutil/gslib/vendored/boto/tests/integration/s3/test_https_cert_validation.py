@@ -38,7 +38,7 @@ Note that this test assumes two external dependencies are available:
 import os
 import ssl
 import unittest
-from unittest import mock
+import mock
 
 from nose.plugins.attrib import attr
 

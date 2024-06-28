@@ -333,9 +333,7 @@ class LsCommand(Command):
 
   # TODO(b/206151616) Add mappings for remaining flags.
   gcloud_storage_map = GcloudStorageMap(
-      gcloud_command=[
-          'alpha', 'storage', 'ls', '--fetch-encrypted-object-hashes'
-      ],
+      gcloud_command=['storage', 'ls', '--fetch-encrypted-object-hashes'],
       flag_map={
           '-r': GcloudStorageFlag('-r'),
           '-R': GcloudStorageFlag('-r'),

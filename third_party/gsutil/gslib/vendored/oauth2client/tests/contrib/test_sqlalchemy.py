@@ -15,7 +15,7 @@
 import datetime
 import unittest
 
-from unittest import mock
+import mock
 import sqlalchemy
 import sqlalchemy.ext.declarative
 import sqlalchemy.orm

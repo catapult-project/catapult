@@ -21,13 +21,16 @@ from __future__ import unicode_literals
 
 import itertools
 import json
+import os
 import re
+import subprocess
 import textwrap
 
 import six
 from six.moves import zip
 from apitools.base.protorpclite import protojson
 from apitools.base.protorpclite.messages import DecodeError
+from boto import config
 from gslib.cloud_api import ArgumentException
 from gslib.cloud_api import PreconditionException
 from gslib.cloud_api import ServiceException
@@ -47,9 +50,11 @@ from gslib.storage_url import IsKnownUrlScheme
 from gslib.storage_url import StorageUrlFromString
 from gslib.storage_url import UrlsAreMixOfBucketsAndObjects
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
+from gslib.utils import shim_util
 from gslib.utils.cloud_api_helper import GetCloudApiInstance
 from gslib.utils.constants import IAM_POLICY_VERSION
 from gslib.utils.constants import NO_MAX
+from gslib.utils import iam_helper
 from gslib.utils.iam_helper import BindingStringToTuple
 from gslib.utils.iam_helper import BindingsTuple
 from gslib.utils.iam_helper import DeserializeBindingsTuple
@@ -316,22 +321,26 @@ class IamCommand(Command):
       },
   )
 
+  def _get_resource_type(self, url_patterns):
+    if self.recursion_requested or url_patterns[0].IsObject():
+      return 'objects'
+    else:
+      return 'buckets'
+
   def get_gcloud_storage_args(self):
-    sub_command = self.args.pop(0)
-    if sub_command == 'get':
+    self.sub_command = self.args.pop(0)
+    if self.sub_command == 'get':
       if StorageUrlFromString(self.args[0]).IsObject():
         command_group = 'objects'
       else:
         command_group = 'buckets'
       gcloud_storage_map = GcloudStorageMap(gcloud_command=[
-          'alpha', 'storage', command_group, 'get-iam-policy', '--format=json'
+          'storage', command_group, 'get-iam-policy', '--format=json'
       ],
                                             flag_map={})
-    elif sub_command == 'set':
+    elif self.sub_command == 'set':
       gcloud_storage_map = GcloudStorageMap(
-          gcloud_command=[
-              'alpha', 'storage', None, 'set-iam-policy', '--format=json'
-          ],
+          gcloud_command=['storage', None, 'set-iam-policy', '--format=json'],
           flag_map={
               '-a': GcloudStorageFlag('--all-versions'),
               '-e': GcloudStorageFlag('--etag'),
@@ -357,13 +366,156 @@ class IamCommand(Command):
       _RaiseErrorIfUrlsAreMixOfBucketsAndObjects(url_objects, recurse)
 
       if recurse or url_objects[0].IsObject():
-        gcloud_storage_map.gcloud_command[2] = 'objects'
+        gcloud_storage_map.gcloud_command[1] = 'objects'
       else:
-        gcloud_storage_map.gcloud_command[2] = 'buckets'
+        gcloud_storage_map.gcloud_command[1] = 'buckets'
       # Gsutil takes policy file then URLs, and gcloud storage does the reverse.
       self.args = url_strings + self.args[:1]
 
+    elif self.sub_command == 'ch':
+      if shim_util.HIDDEN_SHIM_MODE(
+          config.get('GSUtil', 'hidden_shim_mode',
+                     'none')) is shim_util.HIDDEN_SHIM_MODE.DRY_RUN:
+        self.logger.warning(
+            'The shim maps iam ch commands to several gcloud storage commands,'
+            ' which cannot be determined without running gcloud storage.')
+      return []  # Translation occurs in self.run_gcloud_storage.
+
     return super().get_gcloud_storage_args(gcloud_storage_map)
+
+  def _RaiseIfInvalidUrl(self, url):
+    if url.IsFileUrl():
+      error_msg = 'Invalid Cloud URL "%s".' % url.object_name
+      if set(url.object_name).issubset(set('-Rrf')):
+        error_msg += (
+            ' This resource handle looks like a flag, which must appear'
+            ' before all bindings. See "gsutil help iam ch" for more details.')
+      raise CommandException(error_msg)
+
+  def _GetSettingsAndDiffs(self):
+    self.continue_on_error = False
+    self.recursion_requested = False
+
+    patch_bindings_tuples = []
+
+    if self.sub_opts:
+      for o, a in self.sub_opts:
+        if o in ['-r', '-R']:
+          self.recursion_requested = True
+        elif o == '-f':
+          self.continue_on_error = True
+        elif o == '-d':
+          patch_bindings_tuples.append(BindingStringToTuple(False, a))
+
+    url_pattern_strings = []
+
+    # N.B.: self.sub_opts stops taking in options at the first non-flagged
+    # token. The rest of the tokens are sent to self.args. Thus, in order to
+    # handle input of the form "-d <binding> <binding> <url>", we will have to
+    # parse self.args for a mix of both bindings and CloudUrls. We are not
+    # expecting to come across the -r, -f flags here.
+    it = iter(self.args)
+    for token in it:
+      if (STORAGE_URI_REGEX.match(token) and
+          IsKnownUrlScheme(GetSchemeFromUrlString(token))):
+        url_pattern_strings.append(token)
+        break
+      if token == '-d':
+        try:
+          patch_bindings_tuples.append(BindingStringToTuple(False, next(it)))
+        except StopIteration:
+          raise CommandException(
+              'A -d flag is missing an argument specifying bindings to remove.')
+      else:
+        patch_bindings_tuples.append(BindingStringToTuple(True, token))
+    if not patch_bindings_tuples:
+      raise CommandException('Must specify at least one binding.')
+
+    # All following arguments are urls.
+    for token in it:
+      url_pattern_strings.append(token)
+
+    url_objects = list(map(StorageUrlFromString, url_pattern_strings))
+    _RaiseErrorIfUrlsAreMixOfBucketsAndObjects(url_objects,
+                                               self.recursion_requested)
+
+    return patch_bindings_tuples, url_objects
+
+  def _run_ch_subprocess(self, args, stdin=None):
+    _, command = self._get_full_gcloud_storage_execution_information(args)
+    process = subprocess.run(
+        command,
+        env=self._get_shim_command_environment_variables(),
+        input=stdin,
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        text=True,
+    )
+
+    if process.returncode != 0:
+      if self.continue_on_error:
+        self.logger.error(process.stderr)
+      else:
+        raise CommandException(process.stderr)
+    return process
+
+  def run_gcloud_storage(self):
+    if self.sub_command != 'ch':
+      return super().run_gcloud_storage()
+
+    self.ParseSubOpts()
+    bindings_tuples, patterns = self._GetSettingsAndDiffs()
+    resource_type = self._get_resource_type(patterns)
+
+    list_settings = []
+    if self.recursion_requested:
+      list_settings.append('-r')
+
+    return_code = 0
+    for url_pattern in patterns:
+      self._RaiseIfInvalidUrl(url_pattern)
+
+      if resource_type == 'objects':
+        ls_process = self._run_ch_subprocess(['storage', 'ls', '--json'] +
+                                             list_settings + [str(url_pattern)])
+        if ls_process.returncode:
+          return_code = 1
+          continue
+
+        ls_output = json.loads(ls_process.stdout)
+        urls = [
+            resource['url']
+            for resource in ls_output
+            if resource['type'] == 'cloud_object'
+        ]
+      else:
+        urls = [str(url_pattern)]
+
+      for url in urls:
+        get_process = self._run_ch_subprocess(
+            ['storage', resource_type, 'get-iam-policy', url, '--format=json'])
+        if get_process.returncode:
+          return_code = 1
+          continue
+
+        policy = json.loads(get_process.stdout)
+        bindings = iam_helper.BindingsDictToUpdateDict(policy['bindings'])
+        for (is_grant, diff) in bindings_tuples:
+          diff_dict = iam_helper.BindingsDictToUpdateDict(diff)
+          bindings = PatchBindings(bindings, diff_dict, is_grant)
+
+        policy['bindings'] = [{
+            'role': r,
+            'members': sorted(list(m))
+        } for r, m in sorted(six.iteritems(bindings))]
+
+        set_process = self._run_ch_subprocess(
+            ['storage', resource_type, 'set-iam-policy', url, '-'],
+            stdin=json.dumps(policy, sort_keys=True))
+        if set_process.returncode:
+          return_code = 1
+
+    return return_code
 
   def GetIamHelper(self, storage_url, thread_state=None):
     """Gets an IAM policy for a single, resolved bucket / object URL.
@@ -528,7 +680,14 @@ class IamCommand(Command):
     orig_bindings = list(bindings)
 
     for (is_grant, diff) in bindings_tuples:
-      bindings = PatchBindings(bindings, BindingsTuple(is_grant, diff))
+      bindings_dict = iam_helper.BindingsMessageToUpdateDict(bindings)
+      diff_dict = iam_helper.BindingsMessageToUpdateDict(diff)
+      new_bindings_dict = PatchBindings(bindings_dict, diff_dict, is_grant)
+      bindings = [
+          apitools_messages.Policy.BindingsValueListEntry(role=r,
+                                                          members=list(m))
+          for (r, m) in six.iteritems(new_bindings_dict)
+      ]
 
     if IsEqualBindings(bindings, orig_bindings):
       self.logger.info('No changes made to %s', storage_url)
@@ -542,52 +701,22 @@ class IamCommand(Command):
     self._SetIamHelperInternal(storage_url, policy, thread_state=thread_state)
 
   def _PatchIam(self):
-    self.continue_on_error = False
-    self.recursion_requested = False
-
+    raw_bindings_tuples, url_patterns = self._GetSettingsAndDiffs()
     patch_bindings_tuples = []
-
-    if self.sub_opts:
-      for o, a in self.sub_opts:
-        if o in ['-r', '-R']:
-          self.recursion_requested = True
-        elif o == '-f':
-          self.continue_on_error = True
-        elif o == '-d':
-          patch_bindings_tuples.append(BindingStringToTuple(False, a))
-
-    patterns = []
-
-    # N.B.: self.sub_opts stops taking in options at the first non-flagged
-    # token. The rest of the tokens are sent to self.args. Thus, in order to
-    # handle input of the form "-d <binding> <binding> <url>", we will have to
-    # parse self.args for a mix of both bindings and CloudUrls. We are not
-    # expecting to come across the -r, -f flags here.
-    it = iter(self.args)
-    for token in it:
-      if (STORAGE_URI_REGEX.match(token) and
-          IsKnownUrlScheme(GetSchemeFromUrlString(token))):
-        patterns.append(token)
-        break
-      if token == '-d':
-        patch_bindings_tuples.append(BindingStringToTuple(False, next(it)))
-      else:
-        patch_bindings_tuples.append(BindingStringToTuple(True, token))
-    if not patch_bindings_tuples:
-      raise CommandException('Must specify at least one binding.')
-
-    # All following arguments are urls.
-    for token in it:
-      patterns.append(token)
+    for is_grant, bindings in raw_bindings_tuples:
+      bindings_messages = []
+      for binding in bindings:
+        bindings_message = apitools_messages.Policy.BindingsValueListEntry(
+            members=binding['members'], role=binding['role'])
+        bindings_messages.append(bindings_message)
+      patch_bindings_tuples.append(
+          BindingsTuple(is_grant=is_grant, bindings=bindings_messages))
 
     self.everything_set_okay = True
     self.tried_ch_on_resource_with_conditions = False
     threaded_wildcards = []
 
-    surls = list(map(StorageUrlFromString, patterns))
-    _RaiseErrorIfUrlsAreMixOfBucketsAndObjects(surls, self.recursion_requested)
-
-    for surl in surls:
+    for surl in url_patterns:
       try:
         if surl.IsBucket():
           if self.recursion_requested:
@@ -598,12 +727,7 @@ class IamCommand(Command):
         else:
           threaded_wildcards.append(surl.url_string)
       except AttributeError:
-        error_msg = 'Invalid Cloud URL "%s".' % surl.object_name
-        if set(surl.object_name).issubset(set('-Rrf')):
-          error_msg += (
-              ' This resource handle looks like a flag, which must appear '
-              'before all bindings. See "gsutil help iam ch" for more details.')
-        raise CommandException(error_msg)
+        self._RaiseIfInvalidUrl(surl)
 
     if threaded_wildcards:
       name_expansion_iterator = NameExpansionIterator(

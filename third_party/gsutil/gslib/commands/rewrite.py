@@ -233,7 +233,7 @@ class RewriteCommand(Command):
   )
 
   gcloud_storage_map = GcloudStorageMap(
-      gcloud_command=['alpha', 'storage', 'objects', 'update'],
+      gcloud_command=['storage', 'objects', 'update'],
       flag_map={
           '-I':
               GcloudStorageFlag('-I'),

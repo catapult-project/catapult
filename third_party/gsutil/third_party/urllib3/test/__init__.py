@@ -10,7 +10,10 @@ import warnings
 import pytest
 
 try:
-    import brotli
+    try:
+        import brotlicffi as brotli
+    except ImportError:
+        import brotli
 except ImportError:
     brotli = None
 
@@ -54,7 +57,7 @@ if os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS") == "true":
 
 
 def _can_resolve(host):
-    """ Returns True if the system can resolve host to an address. """
+    """Returns True if the system can resolve host to an address."""
     try:
         socket.getaddrinfo(host, None, socket.AF_UNSPEC)
         return True
@@ -63,7 +66,7 @@ def _can_resolve(host):
 
 
 def has_alpn(ctx_cls=None):
-    """ Detect if ALPN support is enabled. """
+    """Detect if ALPN support is enabled."""
     ctx_cls = ctx_cls or util.SSLContext
     ctx = ctx_cls(protocol=ssl_.PROTOCOL_TLS)
     try:

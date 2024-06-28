@@ -53,7 +53,7 @@ _DETAILED_HELP_TEXT = ("""
   gsutil supports several types of credentials (the specific subset depends on
   which distribution of gsutil you are using; see above discussion).
 
-  OAuth2 User Account:
+  OAuth2 user account:
     This type of credential can be used for authenticating requests on behalf of
     a specific user (which is probably the most common use of gsutil). This is
     the default type of credential that is created when you run ``gcloud init``.
@@ -76,37 +76,41 @@ _DETAILED_HELP_TEXT = ("""
     can edit the generated ~/.boto config file and look for comments for where
     other credentials can be added.
 
-    For more details about HMAC authentication, see
-    https://developers.google.com/storage/docs/reference/v1/getting-startedv1#keys
+    For more details about HMAC authentication, see `HMAC keys for Cloud Storage
+    <https://cloud.google.com/storage/docs/authentication/hmackeys>`_.
 
-  OAuth2 Service Account:
-    This is the preferred type of credential to use when authenticating on
+  OAuth2 service account:
+    This is a credential you can use when authenticating on
     behalf of a service or application (as opposed to a user). For example, if
     you intend to run gsutil out of a nightly cron job to upload/download data,
     using a service account means the cron job does not depend on credentials of
     an individual employee at your company. This is the type of credential that
-    is configured when you run ``gcloud auth activate-service-account`` (or
-    ``gsutil config -e`` when using stand-alone versions of gsutil).
+    is configured when you run ``gcloud auth  login`` with the ``--cred-file``
+    flag (or ``gsutil config -e`` when using stand-alone versions of gsutil).
+
+    You should generally avoid this credential type because it requires storing
+    highly-privileged credentials in your local environment, creating potential
+    security risks. Instead, service account impersonation or workload identity
+    federation are the recommended alternatives when authenticating on behalf of
+    a service or application.
 
     It is important to note that a service account is considered an Editor by
     default for the purposes of API access, rather than an Owner. In particular,
     the fact that Editors have OWNER access in the default object and
-    bucket ACLs, but the canned ACL options remove OWNER access from
+    bucket ACLs, but the predefined ACL options remove OWNER access from
     Editors, can lead to unexpected results. The solution to this problem is to
-    use "gsutil acl ch" instead of "gsutil acl set <canned-ACL>" to change
+    use "gsutil acl ch" instead of "gsutil acl set <predefined-ACL>" to change
     permissions on a bucket.
 
-    To set up a service account for use with
-    ``gcloud auth activate-service-account`` or ``gsutil config -e``, see
-    https://cloud.google.com/storage/docs/authentication#generating-a-private-key
-
+    To set up a service account for use with gsutil, see
+    `Authorize a service account using a service account key
+    <https://cloud.google.com/sdk/docs/authorizing#key>`_.
+    
     For more details about OAuth2 service accounts, see
-    https://developers.google.com/accounts/docs/OAuth2ServiceAccount
+    `Using OAuth 2.0 for server to server applications
+    <https://developers.google.com/identity/protocols/oauth2/service-account>`_.
 
-    For further information about account roles, see
-    https://developers.google.com/console/help/#DifferentRoles
-
-  Compute Engine Internal Service Account:
+  Compute Engine internal service account:
     This is the type of service account used for accounts hosted by App Engine
     or Compute Engine. Such credentials are created automatically for
     you on Compute Engine when you run the ``gcloud compute instances create``
@@ -119,28 +123,28 @@ _DETAILED_HELP_TEXT = ("""
     For more details about App Engine service accounts, see
     https://developers.google.com/appengine/docs/python/appidentity/overview
 
-  Service Account Impersonation:
+  Service account impersonation:
     Impersonating a service account is useful in scenarios where you need to
     grant short-term access to specific resources. For example, if you have a
     bucket of sensitive data that is typically read-only and want to
     temporarily grant write access through a trusted service account.
 
     You can specify which service account to use for impersonation by running
-    ``gsutil -i``, ``gsutil config`` and editing the boto configuration file, or
+    ``gsutil -i``, ``gsutil config -e`` and editing the boto configuration file, or
     ``gcloud config set auth/impersonate_service_account [service_account_email_address]``.
 
     In order to impersonate, your original credentials need to be granted
     roles/iam.serviceAccountTokenCreator on the target service account.
     For more information see
-    https://cloud.google.com/iam/docs/creating-short-lived-service-account-credentials
+    https://cloud.google.com/docs/authentication/use-service-account-impersonation.
 
-  External Account Credentials (Workload Identity Federation):
+  External account credentials (workload identity federation):
     Using workload identity federation, you can access Google Cloud resources
     from Amazon Web Services (AWS), Microsoft Azure or any identity provider
     that supports OpenID Connect (OIDC) or SAML 2.0.
 
     For more information see
-    https://cloud.google.com/iam/docs/using-workload-identity-federation
+    https://cloud.google.com/iam/docs/workload-identity-federation.
 """)
 
 

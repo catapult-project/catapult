@@ -96,5 +96,5 @@ class TestExecutionUtil(testcase.GsUtilUnitTestCase):
     mock_command_process.communicate.return_value = (None, b'error.\n')
     mock_Popen.return_value = mock_command_process
 
-    with self.assertRaisesRegexp(exception.ExternalBinaryError, 'error'):
+    with self.assertRaisesRegex(exception.ExternalBinaryError, 'error'):
       execution_util.ExecuteExternalCommand(['fake-command'])

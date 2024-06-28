@@ -28,6 +28,7 @@ import time
 import traceback
 
 from apitools.base.py import encoding
+from gslib import gcs_json_api
 from gslib.command import Command
 from gslib.command_argument import CommandArgument
 from gslib.cs_api_map import ApiSelector
@@ -372,7 +373,7 @@ _COPYING_SPECIAL_FILES_TEXT = """
 
 _OPTIONS_TEXT = """
 <B>OPTIONS</B>
-  -a canned_acl  Applies the specific ``canned_acl`` to uploaded objects. See
+  -a predef_acl  Applies the specific predefined ACL to uploaded objects. See
                  "gsutil help acls" for further details.
 
   -A             Copy all source versions from a source bucket or folder.
@@ -618,8 +619,8 @@ _DETAILED_HELP_TEXT = '\n\n'.join([
 ])
 
 CP_SUB_ARGS = 'a:AcDeIL:MNnpPrRs:tUvz:Zj:J'
-# May be used by mv or rsync.
-GENERIC_COPY_COMMAND_SHIM_FLAG_MAP = {
+# May be used by cp or mv.
+CP_AND_MV_SHIM_FLAG_MAP = {
     '-A': GcloudStorageFlag('--all-versions'),
     '-a': GcloudStorageFlag('--predefined-acl'),
     '-c': GcloudStorageFlag('--continue-on-error'),
@@ -639,9 +640,33 @@ GENERIC_COPY_COMMAND_SHIM_FLAG_MAP = {
 }
 # Adds recursion flags.
 CP_SHIM_FLAG_MAP = {
-    k: v for k, v in list(GENERIC_COPY_COMMAND_SHIM_FLAG_MAP.items()) +
+    k: v for k, v in list(CP_AND_MV_SHIM_FLAG_MAP.items()) +
     [('-r', GcloudStorageFlag('-r')), ('-R', GcloudStorageFlag('-r'))]
 }
+
+
+def ShimTranslatePredefinedAclSubOptForCopy(sub_opts):
+  """Gcloud uses camel-case predefined/canned ACLs, and gsutil uses snake-case.
+
+  The camel-case-snake-case difference is related to gcloud primarily using
+  JSON API rather than the XML API.
+
+  Predefined ACLs are also called "canned ACLs".
+
+  Args:
+    sub_opts: List of pairs representing flag keys and values, e.g.
+      [('a', 'public-read')]
+  """
+  predefined_acl_idx = None
+  for i, (k, _) in enumerate(sub_opts):
+    if k == '-a':
+      predefined_acl_idx = i
+      break
+  if predefined_acl_idx is not None:
+    old_predefined_acl = sub_opts[i][1]
+    sub_opts[i] = (sub_opts[i][0],
+                   gcs_json_api.FULL_PREDEFINED_ACL_XML_TO_JSON_TRANSLATION.get(
+                       old_predefined_acl, old_predefined_acl))
 
 
 def _CopyFuncWrapper(cls, args, thread_state=None):
@@ -714,11 +739,17 @@ class CpCommand(Command):
       subcommand_help_text={},
   )
 
-  # TODO(b/206151615) Add mappings for remaining flags.
-  gcloud_storage_map = GcloudStorageMap(
-      gcloud_command=['alpha', 'storage', 'cp'],
-      flag_map=CP_SHIM_FLAG_MAP,
-  )
+  def get_gcloud_storage_args(self):
+    self.logger.warn(
+        "Unlike pure gsutil, this shim won't run composite uploads and sliced"
+        ' downloads in parallel by default. Use the -m flag to enable'
+        ' parallelism (i.e. "gsutil -m cp ...").')
+    ShimTranslatePredefinedAclSubOptForCopy(self.sub_opts)
+    gcloud_storage_map = GcloudStorageMap(
+        gcloud_command=['storage', 'cp'],
+        flag_map=CP_SHIM_FLAG_MAP,
+    )
+    return super().get_gcloud_storage_args(gcloud_storage_map)
 
   # pylint: disable=too-many-statements
   def CopyFunc(self, copy_object_info, thread_state=None, preserve_posix=False):

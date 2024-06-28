@@ -50,21 +50,22 @@ _DETAILED_HELP_TEXT = ("""
 
 
 <B>DESCRIPTION</B>
-  The stat command will output details about the specified object URLs.
-  It is similar to running:
+  The stat command outputs `object metadata
+  <https://cloud.google.com/storage/docs/metadata>`_ for the specified object
+  URLs. It is similar to running:
 
     gsutil ls -L gs://some-bucket/some-object
 
-  but is more efficient because it avoids performing bucket listings and gets
-  the minimum necessary amount of object metadata. Moreover, because it avoids
-  performing bucket listings (which for some storage providers are eventually
-  consistent) the gsutil stat command provides a strongly consistent way to
-  check for the existence (and read the metadata) of an object.
+  but is more efficient because it avoids listing objects and gets the minimum
+  necessary amount of object metadata. Moreover, because it avoids listing
+  objects (which for some storage providers are eventually consistent) the
+  ``gsutil stat`` command provides a strongly consistent way to check for the
+  existence (and read the metadata) of an object.
 
-  The gsutil stat command will, however, perform bucket listings if you specify
-  URLs using wildcards.
+  The ``gsutil stat`` command does, however, make listing object requests if
+  you specify URLs using wildcards.
 
-  If run with the gsutil -q option nothing will be printed, e.g.:
+  If run with the ``gsutil -q`` option nothing is printed, e.g.:
 
     gsutil -q stat gs://some-bucket/some-object
 
@@ -77,12 +78,12 @@ _DETAILED_HELP_TEXT = ("""
 
     gsutil -q stat gs://some-bucket/some-subdir/
 
-  gsutil will look for information about an object called "some-subdir/" (with a
+  gsutil looks for information about an object called "some-subdir/" (with a
   trailing slash) inside the bucket "some-bucket", as opposed to operating on
   objects nested under gs://some-bucket/some-subdir/. Unless you actually have
-  an object with that name, the operation will fail. However, you can use the
-  stat command on objects within subdirectories. For example, this command will
-  work as expected:
+  an object with that name, the operation fails. However, you can use the stat
+  command on objects within subdirectories. For example, this command works
+  as expected:
 
     gsutil -q stat gs://some-bucket/some-subdir/file.txt
 """)
@@ -125,11 +126,11 @@ class StatCommand(Command):
   gcloud_storage_map = GcloudStorageMap(
       gcloud_command=[
           # Formatting done in gcloud.
-          'alpha',
           'storage',
           'objects',
           'list',
-          '--stat'
+          '--fetch-encrypted-object-hashes',
+          '--stat',
       ],
       flag_map={},
   )

@@ -170,14 +170,14 @@ _serviceaccount_help_text = CreateHelpText(_SERVICEACCOUNT_SYNOPSIS,
                                            _SERVICEACCOUNT_DESCRIPTION)
 
 _AUTHORIZE_COMMAND = GcloudStorageMap(
-    gcloud_command=['alpha', 'storage', 'service-agent'],
+    gcloud_command=['storage', 'service-agent'],
     flag_map={
         '-p': GcloudStorageFlag('--project'),
         '-k': GcloudStorageFlag('--authorize-cmek'),
     })
 
 _SERVICEACCOUNT_COMMAND = GcloudStorageMap(
-    gcloud_command=['alpha', 'storage', 'service-agent'],
+    gcloud_command=['storage', 'service-agent'],
     flag_map={
         '-p': GcloudStorageFlag('--project'),
     })
@@ -229,7 +229,7 @@ class KmsCommand(Command):
       gcloud_storage_map = GcloudStorageMap(gcloud_command={
           'encryption':
               GcloudStorageMap(
-                  gcloud_command=['alpha', 'storage', 'buckets'],
+                  gcloud_command=['storage', 'buckets'],
                   flag_map={
                       '-d': GcloudStorageFlag('--clear-default-encryption-key'),
                       '-k': GcloudStorageFlag('--default-encryption-key'),

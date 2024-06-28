@@ -1497,7 +1497,7 @@ def TriggerReauthForDestinationProviderIfNecessary(destination_url, gsutil_api,
   reauth will fail. We need to make at least one API call in the main
   process to allow a user to reauthorize.
 
-  For cloud source URLs this already happens because the plurality of 
+  For cloud source URLs this already happens because the plurality of
   the source name expansion iterator is checked in the main thread. For
   cloud destination URLs, only some situations result in a similar API
   call. In these situations, this function exits without performing an
@@ -1511,7 +1511,7 @@ def TriggerReauthForDestinationProviderIfNecessary(destination_url, gsutil_api,
       is used. Technically, reauth challenges can be answered in the main
       process, but they may be triggered multiple times if multithreading
       is used.
-  
+
   Returns:
     None, but performs an API call if necessary.
   """
@@ -2034,8 +2034,8 @@ def _ApplyZippedUploadCompression(src_url, src_obj_filestream, src_obj_size,
           'gzip compression is not currently supported on streaming uploads. '
           'Remove the compression flag or save the streamed output '
           'temporarily to a file before uploading.')
-    if src_obj_size is not None and (CheckFreeSpace(gzip_path) <
-                                     2 * int(src_obj_size)):
+    if src_obj_size is not None and (CheckFreeSpace(gzip_path)
+                                     < 2 * int(src_obj_size)):
       raise CommandException('Inadequate temp space available to compress '
                              '%s. See the CHANGING TEMP DIRECTORIES section '
                              'of "gsutil help cp" for more info.' % src_url)
@@ -2211,9 +2211,9 @@ def _UploadFileToObject(src_url,
       src_obj_size,
       gsutil_api,
       canned_acl=global_copy_helper_opts.canned_acl)
-  non_resumable_upload = (
-      (0 if upload_size is None else upload_size) < ResumableThreshold() or
-      src_url.IsStream() or src_url.IsFifo())
+  non_resumable_upload = ((0 if upload_size is None else upload_size)
+                          < ResumableThreshold() or src_url.IsStream() or
+                          src_url.IsFifo())
 
   if ((src_url.IsStream() or src_url.IsFifo()) and
       gsutil_api.GetApiSelector(provider=dst_url.scheme) == ApiSelector.JSON):

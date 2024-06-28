@@ -72,8 +72,8 @@ _GET_DESCRIPTION = """
 _DESCRIPTION = """
   The ``rpo`` command is used to retrieve or configure the
   `replication setting
-  <https://cloud.google.com/storage/docs/turbo-replication>`_ of
-  dual-region Cloud Storage buckets.
+  <https://cloud.google.com/storage/docs/availability-durability#cross-region-redundancy>`_
+  of dual-region Cloud Storage buckets.
   This command has two sub-commands: ``get`` and ``set``.
 """ + _GET_DESCRIPTION + _SET_DESCRIPTION
 

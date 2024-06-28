@@ -438,6 +438,16 @@ class TestUtil(object):
                 fragment="hash",
             ),
         ),
+        # Tons of '@' causing backtracking
+        ("https://" + ("@" * 10000) + "[", False),
+        (
+            "https://user:" + ("@" * 10000) + "example.com",
+            Url(
+                scheme="https",
+                auth="user:" + ("%40" * 9999),
+                host="example.com",
+            ),
+        ),
     ]
 
     @pytest.mark.parametrize("url, expected_url", url_vulnerabilities)
@@ -580,7 +590,7 @@ class TestUtil(object):
             assert len(w) == 1
 
     def _make_time_pass(self, seconds, timeout, time_mock):
-        """ Make some time pass for the timeout object """
+        """Make some time pass for the timeout object"""
         time_mock.return_value = TIMEOUT_EPOCH
         timeout.start_connect()
         time_mock.return_value = TIMEOUT_EPOCH + seconds

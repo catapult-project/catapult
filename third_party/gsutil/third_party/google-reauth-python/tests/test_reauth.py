@@ -19,7 +19,7 @@ import json
 import os
 import unittest
 
-from unittest import mock
+import mock
 
 from six.moves import http_client
 from six.moves import urllib

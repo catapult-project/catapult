@@ -14,7 +14,7 @@ sys.path.insert(0, root_path)
 # Mock some expensive/platform-specific modules so build will work.
 # (https://read-the-docs.readthedocs.io/en/latest/faq.html#\
 #  i-get-import-errors-on-libraries-that-depend-on-c-modules)
-from unittest import mock
+import mock
 
 
 class MockModule(mock.Mock):
@@ -73,16 +73,18 @@ pygments_style = "friendly"
 # a list of builtin themes.
 html_theme = "furo"
 html_favicon = "images/favicon.png"
-html_logo = "images/banner.svg"
 
+html_static_path = ["_static"]
 html_theme_options = {
     "announcement": """
         <a style=\"text-decoration: none; color: white;\" 
-           href=\"https://opencollective.com/urllib3\">
-           <img src=\"/en/latest/_static/favicon.png\"/> Sponsor urllib3 v2.0 on Open Collective
+           href=\"https://github.com/sponsors/urllib3\">
+           <img src=\"/en/latest/_static/favicon.png\"/> Support urllib3 on GitHub Sponsors
         </a>
     """,
     "sidebar_hide_name": True,
+    "light_logo": "banner.svg",
+    "dark_logo": "dark-logo.svg",
 }
 
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}

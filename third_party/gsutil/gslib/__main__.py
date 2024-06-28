@@ -704,7 +704,8 @@ def _RunNamedCommandAndHandleExceptions(command_runner,
   except ServiceException as e:
     _OutputAndExit(message=e, exception=e)
   except (oauth2client.client.HttpAccessTokenRefreshError,
-          google_auth_exceptions.OAuthError) as e:
+          google_auth_exceptions.OAuthError,
+          google_auth_exceptions.RefreshError) as e:
     if system_util.InvokedViaCloudSdk():
       _OutputAndExit(
           'Your credentials are invalid. '

@@ -40,11 +40,12 @@ from gslib.third_party.storage_apitools import storage_v1_messages as apitools_m
 from gslib.utils import acl_helper
 from gslib.utils.constants import NO_MAX
 from gslib.utils.retry_util import Retry
+from gslib.utils.shim_util import GcloudStorageFlag
 from gslib.utils.shim_util import GcloudStorageMap
 from gslib.utils.translation_helper import PRIVATE_DEFAULT_OBJ_ACL
 
 _SET_SYNOPSIS = """
-  gsutil defacl set <file-or-canned_acl_name> gs://<bucket_name>...
+  gsutil defacl set (<file-path>|<predefined-acl>) gs://<bucket_name>...
 """
 
 _GET_SYNOPSIS = """
@@ -57,17 +58,17 @@ _CH_SYNOPSIS = """
 
 _SET_DESCRIPTION = """
 <B>SET</B>
-  The "defacl set" command sets default object ACLs for the specified buckets.
-  If you specify a default object ACL for a certain bucket, Google Cloud
+  The ``defacl set`` command sets default object ACLs for the specified
+  buckets. If you specify a default object ACL for a certain bucket, Cloud
   Storage applies the default object ACL to all new objects uploaded to that
   bucket, unless an ACL for that object is separately specified during upload.
 
-  Similar to the "acl set" command, the file-or-canned_acl_name names either a
-  canned ACL or the path to a file that contains ACL text. See "gsutil help
+  Similar to the ``acl set`` command, the ``defacl set`` command specifies either
+  a predefined ACL or the path to a file that contains ACL text. See "gsutil help
   acl" for examples of editing and setting ACLs via the acl command. See
   `Predefined ACLs
   <https://cloud.google.com/storage/docs/access-control/lists#predefined-acl>`_
-  for a list of canned ACLs.
+  for a list of predefined ACLs.
 
   Setting a default object ACL on a bucket provides a convenient way to ensure
   newly uploaded objects have a specific ACL. If you don't set the bucket's
@@ -231,6 +232,21 @@ class DefAclCommand(Command):
             ],
             flag_map={},
         )
+
+    elif sub_command == 'ch':
+      self.ParseSubOpts()
+      self.sub_opts = acl_helper.translate_sub_opts_for_shim(self.sub_opts)
+
+      gcloud_storage_map = GcloudStorageMap(
+          gcloud_command=['storage', 'buckets', 'update'],
+          flag_map={
+              '-g': GcloudStorageFlag('--add-default-object-acl-grant'),
+              '-p': GcloudStorageFlag('--add-default-object-acl-grant'),
+              '-u': GcloudStorageFlag('--add-default-object-acl-grant'),
+              '-d': GcloudStorageFlag('--remove-default-object-acl-grant'),
+              '-f': GcloudStorageFlag('--continue-on-error'),
+          })
+
     return super().get_gcloud_storage_args(gcloud_storage_map)
 
   def _CalculateUrlsStartArg(self):

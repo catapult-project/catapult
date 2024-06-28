@@ -187,40 +187,34 @@ class AclChange(object):
             entry.entity.lower() == self.public_entity_all_auth_users.lower()):
         yield entry
 
-  def _AddEntry(self, current_acl, entry_class):
-    """Adds an entry to current_acl."""
-    if self.scope_type == 'UserById':
-      entry = entry_class(entityId=self.identifier,
-                          role=self.perm,
-                          entity=self.user_entity_prefix + self.identifier)
-    elif self.scope_type == 'GroupById':
-      entry = entry_class(entityId=self.identifier,
-                          role=self.perm,
-                          entity=self.group_entity_prefix + self.identifier)
+  def GetEntity(self):
+    """Gets an appropriate entity string for an ACL grant."""
+    if self.scope_type in ('UserById', 'UserByEmail'):
+      return self.user_entity_prefix + self.identifier
+    elif self.scope_type in ('GroupById', 'GroupByEmail'):
+      return self.group_entity_prefix + self.identifier
     elif self.scope_type == 'Project':
-      entry = entry_class(entityId=self.identifier,
-                          role=self.perm,
-                          entity=self.project_entity_prefix + self.identifier)
-    elif self.scope_type == 'UserByEmail':
-      entry = entry_class(email=self.identifier,
-                          role=self.perm,
-                          entity=self.user_entity_prefix + self.identifier)
-    elif self.scope_type == 'GroupByEmail':
-      entry = entry_class(email=self.identifier,
-                          role=self.perm,
-                          entity=self.group_entity_prefix + self.identifier)
+      return self.project_entity_prefix + self.identifier
     elif self.scope_type == 'GroupByDomain':
-      entry = entry_class(domain=self.identifier,
-                          role=self.perm,
-                          entity=self.domain_entity_prefix + self.identifier)
+      return self.domain_entity_prefix + self.identifier
     elif self.scope_type == 'AllAuthenticatedUsers':
-      entry = entry_class(entity=self.public_entity_all_auth_users,
-                          role=self.perm)
+      return self.public_entity_all_auth_users
     elif self.scope_type == 'AllUsers':
-      entry = entry_class(entity=self.public_entity_all_users, role=self.perm)
+      return self.public_entity_all_users
     else:
       raise CommandException('Add entry to ACL got unexpected scope type %s.' %
                              self.scope_type)
+
+  def _AddEntry(self, current_acl, entry_class):
+    """Adds an entry to current_acl."""
+    entity = self.GetEntity()
+    entry = entry_class(role=self.perm, entity=entity)
+    if self.scope_type in ('UserById', 'GroupById', 'Project'):
+      entry.entityId = self.identifier
+    elif self.scope_type in ('UserByEmail', 'GroupByEmail'):
+      entry.email = self.identifier
+    elif self.scope_type == 'GroupByDomain':
+      entry.domain = self.identifier
     current_acl.append(entry)
 
   def _GetEntriesClass(self, current_acl):
@@ -323,3 +317,24 @@ class AclDel(object):
       current_acl.remove(entry)
     logger.debug('New Acl:\n%s', str(current_acl))
     return len(matching_entries)
+
+
+def translate_sub_opts_for_shim(sub_opts):
+  translated_sub_opts = []
+  scope_type_from_flag = {
+      '-g': ChangeType.GROUP,
+      '-p': ChangeType.PROJECT,
+      '-u': ChangeType.USER,
+  }
+  for (flag, value) in sub_opts:
+    if flag in scope_type_from_flag:
+      change = AclChange(value, scope_type=scope_type_from_flag[flag])
+      new_value = 'entity={},role={}'.format(change.GetEntity(), change.perm)
+      translated_sub_opts.append((flag, new_value))
+    elif flag == '-d':
+      change = AclDel(value)
+      translated_sub_opts.append(('-d', change.identifier))
+    else:
+      translated_sub_opts.append((flag, value))
+
+  return translated_sub_opts

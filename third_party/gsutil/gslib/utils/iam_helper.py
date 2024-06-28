@@ -52,11 +52,18 @@ PUBLIC_MEMBERS = set([
     'allAuthenticatedUsers',
 ])
 
-# This is a convenience class to handle returned results from
+# These are convenience classes to handle returned results from
 # BindingStringToTuple. is_grant is a boolean specifying if the
-# bindings are to be granted or removed from a bucket / object,
-# and bindings is a list of BindingsValueListEntry instances.
+# bindings are to be granted or removed from a bucket / object.
+# bindings varies by type.
+# For BindingsTuple, it is a list of BindingsValueListEntry
+# For BindingsDictTuple it is a list of analogous dicts, e.g.:
+# {
+#   'members': ['member'],
+#   'role': 'role',
+# }
 BindingsTuple = namedtuple('BindingsTuple', ['is_grant', 'bindings'])
+BindingsDictTuple = namedtuple('BindingsDictTuple', ['is_grant', 'bindings'])
 
 # This is a special role value assigned to a specific member when all roles
 # assigned to the member should be dropped in the policy. A member:DROP_ALL
@@ -94,8 +101,8 @@ def DeserializeBindingsTuple(serialized_bindings_tuple):
                        ])
 
 
-def BindingsToDict(bindings):
-  """Converts a list of BindingsValueListEntry to a dictionary.
+def BindingsMessageToUpdateDict(bindings):
+  """Reformats policy bindings metadata.
 
   Args:
     bindings: A list of BindingsValueListEntry instances.
@@ -107,6 +114,27 @@ def BindingsToDict(bindings):
   tmp_bindings = defaultdict(set)
   for binding in bindings:
     tmp_bindings[binding.role].update(binding.members)
+  return tmp_bindings
+
+
+def BindingsDictToUpdateDict(bindings):
+  """Reformats policy bindings metadata.
+
+  Args:
+    bindings: List of dictionaries representing BindingsValueListEntry
+      instances. e.g.:
+      {
+        "role": "some_role",
+        "members": ["allAuthenticatedUsers", ...]
+      }
+
+  Returns:
+    A {role: set(members)} dictionary.
+  """
+
+  tmp_bindings = defaultdict(set)
+  for binding in bindings:
+    tmp_bindings[binding['role']].update(binding['members'])
   return tmp_bindings
 
 
@@ -126,11 +154,11 @@ def DiffBindings(old, new):
     A pair of BindingsTuple instances, one for roles granted between old and
       new, and one for roles removed between old and new.
   """
-  tmp_old = BindingsToDict(old)
-  tmp_new = BindingsToDict(new)
+  tmp_old = BindingsMessageToUpdateDict(old)
+  tmp_new = BindingsMessageToUpdateDict(new)
 
-  granted = BindingsToDict([])
-  removed = BindingsToDict([])
+  granted = BindingsMessageToUpdateDict([])
+  removed = BindingsMessageToUpdateDict([])
 
   for (role, members) in six.iteritems(tmp_old):
     removed[role].update(members.difference(tmp_new[role]))
@@ -151,44 +179,37 @@ def DiffBindings(old, new):
   return (BindingsTuple(True, granted), BindingsTuple(False, removed))
 
 
-def PatchBindings(base, diff):
+def PatchBindings(base, diff, is_grant):
   """Patches a diff list of BindingsValueListEntry to the base.
 
   Will remove duplicate members for any given role on a grant operation.
 
   Args:
-    base: A list of BindingsValueListEntry instances.
-    diff: A BindingsTuple instance of diff to be applied.
+    base (dict): A dictionary returned by BindingsMessageToUpdateDict or
+      BindingsDictToUpdateDict representing a resource's current
+      IAM policy.
+    diff (dict): A dictionary returned by BindingsMessageToUpdateDict or
+      BindingsDictToUpdateDict representing the IAM policy bindings to
+      add/remove from `base`.
+    is_grant (bool): True if `diff` should be added to `base`, False
+      if it should be removed from `base`.
 
   Returns:
-    The computed difference, as a list of
-    apitools_messages.Policy.BindingsValueListEntry instances.
+    A {role: set(members)} dictionary created by applying `diff` to `base`.
   """
-
-  # Convert the list of bindings into an {r: [m]} dictionary object.
-  tmp_base = BindingsToDict(base)
-  tmp_diff = BindingsToDict(diff.bindings)
-
   # Patch the diff into base
-  if diff.is_grant:
-    for (role, members) in six.iteritems(tmp_diff):
+  if is_grant:
+    for (role, members) in six.iteritems(diff):
       if not role:
         raise CommandException('Role must be specified for a grant request.')
-      tmp_base[role].update(members)
+      base[role].update(members)
   else:
-    for role in tmp_base:
-      tmp_base[role].difference_update(tmp_diff[role])
+    for role in base:
+      base[role].difference_update(diff[role])
       # Drop all members with the DROP_ALL role specifed from input.
-      tmp_base[role].difference_update(tmp_diff[DROP_ALL])
+      base[role].difference_update(diff[DROP_ALL])
 
-  # Construct the BindingsValueListEntry list
-  bindings = [
-      apitools_messages.Policy.BindingsValueListEntry(role=r, members=list(m))
-      for (r, m) in six.iteritems(tmp_base)
-      if m
-  ]
-
-  return bindings
+  return {role: members for role, members in six.iteritems(base) if members}
 
 
 def BindingStringToTuple(is_grant, input_str):
@@ -209,7 +230,7 @@ def BindingStringToTuple(is_grant, input_str):
     CommandException in the case of invalid input.
 
   Returns:
-    A BindingsTuple instance.
+    A BindingsDictTuple instance.
   """
 
   if not input_str.count(':'):
@@ -275,11 +296,8 @@ def BindingStringToTuple(is_grant, input_str):
 
   roles = [ResolveRole(r) for r in roles.split(',')]
 
-  bindings = [
-      apitools_messages.Policy.BindingsValueListEntry(members=[member], role=r)
-      for r in set(roles)
-  ]
-  return BindingsTuple(is_grant=is_grant, bindings=bindings)
+  bindings = [{'role': r, 'members': [member]} for r in set(roles)]
+  return BindingsDictTuple(is_grant=is_grant, bindings=bindings)
 
 
 def _check_member_type(member_type, input_str):

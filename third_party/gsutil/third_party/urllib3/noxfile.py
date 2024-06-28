@@ -1,5 +1,6 @@
 import os
 import shutil
+import subprocess
 
 import nox
 
@@ -26,11 +27,8 @@ def tests_impl(session, extras="socks,secure,brotli"):
     # Print OpenSSL information.
     session.run("python", "-m", "OpenSSL.debug")
 
-    # Inspired from https://github.com/pyca/cryptography
-    # We use parallel mode and then combine here so that coverage.py will take
-    # the paths like .tox/pyXY/lib/pythonX.Y/site-packages/urllib3/__init__.py
-    # and collapse them into src/urllib3/__init__.py.
-
+    # Inspired from https://hynek.me/articles/ditch-codecov-python/
+    # We use parallel mode and then combine in a later CI step
     session.run(
         "coverage",
         "run",
@@ -39,17 +37,15 @@ def tests_impl(session, extras="socks,secure,brotli"):
         "pytest",
         "-r",
         "a",
+        f"--color={'yes' if 'GITHUB_ACTIONS' in os.environ else 'auto'}",
         "--tb=native",
         "--no-success-flaky-report",
         *(session.posargs or ("test/",)),
         env={"PYTHONWARNINGS": "always::DeprecationWarning"},
     )
-    session.run("coverage", "combine")
-    session.run("coverage", "report", "-m")
-    session.run("coverage", "xml")
 
 
-@nox.session(python=["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "pypy"])
+@nox.session(python=["2.7", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "pypy"])
 def test(session):
     tests_impl(session)
 
@@ -78,30 +74,73 @@ def app_engine(session):
         "test/appengine",
         *session.posargs,
     )
-    session.run("coverage", "combine")
-    session.run("coverage", "report", "-m")
-    session.run("coverage", "xml")
+
+
+def git_clone(session, git_url):
+    session.run("git", "clone", "--depth", "1", git_url, external=True)
+
+
+@nox.session(python=["3.9"])
+def downstream_botocore(session):
+    root = os.getcwd()
+    tmp_dir = session.create_tmp()
+
+    session.cd(tmp_dir)
+    git_clone(session, "https://github.com/boto/botocore")
+    session.chdir("botocore")
+    session.run("git", "rev-parse", "HEAD", external=True)
+    session.run("python", "scripts/ci/install")
+
+    session.cd(root)
+    session.install(".", silent=False)
+    session.cd(f"{tmp_dir}/botocore")
+
+    session.run("python", "scripts/ci/run-tests")
+
+
+@nox.session(python=["2.7", "3.9"])
+def downstream_requests(session):
+    root = os.getcwd()
+    tmp_dir = session.create_tmp()
+
+    session.cd(tmp_dir)
+    git_clone(session, "https://github.com/psf/requests")
+    session.chdir("requests")
+    session.run("git", "apply", f"{root}/ci/requests.patch", external=True)
+    session.run("git", "rev-parse", "HEAD", external=True)
+    session.install(".[socks]", silent=False)
+    session.install("-r", "requirements-dev.txt", silent=False)
+
+    session.cd(root)
+    session.install(".", silent=False)
+    session.cd(f"{tmp_dir}/requests")
+
+    session.run("pytest", "tests")
 
 
 @nox.session()
 def format(session):
     """Run code formatters."""
-    session.install("black", "isort")
-    session.run("black", *SOURCE_FILES)
-    session.run("isort", *SOURCE_FILES)
+    session.install("pre-commit")
+    session.run("pre-commit", "--version")
+
+    process = subprocess.run(
+        ["pre-commit", "run", "--all-files"],
+        env=session.env,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    # Ensure that pre-commit itself ran successfully
+    assert process.returncode in (0, 1)
 
     lint(session)
 
 
 @nox.session
 def lint(session):
-    session.install("flake8", "flake8-2020", "black", "isort")
-    session.run("flake8", "--version")
-    session.run("black", "--version")
-    session.run("isort", "--version")
-    session.run("black", "--check", *SOURCE_FILES)
-    session.run("isort", "--check", *SOURCE_FILES)
-    session.run("flake8", *SOURCE_FILES)
+    session.install("pre-commit")
+    session.run("pre-commit", "run", "--all-files")
 
 
 @nox.session

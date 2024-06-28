@@ -333,7 +333,7 @@ class RetentionCommand(Command):
               'set':
                   GcloudStorageMap(
                       gcloud_command=[
-                          'alpha', 'storage', 'buckets', 'update',
+                          'storage', 'buckets', 'update',
                           '--retention-period={}s'.format(
                               RetentionInSeconds(self.args[1]))
                       ] + self.args[2:],  # Adds target bucket URLs.
@@ -348,7 +348,7 @@ class RetentionCommand(Command):
               'clear':
                   GcloudStorageMap(
                       gcloud_command=[
-                          'alpha', 'storage', 'buckets', 'update',
+                          'storage', 'buckets', 'update',
                           '--clear-retention-period'
                       ],
                       flag_map={},
@@ -359,7 +359,7 @@ class RetentionCommand(Command):
                           'set':
                               GcloudStorageMap(
                                   gcloud_command=[
-                                      'alpha', 'storage', 'objects', 'update',
+                                      'storage', 'objects', 'update',
                                       '--event-based-hold'
                                   ],
                                   flag_map={},
@@ -367,7 +367,7 @@ class RetentionCommand(Command):
                           'release':
                               GcloudStorageMap(
                                   gcloud_command=[
-                                      'alpha', 'storage', 'objects', 'update',
+                                      'storage', 'objects', 'update',
                                       '--no-event-based-hold'
                                   ],
                                   flag_map={},
@@ -381,7 +381,7 @@ class RetentionCommand(Command):
                           'set':
                               GcloudStorageMap(
                                   gcloud_command=[
-                                      'alpha', 'storage', 'buckets', 'update',
+                                      'storage', 'buckets', 'update',
                                       '--default-event-based-hold'
                                   ],
                                   flag_map={},
@@ -389,7 +389,7 @@ class RetentionCommand(Command):
                           'release':
                               GcloudStorageMap(
                                   gcloud_command=[
-                                      'alpha', 'storage', 'buckets', 'update',
+                                      'storage', 'buckets', 'update',
                                       '--no-default-event-based-hold'
                                   ],
                                   flag_map={},
@@ -399,14 +399,14 @@ class RetentionCommand(Command):
                   ),
               'get':
                   GcloudStorageMap(gcloud_command=[
-                      'alpha', 'storage', 'buckets', 'describe',
+                      'storage', 'buckets', 'describe',
                       '--format=yaml(retentionPolicy)', '--raw'
                   ],
                                    flag_map={}),
               'lock':
                   GcloudStorageMap(
                       gcloud_command=[
-                          'alpha', 'storage', 'buckets', 'update',
+                          'storage', 'buckets', 'update',
                           '--lock-retention-period'
                       ],
                       flag_map={},
@@ -417,7 +417,7 @@ class RetentionCommand(Command):
                           'set':
                               GcloudStorageMap(
                                   gcloud_command=[
-                                      'alpha', 'storage', 'objects', 'update',
+                                      'storage', 'objects', 'update',
                                       '--temporary-hold'
                                   ],
                                   flag_map={},
@@ -425,7 +425,7 @@ class RetentionCommand(Command):
                           'release':
                               GcloudStorageMap(
                                   gcloud_command=[
-                                      'alpha', 'storage', 'objects', 'update',
+                                      'storage', 'objects', 'update',
                                       '--no-temporary-hold'
                                   ],
                                   flag_map={},

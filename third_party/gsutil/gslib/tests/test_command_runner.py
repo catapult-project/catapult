@@ -478,7 +478,7 @@ class TestCommandRunnerUnitTests(testcase.unit_testcase.GsUtilUnitTestCase):
 
   def test_invalid_header_coding_fails(self):
     headers = {'content-type': 'bãr'}
-    with self.assertRaisesRegexp(CommandException, r'Invalid non-ASCII'):
+    with self.assertRaisesRegex(CommandException, r'Invalid non-ASCII'):
       HandleHeaderCoding(headers)
 
 

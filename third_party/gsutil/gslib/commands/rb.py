@@ -101,7 +101,7 @@ class RbCommand(Command):
   )
 
   gcloud_storage_map = GcloudStorageMap(
-      gcloud_command=['alpha', 'storage', 'buckets', 'delete'],
+      gcloud_command=['storage', 'buckets', 'delete'],
       flag_map={
           '-f': GcloudStorageFlag('--continue-on-error'),
       },

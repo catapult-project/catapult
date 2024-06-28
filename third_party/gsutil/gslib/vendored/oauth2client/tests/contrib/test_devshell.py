@@ -21,7 +21,7 @@ import socket
 import threading
 import unittest
 
-from unittest import mock
+import mock
 
 from oauth2client import _helpers
 from oauth2client import client

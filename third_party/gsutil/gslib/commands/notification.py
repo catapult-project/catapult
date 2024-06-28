@@ -373,33 +373,6 @@ PAYLOAD_FORMAT_MAP = {
     'json': 'JSON_API_V1',
 }
 
-_GCLOUD_LIST_FORMAT = (
-    '--format=value[separator="",terminator=""]('
-    '"Notification Configuration".selfLink.sub('
-    '"https://www.googleapis.com/storage/v1/b/", "projects/_/buckets/"'
-    ').sub("$", "\n"),'
-    '"Notification Configuration".topic.sub('
-    '"//pubsub.googleapis.com/", "\tCloud Pub/Sub topic: "'
-    ').sub("$", "\n"),'
-    '"Notification Configuration".custom_attributes.yesno('
-    '"\tCustom attributes:\n", ""),'
-    '"Notification Configuration".custom_attributes.list(separator="\n").sub('
-    'pattern="=", replacement=": "'
-    ').sub(pattern="^(?=.)", replacement="\t\t"),'
-    '"Notification Configuration".custom_attributes.yesno('
-    '"\n", ""),'
-    '"Notification Configuration".firstof(event_types, object_name_prefix)'
-    '.yesno("\tFilters:\n",""),'
-    '"Notification Configuration".event_types.join(", ").sub('
-    'pattern="^(?=.)", replacement="\t\tEvent Types: "),'
-    '"Notification Configuration".event_types.yesno('
-    '"\n", ""),'
-    '"Notification Configuration".object_name_prefix.map().sub('
-    'pattern="^(?=.)", replacement="\t\tObject name prefix: \'"'
-    ').map().sub(pattern="(?<=.)$", replacement="\'\n"),'
-    '"Notification Configuration".yesno('
-    '"\n", ""))')
-
 
 class NotificationCommand(Command):
   """Implementation of gsutil notification command."""
@@ -479,7 +452,7 @@ class NotificationCommand(Command):
           'create':
               GcloudStorageMap(
                   gcloud_command=[
-                      'alpha', 'storage', 'buckets', 'notifications', 'create'
+                      'storage', 'buckets', 'notifications', 'create'
                   ],
                   flag_map={
                       '-m':
@@ -503,15 +476,18 @@ class NotificationCommand(Command):
           'delete':
               GcloudStorageMap(
                   gcloud_command=[
-                      'alpha', 'storage', 'buckets', 'notifications', 'delete'
+                      'storage', 'buckets', 'notifications', 'delete'
                   ],
                   flag_map={},
               ),
           'list':
               GcloudStorageMap(
                   gcloud_command=[
-                      'alpha', 'storage', 'buckets', 'notifications', 'list',
-                      _GCLOUD_LIST_FORMAT, '--raw'
+                      'storage',
+                      'buckets',
+                      'notifications',
+                      'list',
+                      '--human-readable',
                   ],
                   flag_map={},
                   supports_output_translation=True,

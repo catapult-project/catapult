@@ -28,7 +28,7 @@ from google.appengine.api.memcache import memcache_stub
 from google.appengine.ext import db
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
-from unittest import mock
+import mock
 from six.moves import urllib
 from six.moves import urllib_parse
 import webapp2

@@ -506,7 +506,7 @@ class TestUi(testcase.GsUtilIntegrationTestCase):
     with open(fpath, 'rb') as f:
       self.assertEqual(f.read(), file_contents, 'File contents differ')
     if '-q' in gsutil_flags:
-      self.assertEquals('', stderr)
+      self.assertEqual('', stderr)
     elif '-m' in gsutil_flags:
       CheckUiOutputWithMFlag(self, stderr, 1, total_size=HALT_SIZE)
     else:
@@ -929,25 +929,25 @@ class TestUi(testcase.GsUtilIntegrationTestCase):
       listing1 = TailSet(suri(bucket1_uri), self.FlatListBucket(bucket1_uri))
       listing2 = TailSet(suri(bucket2_uri), self.FlatListBucket(bucket2_uri))
       # First bucket should have un-altered content.
-      self.assertEquals(listing1,
-                        set(['/obj1', '/.obj2', '/subdir/obj3', '/obj6']))
+      self.assertEqual(listing1,
+                       set(['/obj1', '/.obj2', '/subdir/obj3', '/obj6']))
       # Second bucket should have new objects added from source bucket (without
       # removing extraneeous object found in dest bucket), and without the
       # subdir objects synchronized.
-      self.assertEquals(
+      self.assertEqual(
           listing2, set(['/obj1', '/.obj2', '/obj4', '/subdir/obj5', '/obj6']))
       # Assert that the src/dest objects that had same length but different
       # content were correctly synchronized (bucket to bucket rsync uses
       # checksums).
-      self.assertEquals(
+      self.assertEqual(
           '.obj2',
           self.RunGsUtil(['cat', suri(bucket1_uri, '.obj2')],
                          return_stdout=True))
-      self.assertEquals(
+      self.assertEqual(
           '.obj2',
           self.RunGsUtil(['cat', suri(bucket2_uri, '.obj2')],
                          return_stdout=True))
-      self.assertEquals(
+      self.assertEqual(
           'obj6_',
           self.RunGsUtil(['cat', suri(bucket2_uri, 'obj6')],
                          return_stdout=True))
@@ -1284,8 +1284,8 @@ class TestUiUnitTests(testcase.GsUtilUnitTestCase):
       # The throughput here will be (file1_progress + file2_progress) / 2.
       average_progress = BytesToFixedWidthString(
           (file1_progress + file2_progress) / 2)
-      self.assertEquals(content.count(average_progress + '/s'),
-                        2 * progress_calls_number - 1)
+      self.assertEqual(content.count(average_progress + '/s'),
+                       2 * progress_calls_number - 1)
 
   def test_ui_throughput_calculation_with_no_components(self):
     """Tests throughput calculation in the UI.
@@ -1396,8 +1396,8 @@ class TestUiUnitTests(testcase.GsUtilUnitTestCase):
       # The throughput here will be (file1_progress + file2_progress) / 2.
       average_progress = BytesToFixedWidthString(
           (file1_progress + file2_progress) / 2)
-      self.assertEquals(content.count(average_progress + '/s'),
-                        2 * progress_calls_number - 1)
+      self.assertEqual(content.count(average_progress + '/s'),
+                       2 * progress_calls_number - 1)
 
   def test_ui_metadata_message_passing(self):
     """Tests that MetadataMessages are being correctly received and processed.
@@ -1464,15 +1464,15 @@ class TestUiUnitTests(testcase.GsUtilUnitTestCase):
     # First 100 elements.
     self.assertIn('10.00 objects/s', content)
     # At one exact point between first and second round of elements.
-    self.assertEquals(content.count('7.50 objects/s'), 1)
+    self.assertEqual(content.count('7.50 objects/s'), 1)
     # Next 30 elements.
     self.assertIn('5.00 objects/s', content)
     # At one exact point between second and third round of elements.
-    self.assertEquals(content.count('3.50 objects/s'), 1)
+    self.assertEqual(content.count('3.50 objects/s'), 1)
     # Next 20 elements.
     self.assertIn('2.00 objects/s', content)
     # At one exact point between third and fourth round of elements.
-    self.assertEquals(content.count('1.50 objects/s'), 1)
+    self.assertEqual(content.count('1.50 objects/s'), 1)
     # Final 50 elements.
     self.assertIn('1.00 objects/s', content)
     CheckUiOutputWithMFlag(self, content, 200, metadata=True)
@@ -1488,10 +1488,10 @@ class TestUiUnitTests(testcase.GsUtilUnitTestCase):
     ui_controller = UIController(custom_time=start_time)
     status_queue = MainThreadUIQueue(stream, ui_controller)
     # No manager has been created.
-    self.assertEquals(ui_controller.manager, None)
+    self.assertEqual(ui_controller.manager, None)
     PutToQueueWithTimeout(status_queue, ProducerThreadMessage(2, 0, start_time))
     # Still no manager has been created.
-    self.assertEquals(ui_controller.manager, None)
+    self.assertEqual(ui_controller.manager, None)
     PutToQueueWithTimeout(status_queue, MetadataMessage(start_time + 1))
     # Now we have a MetadataManager.
     self.assertIsInstance(ui_controller.manager, MetadataManager)
@@ -1504,16 +1504,16 @@ class TestUiUnitTests(testcase.GsUtilUnitTestCase):
 
   def test_ui_BytesToFixedWidthString(self):
     """Tests the correctness of BytesToFixedWidthString."""
-    self.assertEquals('    0.0 B', BytesToFixedWidthString(0, decimal_places=1))
-    self.assertEquals('   0.00 B', BytesToFixedWidthString(0, decimal_places=2))
-    self.assertEquals('  2.3 KiB',
-                      BytesToFixedWidthString(2.27 * 1024, decimal_places=1))
-    self.assertEquals(' 1023 KiB',
-                      BytesToFixedWidthString(1023.2 * 1024, decimal_places=1))
-    self.assertEquals('  1.0 MiB',
-                      BytesToFixedWidthString(1024**2, decimal_places=1))
-    self.assertEquals(
-        '999.1 MiB', BytesToFixedWidthString(999.1 * 1024**2, decimal_places=1))
+    self.assertEqual('    0.0 B', BytesToFixedWidthString(0, decimal_places=1))
+    self.assertEqual('   0.00 B', BytesToFixedWidthString(0, decimal_places=2))
+    self.assertEqual('  2.3 KiB',
+                     BytesToFixedWidthString(2.27 * 1024, decimal_places=1))
+    self.assertEqual(' 1023 KiB',
+                     BytesToFixedWidthString(1023.2 * 1024, decimal_places=1))
+    self.assertEqual('  1.0 MiB',
+                     BytesToFixedWidthString(1024**2, decimal_places=1))
+    self.assertEqual('999.1 MiB',
+                     BytesToFixedWidthString(999.1 * 1024**2, decimal_places=1))
 
   def test_ui_spinner(self):
     stream = six.StringIO()
@@ -1537,7 +1537,7 @@ class TestUiUnitTests(testcase.GsUtilUnitTestCase):
     old_spinner1 = current_spinner
     current_spinner = ui_controller.manager.GetSpinner()
     # Spinner must have changed since more than 1 second has passed.
-    self.assertNotEquals(old_spinner1, current_spinner)
+    self.assertNotEqual(old_spinner1, current_spinner)
     PutToQueueWithTimeout(
         status_queue,
         ProgressMessage(2, len('foo'), StorageUrlFromString('foo'),
@@ -1545,7 +1545,7 @@ class TestUiUnitTests(testcase.GsUtilUnitTestCase):
     old_spinner2 = current_spinner
     current_spinner = ui_controller.manager.GetSpinner()
     # Spinner must not have changed since less than 1 second has passed.
-    self.assertEquals(old_spinner2, current_spinner)
+    self.assertEqual(old_spinner2, current_spinner)
     PutToQueueWithTimeout(
         status_queue,
         ProgressMessage(3, len('foo'), StorageUrlFromString('foo'),
@@ -1553,7 +1553,7 @@ class TestUiUnitTests(testcase.GsUtilUnitTestCase):
     old_spinner3 = current_spinner
     current_spinner = ui_controller.manager.GetSpinner()
     # Spinner must have changed since more than 1 second has passed.
-    self.assertNotEquals(old_spinner3, current_spinner)
+    self.assertNotEqual(old_spinner3, current_spinner)
     PutToQueueWithTimeout(
         status_queue,
         FileMessage(StorageUrlFromString('foo'),
@@ -1564,9 +1564,9 @@ class TestUiUnitTests(testcase.GsUtilUnitTestCase):
     old_spinner4 = current_spinner
     current_spinner = ui_controller.manager.GetSpinner()
     # Spinner must have changed since more than 1 second has passed.
-    self.assertNotEquals(old_spinner4, current_spinner)
+    self.assertNotEqual(old_spinner4, current_spinner)
     # Moreover, since we have 4 spinner characters and were only supposed to
     # change it twice, current_spinner must be different from old_spinner1 and
     # old_spinner3.
-    self.assertNotEquals(old_spinner3, current_spinner)
-    self.assertNotEquals(old_spinner1, current_spinner)
+    self.assertNotEqual(old_spinner3, current_spinner)
+    self.assertNotEqual(old_spinner1, current_spinner)

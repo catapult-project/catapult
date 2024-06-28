@@ -49,26 +49,26 @@ class TestStorageUrl(base.GsUtilTestCase):
   def test_storage_url_from_string(self):
     url = storage_url.StorageUrlFromString('abc')
     self.assertTrue(url.IsFileUrl())
-    self.assertEquals('abc', url.object_name)
+    self.assertEqual('abc', url.object_name)
 
     url = storage_url.StorageUrlFromString('file://abc/123')
     self.assertTrue(url.IsFileUrl())
-    self.assertEquals('abc%s123' % os.sep, url.object_name)
+    self.assertEqual('abc%s123' % os.sep, url.object_name)
 
     url = storage_url.StorageUrlFromString('gs://abc/123/456')
     self.assertTrue(url.IsCloudUrl())
-    self.assertEquals('abc', url.bucket_name)
-    self.assertEquals('123/456', url.object_name)
+    self.assertEqual('abc', url.bucket_name)
+    self.assertEqual('123/456', url.object_name)
 
     url = storage_url.StorageUrlFromString('gs://abc///:/')
     self.assertTrue(url.IsCloudUrl())
-    self.assertEquals('abc', url.bucket_name)
-    self.assertEquals('//:/', url.object_name)
+    self.assertEqual('abc', url.bucket_name)
+    self.assertEqual('//:/', url.object_name)
 
     url = storage_url.StorageUrlFromString('s3://abc/123/456')
     self.assertTrue(url.IsCloudUrl())
-    self.assertEquals('abc', url.bucket_name)
-    self.assertEquals('123/456', url.object_name)
+    self.assertEqual('abc', url.bucket_name)
+    self.assertEqual('123/456', url.object_name)
 
   def test_raises_error_for_too_many_slashes_after_scheme(self):
     with self.assertRaises(InvalidUrlError):

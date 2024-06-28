@@ -138,11 +138,12 @@ _DETAILED_HELP_TEXT = ("""
               processes, and the number of failed operations (if any) are
               reported as an exception at the end of the command's execution.
 
-  -o          Set/override values in the `boto configuration file
-              <https://cloud.google.com/storage/docs/boto-gsutil>`_, in the
-              format ``<section>:<name>=<value>``. For examnple,
-              ``gsutil -o "GSUtil:parallel_thread_count=4" ...``. This does not
-              pass the option to gsutil integration tests.
+  -o          Override values in the `boto configuration file
+              <https://cloud.google.com/storage/docs/boto-gsutil>`_ for the
+              current command, in the format ``<section>:<name>=<value>``. For
+              example, ``gsutil -o "GSUtil:parallel_thread_count=4" ...``. This
+              does not pass the option to gsutil integration tests and does not
+              change the values that are saved in the boto configuration file.
 
   -q          Causes gsutil to perform operations quietly, i.e., without
               reporting progress indicators of files being copied or removed,

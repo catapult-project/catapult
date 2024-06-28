@@ -118,7 +118,7 @@ class CatCommand(Command):
   )
 
   gcloud_storage_map = GcloudStorageMap(
-      gcloud_command=['alpha', 'storage', 'cat'],
+      gcloud_command=['storage', 'cat'],
       flag_map={
           '-h': GcloudStorageFlag('-d'),
           '-r': GcloudStorageFlag('-r'),

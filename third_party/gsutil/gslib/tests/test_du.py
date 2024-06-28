@@ -19,6 +19,8 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
 
+import os
+
 import gslib.tests.testcase as testcase
 from gslib.tests.testcase.integration_testcase import SkipForS3
 from gslib.tests.util import GenerationFromURI as urigen
@@ -29,6 +31,15 @@ from gslib.utils.retry_util import Retry
 
 class TestDu(testcase.GsUtilIntegrationTestCase):
   """Integration tests for du command."""
+
+  def setUp(self):
+    super(TestDu, self).setUp()
+    self._old_environ = os.environ.copy()
+    os.environ['PYTHONUTF8'] = '1'
+
+  def tearDown(self):
+    super(TestDu, self).tearDown()
+    os.environ = self._old_environ
 
   def _create_nested_subdir(self):
     """Creates a nested subdirectory for use by tests in this module."""

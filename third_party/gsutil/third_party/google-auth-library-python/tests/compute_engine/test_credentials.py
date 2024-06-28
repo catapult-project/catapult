@@ -14,7 +14,7 @@
 import base64
 import datetime
 
-from unittest import mock
+import mock
 import pytest  # type: ignore
 import responses  # type: ignore
 

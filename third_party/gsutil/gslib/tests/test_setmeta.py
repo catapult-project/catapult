@@ -34,6 +34,7 @@ from gslib.tests.util import SetBotoConfigForTest
 from gslib.tests.util import SetEnvironmentForTest
 from gslib.tests.util import unittest
 from gslib.utils.retry_util import Retry
+from gslib.utils import shim_util
 
 if six.PY3:
   long = int
@@ -306,7 +307,7 @@ class TestSetMeta(testcase.GsUtilIntegrationTestCase):
         ' -h flag. See "gsutil help setmeta" for more information.', stderr)
 
 
-class TestSetMetaShim(testcase.GsUtilUnitTestCase):
+class TestSetMetaShim(testcase.ShimUnitTestBase):
 
   @mock.patch.object(setmeta.SetMetaCommand, 'RunCommand', new=mock.Mock())
   def test_shim_translates_setmeta_set_and_clear_flags(self):
@@ -327,7 +328,7 @@ class TestSetMetaShim(testcase.GsUtilUnitTestCase):
                                            return_log_handler=True)
         info_lines = '\n'.join(mock_log_handler.messages['info'])
         self.assertIn(
-            ('Gcloud Storage Command: {} alpha storage objects update'
+            ('Gcloud Storage Command: {} storage objects update'
              ' --recursive --clear-cache-control'
              ' --content-type=fake-content-type gs://bucket/object').format(
-                 os.path.join('fake_dir', 'bin', 'gcloud')), info_lines)
+                 shim_util._get_gcloud_binary_path('fake_dir')), info_lines)

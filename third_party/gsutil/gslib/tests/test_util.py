@@ -217,7 +217,9 @@ class TestUtil(testcase.GsUtilUnitTestCase):
         'proxy_user': p_u,
         'proxy_pass': p_s,
         'proxy_rdns': p_d
-    } for p_h in valid_proxy_host for p_s in valid_proxy_pass
+    }
+                                     for p_h in valid_proxy_host
+                                     for p_s in valid_proxy_pass
                                      for p_p in valid_proxy_port
                                      for p_u in valid_proxy_user
                                      for p_t in valid_proxy_types

@@ -265,11 +265,12 @@ class TestContextConfig(testcase.GsUtilUnitTestCase):
 
   @mock.patch('os.path.exists', new=mock.Mock(return_value=False))
   def test_default_provider_not_found_error(self):
-    with SetBotoConfigForTest([('Credentials', 'use_client_certificate',
-                                'True'),
-                               ('Credentials', 'cert_provider_command', None),
-                               # Avoids permissions error on Windows tests:
-                               ('GSUtil', 'state_dir', self.CreateTempDir())]):
+    with SetBotoConfigForTest([
+        ('Credentials', 'use_client_certificate', 'True'),
+        ('Credentials', 'cert_provider_command', None),
+        # Avoids permissions error on Windows tests:
+        ('GSUtil', 'state_dir', self.CreateTempDir())
+    ]):
       context_config.create_context_config(self.mock_logger)
 
       self.mock_logger.error.assert_called_once_with(

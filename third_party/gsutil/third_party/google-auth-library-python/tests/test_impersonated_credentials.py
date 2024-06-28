@@ -19,7 +19,7 @@ import os
 # Because Python 2.7
 # from typing import List
 
-from unittest import mock
+import mock
 import pytest  # type: ignore
 from six.moves import http_client
 

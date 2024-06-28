@@ -28,8 +28,8 @@ from gslib.exception import NO_URLS_MATCHED_TARGET
 from gslib.help_provider import CreateHelpText
 from gslib.third_party.storage_apitools import storage_v1_messages as apitools_messages
 from gslib.utils.constants import NO_MAX
-from gslib.utils.shim_util import GcloudStorageFlag
 from gslib.utils.shim_util import GcloudStorageMap
+from gslib.utils import shim_util
 
 _SET_SYNOPSIS = """
   gsutil requesterpays set (on|off) gs://<bucket_name>...
@@ -68,6 +68,10 @@ _DETAILED_HELP_TEXT = CreateHelpText(_SYNOPSIS, _DESCRIPTION)
 
 _get_help_text = CreateHelpText(_GET_SYNOPSIS, _GET_DESCRIPTION)
 _set_help_text = CreateHelpText(_SET_SYNOPSIS, _SET_DESCRIPTION)
+
+_GCLOUD_FORMAT_STRING = ('--format=value[separator=": "](' + 'name.sub("' +
+                         shim_util.get_format_flag_caret() + '", "gs://"),' +
+                         'billing.requesterPays.yesno("Enabled", "Disabled"))')
 
 
 class RequesterPaysCommand(Command):
@@ -115,9 +119,7 @@ class RequesterPaysCommand(Command):
           'get':
               GcloudStorageMap(
                   gcloud_command=[
-                      'alpha', 'storage', 'buckets', 'list',
-                      '--format=value[separator=": "](name.sub("^", "gs://"),'
-                      'billing.requesterPays.yesno("Enabled", "Disabled"))'
+                      'storage', 'buckets', 'list', _GCLOUD_FORMAT_STRING
                   ],
                   flag_map={},
                   supports_output_translation=True,
@@ -128,7 +130,7 @@ class RequesterPaysCommand(Command):
                       'on':
                           GcloudStorageMap(
                               gcloud_command=[
-                                  'alpha', 'storage', 'buckets', 'update',
+                                  'storage', 'buckets', 'update',
                                   '--requester-pays'
                               ],
                               flag_map={},
@@ -136,7 +138,6 @@ class RequesterPaysCommand(Command):
                       'off':
                           GcloudStorageMap(
                               gcloud_command=[
-                                  'alpha',
                                   'storage',
                                   'buckets',
                                   'update',

@@ -166,7 +166,8 @@ _DETAILED_HELP_TEXT = ("""
                          mixed-continent, or with unsupported regions)
                          will return an error.
 
-  --rpo setting          Specifies the `replication setting <https://cloud.google.com/storage/docs/turbo-replication>`_.
+  --rpo setting          Specifies the `replication setting
+                         <https://cloud.google.com/storage/docs/availability-durability#cross-region-redundancy>`_.
                          This flag is not valid for single-region buckets,
                          and multi-region buckets only accept a value of
                          DEFAULT. Valid values for dual region buckets
@@ -235,7 +236,7 @@ class MbCommand(Command):
   )
 
   gcloud_storage_map = GcloudStorageMap(
-      gcloud_command=['alpha', 'storage', 'buckets', 'create'],
+      gcloud_command=['storage', 'buckets', 'create'],
       flag_map={
           '-b':
               GcloudStorageFlag({

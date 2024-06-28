@@ -1,6 +1,92 @@
 Changes
 =======
 
+1.26.9 (2022-03-16)
+-------------------
+
+* Changed ``urllib3[brotli]`` extra to favor installing Brotli libraries that are still
+  receiving updates like ``brotli`` and ``brotlicffi`` instead of ``brotlipy``.
+  This change does not impact behavior of urllib3, only which dependencies are installed.
+* Fixed a socket leaking when ``HTTPSConnection.connect()`` raises an exception.
+* Fixed ``server_hostname`` being forwarded from ``PoolManager`` to ``HTTPConnectionPool``
+  when requesting an HTTP URL. Should only be forwarded when requesting an HTTPS URL.
+
+
+1.26.8 (2022-01-07)
+-------------------
+
+* Added extra message to ``urllib3.exceptions.ProxyError`` when urllib3 detects that
+  a proxy is configured to use HTTPS but the proxy itself appears to only use HTTP.
+* Added a mention of the size of the connection pool when discarding a connection due to the pool being full.
+* Added explicit support for Python 3.11.
+* Deprecated the ``Retry.MAX_BACKOFF`` class property in favor of ``Retry.DEFAULT_MAX_BACKOFF``
+  to better match the rest of the default parameter names. ``Retry.MAX_BACKOFF`` is removed in v2.0.
+* Changed location of the vendored ``ssl.match_hostname`` function from ``urllib3.packages.ssl_match_hostname``
+  to ``urllib3.util.ssl_match_hostname`` to ensure Python 3.10+ compatibility after being repackaged
+  by downstream distributors.
+* Fixed absolute imports, all imports are now relative.
+
+
+1.26.7 (2021-09-22)
+-------------------
+
+* Fixed a bug with HTTPS hostname verification involving IP addresses and lack
+  of SNI. (Issue #2400)
+* Fixed a bug where IPv6 braces weren't stripped during certificate hostname
+  matching. (Issue #2240)
+
+
+1.26.6 (2021-06-25)
+-------------------
+
+* Deprecated the ``urllib3.contrib.ntlmpool`` module. urllib3 is not able to support
+  it properly due to `reasons listed in this issue <https://github.com/urllib3/urllib3/issues/2282>`_.
+  If you are a user of this module please leave a comment.
+* Changed ``HTTPConnection.request_chunked()`` to not erroneously emit multiple
+  ``Transfer-Encoding`` headers in the case that one is already specified.
+* Fixed typo in deprecation message to recommend ``Retry.DEFAULT_ALLOWED_METHODS``.
+
+
+1.26.5 (2021-05-26)
+-------------------
+
+* Fixed deprecation warnings emitted in Python 3.10.
+* Updated vendored ``six`` library to 1.16.0.
+* Improved performance of URL parser when splitting
+  the authority component.
+
+
+1.26.4 (2021-03-15)
+-------------------
+
+* Changed behavior of the default ``SSLContext`` when connecting to HTTPS proxy
+  during HTTPS requests. The default ``SSLContext`` now sets ``check_hostname=True``.
+
+
+1.26.3 (2021-01-26)
+-------------------
+
+* Fixed bytes and string comparison issue with headers (Pull #2141)
+
+* Changed ``ProxySchemeUnknown`` error message to be
+  more actionable if the user supplies a proxy URL without
+  a scheme. (Pull #2107)
+
+
+1.26.2 (2020-11-12)
+-------------------
+
+* Fixed an issue where ``wrap_socket`` and ``CERT_REQUIRED`` wouldn't
+  be imported properly on Python 2.7.8 and earlier (Pull #2052)
+
+
+1.26.1 (2020-11-11)
+-------------------
+
+* Fixed an issue where two ``User-Agent`` headers would be sent if a
+  ``User-Agent`` header key is passed as ``bytes`` (Pull #2047)
+
+
 1.26.0 (2020-11-10)
 -------------------
 

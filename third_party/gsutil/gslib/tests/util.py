@@ -351,6 +351,8 @@ def TailSet(start_point, listing):
 HAS_S3_CREDS = (boto.config.get('Credentials', 'aws_access_key_id', None) and
                 boto.config.get('Credentials', 'aws_secret_access_key', None))
 
+HAS_P12_CREDS = boto.config.get('Credentials', 'gs_service_key_file', '').endswith('.p12')
+
 HAS_NON_DEFAULT_GS_HOST = HasUserSpecifiedGsHost()
 
 HAS_GS_HOST = boto.config.get('Credentials', 'gs_host', None) is not None
@@ -360,6 +362,12 @@ HAS_GS_PORT = boto.config.get('Credentials', 'gs_port', None) is not None
 USING_JSON_API = boto.config.get('GSUtil', 'prefer_api',
                                  'json').upper() != 'XML'
 
+
+def SkipForP12Creds(reason):
+  if HAS_P12_CREDS:
+    return unittest.skip(reason)
+  else:
+    return lambda func: func
 
 def _ArgcompleteAvailable():
   argcomplete = None

@@ -31,6 +31,7 @@ from gslib.third_party.storage_apitools import storage_v1_messages as apitools_m
 from gslib.utils.constants import NO_MAX
 from gslib.utils.shim_util import GcloudStorageMap
 from gslib.utils.text_util import InsistOnOrOff
+from gslib.utils import shim_util
 
 _SET_SYNOPSIS = """
   gsutil ubla set (on|off) gs://<bucket_name>...
@@ -84,13 +85,14 @@ _get_help_text = CreateHelpText(_GET_SYNOPSIS, _GET_DESCRIPTION)
 IamConfigurationValue = apitools_messages.Bucket.IamConfigurationValue
 uniformBucketLevelAccessValue = IamConfigurationValue.BucketPolicyOnlyValue
 
-GCLOUD_FORMAT_STRING = (
-    '--format='
-    'multi[terminator="\n"](name:format="value(format(\'Uniform bucket-level'
-    ' access setting for gs://{}:\'))",'
-    ' iamConfiguration.uniformBucketLevelAccess.enabled.yesno(no="False")'
-    ':format="value[terminator=\'\n\'](format(\'  Enabled: {}\'))",'
-    ' iamConfiguration.uniformBucketLevelAccess.lockedTime.sub("T", " ")'
+_GCLOUD_FORMAT_STRING = (
+    '--format=' + 'multi[terminator="' + shim_util.get_format_flag_newline() +
+    '"](name:format="value(format(\'Uniform bucket-level' +
+    ' access setting for gs://{}:\'))",' +
+    ' iamConfiguration.uniformBucketLevelAccess.enabled.yesno(no="False")' +
+    ':format="value[terminator=\'' + shim_util.get_format_flag_newline() +
+    '\'](format(\'  Enabled: {}\'))",' +
+    ' iamConfiguration.uniformBucketLevelAccess.lockedTime.sub("T", " ")' +
     ':format="value(format(\'  LockedTime: {}\'))")')
 
 
@@ -134,8 +136,8 @@ class UblaCommand(Command):
           'get':
               GcloudStorageMap(
                   gcloud_command=[
-                      'alpha', 'storage', 'buckets', 'list',
-                      GCLOUD_FORMAT_STRING, '--raw'
+                      'storage', 'buckets', 'list', _GCLOUD_FORMAT_STRING,
+                      '--raw'
                   ],
                   flag_map={},
               ),
@@ -145,7 +147,6 @@ class UblaCommand(Command):
                       'on':
                           GcloudStorageMap(
                               gcloud_command=[
-                                  'alpha',
                                   'storage',
                                   'buckets',
                                   'update',
@@ -156,7 +157,6 @@ class UblaCommand(Command):
                       'off':
                           GcloudStorageMap(
                               gcloud_command=[
-                                  'alpha',
                                   'storage',
                                   'buckets',
                                   'update',

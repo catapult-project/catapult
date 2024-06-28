@@ -57,7 +57,6 @@ group("telemetry_chrome_test_support") {
     "third_party/beautifulsoup4/",
     "third_party/beautifulsoup4-4.9.3/",
     "third_party/cachetools/",
-    "third_party/certifi/",
     "third_party/chai/",
     "third_party/chardet/",
     "third_party/click/",

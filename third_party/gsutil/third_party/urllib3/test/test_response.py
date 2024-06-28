@@ -9,7 +9,7 @@ from base64 import b64decode
 from io import BufferedReader, BytesIO, TextIOWrapper
 from test import onlyBrotlipy
 
-from unittest import mock
+import mock
 import pytest
 import six
 

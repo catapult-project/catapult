@@ -123,9 +123,13 @@ class BucketPolicyOnlyCommand(Command):
       },
   )
 
-  # Get command will display "Uniform bucket-level access" display string, but
-  # contents are otherwise identical.
+  # The get subcommand works exactly like ubla except we want to replace
+  # "Uniform bucket-level access" with the bpo text.
   gcloud_storage_map = ubla.UblaCommand.gcloud_storage_map
+  format_flag = gcloud_storage_map.gcloud_command['get'].gcloud_command[3]
+  gcloud_storage_map.gcloud_command['get'].gcloud_command[
+      3] = format_flag.replace('Uniform bucket-level access',
+                               'Bucket Policy Only')
 
   def _ValidateBucketListingRefAndReturnBucketName(self, blr):
     if blr.storage_url.scheme != 'gs':

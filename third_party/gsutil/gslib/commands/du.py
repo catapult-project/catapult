@@ -150,7 +150,7 @@ class DuCommand(Command):
   )
 
   gcloud_storage_map = GcloudStorageMap(
-      gcloud_command=['alpha', 'storage', 'du'],
+      gcloud_command=['storage', 'du'],
       flag_map={
           '-0': GcloudStorageFlag('--zero-terminator'),
           '-a': GcloudStorageFlag('--all-versions'),

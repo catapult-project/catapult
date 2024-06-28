@@ -58,8 +58,8 @@ class BufferWrapper(object):
     """Waits for space in the buffer, then writes data to the buffer."""
     while True:
       with self.daisy_chain_wrapper.lock:
-        if (self.daisy_chain_wrapper.bytes_buffered <
-            self.daisy_chain_wrapper.max_buffer_size):
+        if (self.daisy_chain_wrapper.bytes_buffered
+            < self.daisy_chain_wrapper.max_buffer_size):
           break
       # Buffer was full, yield thread priority so the upload can pull from it.
       time.sleep(0)

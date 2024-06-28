@@ -87,7 +87,7 @@ class TestWrappedCredentials(testcase.GsUtilUnitTestCase):
     http = oauth2client.transport.get_http_object()
     creds.authorize(http)
     _, content = http.request(uri="google.com")
-    self.assertEquals(content, CONTENT)
+    self.assertEqual(content, CONTENT)
     creds._base.refresh.assert_called_once_with(mock.ANY)
 
     # Make sure the default request gets called with the correct token.
@@ -109,22 +109,22 @@ class TestWrappedCredentials(testcase.GsUtilUnitTestCase):
     creds.token_expiry = datetime.datetime(2001, 12, 5, 0, 0)
     creds_json = creds.to_json()
     json_values = json.loads(creds_json)
-    self.assertEquals(json_values["client_id"], "foo")
-    self.assertEquals(json_values['access_token'], ACCESS_TOKEN)
-    self.assertEquals(json_values['token_expiry'], "2001-12-05T00:00:00Z")
-    self.assertEquals(json_values["_base"]["audience"], "foo")
-    self.assertEquals(json_values["_base"]["subject_token_type"], "bar")
-    self.assertEquals(json_values["_base"]["token_url"],
-                      "https://sts.googleapis.com")
-    self.assertEquals(json_values["_base"]["credential_source"]["url"],
-                      "google.com")
+    self.assertEqual(json_values["client_id"], "foo")
+    self.assertEqual(json_values['access_token'], ACCESS_TOKEN)
+    self.assertEqual(json_values['token_expiry'], "2001-12-05T00:00:00Z")
+    self.assertEqual(json_values["_base"]["audience"], "foo")
+    self.assertEqual(json_values["_base"]["subject_token_type"], "bar")
+    self.assertEqual(json_values["_base"]["token_url"],
+                     "https://sts.googleapis.com")
+    self.assertEqual(json_values["_base"]["credential_source"]["url"],
+                     "google.com")
 
     creds2 = WrappedCredentials.from_json(creds_json)
     self.assertIsInstance(creds2, WrappedCredentials)
     self.assertIsInstance(creds2._base, identity_pool.Credentials)
-    self.assertEquals(creds2.client_id, "foo")
-    self.assertEquals(creds2.access_token, ACCESS_TOKEN)
-    self.assertEquals(creds2.token_expiry, creds.token_expiry)
+    self.assertEqual(creds2.client_id, "foo")
+    self.assertEqual(creds2.access_token, ACCESS_TOKEN)
+    self.assertEqual(creds2.token_expiry, creds.token_expiry)
 
   def testWrappedCredentialSerializationMissingKeywords(self):
     """Test logic for creating a Wrapped Credentials using keywords that exist in IdentityPool but not AWS."""
@@ -172,7 +172,7 @@ class TestWrappedCredentials(testcase.GsUtilUnitTestCase):
     http = oauth2client.transport.get_http_object()
     creds.authorize(http)
     _, content = http.request(uri="google.com")
-    self.assertEquals(content, CONTENT)
+    self.assertEqual(content, CONTENT)
     creds._base.refresh.assert_called_once_with(mock.ANY)
 
     # Make sure the default request gets called with the correct token.
@@ -236,13 +236,13 @@ class TestWrappedCredentials(testcase.GsUtilUnitTestCase):
                 "clientSecret",
         }
     }
-    self.assertEquals(json_values, expected_json_values)
+    self.assertEqual(json_values, expected_json_values)
 
     creds2 = WrappedCredentials.from_json(creds_json)
     self.assertIsInstance(creds2, WrappedCredentials)
     self.assertIsInstance(creds2._base,
                           external_account_authorized_user.Credentials)
-    self.assertEquals(creds2.client_id, "clientId")
+    self.assertEqual(creds2.client_id, "clientId")
 
   def testFromJsonAWSCredentials(self):
     creds = WrappedCredentials.from_json(

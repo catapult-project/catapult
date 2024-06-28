@@ -14,7 +14,7 @@
 
 import unittest
 
-from unittest import mock
+import mock
 
 from oauth2client import _pkce
 

@@ -277,8 +277,8 @@ class StatusMessageManager(object):
     Returns:
       Whether or not we should print the progress.
     """
-    sufficient_time_elapsed = (cur_time - self.refresh_message_time >=
-                               self.update_message_period)
+    sufficient_time_elapsed = (cur_time - self.refresh_message_time
+                               >= self.update_message_period)
     # Don't report if we aren't actually going to do anything (for example,
     # an rsync that will sync 0 objects).
     nonzero_report = self.num_objects
@@ -325,9 +325,8 @@ class StatusMessageManager(object):
       cur_progress: The current progress, in number of objects finished or in
                     bytes.
     """
-    while (
-        len(self.old_progress) > 1 and
-        cur_time - self.old_progress[0].time > self.sliding_throughput_period):
+    while (len(self.old_progress) > 1 and cur_time - self.old_progress[0].time
+           > self.sliding_throughput_period):
       self.old_progress.popleft()
 
     if not self.old_progress:
@@ -479,8 +478,8 @@ class MetadataManager(StatusMessageManager):
                            ' objects]')
       percentage_completed = ''
 
-    if (self.refresh_message_time - self.start_time >
-        self.first_throughput_latency):
+    if (self.refresh_message_time - self.start_time
+        > self.first_throughput_latency):
       # Should also include throughput.
       # An example of throughput here would be '2 objects/s'
       throughput = '%.2f objects/s' % self.throughput
@@ -854,8 +853,8 @@ class DataManager(StatusMessageManager):
     else:
       percentage_completed = ''
 
-    if (self.refresh_message_time - self.start_time >
-        self.first_throughput_latency):
+    if (self.refresh_message_time - self.start_time
+        > self.first_throughput_latency):
       # Should also include throughput.
       # An example of throughput here would be ' 82.3 MiB/s'
       throughput = BytesToFixedWidthString(self.throughput) + '/s'

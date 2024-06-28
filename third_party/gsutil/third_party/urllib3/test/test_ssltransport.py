@@ -4,7 +4,7 @@ import socket
 import ssl
 import sys
 
-from unittest import mock
+import mock
 import pytest
 
 from dummyserver.server import DEFAULT_CA, DEFAULT_CERTS
@@ -101,7 +101,7 @@ class SingleTLSLayerTestCase(SocketDummyServerTestCase):
 
     @pytest.mark.timeout(PER_TEST_TIMEOUT)
     def test_start_closed_socket(self):
-        """ Errors generated from an unconnected socket should bubble up."""
+        """Errors generated from an unconnected socket should bubble up."""
         sock = socket.socket(socket.AF_INET)
         context = ssl.create_default_context()
         sock.close()
@@ -110,7 +110,7 @@ class SingleTLSLayerTestCase(SocketDummyServerTestCase):
 
     @pytest.mark.timeout(PER_TEST_TIMEOUT)
     def test_close_after_handshake(self):
-        """ Socket errors should be bubbled up """
+        """Socket errors should be bubbled up"""
         self.start_dummy_server()
 
         sock = socket.create_connection((self.host, self.port))
@@ -123,7 +123,7 @@ class SingleTLSLayerTestCase(SocketDummyServerTestCase):
 
     @pytest.mark.timeout(PER_TEST_TIMEOUT)
     def test_wrap_existing_socket(self):
-        """ Validates a single TLS layer can be established.  """
+        """Validates a single TLS layer can be established."""
         self.start_dummy_server()
 
         sock = socket.create_connection((self.host, self.port))
@@ -187,7 +187,7 @@ class SingleTLSLayerTestCase(SocketDummyServerTestCase):
 
     @pytest.mark.timeout(PER_TEST_TIMEOUT)
     def test_ssl_object_attributes(self):
-        """ Ensures common ssl attributes are exposed """
+        """Ensures common ssl attributes are exposed"""
         self.start_dummy_server()
 
         sock = socket.create_connection((self.host, self.port))
@@ -215,7 +215,7 @@ class SingleTLSLayerTestCase(SocketDummyServerTestCase):
 
     @pytest.mark.timeout(PER_TEST_TIMEOUT)
     def test_socket_object_attributes(self):
-        """ Ensures common socket attributes are exposed """
+        """Ensures common socket attributes are exposed"""
         self.start_dummy_server()
 
         sock = socket.create_connection((self.host, self.port))
@@ -258,6 +258,7 @@ class SocketProxyDummyServer(SocketDummyServerTestCase):
                 )
                 self._read_write_loop(client_sock, upstream_sock)
                 upstream_sock.close()
+                client_sock.close()
 
         self._start_server(proxy_handler)
 
@@ -286,6 +287,10 @@ class SocketProxyDummyServer(SocketDummyServerTestCase):
                 if write_socket in writable:
                     try:
                         b = read_socket.recv(chunks)
+                        if len(b) == 0:
+                            # One of the sockets has EOFed, we return to close
+                            # both.
+                            return
                         write_socket.send(b)
                     except ssl.SSLEOFError:
                         # It's possible, depending on shutdown order, that we'll
@@ -335,6 +340,7 @@ class TlsInTlsTestCase(SocketDummyServerTestCase):
                 request = consume_socket(ssock)
                 validate_request(request)
                 ssock.send(sample_response())
+            sock.close()
 
         cls._start_server(socket_handler)
 

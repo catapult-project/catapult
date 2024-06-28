@@ -23,6 +23,7 @@ from __future__ import division
 from __future__ import unicode_literals
 
 import calendar
+import copy
 from datetime import datetime
 from datetime import timedelta
 import getpass
@@ -46,6 +47,7 @@ from gslib.storage_url import ContainsWildcard
 from gslib.storage_url import StorageUrlFromString
 from gslib.utils import constants
 from gslib.utils.boto_util import GetNewHttp
+from gslib.utils.shim_util import GcloudStorageMap, GcloudStorageFlag
 from gslib.utils.signurl_helper import CreatePayload, GetFinalUrl
 
 try:
@@ -108,7 +110,10 @@ _DETAILED_HELP_TEXT = ("""
   <https://cloud.google.com/storage/docs/gsutil/addlhelp/CredentialTypesSupportingVariousUseCases#supported-credential-types_1>`_
   for authentication, you can replace the  <private-key-file> argument with
   the -u or --use-service-account option to use the system-managed private key
-  directly. This avoids the need to download the private key file.
+  directly. This avoids the need to store a private key file locally, but
+  prior to using this flag you must `configure
+  <https://cloud.google.com/sdk/gcloud/reference/auth/activate-service-account>`_
+  ``gcloud`` to use your service account credentials.
 
 <B>OPTIONS</B>
   -b <project>  Allows you to specify a user project that will be billed for
@@ -174,15 +179,6 @@ _DETAILED_HELP_TEXT = ("""
   Create a signed URL for downloading an object valid for 10 minutes:
 
     gsutil signurl -d 10m <private-key-file> gs://<bucket>/<object>
-
-  Create a signed URL without a private key, using a service account's
-  credentials:
-
-    gsutil signurl -d 10m -u gs://<bucket>/<object>
-
-  Create a signed URL by impersonating a service account:
-
-    gsutil -i <service account email> signurl -d 10m -u gs://<bucket>/<object>
 
   Create a signed URL, valid for one hour, for uploading a plain text
   file via HTTP PUT:
@@ -402,6 +398,77 @@ class UrlSignCommand(Command):
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={},
   )
+
+  def get_gcloud_storage_args(self):
+    # TODO (b/287273841): Replace `copy` with a better pattern for
+    # translating flag values.
+    original_args = copy.deepcopy(self.args)
+    original_sub_opts = copy.deepcopy(self.sub_opts)
+    gcloud_command = [
+        'storage', 'sign-url',
+        '--format=csv[separator="\\t"](resource:label="URL",'
+        ' http_verb:label="HTTP Method",'
+        ' expiration:label="Expiration",'
+        ' signed_url:label="Signed URL")', '--private-key-file=' + self.args[0]
+    ]
+    self.args = self.args[1:]
+
+    duration_arg_idx = None
+    http_verb_arg_idx = None
+    content_type_arg_idx = None
+    billing_project_arg_idx = None
+
+    for i, (flag, _) in enumerate(self.sub_opts):
+      if flag == '-d':
+        duration_arg_idx = i
+      elif flag == '-m':
+        http_verb_arg_idx = i
+      elif flag == '-c':
+        content_type_arg_idx = i
+      elif flag == '-b':
+        billing_project_arg_idx = i
+
+    if duration_arg_idx is not None:
+      # Convert duration to seconds, which gcloud can handle.
+      seconds = str(
+          int(
+              _DurationToTimeDelta(
+                  self.sub_opts[duration_arg_idx][1]).total_seconds())) + 's'
+      self.sub_opts[duration_arg_idx] = ('-d', seconds)
+
+    if http_verb_arg_idx is not None:
+      if self.sub_opts[http_verb_arg_idx][1] == 'RESUMABLE':
+        self.sub_opts[http_verb_arg_idx] = ('-m', 'POST')
+        gcloud_command += ['--headers=x-goog-resumable=start']
+
+    if content_type_arg_idx is not None:
+      content_type_value = self.sub_opts[content_type_arg_idx][1]
+      self.sub_opts[content_type_arg_idx] = ('-c', 'content-type=' +
+                                             content_type_value)
+
+    if billing_project_arg_idx is not None:
+      project_value = self.sub_opts[billing_project_arg_idx][1]
+      self.sub_opts[billing_project_arg_idx] = ('-b',
+                                                'userProject=' + project_value)
+
+    fully_translated_command = super().get_gcloud_storage_args(
+        GcloudStorageMap(gcloud_command=gcloud_command,
+                         flag_map={
+                             '-m': GcloudStorageFlag('--http-verb'),
+                             '-d': GcloudStorageFlag('--duration'),
+                             '-b': GcloudStorageFlag('--query-params'),
+                             '-c': GcloudStorageFlag('--headers'),
+                             '-r': GcloudStorageFlag('--region'),
+                             '-p': GcloudStorageFlag('--private-key-password'),
+                         }))
+
+    # Ensures dry run mode works correctly, as flag translation requires
+    # mutating command state.
+    # TODO(b/287273841): Refactor so that there's a better pattern for
+    # translating flag values.
+    self.args = original_args
+    self.sub_opts = original_sub_opts
+    return fully_translated_command
 
   def _ParseAndCheckSubOpts(self):
     # Default argument values

@@ -1,24 +1,21 @@
 os: linux
-dist: trusty
-sudo: false
+dist: xenial
 language: python
 python:
-- 2.6
 - 2.7
-- 3.2
-- 3.3
 - 3.4
 - 3.5
-- &mainstream_python 3.6
-- 3.6-dev
-- 3.7-dev
-- pypy2.7-5.8.0
-- pypy3.5-5.8.0
+- 3.6
+- 3.7
+- &mainstream_python 3.8
+- nightly
+- pypy
+- pypy3
 install:
-- pip install --upgrade --force-reinstall "setuptools; python_version != '3.2' and python_version != '3.3'" "setuptools < 30; python_version == '3.2'" "setuptools < 40; python_version == '3.3'"
+- pip install --upgrade --force-reinstall "setuptools; python_version != '3.3'" "setuptools < 40; python_version == '3.3'"
 - pip uninstall --yes six || true
 - pip install --upgrade --force-reinstall --ignore-installed -e .
-- pip install pytest
+- pip install "pytest==4.6.9; python_version != '3.3'" "pytest==2.9.2; python_version == '3.3'" "typing; python_version < '3'"
 - &py_pkg_list pip list --format=columns || pip list
 script:
 - py.test
@@ -29,6 +26,8 @@ script:
 jobs:
   fast_finish: true
   include:
+  - python: 3.3
+    dist: trusty
   - stage: upload new version of python package to PYPI (only for tagged commits)
     python: *mainstream_python
     install: skip
@@ -39,10 +38,11 @@ jobs:
         tags: true
         all_branches: true
         python: *mainstream_python
-      user: gutworth
+      user: __token__
       distributions: "sdist bdist_wheel"
       password:
-        secure: NPhfQT7XnZb0r0hKGWBwpHPXYpe3diD8aQXaUUq7+Y/iLAk5PhoFCRz+lPqnu7HiQcC2mcdzz3fvvRmj9IR/4EJj/+hkAfUeK4utwhXojSovEyk7VM/sUoT8hK4x++42sqbTvu2UcoSabTMEdFXC/Rhg/HHmOYzRMONJF2l8NGLsOu+t+BM6ruMZbmteGcquedi6JcOOAx7KR8dZ5vY387HwMyZg8yis4Qp7fSSivLzjV5i60ZDE4GzbD0XXywc+dxvl6KnLvJN4ApwnDRgTDsPU7OuEG09od0kVELhxsvwvKh47iBor0vVWCLb+sOgQj+EgMVZNqbghvTdQZMR/D4CADKBHHYZcCS7PuesbXfP4/USzDHPQB1i9bPMo7heRJpOfAt09SC49MJ6F1oEXkDWizN64Q9S3C0ZZvl4oDRcBxOYv17QyCM88ezhokadF2anVz+qEG7QINDrpq0qDGYnvb+1m7iZkGELnbmYPN3vu4Kow2LQkIE2tomv6Hvd/NTCEXHoPBybNE2LhmfrN6tdpkT0DDAg2PCnexcl+usZArHYuA/chX1IuhmxrQCeVVhSiVdxldR3XRjmavYcNhLsYP9upxEGEtQw7zR8vIw+WDlZmR+UN44sjTQCescAznZyxlqBtB6heW5CkrtiMjcmwKplCccsPHwWrkKOSb6w=
+        secure: "F83KFmQnpBcR/BD7tBjJcmchvvoxYjIB0EDmDKEM+Rq1SJUH0qtYZlMJ0H4S8sTeY4+h26Ssfg5+oe9SqS5AkEMLFVM2lDcFtIXNR9bIvsXjkKsdxIWZJJ+Vl7EmW+ND/oj9IWnHOvaPr6F1YQqOuP2LfrDsoZ+4wo4X+UCC8xCGCaAIliPIt6y7U3ENeCQJTwUc93eDMZrEROmWAwsxF54a13CIkbTWe+S3iEp949MaNBWx2f9XNi7Gidk2gKUKordK0MXiO7+DcrQdiCAtPryqqNKR/JjZ66P9eK1A2VWyk65/5E8+OJeexuSlHGg52HKoXU2BPIkzgcaSjt79WQKVKJzYi2iD0Bd/9/RKrnq8+GVd0yT5IJV5OhwcpT0ScPs/9pAZ1mSEufx1FtXN61ujs2VEuleSQAWBiNGXsRQNCzVxgfatkUTNMjB0jxUzNay5CFrMlo5AVWBcdByhUto3szV/lxLj7arM48GHXaf+5MXhaELU8L2pTpJoQ8Rdj+Tx5HbhJ+wWF6EyT919prB2/6fM4d/MHIuHfJkCasYZSvhamGnTBzxxH9Fv7l18FyrBXF+Rz65mXVkUlxFMICSMWRJWEb4I2KWK1bsxCFy+o38TMeije+1nbvKVRKbLMn6mbXfBb/wfLTNogHFXrlR5VcugcP079dqR9O3iV4M="
+
 cache:
   pip: true
 after_failure:

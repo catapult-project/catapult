@@ -106,12 +106,12 @@ class TestStat(testcase.GsUtilIntegrationTestCase):
     object_uri = self.CreateObject(contents=b'z')
     stdout = self.RunGsUtil(['-q', 'stat', suri(object_uri)],
                             return_stdout=True)
-    self.assertEquals(0, len(stdout))
+    self.assertEqual(0, len(stdout))
     stdout = self.RunGsUtil(
         ['-q', 'stat', suri(object_uri, 'junk')],
         return_stdout=True,
         expected_status=1)
-    self.assertEquals(0, len(stdout))
+    self.assertEqual(0, len(stdout))
 
   def test_stat_of_non_object_uri(self):
     self.RunGsUtil(['-q', 'stat', 'gs://'], expected_status=1)

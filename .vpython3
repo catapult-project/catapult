@@ -411,8 +411,8 @@ wheel: <
   version: "version:0.5.1"
 >
 wheel: <
-  name: "infra/python/wheels/certifi-py2_py3"
-  version: "version:2020.11.8"
+  name: "infra/python/wheels/certifi-py3"
+  version: "version:2023.11.17"
 >
 wheel: <
   name: "infra/python/wheels/chardet-py2_py3"

@@ -41,6 +41,7 @@ from gslib.utils import hashing_helper
 from gslib.utils import parallelism_framework_util
 from gslib.utils.shim_util import GcloudStorageFlag
 from gslib.utils.shim_util import GcloudStorageMap
+from gslib.utils import shim_util
 
 _PutToQueueWithTimeout = parallelism_framework_util.PutToQueueWithTimeout
 
@@ -73,17 +74,16 @@ _DETAILED_HELP_TEXT = ("""
   -m          Calculate a MD5 hash for the specified files.
 """)
 
-_GCLOUD_FORMAT_STRING = ('--format='
-                         'value[separator="",terminator=""]('
-                         'digest_format.sub("^", "Hashes ["),'
-                         'url.sub("^", "] for ").sub("$", ":\n"),'
-                         'md5_hash.yesno(yes="\tHash (md5):\t\t", no=""),'
-                         'md5_hash.yesno(no=""),'
-                         'md5_hash.yesno(yes="\n", no=""),'
-                         'crc32c_hash.yesno(yes="\tHash (crc32c):\t\t", no=""),'
-                         'crc32c_hash.yesno(no=""),'
-                         'crc32c_hash.yesno(yes="\n", no="")'
-                         ')')
+_GCLOUD_FORMAT_STRING = (
+    '--format=' + 'value[separator="",terminator=""](' + 'digest_format.sub("' +
+    shim_util.get_format_flag_caret() + '", "Hashes ["),' + 'url.sub("' +
+    shim_util.get_format_flag_caret() + '", "] for ").sub("$", ":^\\^n"),' +
+    'md5_hash.yesno(yes="\tHash (md5):\t\t", no=""),' +
+    'md5_hash.yesno(no=""),' + 'md5_hash.yesno(yes="NEWLINE", no="")' +
+    '.sub("NEWLINE", "' + shim_util.get_format_flag_newline() + '"),' +
+    'crc32c_hash.yesno(yes="\tHash (crc32c):\t\t", no=""),' +
+    'crc32c_hash.yesno(no=""),' + 'crc32c_hash.yesno(yes="NEWLINE", no="")' +
+    '.sub("NEWLINE", "' + shim_util.get_format_flag_newline() + '")' + ')')
 
 
 class HashCommand(Command):
@@ -116,7 +116,6 @@ class HashCommand(Command):
   def get_gcloud_storage_args(self):
     gcloud_storage_map = GcloudStorageMap(
         gcloud_command=[
-            'alpha',
             'storage',
             'hash',
             _GCLOUD_FORMAT_STRING,

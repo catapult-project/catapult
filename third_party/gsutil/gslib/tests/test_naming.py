@@ -998,16 +998,20 @@ class GsutilNamingTests(testcase.GsUtilUnitTestCase):
 
   def testRecursiveCopyFilesToExistingBucketSubDirInvalidSourceParent(self):
     """Tests recursive copy of invalid paths files to existing bucket subdir."""
-    src_dir = self.CreateTempDir(test_files=['f0'])
+    src_dir1 = self.CreateTempDir(test_files=['f1'])
+    src_dir2 = os.path.join(src_dir1, 'nested')
+    os.mkdir(src_dir2)
+    self.CreateTempFile(tmpdir=src_dir2, file_name='f2')
     dst_bucket_uri = self.CreateBucket(test_objects=['dst_subdir/existing_obj'])
 
     for relative_path_string in ['.', '.' + os.sep, '..', '..' + os.sep]:
       with self.subTest(relative_path_string=relative_path_string):
+        invalid_parent_dir = os.path.join(src_dir2, relative_path_string)
         with self.assertRaises(InvalidUrlError):
           self.RunCommand('cp', [
               '-R',
-              src_dir,
-              relative_path_string,
+              src_dir1,
+              invalid_parent_dir,
               suri(dst_bucket_uri, 'dst_subdir'),
           ])
 

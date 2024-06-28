@@ -49,34 +49,34 @@ class TestRsyncFuncs(GsUtilUnitTestCase):
      dst_md5) = _ComputeNeededFileChecksums(logger, file_url_str, size, _NA,
                                             _NA, cloud_url_str, size, crc32c,
                                             _NA)
-    self.assertEquals(crc32c, src_crc32c)
-    self.assertEquals(_NA, src_md5)
-    self.assertEquals(crc32c, dst_crc32c)
-    self.assertEquals(_NA, dst_md5)
+    self.assertEqual(crc32c, src_crc32c)
+    self.assertEqual(_NA, src_md5)
+    self.assertEqual(crc32c, dst_crc32c)
+    self.assertEqual(_NA, dst_md5)
 
     # Test case where source is a file and dest has MD5 but not CRC32C.
     (src_crc32c, src_md5, dst_crc32c,
      dst_md5) = _ComputeNeededFileChecksums(logger, file_url_str, size, _NA,
                                             _NA, cloud_url_str, size, _NA, md5)
-    self.assertEquals(_NA, src_crc32c)
-    self.assertEquals(md5, src_md5)
-    self.assertEquals(_NA, dst_crc32c)
-    self.assertEquals(md5, dst_md5)
+    self.assertEqual(_NA, src_crc32c)
+    self.assertEqual(md5, src_md5)
+    self.assertEqual(_NA, dst_crc32c)
+    self.assertEqual(md5, dst_md5)
 
     # Test case where dest is a file and src has CRC32C.
     (src_crc32c, src_md5, dst_crc32c,
      dst_md5) = _ComputeNeededFileChecksums(logger, cloud_url_str, size, crc32c,
                                             _NA, file_url_str, size, _NA, _NA)
-    self.assertEquals(crc32c, dst_crc32c)
-    self.assertEquals(_NA, src_md5)
-    self.assertEquals(crc32c, src_crc32c)
-    self.assertEquals(_NA, src_md5)
+    self.assertEqual(crc32c, dst_crc32c)
+    self.assertEqual(_NA, src_md5)
+    self.assertEqual(crc32c, src_crc32c)
+    self.assertEqual(_NA, src_md5)
 
     # Test case where dest is a file and src has MD5 but not CRC32C.
     (src_crc32c, src_md5, dst_crc32c,
      dst_md5) = _ComputeNeededFileChecksums(logger, cloud_url_str, size, _NA,
                                             md5, file_url_str, size, _NA, _NA)
-    self.assertEquals(_NA, dst_crc32c)
-    self.assertEquals(md5, src_md5)
-    self.assertEquals(_NA, src_crc32c)
-    self.assertEquals(md5, src_md5)
+    self.assertEqual(_NA, dst_crc32c)
+    self.assertEqual(md5, src_md5)
+    self.assertEqual(_NA, src_crc32c)
+    self.assertEqual(md5, src_md5)

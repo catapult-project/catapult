@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 from datetime import datetime
 from datetime import timedelta
+import os
 import pkgutil
 
 import boto
@@ -35,6 +36,7 @@ import gslib.tests.testcase as testcase
 from gslib.tests.testcase.integration_testcase import (SkipForS3, SkipForXML)
 from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import SetBotoConfigForTest
+from gslib.tests.util import SetEnvironmentForTest
 from gslib.tests.util import unittest
 import gslib.tests.signurl_signatures as sigs
 from oauth2client import client
@@ -86,11 +88,18 @@ class TestSignUrl(testcase.GsUtilIntegrationTestCase):
 
   def testSignUrlInvalidDuration(self):
     """Tests signurl fails with out of bounds value for valid duration."""
+    if self._use_gcloud_storage:
+      expected_status = 2
+    else:
+      expected_status = 1
     stderr = self.RunGsUtil(['signurl', '-d', '123d', 'ks_file', 'gs://uri'],
                             return_stderr=True,
-                            expected_status=1)
-    self.assertIn('CommandException: Max valid duration allowed is 7 days',
-                  stderr)
+                            expected_status=expected_status)
+    if self._use_gcloud_storage:
+      self.assertIn('value must be less than or equal to 7d', stderr)
+    else:
+      self.assertIn('CommandException: Max valid duration allowed is 7 days',
+                    stderr)
 
   def testSignUrlInvalidDurationWithUseServiceAccount(self):
     """Tests signurl with -u flag fails duration > 12 hours."""
@@ -148,7 +157,7 @@ class TestSignUrl(testcase.GsUtilIntegrationTestCase):
          '0%BE%D0%B0%D1%80i%20%D1%85%D0%B8%D0%B2?x-goog-signature=')
     ]
 
-    self.assertEquals(len(objs), len(expected_partial_urls))
+    self.assertEqual(len(objs), len(expected_partial_urls))
 
     cmd_args = [
         'signurl', '-m', 'PUT', '-p', 'notasecret', '-r', 'us',
@@ -160,7 +169,7 @@ class TestSignUrl(testcase.GsUtilIntegrationTestCase):
 
     lines = stdout.split('\n')
     # Header, signed urls, trailing newline.
-    self.assertEquals(len(lines), len(objs) + 2)
+    self.assertEqual(len(lines), len(objs) + 2)
 
     # Strip the header line to make the indices line up.
     lines = lines[1:]
@@ -189,7 +198,7 @@ class TestSignUrl(testcase.GsUtilIntegrationTestCase):
         return_stdout=True)
 
     # Header, 3 signed urls, trailing newline
-    self.assertEquals(len(stdout.split('\n')), 5)
+    self.assertEqual(len(stdout.split('\n')), 5)
 
     for obj_url in obj_urls:
       self.assertIn(suri(obj_url), stdout)
@@ -217,7 +226,8 @@ class TestSignUrl(testcase.GsUtilIntegrationTestCase):
     self.RunGsUtil(['signurl', self._GetKsFile(), 'gs://'],
                    expected_status=1,
                    stdin='notasecret')
-    self.RunGsUtil(['signurl', 'file://tmp/abc'], expected_status=1)
+    self.RunGsUtil(['signurl', 'file://tmp/abc', 'gs://bucket'],
+                   expected_status=1)
 
 
 @unittest.skipUnless(HAVE_OPENSSL, 'signurl requires pyopenssl.')
@@ -265,7 +275,7 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
     for inp, expected in tests:
       try:
         td = gslib.commands.signurl._DurationToTimeDelta(inp)
-        self.assertEquals(td, expected)
+        self.assertEqual(td, expected)
       except CommandException:
         if expected is not None:
           self.fail('{0} failed to parse')
@@ -289,7 +299,7 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
           logger=self.logger,
           region='us-east',
           content_type='')
-    self.assertEquals(expected, signed_url)
+    self.assertEqual(expected, signed_url)
 
   @SkipForS3('Tests only uses gs credentials.')
   @SkipForXML('Tests only run on JSON API.')
@@ -440,7 +450,7 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
           logger=mock_logger,
           region='us-east',
           content_type='')
-    self.assertEquals(expected, signed_url)
+    self.assertEqual(expected, signed_url)
     # Resumable uploads with no content-type should issue a warning.
     self.assertTrue(mock_logger.warning_issued)
 
@@ -481,7 +491,7 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
           logger=self.logger,
           region='eu',
           content_type='text/plain')
-    self.assertEquals(expected, signed_url)
+    self.assertEqual(expected, signed_url)
 
   def testSignurlGetUsingKeyFile(self):
     """Tests the _GenSignedUrl function using key file with a GET method."""
@@ -502,7 +512,7 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
           logger=self.logger,
           region='asia',
           content_type='')
-    self.assertEquals(expected, signed_url)
+    self.assertEqual(expected, signed_url)
 
   def testSignurlGetWithJSONKeyUsingKeyFile(self):
     """Tests _GenSignedUrl with a GET method and the test JSON private key."""
@@ -527,7 +537,7 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
           logger=self.logger,
           region='asia',
           content_type='')
-    self.assertEquals(expected, signed_url)
+    self.assertEqual(expected, signed_url)
 
   def testSignurlGetWithUserProject(self):
     """Tests the _GenSignedUrl function with a userproject."""
@@ -549,4 +559,36 @@ class UnitTestSignUrl(testcase.GsUtilUnitTestCase):
           region='asia',
           content_type='',
           billing_project='myproject')
-    self.assertEquals(expected, signed_url)
+    self.assertEqual(expected, signed_url)
+
+
+@unittest.skipUnless(HAVE_OPENSSL, 'signurl requires pyopenssl.')
+class UnitTestSignUrlWithShim(testcase.ShimUnitTestBase):
+
+  def testShimTranslatesFlags(self):
+    key_contents = pkgutil.get_data('gslib', 'tests/test_data/test.json')
+    key_path = self.CreateTempFile(contents=key_contents)
+
+    with SetBotoConfigForTest([('GSUtil', 'use_gcloud_storage', 'True'),
+                               ('GSUtil', 'hidden_shim_mode', 'dry_run')]):
+      with SetEnvironmentForTest({
+          'CLOUDSDK_CORE_PASS_CREDENTIALS_TO_GSUTIL': 'True',
+          'CLOUDSDK_ROOT_DIR': 'fake_dir',
+      }):
+        mock_log_handler = self.RunCommand('signurl', [
+            '-d', '2m', '-m', 'RESUMABLE', '-r', 'US', '-b', 'project', '-c',
+            'application/octet-stream', key_path, 'gs://bucket/object'
+        ],
+                                           return_log_handler=True)
+        info_lines = '\n'.join(mock_log_handler.messages['info'])
+        self.assertIn(
+            'storage sign-url'
+            ' --format=csv[separator="\\t"](resource:label="URL", http_verb:label="HTTP Method", expiration:label="Expiration", signed_url:label="Signed URL")'
+            ' --private-key-file={}'
+            ' --headers=x-goog-resumable=start'
+            ' --duration 120s'
+            ' --http-verb POST'
+            ' --region US'
+            ' --query-params userProject=project'
+            ' --headers content-type=application/octet-stream'
+            ' gs://bucket/object'.format(key_path), info_lines)

@@ -21,7 +21,7 @@ import django.conf
 from django.conf.urls import include, url
 from django.contrib.auth import models as django_models
 from django.core import exceptions
-from unittest import mock
+import mock
 from six.moves import reload_module
 
 from oauth2client.contrib import django_util

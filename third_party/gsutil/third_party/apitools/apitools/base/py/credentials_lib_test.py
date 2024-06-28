@@ -19,7 +19,7 @@ import shutil
 import tempfile
 import unittest
 
-from unittest import mock
+import mock
 import six
 
 from apitools.base.py import credentials_lib

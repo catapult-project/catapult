@@ -71,8 +71,12 @@ class IamcredentailsApi(object):
     self.certs_file = GetCertsFile()
     self.http = GetNewHttp()
     self.http_base = 'https://'
-    self.host_base = config.get('Credentials', 'gs_iamcredentails_host',
-                                'iamcredentials.googleapis.com')
+    # The original config option had a typo; supporting it as a fall-back
+    # for legacy reasons.
+    legacy_typo = 'gs_iamcredentails_host'
+    self.host_base = config.get(
+        'Credentials', 'gs_iamcredentials_host',
+        config.get('Credentials', legacy_typo, 'iamcredentials.googleapis.com'))
     gs_iamcred_port = config.get('Credentials', 'gs_iamcredentails_port', None)
     self.host_port = (':' + gs_iamcred_port) if gs_iamcred_port else ''
     self.url_base = (self.http_base + self.host_base + self.host_port)

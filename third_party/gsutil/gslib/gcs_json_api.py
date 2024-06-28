@@ -59,6 +59,7 @@ from gslib.cloud_api import ResumableUploadStartOverException
 from gslib.cloud_api import ServiceException
 from gslib.exception import CommandException
 from gslib.gcs_json_credentials import SetUpJsonCredentialsAndCache
+from gslib.gcs_json_credentials import isP12Credentials
 from gslib.gcs_json_media import BytesTransferredContainer
 from gslib.gcs_json_media import DownloadCallbackConnectionClassFactory
 from gslib.gcs_json_media import HttpWithDownloadStream
@@ -251,8 +252,13 @@ class GcsJsonApi(CloudApi):
     else:
       self.authorized_download_http = self.download_http
       self.authorized_upload_http = self.upload_http
-    WrapDownloadHttpRequest(self.authorized_download_http)
-    WrapUploadHttpRequest(self.authorized_upload_http)
+
+    if isP12Credentials(self.credentials):
+      WrapDownloadHttpRequest(self.authorized_download_http.http)
+      WrapUploadHttpRequest(self.authorized_upload_http.http)
+    else:
+      WrapDownloadHttpRequest(self.authorized_download_http)
+      WrapUploadHttpRequest(self.authorized_upload_http)
 
     self.http_base = 'https://'
     gs_json_host = config.get('Credentials', 'gs_json_host', None)

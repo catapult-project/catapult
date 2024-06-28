@@ -19,7 +19,7 @@ from test import (
     resolvesLocalhostFQDN,
 )
 
-from unittest import mock
+import mock
 import pytest
 import trustme
 
@@ -336,6 +336,22 @@ class TestHTTPS(HTTPSDummyServerTestCase):
                 "Expected 'certificate verify failed', instead got: %r" % e.value.reason
             )
 
+    def test_wrap_socket_failure_resource_leak(self):
+        with HTTPSConnectionPool(
+            self.host,
+            self.port,
+            cert_reqs="CERT_REQUIRED",
+            ca_certs=self.bad_ca_path,
+        ) as https_pool:
+            conn = https_pool._get_conn()
+            try:
+                with pytest.raises(ssl.SSLError):
+                    conn.connect()
+
+                assert conn.sock
+            finally:
+                conn.close()
+
     def test_verified_without_ca_certs(self):
         # default is cert_reqs=None which is ssl.CERT_NONE
         with HTTPSConnectionPool(
@@ -368,7 +384,7 @@ class TestHTTPS(HTTPSDummyServerTestCase):
             assert isinstance(cm.value.reason, SSLError)
 
     def test_unverified_ssl(self):
-        """ Test that bare HTTPSConnection can connect, make requests """
+        """Test that bare HTTPSConnection can connect, make requests"""
         with HTTPSConnectionPool(self.host, self.port, cert_reqs=ssl.CERT_NONE) as pool:
             with mock.patch("warnings.warn") as warn:
                 r = pool.request("GET", "/")
@@ -567,7 +583,7 @@ class TestHTTPS(HTTPSDummyServerTestCase):
             https_pool.request("GET", "/")
 
     def test_tunnel(self):
-        """ test the _tunnel behavior """
+        """test the _tunnel behavior"""
         timeout = Timeout(total=None)
         with HTTPSConnectionPool(
             self.host, self.port, timeout=timeout, cert_reqs="CERT_NONE"
@@ -858,30 +874,39 @@ class TestHTTPS_NoSAN:
                 assert r.status == 200
                 assert warn.called
 
-
-class TestHTTPS_IPSAN:
-    def test_can_validate_ip_san(self, ip_san_server):
-        """Ensure that urllib3 can validate SANs with IP addresses in them."""
-        try:
-            import ipaddress  # noqa: F401
-        except ImportError:
-            pytest.skip("Only runs on systems with an ipaddress module")
-
+    def test_common_name_without_san_with_different_common_name(
+        self, no_san_server_with_different_commmon_name
+    ):
         with HTTPSConnectionPool(
-            ip_san_server.host,
-            ip_san_server.port,
+            no_san_server_with_different_commmon_name.host,
+            no_san_server_with_different_commmon_name.port,
             cert_reqs="CERT_REQUIRED",
-            ca_certs=ip_san_server.ca_certs,
+            ca_certs=no_san_server_with_different_commmon_name.ca_certs,
+        ) as https_pool:
+            with pytest.raises(MaxRetryError) as cm:
+                https_pool.request("GET", "/")
+            assert isinstance(cm.value.reason, SSLError)
+
+
+class TestHTTPS_IPV4SAN:
+    def test_can_validate_ip_san(self, ipv4_san_server):
+        """Ensure that urllib3 can validate SANs with IP addresses in them."""
+        with HTTPSConnectionPool(
+            ipv4_san_server.host,
+            ipv4_san_server.port,
+            cert_reqs="CERT_REQUIRED",
+            ca_certs=ipv4_san_server.ca_certs,
         ) as https_pool:
             r = https_pool.request("GET", "/")
             assert r.status == 200
 
 
 class TestHTTPS_IPv6Addr:
-    def test_strip_square_brackets_before_validating(self, ipv6_addr_server):
+    @pytest.mark.parametrize("host", ["::1", "[::1]"])
+    def test_strip_square_brackets_before_validating(self, ipv6_addr_server, host):
         """Test that the fix for #760 works."""
         with HTTPSConnectionPool(
-            "[::1]",
+            host,
             ipv6_addr_server.port,
             cert_reqs="CERT_REQUIRED",
             ca_certs=ipv6_addr_server.ca_certs,
@@ -891,15 +916,11 @@ class TestHTTPS_IPv6Addr:
 
 
 class TestHTTPS_IPV6SAN:
-    def test_can_validate_ipv6_san(self, ipv6_san_server):
+    @pytest.mark.parametrize("host", ["::1", "[::1]"])
+    def test_can_validate_ipv6_san(self, ipv6_san_server, host):
         """Ensure that urllib3 can validate SANs with IPv6 addresses in them."""
-        try:
-            import ipaddress  # noqa: F401
-        except ImportError:
-            pytest.skip("Only runs on systems with an ipaddress module")
-
         with HTTPSConnectionPool(
-            "[::1]",
+            host,
             ipv6_san_server.port,
             cert_reqs="CERT_REQUIRED",
             ca_certs=ipv6_san_server.ca_certs,

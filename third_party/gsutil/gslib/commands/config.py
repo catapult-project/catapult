@@ -788,7 +788,7 @@ class ConfigCommand(Command):
       elif cred_type == CredTypes.OAUTH2_USER_ACCOUNT:
         raise CommandException(
             'The user account authentication flow no longer works as of '
-            'Febuary 1, 2023. Tokens generated before this date will '
+            'February 1, 2023. Tokens generated before this date will '
             'continue to work. To authenticate with your user account, '
             'install gsutil via Cloud SDK and run "gcloud auth login"')
       elif cred_type == CredTypes.HMAC:

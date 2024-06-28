@@ -42,6 +42,7 @@ from gslib.cloud_api import NotFoundException
 from gslib.cloud_api import ServiceException
 from gslib.command import Command
 from gslib.command import DummyArgChecker
+from gslib.commands.cp import ShimTranslatePredefinedAclSubOptForCopy
 from gslib.command_argument import CommandArgument
 from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
@@ -92,6 +93,8 @@ from gslib.utils.posix_util import WarnInvalidValue
 from gslib.utils.posix_util import WarnNegativeAttribute
 from gslib.utils.rsync_util import DiffAction
 from gslib.utils.rsync_util import RsyncDiffToApply
+from gslib.utils.shim_util import GcloudStorageFlag
+from gslib.utils.shim_util import GcloudStorageMap
 from gslib.utils.system_util import IS_WINDOWS
 from gslib.utils.translation_helper import CopyCustomMetadata
 from gslib.utils.unit_util import CalculateThroughput
@@ -363,7 +366,7 @@ _DETAILED_HELP_TEXT = ("""
      checksums or perform partial replacements.
 
 <B>OPTIONS</B>
-  -a canned_acl  Sets named canned_acl when uploaded objects created. See
+  -a predef-acl  Sets the specified predefined ACL on uploaded objects. See
                  "gsutil help acls" for further details. Note that rsync will
                  decide whether or not to perform a copy based only on object
                  size and modification time, not current ACL state. Also see the
@@ -490,7 +493,7 @@ _DETAILED_HELP_TEXT = ("""
                  path is always relative (similar to Unix rsync or tar exclude
                  options). For example, if you run the command:
 
-                   gsutil rsync -x "data.[/\\\\].*\\.txt$" dir gs://my-bucket
+                   gsutil rsync -x "data.[/\\].*\\.txt$" dir gs://my-bucket
 
                  it skips the file dir/data1/a.txt.
 
@@ -502,9 +505,9 @@ _DETAILED_HELP_TEXT = ("""
                  skips all .txt and .jpg files in dir.
 
                  NOTE: When using the Windows cmd.exe command line interpreter,
-                 use ^ as an escape character instead of \\ and escape the |
-                 character. When using Windows PowerShell, use ' instead of "
-                 and surround the | character with ".
+                 use ``^`` as an escape character instead of ``\\`` and escape
+                 the ``|`` character. When using Windows PowerShell, use ``'``
+                 instead of ``"`` and surround the ``|`` character with ``"``.
 
   -y pattern     Similar to the -x option, but the command will first skip
                  directories/prefixes using the provided pattern and then
@@ -512,7 +515,7 @@ _DETAILED_HELP_TEXT = ("""
                  much faster, but won't work as intended with negative
                  lookahead patterns. For example, if you run the command:
 
-                   gsutil rsync -y "^(?!.*\.txt$).*" dir gs://my-bucket
+                   gsutil rsync -y "^(?!.*\\.txt$).*" dir gs://my-bucket
 
                  This would first exclude all subdirectories unless they end in
                  .txt before excluding all files except those ending in .txt.
@@ -1602,6 +1605,51 @@ class RsyncCommand(Command):
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={},
   )
+
+  def get_gcloud_storage_args(self):
+    ShimTranslatePredefinedAclSubOptForCopy(self.sub_opts)
+
+    gcloud_command = ['storage', 'rsync']
+    flag_keys = [flag for flag, _ in self.sub_opts]
+    if '-e' not in flag_keys:
+      gcloud_command += ['--no-ignore-symlinks']
+      self.logger.warn(
+          'By default, gsutil copies file symlinks, but, by default, this'
+          ' command (run via the gcloud storage shim) does not copy any'
+          ' symlinks.')
+    if '-P' in flag_keys:
+      _, (source_path, destination_path) = self.ParseSubOpts(
+          should_update_sub_opts_and_args=False)
+      if (StorageUrlFromString(source_path).IsCloudUrl() and
+          StorageUrlFromString(destination_path).IsFileUrl()):
+        self.logger.warn(
+            'For preserving POSIX with rsync downloads, gsutil aborts if a'
+            ' single download will result in invalid destination POSIX.'
+            ' However, this command (run via the gcloud storage shim) will'
+            ' skip invalid copies and still perform valid copies.')
+
+    gcloud_storage_map = GcloudStorageMap(
+        gcloud_command=gcloud_command,
+        flag_map={
+            '-a': GcloudStorageFlag('--predefined-acl'),
+            '-c': GcloudStorageFlag('--checksums-only'),
+            '-C': GcloudStorageFlag('--continue-on-error'),
+            '-d': GcloudStorageFlag('--delete-unmatched-destination-objects'),
+            '-e': GcloudStorageFlag('--ignore-symlinks'),
+            '-i': GcloudStorageFlag('--no-clobber'),
+            '-J': GcloudStorageFlag('--gzip-in-flight-all'),
+            '-j': GcloudStorageFlag('--gzip-in-flight'),
+            '-n': GcloudStorageFlag('--dry-run'),
+            '-P': GcloudStorageFlag('--preserve-posix'),
+            '-p': GcloudStorageFlag('--preserve-acl'),
+            '-R': GcloudStorageFlag('--recursive'),
+            '-r': GcloudStorageFlag('--recursive'),
+            '-U': GcloudStorageFlag('--skip-unsupported'),
+            '-u': GcloudStorageFlag('--skip-if-dest-has-newer-mtime'),
+            '-x': GcloudStorageFlag('--exclude'),
+        },
+    )
+    return super().get_gcloud_storage_args(gcloud_storage_map)
 
   def _InsistContainer(self, url_str, treat_nonexistent_object_as_subdir):
     """Sanity checks that URL names an existing container.

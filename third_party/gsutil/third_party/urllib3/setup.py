@@ -56,6 +56,8 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Topic :: Internet :: WWW/HTTP",
@@ -74,7 +76,6 @@ setup(
     packages=[
         "urllib3",
         "urllib3.packages",
-        "urllib3.packages.ssl_match_hostname",
         "urllib3.packages.backports",
         "urllib3.contrib",
         "urllib3.contrib._securetransport",
@@ -84,7 +85,11 @@ setup(
     requires=[],
     python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4",
     extras_require={
-        "brotli": ["brotlipy>=0.6.0"],
+        "brotli": [
+            "brotli>=1.0.9; (os_name != 'nt' or python_version >= '3') and platform_python_implementation == 'CPython'",
+            "brotlicffi>=0.8.0; (os_name != 'nt' or python_version >= '3') and platform_python_implementation != 'CPython'",
+            "brotlipy>=0.6.0; os_name == 'nt' and python_version < '3'",
+        ],
         "secure": [
             "pyOpenSSL>=0.14",
             "cryptography>=1.3.4",

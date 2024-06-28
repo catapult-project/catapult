@@ -19,7 +19,7 @@ import datetime
 import unittest
 
 from django.db import models
-from unittest import mock
+import mock
 
 from oauth2client import GOOGLE_TOKEN_URI
 from oauth2client.client import OAuth2Credentials

@@ -22,3 +22,4 @@ from __future__ import unicode_literals
 from gslib.tests.testcase.integration_testcase import GsUtilIntegrationTestCase
 from gslib.tests.util import KmsTestingResources
 from gslib.tests.testcase.unit_testcase import GsUtilUnitTestCase
+from gslib.tests.testcase.shim_unit_test_base import ShimUnitTestBase

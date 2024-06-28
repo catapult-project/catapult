@@ -58,101 +58,100 @@ class TestRetentionUtil(testcase.GsUtilUnitTestCase):
   def testRetentionInSecondsMatch(self):
     secs = '30s'
     secs_match = RetentionInSecondsMatch(secs)
-    self.assertEquals('30', secs_match.group('number'))
+    self.assertEqual('30', secs_match.group('number'))
 
     secs = '1s'
     secs_match = RetentionInSecondsMatch(secs)
-    self.assertEquals('1', secs_match.group('number'))
+    self.assertEqual('1', secs_match.group('number'))
 
     secs = '1second'
     secs_match = RetentionInSecondsMatch(secs)
-    self.assertEquals(None, secs_match)
+    self.assertEqual(None, secs_match)
 
   def testRetentionInMonthsMatch(self):
     months = '30m'
     months_match = RetentionInMonthsMatch(months)
-    self.assertEquals('30', months_match.group('number'))
+    self.assertEqual('30', months_match.group('number'))
 
     months = '1m'
     months_match = RetentionInMonthsMatch(months)
-    self.assertEquals('1', months_match.group('number'))
+    self.assertEqual('1', months_match.group('number'))
 
     months = '1month'
     months_match = RetentionInMonthsMatch(months)
-    self.assertEquals(None, months_match)
+    self.assertEqual(None, months_match)
 
   def testRetentionInDaysMatch(self):
     days = '30d'
     days_match = RetentionInDaysMatch(days)
-    self.assertEquals('30', days_match.group('number'))
+    self.assertEqual('30', days_match.group('number'))
 
     days = '1d'
     days_match = RetentionInDaysMatch(days)
-    self.assertEquals('1', days_match.group('number'))
+    self.assertEqual('1', days_match.group('number'))
 
     days = '1day'
     days_match = RetentionInDaysMatch(days)
-    self.assertEquals(None, days_match)
+    self.assertEqual(None, days_match)
 
   def testRetentionInYearsMatch(self):
     years = '30y'
     years_match = RetentionInYearsMatch(years)
-    self.assertEquals('30', years_match.group('number'))
+    self.assertEqual('30', years_match.group('number'))
 
     years = '1y'
     years_match = RetentionInYearsMatch(years)
-    self.assertEquals('1', years_match.group('number'))
+    self.assertEqual('1', years_match.group('number'))
 
     years = '1year'
     years_match = RetentionInYearsMatch(years)
-    self.assertEquals(None, years_match)
+    self.assertEqual(None, years_match)
 
   def testRetentionInSeconds(self):
     one_year = '1y'
     one_year_in_seconds = RetentionInSeconds(one_year)
-    self.assertEquals(SECONDS_IN_YEAR, one_year_in_seconds)
+    self.assertEqual(SECONDS_IN_YEAR, one_year_in_seconds)
 
     one_month = '1m'
     one_month_in_seconds = RetentionInSeconds(one_month)
-    self.assertEquals(SECONDS_IN_MONTH, one_month_in_seconds)
+    self.assertEqual(SECONDS_IN_MONTH, one_month_in_seconds)
 
     one_day = '1d'
     one_day_in_seconds = RetentionInSeconds(one_day)
-    self.assertEquals(SECONDS_IN_DAY, one_day_in_seconds)
+    self.assertEqual(SECONDS_IN_DAY, one_day_in_seconds)
 
     one_second = '1s'
     one_second_in_seconds = RetentionInSeconds(one_second)
-    self.assertEquals(1, one_second_in_seconds)
+    self.assertEqual(1, one_second_in_seconds)
 
   def testRetentionPeriodToString(self):
     retention_str = _RetentionPeriodToString(SECONDS_IN_DAY)
-    self.assertRegexpMatches(retention_str, r'Duration: 1 Day\(s\)')
+    self.assertRegex(retention_str, r'Duration: 1 Day\(s\)')
 
     retention_str = _RetentionPeriodToString(SECONDS_IN_DAY - 1)
-    self.assertRegexpMatches(retention_str, r'Duration: 86399 Second\(s\)')
+    self.assertRegex(retention_str, r'Duration: 86399 Second\(s\)')
 
     retention_str = _RetentionPeriodToString(SECONDS_IN_DAY + 1)
-    self.assertRegexpMatches(retention_str,
-                             r'Duration: 86401 Seconds \(~1 Day\(s\)\)')
+    self.assertRegex(retention_str, r'Duration: 86401 Seconds \(~1 Day\(s\)\)')
 
     retention_str = _RetentionPeriodToString(SECONDS_IN_MONTH)
-    self.assertRegexpMatches(retention_str, r'Duration: 1 Month\(s\)')
+    self.assertRegex(retention_str, r'Duration: 1 Month\(s\)')
 
     retention_str = _RetentionPeriodToString(SECONDS_IN_MONTH - 1)
-    self.assertRegexpMatches(retention_str,
-                             r'Duration: 2678399 Seconds \(~30 Day\(s\)\)')
+    self.assertRegex(retention_str,
+                     r'Duration: 2678399 Seconds \(~30 Day\(s\)\)')
 
     retention_str = _RetentionPeriodToString(SECONDS_IN_MONTH + 1)
-    self.assertRegexpMatches(retention_str,
-                             r'Duration: 2678401 Seconds \(~31 Day\(s\)\)')
+    self.assertRegex(retention_str,
+                     r'Duration: 2678401 Seconds \(~31 Day\(s\)\)')
 
     retention_str = _RetentionPeriodToString(SECONDS_IN_YEAR)
-    self.assertRegexpMatches(retention_str, r'Duration: 1 Year\(s\)')
+    self.assertRegex(retention_str, r'Duration: 1 Year\(s\)')
 
     retention_str = _RetentionPeriodToString(SECONDS_IN_YEAR - 1)
-    self.assertRegexpMatches(retention_str,
-                             r'Duration: 31557599 Seconds \(~365 Day\(s\)\)')
+    self.assertRegex(retention_str,
+                     r'Duration: 31557599 Seconds \(~365 Day\(s\)\)')
 
     retention_str = _RetentionPeriodToString(SECONDS_IN_YEAR + 1)
-    self.assertRegexpMatches(retention_str,
-                             r'Duration: 31557601 Seconds \(~365 Day\(s\)\)')
+    self.assertRegex(retention_str,
+                     r'Duration: 31557601 Seconds \(~365 Day\(s\)\)')

@@ -224,7 +224,7 @@ class RmCommand(Command):
   )
 
   gcloud_storage_map = GcloudStorageMap(
-      gcloud_command=['alpha', 'storage', 'rm'],
+      gcloud_command=['storage', 'rm'],
       flag_map={
           '-r': GcloudStorageFlag('-r'),
           '-R': GcloudStorageFlag('-r'),

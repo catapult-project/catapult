@@ -112,6 +112,7 @@ THIRD_PARTY_LIBS = [
     ('idna', ''),  # requests dependency
     ('requests', ''),  # google auth dependency
     ('google-auth-library-python', ''),
+    ('google-auth-library-python-httplib2', ''), #Package name: google-auth-httplib2
 ]
 
 # The wrapper script adds all third_party libraries to the Python path, since

@@ -16,7 +16,7 @@ import datetime
 import json
 import unittest
 
-from unittest import mock
+import mock
 from six.moves import http_client
 
 from oauth2client.contrib import _metadata

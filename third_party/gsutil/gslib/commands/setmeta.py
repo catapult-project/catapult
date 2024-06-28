@@ -93,19 +93,17 @@ _DETAILED_HELP_TEXT = ("""
   distinguishes it from standard request headers. Other tools that send and
   receive object metadata by using the request body do not use this prefix.
 
-  See "gsutil help metadata" for details about how you can set metadata
-  while uploading objects, what metadata fields can be set and the meaning of
-  these fields, use of custom metadata, and how to view currently set metadata.
+  While gsutil supports custom metadata with arbitrary Unicode values, note
+  that when setting metadata using the XML API, which sends metadata as HTTP
+  headers, Unicode characters are encoded using UTF-8, then url-encoded to
+  ASCII. For example:
+  
+    gsutil setmeta -h "x-goog-meta-foo: ã" gs://bucket/object
 
-  NOTE: By default, publicly readable objects are served with a Cache-Control
-  header allowing such objects to be cached for 3600 seconds. For more details
-  about this default behavior see the CACHE-CONTROL section of
-  "gsutil help metadata". If you need to ensure that updates become visible
-  immediately, you should set a Cache-Control header of "Cache-Control:private,
-  max-age=0, no-transform" on such objects.  You can do this with the command:
-
-    gsutil setmeta -h "Content-Type:text/html" \\
-      -h "Cache-Control:private, max-age=0, no-transform" gs://bucket/*.html
+  stores the custom metadata key-value pair of ``foo`` and ``%C3%A3``.
+  Subsequently, running ``ls -L`` using the JSON API to list the object's
+  metadata prints ``%C3%A3``, while ``ls -L`` using the XML API url-decodes
+  this value automatically, printing the character ``ã``.
 
   The setmeta command reads each object's current generation and metageneration
   and uses those as preconditions unless they are otherwise specified by
@@ -115,6 +113,9 @@ _DETAILED_HELP_TEXT = ("""
 
     gsutil -h "x-goog-if-metageneration-match:2" setmeta
       -h "x-goog-meta-icecreamflavor:vanilla"
+
+  See `Object metadata <https://cloud.google.com/storage/docs/metadata>`_ for
+  more information about object metadata.
 
 <B>OPTIONS</B>
   -h          Specifies a header:value to be added, or header to be removed,
@@ -129,7 +130,7 @@ SETTABLE_FIELDS = [
     'content-language', 'content-type', 'custom-time'
 ]
 
-_GCLOUD_OBJECTS_UPDATE_COMMAND = ['alpha', 'storage', 'objects', 'update']
+_GCLOUD_OBJECTS_UPDATE_COMMAND = ['storage', 'objects', 'update']
 
 
 def _SetMetadataExceptionHandler(cls, e):

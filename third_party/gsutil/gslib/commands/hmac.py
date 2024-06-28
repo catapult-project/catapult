@@ -35,6 +35,7 @@ from gslib.utils.cloud_api_helper import GetCloudApiInstance
 from gslib.utils.shim_util import GcloudStorageFlag
 from gslib.utils.shim_util import GcloudStorageMap
 from gslib.utils.text_util import InsistAscii
+from gslib.utils import shim_util
 
 _CREATE_SYNOPSIS = """
   gsutil hmac create [-p <project>] <service_account_email>
@@ -208,19 +209,21 @@ def _KeyMetadataOutput(metadata):
   return message
 
 
-_CREATE_COMMAND_FORMAT = ('--format=value[separator="\n"]'
-                          '(format("Access ID:   {}", metadata.accessId),'
+_CREATE_COMMAND_FORMAT = ('--format=value[separator="' +
+                          shim_util.get_format_flag_newline() + '"](' +
+                          'format("Access ID:   {}", metadata.accessId),' +
                           'format("Secret:      {}", secret))')
 _DESCRIBE_COMMAND_FORMAT = (
-    '--format=value[separator="\n"](format("Access ID {}:", accessId),'
-    'format("\tState: {}", state),'
-    'format("\tService Account: {}", serviceAccountEmail),'
-    'format("\tProject: {}", projectId),'
-    'format("\tTime Created: {}",'
-    ' timeCreated.date(format="%a %d %b %Y %H:%M:%S GMT")),'
-    'format("\tTime Last Updated: {}",'
-    ' updated.date(format="%a %d %b %Y %H:%M:%S GMT")),'
-    'format("\tEtag: {}", etag))')
+    '--format=value[separator="' + shim_util.get_format_flag_newline() +
+    '"](format("Access ID {}:", accessId),' +
+    'format("\tState:                 {}", state),' +
+    'format("\tService Account:       {}", serviceAccountEmail),' +
+    'format("\tProject:               {}", projectId),' +
+    'format("\tTime Created:          {}",' +
+    ' timeCreated.date(format="%a %d %b %Y %H:%M:%S GMT")),' +
+    'format("\tTime Last Updated:     {}",' +
+    ' updated.date(format="%a %d %b %Y %H:%M:%S GMT")),' +
+    'format("\tEtag:                  {}", etag))')
 
 _LIST_COMMAND_SHORT_FORMAT = (
     '--format=table[no-heading](format("{} ", accessId),'
@@ -228,28 +231,23 @@ _LIST_COMMAND_SHORT_FORMAT = (
 
 _PROJECT_FLAG = GcloudStorageFlag('--project')
 
-CREATE_COMMAND = GcloudStorageMap(gcloud_command=[
-    'alpha', 'storage', 'hmac', 'create', _CREATE_COMMAND_FORMAT
-],
-                                  flag_map={
-                                      '-p': _PROJECT_FLAG,
-                                  })
-
-DELETE_COMMAND = GcloudStorageMap(
-    gcloud_command=['alpha', 'storage', 'hmac', 'delete'],
+CREATE_COMMAND = GcloudStorageMap(
+    gcloud_command=['storage', 'hmac', 'create', _CREATE_COMMAND_FORMAT],
     flag_map={
         '-p': _PROJECT_FLAG,
     })
 
-GET_COMMAND = GcloudStorageMap(gcloud_command=[
-    'alpha', 'storage', 'hmac', 'describe', _DESCRIBE_COMMAND_FORMAT
-],
-                               flag_map={'-p': _PROJECT_FLAG})
+DELETE_COMMAND = GcloudStorageMap(gcloud_command=['storage', 'hmac', 'delete'],
+                                  flag_map={
+                                      '-p': _PROJECT_FLAG,
+                                  })
+
+GET_COMMAND = GcloudStorageMap(
+    gcloud_command=['storage', 'hmac', 'describe', _DESCRIBE_COMMAND_FORMAT],
+    flag_map={'-p': _PROJECT_FLAG})
 
 LIST_COMMAND = GcloudStorageMap(
-    gcloud_command=[
-        'alpha', 'storage', 'hmac', 'list', _LIST_COMMAND_SHORT_FORMAT
-    ],
+    gcloud_command=['storage', 'hmac', 'list', _LIST_COMMAND_SHORT_FORMAT],
     flag_map={
         '-a': GcloudStorageFlag('--all'),
         '-u': GcloudStorageFlag('--service-account'),
@@ -257,9 +255,7 @@ LIST_COMMAND = GcloudStorageMap(
     })
 
 LIST_COMMAND_LONG_FORMAT = GcloudStorageMap(
-    gcloud_command=[
-        'alpha', 'storage', 'hmac', 'list', _DESCRIBE_COMMAND_FORMAT
-    ],
+    gcloud_command=['storage', 'hmac', 'list', _DESCRIBE_COMMAND_FORMAT],
     flag_map={
         '-a': GcloudStorageFlag('--all'),
         '-l': GcloudStorageFlag('--long'),
@@ -267,20 +263,19 @@ LIST_COMMAND_LONG_FORMAT = GcloudStorageMap(
         '-p': _PROJECT_FLAG
     })
 
-UPDATE_COMMAND = GcloudStorageMap(gcloud_command=[
-    'alpha', 'storage', 'hmac', 'update', _DESCRIBE_COMMAND_FORMAT
-],
-                                  flag_map={
-                                      '-s':
-                                          GcloudStorageFlag({
-                                              'ACTIVE': '--activate',
-                                              'INACTIVE': '--deactivate',
-                                          }),
-                                      '-e':
-                                          GcloudStorageFlag('--etag'),
-                                      '-p':
-                                          _PROJECT_FLAG
-                                  })
+UPDATE_COMMAND = GcloudStorageMap(
+    gcloud_command=['storage', 'hmac', 'update', _DESCRIBE_COMMAND_FORMAT],
+    flag_map={
+        '-s':
+            GcloudStorageFlag({
+                'ACTIVE': '--activate',
+                'INACTIVE': '--deactivate',
+            }),
+        '-e':
+            GcloudStorageFlag('--etag'),
+        '-p':
+            _PROJECT_FLAG
+    })
 
 
 class HmacCommand(Command):

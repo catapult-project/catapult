@@ -148,7 +148,7 @@ class TestCors(testcase.GsUtilIntegrationTestCase):
                             return_stderr=True)
 
     if self._use_gcloud_storage:
-      self.assertIn('JSONDecodeError', stderr)
+      self.assertIn('Found invalid JSON/YAML file', stderr)
     else:
       self.assertNotIn('XML CORS data provided', stderr)
 

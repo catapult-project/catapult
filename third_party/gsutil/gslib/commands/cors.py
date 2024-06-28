@@ -41,21 +41,21 @@ _GET_SYNOPSIS = """
 """
 
 _SET_SYNOPSIS = """
-  gsutil cors set cors-json-file gs://<bucket_name>...
+  gsutil cors set <cors-json-file> gs://<bucket_name>...
 """
 
 _GET_DESCRIPTION = """
 <B>GET</B>
   Gets the CORS configuration for a single bucket. The output from
-  "cors get" can be redirected into a file, edited and then updated using
-  "cors set".
+  ``cors get`` can be redirected into a file, edited and then updated using
+  ``cors set``.
 """
 
 _SET_DESCRIPTION = """
 <B>SET</B>
-  Sets the CORS configuration for one or more buckets. The
-  cors-json-file specified on the command line should be a path to a local
-  file containing a JSON document as described above.
+  Sets the CORS configuration for one or more buckets. The ``cors-json-file``
+  specified on the command line should be a path to a local file containing
+  a JSON-formatted CORS configuration, such as the example described above.
 """
 
 _SYNOPSIS = _SET_SYNOPSIS + _GET_SYNOPSIS.lstrip('\n') + '\n\n'
@@ -63,7 +63,7 @@ _SYNOPSIS = _SET_SYNOPSIS + _GET_SYNOPSIS.lstrip('\n') + '\n\n'
 _DESCRIPTION = ("""
   Gets or sets the Cross-Origin Resource Sharing (CORS) configuration on one or
   more buckets. This command is supported for buckets only, not objects. An
-  example CORS JSON document looks like the following:
+  example CORS JSON file looks like the following:
 
     [
       {
@@ -74,7 +74,7 @@ _DESCRIPTION = ("""
       }
     ]
 
-  The above JSON document explicitly allows cross-origin GET requests from
+  The above CORS configuration explicitly allows cross-origin GET requests from
   http://origin1.example.com and may include the Content-Type response header.
   The preflight request may be cached for 1 hour.
 
@@ -82,8 +82,8 @@ _DESCRIPTION = ("""
   do not allow CORS requests. For more information about supported endpoints for CORS, see
   `Cloud Storage CORS support <https://cloud.google.com/storage/docs/cross-origin#server-side-support>`_.
 
-  The following (empty) CORS JSON document removes all CORS configuration for
-  a bucket:
+  The following (empty) CORS JSON file removes any CORS configuration for a
+  bucket:
 
     []
 
@@ -133,7 +133,7 @@ class CorsCommand(Command):
       ],
       help_type='command_help',
       help_one_line_summary=(
-          'Get or set a CORS JSON document for one or more buckets'),
+          'Get or set a CORS configuration for one or more buckets'),
       help_text=_DETAILED_HELP_TEXT,
       subcommand_help_text={
           'get': _get_help_text,
@@ -146,15 +146,17 @@ class CorsCommand(Command):
           'get':
               GcloudStorageMap(
                   gcloud_command=[
-                      'alpha', 'storage', 'buckets', 'describe',
-                      '--format=multi(cors:format=json)', '--raw'
+                      'storage', 'buckets', 'describe',
+                      '--format="gsutiljson[key=cors_config,empty=\' has no '
+                      'CORS configuration.\',empty_prefix_key=storage_url]"',
+                      '--raw'
                   ],
                   flag_map={},
               ),
           'set':
               GcloudStorageMap(
                   gcloud_command=[
-                      'alpha', 'storage', 'buckets', 'update', '--cors-file'
+                      'storage', 'buckets', 'update', '--cors-file'
                   ],
                   flag_map={},
               ),

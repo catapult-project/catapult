@@ -20,7 +20,7 @@ import json
 import os
 import unittest
 
-from unittest import mock
+import mock
 from mock import patch
 
 from six.moves import http_client

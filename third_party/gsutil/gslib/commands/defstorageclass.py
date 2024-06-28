@@ -30,6 +30,7 @@ from gslib.third_party.storage_apitools import storage_v1_messages as apitools_m
 from gslib.utils.constants import NO_MAX
 from gslib.utils.shim_util import GcloudStorageMap
 from gslib.utils.text_util import NormalizeStorageClass
+from gslib.utils import shim_util
 
 _SET_SYNOPSIS = """
   gsutil defstorageclass set <storage-class> gs://<bucket_name>...
@@ -69,24 +70,21 @@ _DETAILED_HELP_TEXT = CreateHelpText(_SYNOPSIS, _DESCRIPTION)
 _get_help_text = CreateHelpText(_GET_SYNOPSIS, _GET_DESCRIPTION)
 _set_help_text = CreateHelpText(_SET_SYNOPSIS, _SET_DESCRIPTION)
 
+# The url_string for buckets ends with a slash.
+# Substitute the last slash with a colon.
+_GCLOUD_FORMAT_STRING = ('--format=value[separator=\": \"](name.sub("' +
+                         shim_util.get_format_flag_caret() + '", "gs://"),'
+                         'storageClass)')
 SHIM_GET_COMMAND_MAP = GcloudStorageMap(
     # Using a list because a string gets splitted up on space and the
     # format string below has a space.
     gcloud_command=[
-        'alpha',
-        'storage',
-        'buckets',
-        'list',
-        # The url_string for buckets ends with a slash.
-        # Substitute the last slash with a colon.
-        '--format=value[separator=\": \"](name.sub("^", "gs://"),'
-        'storageClass)',
-        '--raw'
+        'storage', 'buckets', 'list', _GCLOUD_FORMAT_STRING, '--raw'
     ],
     flag_map={},
 )
 SHIM_SET_COMMAND_MAP = GcloudStorageMap(
-    gcloud_command='alpha storage buckets update --default-storage-class',
+    gcloud_command=['storage', 'buckets', 'update', '--default-storage-class'],
     flag_map={},
 )
 

@@ -54,13 +54,13 @@ _SET_DESCRIPTION = """
   The ``set`` sub-command has two sub-commands:
 
 <B>ON</B>
-  The ``gsutil logging set on`` command enables usage logging of the buckets
-  named by the specified URLs, outputting log files to the bucket specified
-  with the ``-b`` flag. Cloud Storage doesn't validate the existence of the
-  output bucket, so users should ensure it already exists, and all URLs must
-  name Cloud Storage buckets (e.g., ``gs://bucket``). The optional ``-o``
-  flag specifies the prefix for log object names. The default prefix is the
-  bucket name. For example, the command:
+  The ``gsutil logging set on`` command enables usage and storage logging
+  for the buckets named by the specified URLs, outputting log files to the
+  bucket specified with the ``-b`` flag. Cloud Storage doesn't validate the
+  existence of the output bucket, so users should ensure it already exists,
+  and all URLs must name Cloud Storage buckets (e.g., ``gs://bucket``). The
+  optional ``-o`` flag specifies the prefix for log object names. The
+  default prefix is the bucket name. For example, the command:
 
     gsutil logging set on -b gs://my_logging_bucket -o UsageLog \\
         gs://my_bucket1 gs://my_bucket2
@@ -81,8 +81,9 @@ _SET_DESCRIPTION = """
   "gsutil help defacl".)
 
 <B>OFF</B>
-  This command disables usage logging of the buckets named by the specified
-  URLs. All URLs must name Cloud Storage buckets (e.g., ``gs://bucket``).
+  This command disables usage and storage logging for the buckets named by the
+  specified URLs. All URLs must name Cloud Storage buckets (e.g.,
+  ``gs://bucket``).
 
   No logging data is removed from the log buckets when you disable logging,
   but Google Cloud Storage stops delivering new logs once you have run this
@@ -120,7 +121,7 @@ _DESCRIPTION = """
   `Usage and storage log format
   <https://cloud.google.com/storage/docs/access-logs#format>`_.
   
-  The <code>logging</code> command has two sub-commands:
+  The ``logging`` command has two sub-commands:
 """ + _SET_DESCRIPTION + _GET_DESCRIPTION + """
 
 <B>OPTIONS</B>
@@ -185,8 +186,10 @@ class LoggingCommand(Command):
           'get':
               GcloudStorageMap(
                   gcloud_command=[
-                      'alpha', 'storage', 'buckets', 'list',
-                      '--format=multi(logging:format=json)', '--raw'
+                      'storage', 'buckets', 'list',
+                      '--format="gsutiljson[key=logging_config,empty=\' has '
+                      'no logging configuration.\',empty_prefix_key='
+                      'storage_url]"', '--raw'
                   ],
                   flag_map={},
               ),
@@ -196,7 +199,6 @@ class LoggingCommand(Command):
                       'on':
                           GcloudStorageMap(
                               gcloud_command=[
-                                  'alpha',
                                   'storage',
                                   'buckets',
                                   'update',
@@ -211,7 +213,6 @@ class LoggingCommand(Command):
                       'off':
                           GcloudStorageMap(
                               gcloud_command=[
-                                  'alpha',
                                   'storage',
                                   'buckets',
                                   'update',

@@ -34,6 +34,7 @@ from gslib.tests.util import SetEnvironmentForTest
 from gslib.tests.util import unittest
 from gslib.utils.retry_util import Retry
 from gslib.utils.translation_helper import LifecycleTranslation
+from gslib.utils import shim_util
 
 
 @SkipForS3('Lifecycle command is only supported for gs:// URLs')
@@ -269,8 +270,8 @@ class TestSetLifecycle(testcase.GsUtilIntegrationTestCase):
     self.assertEqual(json.loads(stdout), self.lifecycle_json_obj)
 
 
-class TestLifecycleUnitTests(testcase.GsUtilUnitTestCase):
-  """Unit tests for gsutil lifecycle."""
+class TestLifecycleUnitTestsWithShim(testcase.ShimUnitTestBase):
+  """Unit tests for gsutil lifecycle with shim."""
 
   def test_shim_translates_lifecycle_get_correctly(self):
     bucket_uri = self.CreateBucket()
@@ -288,9 +289,10 @@ class TestLifecycleUnitTests(testcase.GsUtilUnitTestCase):
                                            return_log_handler=True)
         info_lines = '\n'.join(mock_log_handler.messages['info'])
         self.assertIn(
-            ('Gcloud Storage Command: {} alpha storage buckets'
-             ' describe --format=multi(lifecycle:format=json)'
-             ' --raw {}').format(os.path.join('fake_dir', 'bin', 'gcloud'),
+            ('Gcloud Storage Command: {} storage buckets'
+             ' describe --format="gsutiljson[key=lifecycle_config,empty=\' has'
+             ' no lifecycle configuration.\',empty_prefix_key=storage_url]"'
+             ' --raw {}').format(shim_util._get_gcloud_binary_path('fake_dir'),
                                  suri(bucket_uri)), info_lines)
 
   @mock.patch('gslib.commands.lifecycle.LifecycleCommand._SetLifecycleConfig',
@@ -311,8 +313,8 @@ class TestLifecycleUnitTests(testcase.GsUtilUnitTestCase):
                                            ],
                                            return_log_handler=True)
         info_lines = '\n'.join(mock_log_handler.messages['info'])
-        self.assertIn(('Gcloud Storage Command: {} alpha storage buckets'
+        self.assertIn(('Gcloud Storage Command: {} storage buckets'
                        ' update --lifecycle-file=fake-lifecycle-config.json'
                        ' gs://fake-bucket1 gs://fake-bucket2').format(
-                           os.path.join('fake_dir', 'bin', 'gcloud')),
+                           shim_util._get_gcloud_binary_path('fake_dir')),
                       info_lines)

@@ -144,3 +144,75 @@ class TestBotoUtil(testcase.GsUtilUnitTestCase):
         ('Credentials', 'gs_service_key_file', None),
     ]):
       self.assertTrue(boto_util.HasConfiguredCredentials())
+
+  def testUsingGsHmacWithHmacAndServiceAccountCreds(self):
+    with SetBotoConfigForTest([
+        ('Credentials', 'gs_access_key_id', "?????"),
+        ('Credentials', 'gs_secret_access_key', "?????"),
+        ('Credentials', 'gs_external_account_file', None),
+        ('Credentials', 'gs_external_account_authorized_user_file', None),
+        ('Credentials', 'gs_oauth2_refresh_token', None),
+        ('Credentials', 'gs_service_client_id', "?????"),
+        ('Credentials', 'gs_service_key_file', "?????"),
+    ]):
+      self.assertFalse(boto_util.UsingGsHmac())
+
+  def testUsingGsHmacWithHmacAndOauth2RefreshToken(self):
+    with SetBotoConfigForTest([
+        ('Credentials', 'gs_access_key_id', "?????"),
+        ('Credentials', 'gs_secret_access_key', "?????"),
+        ('Credentials', 'gs_external_account_file', None),
+        ('Credentials', 'gs_external_account_authorized_user_file', None),
+        ('Credentials', 'gs_oauth2_refresh_token', "?????"),
+        ('Credentials', 'gs_service_client_id', None),
+        ('Credentials', 'gs_service_key_file', None),
+    ]):
+      self.assertFalse(boto_util.UsingGsHmac())
+
+  def testUsingGsHmacWithIncompleteHmacOnly(self):
+    with SetBotoConfigForTest([
+        ('Credentials', 'gs_access_key_id', "?????"),
+        ('Credentials', 'gs_secret_access_key', None),
+        ('Credentials', 'gs_external_account_file', None),
+        ('Credentials', 'gs_external_account_authorized_user_file', None),
+        ('Credentials', 'gs_oauth2_refresh_token', None),
+        ('Credentials', 'gs_service_client_id', None),
+        ('Credentials', 'gs_service_key_file', None),
+    ]):
+      self.assertFalse(boto_util.UsingGsHmac())
+
+  def testUsingGsHmacWithHmacAndExternalAccountFile(self):
+    with SetBotoConfigForTest([
+        ('Credentials', 'gs_access_key_id', "?????"),
+        ('Credentials', 'gs_secret_access_key', "?????"),
+        ('Credentials', 'gs_external_account_file', "?????"),
+        ('Credentials', 'gs_external_account_authorized_user_file', None),
+        ('Credentials', 'gs_oauth2_refresh_token', None),
+        ('Credentials', 'gs_service_client_id', None),
+        ('Credentials', 'gs_service_key_file', None),
+    ]):
+      self.assertTrue(boto_util.UsingGsHmac())
+
+  def testUsingGsHmacWithHmacAndExternalAccountAuthorizedUserFile(self):
+    with SetBotoConfigForTest([
+        ('Credentials', 'gs_access_key_id', "?????"),
+        ('Credentials', 'gs_secret_access_key', "?????"),
+        ('Credentials', 'gs_external_account_file', None),
+        ('Credentials', 'gs_external_account_authorized_user_file', "?????"),
+        ('Credentials', 'gs_oauth2_refresh_token', None),
+        ('Credentials', 'gs_service_client_id', None),
+        ('Credentials', 'gs_service_key_file', None),
+    ]):
+      self.assertTrue(boto_util.UsingGsHmac())
+
+  def testUsingGsHmacWithHmacOnly(self):
+    with SetBotoConfigForTest([
+        ('Credentials', 'gs_access_key_id', "?????"),
+        ('Credentials', 'gs_secret_access_key', "?????"),
+        ('Credentials', 'gs_external_account_file', None),
+        ('Credentials', 'gs_external_account_authorized_user_file', None),
+        ('Credentials', 'gs_oauth2_refresh_token', None),
+        ('Credentials', 'gs_service_client_id', None),
+        ('Credentials', 'gs_service_key_file', None),
+    ]):
+      self.assertTrue(boto_util.UsingGsHmac())

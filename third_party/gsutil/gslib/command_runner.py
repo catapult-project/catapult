@@ -267,7 +267,7 @@ class CommandRunner(object):
     # CommandArgument objects.
     command_to_argparse_arguments = {
         command.command_spec.command_name:
-        command.command_spec.argparse_arguments
+            command.command_spec.argparse_arguments
         for command in self.command_map.values()
     }
 
@@ -533,8 +533,8 @@ class CommandRunner(object):
       except (TypeError, ValueError):
         return False
 
-    if (cur_ts - last_checked_ts >
-        software_update_check_period * SECONDS_PER_DAY):
+    if (cur_ts - last_checked_ts
+        > software_update_check_period * SECONDS_PER_DAY):
       # Create a credential-less gsutil API to check for the public
       # update tarball.
       gsutil_api = GcsJsonApi(self.bucket_storage_uri_class,

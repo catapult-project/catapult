@@ -18,7 +18,7 @@
 import textwrap
 import unittest
 
-from unittest import mock
+import mock
 from six.moves import http_client
 from six.moves import range  # pylint:disable=redefined-builtin
 from six.moves.urllib import parse

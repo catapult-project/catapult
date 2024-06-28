@@ -650,3 +650,17 @@ def HasUserSpecifiedGsHost():
     return default_host == six.ensure_str(gs_host)
 
   return False
+
+def UsingGsHmac():
+  # NOTE: External credentials are omitted intentionally as HMAC takes priority
+  # over the external credentials types.
+  config = boto.config
+  has_refresh_token = config.has_option('Credentials', 'gs_oauth2_refresh_token')
+  has_service_account_credentials = (
+    config.has_option('Credentials', 'gs_service_client_id')
+    and config.has_option('Credentials', 'gs_service_key_file'))
+  has_hmac_credentials = (
+    config.has_option('Credentials', 'gs_access_key_id')
+    and config.has_option('Credentials', 'gs_secret_access_key'))
+  return (not has_refresh_token and not has_service_account_credentials
+    and has_hmac_credentials)

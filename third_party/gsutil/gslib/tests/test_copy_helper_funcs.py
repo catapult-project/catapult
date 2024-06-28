@@ -108,7 +108,7 @@ class TestCpFuncs(GsUtilUnitTestCase):
 
     # Test component_size > file_size (make sure we get at least two components.
     (num_components, component_size) = _GetPartitionInfo(100, 500, 51)
-    self.assertEquals(2, num_components)
+    self.assertEqual(2, num_components)
     self.assertEqual(50, component_size)
 
   def testFilterExistingComponentsNonVersioned(self):

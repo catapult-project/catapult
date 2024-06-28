@@ -1,8 +1,9 @@
 Name: gsutil
 Short Name: gsutil
-URL: https://cloud.google.com/storage/docs/gsutil
-Version: 5.24
-Date: 2023-05-17
+URL: https://github.com/GoogleCloudPlatform/gsutil
+Version: 5.29
+Revision: 63ae7eeb2cac04cfc5f989b1a6f86172e561c2c7
+Date: 2024-05-08
 License: Apache 2.0
 License File: LICENSE
 Security Critical: no

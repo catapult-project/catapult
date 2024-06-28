@@ -223,18 +223,18 @@ class PluralityCheckableIteratorTests(testcase.GsUtilUnitTestCase):
     pcit = PluralityCheckableIterator(IterTest())
     pcit.IsEmpty()
     pcit.PeekException()
-    self.assertEquals(pcit.orig_iterator.position, 1)
+    self.assertEqual(pcit.orig_iterator.position, 1)
     # HasPlurality requires populating 2 elements into the iterator.
     pcit.HasPlurality()
-    self.assertEquals(pcit.orig_iterator.position, 2)
+    self.assertEqual(pcit.orig_iterator.position, 2)
     # next should yield already-populated elements without advancing the
     # iterator.
     next(pcit)  # Yields element 1
-    self.assertEquals(pcit.orig_iterator.position, 2)
+    self.assertEqual(pcit.orig_iterator.position, 2)
     next(pcit)  # Yields element 2
-    self.assertEquals(pcit.orig_iterator.position, 2)
+    self.assertEqual(pcit.orig_iterator.position, 2)
     next(pcit)  # Yields element 3
-    self.assertEquals(pcit.orig_iterator.position, 3)
+    self.assertEqual(pcit.orig_iterator.position, 3)
     try:
       next(pcit)  # Underlying iterator is empty
       self.fail('Expected StopIteration')

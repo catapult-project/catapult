@@ -174,6 +174,34 @@ class OAuth2AccountClientTest(unittest.TestCase):
         token_3.expiry)
     self.assertEqual(token_3.rapt_token, expected_rapt)
 
+class TestCreateP12ServiceAccountCredentials(unittest.TestCase):
+  
+  @mock.patch.object(oauth2_client.PKCS12Signer, 'from_string')
+  def test_from_service_account_pkcs12_keystring(self, mock_signer):
+    mock_signer.return_value = 'MOCK_SIGNER'
+    with mock.patch.object(oauth2_client.P12Credentials, '__init__') as mock_p12creds:
+      mock_p12creds.return_value = None
+      oauth2_client.P12Credentials.from_service_account_pkcs12_keystring(
+        'MY_KEY',
+        service_account_email='test@google.com',
+        token_uri= 'TOKEN_URI',
+        scopes= ['MYSCOPEEEEE']
+      )
+      mock_p12creds.assert_called_once_with('MOCK_SIGNER', service_account_email='test@google.com',
+        token_uri= 'TOKEN_URI',
+        scopes= ['MYSCOPEEEEE'])
+
+  @mock.patch.object(oauth2_client.PKCS12Signer, 'from_string')
+  def test_from_service_account_pkcs12_keystring_raises_missing_field(self, mock_signer):
+    mock_signer.return_value = 'MOCK_SIGNER'
+    with self.assertRaises(oauth2_client.MissingFieldsError) as exc:
+      oauth2_client.P12Credentials.from_service_account_pkcs12_keystring(
+        'MY_KEY',
+        token_uri= 'TOKEN_URI',
+        scopes= ['MYSCOPEEEEE']
+      )
+      
+
 
 class AccessTokenTest(unittest.TestCase):
   """Unit tests for access token functions."""

@@ -15,7 +15,7 @@
 import unittest
 
 import httplib2
-from unittest import mock
+import mock
 
 from oauth2client import client
 from oauth2client import transport

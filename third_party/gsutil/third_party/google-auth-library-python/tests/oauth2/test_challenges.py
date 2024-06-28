@@ -17,7 +17,7 @@
 import base64
 import sys
 
-from unittest import mock
+import mock
 import pytest  # type: ignore
 import pyu2f  # type: ignore
 

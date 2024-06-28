@@ -35,6 +35,7 @@ from gslib.utils.retention_util import SECONDS_IN_YEAR
 from gslib.tests.util import SetBotoConfigForTest
 from gslib.tests.util import SetEnvironmentForTest
 from gslib.utils.retry_util import Retry
+from gslib.utils import shim_util
 
 BUCKET_LOCK_SKIP_MSG = ('gsutil does not support bucket lock operations for '
                         'S3 buckets.')
@@ -134,7 +135,7 @@ class TestMb(testcase.GsUtilIntegrationTestCase):
                              suri(bucket_uri)],
                             expected_status=1,
                             return_stderr=True)
-    self.assertRegexpMatches(stderr, r'Incorrect retention period specified')
+    self.assertRegex(stderr, r'Incorrect retention period specified')
 
   def test_create_with_retention_on_s3_urls_fails(self):
     bucket_name = self.MakeTempName('bucket')
@@ -148,7 +149,7 @@ class TestMb(testcase.GsUtilIntegrationTestCase):
       self.assertIn('Features disallowed for S3: Setting Retention Period',
                     stderr)
     else:
-      self.assertRegexpMatches(
+      self.assertRegex(
           stderr, r'Retention policy can only be specified for GCS buckets.')
 
   @SkipForXML('Public access prevention only runs on GCS JSON API.')
@@ -183,7 +184,7 @@ class TestMb(testcase.GsUtilIntegrationTestCase):
       self.assertIn(
           'Flag value not in translation map for "--pap": invalid_arg', stderr)
     else:
-      self.assertRegexpMatches(stderr, r'invalid_arg is not a valid value')
+      self.assertRegex(stderr, r'invalid_arg is not a valid value')
 
   @SkipForXML('RPO flag only works for GCS JSON API.')
   def test_create_with_rpo_async_turbo(self):
@@ -401,8 +402,8 @@ class TestMb(testcase.GsUtilIntegrationTestCase):
         stderr)
 
 
-class TestMbUnitTests(testcase.GsUtilUnitTestCase):
-  """Unit tests for gsutil mb."""
+class TestMbUnitTestsWithShim(testcase.ShimUnitTestBase):
+  """Unit tests for gsutil mb with shim."""
 
   def test_shim_translates_retention_seconds_flags(self):
     with SetBotoConfigForTest([('GSUtil', 'use_gcloud_storage', 'True'),
@@ -419,9 +420,9 @@ class TestMbUnitTests(testcase.GsUtilUnitTestCase):
                                            ],
                                            return_log_handler=True)
         info_lines = '\n'.join(mock_log_handler.messages['info'])
-        self.assertIn(('Gcloud Storage Command: {} alpha storage buckets create'
+        self.assertIn(('Gcloud Storage Command: {} storage buckets create'
                        ' --retention-period 31557600s gs://fake-bucket').format(
-                           os.path.join('fake_dir', 'bin', 'gcloud')),
+                           shim_util._get_gcloud_binary_path('fake_dir')),
                       info_lines)
 
   @SkipForXML('The --rpo flag only works for GCS JSON API.')
@@ -440,6 +441,6 @@ class TestMbUnitTests(testcase.GsUtilUnitTestCase):
 
         info_lines = '\n'.join(mock_log_handler.messages['info'])
         self.assertIn(
-            ('Gcloud Storage Command: {} alpha storage'
+            ('Gcloud Storage Command: {} storage'
              ' buckets create --recovery-point-objective DEFAULT').format(
-                 os.path.join('fake_dir', 'bin', 'gcloud')), info_lines)
+                 shim_util._get_gcloud_binary_path('fake_dir')), info_lines)

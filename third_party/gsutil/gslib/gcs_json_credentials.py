@@ -48,6 +48,10 @@ from gslib.utils.boto_util import GetGceCredentialCacheFilename
 from gslib.utils.boto_util import GetGcsJsonApiVersion
 from gslib.utils.constants import UTF8
 from gslib.utils.wrapped_credentials import WrappedCredentials
+from google.auth import _helpers
+from google.auth.crypt import base as crypt_base
+from google_auth_httplib2 import AuthorizedHttp
+from google.oauth2 import service_account
 import oauth2client
 from oauth2client.client import HAS_CRYPTO
 from oauth2client.contrib import devshell
@@ -72,6 +76,81 @@ DEFAULT_SCOPES = [
 
 GOOGLE_OAUTH2_DEFAULT_FILE_PASSWORD = 'notasecret'
 
+def isP12Credentials(credentials):
+  return isinstance(credentials, P12Credentials)
+
+class PKCS12Signer(crypt_base.Signer, crypt_base.FromServiceAccountMixin):
+  """Signer for a p12 service account key."""
+
+  def __init__(self, key):
+    self._key = key
+
+  # Defined in crypt_base.Signer interface.
+  # It is not used by p12 service account keys.
+  @property
+  def key_id(self):
+    return None
+
+  def sign(self, message):
+    message = _helpers.to_bytes(message)
+    from google.auth.crypt import _cryptography_rsa  # pylint: disable=g-import-not-at-top
+    return self._key.sign(
+        message,
+        _cryptography_rsa._PADDING,  # pylint: disable=protected-access
+        _cryptography_rsa._SHA256)  # pylint: disable=protected-access
+
+  @classmethod
+  def from_string(cls, key_strings, key_id=None):
+    del key_id #Unused
+    key_string, password = (_helpers.to_bytes(k) for k in key_strings)
+    # Cryptography package is not bundled with gsutil, Keeping it at top would throw error.
+    from cryptography.hazmat.primitives.serialization import pkcs12  # pylint: disable=g-import-not-at-top
+    try:
+      key, _, _ = pkcs12.load_key_and_certificates(key_string, password)
+      return cls(key)
+    except:
+      raise CommandException('Unable to load the keyfile, Invalid password or PKCS12 data.')
+
+
+class P12Credentials(service_account.Credentials):
+  """google-auth service account credentials  for p12 keys.
+  p12 keys are not supported by the google-auth service account credentials.
+  gsutil uses oauth2client to support p12 key users. Since oauth2client was
+  deprecated and bundling it is security concern, we decided to support p12
+  in gsutil codebase. We prefer not adding it to the google-auth library
+  because p12 is not supported from the beginning by google-auth. GCP strongly
+  suggests users to use the JSON format. gsutil has to support it to not
+  break users.
+  """
+
+  _REQUIRED_FIELDS = ('service_account_email', 'token_uri', 'scopes')
+
+  def authorize(self, http):
+    return AuthorizedHttp(self, http=http)
+
+  @classmethod
+  def from_service_account_pkcs12_keystring(cls,
+                                            key_string,
+                                            password=None,
+                                            **kwargs):
+    password = password or GOOGLE_OAUTH2_DEFAULT_FILE_PASSWORD
+    signer = PKCS12Signer.from_string((key_string, password))
+
+    missing_fields = [f for f in cls._REQUIRED_FIELDS if f not in kwargs]
+    if missing_fields:
+      raise CommandException('Missing fields: {}.'.format(
+          ', '.join(missing_fields)))
+    creds = cls(signer, **kwargs)
+    return creds
+
+def CreateP12ServiceAccount(key_string, password=None, **kwargs):
+  """Creates a service account from a p12 key and handles import errors."""
+  try:
+    return P12Credentials.from_service_account_pkcs12_keystring(
+        key_string, password, **kwargs)
+  except ImportError:
+      raise CommandException(
+          ('pyca/cryptography is not available. Either install it, or please consider using the .json keyfile'))
 
 def GetCredentialStoreKey(credentials, api_version):
   """Disambiguates a credential for caching in a credential store.
@@ -145,33 +224,35 @@ def SetUpJsonCredentialsAndCache(api, logger, credentials=None):
         'WARNING: This command is using service account impersonation. All '
         'API calls will be executed as [%s].', _GetImpersonateServiceAccount())
 
-  # Set credential cache so that we don't have to get a new access token for
-  # every call we make. All GCS APIs use the same credentials as the JSON API,
-  # so we use its version in the key for caching access tokens.
-  credential_store_key = (GetCredentialStoreKey(api.credentials,
-                                                GetGcsJsonApiVersion()))
-  api.credentials.set_store(
-      multiprocess_file_storage.MultiprocessFileStorage(
-          GetCredentialStoreFilename(), credential_store_key))
-  # The cached entry for this credential often contains more context than what
-  # we can construct from boto config attributes (e.g. for a user credential,
-  # the cached version might also contain a RAPT token and expiry info).
-  # Prefer the cached credential if present.
-  cached_cred = None
-  if not isinstance(api.credentials, NoOpCredentials):
-    # A NoOpCredentials object doesn't actually have a store attribute.
-    cached_cred = api.credentials.store.get()
-  # As of gsutil 4.31, we never use the OAuth2Credentials class for
-  # credentials directly; rather, we use subclasses (user credentials were
-  # the only ones left using it, but they now use
-  # Oauth2WithReauthCredentials).  If we detect that a cached credential is
-  # an instance of OAuth2Credentials and not a subclass of it (as might
-  # happen when transitioning to version v4.31+), we don't fetch it from the
-  # cache. This results in our new-style credential being refreshed and
-  # overwriting the old credential cache entry in our credstore.
-  if (cached_cred and
-      type(cached_cred) != oauth2client.client.OAuth2Credentials):
-    api.credentials = cached_cred
+  # Do not store p12 credentials (Supported by google-auth), as google-auth does not support storing service account credentials.
+  if not isP12Credentials(api.credentials):
+    # Set credential cache so that we don't have to get a new access token for
+    # every call we make. All GCS APIs use the same credentials as the JSON API,
+    # so we use its version in the key for caching access tokens.
+    credential_store_key = (GetCredentialStoreKey(api.credentials,
+                                                  GetGcsJsonApiVersion()))
+    api.credentials.set_store(
+        multiprocess_file_storage.MultiprocessFileStorage(
+            GetCredentialStoreFilename(), credential_store_key))
+    # The cached entry for this credential often contains more context than what
+    # we can construct from boto config attributes (e.g. for a user credential,
+    # the cached version might also contain a RAPT token and expiry info).
+    # Prefer the cached credential if present.
+    cached_cred = None
+    if not isinstance(api.credentials, NoOpCredentials):
+      # A NoOpCredentials object doesn't actually have a store attribute.
+      cached_cred = api.credentials.store.get()
+    # As of gsutil 4.31, we never use the OAuth2Credentials class for
+    # credentials directly; rather, we use subclasses (user credentials were
+    # the only ones left using it, but they now use
+    # Oauth2WithReauthCredentials).  If we detect that a cached credential is
+    # an instance of OAuth2Credentials and not a subclass of it (as might
+    # happen when transitioning to version v4.31+), we don't fetch it from the
+    # cache. This results in our new-style credential being refreshed and
+    # overwriting the old credential cache entry in our credstore.
+    if (cached_cred and
+        type(cached_cred) != oauth2client.client.OAuth2Credentials):
+      api.credentials = cached_cred
 
 
 def _CheckAndGetCredentials(logger):
@@ -340,26 +421,9 @@ def _GetOauth2ServiceAccountCredentials():
         json_key_dict, scopes=DEFAULT_SCOPES, token_uri=provider_token_uri)
   else:
     # Key file is in P12 format.
-    if HAS_CRYPTO:
-      if not service_client_id:
-        raise Exception('gs_service_client_id must be set if '
-                        'gs_service_key_file is set to a .p12 key file')
-      key_file_pass = config.get('Credentials', 'gs_service_key_file_password',
+    key_file_pass = config.get('Credentials', 'gs_service_key_file_password',
                                  GOOGLE_OAUTH2_DEFAULT_FILE_PASSWORD)
-      # We use _from_p12_keyfile_contents to avoid reading the key file
-      # again unnecessarily.
-      try:
-        return ServiceAccountCredentials.from_p12_keyfile_buffer(
-            service_client_id,
-            BytesIO(private_key),
-            private_key_password=key_file_pass,
-            scopes=DEFAULT_SCOPES,
-            token_uri=provider_token_uri)
-      except Exception as e:
-        raise Exception(
-            'OpenSSL unable to parse PKCS 12 key {}.'
-            'Please verify key integrity. Error message:\n{}'.format(
-                private_key_filename, str(e)))
+    return CreateP12ServiceAccount(private_key, key_file_pass, scopes=DEFAULT_SCOPES, service_account_email=service_client_id, token_uri=provider_token_uri)
 
 
 def _GetOauth2UserAccountCredentials():

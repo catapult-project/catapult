@@ -15,7 +15,7 @@
 import os
 import sys
 
-from unittest import mock
+import mock
 import OpenSSL
 import pytest  # type: ignore
 from six.moves import http_client

@@ -121,7 +121,7 @@ class TestNotificationPubSub(testcase.GsUtilIntegrationTestCase):
       trailing_space = '\n'
     else:
       trailing_space = ''
-    self.assertEquals(
+    self.assertEqual(
         stdout,
         ('projects/_/buckets/{bucket_name}/notificationConfigs/1\n'
          '\tCloud Pub/Sub topic: {topic_name}\n'

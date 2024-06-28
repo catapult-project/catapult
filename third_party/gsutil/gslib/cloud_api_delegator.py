@@ -27,6 +27,7 @@ from gslib.cloud_api import CloudApi
 from gslib.cs_api_map import ApiMapConstants
 from gslib.cs_api_map import ApiSelector
 from gslib.exception import CommandException
+from gslib.utils import boto_util
 
 
 class CloudApiDelegator(CloudApi):
@@ -175,13 +176,7 @@ class CloudApiDelegator(CloudApi):
 
     api = self.api_map[ApiMapConstants.DEFAULT_MAP][selected_provider]
 
-    using_gs_hmac = (
-        provider == 'gs' and
-        not config.has_option('Credentials', 'gs_oauth2_refresh_token') and
-        not (config.has_option('Credentials', 'gs_service_client_id') and
-             config.has_option('Credentials', 'gs_service_key_file')) and
-        (config.has_option('Credentials', 'gs_access_key_id') and
-         config.has_option('Credentials', 'gs_secret_access_key')))
+    using_gs_hmac = provider == 'gs' and boto_util.UsingGsHmac()
 
     configured_encryption = (provider == 'gs' and
                              (config.has_option('GSUtil', 'encryption_key') or

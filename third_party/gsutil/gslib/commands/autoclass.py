@@ -30,6 +30,7 @@ from gslib.third_party.storage_apitools import storage_v1_messages as apitools_m
 from gslib.utils import text_util
 from gslib.utils.constants import NO_MAX
 from gslib.utils.shim_util import GcloudStorageMap
+from gslib.utils import shim_util
 
 _SET_SYNOPSIS = """
   gsutil autoclass set (on|off) gs://<bucket_name>...
@@ -69,12 +70,13 @@ _DETAILED_HELP_TEXT = CreateHelpText(_SYNOPSIS, _DESCRIPTION)
 _set_help_text = CreateHelpText(_SET_SYNOPSIS, _SET_DESCRIPTION)
 _get_help_text = CreateHelpText(_GET_SYNOPSIS, _GET_DESCRIPTION)
 
-GCLOUD_FORMAT_STRING = ('--format=value[separator="\n"]('
-                        'format("gs://{}:", name),'
-                        ' format("  Enabled: {}",'
-                        'autoclass.enabled.yesno(True, False)),'
-                        ' format("  Toggle Time: {}",'
-                        'autoclass.toggleTime))')
+_GCLOUD_FORMAT_STRING = ('--format=value[separator="' +
+                         shim_util.get_format_flag_newline() + '"](' +
+                         'format("gs://{}:", name),' +
+                         ' format("  Enabled: {}",' +
+                         'autoclass.enabled.yesno(True, False)),' +
+                         ' format("  Toggle Time: {}",' +
+                         'autoclass.toggleTime))')
 
 
 class AutoclassCommand(Command):
@@ -117,8 +119,8 @@ class AutoclassCommand(Command):
           'get':
               GcloudStorageMap(
                   gcloud_command=[
-                      'alpha', 'storage', 'buckets', 'list',
-                      GCLOUD_FORMAT_STRING, '--raw'
+                      'storage', 'buckets', 'list', _GCLOUD_FORMAT_STRING,
+                      '--raw'
                   ],
                   flag_map={},
                   supports_output_translation=True,
@@ -129,7 +131,6 @@ class AutoclassCommand(Command):
                       'on':
                           GcloudStorageMap(
                               gcloud_command=[
-                                  'alpha',
                                   'storage',
                                   'buckets',
                                   'update',
@@ -140,7 +141,6 @@ class AutoclassCommand(Command):
                       'off':
                           GcloudStorageMap(
                               gcloud_command=[
-                                  'alpha',
                                   'storage',
                                   'buckets',
                                   'update',

@@ -18,7 +18,7 @@ import os
 import sys
 
 import freezegun
-from unittest import mock
+import mock
 import OpenSSL
 import pytest  # type: ignore
 import requests

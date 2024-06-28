@@ -88,7 +88,7 @@ class ComposeCommand(Command):
   )
 
   gcloud_storage_map = GcloudStorageMap(
-      gcloud_command=['alpha', 'storage', 'objects', 'compose'],
+      gcloud_command=['storage', 'objects', 'compose'],
       flag_map={},
   )
 

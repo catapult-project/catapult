@@ -52,6 +52,11 @@ import oauth2client.client
 import oauth2client.service_account
 from google_reauth import reauth_creds
 import retry_decorator.retry_decorator
+from google.auth import _helpers
+from google.auth.crypt import base as crypt_base
+from google_auth_httplib2 import Request as GoogleAuthRequest
+from google_auth_httplib2 import AuthorizedHttp
+from google.oauth2 import service_account
 
 import six
 from six import BytesIO
@@ -67,6 +72,7 @@ CLOUD_PLATFORM_SCOPE = 'https://www.googleapis.com/auth/cloud-platform'
 FULL_CONTROL_SCOPE = 'https://www.googleapis.com/auth/devstorage.full_control'
 REAUTH_SCOPE = 'https://www.googleapis.com/auth/accounts.reauth'
 DEFAULT_SCOPE = FULL_CONTROL_SCOPE
+GOOGLE_OAUTH2_DEFAULT_FILE_PASSWORD = 'notasecret'
 # Note that these scopes don't necessarily correspond to the refresh token
 # being used. This list is is used for obtaining the RAPT in the reauth
 # flow, to determine which challenges should be used. We define this at module
@@ -268,6 +274,88 @@ class FileSystemTokenCache(TokenCache):
     return value
 
 
+class PKCS12Signer(crypt_base.Signer, crypt_base.FromServiceAccountMixin):
+  """Signer for a p12 service account key."""
+
+  def __init__(self, key):
+    self._key = key
+
+  # Defined in crypt_base.Signer interface.
+  # It is not used by p12 service account keys.
+  @property
+  def key_id(self):
+    return None
+
+  def sign(self, message):
+    message = _helpers.to_bytes(message)
+    from google.auth.crypt import _cryptography_rsa  # pylint: disable=g-import-not-at-top
+    return self._key.sign(
+        message,
+        _cryptography_rsa._PADDING,  # pylint: disable=protected-access
+        _cryptography_rsa._SHA256)  # pylint: disable=protected-access
+
+  @classmethod
+  def from_string(cls, key_strings, key_id=None):
+    del key_id #Unused
+    key_string, password = (_helpers.to_bytes(k) for k in key_strings)
+    # Cryptography package is not bundled with gsutil, Keeping it at top would throw error.
+    from cryptography.hazmat.primitives.serialization import pkcs12  # pylint: disable=g-import-not-at-top
+    try:
+      key, _, _ = pkcs12.load_key_and_certificates(key_string, password)
+      return cls(key)
+    except:
+      raise GsInvalidRefreshTokenError('Unable to load the keyfile, Invalid password or PKCS12 data.')
+
+
+class P12Credentials(service_account.Credentials):
+  """google-auth service account credentials  for p12 keys.
+  p12 keys are not supported by the google-auth service account credentials.
+  gsutil uses oauth2client to support p12 key users. Since oauth2client was
+  deprecated and bundling it is security concern, we decided to support p12
+  in gsutil codebase. We prefer not adding it to the google-auth library
+  because p12 is not supported from the beginning by google-auth. GCP strongly
+  suggests users to use the JSON format. gsutil has to support it to not
+  break users.
+  """
+
+  _REQUIRED_FIELDS = ('service_account_email', 'token_uri', 'scopes')
+
+  def authorize(self, http):
+    return AuthorizedHttp(self, http=http)
+
+  @property
+  def access_token(self):
+    return self.token
+
+  @property
+  def token_expiry(self):
+    return self.expiry
+
+  @classmethod
+  def from_service_account_pkcs12_keystring(cls,
+                                            key_string,
+                                            password=None,
+                                            **kwargs):
+    password = password or GOOGLE_OAUTH2_DEFAULT_FILE_PASSWORD
+    signer = PKCS12Signer.from_string((key_string, password))
+
+    missing_fields = [f for f in cls._REQUIRED_FIELDS if f not in kwargs]
+    if missing_fields:
+      raise MissingFieldsError('Missing fields: {}.'.format(
+          ', '.join(missing_fields)))
+    creds = cls(signer, **kwargs)
+    return creds
+
+def CreateP12ServiceAccountCredentials(key_string, password=None, **kwargs):
+  """Creates a service account credentials from a p12 key and handles import errors."""
+  try:
+    return P12Credentials.from_service_account_pkcs12_keystring(
+        key_string, password, **kwargs)
+  except ImportError:
+      raise MissingDependencyError(
+          ('pyca/cryptography is not available. Either install it, or please consider using the .json keyfile'))
+
+
 class OAuth2Client(object):
   """Common logic for OAuth2 clients."""
 
@@ -404,8 +492,10 @@ class _BaseOAuth2ServiceAccountClient(OAuth2Client):
 
   def FetchAccessToken(self, rapt_token=None):
     credentials = self.GetCredentials()
-    http = self.CreateHttpRequest()
-    credentials.refresh(http)
+    request = self.CreateHttpRequest()
+    if isinstance(credentials, P12Credentials):
+      request = GoogleAuthRequest(request)
+    credentials.refresh(request)
     return AccessToken(credentials.access_token, credentials.token_expiry,
                        datetime_strategy=self.datetime_strategy,
                        rapt_token=rapt_token)
@@ -448,19 +538,7 @@ class OAuth2ServiceAccountClient(_BaseOAuth2ServiceAccountClient):
     self._password = password
 
   def GetCredentials(self):
-    if oauth2client.client.HAS_CRYPTO:
-      # pylint: disable=protected-access
-      return _ServiceAccountCredentials.from_p12_keyfile_buffer(
-          self._client_id,
-          BytesIO(self._private_key),
-          private_key_password=self._password,
-          scopes=DEFAULT_SCOPE,
-          token_uri=self.token_uri)
-      # pylint: enable=protected-access
-    else:
-      raise MissingDependencyError(
-          'Service account authentication requires PyOpenSSL. Please install '
-          'this library and try again.')
+    return CreateP12ServiceAccountCredentials(self._private_key, self._password, scopes=[DEFAULT_SCOPE], service_account_email=self._client_id, token_uri=self.token_uri)
 
 
 class OAuth2JsonServiceAccountClient(_BaseOAuth2ServiceAccountClient):
@@ -526,6 +604,12 @@ class MissingDependencyError(Exception):
 
   def __init__(self, e):
     super(MissingDependencyError, self).__init__(e)
+
+
+class MissingFieldsError(Exception):
+
+  def __init__(self, e):
+    super(MissingFieldsError, self).__init__(e)
 
 
 class OAuth2UserAccountClient(OAuth2Client):

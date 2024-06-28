@@ -42,6 +42,7 @@ from gslib.tests.util import ObjectToURI as suri
 from gslib.tests.util import RUN_S3_TESTS
 from gslib.tests.util import SetBotoConfigForTest
 from gslib.tests.util import SetEnvironmentForTest
+from gslib.tests.util import SkipForP12Creds
 from gslib.tests.util import TEST_ENCRYPTION_CONTENT1
 from gslib.tests.util import TEST_ENCRYPTION_CONTENT1_CRC32C
 from gslib.tests.util import TEST_ENCRYPTION_CONTENT1_MD5
@@ -71,6 +72,7 @@ from gslib.utils.constants import UTF8
 from gslib.utils.ls_helper import PrintFullInfoAboutObject
 from gslib.utils.retry_util import Retry
 from gslib.utils.system_util import IS_WINDOWS
+from gslib.utils import shim_util
 
 from six import add_move, MovedModule
 
@@ -191,6 +193,10 @@ class TestLsUnit(testcase.GsUtilUnitTestCase):
                                return_stdout=True)
     self.assertNotRegex(stdout, 'Placement locations:')
 
+
+class TestLsUnitWithShim(testcase.ShimUnitTestBase):
+  """Unit tests for ls command with shim."""
+
   def test_shim_translates_flags(self):
     with SetBotoConfigForTest([('GSUtil', 'use_gcloud_storage', 'True'),
                                ('GSUtil', 'hidden_shim_mode', 'dry_run')]):
@@ -201,10 +207,10 @@ class TestLsUnit(testcase.GsUtilUnitTestCase):
         mock_log_handler = self.RunCommand('ls', ['-rRlLbeah', '-p foo'],
                                            return_log_handler=True)
         self.assertIn(
-            'Gcloud Storage Command: {} alpha storage ls'
+            'Gcloud Storage Command: {} storage ls'
             ' --fetch-encrypted-object-hashes'
             ' -r -r -l -L -b -e -a --readable-sizes --project  foo'.format(
-                os.path.join('fake_dir', 'bin', 'gcloud')),
+                shim_util._get_gcloud_binary_path('fake_dir')),
             mock_log_handler.messages['info'])
 
 
@@ -421,6 +427,7 @@ class TestLs(testcase.GsUtilIntegrationTestCase):
                   stderr)
 
   @SkipForXML('Credstore file gets created only for json API')
+  @SkipForP12Creds('P12 credentials are not cached, as they are supported via google-auth')
   def test_credfile_lock_permissions(self):
     tmpdir = self.CreateTempDir()
     filepath = os.path.join(tmpdir, 'credstore2')
@@ -1107,7 +1114,7 @@ class TestLs(testcase.GsUtilIntegrationTestCase):
     bucket_uri = self.CreateBucketWithRetentionPolicy(
         retention_period_in_seconds=1)
     stdout = self.RunGsUtil(['ls', '-Lb', suri(bucket_uri)], return_stdout=True)
-    self.assertRegex(stdout, r'Retention Policy\:\t*Present')
+    self.assertRegex(stdout, r'Retention Policy\:\s*Present')
     # Clearing Retention Policy on the bucket.
     self.RunGsUtil(['retention', 'clear', suri(bucket_uri)])
     stdout = self.RunGsUtil(['ls', '-Lb', suri(bucket_uri)], return_stdout=True)

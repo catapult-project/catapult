@@ -120,7 +120,7 @@ class TestDaisyChainWrapper(testcase.GsUtilUnitTestCase):
       self._WriteFromWrapperToFile(daisy_chain_wrapper, upload_file)
       # Since the chunk size is >= the file size, only a single GetObjectMedia
       # call should be made.
-      self.assertEquals(mock_api.get_calls, 1)
+      self.assertEqual(mock_api.get_calls, 1)
       with open(upload_file, 'rb') as upload_stream:
         with open(self.test_data_file, 'rb') as download_stream:
           self.assertEqual(upload_stream.read(), download_stream.read())
@@ -202,7 +202,7 @@ class TestDaisyChainWrapper(testcase.GsUtilUnitTestCase):
         mock_api,
         download_chunk_size=self.test_data_file_len)
     self._WriteFromWrapperToFile(daisy_chain_wrapper, upload_file)
-    self.assertEquals(mock_api.get_calls, 1)
+    self.assertEqual(mock_api.get_calls, 1)
     with open(upload_file, 'rb') as upload_stream:
       with open(self.test_data_file, 'rb') as download_stream:
         self.assertEqual(upload_stream.read(), download_stream.read())
@@ -280,7 +280,7 @@ class TestDaisyChainWrapper(testcase.GsUtilUnitTestCase):
         if not data:
           break
         upload_stream.write(data)
-    self.assertEquals(mock_api.get_calls, 1)
+    self.assertEqual(mock_api.get_calls, 1)
     with open(upload_file, 'rb') as upload_stream:
       with open(self.test_data_file, 'rb') as download_stream:
         self.assertEqual(upload_stream.read(), download_stream.read())
@@ -305,7 +305,7 @@ class TestDaisyChainWrapper(testcase.GsUtilUnitTestCase):
     daisy_chain_wrapper.read(TRANSFER_BUFFER_SIZE)
     daisy_chain_wrapper.seek(0)
     self._WriteFromWrapperToFile(daisy_chain_wrapper, upload_file)
-    self.assertEquals(mock_api.get_calls, 2)
+    self.assertEqual(mock_api.get_calls, 2)
     with open(upload_file, 'rb') as upload_stream:
       with open(self.test_data_file, 'rb') as download_stream:
         self.assertEqual(upload_stream.read(), download_stream.read())
