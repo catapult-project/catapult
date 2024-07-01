@@ -1,5 +1,0 @@
-{
-  "removeReferences": [
-    "../web-animations-js/web-animations-next-lite.min.d.ts"
-  ]
-}

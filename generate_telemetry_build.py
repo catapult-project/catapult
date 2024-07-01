@@ -45,15 +45,14 @@ DO_NOT_EDIT_WARNING = textwrap.dedent(
 TELEMETRY_SUPPORT_GROUP_NAME = 'telemetry_chrome_test_support'
 
 EXCLUDED_PATHS = {
-  'BUILD.gn',
-  'TEMP.gn',
-  'common/node_runner/',
-  'docs/',
-  'experimental/',
-  'generate_telemetry_build.py',
-  'third_party/google-endpoints/',
-  'third_party/polymer2/',
-  'tracing/test_data/',
+    'BUILD.gn',
+    'TEMP.gn',
+    'common/node_runner/',
+    'docs/',
+    'experimental/',
+    'generate_telemetry_build.py',
+    'third_party/google-endpoints/',
+    'tracing/test_data/',
 }
 
 

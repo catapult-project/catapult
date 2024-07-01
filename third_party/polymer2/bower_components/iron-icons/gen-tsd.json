@@ -1,8 +1,0 @@
-{
-  "exclude": [
-    "index.html",
-    "test/**",
-    "demo/**",
-    "util/**"
-  ]
-}
