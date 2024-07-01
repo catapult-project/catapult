@@ -235,8 +235,6 @@ def _LocalServerBackendMain(args):
 
   named_ports = server.StartAndGetNamedPorts(server_args, handler_class)
   assert isinstance(named_ports, list)
-  for named_port in named_ports:
-    assert isinstance(named_port, NamedPort)
 
   # Note: This message is scraped by the parent process'
   # _GetNamedPortsFromBackend(). Do **not** change it.
@@ -249,11 +247,6 @@ def _LocalServerBackendMain(args):
 
 
 if __name__ == '__main__':
-  # This trick is needed because local_server.NamedPort is not the
-  # same as sys.modules['__main__'].NamedPort. The module itself is loaded
-  # twice, basically.
-  # pylint: disable=wrong-import-position
-  from telemetry.core import local_server  # pylint: disable=import-self
   sys.exit(
-      local_server._LocalServerBackendMain(  # pylint: disable=protected-access
+      _LocalServerBackendMain(  # pylint: disable=protected-access
           sys.argv[1:]))
