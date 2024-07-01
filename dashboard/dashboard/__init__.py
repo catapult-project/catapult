@@ -21,8 +21,6 @@ THIRD_PARTY_LIBRARIES = [
     'jquery',
     'polymer',
     'polymer-svg-template',
-    'polymer2/bower_components',
-    'polymer2/bower_components/chopsui',
     'redux/redux.min.js',
 ]
 

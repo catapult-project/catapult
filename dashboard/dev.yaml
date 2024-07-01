@@ -51,10 +51,6 @@ handlers:
   static_files: dashboard/spa/index.html
   upload: dashboard/spa/index.html
 
-- url: /bower_components/(.*)/(.*\.(html|js|css))$
-  static_files: polymer2/bower_components/\1/\2
-  upload: polymer2/bower_components/.*/.*\.(html|js|css)$
-
 - url: /polymer-svg-template/(.*\.(html|js|css))$
   static_files: ../third_party/polymer-svg-template/\1
   upload: \.\./third_party/polymer-svg-template/.*\.(html|js|css)$
