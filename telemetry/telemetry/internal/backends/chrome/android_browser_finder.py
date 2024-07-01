@@ -207,9 +207,14 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     # directories.
     profile_files_to_copy = self._browser_options.profile_files_to_copy
     if not self._browser_options.profile_dir and not profile_files_to_copy:
+      permissions = None
+      if self._local_apk:
+        apk = apk_helper.ToHelper(self._local_apk)
+        permissions = apk.GetPermissions()
       self._platform_backend.RemoveProfile(
           self.browser_package,
-          self._backend_settings.profile_ignore_list)
+          self._backend_settings.profile_ignore_list,
+          permissions=permissions)
       return
 
     with _ProfileWithExtraFiles(self._browser_options.profile_dir,

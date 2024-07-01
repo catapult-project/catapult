@@ -602,13 +602,15 @@ class AndroidPlatformBackend(
     self._device.RunShellCommand(
         ['sh', self._device_copy_script, source, dest], check_return=True)
 
-  def RemoveProfile(self, package, ignore_list):
+  def RemoveProfile(self, package, ignore_list, permissions=None):
     """Delete application profile on device.
 
     Args:
       package: The full package name string of the application for which the
         profile is to be deleted.
       ignore_list: List of files to keep.
+      permissions: An optional list of strings containing the permissions to
+        grant after removing the profile. Only relevant for non-rooted devices.
     """
     # If we don't have root, then we are almost certainly actually using the
     # default profile directory instead of the one we return from GetProfileDir.
@@ -620,11 +622,16 @@ class AndroidPlatformBackend(
     # the non-default directory.
     if not self._require_root and _NON_ROOT_OVERRIDES.get(
         self.GetDeviceTypeName(), {}).get('clear_application_state', True):
+      if permissions is None:
+        logging.warning('Clearing application state to remove profile on a '
+                        'non-rooted device, but no permissions were provided. '
+                        'Permissions will likely not be set properly.')
       # We specify to wait for the asynchronous intent since there have been
       # known problems with it deleting data out from under a test. See
       # crbug.com/1383609 for an example.
-      self._device.ClearApplicationState(
-          package, wait_for_asynchronous_intent=True)
+      self._device.ClearApplicationState(package,
+                                         permissions=permissions,
+                                         wait_for_asynchronous_intent=True)
     profile_dir = self.GetProfileDir(package)
     if not self._device.PathExists(profile_dir):
       return
