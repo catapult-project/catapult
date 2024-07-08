@@ -38,7 +38,7 @@ def TestPath(key: datastore.key.Key):
   if key.kind == 'Test':
     # The Test key looks like ('Master', 'name', 'Bot', 'name', 'Test' 'name'..)
     # Pull out every other entry and join with '/' to form the path.
-    return '/'.join(key.flat()[1::2])
+    return '/'.join(key.flat_path[1::2])
 
   assert key.kind == 'TestMetadata' or key.kind == 'TestContainer'
   return key.id_or_name
