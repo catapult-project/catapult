@@ -1,6 +1,7 @@
 Name: apiclient
 URL: https://github.com/google/google-api-python-client/
 Version: 1.4.0
+Revision: 31c47b8b13195a04f1f8783e3cec74729d34bc5b
 License: Apache
 License File: LICENSE
 Shipped: yes
