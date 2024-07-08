@@ -1,6 +1,7 @@
 Name: rsa
 URL: https://github.com/sybrenstuvel/python-rsa/
 Version: 4.0
+Revision: 368a31f431f24843189b5d4da6b8530fa8bd47d8
 License: Apache 2.0
 Shipped: yes
 
