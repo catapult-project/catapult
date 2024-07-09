@@ -213,3 +213,19 @@ class FromDictTest(unittest.TestCase):
         'server', run_test_test.DIMENSIONS, extra_args, _BASE_SWARMING_TAGS,
         _TELEMETRY_COMMAND, 'out/Release')
     self.assertEqual(quest, expected)
+
+  def testCrossbench(self):
+    arguments = dict(_BASE_ARGUMENTS)
+    arguments['benchmark'] = 'speedometer3.crossbench'
+    quest = run_telemetry_test.RunTelemetryTest.FromDict(arguments)
+
+    extra_args = [
+        '--benchmark-display-name=speedometer3.crossbench',
+        '--benchmarks=speedometer_3.0',
+        '--browser=release',
+    ] + run_performance_test._DEFAULT_EXTRA_ARGS
+    expected = run_telemetry_test.RunTelemetryTest(
+        'server', run_test_test.DIMENSIONS, extra_args, _BASE_SWARMING_TAGS,
+        _TELEMETRY_COMMAND[:-1] + ['../../third_party/crossbench/cb.py'],
+        'out/Release')
+    self.assertEqual(quest, expected)

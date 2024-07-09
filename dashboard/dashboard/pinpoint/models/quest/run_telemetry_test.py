@@ -62,6 +62,12 @@ GTEST_EXECUTABLE_NAME = {
     'views_perftests': 'views_perftests'
 }
 
+_CROSSBENCH_NAME = {
+    'jetstream2.crossbench': 'jetstream_2.2',
+    'motionmark1.3.crossbench': 'motionmark_1.3',
+    'speedometer3.crossbench': 'speedometer_3.0',
+}
+
 
 def _StoryToRegex(story_name):
   # Telemetry's --story-filter argument takes in a regex, not a
@@ -91,18 +97,20 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
     # deprecated and will be removed soon (EOY 2020).
     # TODO(dberris): Move this out to a configuration elsewhere.
     benchmark = arguments.get('benchmark')
+    command = [
+        'luci-auth',
+        'context',
+        '--',
+        'vpython3',
+        '../../testing/test_env.py',
+        '../../testing/scripts/run_performance_tests.py',
+    ]
     if benchmark in _WATERFALL_ENABLED_GTEST_NAMES:
-      command = [
-          'luci-auth', 'context', '--', 'vpython3', '../../testing/test_env.py',
-          '../../testing/scripts/run_performance_tests.py',
-          GTEST_EXECUTABLE_NAME[benchmark]
-      ]
+      command.append(GTEST_EXECUTABLE_NAME[benchmark])
+    elif benchmark in _CROSSBENCH_NAME:
+      command.append('../../third_party/crossbench/cb.py')
     else:
-      command = [
-          'luci-auth', 'context', '--', 'vpython3', '../../testing/test_env.py',
-          '../../testing/scripts/run_performance_tests.py',
-          '../../tools/perf/run_benchmark'
-      ]
+      command.append('../../tools/perf/run_benchmark')
     relative_cwd = arguments.get('relative_cwd', 'out/Release')
     return relative_cwd, command
 
@@ -117,17 +125,34 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
         execution_timeout_secs=None)
 
   @classmethod
+  def _CrossbenchExtraTestArgs(cls, benchmark, arguments):
+    extra_test_args = []
+    extra_test_args.append(f'--benchmark-display-name={benchmark}')
+    extra_test_args.append(f'--benchmarks={_CROSSBENCH_NAME[benchmark]}')
+
+    browser = arguments.get('browser')
+    if not browser:
+      raise TypeError('Missing "browser" argument for crossbench.')
+    extra_test_args.append(f'--browser={browser}')
+
+    extra_test_args += super()._ExtraTestArgs(arguments)
+    return extra_test_args
+
+  @classmethod
   def _ExtraTestArgs(cls, arguments):
+    benchmark = arguments.get('benchmark')
+    if not benchmark:
+      raise TypeError('Missing "benchmark" argument.')
+
+    if benchmark in _CROSSBENCH_NAME:
+      return cls._CrossbenchExtraTestArgs(benchmark, arguments)
+
     extra_test_args = []
 
     # If we're running a single test,
     # do so even if it's configured to be ignored in expectations.config.
     if not arguments.get('story_tags'):
       extra_test_args.append('-d')
-
-    benchmark = arguments.get('benchmark')
-    if not benchmark:
-      raise TypeError('Missing "benchmark" argument.')
 
     if benchmark in _WATERFALL_ENABLED_GTEST_NAMES:
       # crbug/1146949
