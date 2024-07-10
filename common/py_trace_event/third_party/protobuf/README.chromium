@@ -1,6 +1,7 @@
 Name: Protobuf
-URL: https://developers.google.com/protocol-buffers/
+URL: https://github.com/protocolbuffers/protobuf
 Version: 3.0.0
+Revision: e8ae137c96444ea313485ed1118c5e43b2099cf1
 License: BSD
 Shipped: yes
 
