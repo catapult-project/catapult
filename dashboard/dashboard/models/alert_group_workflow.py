@@ -1173,11 +1173,15 @@ class AlertGroupWorkflow:
       six.raise_from(
           InvalidPinpointRequest('Invalid pinpoint request: %s' % (e,)), e)
 
-    # Simultaneously trigger the pinpoint job in skia.
+    # Simultaneously trigger culprit finder (aka sandwich verification) in skia.
     # We currently ignore the result, just to collect data.
+    # TODO(b/352631795): Trigger the workflow from the start of regression
+    # verification. We trigger the request here to do a smaller staged launch.
+    # Once we've verified the E2E workflow is WAI, we include all anomalies to
+    # test regression verification fail cases.
     try:
       improve_dir = self._GetImprovementDirection(regression)
-      skia_pp_req = pinpoint_service.UpdateSkiaBisectionRequest(pp_request,
+      skia_pp_req = pinpoint_service.UpdateSkiaCulpritFinderRequest(pp_request,
                                                                 improve_dir)
       results = self._pinpoint.NewJobInSkia(skia_pp_req)
       logging.info('[Pinpoint Skia] Triggering %s', results)

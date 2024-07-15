@@ -22,7 +22,7 @@ def NewJob(params):
 
 def NewJobInSkia(params):
   """Submits a new job request to Pinpoint in Skia."""
-  return _Request(_PINPOINT_SKIA_URL + '/pinpoint/v1/schedule', params)
+  return _Request(_PINPOINT_SKIA_URL + '/pinpoint/v1/culprit-finder', params)
 
 def _Request(endpoint, params):
   """Sends a request to an endpoint and returns JSON data."""
@@ -46,9 +46,10 @@ class CommitRange(collections.namedtuple('CommitRange', ['start', 'end'])):
   __slots__ = ()
 
 
-def UpdateSkiaBisectionRequest(pinpoint_params, improvement_direction):
-  """Update a Pinpoint bisection request for the Skia backend.
+def UpdateSkiaCulpritFinderRequest(pinpoint_params, improvement_direction):
+  """Update a Pinpoint culprit finder request for the Skia backend.
 
+  Culprit finder is also known as sandwich verification.
   Pinpoint is being migrated from catapult repo to skia repo.
   The Skia backend accepts slightly different inputs. The Skia backend
   accepts the improvement direction.
@@ -58,7 +59,7 @@ def UpdateSkiaBisectionRequest(pinpoint_params, improvement_direction):
     improvement_direction: the improvement direction of the regression
 
   Returns:
-    Pinpoint request to start a new skia bisection job
+    Pinpoint request to start a new skia culprit finder job
   """
   pinpoint_params['improvement_direction'] = improvement_direction
 
