@@ -94,7 +94,19 @@ def AddCommandLineArgs(parser):
       action='store_true',
       help='Run against live sites and ignore the Web Page Replay archives.')
 
-  parser.add_argument('-p', '--print-only', choices=['stories', 'tags', 'both'])
+  parser.add_argument('-p',
+                      '--print-only',
+                      choices=['stories', 'tags', 'both'],
+                      help='Skip running stories and only print their '
+                      'names/tags/both. By default this option will print all '
+                      'stories regardless of expectations.config filtering. If '
+                      'you want the filtered list, pass --print-only-runnable.')
+  parser.add_argument(
+      '--print-only-runnable',
+      action='store_true',
+      default=False,
+      help='When -p/--print-only is set, skip stories ignored by '
+      'expectations.config instead of printing all stories.')
   parser.add_argument(
       '-w',
       '--wait-for-cpu-temp',
@@ -282,6 +294,8 @@ def RunStorySet(test, story_set, finder_options, results,
     else:
       format_string = '%s%s'
     for s in stories:
+      if finder_options.print_only_runnable and story_filter.ShouldSkip(s):
+        continue
       print(format_string % (s.name, ','.join(s.tags) if include_tags else ''))
     return
 
@@ -405,7 +419,7 @@ def ValidateStory(story):
 
 
 def _ShouldRunBenchmark(benchmark, possible_browser, finder_options):
-  if finder_options.print_only:
+  if finder_options.print_only and not finder_options.print_only_runnable:
     return True  # Should always run on print-only mode.
   if benchmark.CanRunOnPlatform(possible_browser.platform, finder_options):
     return True
