@@ -51,7 +51,6 @@ EXCLUDED_PATHS = {
     'docs/',
     'experimental/',
     'generate_telemetry_build.py',
-    'third_party/google-endpoints/',
     'tracing/test_data/',
 }
 
