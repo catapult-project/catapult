@@ -915,25 +915,11 @@ class AlertGroupWorkflow:
 
     _, chart, _ = utils.ParseTelemetryMetricParts(
         regression.test.get().test_path)
-    chart, _ = utils.ParseStatisticNameFromChart(chart)
+    chart, statistic = utils.ParseStatisticNameFromChart(chart)
 
     improvement_dir = self._GetImprovementDirection(regression)
     logging.debug('Alert Group Workflow Debug - got improvement_direction: %s',
                   improvement_dir)
-    # Simultaneously trigger culprit finder (aka sandwich verification) in skia.
-    # We currently ignore the result, just to collect data.
-    try:
-      skia_pp_req = self._NewPinpointRequest(regression)
-      skia_pp_req = pinpoint_service.UpdateSkiaCulpritFinderRequest(
-          skia_pp_req, improvement_dir)
-      results = self._pinpoint.NewJobInSkia(skia_pp_req)
-      logging.info('[Pinpoint Skia] Triggering %s', results)
-    except Exception as e:  # pylint: disable=broad-except
-      # Caught all exceptions as we only need to trigger and log the runs.
-      msg = '[Pinpoint Skia] Error on triggering: %s\n%s'
-      logging.warning(msg, skia_pp_req, e)
-
-    # Trigger sandwich verification workflow
     create_exectution_req = {
         'benchmark':
             regression.benchmark_name,
@@ -955,6 +941,18 @@ class AlertGroupWorkflow:
         'improvement_dir':
             improvement_dir,
     }
+    # Simultaneously trigger culprit finder (aka sandwich verification) in skia.
+    # We currently ignore the result, just to collect data.
+    try:
+      skia_pp_req = pinpoint_service.UpdateSkiaCulpritFinderRequest(
+          create_exectution_req, regression, self._group.bug.bug_id, statistic)
+      results = self._pinpoint.NewJobInSkia(skia_pp_req)
+      logging.info('[Pinpoint Skia] Triggering %s', results)
+    except Exception as e:  # pylint: disable=broad-except
+      # Caught all exceptions as we only need to trigger and log the runs.
+      msg = '[Pinpoint Skia] Error on triggering: %s\n%s'
+      logging.warning(msg, create_exectution_req, e)
+
     logging.debug(
         ('Alert Group Workflow Debug - creating verification workflow with '
          'request: %s'), create_exectution_req)

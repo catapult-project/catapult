@@ -46,7 +46,7 @@ class CommitRange(collections.namedtuple('CommitRange', ['start', 'end'])):
   __slots__ = ()
 
 
-def UpdateSkiaCulpritFinderRequest(pinpoint_params, improvement_direction):
+def UpdateSkiaCulpritFinderRequest(pinpoint_params, alert, bug_id, agg_method):
   """Update a Pinpoint culprit finder request for the Skia backend.
 
   Culprit finder is also known as sandwich verification.
@@ -56,12 +56,18 @@ def UpdateSkiaCulpritFinderRequest(pinpoint_params, improvement_direction):
 
   Args:
     pinpoint_params: the bisection request used in catapult
-    improvement_direction: the improvement direction of the regression
+    alert: the candidate regression
+    bug_id: the bugID
+    agg_method: the method used to aggregate the benchmark runs
+        i.e. avg, mean, std, count, median. Also known as statistic.
 
   Returns:
     Pinpoint request to start a new skia culprit finder job
   """
-  pinpoint_params['improvement_direction'] = improvement_direction
+  mag = alert.median_after_anomaly - alert.median_before_anomaly
+  pinpoint_params['comparison_magnitude'] = mag
+  pinpoint_params['bug_id'] = bug_id
+  pinpoint_params['aggregation_method'] = agg_method
 
   return pinpoint_params
 
