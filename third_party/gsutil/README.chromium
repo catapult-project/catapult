@@ -22,6 +22,7 @@ management tasks, including:
 Local Modifications:
 _ Added this file.
 _ Added BUILD.gn
-_ Removed requirements.txt from google-auth-library-python's .kokoro
-  dependency. The requirements listed there are not used by Catapult and were
-  causing false positives when checking Python dependency versions.
+_ Removed requirements.txt from google-auth-library-python and
+  google-auth-library-python-httlib2's .kokoro dependency. The
+  requirements listed there are not used by Catapult and were causing false
+  positives when checking Python dependency versions.
