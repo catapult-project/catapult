@@ -920,6 +920,20 @@ class AlertGroupWorkflow:
     improvement_dir = self._GetImprovementDirection(regression)
     logging.debug('Alert Group Workflow Debug - got improvement_direction: %s',
                   improvement_dir)
+    # Simultaneously trigger culprit finder (aka sandwich verification) in skia.
+    # We currently ignore the result, just to collect data.
+    try:
+      skia_pp_req = self._NewPinpointRequest(regression)
+      skia_pp_req = pinpoint_service.UpdateSkiaCulpritFinderRequest(
+          skia_pp_req, improvement_dir)
+      results = self._pinpoint.NewJobInSkia(skia_pp_req)
+      logging.info('[Pinpoint Skia] Triggering %s', results)
+    except Exception as e:  # pylint: disable=broad-except
+      # Caught all exceptions as we only need to trigger and log the runs.
+      msg = '[Pinpoint Skia] Error on triggering: %s\n%s'
+      logging.warning(msg, skia_pp_req, e)
+
+    # Trigger sandwich verification workflow
     create_exectution_req = {
         'benchmark':
             regression.benchmark_name,
@@ -1172,24 +1186,6 @@ class AlertGroupWorkflow:
     except pinpoint_request.InvalidParamsError as e:
       six.raise_from(
           InvalidPinpointRequest('Invalid pinpoint request: %s' % (e,)), e)
-
-    # Simultaneously trigger culprit finder (aka sandwich verification) in skia.
-    # We currently ignore the result, just to collect data.
-    # TODO(b/352631795): Trigger the workflow from the start of regression
-    # verification. We trigger the request here to do a smaller staged launch.
-    # Once we've verified the E2E workflow is WAI, we include all anomalies to
-    # test regression verification fail cases.
-    try:
-      improve_dir = self._GetImprovementDirection(regression)
-      skia_pp_req = pinpoint_service.UpdateSkiaCulpritFinderRequest(pp_request,
-                                                                improve_dir)
-      results = self._pinpoint.NewJobInSkia(skia_pp_req)
-      logging.info('[Pinpoint Skia] Triggering %s', results)
-    except Exception as e: # pylint: disable=broad-except
-      # Caught all exceptions as we only need to trigger and log the runs.
-      msg = '[Pinpoint Skia] Error on triggering: %s\n%s'
-      logging.warning(msg, pp_request, e)
-
     try:
       results = self._pinpoint.NewJob(pp_request)
     except pinpoint_request.InvalidParamsError as e:
