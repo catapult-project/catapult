@@ -40,6 +40,10 @@ class CrOSTestCase(unittest.TestCase):
           path=extension_path,
           browser_type=finder_options.browser_type)
       browser_options.extensions_to_load = [self._load_extension]
+      # TODO(https://crbug.com/354627706): Migrate extensions to MV3 and remove
+      # this flag.
+      browser_options.extra_browser_args.add(
+          '--disable-features=ExtensionManifestV2Disabled')
 
     browser_to_create = browser_finder.FindBrowser(finder_options)
     self.assertTrue(browser_to_create)
