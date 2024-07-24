@@ -6,7 +6,6 @@ import os
 import unittest
 from unittest import mock
 
-from telemetry.core import optparse_argparse_migration as oam
 from telemetry.internal.browser import browser_options
 
 
@@ -118,7 +117,7 @@ class BrowserOptionsTest(unittest.TestCase):
     options.override_to_true = False
     options.override_to_false = True
 
-    parser = oam.CreateFromOptparseInputs()
+    parser = options.CreateParser()
     parser.add_argument('--already_true', action='store_true')
     parser.add_argument('--already_false', action='store_true')
     parser.add_argument('--unset', action='store_true')

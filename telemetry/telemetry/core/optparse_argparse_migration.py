@@ -40,21 +40,6 @@ class ArgumentParser(argparse.ArgumentParser):
         self.error(f'no such option: {unknown}')
     return known_args, unknown_args
 
-  def get_default_values(self):
-    defaults = {}
-    for action in self._actions:
-      # In the event that multiple actions point to the same destination such
-      # as --foo/--no-foo, use the default of the first defined one. This
-      # appears to be consistent with how optparse did it.
-      defaults.setdefault(action.dest, action.default)
-    for k, v in self._defaults.items():
-      if k in defaults:
-        # This should never be hit since argparse sets the action's default if
-        # it exists.
-        assert defaults[k] == v
-      defaults[k] = v
-    return argparse.Namespace(**defaults)
-
   @property
   def defaults(self):
     return self._defaults
