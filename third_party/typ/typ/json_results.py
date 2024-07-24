@@ -52,7 +52,7 @@ class Result(object):
                  expected=None, unexpected=False,
                  flaky=False, code=0, out='', err='', pid=0,
                  file_path='', line_number=0,
-                 artifacts=None, failure_reason=None):
+                 artifacts=None, failure_reason=None, associated_bugs=''):
         self.name = name
         self.actual = actual
         self.started = started
@@ -70,6 +70,7 @@ class Result(object):
         self.file_path = file_path
         self.line_number = line_number
         self.failure_reason = failure_reason
+        self.associated_bugs = associated_bugs
         self.result_sink_retcode = 0
 
 

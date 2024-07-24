@@ -95,6 +95,16 @@ class FailingTest(unittest.TestCase):
 """
 
 
+SKIP_TEST_AT_RUNTIME_PY = """
+from typ import test_case
+class SkipTestSetTags(test_case.TestCase):
+    def test_skip(self):
+        self.child.expectations.set_tags(['foo'])
+        self.programmaticSkipIsExpected = True
+        self.skipTest('')
+"""
+
+
 FAIL_TEST_FILES = {'fail_test.py': FAIL_TEST_PY}
 
 
@@ -736,7 +746,27 @@ class TestCli(test_case.MainTestCase):
                  '# results: [ Skip ]\ncrbug.com/23456 fail_test.FailingTest.test_fail [ Skip ]\n',
                  'fail_test.py': FAIL_TEST_PY,
                  'pass_test.py': PASS_TEST_PY}
-        self.check(['-X', 'expectations.txt'], files=files, ret=0)
+        _, out, _, _ = self.check(['-X', 'expectations.txt'],
+                                  files=files, ret=0)
+        # Does not contain "crbug.com/23456" in the output since this is handled
+        # via _skip_tests(), which does not have the relevant information to
+        # output bugs.
+        self.assertIn(
+            '[1/2] fail_test.FailingTest.test_fail was skipped (worker 0)', out)
+
+    def test_skip_via_expectations_at_runtime(self):
+        files = {'expectations.txt': d("""\
+                 # tags: [ foo ]
+                 # results: [ Skip ]
+                 crbug.com/23456 [ foo ] skip_test.SkipTestSetTags.test_skip [ Skip ]
+                 """),
+                 'skip_test.py': SKIP_TEST_AT_RUNTIME_PY,
+                 'pass_test.py': PASS_TEST_PY}
+        _, out, _, _ = self.check(['-j', '1', '-X', 'expectations.txt'],
+                                  files=files, ret=0)
+        self.assertIn(
+            '[2/2] skip_test.SkipTestSetTags.test_skip was skipped '
+            '(crbug.com/23456) (worker 1)', out)
 
     def test_skips_and_failures(self):
         _, out, _, _ = self.check(['-j', '1', '-v', '-v'], files=SF_TEST_FILES,
@@ -929,6 +959,19 @@ class TestCli(test_case.MainTestCase):
         self.assertIn('skip_test.SkipSetup.test_notrun was skipped unexpectedly'
                       ,out)
 
+    def test_unexpected_pass_expectation_file(self):
+        files = {
+            'expectations.txt': d("""\
+            # results: [ Failure ]
+            crbug.com/12345 pass_test.PassingTest.test_pass [ Failure ]
+            """),
+            'pass_test.py': PASS_TEST_PY,
+        }
+        _, out, _, _ = self.check(['-X', 'expectations.txt'], files=files)
+        self.assertIn(
+            '[1/1] pass_test.PassingTest.test_pass passed unexpectedly '
+            '(crbug.com/12345) (worker 1)', out)
+
     def test_retry_only_retry_on_failure_tests(self):
         files = {'flaky_test.py': FLAKY_TEST_PY}
         _, out, _, files = self.check(['--write-full-results-to',
@@ -1018,7 +1061,7 @@ class TestCli(test_case.MainTestCase):
                                        '--retry-only-retry-on-failure-tests', '-vv'],
                                       files=files, ret=0, err='')
         self.assertIn('[1/1] fail_test.FailingTest.test_fail failed as '
-                      'expected (worker 1):\n', out)
+                      'expected (crbug.com/12345) (worker 1):\n', out)
         self.assertIn('0 tests passed, 0 skipped, 1 failure.\n', out)
         results = json.loads(files['full_results.json'])
         test_results = results['tests']['fail_test']['FailingTest']['test_fail']
@@ -1165,7 +1208,8 @@ class TestCli(test_case.MainTestCase):
              '--test-name-prefix', 'fail_test.FailingTest.',
              '-X', 'expectations.txt', '-x', 'foo', '-vv'],
             files=files, ret=0, err='')
-        self.assertIn('[1/1] test_fail failed as expected (worker 1):\n', out)
+        self.assertIn('[1/1] test_fail failed as expected (crbug.com/12345) '
+                      '(worker 1):\n', out)
 
     def test_implement_test_name_prefix_exclusion_in_skip_glob(self):
         files = {'fail_test.py': FAIL_TEST_PY}

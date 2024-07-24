@@ -769,12 +769,25 @@ class Runner(object):
         elif result.actual == ResultType.Failure:
             result_str += ' as expected'
 
+        # Include any associated bugs from relevant expectations if the test:
+        #   1. Was skipped
+        #   2. Failed as expected
+        #   3. Unexpectedly passed
+        bug_str = ''
+        expectedly_skipped_or_failed = (not result.unexpected and
+                                        result.actual != ResultType.Pass)
+        unexpectedly_passed = (result.unexpected and
+                               result.actual == ResultType.Pass)
+        if expectedly_skipped_or_failed or unexpectedly_passed:
+            if result.associated_bugs:
+                bug_str = f' ({result.associated_bugs})'
+
         if self.args.timing:
             timing_str = ' %.4fs' % result.took
         else:
             timing_str = ''
         worker_str = ' (worker %d)' % result.worker
-        suffix = '%s%s%s' % (result_str, timing_str, worker_str)
+        suffix = '%s%s%s%s' % (result_str, bug_str, timing_str, worker_str)
         out = result.out
         err = result.err
         if result.is_regression:
@@ -1077,14 +1090,17 @@ def _teardown_process(child):
 
 
 def _run_one_test(child, test_input):
-    def _get_expected_results_and_retry_on_failure():
+    def _get_expectation_information():
         if child.has_expectations:
             expectation = child.expectations.expectations_for(test_name)
-            expected_results, should_retry_on_failure = (
-                expectation.results, expectation.should_retry_on_failure)
+            expected_results = expectation.results
+            should_retry_on_failure = expectation.should_retry_on_failure
+            associated_bugs = expectation.reason
         else:
-            expected_results, should_retry_on_failure = {ResultType.Pass}, False
-        return expected_results, should_retry_on_failure
+            expected_results = {ResultType.Pass}
+            should_retry_on_failure = False
+            associated_bugs = ''
+        return expected_results, should_retry_on_failure, associated_bugs
 
     h = child.host
     pid = h.getpid()
@@ -1101,7 +1117,8 @@ def _run_one_test(child, test_input):
     # but could come up when testing non-typ code as well.
     h.capture_output(divert=not child.passthrough)
     (expected_results,
-        should_retry_on_failure) = _get_expected_results_and_retry_on_failure()
+        should_retry_on_failure,
+        associated_bugs) = _get_expectation_information()
     ex_str = ''
     try:
         orig_skip = unittest.skip
@@ -1113,7 +1130,8 @@ def _run_one_test(child, test_input):
             h.restore_output()
             return (Result(test_name, ResultType.Skip, started, 0,
                            child.worker_num, expected=expected_results,
-                           unexpected=False, pid=pid), False)
+                           unexpected=False, pid=pid,
+                           associated_bugs=associated_bugs), False)
 
         test_name_to_load = child.test_name_prefix + test_name
         try:
@@ -1186,7 +1204,8 @@ def _run_one_test(child, test_input):
     # the test changed something, e.g. restarted the browser with new browser
     # arguments, leading to different tags being generated.
     (expected_results,
-        should_retry_on_failure) = _get_expected_results_and_retry_on_failure()
+        should_retry_on_failure,
+        associated_bugs) = _get_expectation_information()
 
     took = h.time() - started
     additional_tags = None
@@ -1211,7 +1230,8 @@ def _run_one_test(child, test_input):
         if test_result.skipped and test_case.programmaticSkipIsExpected:
             result = Result(test_name, ResultType.Skip, started, took,
                            child.worker_num, expected={ResultType.Skip},
-                           unexpected=False, pid=pid)
+                           unexpected=False, pid=pid,
+                           associated_bugs=associated_bugs)
             result.result_sink_retcode =\
                     child.result_sink_reporter.report_individual_test_result(
                         result, child.artifact_output_dir, child.expectations,
@@ -1223,7 +1243,7 @@ def _run_one_test(child, test_input):
     result = _result_from_test_result(test_result, test_name, started, took, out,
                                     err, child.worker_num, pid, test_case,
                                     expected_results, child.has_expectations,
-                                    art.artifacts)
+                                    art.artifacts, associated_bugs)
     result.result_sink_retcode =\
             child.result_sink_reporter.report_individual_test_result(
                 result, child.artifact_output_dir, child.expectations,
@@ -1245,7 +1265,7 @@ def _run_under_debugger(host, test_case, suite,
 
 def _result_from_test_result(test_result, test_name, started, took, out, err,
                              worker_num, pid, test_case, expected_results,
-                             has_expectations, artifacts):
+                             has_expectations, artifacts, associated_bugs):
     failure_reason = None
     if test_result.failures:
         actual = ResultType.Failure
@@ -1293,7 +1313,8 @@ def _result_from_test_result(test_result, test_name, started, took, out, err,
     line_number = inspect.getsourcelines(test_func)[1]
     return Result(test_name, actual, started, took, worker_num,
                   expected_results, unexpected, flaky, code, out, err, pid,
-                  file_path, line_number, artifacts, failure_reason)
+                  file_path, line_number, artifacts, failure_reason,
+                  associated_bugs)
 
 
 def _failure_reason_from_traceback(traceback):
