@@ -181,12 +181,12 @@ found in the LICENSE file.
             <paper-radio-group id="comparison_mode" selected="{{comparisonMode}}">
               <paper-radio-button class="radio" name="try" disabled="[[hasJob(job)]]">Try Job</paper-radio-button>
               <paper-radio-button class="radio" name="performance" disabled="[[hasJob(job)]]">Bisect</paper-radio-button>
-              <paper-input hidden="[[isBisectJob(comparisonMode)]]"
+              <paper-input
                      id="initial_attempt_count"
                      name="initial_attempt_count"
                      placeholder="[[defaultAttemptCount(job, configuration, benchmark)]]"
                      value="{{initial_attempt_count}}"></paper-input>
-              <label hidden="[[isBisectJob(comparisonMode)]]"
+              <label
                      id="initial_attempt_count_label"
                      for="initial_attempt_count">Attempt Count: <attempt-count-help></attempt-count-help></label>
             </paper-radio-group>
