@@ -21,6 +21,8 @@ FUCHSIA_BROWSERS = [
     'cast-streaming-shell',
 ]
 
+FUCHSIA_REPO = 'fuchsia.com'
+
 _SDK_ROOT_IN_CATAPULT = os.path.join(util.GetCatapultDir(), 'third_party',
                                      'fuchsia-sdk', 'sdk')
 _SDK_ROOT_IN_CHROMIUM = os.path.join(util.GetCatapultDir(), '..',
@@ -113,45 +115,57 @@ def run_continuous_ffx_command(cmd, target_id, **kwargs):
   return subprocess.Popen(ffx_cmd, encoding='utf-8', **kwargs)
 
 
+def _get_ssh_address(target_id):
+  """Get the ssh address for the Fuchsia target."""
+
+  ssh_address = run_ffx_command(['target', 'get-ssh-address'],
+                                target_id,
+                                capture_output=True).stdout.strip()
+
+  def parse_host_port(host_port_pair):
+    """Parses a host name or IP address and a port number from a string of any
+    of the following forms:
+    - hostname:port
+    - IPv4addy:port
+    - [IPv6addy]:port
+
+    Returns:
+      A tuple of the string host name/address and integer port number.
+
+    Raises:
+      ValueError if `host_port_pair` does not contain a colon or if the
+      substring following the last colon cannot be converted to an int.
+    """
+
+    host, port = host_port_pair.rsplit(':', 1)
+
+    # Strip the brackets if the host looks like an IPv6 address.
+    if len(host) > 2 and host[0] == '[' and host[-1] == ']':
+      host = host[1:-1]
+    return (host, int(port))
+
+  return parse_host_port(ssh_address)
+
+
 class CommandRunner():
   """Helper class used to execute commands on Fuchsia devices on a remote host
   over SSH."""
 
-  def __init__(self, config_path, host, port, target_id=None):
+  def __init__(self, target_id):
     """Creates a CommandRunner that connects to the specified |host| and |port|
     using the ssh config at the specified |config_path|.
 
     Args:
-      config_path: Full path to SSH configuration.
-      host: The hostname or IP address of the remote host.
-      port: The port to connect to.
       target_id: The target id used by ffx."""
-    self._config_path = config_path
-    self._host = host
-    self._port = port
-
-    def format_host_port(host, port):
-      """Formats a host name or IP address and port number into a host:port
-      string. """
-
-      if not port:
-        return host
-
-      # Convert localhost to IPv4 address.
-      if host == 'localhost':
-        host = '127.0.0.1'
-
-      # Wrap `host` in brackets if it looks like an IPv6 address.
-      return ('[%s]:%d' if ':' in host else '%s:%d') % (host, port)
-
-    self._target_id = target_id or format_host_port(host, port)
-
-  @property
-  def host(self):
-    return self._host
+    self._host, self._port = _get_ssh_address(target_id)
+    self._target_id = target_id
 
   def _GetSshCommandLinePrefix(self):
-    prefix_cmd = ['ssh', '-F', self._config_path, self._host]
+    prefix_cmd = [
+        'ssh', '-F',
+        os.path.join(util.GetChromiumSrcDir(), 'build', 'fuchsia', 'test',
+                     'sshconfig'), self._host
+    ]
     if self._port:
       prefix_cmd += ['-p', str(self._port)]
     return prefix_cmd
@@ -225,10 +239,10 @@ def StartSymbolizerForProcessIfPossible(input_file, output_file,
 
     logging.debug('Running "%s".' % ' '.join(symbolizer_cmd))
     kwargs = {
-        'stdin':input_file,
-        'stdout':output_file,
-        'stderr':subprocess.STDOUT,
-        'close_fds':True
+        'stdin': input_file,
+        'stdout': output_file,
+        'stderr': subprocess.STDOUT,
+        'close_fds': True
     }
     if six.PY3:
       kwargs['text'] = True

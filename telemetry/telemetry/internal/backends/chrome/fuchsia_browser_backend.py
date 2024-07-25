@@ -55,9 +55,8 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if os.environ.get('CHROMIUM_OUTPUT_DIR'):
       self._output_dir = os.environ.get('CHROMIUM_OUTPUT_DIR')
     else:
-      self._output_dir = os.path.abspath(os.path.dirname(
-          fuchsia_platform_backend.ssh_config))
-    self._managed_repo = fuchsia_platform_backend.managed_repo
+      self._output_dir = os.path.abspath(
+          os.path.dirname(fuchsia_platform_backend.ssh_config))
 
   @property
   def log_file_path(self):
@@ -95,10 +94,9 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _StartWebEngineShell(self, startup_args):
     """Returns a stream from which browser logs can be read."""
     browser_cmd = [
-        'test',
-        'run',
+        'test', 'run',
         'fuchsia-pkg://%s/web_engine_shell#meta/web_engine_shell.cm' %
-        self._managed_repo
+        fuchsia_interface.FUCHSIA_REPO
     ]
 
     # Flags forwarded to the web_engine_shell component.
@@ -135,7 +133,7 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         'test',
         'run',
         'fuchsia-pkg://%s/cast_streaming_shell#meta/cast_streaming_shell.cm' %
-        self._managed_repo,
+        fuchsia_interface.FUCHSIA_REPO,
     ]
 
     # Flags forwarded to the cast_streaming_shell component.
@@ -165,14 +163,10 @@ class FuchsiaBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _StartChrome(self, startup_args):
     """Returns a stream from which browser logs can be read."""
     browser_cmd = [
-        'session',
-        'add',
+        'session', 'add',
         'fuchsia-pkg://%s/chrome#meta/chrome_v1.cmx' %
-        self._managed_repo,
-        '--',
-        'about:blank',
-        '--remote-debugging-port=0',
-        '--enable-logging'
+        fuchsia_interface.FUCHSIA_REPO, '--', 'about:blank',
+        '--remote-debugging-port=0', '--enable-logging'
     ]
     if startup_args:
       browser_cmd.extend(startup_args)
