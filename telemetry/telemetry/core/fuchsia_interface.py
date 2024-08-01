@@ -7,13 +7,31 @@ from __future__ import absolute_import
 import logging
 import os
 import platform
-import re
 import subprocess
+import sys
 
 # TODO(crbug.com/1267066): Remove when python2 is deprecated.
 import six
 
 from telemetry.core import util
+
+TEST_SCRIPTS_ROOT = os.path.join(util.GetCatapultDir(), '..', '..', 'build',
+                                 'fuchsia', 'test')
+
+# The path is dynamically included since the fuchsia runner modules are not
+# always available, and other platforms shouldn't depend on the fuchsia
+# runners.
+# pylint: disable=import-error,import-outside-toplevel
+
+
+def _include_fuchsia_package():
+  if TEST_SCRIPTS_ROOT in sys.path:
+    # The import should happen exactly once.
+    return
+  assert os.path.exists(TEST_SCRIPTS_ROOT), \
+         "Telemetry support on Fuchsia currently requires a Chromium checkout."
+  sys.path.insert(0, TEST_SCRIPTS_ROOT)
+
 
 FUCHSIA_BROWSERS = [
     'fuchsia-chrome',
@@ -23,128 +41,21 @@ FUCHSIA_BROWSERS = [
 
 FUCHSIA_REPO = 'fuchsia.com'
 
-_SDK_ROOT_IN_CATAPULT = os.path.join(util.GetCatapultDir(), 'third_party',
-                                     'fuchsia-sdk', 'sdk')
-_SDK_ROOT_IN_CHROMIUM = os.path.join(util.GetCatapultDir(), '..',
-                                     'fuchsia-sdk', 'sdk')
-if os.path.exists(_SDK_ROOT_IN_CHROMIUM):
-  SDK_ROOT = _SDK_ROOT_IN_CHROMIUM
-else:
-  SDK_ROOT = _SDK_ROOT_IN_CATAPULT
 
-
-def GetHostArchFromPlatform():
-  host_arch = platform.machine()
-  if host_arch in ['x86_64', 'AMD64']:
-    return 'x64'
-  if host_arch in ['arm64', 'aarch64']:
-    return 'arm64'
-  raise Exception('Unsupported host architecture: %s' % host_arch)
-
-
-_FFX_TOOL = os.path.join(
-    SDK_ROOT, 'tools', GetHostArchFromPlatform(), 'ffx')
-
-
-def _run_repair_command(output):
-  """Scans |output| for a self-repair command to run and, if found, runs it.
-
-  Returns:
-    True if a repair command was found and ran successfully. False otherwise.
-  """
-
-  # Check for a string along the lines of:
-  # "Run `ffx doctor --restart-daemon` for further diagnostics."
-  match = re.search('`ffx ([^`]+)`', output)
-  if not match or len(match.groups()) != 1:
-    return False  # No repair command found.
-  args = match.groups()[0].split()
-
-  try:
-    run_ffx_command(args, suppress_repair=True)
-  except subprocess.CalledProcessError:
-    return False  # Repair failed.
-  return True  # Repair succeeded.
-
-
-def run_ffx_command(cmd, target_id = None, check = True,
-                    suppress_repair = False, **kwargs):
-  """Runs `ffx` with the given arguments, waiting for it to exit.
-
-  If `ffx` exits with a non-zero exit code, the output is scanned for a
-  recommended repair command (e.g., "Run `ffx doctor --restart-daemon` for
-  further diagnostics."). If such a command is found, it is run and then the
-  original command is retried. This behavior can be suppressed via the
-  `suppress_repair` argument.
-
-  Args:
-      cmd: A sequence of arguments to ffx.
-      target_id: Whether to execute the command for a specific target. The
-            target_id could be in the form of a nodename or an address.
-      check: If True, CalledProcessError is raised if ffx returns a non-zero
-          exit code.
-      suppress_repair: If True, do not attempt to find and run a repair
-          command.
-  Returns:
-      A CompletedProcess instance
-  Raises:
-      CalledProcessError if |check| is true.
-  """
-
-  ffx_cmd = [_FFX_TOOL]
-  if target_id:
-    ffx_cmd.extend(('--target', target_id))
-  ffx_cmd.extend(cmd)
-  try:
-    return subprocess.run(ffx_cmd, check=check, encoding='utf-8', **kwargs)
-  except subprocess.CalledProcessError as cpe:
-    if suppress_repair or not _run_repair_command(cpe.output):
-      raise
-
-  # If the original command failed but a repair command was found and
-  # succeeded, try one more time with the original command.
-  return run_ffx_command(cmd, target_id, check, True, **kwargs)
+def run_ffx_command(cmd, target_id=None, check=True, **kwargs):
+  # TODO(crbug.com/40935291): Remove this function in favor of using
+  # common.run_ffx_command directly.
+  _include_fuchsia_package()
+  from common import run_ffx_command as ffx_run
+  return ffx_run(check=check, cmd=cmd, target_id=target_id, **kwargs)
 
 
 def run_continuous_ffx_command(cmd, target_id, **kwargs):
-  """Runs an ffx command asynchronously."""
-
-  ffx_cmd = [_FFX_TOOL]
-  ffx_cmd.extend(('--target', target_id))
-  ffx_cmd.extend(cmd)
-  return subprocess.Popen(ffx_cmd, encoding='utf-8', **kwargs)
-
-
-def _get_ssh_address(target_id):
-  """Get the ssh address for the Fuchsia target."""
-
-  ssh_address = run_ffx_command(['target', 'get-ssh-address'],
-                                target_id,
-                                capture_output=True).stdout.strip()
-
-  def parse_host_port(host_port_pair):
-    """Parses a host name or IP address and a port number from a string of any
-    of the following forms:
-    - hostname:port
-    - IPv4addy:port
-    - [IPv6addy]:port
-
-    Returns:
-      A tuple of the string host name/address and integer port number.
-
-    Raises:
-      ValueError if `host_port_pair` does not contain a colon or if the
-      substring following the last colon cannot be converted to an int.
-    """
-
-    host, port = host_port_pair.rsplit(':', 1)
-
-    # Strip the brackets if the host looks like an IPv6 address.
-    if len(host) > 2 and host[0] == '[' and host[-1] == ']':
-      host = host[1:-1]
-    return (host, int(port))
-
-  return parse_host_port(ssh_address)
+  # TODO(crbug.com/40935291): Remove this function in favor of using
+  # common.run_continuous_ffx_command directly.
+  _include_fuchsia_package()
+  from common import run_continuous_ffx_command as ffx_run_continuous
+  return ffx_run_continuous(cmd=cmd, target_id=target_id, **kwargs)
 
 
 class CommandRunner():
@@ -157,18 +68,11 @@ class CommandRunner():
 
     Args:
       target_id: The target id used by ffx."""
-    self._host, self._port = _get_ssh_address(target_id)
     self._target_id = target_id
-
-  def _GetSshCommandLinePrefix(self):
-    prefix_cmd = [
-        'ssh', '-F',
-        os.path.join(util.GetChromiumSrcDir(), 'build', 'fuchsia', 'test',
-                     'sshconfig'), self._host
-    ]
-    if self._port:
-      prefix_cmd += ['-p', str(self._port)]
-    return prefix_cmd
+    _include_fuchsia_package()
+    from common import get_ssh_address
+    from compatible_utils import get_ssh_prefix
+    self._ssh_prefix = get_ssh_prefix(get_ssh_address(target_id))
 
   def run_ffx_command(self, cmd, **kwargs):
     return run_ffx_command(cmd, self._target_id, **kwargs)
@@ -195,7 +99,7 @@ class CommandRunner():
 
     # Having control master causes weird behavior in port_forwarding.
     ssh_args.append('-oControlMaster=no')
-    ssh_command = self._GetSshCommandLinePrefix() + ssh_args + ['--'] + command
+    ssh_command = self._ssh_prefix + ssh_args + ['--'] + command
     logging.debug(' '.join(ssh_command))
     if six.PY3:
       kwargs['text'] = True
@@ -209,6 +113,8 @@ class CommandRunner():
     return cmd_proc.returncode, stdout, stderr
 
 
+# TODO(crbug.com/40935291): Remove this function in favor of
+# ffx_integration.run_symbolizer.
 def StartSymbolizerForProcessIfPossible(input_file, output_file,
                                         build_id_files):
   """Starts a symbolizer process if possible.
@@ -224,10 +130,22 @@ def StartSymbolizerForProcessIfPossible(input_file, output_file,
       fails to start."""
 
   if build_id_files:
-    symbolizer = os.path.join(SDK_ROOT, 'tools', GetHostArchFromPlatform(),
+    sdk_root = os.path.join(util.GetCatapultDir(), '..', 'fuchsia-sdk', 'sdk')
+    assert os.path.exists(sdk_root)
+
+    def _GetHostArchFromPlatform():
+      host_arch = platform.machine()
+      if host_arch in ['x86_64', 'AMD64']:
+        return 'x64'
+      if host_arch in ['arm64', 'aarch64']:
+        return 'arm64'
+      raise Exception('Unsupported host architecture: %s' % host_arch)
+
+    symbolizer = os.path.join(sdk_root, 'tools', _GetHostArchFromPlatform(),
                               'symbolizer')
     symbolizer_cmd = [
-        symbolizer, '--build-id-dir', os.path.join(SDK_ROOT, '.build-id')
+        symbolizer, '--build-id-dir',
+        os.path.join(sdk_root, '.build-id')
     ]
 
     for build_id_file in build_id_files:
