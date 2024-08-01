@@ -17,7 +17,6 @@ THIRD_PARTY_LIBRARIES = [
     'cloudstorage',
     'depot_tools',
     'flot',
-    'gae_ts_mon',
     'jquery',
     'polymer',
     'polymer-svg-template',

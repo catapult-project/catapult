@@ -1,4 +1,0 @@
-handlers:
-- url: /internal/cron/ts_mon/.*
-  login: admin
-  script: gae_ts_mon.app

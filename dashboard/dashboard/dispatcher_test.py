@@ -16,10 +16,6 @@ class DispatcherTest(unittest.TestCase):
     # load_from_prod requires this:
     os.environ['APPLICATION_ID'] = 'testbed-test'
 
-    # gae_ts_mon requires these:
-    os.environ['CURRENT_MODULE_ID'] = ''
-    os.environ['CURRENT_VERSION_ID'] = ''
-
     # pylint: disable=import-outside-toplevel
     from dashboard import dispatcher  # pylint: disable=unused-import
 

@@ -302,6 +302,7 @@ wheel: <
 
 # Used by:
 #   build/android/pylib/local/emulator/avd.py
+#   tracing/
 wheel: <
   name: "infra/python/wheels/protobuf-py3"
   version: "version:4.21.9"
