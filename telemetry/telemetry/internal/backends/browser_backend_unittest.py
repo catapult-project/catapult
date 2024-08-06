@@ -390,7 +390,7 @@ Thread 0 (crashed)
     rbp = 0x00007ff7b673f9c0   rsp = 0x00007ff7b673f930
     rip = 0x000000013283688a
     Found by: previous frame's frame pointer
- 5  Chromium Framework!cppgc::internal::MarkingVerifierBase::Run(cppgc::EmbedderStackState, v8::base::Optional<unsigned long>) + 0x20
+ 5  Chromium Framework!cppgc::internal::MarkingVerifierBase::Run(cppgc::EmbedderStackState, std::optional<unsigned long>) + 0x20
     rbp = 0x00007ff7b673f9f0   rsp = 0x00007ff7b673f9d0
     rip = 0x0000000132836530
     Found by: previous frame's frame pointer
