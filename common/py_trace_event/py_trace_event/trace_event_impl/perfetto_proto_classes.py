@@ -16,8 +16,13 @@ https://android.googlesource.com/platform/external/perfetto/+/refs/heads/master/
 """
 
 from __future__ import absolute_import
-import encoder
-import wire_format
+from google.protobuf.internal import encoder, wire_format
+
+
+# When moving from protobuf 3.0.0 to 4.21.9, encoders started taking a
+# required "deterministic" argument. We use this instead of a raw True value to
+# improve readability.
+DETERMINISTIC = True
 
 
 class TracePacket(object):
@@ -47,10 +52,10 @@ class TracePacket(object):
       parts += [tag, length, data]
     if self.timestamp is not None:
       writer = encoder.UInt64Encoder(8, False, False)
-      writer(parts.append, self.timestamp)
+      writer(parts.append, self.timestamp, DETERMINISTIC)
     if self.trusted_packet_sequence_id is not None:
       writer = encoder.UInt32Encoder(10, False, False)
-      writer(parts.append, self.trusted_packet_sequence_id)
+      writer(parts.append, self.trusted_packet_sequence_id, DETERMINISTIC)
     if self.track_event is not None:
       tag = encoder.TagBytes(11, wire_format.WIRETYPE_LENGTH_DELIMITED)
       data = self.track_event.encode()
@@ -63,7 +68,7 @@ class TracePacket(object):
       parts += [tag, length, data]
     if self.incremental_state_cleared is not None:
       writer = encoder.BoolEncoder(41, False, False)
-      writer(parts.append, self.incremental_state_cleared)
+      writer(parts.append, self.incremental_state_cleared, DETERMINISTIC)
     if self.thread_descriptor is not None:
       tag = encoder.TagBytes(44, wire_format.WIRETYPE_LENGTH_DELIMITED)
       data = self.thread_descriptor.encode()
@@ -76,7 +81,7 @@ class TracePacket(object):
       parts += [tag, length, data]
     if self.timestamp_clock_id is not None:
       writer = encoder.UInt32Encoder(58, False, False)
-      writer(parts.append, self.timestamp_clock_id)
+      writer(parts.append, self.timestamp_clock_id, DETERMINISTIC)
 
     return b"".join(parts)
 
@@ -113,9 +118,9 @@ class EventCategory(object):
 
     parts = []
     writer = encoder.UInt32Encoder(1, False, False)
-    writer(parts.append, self.iid)
+    writer(parts.append, self.iid, DETERMINISTIC)
     writer = encoder.StringEncoder(2, False, False)
-    writer(parts.append, self.name)
+    writer(parts.append, self.name, DETERMINISTIC)
 
     return b"".join(parts)
 
@@ -134,9 +139,9 @@ class ThreadDescriptor(object):
 
     parts = []
     writer = encoder.UInt32Encoder(1, False, False)
-    writer(parts.append, self.pid)
+    writer(parts.append, self.pid, DETERMINISTIC)
     writer = encoder.UInt32Encoder(2, False, False)
-    writer(parts.append, self.tid)
+    writer(parts.append, self.tid, DETERMINISTIC)
 
     return b"".join(parts)
 
@@ -166,7 +171,7 @@ class TrackEvent(object):
     parts = []
     if self.category_iids is not None:
       writer = encoder.UInt32Encoder(3, is_repeated=True, is_packed=False)
-      writer(parts.append, self.category_iids)
+      writer(parts.append, self.category_iids, DETERMINISTIC)
     for annotation in self.debug_annotations:
       tag = encoder.TagBytes(4, wire_format.WIRETYPE_LENGTH_DELIMITED)
       data = annotation.encode()
@@ -190,10 +195,10 @@ class LegacyEvent(object):
     parts = []
     if self.name_iid is not None:
       writer = encoder.UInt32Encoder(1, False, False)
-      writer(parts.append, self.name_iid)
+      writer(parts.append, self.name_iid, DETERMINISTIC)
     if self.phase is not None:
       writer = encoder.Int32Encoder(2, False, False)
-      writer(parts.append, self.phase)
+      writer(parts.append, self.phase, DETERMINISTIC)
 
     return b"".join(parts)
 
@@ -213,28 +218,28 @@ class ChromeBenchmarkMetadata(object):
     parts = []
     if self.benchmark_start_time_us is not None:
       writer = encoder.Int64Encoder(1, False, False)
-      writer(parts.append, self.benchmark_start_time_us)
+      writer(parts.append, self.benchmark_start_time_us, DETERMINISTIC)
     if self.story_run_time_us is not None:
       writer = encoder.Int64Encoder(2, False, False)
-      writer(parts.append, self.story_run_time_us)
+      writer(parts.append, self.story_run_time_us, DETERMINISTIC)
     if self.benchmark_name is not None:
       writer = encoder.StringEncoder(3, False, False)
-      writer(parts.append, self.benchmark_name)
+      writer(parts.append, self.benchmark_name, DETERMINISTIC)
     if self.benchmark_description is not None:
       writer = encoder.StringEncoder(4, False, False)
-      writer(parts.append, self.benchmark_description)
+      writer(parts.append, self.benchmark_description, DETERMINISTIC)
     if self.label is not None:
       writer = encoder.StringEncoder(5, False, False)
-      writer(parts.append, self.label)
+      writer(parts.append, self.label, DETERMINISTIC)
     if self.story_name is not None:
       writer = encoder.StringEncoder(6, False, False)
-      writer(parts.append, self.story_name)
+      writer(parts.append, self.story_name, DETERMINISTIC)
     if self.story_tags is not None:
       writer = encoder.StringEncoder(7, is_repeated=True, is_packed=False)
-      writer(parts.append, self.story_tags)
+      writer(parts.append, self.story_tags, DETERMINISTIC)
     if self.story_run_index is not None:
       writer = encoder.Int32Encoder(8, False, False)
-      writer(parts.append, self.story_run_index)
+      writer(parts.append, self.story_run_index, DETERMINISTIC)
 
     return b"".join(parts)
 
@@ -264,16 +269,16 @@ class DebugAnnotation(object):
 
     parts = []
     writer = encoder.StringEncoder(10, False, False)
-    writer(parts.append, self.name)
+    writer(parts.append, self.name, DETERMINISTIC)
     if self.int_value is not None:
       writer = encoder.Int64Encoder(4, False, False)
-      writer(parts.append, self.int_value)
+      writer(parts.append, self.int_value, DETERMINISTIC)
     if self.double_value is not None:
       writer = encoder.DoubleEncoder(5, False, False)
-      writer(parts.append, self.double_value)
+      writer(parts.append, self.double_value, DETERMINISTIC)
     if self.string_value is not None:
       writer = encoder.StringEncoder(6, False, False)
-      writer(parts.append, self.string_value)
+      writer(parts.append, self.string_value, DETERMINISTIC)
 
     return b"".join(parts)
 
@@ -289,9 +294,9 @@ class ChromeMetadata(object):
 
     parts = []
     writer = encoder.StringEncoder(1, False, False)
-    writer(parts.append, self.name)
+    writer(parts.append, self.name, DETERMINISTIC)
     writer = encoder.StringEncoder(2, False, False)
-    writer(parts.append, self.string_value)
+    writer(parts.append, self.string_value, DETERMINISTIC)
 
     return b"".join(parts)
 
@@ -307,9 +312,9 @@ class Clock(object):
 
     parts = []
     writer = encoder.UInt32Encoder(1, False, False)
-    writer(parts.append, self.clock_id)
+    writer(parts.append, self.clock_id, DETERMINISTIC)
     writer = encoder.UInt64Encoder(2, False, False)
-    writer(parts.append, self.timestamp)
+    writer(parts.append, self.timestamp, DETERMINISTIC)
 
     return b"".join(parts)
 
