@@ -67,6 +67,8 @@ var JpegImage = (function jpegImage() {
         p = code.pop();
         p.children[p.index] = values[k];
         while (p.index > 0) {
+          if (code.length === 0)
+            throw new Error('Could not recreate Huffman Table');
           p = code.pop();
         }
         p.index++;
@@ -91,7 +93,7 @@ var JpegImage = (function jpegImage() {
   function decodeScan(data, offset,
                       frame, components, resetInterval,
                       spectralStart, spectralEnd,
-                      successivePrev, successive) {
+                      successivePrev, successive, opts) {
     var precision = frame.precision;
     var samplesPerLine = frame.samplesPerLine;
     var scanLines = frame.scanLines;
@@ -256,11 +258,17 @@ var JpegImage = (function jpegImage() {
       var mcuCol = mcu % mcusPerLine;
       var blockRow = mcuRow * component.v + row;
       var blockCol = mcuCol * component.h + col;
+      // If the block is missing and we're in tolerant mode, just skip it.
+      if (component.blocks[blockRow] === undefined && opts.tolerantDecoding)
+        return;
       decode(component, component.blocks[blockRow][blockCol]);
     }
     function decodeBlock(component, decode, mcu) {
       var blockRow = (mcu / component.blocksPerLine) | 0;
       var blockCol = mcu % component.blocksPerLine;
+      // If the block is missing and we're in tolerant mode, just skip it.
+      if (component.blocks[blockRow] === undefined && opts.tolerantDecoding)
+        return;
       decode(component, component.blocks[blockRow][blockCol]);
     }
 
@@ -317,6 +325,18 @@ var JpegImage = (function jpegImage() {
         }
       }
 
+      if (mcu === mcuExpected) {
+        // Skip trailing bytes at the end of the scan - until we reach the next marker
+        do {
+          if (data[offset] === 0xFF) {
+            if (data[offset + 1] !== 0x00) {
+              break;
+            }
+          }
+          offset += 1;
+        } while (offset < data.length - 2);
+      }
+
       // find marker
       bitsCount = 0;
       marker = (data[offset] << 8) | data[offset + 1];
@@ -339,6 +359,7 @@ var JpegImage = (function jpegImage() {
     var blocksPerLine = component.blocksPerLine;
     var blocksPerColumn = component.blocksPerColumn;
     var samplesPerLine = blocksPerLine << 3;
+    // Only 1 used per invocation of this function and garbage collected after invocation, so no need to account for its memory footprint.
     var R = new Int32Array(64), r = new Uint8Array(64);
 
     // A port of poppler's IDCT method which in turn is taken from:
@@ -501,6 +522,8 @@ var JpegImage = (function jpegImage() {
       }
     }
 
+    requestMemoryAllocation(samplesPerLine * blocksPerColumn * 8);
+
     var i, j;
     for (var blockRow = 0; blockRow < blocksPerColumn; blockRow++) {
       var scanLine = blockRow << 3;
@@ -539,6 +562,7 @@ var JpegImage = (function jpegImage() {
       xhr.send(null);
     },
     parse: function parse(data) {
+      var maxResolutionInPixels = this.opts.maxResolutionInMP * 1000 * 1000;
       var offset = 0, length = data.length;
       function readUint16() {
         var value = (data[offset] << 8) | data[offset + 1];
@@ -552,7 +576,9 @@ var JpegImage = (function jpegImage() {
         return array;
       }
       function prepareComponents(frame) {
-        var maxH = 0, maxV = 0;
+        // According to the JPEG standard, the sampling factor must be between 1 and 4
+        // See https://github.com/libjpeg-turbo/libjpeg-turbo/blob/9abeff46d87bd201a952e276f3e4339556a403a3/libjpeg.txt#L1138-L1146
+        var maxH = 1, maxV = 1;
         var component, componentId;
         for (componentId in frame.components) {
           if (frame.components.hasOwnProperty(componentId)) {
@@ -570,7 +596,12 @@ var JpegImage = (function jpegImage() {
             var blocksPerColumn = Math.ceil(Math.ceil(frame.scanLines  / 8) * component.v / maxV);
             var blocksPerLineForMcu = mcusPerLine * component.h;
             var blocksPerColumnForMcu = mcusPerColumn * component.v;
+            var blocksToAllocate = blocksPerColumnForMcu * blocksPerLineForMcu;
             var blocks = [];
+
+            // Each block is a Int32Array of length 64 (4 x 64 = 256 bytes)
+            requestMemoryAllocation(blocksToAllocate * 256);
+
             for (var i = 0; i < blocksPerColumnForMcu; i++) {
               var row = [];
               for (var j = 0; j < blocksPerLineForMcu; j++)
@@ -594,6 +625,8 @@ var JpegImage = (function jpegImage() {
       var quantizationTables = [], frames = [];
       var huffmanTablesAC = [], huffmanTablesDC = [];
       var fileMarker = readUint16();
+      var malformedDataOffset = -1;
+      this.comments = [];
       if (fileMarker != 0xFFD8) { // SOI (Start of Image)
         throw new Error("SOI not found");
       }
@@ -622,6 +655,11 @@ var JpegImage = (function jpegImage() {
           case 0xFFFE: // COM (Comment)
             var appData = readDataBlock();
 
+            if (fileMarker === 0xFFFE) {
+              var comment = String.fromCharCode.apply(null, appData);
+              this.comments.push(comment);
+            }
+
             if (fileMarker === 0xFFE0) {
               if (appData[0] === 0x4A && appData[1] === 0x46 && appData[2] === 0x49 &&
                 appData[3] === 0x46 && appData[4] === 0) { // 'JFIF\x00'
@@ -637,6 +675,16 @@ var JpegImage = (function jpegImage() {
               }
             }
             // TODO APP1 - Exif
+            if (fileMarker === 0xFFE1) {
+              if (appData[0] === 0x45 &&
+                appData[1] === 0x78 &&
+                appData[2] === 0x69 &&
+                appData[3] === 0x66 &&
+                appData[4] === 0) { // 'EXIF\x00'
+                this.exifBuffer = appData.subarray(5, appData.length);
+              }
+            }
+
             if (fileMarker === 0xFFEE) {
               if (appData[0] === 0x41 && appData[1] === 0x64 && appData[2] === 0x6F &&
                 appData[3] === 0x62 && appData[4] === 0x65 && appData[5] === 0) { // 'Adobe\x00'
@@ -655,6 +703,7 @@ var JpegImage = (function jpegImage() {
             var quantizationTablesEnd = quantizationTablesLength + offset - 2;
             while (offset < quantizationTablesEnd) {
               var quantizationTableSpec = data[offset++];
+              requestMemoryAllocation(64 * 4);
               var tableData = new Int32Array(64);
               if ((quantizationTableSpec >> 4) === 0) { // 8 bit values
                 for (j = 0; j < 64; j++) {
@@ -684,6 +733,13 @@ var JpegImage = (function jpegImage() {
             frame.samplesPerLine = readUint16();
             frame.components = {};
             frame.componentsOrder = [];
+
+            var pixelsInFrame = frame.scanLines * frame.samplesPerLine;
+            if (pixelsInFrame > maxResolutionInPixels) {
+              var exceededAmount = Math.ceil((pixelsInFrame - maxResolutionInPixels) / 1e6);
+              throw new Error(`maxResolutionInMP limit exceeded by ${exceededAmount}MP`);
+            }
+
             var componentsCount = data[offset++], componentId;
             var maxH = 0, maxV = 0;
             for (i = 0; i < componentsCount; i++) {
@@ -691,6 +747,11 @@ var JpegImage = (function jpegImage() {
               var h = data[offset + 1] >> 4;
               var v = data[offset + 1] & 15;
               var qId = data[offset + 2];
+
+              if ( h <= 0 || v <= 0 ) {
+                throw new Error('Invalid sampling factor, expected values above 0');
+              }
+
               frame.componentsOrder.push(componentId);
               frame.components[componentId] = {
                 h: h,
@@ -709,8 +770,10 @@ var JpegImage = (function jpegImage() {
               var huffmanTableSpec = data[offset++];
               var codeLengths = new Uint8Array(16);
               var codeLengthSum = 0;
-              for (j = 0; j < 16; j++, offset++)
+              for (j = 0; j < 16; j++, offset++) {
                 codeLengthSum += (codeLengths[j] = data[offset]);
+              }
+              requestMemoryAllocation(16 + codeLengthSum);
               var huffmanValues = new Uint8Array(codeLengthSum);
               for (j = 0; j < codeLengthSum; j++, offset++)
                 huffmanValues[j] = data[offset];
@@ -727,6 +790,11 @@ var JpegImage = (function jpegImage() {
             resetInterval = readUint16();
             break;
 
+          case 0xFFDC: // Number of Lines marker
+            readUint16() // skip data length
+            readUint16() // Ignore this data since it represents the image height
+            break;
+            
           case 0xFFDA: // SOS (Start of Scan)
             var scanLength = readUint16();
             var selectorsCount = data[offset++];
@@ -744,7 +812,7 @@ var JpegImage = (function jpegImage() {
             var processed = decodeScan(data, offset,
               frame, components, resetInterval,
               spectralStart, spectralEnd,
-              successiveApproximation >> 4, successiveApproximation & 15);
+              successiveApproximation >> 4, successiveApproximation & 15, this.opts);
             offset += processed;
             break;
 
@@ -753,7 +821,6 @@ var JpegImage = (function jpegImage() {
               offset--;
             }
             break;
-
           default:
             if (data[offset - 3] == 0xFF &&
                 data[offset - 2] >= 0xC0 && data[offset - 2] <= 0xFE) {
@@ -761,6 +828,19 @@ var JpegImage = (function jpegImage() {
               // block was eaten by the encoder
               offset -= 3;
               break;
+            }
+            else if (fileMarker === 0xE0 || fileMarker == 0xE1) {
+              // Recover from malformed APP1 markers popular in some phone models.
+              // See https://github.com/eugeneware/jpeg-js/issues/82
+              if (malformedDataOffset !== -1) {
+                throw new Error(`first unknown JPEG marker at offset ${malformedDataOffset.toString(16)}, second unknown JPEG marker ${fileMarker.toString(16)} at offset ${(offset - 1).toString(16)}`);
+              }
+              malformedDataOffset = offset - 1;
+              const nextOffset = readUint16();
+              if (data[offset + nextOffset - 2] === 0xFF) {
+                offset += nextOffset - 2;
+                break;
+              }
             }
             throw new Error("unknown JPEG marker " + fileMarker.toString(16));
         }
@@ -802,6 +882,7 @@ var JpegImage = (function jpegImage() {
       var Y, Cb, Cr, K, C, M, Ye, R, G, B;
       var colorTransform;
       var dataLength = width * height * this.components.length;
+      requestMemoryAllocation(dataLength);
       var data = new Uint8Array(dataLength);
       switch (this.components.length) {
         case 1:
@@ -836,8 +917,8 @@ var JpegImage = (function jpegImage() {
           // The adobe transform marker overrides any previous setting
           if (this.adobe && this.adobe.transformCode)
             colorTransform = true;
-          else if (typeof this.colorTransform !== 'undefined')
-            colorTransform = !!this.colorTransform;
+          else if (typeof this.opts.colorTransform !== 'undefined')
+            colorTransform = !!this.opts.colorTransform;
 
           component1 = this.components[0];
           component2 = this.components[1];
@@ -875,8 +956,8 @@ var JpegImage = (function jpegImage() {
           // The adobe transform marker overrides any previous setting
           if (this.adobe && this.adobe.transformCode)
             colorTransform = true;
-          else if (typeof this.colorTransform !== 'undefined')
-            colorTransform = !!this.colorTransform;
+          else if (typeof this.opts.colorTransform !== 'undefined')
+            colorTransform = !!this.opts.colorTransform;
 
           component1 = this.components[0];
           component2 = this.components[1];
@@ -915,7 +996,7 @@ var JpegImage = (function jpegImage() {
       }
       return data;
     },
-    copyToImageData: function copyToImageData(imageData) {
+    copyToImageData: function copyToImageData(imageData, formatAsRGBA) {
       var width = imageData.width, height = imageData.height;
       var imageDataArray = imageData.data;
       var data = this.getData(width, height);
@@ -930,7 +1011,9 @@ var JpegImage = (function jpegImage() {
               imageDataArray[j++] = Y;
               imageDataArray[j++] = Y;
               imageDataArray[j++] = Y;
-              imageDataArray[j++] = 255;
+              if (formatAsRGBA) {
+                imageDataArray[j++] = 255;
+              }
             }
           }
           break;
@@ -944,7 +1027,9 @@ var JpegImage = (function jpegImage() {
               imageDataArray[j++] = R;
               imageDataArray[j++] = G;
               imageDataArray[j++] = B;
-              imageDataArray[j++] = 255;
+              if (formatAsRGBA) {
+                imageDataArray[j++] = 255;
+              }
             }
           }
           break;
@@ -963,7 +1048,9 @@ var JpegImage = (function jpegImage() {
               imageDataArray[j++] = R;
               imageDataArray[j++] = G;
               imageDataArray[j++] = B;
-              imageDataArray[j++] = 255;
+              if (formatAsRGBA) {
+                imageDataArray[j++] = 255;
+              }
             }
           }
           break;
@@ -973,46 +1060,87 @@ var JpegImage = (function jpegImage() {
     }
   };
 
-  return constructor;
-})();
-global.jpegDecode = decode;
 
-function decode(jpegData, opts) {
-  var defaultOpts = {
-    useTArray: false,
-    colorTransform: true
-  };
-  if (opts) {
-    if (typeof opts === 'object') {
-      opts = {
-        useTArray: (typeof opts.useTArray === 'undefined' ?
-                    defaultOpts.useTArray : opts.useTArray),
-        colorTransform: (typeof opts.colorTransform === 'undefined' ?
-                         defaultOpts.colorTransform : opts.colorTransform)
-      };
-    } else {
-      // backwards compatiblity, before 0.3.5, we only had the useTArray param
-      opts = defaultOpts;
-      opts.useTArray = true;
+  // We cap the amount of memory used by jpeg-js to avoid unexpected OOMs from untrusted content.
+  var totalBytesAllocated = 0;
+  var maxMemoryUsageBytes = 0;
+  function requestMemoryAllocation(increaseAmount = 0) {
+    var totalMemoryImpactBytes = totalBytesAllocated + increaseAmount;
+    if (totalMemoryImpactBytes > maxMemoryUsageBytes) {
+      var exceededAmount = Math.ceil((totalMemoryImpactBytes - maxMemoryUsageBytes) / 1024 / 1024);
+      throw new Error(`maxMemoryUsageInMB limit exceeded by at least ${exceededAmount}MB`);
     }
-  } else {
-    opts = defaultOpts;
+
+    totalBytesAllocated = totalMemoryImpactBytes;
   }
 
-  var arr = new Uint8Array(jpegData);
-  var decoder = new JpegImage();
-  decoder.parse(arr);
-  decoder.colorTransform = opts.colorTransform;
-
-  var image = {
-    width: decoder.width,
-    height: decoder.height,
-    data: opts.useTArray ?
-      new Uint8Array(decoder.width * decoder.height * 4) :
-      new Buffer(decoder.width * decoder.height * 4)
+  constructor.resetMaxMemoryUsage = function (maxMemoryUsageBytes_) {
+    totalBytesAllocated = 0;
+    maxMemoryUsageBytes = maxMemoryUsageBytes_;
   };
 
-  decoder.copyToImageData(image);
+  constructor.getBytesAllocated = function () {
+    return totalBytesAllocated;
+  };
+
+  constructor.requestMemoryAllocation = requestMemoryAllocation;
+
+  return constructor;
+})();
+
+global.jpegDecode = decode;
+
+function decode(jpegData, userOpts = {}) {
+  var defaultOpts = {
+    // "undefined" means "Choose whether to transform colors based on the image’s color model."
+    colorTransform: undefined,
+    useTArray: false,
+    formatAsRGBA: true,
+    tolerantDecoding: true,
+    maxResolutionInMP: 100, // Don't decode more than 100 megapixels
+    maxMemoryUsageInMB: 512, // Don't decode if memory footprint is more than 512MB
+  };
+
+  var opts = {...defaultOpts, ...userOpts};
+  var arr = new Uint8Array(jpegData);
+  var decoder = new JpegImage();
+  decoder.opts = opts;
+  // If this constructor ever supports async decoding this will need to be done differently.
+  // Until then, treating as singleton limit is fine.
+  JpegImage.resetMaxMemoryUsage(opts.maxMemoryUsageInMB * 1024 * 1024);
+  decoder.parse(arr);
+
+  var channels = (opts.formatAsRGBA) ? 4 : 3;
+  var bytesNeeded = decoder.width * decoder.height * channels;
+  try {
+    JpegImage.requestMemoryAllocation(bytesNeeded);
+    var image = {
+      width: decoder.width,
+      height: decoder.height,
+      exifBuffer: decoder.exifBuffer,
+      data: opts.useTArray ?
+        new Uint8Array(bytesNeeded) :
+        Buffer.alloc(bytesNeeded)
+    };
+    if(decoder.comments.length > 0) {
+      image["comments"] = decoder.comments;
+    }
+  } catch (err) {
+    if (err instanceof RangeError) {
+      throw new Error("Could not allocate enough memory for the image. " +
+                      "Required: " + bytesNeeded);
+    } 
+    
+    if (err instanceof ReferenceError) {
+      if (err.message === "Buffer is not defined") {
+        throw new Error("Buffer is not globally defined in this environment. " +
+                        "Consider setting useTArray to true");
+      }
+    }
+    throw err;
+  }
+
+  decoder.copyToImageData(image, opts.formatAsRGBA);
 
   return image;
 }
