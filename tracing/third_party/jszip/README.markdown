@@ -1,22 +1,24 @@
 JSZip
 =====
 
-A library for creating, reading and editing .zip files with Javascript, with a
+A library for creating, reading and editing .zip files with JavaScript, with a
 lovely and simple API.
 
-See http://stuartk.com/jszip for all the documentation
+See https://stuk.github.io/jszip for all the documentation.
 
 ```javascript
-var zip = new JSZip();
+const zip = new JSZip();
 
 zip.file("Hello.txt", "Hello World\n");
 
-var img = zip.folder("images");
+const img = zip.folder("images");
 img.file("smile.gif", imgData, {base64: true});
 
-var content = zip.generate();
+zip.generateAsync({type:"blob"}).then(function(content) {
+    // see FileSaver.js
+    saveAs(content, "example.zip");
+});
 
-location.href = "data:application/zip;base64," + content;
 /*
 Results in a zip containing
 Hello.txt
@@ -24,9 +26,8 @@ images/
     smile.gif
 */
 ```
-
 License
-=======
+-------
 
 JSZip is dual-licensed. You may use it under the MIT license *or* the GPLv3
-license. See LICENSE.markdown.
+license. See [LICENSE.markdown](LICENSE.markdown).

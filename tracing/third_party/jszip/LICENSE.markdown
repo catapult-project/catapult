@@ -1,10 +1,10 @@
-JSZip is dual licensed. You may use it under the MIT license *or* the GPLv3
+JSZip is dual licensed. At your choice you may use it under the MIT license *or* the GPLv3
 license.
 
 The MIT License
 ===============
 
-Copyright (c) 2009-2012 Stuart Knightley, David Duponchel, Franz Buchinger, António Afonso
+Copyright (c) 2009-2016 Stuart Knightley, David Duponchel, Franz Buchinger, António Afonso
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
