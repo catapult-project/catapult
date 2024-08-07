@@ -1,0 +1,14 @@
+Name: Protobuf
+URL: https://github.com/protocolbuffers/protobuf
+Version: 3.0.0
+Revision: e8ae137c96444ea313485ed1118c5e43b2099cf1
+License: BSD
+Shipped: yes
+
+Description:
+Protocol buffers are Google's language-neutral, platform-neutral,
+extensible mechanism for serializing structured data.
+
+Local Modifications:
+Removed pretty much everything except functions necessary to write
+bools, ints, floats and strings.
