@@ -7,7 +7,7 @@ from __future__ import absolute_import
 from enum import Enum
 from google.cloud import datastore
 from google.cloud.datastore.key import Key
-
+from google.cloud.datastore.query import PropertyFilter
 
 def TestKey(test_path, datastore_client):
   """Returns the key that corresponds to a test path."""
@@ -41,7 +41,27 @@ class EntityType(Enum):
 class DataStoreClient:
   _client = datastore.Client()
 
-  def QueryAnomaliesAroundRevision(self, revision:int):
+  def QueryAnomaliesForKey(self, key: str):
+    entity = self.GetEntityFromUrlSafeKey(key)
+    if not entity:
+      return []
+    subscriptions = entity.get('subscription_names')
+
+    ds_query = self._client.query(kind='Anomaly', order=['-timestamp'])
+    ds_query.add_filter(
+        filter=PropertyFilter('subscription_names', 'IN', subscriptions))
+
+    requested_anomalies = list(ds_query.fetch(limit=2500))
+
+    filtered_results = [
+        a for a in requested_anomalies if a.key != entity.key
+        and a.get('start_revision') <= entity.get('end_revision')
+        and a.get('end_revision') >= entity.get('start_revision')
+    ]
+
+    return [entity] + filtered_results
+
+  def QueryAnomaliesAroundRevision(self, revision: int):
     ds_query = self._client.query(kind='Anomaly', order=['end_revision'])
     ds_query.add_filter('end_revision', '>=', revision)
 

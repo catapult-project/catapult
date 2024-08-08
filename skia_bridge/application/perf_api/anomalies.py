@@ -103,7 +103,9 @@ def QueryAnomaliesPostHandler():
       return 'Malformed Json', 400
 
     client = datastore_client.DataStoreClient()
-    if data.get('revision', None):
+    if data.get('key', None):
+      anomalies = client.QueryAnomaliesForKey(data['key'])
+    elif data.get('revision', None):
       anomalies = client.QueryAnomaliesAroundRevision(int(data['revision']))
     else:
       is_valid, error = ValidateRequest(
