@@ -83,6 +83,8 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
       return os_version_module.VENTURA
     if os_version.startswith('23.'):
       return os_version_module.SONOMA
+    if os_version.startswith('24.'):
+      return os_version_module.SEQUOIA
 
     raise NotImplementedError('Unknown mac version %s.' % os_version)
 
