@@ -512,14 +512,6 @@ def GetIsolateTarget(bot_name, suite):
   ]:
     return ('performance_test_suite_android_clank_'
             'trichrome_chrome_google_64_32_bundle')
-  if bot_name == 'android-pixel2-perf-calibration':
-    return 'performance_test_suite_android_clank_monochrome_64_32_bundle'
-  if bot_name == 'android-pixel2-perf-fyi':
-    return 'performance_test_suite_android_clank_monochrome'
-  if bot_name == 'android-pixel2-perf-aab-fyi':
-    return 'performance_test_suite_android_clank_monochrome_bundle'
-  if bot_name == 'android-pixel2-perf':
-    return 'performance_test_suite_android_clank_monochrome_64_32_bundle'
   if bot_name in ['android-pixel4-perf', 'android-pixel4-perf-pgo']:
     return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
   if bot_name in ['android-pixel6-perf', 'android-pixel6-perf-pgo']:

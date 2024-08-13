@@ -175,16 +175,6 @@ def GetIsolateTarget(bot_name, suite):
     return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
   if bot_name == 'android-new-pixel-pro-perf':
     return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
-  if bot_name == 'android-pixel2-perf-calibration':
-    return 'performance_test_suite_android_clank_monochrome_64_32_bundle'
-  if bot_name == 'android-pixel2-perf-fyi':
-    return 'performance_test_suite_android_clank_monochrome'
-  if bot_name == 'android-pixel2-perf-aab-fyi':
-    return 'performance_test_suite_android_clank_monochrome_bundle'
-  if bot_name == 'Android Nexus5 Perf':
-    return 'performance_test_suite_android_chrome'
-  if bot_name == 'android-pixel2-perf':
-    return 'performance_test_suite_android_clank_monochrome_64_32_bundle'
   if bot_name == 'android-pixel4-perf':
     return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
   if bot_name == 'android-pixel4a_power-perf':
