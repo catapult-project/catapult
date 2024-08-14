@@ -860,6 +860,24 @@ class DeviceUtils(object):
     raise device_errors.CommandFailedError('Unable to fetch IMEI.')
 
   @decorators.WithTimeoutAndRetriesFromInstance()
+  def ListPackages(self, package_filter=None, timeout=None, retries=None):
+    """Lists installed packages via 'pm list packages'.
+
+    Args:
+      package_filter: An optional string containing a substring to filter to.
+
+    Returns:
+      A list of strings containing the output of 'pm list packages' filtered to
+      the |package_filter|.
+    """
+    cmd = ['pm', 'list', 'packages']
+    if self.target_user is not None:
+      cmd.extend(['--user', str(self.target_user)])
+    if package_filter:
+      cmd.append(package_filter)
+    return self.RunShellCommand(cmd, check_return=True)
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
   def IsApplicationInstalled(self,
                              package,
                              library_version=None,
@@ -884,11 +902,7 @@ class DeviceUtils(object):
     if library_version is None:
       # `pm list packages` allows matching substrings, but we want exact matches
       # only.
-      cmd = ['pm', 'list', 'packages']
-      if self.target_user is not None:
-        cmd.extend(['--user', str(self.target_user)])
-      cmd.append(package)
-      matching_packages = self.RunShellCommand(cmd, check_return=True)
+      matching_packages = self.ListPackages(package)
       desired_line = 'package:' + package
       found_package = desired_line in matching_packages
       if found_package:

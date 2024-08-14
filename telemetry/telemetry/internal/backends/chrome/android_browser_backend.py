@@ -99,6 +99,13 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     assert not startup_args, (
         'Startup arguments for Android should be set during '
         'possible_browser.SetUpEnvironment')
+    # If another Chrome browser is open, devtools can end up connecting to the
+    # wrong instance since `localabstract:chrome_devtools_remote` will be bound
+    # to the first instance that was opened. Stop all such browsers now to avoid
+    # that. This is not an issue in dedicated test environments, but is likely
+    # to be hit if testing is done on a personal device where stable Chrome is
+    # likely to be open.
+    self._StopAllChromeBrowsers()
     self._dump_finder = minidump_finder.MinidumpFinder(
         self.browser.platform.GetOSName(), self.browser.platform.GetArchName())
     user_agent_dict = user_agent.GetChromeUserAgentDictFromType(
@@ -119,6 +126,13 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     except:
       self.Close()
       raise
+
+  def _StopAllChromeBrowsers(self):
+    chrome_packages = self.device.ListPackages('chrome')
+    for package in chrome_packages:
+      # Output is prefixed by "package:".
+      package = package.split('package:', maxsplit=1)[-1]
+      self.platform_backend.StopApplication(package)
 
   def BindDevToolsClient(self):
     super().BindDevToolsClient()
