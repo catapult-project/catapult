@@ -82,6 +82,10 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     return self._browser_directory
 
   @property
+  def local_executable(self):
+    return self._local_executable
+
+  @property
   def profile_directory(self):
     return self._profile_directory
 
