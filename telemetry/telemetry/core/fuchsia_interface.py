@@ -33,7 +33,6 @@ def include_fuchsia_package():
 
 
 FUCHSIA_BROWSERS = [
-    'fuchsia-chrome',
     'web-engine-shell',
     'cast-streaming-shell',
 ]
@@ -96,10 +95,6 @@ class CommandRunner():
     if not ssh_args:
       ssh_args = []
 
-    # Control master needs to be initialized with a command without -NT. The
-    # logic of ssh-tunnel will be moved to build/fuchsia/test/test_server.py in
-    # chromium.
-    ssh_args.append('-oControlMaster=no')
     ssh_command = self._ssh_prefix + ssh_args + ['--'] + command
     logging.debug(' '.join(ssh_command))
     if six.PY3:

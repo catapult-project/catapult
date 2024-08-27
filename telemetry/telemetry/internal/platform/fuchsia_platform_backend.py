@@ -3,19 +3,25 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
-import subprocess
 
 from telemetry.core import platform as telemetry_platform
-from telemetry.core.fuchsia_interface import CommandRunner
+from telemetry.core.fuchsia_interface import (include_fuchsia_package,
+                                              CommandRunner)
 from telemetry.internal.forwarders import fuchsia_forwarder
 from telemetry.internal.platform import fuchsia_device
 from telemetry.internal.platform import platform_backend
+
+# The path is dynamically included since the fuchsia runner modules are not
+# always available, and other platforms shouldn't depend on the fuchsia
+# runners.
+# pylint: disable=import-error,import-outside-toplevel
 
 
 class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
   def __init__(self, device):
     super().__init__(device)
     self._command_runner = CommandRunner(device.target_id)
+    self._target_id = device.target_id
     self._detailed_os_version = None
     self._device_type = None
 
@@ -48,30 +54,31 @@ class FuchsiaPlatformBackend(platform_backend.PlatformBackend):
     return 'fuchsia'
 
   def GetDeviceTypeName(self):
-    if not self._device_type:
-      _, self._device_type, _ = self._command_runner.RunCommand(
-          ['cat', '/config/build-info/board'],
-          stdout=subprocess.PIPE,
-          stderr=subprocess.PIPE)
-    # In case anything goes wrong with the above command, make the error sound
-    # and clear.
-    assert self._device_type
+    if self._device_type:
+      return self._device_type
 
+    include_fuchsia_package()
+    from common import get_build_info
+    board = get_build_info(self._target_id).board
+    assert board
     # Fuchsia changed its qemu-x64 board's name to x64, but for the sake of
     # consistency we will still label it as qemu-x64
-    if self._device_type == 'x64':
-      self._device_type = 'qemu-x64'
-    return 'fuchsia-board-' + self._device_type
+    if board == 'x64':
+      board = 'qemu-x64'
+    self._device_type = 'fuchsia-board-' + board
+    return self._device_type
 
   def GetOSVersionName(self):
     return ''  # TODO(crbug.com/1140869): Implement this.
 
   def GetOSVersionDetailString(self):
-    if not self._detailed_os_version:
-      _, self._detailed_os_version, _ = self._command_runner.RunCommand(
-          ['cat', '/config/build-info/version'],
-          stdout=subprocess.PIPE,
-          stderr=subprocess.PIPE)
+    if self._detailed_os_version:
+      return self._detailed_os_version
+
+    include_fuchsia_package()
+    from common import get_build_info
+    self._detailed_os_version = get_build_info(self._target_id).version
+    assert self._detailed_os_version
     return self._detailed_os_version
 
   def GetSystemTotalPhysicalMemory(self):
