@@ -40,10 +40,6 @@ class ArgumentParser(argparse.ArgumentParser):
         self.error(f'no such option: {unknown}')
     return known_args, unknown_args
 
-  @property
-  def defaults(self):
-    return self._defaults
-
 
 def CreateFromOptparseInputs(usage=None, description=None):
   """Creates an ArgumentParser using the same constructor arguments as optparse.

@@ -71,7 +71,14 @@ def _ArgumentParsers(environment, args, results_arg_parser):
       opt_parser.set_defaults(**ext_defaults)
     command.AddCommandLineArgs(opt_parser, args, environment)
     if name == 'run':
-      ext_defaults.update((k, opt_parser.defaults[k]) for k in ext_defaults)
+      # This is leftover from when optparse was still used and should be
+      # cleaned up. However, handling this properly, e.g. by having commands
+      # provide subparsers themselves, looks like it will require a complete
+      # refactor of how Telemetry handles argument parsing, particularly within
+      # BrowserFinderOptions. So, just live with the protected access for now.
+      # pylint: disable=protected-access
+      ext_defaults.update((k, opt_parser._defaults[k]) for k in ext_defaults)
+      # pylint: enable=protected-access
     legacy_parsers[name] = opt_parser
 
   # Build the top level argument parser.
