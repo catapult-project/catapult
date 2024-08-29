@@ -38,7 +38,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """
   def __init__(self, desktop_platform_backend, browser_options,
                browser_directory, profile_directory,
-               executable, flash_path, is_content_shell,
+               executable, is_content_shell,
                build_dir=None):
     super().__init__(
         desktop_platform_backend,
@@ -49,7 +49,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         supports_tab_control=not is_content_shell,
         build_dir=build_dir)
     self._executable = executable
-    self._flash_path = flash_path
     self._is_content_shell = is_content_shell
 
     # Initialize fields so that an explosion during init doesn't break in Close.
@@ -61,9 +60,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     if not self._executable:
       raise Exception('Cannot create browser, no executable found!')
-
-    if self._flash_path and not os.path.exists(self._flash_path):
-      raise RuntimeError('Flash path does not exist: %s' % self._flash_path)
 
     if self.is_logging_enabled:
       self._log_file_path = os.path.join(tempfile.mkdtemp(), 'chrome.log')

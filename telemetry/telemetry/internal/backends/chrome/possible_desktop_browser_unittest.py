@@ -44,7 +44,7 @@ class PossibleDesktopBrowserTest(unittest.TestCase):
     fs_patcher.setUp()
     try:
       possible_browser = desktop_browser_finder.PossibleDesktopBrowser(
-          'exact', None, None, None, None, None)
+          'exact', None, None, None, None)
       fake_options = mock.MagicMock()
 
       # It is necessary to put the "run" variable inside self.
@@ -102,7 +102,7 @@ class PossibleDesktopBrowserTest(unittest.TestCase):
     ]
 
     possible_desktop = desktop_browser_finder.PossibleDesktopBrowser(
-        'stable', self._finder_options, None, None,
+        'stable', self._finder_options, None,
         False, self._finder_options.chrome_root)
     possible_desktop.SetUpEnvironment(self._finder_options.browser_options)
 
@@ -111,13 +111,13 @@ class PossibleDesktopBrowserTest(unittest.TestCase):
 
   def testExpectationTagsIncludeDebug(self):
     possible_desktop = desktop_browser_finder.PossibleDesktopBrowser(
-        'debug_x64', self._finder_options, None, None,
+        'debug_x64', self._finder_options, None,
         False, self._finder_options.chrome_root)
     self.assertIn('debug', possible_desktop.GetTypExpectationsTags())
 
   def testExpectationTagsIncludeRelease(self):
     possible_desktop = desktop_browser_finder.PossibleDesktopBrowser(
-        'release_x64', self._finder_options, None, None,
+        'release_x64', self._finder_options, None,
         False, self._finder_options.chrome_root)
     self.assertIn('release', possible_desktop.GetTypExpectationsTags())
 
@@ -132,7 +132,7 @@ class PossibleDesktopBrowserTest(unittest.TestCase):
     ]
 
     possible_desktop = desktop_browser_finder.PossibleDesktopBrowser(
-        'stable', self._finder_options, None, None,
+        'stable', self._finder_options, None,
         False, self._finder_options.chrome_root)
     possible_desktop.SetUpEnvironment(self._finder_options.browser_options)
 
@@ -158,7 +158,7 @@ class PossibleDesktopBrowserTest(unittest.TestCase):
         (source_path, 'AUTHORS2')
     ]
     possible_desktop = desktop_browser_finder.PossibleDesktopBrowser(
-        'stable', self._finder_options, None, None,
+        'stable', self._finder_options, None,
         False, self._finder_options.chrome_root)
     possible_desktop.SetUpEnvironment(self._finder_options.browser_options)
 
@@ -186,7 +186,7 @@ class PossibleDesktopBrowserTest(unittest.TestCase):
     ]
 
     possible_desktop = desktop_browser_finder.PossibleDesktopBrowser(
-        'stable', self._finder_options, None, None,
+        'stable', self._finder_options, None,
         False, self._finder_options.chrome_root)
     possible_desktop.SetUpEnvironment(self._finder_options.browser_options)
 
