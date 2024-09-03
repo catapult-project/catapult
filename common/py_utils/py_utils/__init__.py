@@ -74,8 +74,6 @@ _AddDirToPythonPath(os.path.join(GetCatapultDir(), 'dependency_manager'))
 _AddDirToPythonPath(os.path.join(GetCatapultDir(), 'third_party', 'mock'))
 # mox3 is needed for pyfakefs usage, but not for pylint.
 _AddDirToPythonPath(os.path.join(GetCatapultDir(), 'third_party', 'mox3'))
-_AddDirToPythonPath(
-    os.path.join(GetCatapultDir(), 'third_party', 'pyfakefs'))
 
 from devil.utils import timeout_retry  # pylint: disable=wrong-import-position
 from devil.utils import reraiser_thread  # pylint: disable=wrong-import-position

@@ -11,10 +11,12 @@ _CATAPULT_PATH = os.path.abspath(
 
 _PY_UTILS_PATH = os.path.abspath(
     os.path.join(_CATAPULT_PATH, 'common', 'py_utils'))
+_PYFAKEFS_PATH = os.path.abspath(
+    os.path.join(_CATAPULT_PATH, 'third_party', 'pyfakefs'))
 
 
 def _RunTestsOrDie(top_level_dir):
-  exit_code = run_with_typ.Run(top_level_dir, path=[_PY_UTILS_PATH])
+  exit_code = run_with_typ.Run(top_level_dir, path=[_PY_UTILS_PATH, _PYFAKEFS_PATH])
   if exit_code:
     sys.exit(exit_code)
 
