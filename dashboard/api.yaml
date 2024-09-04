@@ -1,6 +1,6 @@
 service: api
 
-runtime: python38
+runtime: python39
 entrypoint: gunicorn -b:$PORT dashboard.dispatcher:APP --worker-class gthread --threads 10 --timeout 60
 app_engine_apis: true
 # 2048MB Memory, 2.4GHz CPU limit, support auto scaling.
