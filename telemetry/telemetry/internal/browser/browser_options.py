@@ -771,6 +771,9 @@ class BrowserOptions():
     else:
       self._extra_browser_args.add(args)
 
+  def RemoveExtraBrowserArg(self, arg):
+    self._extra_browser_args.remove(arg)
+
   def ConsolidateValuesForArg(self, flag):
     """Consolidates values from multiple instances of a browser arg.
 
