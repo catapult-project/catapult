@@ -106,6 +106,25 @@ class Oobe(web_contents.WebContents):
     if url.startswith('chrome://oobe/gaia-signin'):
       self._ExecuteOobeApi('OobeAPI.showGaiaDialog')
 
+      # If the user creation screen asks whether to add an account for "You" or
+      # "A child", click the for "You" option and then click the "Next" button.
+      self.ExecuteJavaScript("""
+        // This screen isn't always shown, so don't fail if it's missing.
+        const elem = document.querySelector('user-creation-element');
+        if (elem && elem.shadowRoot) {
+          const selfSignInButton = elem.shadowRoot.getElementById('selfButton');
+          if (!selfSignInButton) {
+            throw new Error('For personal use cr-button not found');
+          }
+          selfSignInButton.click();
+          const nextButton = elem.shadowRoot.querySelector('oobe-next-button');
+          if (!nextButton) {
+            throw new Error('Next button not found');
+          }
+          nextButton.click();
+        }
+        """)
+
     py_utils.WaitFor(self._GaiaWebviewContext, 20)
     self._NavigateWebviewLogin(username, password,
                                wait_for_close=not enterprise_enroll)
