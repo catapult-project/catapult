@@ -4,8 +4,9 @@ runtime: python
 env: flex
 
 runtime_config:
-  # As of Q1 2023, the latest python supported by Appengine flexible is 3.7.9.
-  python_version: 3.7
+  # As of 9/4/2024, 3.7 reached EOL and is upgraded to 3.9
+  # https://docs.python.org/3/whatsnew/3.9.html
+  python_version: 3.9
 
 entrypoint: gunicorn -b:$PORT -w 8 main:APP
 
