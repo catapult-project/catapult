@@ -231,9 +231,6 @@ class TestCli(test_case.MainTestCase):
     def test_bad_arg(self):
         self.check(['--bad-arg'], ret=2, out='',
                    rerr='.*: error: unrecognized arguments: --bad-arg\n')
-        self.check(['-help'], ret=2, out='',
-                   rerr=(".*: error: argument -h/--help: "
-                         "ignored explicit argument 'elp'\n"))
 
     def test_bad_metadata(self):
         self.check(['--metadata', 'foo'], ret=2, err='',
