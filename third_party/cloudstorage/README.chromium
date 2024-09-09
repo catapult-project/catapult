@@ -3,6 +3,8 @@ Short Name: cloudstorage
 URL: https://github.com/GoogleCloudPlatform/appengine-gcs-client
 Version: 0.7
 License: Apache 2.0
+License File: COPYING
+Security Critical: no
 Shipped: yes
 
 Description:
