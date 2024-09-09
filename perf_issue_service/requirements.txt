@@ -17,3 +17,5 @@ gunicorn==20.1.0
 # only support 1.0.2. Using an older version of urllib3 before the ssl is
 # updated.
 urllib3==1.26.1
+
+Werkzeug==2.2.2
