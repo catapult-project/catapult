@@ -2,7 +2,8 @@ Name: Google App Engine Pipeline
 Short Name: pipeline
 URL: https://github.com/GoogleCloudPlatform/appengine-pipelines
 Version: 1.9.21.1
-License: Apache
+License: Apache 2.0
+License File: LICENSE
 Security Critical: no
 Shipped: yes
 
