@@ -343,9 +343,10 @@ def CreateTestBatches(testList):
 
 def GetAnomalyData(anomaly_obj):
   bug_id = anomaly_obj.get('bug_id')
-
+  # Mark empty bug id value as 0, instead of -1,
+  # so that SkiaPerf UI is less confusion between invalid bug id and empty bug id
   if bug_id is None:
-    bug_id = '-1'
+    bug_id = '0'
 
   subscription_names = anomaly_obj.get('subscription_names')
   bug_components = ['']
