@@ -65,6 +65,16 @@ REPOSITORY_HOST_MAPPING = [{
     'public_host': None,
     'internal_host': 'https://devtools-frontend-perf.corp.goog',
     'masters': ['client.devtools-frontend.integration']
+}, {
+    'label': 'Fuchsia Internal',
+    'public_host': None,
+    'internal_host': 'https://fuchsia-perf.corp.goog',
+    'masters': ['fuchsia.global.ci', 'turquoise-internal.integration.global.ci']
+}, {
+    'label': 'Fuchsia Public',
+    'public_host': 'https://fuchsia-perf.luci.app',
+    'internal_host': None,
+    'masters': ['fuchsia.global.ci']
 }]
 
 QUERY_TEST_LIMIT = 5

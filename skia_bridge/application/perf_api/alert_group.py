@@ -31,6 +31,10 @@ ALLOWED_CLIENTS = [
     'perf-v8-internal@skia-infra-corp.iam.gserviceaccount.com',
     # Devtools-Frontend skia instance service account
     'perf-devtools-frontend@skia-infra-corp.iam.gserviceaccount.com',
+    # Fuchsia (internal) skia instance service account
+    'perf-fuchsia-internal@skia-infra-corp.iam.gserviceaccount.com',
+    # Fuchsia (public) skia instance service account
+    'perf-fuchsia-public@skia-infra-public.iam.gserviceaccount.com',
 ]
 
 INTERNAL_CLIENTS = [
@@ -39,6 +43,7 @@ INTERNAL_CLIENTS = [
   'perf-widevine-whitebox@skia-infra-corp.iam.gserviceaccount.com',
   'perf-v8-internal@skia-infra-corp.iam.gserviceaccount.com',
   'perf-devtools-frontend@skia-infra-corp.iam.gserviceaccount.com',
+  'perf-fuchsia-internal@skia-infra-corp.iam.gserviceaccount.com',
   ]
 
 class AnomalyDetail:

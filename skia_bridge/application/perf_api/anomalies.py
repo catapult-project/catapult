@@ -32,6 +32,8 @@ ALLOWED_CLIENTS = [
     'perf-v8-internal@skia-infra-corp.iam.gserviceaccount.com',
     # Devtools-Frontend skia instance service account
     'perf-devtools-frontend@skia-infra-corp.iam.gserviceaccount.com',
+    # Fuchsia (internal) skia instance service account
+    'perf-fuchsia-internal@skia-infra-corp.iam.gserviceaccount.com',
 ]
 
 DATASTORE_TEST_BATCH_SIZE = 25
