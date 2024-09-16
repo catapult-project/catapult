@@ -179,6 +179,7 @@ _PERMISSIONS_DENYLIST_RE = re.compile('|'.join(
         'com.android.browser.permission.WRITE_HISTORY_BOOKMARKS',
         'com.android.launcher.permission.INSTALL_SHORTCUT',
         'com.chrome.permission.DEVICE_EXTRAS',
+        'com.google.android.apps.aicore.service.BIND_SERVICE',
         'com.google.android.apps.now.CURRENT_ACCOUNT_ACCESS',
         'com.google.android.c2dm.permission.RECEIVE',
         'com.google.android.finsky.permission.DSE',
