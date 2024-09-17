@@ -364,6 +364,9 @@ def GetAnomalyData(anomaly_obj):
       bug_components = subscriptions[0].get('bug_components', [''])
       bug_labels = subscriptions[0].get('bug_labels', [])
       bug_cc_emails = subscriptions[0].get('bug_cc_emails', [])
+  else:
+    logging.warning('Anomaly %s has no subscription name.', anomaly_obj.id)
+    subscription_names = ['']
 
   return AnomalyData(
       test_path=utils.TestPath(anomaly_obj.get('test')),
