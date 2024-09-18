@@ -92,6 +92,8 @@ def SkiaFileBugHandlerPost():
     otherwise, {'error': the error message} with the http status code.
   """
   if not utils.IsValidSheriffUser():
+    logging.debug('[SkiaTriage] GetEmail: %s', utils.GetEmail())
+    logging.debug('[SkiaTriage] TryJobUser: %s', utils.IsTryjobUser())
     return make_response(
         json.dumps({'error': 'You must be logged in to file bugs.'}),
         http.HTTPStatus.UNAUTHORIZED.value)
