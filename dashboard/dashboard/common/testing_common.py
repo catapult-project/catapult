@@ -439,6 +439,10 @@ class FakeIssueTrackerService:
     self._bug_id_counter += 1
     return result
 
+  def NewBugError(self, *args, **kwargs):
+    del args, kwargs
+    return {'error': 'mock error.'}
+
   def AddBugComment(self, *args, **kwargs):
     self.add_comment_args = args
     self.add_comment_kwargs = kwargs

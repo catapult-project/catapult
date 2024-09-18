@@ -9,6 +9,7 @@ from __future__ import absolute_import
 
 import datetime
 from flask import Flask
+from httplib2 import http
 import json
 
 from unittest import mock
@@ -34,6 +35,11 @@ flask_app = Flask(__name__)
 @flask_app.route('/file_bug', methods=['GET', 'POST'])
 def FileBugHandlerGet():
   return file_bug.FileBugHandlerGet()
+
+
+@flask_app.route('/file_bug_skia', methods=['POST'])
+def SkiaFileBugHandlerPost():
+  return file_bug.SkiaFileBugHandlerPost()
 
 
 class FileBugTest(testing_common.TestCase):
@@ -243,7 +249,9 @@ class FileBugTest(testing_common.TestCase):
   def _PostSampleBug(self,
                      has_commit_positions=True,
                      master='ChromiumPerf',
-                     is_single_rev=False):
+                     is_single_rev=False,
+                     is_skia=False,
+                     expect_errors=False):
     if master == 'ClankInternal':
       alert_keys = self._AddSampleClankAlerts()
     else:
@@ -251,17 +259,32 @@ class FileBugTest(testing_common.TestCase):
     if is_single_rev:
       alert_keys = alert_keys[2].urlsafe()
     else:
-      alert_keys = '%s,%s' % (six.ensure_str(
-          alert_keys[0].urlsafe()), six.ensure_str(alert_keys[1].urlsafe()))
-    response = self.testapp.post('/file_bug', [
-        ('keys', alert_keys),
-        ('summary', 's'),
-        ('description', 'd\n'),
-        ('finish', 'true'),
-        ('label', 'one'),
-        ('label', 'two'),
-        ('component', 'Foo>Bar'),
-    ])
+      if is_skia:
+        alert_keys = [alert_keys[0].id(), alert_keys[1].id()]
+      else:
+        alert_keys = '%s,%s' % (six.ensure_str(
+            alert_keys[0].urlsafe()), six.ensure_str(alert_keys[1].urlsafe()))
+    if is_skia:
+      response = self.testapp.post_json(
+          '/file_bug_skia', {
+              'keys': alert_keys,
+              'title': 's',
+              'description': 'd\n',
+              'component': 'Foo>Bar',
+              'assignee': 'user@chromium.org',
+              'labels': ['one', 'two'],
+          },
+          expect_errors=expect_errors)
+    else:
+      response = self.testapp.post('/file_bug', [
+          ('keys', alert_keys),
+          ('summary', 's'),
+          ('description', 'd\n'),
+          ('finish', 'true'),
+          ('label', 'one'),
+          ('label', 'two'),
+          ('component', 'Foo>Bar'),
+      ])
     return response
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
@@ -297,6 +320,125 @@ class FileBugTest(testing_common.TestCase):
     self.assertIn('https://chromeperf.appspot.com/group_report?sid=', comment)
     self.assertIn('\n\n\nBot(s) for this bug\'s original alert(s):\n\nlinux',
                   comment)
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+                     mock.MagicMock(return_value=[]))
+  @mock.patch.object(
+      file_bug.file_bug.auto_bisect, 'StartNewBisectForBug',
+      mock.MagicMock(return_value={
+          'issue_id': 123,
+          'issue_url': 'foo.com'
+      }))
+  def testGet_WithFinish_CreatesBug_Skia(self):
+    # When a POST request is sent with keys specified and with the finish
+    # parameter given, an issue will be created using the issue tracker
+    # API, and the anomalies will be updated, and a response page will
+    # be sent which indicates success.
+    self._issue_tracker_service._bug_id_counter = 277761
+    response = self._PostSampleBug(is_skia=True)
+
+    # The response page should have a bug number.
+    self.assertIn(b'277761', response.body)
+
+    # The anomaly entities should be updated.
+    for anomaly_entity in anomaly.Anomaly.query().fetch():
+      if anomaly_entity.end_revision in [112005, 112010]:
+        self.assertEqual(277761, anomaly_entity.bug_id)
+      else:
+        self.assertIsNone(anomaly_entity.bug_id)
+
+    # Two HTTP requests are made when filing a bug; only test 2nd request.
+    comment = self._issue_tracker_service.add_comment_kwargs['comment']
+    self.assertIn('https://chromeperf.appspot.com/group_report?bug_id=277761',
+                  comment)
+    self.assertIn('https://chromeperf.appspot.com/group_report?sid=', comment)
+    self.assertIn('\n\n\nBot(s) for this bug\'s original alert(s):\n\nlinux',
+                  comment)
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+                     mock.MagicMock(return_value=[]))
+  @mock.patch.object(utils, 'IsTryjobUser', mock.MagicMock(return_value=False))
+  def testGet_WithFinish_CreatesBug_Skia_InvalidUser(self):
+    self.SetCurrentUser('123@456.com')
+    # When a POST request is sent with keys specified and with the finish
+    # parameter given, an issue will be created using the issue tracker
+    # API, and the anomalies will be updated, and a response page will
+    # be sent which indicates success.
+    self._issue_tracker_service._bug_id_counter = 277761
+    response = self._PostSampleBug(is_skia=True, expect_errors=True)
+    body_json = json.loads(response.body)
+
+    self.assertIn('error', body_json)
+    self.assertIn('must be logged in', body_json['error'])
+    self.assertEqual(http.HTTPStatus.UNAUTHORIZED.value, response.status_code)
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+                     mock.MagicMock(return_value=[]))
+  def testGet_WithFinish_CreatesBug_Skia_IssueTrackerError(self):
+    perf_issue_post_patcher = mock.patch(
+        'dashboard.services.perf_issue_service_client.PostIssue',
+        self._issue_tracker_service.NewBugError)
+    perf_issue_post_patcher.start()
+    self.addCleanup(perf_issue_post_patcher.stop)
+
+    self._issue_tracker_service._bug_id_counter = 277761
+    response = self._PostSampleBug(is_skia=True, expect_errors=True)
+
+    body_json = json.loads(response.body)
+
+    # The response body in json should have the mocked error.
+    self.assertIn('error', body_json)
+    self.assertEqual(http.HTTPStatus.INTERNAL_SERVER_ERROR.value,
+                     response.status_code)
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  def testGet_WithFinish_CreatesBug_Skia_BadJson(self):
+    self._issue_tracker_service._bug_id_counter = 277761
+    response = self.testapp.post(
+        '/file_bug_skia', '{"keys":"k1"', expect_errors=True)
+
+    self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
+    body_json = json.loads(response.body)
+    self.assertIn('error', body_json)
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  def testGet_WithFinish_CreatesBug_Skia_MissingKeys(self):
+    self._issue_tracker_service._bug_id_counter = 277761
+
+    response = self.testapp.post_json('/file_bug_skia', {}, expect_errors=True)
+    self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
+    body_json = json.loads(response.body)
+    self.assertIn('error', body_json)
+    self.assertIn('No skia anomaly keys', body_json['error'])
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  def testGet_WithFinish_CreatesBug_Skia_MissingTitle(self):
+    self._issue_tracker_service._bug_id_counter = 277761
+
+    response = self.testapp.post_json(
+        '/file_bug_skia', {"keys": ["k1"]}, expect_errors=True)
+    self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
+    body_json = json.loads(response.body)
+    self.assertIn('error', body_json)
+    self.assertIn('Empty title', body_json['error'])
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  def testGet_WithFinish_CreatesBug_Skia_MissingComponent(self):
+    self._issue_tracker_service._bug_id_counter = 277761
+
+    response = self.testapp.post_json(
+        '/file_bug_skia', {
+            "keys": ["k1"],
+            "title": "anyTitle"
+        },
+        expect_errors=True)
+    self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
+    body_json = json.loads(response.body)
+    self.assertIn('error', body_json)
+    self.assertIn('Empty component', body_json['error'])
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',

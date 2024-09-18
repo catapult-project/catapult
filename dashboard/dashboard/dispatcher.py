@@ -176,6 +176,11 @@ def FileBugHandlerGet():
   return file_bug.FileBugHandlerGet()
 
 
+@flask_app.route('/file_bug_skia', methods=['POST'])
+def SkiaFileBugHandlerPost():
+  return file_bug.SkiaFileBugHandlerPost()
+
+
 @flask_app.route('/graph_csv', methods=['GET'])
 def GraphCSVHandlerGet():
   return graph_csv.GraphCSVGet()
