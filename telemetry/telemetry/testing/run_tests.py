@@ -85,6 +85,11 @@ class RunTestsCommand(command_line.OptparseCommand):
                         dest='verbosity',
                         default=0,
                         help='Increase verbosity level (repeat as needed)')
+    # This arg is needed since android coverage bots on Chrome CI pass this in
+    # unconditionally and expect every test harness to honor the arg.
+    # TODO(crbug.com/40564748): Only specify this arg in generated wrapper
+    # scripts for test harnesses that actually support it.
+    parser.add_argument('--coverage-dir', help='Unused.')
 
     group = parser.add_argument_group('Options for running the tests')
     typ.ArgumentParser.add_arguments_to_parser(group,
