@@ -168,6 +168,10 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
       flags += ['--browser-executable', self._test_options.browser_executable]
     if self._test_options.chrome_root:
       flags += ['--chrome-root', self._test_options.chrome_root]
+    if self._test_options.chromium_output_dir:
+      flags += [
+          '--chromium-output-directory', self._test_options.chromium_output_dir
+      ]
     return flags
 
   @decorators.Disabled('chromeos') # crbug.com/404868.
