@@ -9,7 +9,7 @@ google-auth-httplib2==0.1.0
 google-cloud-logging==3.1.2
 google-cloud-monitoring==2.9.1
 google-python-cloud-debugger==3.2
-gunicorn==20.1.0
+gunicorn==22.0.0
 
 #https://pypi.org/project/httplib2/
 httplib2==0.20.4

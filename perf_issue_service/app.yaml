@@ -4,8 +4,8 @@ runtime: python
 env: flex
 
 runtime_config:
-  # As of Q1 2023, the latest python supported by Appengine flexible is 3.7.9.
-  python_version: 3.7
+  operating_system: "ubuntu22"
+  runtime_version: "3.11"
 
 entrypoint: gunicorn -b:$PORT -w 8 main:APP
 
@@ -15,13 +15,22 @@ automatic_scaling:
   cpu_utilization:
     target_utilization: 0.7
 
+resources:
+  cpu: 4
+  memory_gb: 4
+
+handlers:
+- url: /.*
+  script: main.APP
+  secure: always
+
 readiness_check:
   path: "/"
-  check_interval_sec: 60
+  check_interval_sec: 30
   timeout_sec: 4
   failure_threshold: 2
   success_threshold: 2
-  app_start_timeout_sec: 600
+  app_start_timeout_sec: 120
 
 beta_settings:
   service_account_scopes: >
