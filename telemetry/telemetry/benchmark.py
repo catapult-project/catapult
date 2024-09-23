@@ -88,8 +88,9 @@ class Benchmark(command_line.Command):
     Returns:
       An exit code from exit_codes module describing what happened.
     """
-    args.target_platforms = self.GetSupportedPlatformNames(
-        self.SUPPORTED_PLATFORMS)
+    if not args.target_platforms:
+      args.target_platforms = self.GetSupportedPlatformNames(
+          self.SUPPORTED_PLATFORMS)
     return story_runner.RunBenchmark(self, args)
 
   @property
