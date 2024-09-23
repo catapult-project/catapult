@@ -115,8 +115,13 @@ def CalculateDeviceMd5Sums(paths, device):
       compressed_paths = compressed_paths.decode('utf-8')
     md5sum_script += '$a -gz %s;' % compressed_paths
   try:
-    out = device.RunShellCommand(
-        md5sum_script, shell=True, check_return=True, large_output=True)
+    # The script can take a bit to run, so use a longer timeout than the
+    # default.
+    out = device.RunShellCommand(md5sum_script,
+                                 shell=True,
+                                 check_return=True,
+                                 large_output=True,
+                                 timeout=120)
   except device_errors.AdbShellCommandFailedError as e:
     # Push the binary only if it is found to not exist
     # (faster than checking up-front).

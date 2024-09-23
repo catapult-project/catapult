@@ -620,7 +620,7 @@ class AdbWrapper(object):
                  check_error=True,
                  cpu_affinity=None,
                  additional_env=None):
-    if timeout:
+    if not timeout:
       remaining = timeout_retry.CurrentTimeoutThreadGroup().GetRemainingTime()
       if remaining:
         # Use a slightly smaller timeout than remaining time to ensure that we

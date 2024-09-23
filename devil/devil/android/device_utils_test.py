@@ -356,7 +356,8 @@ class DeviceUtilsHasRootTest(DeviceUtilsTest):
   def testHasRoot_true(self):
     with self.patch_call(self.call.device.build_type,
                          return_value='userdebug'), (self.assertCall(
-                             self.call.adb.Shell('id'), 'uid=0(root)\n')):
+                             self.call.adb.Shell('id', timeout=mock.ANY),
+                             'uid=0(root)\n')):
       self.assertTrue(self.device.HasRoot())
 
   def testHasRootEngBuild_true(self):
@@ -366,7 +367,8 @@ class DeviceUtilsHasRootTest(DeviceUtilsTest):
   def testHasRoot_false(self):
     with self.patch_call(self.call.device.build_type,
                          return_value='userdebug'), (self.assertCall(
-                             self.call.adb.Shell('id'), 'uid=2000(shell)\n')):
+                             self.call.adb.Shell('id', timeout=mock.ANY),
+                             'uid=2000(shell)\n')):
       self.assertFalse(self.device.HasRoot())
 
 
@@ -791,7 +793,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), ''),
         # pm_ready
         (self.call.device._GetApplicationPathsInternal(
             'android', skip_cache=True), ['package:/some/fake/path'])):
@@ -808,7 +811,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), ''),
         # pm_ready
         (self.call.device._GetApplicationPathsInternal(
             'android', skip_cache=True), self.TimeoutError()),
@@ -819,7 +823,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), ''),
         # pm_ready
         (self.call.device._GetApplicationPathsInternal(
             'android', skip_cache=True), ['package:/some/fake/path'])):
@@ -837,7 +842,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), ''),
         # pm_ready
         (self.call.device._GetApplicationPathsInternal(
             'android', skip_cache=True), self.TimeoutError()),
@@ -848,7 +854,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), ''),
         # pm_ready
         (self.call.device._GetApplicationPathsInternal(
             'android', skip_cache=True), self.TimeoutError())):
@@ -865,12 +872,13 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), ''),
         # pm_ready
         (self.call.device._GetApplicationPathsInternal(
             'android', skip_cache=True), ['package:/some/fake/path']),
         # wifi_enabled
-        (self.call.adb.Shell('dumpsys wifi'),
+        (self.call.adb.Shell('dumpsys wifi', timeout=mock.ANY),
          'stuff\nWi-Fi is enabled\nmore stuff\n')):
       self.device.WaitUntilFullyBooted(wifi=True, decrypt=False)
 
@@ -883,7 +891,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), ''),
         # pm_ready
         (self.call.device._GetApplicationPathsInternal(
             'android', skip_cache=True), ['package:/some/fake/path']),
@@ -901,7 +910,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), ''),
         # pm_ready
         (self.call.device._GetApplicationPathsInternal(
             'android', skip_cache=True), ['package:/some/fake/path']),
@@ -921,7 +931,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('sys.usb.config'), 'adb'),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), ''),
         # pm_ready
         (self.call.device._GetApplicationPathsInternal(
             'android', skip_cache=True), ['package:/some/fake/path'])):
@@ -944,7 +955,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetExternalStoragePath(), self.AdbCommandError()),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), ''),
         # pm_ready
         (self.call.device._GetApplicationPathsInternal(
             'android', skip_cache=True), ['package:/some/fake/path'])):
@@ -961,7 +973,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), ''),
         # pm_ready
         (self.call.device._GetApplicationPathsInternal(
             'android', skip_cache=True), ['package:/some/fake/path'])):
@@ -995,14 +1008,16 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'), self.ShellError()),
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), self.ShellError()),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'), self.ShellError()),
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), self.ShellError()),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'),
-         self.TimeoutError())):
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), self.TimeoutError())):
       with self.assertRaises(device_errors.CommandTimeoutError):
         self.device.WaitUntilFullyBooted(wifi=False, decrypt=False, retries=0)
 
@@ -1015,7 +1030,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), ''),
         # pm_ready
         (self.call.device._GetApplicationPathsInternal(
             'android', skip_cache=True), self.CommandError()),
@@ -1052,16 +1068,20 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), ''),
         # pm_ready
         (self.call.device._GetApplicationPathsInternal(
             'android', skip_cache=True), ['package:/some/fake/path']),
         # wifi_enabled
-        (self.call.adb.Shell('dumpsys wifi'), 'stuff\nmore stuff\n'),
+        (self.call.adb.Shell('dumpsys wifi',
+                             timeout=mock.ANY), 'stuff\nmore stuff\n'),
         # wifi_enabled
-        (self.call.adb.Shell('dumpsys wifi'), 'stuff\nmore stuff\n'),
+        (self.call.adb.Shell('dumpsys wifi',
+                             timeout=mock.ANY), 'stuff\nmore stuff\n'),
         # wifi_enabled
-        (self.call.adb.Shell('dumpsys wifi'), self.TimeoutError())):
+        (self.call.adb.Shell('dumpsys wifi',
+                             timeout=mock.ANY), self.TimeoutError())):
       with self.assertRaises(device_errors.CommandTimeoutError):
         self.device.WaitUntilFullyBooted(wifi=True, decrypt=False, retries=0)
 
@@ -1074,7 +1094,8 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('ro.product.model'), ''),
         # sd_card_ready
         (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
-        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        (self.call.adb.Shell('test -d /fake/storage/path',
+                             timeout=mock.ANY), ''),
         # pm_ready
         (self.call.device._GetApplicationPathsInternal(
             'android', skip_cache=True), ['package:/some/fake/path']),
@@ -1838,30 +1859,34 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
     self.device.NeedsSU = mock.Mock(return_value=False)
 
   def testRunShellCommand_commandAsList(self):
-    with self.assertCall(self.call.adb.Shell('pm list packages'), ''):
+    with self.assertCall(
+        self.call.adb.Shell('pm list packages', timeout=mock.ANY), ''):
       self.device.RunShellCommand(['pm', 'list', 'packages'], check_return=True)
 
   def testRunShellCommand_commandAsListQuoted(self):
-    with self.assertCall(self.call.adb.Shell("echo 'hello world' '$10'"), ''):
+    with self.assertCall(
+        self.call.adb.Shell("echo 'hello world' '$10'", timeout=mock.ANY), ''):
       self.device.RunShellCommand(['echo', 'hello world', '$10'],
                                   check_return=True)
 
   def testRunShellCommand_commandAsString(self):
-    with self.assertCall(self.call.adb.Shell('echo "$VAR"'), ''):
+    with self.assertCall(self.call.adb.Shell('echo "$VAR"', timeout=mock.ANY),
+                         ''):
       self.device.RunShellCommand('echo "$VAR"', shell=True, check_return=True)
 
   def testNewRunShellImpl_withEnv(self):
     with self.assertCall(
-        self.call.adb.Shell('VAR=some_string echo "$VAR"'), ''):
-      self.device.RunShellCommand(
-          'echo "$VAR"',
-          shell=True,
-          check_return=True,
-          env={'VAR': 'some_string'})
+        self.call.adb.Shell('VAR=some_string echo "$VAR"', timeout=mock.ANY),
+        ''):
+      self.device.RunShellCommand('echo "$VAR"',
+                                  shell=True,
+                                  check_return=True,
+                                  env={'VAR': 'some_string'})
 
   def testNewRunShellImpl_withEnvQuoted(self):
     with self.assertCall(
-        self.call.adb.Shell('PATH="$PATH:/other/path" run_this'), ''):
+        self.call.adb.Shell('PATH="$PATH:/other/path" run_this',
+                            timeout=mock.ANY), ''):
       self.device.RunShellCommand(['run_this'],
                                   check_return=True,
                                   env={'PATH': '$PATH:/other/path'})
@@ -1873,14 +1898,16 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
                                   env={'INVALID NAME': 'value'})
 
   def testNewRunShellImpl_withCwd(self):
-    with self.assertCall(self.call.adb.Shell('cd /some/test/path && ls'), ''):
+    with self.assertCall(
+        self.call.adb.Shell('cd /some/test/path && ls', timeout=mock.ANY), ''):
       self.device.RunShellCommand(['ls'],
                                   check_return=True,
                                   cwd='/some/test/path')
 
   def testNewRunShellImpl_withCwdQuoted(self):
     with self.assertCall(
-        self.call.adb.Shell("cd '/some test/path with/spaces' && ls"), ''):
+        self.call.adb.Shell("cd '/some test/path with/spaces' && ls",
+                            timeout=mock.ANY), ''):
       self.device.RunShellCommand(['ls'],
                                   check_return=True,
                                   cwd='/some test/path with/spaces')
@@ -1893,7 +1920,8 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
             self.adb, suffix='.sh'), MockTempFile('/sdcard/temp-123.sh')),
         self.call.device._WriteFileWithPush('/sdcard/temp-123.sh',
                                             expected_cmd),
-        (self.call.adb.Shell('sh /sdcard/temp-123.sh'), payload + '\n')):
+        (self.call.adb.Shell('sh /sdcard/temp-123.sh',
+                             timeout=mock.ANY), payload + '\n')):
       self.assertEqual([payload],
                        self.device.RunShellCommand(['echo', payload],
                                                    check_return=True))
@@ -1909,7 +1937,8 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
             self.adb, suffix='.sh'), MockTempFile('/sdcard/temp-123.sh')),
         self.call.device._WriteFileWithPush('/sdcard/temp-123.sh',
                                             expected_cmd),
-        (self.call.adb.Shell('sh /sdcard/temp-123.sh'), payload + '\n')):
+        (self.call.adb.Shell('sh /sdcard/temp-123.sh',
+                             timeout=mock.ANY), payload + '\n')):
       self.assertEqual([payload],
                        self.device.RunShellCommand(['echo', payload],
                                                    check_return=True,
@@ -1921,7 +1950,7 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
     with self.assertCalls(
         (self.call.device.NeedsSU(), True),
         (self.call.device._Su(expected_cmd_without_su), expected_cmd),
-        (self.call.adb.Shell(expected_cmd), '')):
+        (self.call.adb.Shell(expected_cmd, timeout=mock.ANY), '')):
       self.device.RunShellCommand(['setprop', 'service.adb.root', '0'],
                                   check_return=True,
                                   as_root=True)
@@ -1930,7 +1959,8 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
     expected_cmd_without_run_as = "sh -c 'mkdir -p files'"
     expected_cmd = (
         'run-as org.devil.test_package %s' % expected_cmd_without_run_as)
-    with self.assertCall(self.call.adb.Shell(expected_cmd), ''):
+    with self.assertCall(self.call.adb.Shell(expected_cmd, timeout=mock.ANY),
+                         ''):
       self.device.RunShellCommand(['mkdir', '-p', 'files'],
                                   check_return=True,
                                   run_as='org.devil.test_package')
@@ -1945,7 +1975,7 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
     with self.assertCalls(
         (self.call.device.NeedsSU(), True),
         (self.call.device._Su(expected_cmd_without_su), expected_cmd),
-        (self.call.adb.Shell(expected_cmd), '')):
+        (self.call.adb.Shell(expected_cmd, timeout=mock.ANY), '')):
       self.device.RunShellCommand(['mkdir', '-p', 'files'],
                                   check_return=True,
                                   run_as='org.devil.test_package',
@@ -1953,14 +1983,16 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
 
   def testRunShellCommand_manyLines(self):
     cmd = 'ls /some/path'
-    with self.assertCall(self.call.adb.Shell(cmd), 'file1\nfile2\nfile3\n'):
+    with self.assertCall(self.call.adb.Shell(cmd, timeout=mock.ANY),
+                         'file1\nfile2\nfile3\n'):
       self.assertEqual(['file1', 'file2', 'file3'],
                        self.device.RunShellCommand(cmd.split(),
                                                    check_return=True))
 
   def testRunShellCommand_manyLinesRawOutput(self):
     cmd = 'ls /some/path'
-    with self.assertCall(self.call.adb.Shell(cmd), '\rfile1\nfile2\r\nfile3\n'):
+    with self.assertCall(self.call.adb.Shell(cmd, timeout=mock.ANY),
+                         '\rfile1\nfile2\r\nfile3\n'):
       self.assertEqual(
           '\rfile1\nfile2\r\nfile3\n',
           self.device.RunShellCommand(cmd.split(),
@@ -1969,7 +2001,8 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
 
   def testRunShellCommand_singleLine_success(self):
     cmd = 'echo $VALUE'
-    with self.assertCall(self.call.adb.Shell(cmd), 'some value\n'):
+    with self.assertCall(self.call.adb.Shell(cmd, timeout=mock.ANY),
+                         'some value\n'):
       self.assertEqual(
           'some value',
           self.device.RunShellCommand(cmd,
@@ -1979,7 +2012,7 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
 
   def testRunShellCommand_singleLine_successEmptyLine(self):
     cmd = 'echo $VALUE'
-    with self.assertCall(self.call.adb.Shell(cmd), '\n'):
+    with self.assertCall(self.call.adb.Shell(cmd, timeout=mock.ANY), '\n'):
       self.assertEqual(
           '',
           self.device.RunShellCommand(cmd,
@@ -1989,7 +2022,8 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
 
   def testRunShellCommand_singleLine_successWithoutEndLine(self):
     cmd = 'echo -n $VALUE'
-    with self.assertCall(self.call.adb.Shell(cmd), 'some value'):
+    with self.assertCall(self.call.adb.Shell(cmd, timeout=mock.ANY),
+                         'some value'):
       self.assertEqual(
           'some value',
           self.device.RunShellCommand(cmd,
@@ -1999,7 +2033,7 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
 
   def testRunShellCommand_singleLine_successNoOutput(self):
     cmd = 'echo -n $VALUE'
-    with self.assertCall(self.call.adb.Shell(cmd), ''):
+    with self.assertCall(self.call.adb.Shell(cmd, timeout=mock.ANY), ''):
       self.assertEqual(
           '',
           self.device.RunShellCommand(cmd,
@@ -2009,8 +2043,8 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
 
   def testRunShellCommand_singleLine_failTooManyLines(self):
     cmd = 'echo $VALUE'
-    with self.assertCall(
-        self.call.adb.Shell(cmd), 'some value\nanother value\n'):
+    with self.assertCall(self.call.adb.Shell(cmd, timeout=mock.ANY),
+                         'some value\nanother value\n'):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device.RunShellCommand(
             cmd, shell=True, check_return=True, single_line=True)
@@ -2018,7 +2052,7 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
   def testRunShellCommand_checkReturn_success(self):
     cmd = 'echo $ANDROID_DATA'
     output = '/data\n'
-    with self.assertCall(self.call.adb.Shell(cmd), output):
+    with self.assertCall(self.call.adb.Shell(cmd, timeout=mock.ANY), output):
       self.assertEqual([output.rstrip()],
                        self.device.RunShellCommand(cmd,
                                                    shell=True,
@@ -2027,14 +2061,16 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
   def testRunShellCommand_checkReturn_failure(self):
     cmd = 'ls /root'
     output = 'opendir failed, Permission denied\n'
-    with self.assertCall(self.call.adb.Shell(cmd), self.ShellError(output)):
+    with self.assertCall(self.call.adb.Shell(cmd, timeout=mock.ANY),
+                         self.ShellError(output)):
       with self.assertRaises(device_errors.AdbCommandFailedError):
         self.device.RunShellCommand(cmd.split(), check_return=True)
 
   def testRunShellCommand_checkReturn_disabled(self):
     cmd = 'ls /root'
     output = 'opendir failed, Permission denied\n'
-    with self.assertCall(self.call.adb.Shell(cmd), self.ShellError(output)):
+    with self.assertCall(self.call.adb.Shell(cmd, timeout=mock.ANY),
+                         self.ShellError(output)):
       self.assertEqual([output.rstrip()],
                        self.device.RunShellCommand(cmd.split(),
                                                    check_return=False))
@@ -2045,7 +2081,8 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
     cmd_redirect = '( %s )>%s 2>&1' % (cmd, temp_file.name)
     with self.assertCalls(
         (mock.call.devil.android.device_temp_file.DeviceTempFile(
-            self.adb), temp_file), (self.call.adb.Shell(cmd_redirect)),
+            self.adb), temp_file),
+        (self.call.adb.Shell(cmd_redirect, timeout=mock.ANY)),
         (self.call.device.ReadFile(
             temp_file.name, force_pull=True, encoding='utf8'), 'something')):
       self.assertEqual(['something'],
@@ -2056,7 +2093,8 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
 
   def testRunShellCommand_largeOutput_disabledNoTrigger(self):
     cmd = 'something'
-    with self.assertCall(self.call.adb.Shell(cmd), self.ShellError('')):
+    with self.assertCall(self.call.adb.Shell(cmd, timeout=mock.ANY),
+                         self.ShellError('')):
       with self.assertRaises(device_errors.AdbCommandFailedError):
         self.device.RunShellCommand([cmd], check_return=True)
 
@@ -2065,9 +2103,9 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
     temp_file = MockTempFile('/sdcard/temp-123')
     cmd_redirect = '( %s )>%s 2>&1' % (cmd, temp_file.name)
     with self.assertCalls(
-        (self.call.adb.Shell(cmd), self.ShellError('', None)),
-        (mock.call.devil.android.device_temp_file.DeviceTempFile(
-            self.adb), temp_file), (self.call.adb.Shell(cmd_redirect)),
+        (self.call.adb.Shell(cmd, timeout=mock.ANY), self.ShellError('', None)),
+        (mock.call.devil.android.device_temp_file.DeviceTempFile(self.adb),
+         temp_file), (self.call.adb.Shell(cmd_redirect, timeout=mock.ANY)),
         (self.call.device.ReadFile(mock.ANY, force_pull=True,
                                    encoding='utf8'), 'something')):
       self.assertEqual(['something'],
@@ -2129,17 +2167,17 @@ class DeviceUtilsKillAllTest(DeviceUtilsTest):
       self.assertEqual(0, self.device.KillAll('test_process', quiet=True))
 
   def testKillAll_nonblocking(self):
-    with self.assertCalls((self.call.device.ListProcesses('some.process'),
-                           Processes(('some.process', 1234),
-                                     ('some.process.thing', 5678))),
-                          (self.call.adb.Shell('kill -9 1234 5678'), '')):
+    with self.assertCalls(
+        (self.call.device.ListProcesses('some.process'),
+         Processes(('some.process', 1234), ('some.process.thing', 5678))),
+        (self.call.adb.Shell('kill -9 1234 5678', timeout=mock.ANY), '')):
       self.assertEqual(2, self.device.KillAll('some.process', blocking=False))
 
   def testKillAll_blocking(self):
     with self.assertCalls(
         (self.call.device.ListProcesses('some.process'),
          Processes(('some.process', 1234), ('some.process.thing', 5678))),
-        (self.call.adb.Shell('kill -9 1234 5678'), ''),
+        (self.call.adb.Shell('kill -9 1234 5678', timeout=mock.ANY), ''),
         (self.call.device.ListProcesses('some.process'),
          Processes(('some.process.thing', 5678))),
         (
@@ -2149,23 +2187,22 @@ class DeviceUtilsKillAllTest(DeviceUtilsTest):
       self.assertEqual(2, self.device.KillAll('some.process', blocking=True))
 
   def testKillAll_exactNonblocking(self):
-    with self.assertCalls((self.call.device.ListProcesses('some.process'),
-                           Processes(('some.process', 1234),
-                                     ('some.process.thing', 5678))),
-                          (self.call.adb.Shell('kill -9 1234'), '')):
+    with self.assertCalls(
+        (self.call.device.ListProcesses('some.process'),
+         Processes(('some.process', 1234), ('some.process.thing', 5678))),
+        (self.call.adb.Shell('kill -9 1234', timeout=mock.ANY), '')):
       self.assertEqual(
           1, self.device.KillAll('some.process', exact=True, blocking=False))
 
   def testKillAll_exactBlocking(self):
-    with self.assertCalls((self.call.device.ListProcesses('some.process'),
-                           Processes(('some.process', 1234),
-                                     ('some.process.thing', 5678))),
-                          (self.call.adb.Shell('kill -9 1234'), ''),
-                          (self.call.device.ListProcesses('some.process'),
-                           Processes(('some.process', 1234),
-                                     ('some.process.thing', 5678))),
-                          (self.call.device.ListProcesses('some.process'),
-                           Processes(('some.process.thing', 5678)))):
+    with self.assertCalls(
+        (self.call.device.ListProcesses('some.process'),
+         Processes(('some.process', 1234), ('some.process.thing', 5678))),
+        (self.call.adb.Shell('kill -9 1234', timeout=mock.ANY), ''),
+        (self.call.device.ListProcesses('some.process'),
+         Processes(('some.process', 1234), ('some.process.thing', 5678))),
+        (self.call.device.ListProcesses('some.process'),
+         Processes(('some.process.thing', 5678)))):
       self.assertEqual(
           1, self.device.KillAll('some.process', exact=True, blocking=True))
 
@@ -2174,22 +2211,23 @@ class DeviceUtilsKillAllTest(DeviceUtilsTest):
         (self.call.device.ListProcesses('some.process'),
          Processes(('some.process', 1234))), (self.call.device.NeedsSU(), True),
         (self.call.device._Su("sh -c 'kill -9 1234'"),
-         "su -c sh -c 'kill -9 1234'"),
-        (self.call.adb.Shell("su -c sh -c 'kill -9 1234'"), '')):
+         "su -c sh -c 'kill -9 1234'"), (self.call.adb.Shell(
+             "su -c sh -c 'kill -9 1234'", timeout=mock.ANY), '')):
       self.assertEqual(1, self.device.KillAll('some.process', as_root=True))
 
   def testKillAll_sigterm(self):
-    with self.assertCalls((self.call.device.ListProcesses('some.process'),
-                           Processes(('some.process', 1234))),
-                          (self.call.adb.Shell('kill -15 1234'), '')):
+    with self.assertCalls(
+        (self.call.device.ListProcesses('some.process'),
+         Processes(('some.process', 1234))),
+        (self.call.adb.Shell('kill -15 1234', timeout=mock.ANY), '')):
       self.assertEqual(
           1, self.device.KillAll('some.process', signum=device_signal.SIGTERM))
 
   def testKillAll_multipleInstances(self):
-    with self.assertCalls((self.call.device.ListProcesses('some.process'),
-                           Processes(('some.process', 1234),
-                                     ('some.process', 4567))),
-                          (self.call.adb.Shell('kill -15 1234 4567'), '')):
+    with self.assertCalls(
+        (self.call.device.ListProcesses('some.process'),
+         Processes(('some.process', 1234), ('some.process', 4567))),
+        (self.call.adb.Shell('kill -15 1234 4567', timeout=mock.ANY), '')):
       self.assertEqual(
           2, self.device.KillAll('some.process', signum=device_signal.SIGTERM))
 
@@ -2199,7 +2237,8 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
     test_intent = intent.Intent(action='android.intent.action.VIEW')
     with self.assertCall(
         self.call.adb.Shell('am start '
-                            '-a android.intent.action.VIEW'),
+                            '-a android.intent.action.VIEW',
+                            timeout=mock.ANY),
         'Starting: Intent { act=android.intent.action.VIEW }'):
       self.device.StartActivity(test_intent)
 
@@ -2207,8 +2246,10 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
     test_intent = intent.Intent(action='android.intent.action.VIEW')
     with self.patch_call(self.call.device.target_user, return_value=11):
       with self.assertCalls(
-          (self.call.adb.Shell('am start --user 11 '
-                               '-a android.intent.action.VIEW'),
+          (self.call.adb.Shell(
+              'am start --user 11 '
+              '-a android.intent.action.VIEW',
+              timeout=mock.ANY),
            'Starting: Intent { act=android.intent.action.VIEW }')):
         self.device.StartActivity(test_intent)
 
@@ -2218,9 +2259,11 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
         package=TEST_PACKAGE,
         activity='.Main')
     with self.assertCall(
-        self.call.adb.Shell('am start '
-                            '-a android.intent.action.VIEW '
-                            '-n test.package/.Main'),
+        self.call.adb.Shell(
+            'am start '
+            '-a android.intent.action.VIEW '
+            '-n test.package/.Main',
+            timeout=mock.ANY),
         'Starting: Intent { act=android.intent.action.VIEW }'):
       self.device.StartActivity(test_intent)
 
@@ -2230,10 +2273,11 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
         package=TEST_PACKAGE,
         activity='.Main')
     with self.assertCall(
-        self.call.adb.Shell('am start '
-                            '-a android.intent.action.VIEW '
-                            '-n test.package/.Main'),
-        'Error: Failed to start test activity'):
+        self.call.adb.Shell(
+            'am start '
+            '-a android.intent.action.VIEW '
+            '-n test.package/.Main',
+            timeout=mock.ANY), 'Error: Failed to start test activity'):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device.StartActivity(test_intent)
 
@@ -2243,10 +2287,12 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
         package=TEST_PACKAGE,
         activity='.Main')
     with self.assertCall(
-        self.call.adb.Shell('am start '
-                            '-W '
-                            '-a android.intent.action.VIEW '
-                            '-n test.package/.Main'),
+        self.call.adb.Shell(
+            'am start '
+            '-W '
+            '-a android.intent.action.VIEW '
+            '-n test.package/.Main',
+            timeout=mock.ANY),
         'Starting: Intent { act=android.intent.action.VIEW }'):
       self.device.StartActivity(test_intent, blocking=True)
 
@@ -2257,10 +2303,12 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
         activity='.Main',
         category='android.intent.category.HOME')
     with self.assertCall(
-        self.call.adb.Shell('am start '
-                            '-a android.intent.action.VIEW '
-                            '-c android.intent.category.HOME '
-                            '-n test.package/.Main'),
+        self.call.adb.Shell(
+            'am start '
+            '-a android.intent.action.VIEW '
+            '-c android.intent.category.HOME '
+            '-n test.package/.Main',
+            timeout=mock.ANY),
         'Starting: Intent { act=android.intent.action.VIEW }'):
       self.device.StartActivity(test_intent)
 
@@ -2273,11 +2321,13 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
             'android.intent.category.HOME', 'android.intent.category.BROWSABLE'
         ])
     with self.assertCall(
-        self.call.adb.Shell('am start '
-                            '-a android.intent.action.VIEW '
-                            '-c android.intent.category.HOME '
-                            '-c android.intent.category.BROWSABLE '
-                            '-n test.package/.Main'),
+        self.call.adb.Shell(
+            'am start '
+            '-a android.intent.action.VIEW '
+            '-c android.intent.category.HOME '
+            '-c android.intent.category.BROWSABLE '
+            '-n test.package/.Main',
+            timeout=mock.ANY),
         'Starting: Intent { act=android.intent.action.VIEW }'):
       self.device.StartActivity(test_intent)
 
@@ -2288,10 +2338,12 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
         activity='.Main',
         data='http://www.google.com/')
     with self.assertCall(
-        self.call.adb.Shell('am start '
-                            '-a android.intent.action.VIEW '
-                            '-d http://www.google.com/ '
-                            '-n test.package/.Main'),
+        self.call.adb.Shell(
+            'am start '
+            '-a android.intent.action.VIEW '
+            '-d http://www.google.com/ '
+            '-n test.package/.Main',
+            timeout=mock.ANY),
         'Starting: Intent { act=android.intent.action.VIEW }'):
       self.device.StartActivity(test_intent)
 
@@ -2302,10 +2354,12 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
         activity='.Main',
         extras={'foo': 'test'})
     with self.assertCall(
-        self.call.adb.Shell('am start '
-                            '-a android.intent.action.VIEW '
-                            '-n test.package/.Main '
-                            '--es foo test'),
+        self.call.adb.Shell(
+            'am start '
+            '-a android.intent.action.VIEW '
+            '-n test.package/.Main '
+            '--es foo test',
+            timeout=mock.ANY),
         'Starting: Intent { act=android.intent.action.VIEW }'):
       self.device.StartActivity(test_intent)
 
@@ -2316,10 +2370,12 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
         activity='.Main',
         extras={'foo': True})
     with self.assertCall(
-        self.call.adb.Shell('am start '
-                            '-a android.intent.action.VIEW '
-                            '-n test.package/.Main '
-                            '--ez foo True'),
+        self.call.adb.Shell(
+            'am start '
+            '-a android.intent.action.VIEW '
+            '-n test.package/.Main '
+            '--ez foo True',
+            timeout=mock.ANY),
         'Starting: Intent { act=android.intent.action.VIEW }'):
       self.device.StartActivity(test_intent)
 
@@ -2330,10 +2386,12 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
         activity='.Main',
         extras={'foo': 123})
     with self.assertCall(
-        self.call.adb.Shell('am start '
-                            '-a android.intent.action.VIEW '
-                            '-n test.package/.Main '
-                            '--ei foo 123'),
+        self.call.adb.Shell(
+            'am start '
+            '-a android.intent.action.VIEW '
+            '-n test.package/.Main '
+            '--ei foo 123',
+            timeout=mock.ANY),
         'Starting: Intent { act=android.intent.action.VIEW }'):
       self.device.StartActivity(test_intent)
 
@@ -2343,10 +2401,12 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
         package=TEST_PACKAGE,
         activity='.Main')
     with self.assertCall(
-        self.call.adb.Shell('am start '
-                            '--start-profiler test_trace_file.out '
-                            '-a android.intent.action.VIEW '
-                            '-n test.package/.Main'),
+        self.call.adb.Shell(
+            'am start '
+            '--start-profiler test_trace_file.out '
+            '-a android.intent.action.VIEW '
+            '-n test.package/.Main',
+            timeout=mock.ANY),
         'Starting: Intent { act=android.intent.action.VIEW }'):
       self.device.StartActivity(
           test_intent, trace_file_name='test_trace_file.out')
@@ -2357,10 +2417,12 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
         package=TEST_PACKAGE,
         activity='.Main')
     with self.assertCall(
-        self.call.adb.Shell('am start '
-                            '-S '
-                            '-a android.intent.action.VIEW '
-                            '-n test.package/.Main'),
+        self.call.adb.Shell(
+            'am start '
+            '-S '
+            '-a android.intent.action.VIEW '
+            '-n test.package/.Main',
+            timeout=mock.ANY),
         'Starting: Intent { act=android.intent.action.VIEW }'):
       self.device.StartActivity(test_intent, force_stop=True)
 
@@ -2374,10 +2436,12 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
             intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
         ])
     with self.assertCall(
-        self.call.adb.Shell('am start '
-                            '-a android.intent.action.VIEW '
-                            '-n test.package/.Main '
-                            '-f 0x10200000'),
+        self.call.adb.Shell(
+            'am start '
+            '-a android.intent.action.VIEW '
+            '-n test.package/.Main '
+            '-f 0x10200000',
+            timeout=mock.ANY),
         'Starting: Intent { act=android.intent.action.VIEW }'):
       self.device.StartActivity(test_intent)
 
@@ -2391,9 +2455,11 @@ class DeviceUtilsStartServiceTest(DeviceUtilsTest):
     with self.patch_call(
         self.call.device.build_version_sdk, return_value=version_codes.NOUGAT):
       with self.assertCall(
-          self.call.adb.Shell('am startservice '
-                              '-a android.intent.action.START '
-                              '-n test.package/.Main'),
+          self.call.adb.Shell(
+              'am startservice '
+              '-a android.intent.action.START '
+              '-n test.package/.Main',
+              timeout=mock.ANY),
           'Starting service: Intent { act=android.intent.action.START }'):
         self.device.StartService(test_intent)
 
@@ -2407,9 +2473,11 @@ class DeviceUtilsStartServiceTest(DeviceUtilsTest):
          self.patch_call(self.call.device.target_user,
                          return_value=11):
       with self.assertCalls(
-          (self.call.adb.Shell('am startservice --user 11 '
-                               '-a android.intent.action.START '
-                               '-n test.package/.Main'),
+          (self.call.adb.Shell(
+              'am startservice --user 11 '
+              '-a android.intent.action.START '
+              '-n test.package/.Main',
+              timeout=mock.ANY),
            'Starting service: Intent { act=android.intent.action.START }')):
         self.device.StartService(test_intent)
 
@@ -2421,10 +2489,11 @@ class DeviceUtilsStartServiceTest(DeviceUtilsTest):
     with self.patch_call(
         self.call.device.build_version_sdk, return_value=version_codes.NOUGAT):
       with self.assertCall(
-          self.call.adb.Shell('am startservice '
-                              '-a android.intent.action.START '
-                              '-n test.package/.Main'),
-          'Error: Failed to start test service'):
+          self.call.adb.Shell(
+              'am startservice '
+              '-a android.intent.action.START '
+              '-n test.package/.Main',
+              timeout=mock.ANY), 'Error: Failed to start test service'):
         with self.assertRaises(device_errors.CommandFailedError):
           self.device.StartService(test_intent)
 
@@ -2436,9 +2505,11 @@ class DeviceUtilsStartServiceTest(DeviceUtilsTest):
     with self.patch_call(
         self.call.device.build_version_sdk, return_value=version_codes.OREO):
       with self.assertCall(
-          self.call.adb.Shell('am start-service '
-                              '-a android.intent.action.START '
-                              '-n test.package/.Main'),
+          self.call.adb.Shell(
+              'am start-service '
+              '-a android.intent.action.START '
+              '-n test.package/.Main',
+              timeout=mock.ANY),
           'Starting service: Intent { act=android.intent.action.START }'):
         self.device.StartService(test_intent)
 
@@ -2450,19 +2521,20 @@ class DeviceUtilsStartInstrumentationTest(DeviceUtilsTest):
             'p=test.package;am instrument "$p"/.TestInstrumentation',
             shell=True,
             check_return=True,
-            large_output=True)):
-      self.device.StartInstrumentation(
-          'test.package/.TestInstrumentation',
-          finish=False,
-          raw=False,
-          extras=None)
+            large_output=True,
+            timeout=mock.ANY)):
+      self.device.StartInstrumentation('test.package/.TestInstrumentation',
+                                       finish=False,
+                                       raw=False,
+                                       extras=None)
 
   def testStartInstrumentation_finish(self):
     with self.assertCalls((self.call.device.RunShellCommand(
         'p=test.package;am instrument -w "$p"/.TestInstrumentation',
         shell=True,
         check_return=True,
-        large_output=True), ['OK (1 test)'])):
+        large_output=True,
+        timeout=mock.ANY), ['OK (1 test)'])):
       output = self.device.StartInstrumentation(
           'test.package/.TestInstrumentation',
           finish=True,
@@ -2476,12 +2548,12 @@ class DeviceUtilsStartInstrumentationTest(DeviceUtilsTest):
             'p=test.package;am instrument -r "$p"/.TestInstrumentation',
             shell=True,
             check_return=True,
-            large_output=True)):
-      self.device.StartInstrumentation(
-          'test.package/.TestInstrumentation',
-          finish=False,
-          raw=True,
-          extras=None)
+            large_output=True,
+            timeout=mock.ANY)):
+      self.device.StartInstrumentation('test.package/.TestInstrumentation',
+                                       finish=False,
+                                       raw=True,
+                                       extras=None)
 
   def testStartInstrumentation_extras(self):
     with self.assertCalls(
@@ -2490,15 +2562,15 @@ class DeviceUtilsStartInstrumentationTest(DeviceUtilsTest):
             '"$p"/.TestInstrumentation',
             shell=True,
             check_return=True,
-            large_output=True)):
-      self.device.StartInstrumentation(
-          'test.package/.TestInstrumentation',
-          finish=False,
-          raw=False,
-          extras={
-              'test.package.foo': 'Foo',
-              'bar': 'Val test.package'
-          })
+            large_output=True,
+            timeout=mock.ANY)):
+      self.device.StartInstrumentation('test.package/.TestInstrumentation',
+                                       finish=False,
+                                       raw=False,
+                                       extras={
+                                           'test.package.foo': 'Foo',
+                                           'bar': 'Val test.package'
+                                       })
 
   def testStartInstrumentation_currentUser(self):
     cmd = 'p=test.package;am instrument --user 11 "$p"/.TestInstrumentation'
@@ -2507,7 +2579,8 @@ class DeviceUtilsStartInstrumentationTest(DeviceUtilsTest):
           self.call.device.RunShellCommand(cmd,
                                            shell=True,
                                            check_return=True,
-                                           large_output=True)):
+                                           large_output=True,
+                                           timeout=mock.ANY)):
         self.device.StartInstrumentation('test.package/.TestInstrumentation',
                                          finish=False,
                                          raw=False,
@@ -2518,7 +2591,8 @@ class DeviceUtilsBroadcastIntentTest(DeviceUtilsTest):
   def testBroadcastIntent_noExtras(self):
     test_intent = intent.Intent(action='test.package.with.an.INTENT')
     with self.assertCall(
-        self.call.adb.Shell('am broadcast -a test.package.with.an.INTENT'),
+        self.call.adb.Shell('am broadcast -a test.package.with.an.INTENT',
+                            timeout=mock.ANY),
         'Broadcasting: Intent { act=test.package.with.an.INTENT } '):
       self.device.BroadcastIntent(test_intent)
 
@@ -2527,7 +2601,8 @@ class DeviceUtilsBroadcastIntentTest(DeviceUtilsTest):
         action='test.package.with.an.INTENT', extras={'foo': 'bar value'})
     with self.assertCall(
         self.call.adb.Shell(
-            "am broadcast -a test.package.with.an.INTENT --es foo 'bar value'"),
+            "am broadcast -a test.package.with.an.INTENT --es foo 'bar value'",
+            timeout=mock.ANY),
         'Broadcasting: Intent { act=test.package.with.an.INTENT } '):
       self.device.BroadcastIntent(test_intent)
 
@@ -2536,7 +2611,8 @@ class DeviceUtilsBroadcastIntentTest(DeviceUtilsTest):
         action='test.package.with.an.INTENT', extras={'foo': None})
     with self.assertCall(
         self.call.adb.Shell(
-            'am broadcast -a test.package.with.an.INTENT --esn foo'),
+            'am broadcast -a test.package.with.an.INTENT --esn foo',
+            timeout=mock.ANY),
         'Broadcasting: Intent { act=test.package.with.an.INTENT } '):
       self.device.BroadcastIntent(test_intent)
 
@@ -2546,7 +2622,7 @@ class DeviceUtilGetCurrentUserTest(DeviceUtilsTest):
     user_id = 10
     with self.assertCalls(
         (self.call.device.GetProp('ro.build.version.sdk', cache=True), '24'),
-        (self.call.adb.Shell('am get-current-user'),
+        (self.call.adb.Shell('am get-current-user', timeout=mock.ANY),
          'warning msg\n' + str(user_id))):
       self.assertEqual(user_id, self.device.GetCurrentUser())
 
@@ -2637,8 +2713,9 @@ class DeviceUtilsGetMainUserTest(DeviceUtilsTest):
 class DeviceUtilSwitchUserTest(DeviceUtilsTest):
   def testSwitchUser(self):
     user_id = 10
-    with self.assertCall(self.call.adb.Shell('am switch-user %s' % user_id),
-                         ''):
+    with self.assertCall(
+        self.call.adb.Shell('am switch-user %s' % user_id, timeout=mock.ANY),
+        ''):
       self.device.SwitchUser(user_id)
 
 
@@ -2869,7 +2946,8 @@ class DeviceUtilsClearApplicationStateTest(DeviceUtilsTest):
 
 class DeviceUtilsSendKeyEventTest(DeviceUtilsTest):
   def testSendKeyEvent(self):
-    with self.assertCall(self.call.adb.Shell('input keyevent 66'), ''):
+    with self.assertCall(
+        self.call.adb.Shell('input keyevent 66', timeout=mock.ANY), ''):
       self.device.SendKeyEvent(66)
 
 
@@ -3272,13 +3350,14 @@ class DeviceUtilsWriteFileTest(DeviceUtilsTest):
 
   def testWriteFile_withEcho(self):
     with self.assertCall(
-        self.call.adb.Shell("echo -n the.contents > /test/file/to.write"), ''):
+        self.call.adb.Shell("echo -n the.contents > /test/file/to.write",
+                            timeout=mock.ANY), ''):
       self.device.WriteFile('/test/file/to.write', 'the.contents')
 
   def testWriteFile_withEchoAndQuotes(self):
     with self.assertCall(
-        self.call.adb.Shell("echo -n 'the contents' > '/test/file/to write'"),
-        ''):
+        self.call.adb.Shell("echo -n 'the contents' > '/test/file/to write'",
+                            timeout=mock.ANY), ''):
       self.device.WriteFile('/test/file/to write', 'the contents')
 
   def testWriteFile_withEchoAndSU(self):
@@ -3287,7 +3366,7 @@ class DeviceUtilsWriteFileTest(DeviceUtilsTest):
     with self.assertCalls(
         (self.call.device.NeedsSU(), True),
         (self.call.device._Su(expected_cmd_without_su), expected_cmd),
-        (self.call.adb.Shell(expected_cmd), '')):
+        (self.call.adb.Shell(expected_cmd, timeout=mock.ANY), '')):
       self.device.WriteFile('/test/file', 'contents', as_root=True)
 
 
@@ -3803,45 +3882,54 @@ class DeviceUtilsListProcessesTest(DeviceUtilsTest):
 
 class DeviceUtilsGetSetEnforce(DeviceUtilsTest):
   def testGetEnforce_Enforcing(self):
-    with self.assertCall(self.call.adb.Shell('getenforce'), 'Enforcing'):
+    with self.assertCall(self.call.adb.Shell('getenforce', timeout=mock.ANY),
+                         'Enforcing'):
       self.assertEqual(True, self.device.GetEnforce())
 
   def testGetEnforce_Permissive(self):
-    with self.assertCall(self.call.adb.Shell('getenforce'), 'Permissive'):
+    with self.assertCall(self.call.adb.Shell('getenforce', timeout=mock.ANY),
+                         'Permissive'):
       self.assertEqual(False, self.device.GetEnforce())
 
   def testGetEnforce_Disabled(self):
-    with self.assertCall(self.call.adb.Shell('getenforce'), 'Disabled'):
+    with self.assertCall(self.call.adb.Shell('getenforce', timeout=mock.ANY),
+                         'Disabled'):
       self.assertEqual(None, self.device.GetEnforce())
 
   def testSetEnforce_Enforcing(self):
-    with self.assertCalls((self.call.device.NeedsSU(), False),
-                          (self.call.adb.Shell('setenforce 1'), '')):
+    with self.assertCalls(
+        (self.call.device.NeedsSU(), False),
+        (self.call.adb.Shell('setenforce 1', timeout=mock.ANY), '')):
       self.device.SetEnforce(enabled=True)
 
   def testSetEnforce_Permissive(self):
-    with self.assertCalls((self.call.device.NeedsSU(), False),
-                          (self.call.adb.Shell('setenforce 0'), '')):
+    with self.assertCalls(
+        (self.call.device.NeedsSU(), False),
+        (self.call.adb.Shell('setenforce 0', timeout=mock.ANY), '')):
       self.device.SetEnforce(enabled=False)
 
   def testSetEnforce_EnforcingWithInt(self):
-    with self.assertCalls((self.call.device.NeedsSU(), False),
-                          (self.call.adb.Shell('setenforce 1'), '')):
+    with self.assertCalls(
+        (self.call.device.NeedsSU(), False),
+        (self.call.adb.Shell('setenforce 1', timeout=mock.ANY), '')):
       self.device.SetEnforce(enabled=1)
 
   def testSetEnforce_PermissiveWithInt(self):
-    with self.assertCalls((self.call.device.NeedsSU(), False),
-                          (self.call.adb.Shell('setenforce 0'), '')):
+    with self.assertCalls(
+        (self.call.device.NeedsSU(), False),
+        (self.call.adb.Shell('setenforce 0', timeout=mock.ANY), '')):
       self.device.SetEnforce(enabled=0)
 
   def testSetEnforce_EnforcingWithStr(self):
-    with self.assertCalls((self.call.device.NeedsSU(), False),
-                          (self.call.adb.Shell('setenforce 1'), '')):
+    with self.assertCalls(
+        (self.call.device.NeedsSU(), False),
+        (self.call.adb.Shell('setenforce 1', timeout=mock.ANY), '')):
       self.device.SetEnforce(enabled='1')
 
   def testSetEnforce_PermissiveWithStr(self):
-    with self.assertCalls((self.call.device.NeedsSU(), False),
-                          (self.call.adb.Shell('setenforce 0'), '')):
+    with self.assertCalls(
+        (self.call.device.NeedsSU(), False),
+        (self.call.adb.Shell('setenforce 0', timeout=mock.ANY), '')):
       self.device.SetEnforce(enabled='0')  # Not recommended but it works!
 
 
@@ -3868,7 +3956,7 @@ class DeviceUtilsGetWebViewUpdateServiceDumpTest(DeviceUtilsTest):
     with self.patch_call(
         self.call.device.build_version_sdk, return_value=version_codes.OREO):
       with self.assertCall(
-          self.call.adb.Shell('dumpsys webviewupdate'),
+          self.call.adb.Shell('dumpsys webviewupdate', timeout=mock.ANY),
           '\n'.join(dumpsys_lines)):
         update = self.device.GetWebViewUpdateServiceDump()
         self.assertTrue(update['FallbackLogicEnabled'])
@@ -3897,7 +3985,7 @@ class DeviceUtilsGetWebViewUpdateServiceDumpTest(DeviceUtilsTest):
     with self.patch_call(
         self.call.device.build_version_sdk, return_value=version_codes.OREO):
       with self.assertCall(
-          self.call.adb.Shell('dumpsys webviewupdate'),
+          self.call.adb.Shell('dumpsys webviewupdate', timeout=mock.ANY),
           'Fallback logic enabled: true'):
         update = self.device.GetWebViewUpdateServiceDump()
         self.assertEqual(True, update['FallbackLogicEnabled'])
@@ -3913,7 +4001,7 @@ class DeviceUtilsGetWebViewUpdateServiceDumpTest(DeviceUtilsTest):
     with self.patch_call(
         self.call.device.build_version_sdk, return_value=version_codes.OREO):
       with self.assertCall(
-          self.call.adb.Shell('dumpsys webviewupdate'),
+          self.call.adb.Shell('dumpsys webviewupdate', timeout=mock.ANY),
           'Fallback logic enabled: true\n'
           'Current WebView package is null'):
         update = self.device.GetWebViewUpdateServiceDump()
@@ -3927,8 +4015,8 @@ class DeviceUtilsSetWebViewImplementationTest(DeviceUtilsTest):
         self.call.device.IsApplicationInstalled, return_value=True):
       with self.assertCall(
           self.call.adb.Shell(
-              'cmd webviewupdate set-webview-implementation foo.org'),
-          'Success'):
+              'cmd webviewupdate set-webview-implementation foo.org',
+              timeout=mock.ANY), 'Success'):
         self.device.SetWebViewImplementation('foo.org')
 
   def testSetWebViewImplementation_uninstalled(self):
@@ -3944,10 +4032,10 @@ class DeviceUtilsSetWebViewImplementationTest(DeviceUtilsTest):
         self.call.device.IsApplicationInstalled, return_value=True):
       with self.assertCall(
           self.call.adb.Shell(
-              'cmd webviewupdate set-webview-implementation foo.org'), 'Oops!'):
-        with self.patch_call(
-            self.call.device.GetWebViewUpdateServiceDump,
-            return_value=mock_dump_sys):
+              'cmd webviewupdate set-webview-implementation foo.org',
+              timeout=mock.ANY), 'Oops!'):
+        with self.patch_call(self.call.device.GetWebViewUpdateServiceDump,
+                             return_value=mock_dump_sys):
           with self.assertRaises(device_errors.CommandFailedError) as cfe:
             self.device.SetWebViewImplementation('foo.org')
           self.assertIn(exception_message_substr, cfe.exception.message)
@@ -4022,24 +4110,24 @@ class DeviceUtilsSetWebViewFallbackLogicTest(DeviceUtilsTest):
     with self.patch_call(
         self.call.device.build_version_sdk, return_value=version_codes.NOUGAT):
       with self.assertCall(
-          self.call.adb.Shell('cmd webviewupdate enable-redundant-packages'),
-          'Success'):
+          self.call.adb.Shell('cmd webviewupdate enable-redundant-packages',
+                              timeout=mock.ANY), 'Success'):
         self.device.SetWebViewFallbackLogic(False)
 
   def testSetWebViewFallbackLogic_True_success(self):
     with self.patch_call(
         self.call.device.build_version_sdk, return_value=version_codes.NOUGAT):
       with self.assertCall(
-          self.call.adb.Shell('cmd webviewupdate disable-redundant-packages'),
-          'Success'):
+          self.call.adb.Shell('cmd webviewupdate disable-redundant-packages',
+                              timeout=mock.ANY), 'Success'):
         self.device.SetWebViewFallbackLogic(True)
 
   def testSetWebViewFallbackLogic_failure(self):
     with self.patch_call(
         self.call.device.build_version_sdk, return_value=version_codes.NOUGAT):
       with self.assertCall(
-          self.call.adb.Shell('cmd webviewupdate enable-redundant-packages'),
-          'Oops!'):
+          self.call.adb.Shell('cmd webviewupdate enable-redundant-packages',
+                              timeout=mock.ANY), 'Oops!'):
         with self.assertRaises(device_errors.CommandFailedError):
           self.device.SetWebViewFallbackLogic(False)
 
@@ -4065,7 +4153,8 @@ class DeviceUtilsTakeScreenshotTest(DeviceUtilsTest):
           (mock.call.devil.android.device_temp_file.DeviceTempFile(
               self.adb, suffix='.png'), MockTempFile('/tmp/path/temp-123.png')),
           (self.call.adb.Shell(
-              '/system/bin/screencap -p /tmp/path/temp-123.png'), ''),
+              '/system/bin/screencap -p /tmp/path/temp-123.png',
+              timeout=mock.ANY), ''),
           self.call.device.PullFile('/tmp/path/temp-123.png',
                                     '/test/host/screenshot.png')):
         self.device.TakeScreenshot('/test/host/screenshot.png')
@@ -4076,7 +4165,8 @@ class DeviceUtilsTakeScreenshotTest(DeviceUtilsTest):
           (mock.call.devil.android.device_temp_file.DeviceTempFile(
               self.adb, suffix='.png'), MockTempFile('/tmp/path/temp-123.png')),
           (self.call.adb.Shell(
-              '/system/bin/screencap -p > /tmp/path/temp-123.png'), ''),
+              '/system/bin/screencap -p > /tmp/path/temp-123.png',
+              timeout=mock.ANY), ''),
           self.call.device.PullFile('/tmp/path/temp-123.png',
                                     '/test/host/screenshot.png')):
         self.device.TakeScreenshot('/test/host/screenshot.png')
@@ -4701,7 +4791,8 @@ class DeviceUtilsGetIMEITest(DeviceUtilsTest):
                       '  Device ID = 123454321')
     with self.assertCalls(
         (self.call.device.GetProp('ro.build.version.sdk', cache=True), '19'),
-        (self.call.adb.Shell('dumpsys iphonesubinfo'), dumpsys_output)):
+        (self.call.adb.Shell('dumpsys iphonesubinfo',
+                             timeout=mock.ANY), dumpsys_output)):
       self.assertEqual(self.device.GetIMEI(), '123454321')
 
   def testSuccessfulServiceCall(self):
@@ -4713,21 +4804,23 @@ class DeviceUtilsGetIMEITest(DeviceUtilsTest):
     """
     with self.assertCalls(
         (self.call.device.GetProp('ro.build.version.sdk', cache=True), '24'),
-        (self.call.adb.Shell('service call iphonesubinfo 1'), service_output)):
+        (self.call.adb.Shell('service call iphonesubinfo 1',
+                             timeout=mock.ANY), service_output)):
       self.assertEqual(self.device.GetIMEI(), '765432101234567')
 
   def testNoIMEI(self):
     with self.assertCalls(
         (self.call.device.GetProp('ro.build.version.sdk', cache=True), '19'),
-        (self.call.adb.Shell('dumpsys iphonesubinfo'), 'no device id')):
+        (self.call.adb.Shell('dumpsys iphonesubinfo',
+                             timeout=mock.ANY), 'no device id')):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device.GetIMEI()
 
   def testAdbError(self):
     with self.assertCalls(
         (self.call.device.GetProp('ro.build.version.sdk', cache=True), '24'),
-        (self.call.adb.Shell('service call iphonesubinfo 1'),
-         self.ShellError())):
+        (self.call.adb.Shell('service call iphonesubinfo 1',
+                             timeout=mock.ANY), self.ShellError())):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device.GetIMEI()
 

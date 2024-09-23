@@ -1822,7 +1822,7 @@ class DeviceUtils(object):
       return '%s=%s' % (key, cmd_helper.DoubleQuote(value))
 
     def run(cmd):
-      return self.adb.Shell(cmd)
+      return self.adb.Shell(cmd, timeout=timeout)
 
     def handle_check_return(cmd):
       try:
@@ -2109,8 +2109,11 @@ class DeviceUtils(object):
     package = component.split('/')[0]
     shell_snippet = 'p=%s;%s' % (package,
                                  cmd_helper.ShrinkToSnippet(cmd, 'p', package))
-    return self.RunShellCommand(
-        shell_snippet, shell=True, check_return=True, large_output=True)
+    return self.RunShellCommand(shell_snippet,
+                                shell=True,
+                                check_return=True,
+                                large_output=True,
+                                timeout=timeout)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def BroadcastIntent(self, intent_obj, timeout=None, retries=None):
@@ -2476,7 +2479,8 @@ class DeviceUtils(object):
           self.RunShellCommand(['source', script.name],
                                check_return=True,
                                run_as=run_as,
-                               as_root=as_root)
+                               as_root=as_root,
+                               timeout=timeout)
       self._PushFilesImpl(host_device_tuples, changed_files)
     cache_commit_func()
 
