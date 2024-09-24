@@ -3597,6 +3597,29 @@ class DeviceUtilsGetPropTest(DeviceUtilsTest):
       self.assertEqual('userdebug',
                        self.device.GetProp('ro.build.type', cache=True))
 
+  def testIsEmulator_beforeAndroid12(self):
+    with self.assertCall(
+        self.call.device.GetProp('ro.product.device', cache=True),
+        'generic_x86_arm'):
+      self.assertTrue(self.device.is_emulator)
+
+  def testIsEmulator_Android12(self):
+    with self.assertCall(
+        self.call.device.GetProp('ro.product.device', cache=True),
+        'emulator64_x86_64_arm64'):
+      self.assertTrue(self.device.is_emulator)
+
+  def testIsEmulator_Android13(self):
+    with self.assertCall(
+        self.call.device.GetProp('ro.product.device', cache=True), 'emu64x'):
+      self.assertTrue(self.device.is_emulator)
+
+  def testIsEmulator_physicalDevice(self):
+    with self.assertCall(
+        self.call.device.GetProp('ro.product.device', cache=True),
+        'phonecodename'):
+      self.assertFalse(self.device.is_emulator)
+
 
 class DeviceUtilsSetPropTest(DeviceUtilsTest):
   def testSetProp(self):

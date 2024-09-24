@@ -314,8 +314,9 @@ _WEBVIEW_SYSUPDATE_MIN_VERSION_CODE = re.compile(
 _GOOGLE_FEATURES_RE = re.compile(r'^\s*com\.google\.')
 
 # On Android < 12, "ro.product.device" starts with "generic_"
-# On Android >= 12, "ro.product.device" starts with "emulator64_"
-_EMULATOR_RE = re.compile(r'^(generic_|emulator64_).*$')
+# On Android == 12, "ro.product.device" starts with "emulator64_"
+# On Android >= 13, "ro.product.device" starts with "emu64x"
+_EMULATOR_RE = re.compile(r'^(generic_|emulator64_|emu64x).*$')
 
 # Regular expressions for determining if a package is installed using the
 # output of `dumpsys package`.
