@@ -2804,9 +2804,14 @@ class DeviceUtils(object):
               zip_file=device_temp.name,
               dirs=' '.join(cmd_helper.SingleQuote(d) for d in dirs))
           self.WriteFile(script.name, script_contents)
-          self.RunShellCommand(['source', script.name],
-                               check_return=True,
-                               as_root=True)
+          self.RunShellCommand(
+              ['source', script.name],
+              check_return=True,
+              # Increase timeout to 100 secs as gtest can get 2k+ dirs
+              # which can take longer than the default timeout.
+              # See crbug.com/370307339 for an example.
+              timeout=100,
+              as_root=True)
 
     return True
 

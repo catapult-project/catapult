@@ -3003,6 +3003,7 @@ class DeviceUtilsPushChangedFilesZippedTest(DeviceUtilsTest):
         self.call.device.WriteFile('/sdcard/temp-123.sh', expected_cmd),
         (self.call.device.RunShellCommand(['source', '/sdcard/temp-123.sh'],
                                           check_return=True,
+                                          timeout=100,
                                           as_root=True))):
       self.assertTrue(
           self.device._PushChangedFilesZipped(test_files, test_dirs))
