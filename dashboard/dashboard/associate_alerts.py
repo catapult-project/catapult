@@ -6,10 +6,13 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-from flask import request
 import re
+import json
+import logging
 
+from flask import request, make_response
 from google.appengine.ext import ndb
+from httplib2 import http
 
 from dashboard.common import request_handler
 from dashboard.common import utils
@@ -50,6 +53,49 @@ def AssociateAlertsHandlerPost():
   return _ShowCommentDialog(urlsafe_keys)
 
 
+def SkiaAssociateAlertsHandlerPost():
+  """Response handler for the page used to group an alert with a bug from Skia UI.
+
+  Request format is application/json, where we load data from request.
+  Request parameters:
+    bug_id: Bug ID number, as a string (when submitting the form).
+    project_id: Monorail project ID (when submitting the form).
+    keys: Comma-separated alert keys in Anomaly: keys format.
+
+  Returns:
+  if successful, then it will return {'bug_id': bug_id, 'project_id': project_id}
+  if failed, then it will return {'error': the error message} with the http status code
+  """
+  if not utils.IsValidSheriffUser():
+    user = utils.GetGaeCurrentUser()
+    return make_response(
+        json.dumps({'error': 'User %s not authorized.' % user}),
+        http.HTTPStatus.UNAUTHORIZED.value)
+
+  try:
+    data = json.loads(request.data)
+  except json.JSONDecodeError as e:
+    return make_response(
+        json.dumps({'error': str(e)}), http.HTTPStatus.BAD_REQUEST.value)
+
+  logging.debug('[SkiaTriage] Received existing bug request from Skia: %s',
+                data)
+
+  keys = data.get('keys')
+  if not keys:
+    return make_response(
+        json.dumps({'error': 'No skia anomaly keys specified to add.'}),
+        http.HTTPStatus.BAD_REQUEST.value)
+
+  bug_id = data.get('bug_id')
+  if bug_id:
+    project_id = data.get('project_id', 'chromium')
+    return _AssociateAlertsWithBugForSkia(bug_id, project_id, keys)
+  return make_response(
+      json.dumps({'error': 'No bug id specified to add.'}),
+      http.HTTPStatus.BAD_REQUEST.value)
+
+
 def _ShowCommentDialog(urlsafe_keys):
   """Sends a HTML page with a form for selecting a bug number.
 
@@ -88,6 +134,31 @@ def _FetchBugs():
   )
 
   return response
+
+
+def _AssociateAlertsWithBugForSkia(bug_id, project_id, keys):
+  """Sets the bug ID for a set of alerts.
+
+  This is done after the user enters and submits a bug ID.
+
+  Args:
+    bug_id: Bug ID number, as a string.
+    project_id: Monorial project ID.
+    keys: Comma-separated Alert keys in Anomaly: keys format.
+  """
+  # Validate bug ID.
+  try:
+    bug_id = int(bug_id)
+  except ValueError as e:
+    return make_response(
+        json.dumps({'error': str(e)}), http.HTTPStatus.BAD_REQUEST.value)
+  # Get Anomaly entities and related TestMetadata entities.
+  alert_keys = [ndb.Key('Anomaly', k) for k in keys]
+  alert_entities = ndb.get_multi(alert_keys)
+
+  AssociateAlerts(bug_id, project_id, alert_entities)
+
+  return make_response(json.dumps(''))
 
 
 def _AssociateAlertsWithBug(bug_id, project_id, urlsafe_keys, is_confirmed):
