@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 from flask import Flask
+from httplib2 import http
 import json
 from unittest import mock
 import unittest
@@ -26,6 +27,11 @@ flask_app = Flask(__name__)
 @flask_app.route('/edit_anomalies', methods=['POST'])
 def EditAnomaliesPost():
   return edit_anomalies.EditAnomaliesPost()
+
+
+@flask_app.route('/edit_anomalies_skia', methods=['POST'])
+def SkiaEditAnomaliesPost():
+  return edit_anomalies.SkiaEditAnomaliesPost()
 
 
 class EditAnomaliesTest(testing_common.TestCase):
@@ -95,6 +101,23 @@ class EditAnomaliesTest(testing_common.TestCase):
         status=403)
     self.assertIsNone(anomaly_keys[0].get().bug_id)
 
+  @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=False))
+  def testPost_LoggedIntoInvalidDomain_DoesNotModifyAnomaly_Skia(self):
+    anomaly_keys = self._AddAnomaliesToDataStore()
+    self.SetCurrentUser('foo@bar.com')
+    response = self.testapp.post_json(
+        '/edit_anomalies_skia', {
+            'keys': [anomaly_keys[0].id()],
+            'bug_id': 31337,
+        },
+        expect_errors=True)
+    body_json = json.loads(response.body)
+
+    self.assertIsNone(anomaly_keys[0].get().bug_id)
+    self.assertIn('error', body_json)
+    self.assertIn('must be logged in', body_json['error'])
+    self.assertEqual(http.HTTPStatus.UNAUTHORIZED.value, response.status_code)
+
   def testPost_LoggedIntoValidSheriffAccount_ChangesBugID(self):
     anomaly_keys = self._AddAnomaliesToDataStore()
     self.SetCurrentUser('sullivan@chromium.org')
@@ -110,6 +133,17 @@ class EditAnomaliesTest(testing_common.TestCase):
                 xsrf.GenerateToken(users.get_current_user()),
         })
     self.assertEqual(31337, anomaly_keys[0].get().bug_id)
+
+  def testPost_LoggedIntoValidSheriffAccount_ChangesBugID_Skia(self):
+    anomaly_keys = self._AddAnomaliesToDataStore()
+    self.SetCurrentUser('sullivan@chromium.org')
+    response = self.testapp.post_json('/edit_anomalies_skia', {
+        'keys': [anomaly_keys[0].id()],
+        'bug_id': 31337,
+    })
+
+    self.assertEqual(31337, anomaly_keys[0].get().bug_id)
+    self.assertEqual(b'', response.body)
 
   def testPost_RemoveBug(self):
     anomaly_keys = self._AddAnomaliesToDataStore()
@@ -129,6 +163,20 @@ class EditAnomaliesTest(testing_common.TestCase):
                 xsrf.GenerateToken(users.get_current_user()),
         })
     self.assertIsNone(anomaly_keys[0].get().bug_id)
+
+  def testPost_RemoveBug_Skia(self):
+    anomaly_keys = self._AddAnomaliesToDataStore()
+    self.SetCurrentUser('sullivan@chromium.org')
+    a = anomaly_keys[0].get()
+    a.bug_id = 12345
+    a.put()
+    response = self.testapp.post_json('/edit_anomalies_skia', {
+        'keys': [anomaly_keys[0].id()],
+        'bug_id': 'REMOVE',
+    })
+
+    self.assertIsNone(anomaly_keys[0].get().bug_id)
+    self.assertEqual(b'', response.body)
 
   def testPost_ChangeBugIDToInvalidID_ReturnsError(self):
     anomaly_keys = self._AddAnomaliesToDataStore()
@@ -150,6 +198,22 @@ class EditAnomaliesTest(testing_common.TestCase):
     self.assertEqual({'error': 'Invalid bug ID a'}, json.loads(response.body))
     self.assertEqual(12345, anomaly_keys[0].get().bug_id)
 
+  def testPost_ChangeBugIDToInvalidID_ReturnsError_Skia(self):
+    anomaly_keys = self._AddAnomaliesToDataStore()
+    self.SetCurrentUser('sullivan@chromium.org')
+    a = anomaly_keys[0].get()
+    a.bug_id = 12345
+    a.put()
+    response = self.testapp.post_json(
+        '/edit_anomalies_skia', {
+            'keys': [anomaly_keys[0].id()],
+            'bug_id': 'a',
+        },
+        expect_errors=True)
+    self.assertEqual({'error': 'Invalid bug ID a'}, json.loads(response.body))
+    self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
+    self.assertEqual(12345, anomaly_keys[0].get().bug_id)
+
   def testPost_NoKeysGiven_Error(self):
     anomaly_keys = self._AddAnomaliesToDataStore()
     self.SetCurrentUser('foo@chromium.org')
@@ -160,6 +224,18 @@ class EditAnomaliesTest(testing_common.TestCase):
         })
     self.assertEqual({'error': 'No alerts specified to add bugs to.'},
                      json.loads(response.body))
+    self.assertIsNone(anomaly_keys[0].get().bug_id)
+
+  def testPost_NoKeysGiven_Error_Skia(self):
+    anomaly_keys = self._AddAnomaliesToDataStore()
+    self.SetCurrentUser('foo@chromium.org')
+    response = self.testapp.post_json(
+        '/edit_anomalies_skia', {
+            'bug_id': 31337,
+        }, expect_errors=True)
+    self.assertEqual({'error': 'No skia anomaly keys specified to edit.'},
+                     json.loads(response.body))
+    self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
     self.assertIsNone(anomaly_keys[0].get().bug_id)
 
   def testPost_ChangeRevisions(self):
@@ -180,6 +256,20 @@ class EditAnomaliesTest(testing_common.TestCase):
         })
     self.assertEqual(123450, anomaly_keys[0].get().start_revision)
     self.assertEqual(123455, anomaly_keys[0].get().end_revision)
+
+  def testPost_ChangeRevisions_Skia(self):
+    anomaly_keys = self._AddAnomaliesToDataStore()
+    self.SetCurrentUser('sullivan@chromium.org')
+    response = self.testapp.post_json(
+        '/edit_anomalies_skia', {
+            'keys': [anomaly_keys[0].id()],
+            'start_revision': 123450,
+            'end_revision': 123455,
+        })
+
+    self.assertEqual(123450, anomaly_keys[0].get().start_revision)
+    self.assertEqual(123455, anomaly_keys[0].get().end_revision)
+    self.assertEqual(b'', response.body)
 
   def testPost_NudgeWithInvalidRevisions_ReturnsError(self):
     anomaly_keys = self._AddAnomaliesToDataStore()
@@ -204,6 +294,24 @@ class EditAnomaliesTest(testing_common.TestCase):
     self.assertEqual({'error': 'Invalid revisions a, b'},
                      json.loads(response.body))
 
+  def testPost_NudgeWithInvalidRevisions_ReturnsError_Skia(self):
+    anomaly_keys = self._AddAnomaliesToDataStore()
+    self.SetCurrentUser('sullivan@chromium.org')
+    start = anomaly_keys[0].get().start_revision
+    end = anomaly_keys[0].get().end_revision
+    response = self.testapp.post_json(
+        '/edit_anomalies_skia', {
+            'keys': [anomaly_keys[0].id()],
+            'start_revision': 'a',
+            'end_revision': 'b',
+        },
+        expect_errors=True)
+    self.assertEqual(start, anomaly_keys[0].get().start_revision)
+    self.assertEqual(end, anomaly_keys[0].get().end_revision)
+    self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
+    self.assertEqual({'error': 'Invalid revisions a, b'},
+                     json.loads(response.body))
+
   def testPost_IncompleteParametersGiven_ReturnsError(self):
     anomaly_keys = self._AddAnomaliesToDataStore()
     self.SetCurrentUser('sullivan@chromium.org')
@@ -221,6 +329,18 @@ class EditAnomaliesTest(testing_common.TestCase):
     self.assertEqual({'error': 'No bug ID or new revision specified.'},
                      json.loads(response.body))
 
+  def testPost_IncompleteParametersGiven_ReturnsError_Skia(self):
+    anomaly_keys = self._AddAnomaliesToDataStore()
+    self.SetCurrentUser('sullivan@chromium.org')
+    response = self.testapp.post_json(
+        '/edit_anomalies_skia', {
+            'keys': [anomaly_keys[0].id()],
+            'start_revision': 123,
+        },
+        expect_errors=True)
+    self.assertEqual({'error': 'No bug ID or new revisions specified.'},
+                     json.loads(response.body))
+    self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
 
 if __name__ == '__main__':
   unittest.main()

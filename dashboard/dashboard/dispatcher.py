@@ -166,6 +166,11 @@ def EditAnomaliesPost():
   return edit_anomalies.EditAnomaliesPost()
 
 
+@flask_app.route('/edit_anomalies_skia', methods=['POST'])
+def SkiaEditAnomaliesPost():
+  return edit_anomalies.SkiaEditAnomaliesPost()
+
+
 @flask_app.route('/edit_site_config', methods=['GET'])
 def EditSiteConfigHandlerGet():
   return edit_site_config.EditSiteConfigHandlerGet()
