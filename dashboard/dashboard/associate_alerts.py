@@ -158,7 +158,7 @@ def _AssociateAlertsWithBugForSkia(bug_id, project_id, keys):
 
   AssociateAlerts(bug_id, project_id, alert_entities)
 
-  return make_response(json.dumps(''))
+  return make_response(json.dumps({}))
 
 
 def _AssociateAlertsWithBug(bug_id, project_id, urlsafe_keys, is_confirmed):

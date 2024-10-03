@@ -110,7 +110,7 @@ def SkiaEditAnomaliesPost():
     result = {'error': 'No bug ID or new revisions specified.'}
   if 'error' in result:
     return make_response(json.dumps(result), http.HTTPStatus.BAD_REQUEST.value)
-  return make_response('')
+  return make_response('{}')
 
 
 def ChangeBugId(alert_entities, bug_id):

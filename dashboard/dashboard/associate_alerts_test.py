@@ -264,7 +264,7 @@ class AssociateAlertsTest(testing_common.TestCase):
         expect_errors=False)
 
     # The response page should be empty.
-    self.assertEqual(b'""', response.body)
+    self.assertEqual(b'{}', response.body)
     # The Anomaly entities should be updated.
     for anomaly_entity in anomaly.Anomaly.query().fetch():
       if anomaly_entity.end_revision in (10000, 9996):
@@ -328,7 +328,7 @@ class AssociateAlertsTest(testing_common.TestCase):
         },
         expect_errors=False)
     # The response page should have a bug number.
-    self.assertIn(b'""', response.body)
+    self.assertIn(b'{}', response.body)
     # The Anomaly entities should be updated.
     self.assertEqual(
         578,
@@ -352,7 +352,7 @@ class AssociateAlertsTest(testing_common.TestCase):
         },
         expect_errors=False)
     # The response page should have the bug number.
-    self.assertEqual(b'""', response.body)
+    self.assertEqual(b'{}', response.body)
     # The Anomaly entities should be updated.
     for anomaly_entity in anomaly.Anomaly.query().fetch():
       if anomaly_entity.end_revision in (10000, 10010):

@@ -143,7 +143,7 @@ class EditAnomaliesTest(testing_common.TestCase):
     })
 
     self.assertEqual(31337, anomaly_keys[0].get().bug_id)
-    self.assertEqual(b'', response.body)
+    self.assertEqual(b'{}', response.body)
 
   def testPost_RemoveBug(self):
     anomaly_keys = self._AddAnomaliesToDataStore()
@@ -176,7 +176,7 @@ class EditAnomaliesTest(testing_common.TestCase):
     })
 
     self.assertIsNone(anomaly_keys[0].get().bug_id)
-    self.assertEqual(b'', response.body)
+    self.assertEqual(b'{}', response.body)
 
   def testPost_ChangeBugIDToInvalidID_ReturnsError(self):
     anomaly_keys = self._AddAnomaliesToDataStore()
@@ -269,7 +269,7 @@ class EditAnomaliesTest(testing_common.TestCase):
 
     self.assertEqual(123450, anomaly_keys[0].get().start_revision)
     self.assertEqual(123455, anomaly_keys[0].get().end_revision)
-    self.assertEqual(b'', response.body)
+    self.assertEqual(b'{}', response.body)
 
   def testPost_NudgeWithInvalidRevisions_ReturnsError(self):
     anomaly_keys = self._AddAnomaliesToDataStore()
