@@ -192,13 +192,6 @@ def _ParseNumericKey(obj, key, default=0):
   return int(val, 0)
 
 
-def _SplitLocaleString(locale):
-  split_locale = locale.split('-')
-  if len(split_locale) != 2:
-    raise ApkHelperError('Locale has incorrect format: {}'.format(locale))
-  return tuple(split_locale)
-
-
 class _ExportedActivity(object):
   def __init__(self, name):
     self.name = name
@@ -619,9 +612,9 @@ class BaseBundleHelper(BaseApkHelper):
                   modules=None,
                   allow_cached_props=False,
                   additional_locales=None):
-    locales = [device.GetLocale()]
+    locales = [device.GetLocale()[0]]
     if additional_locales:
-      locales.extend(_SplitLocaleString(l) for l in additional_locales)
+      locales.extend(additional_locales)
     with self._GetApksPath() as apks_path:
       try:
         split_dir = tempfile.mkdtemp()

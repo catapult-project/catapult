@@ -39,7 +39,7 @@ def ExtractApks(output_dir,
   """
   device_spec = {
       'supportedAbis': abis,
-      'supportedLocales': ['%s-%s' % l for l in locales],
+      'supportedLocales': locales,
       'deviceFeatures': features,
       'screenDensity': pixel_density,
       'sdkVersion': sdk_version,
