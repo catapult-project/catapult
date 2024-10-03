@@ -16,4 +16,4 @@ steps:
   ]
 
 substitutions:
-    _SERVICE_VERSION: 'cloud-build-a0750db'
+    _SERVICE_VERSION: 'cloud-build-309fa86'
