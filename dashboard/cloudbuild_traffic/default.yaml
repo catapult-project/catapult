@@ -15,4 +15,4 @@ steps:
     '--splits=${_SERVICE_VERSION}=1'
   ]
 substitutions:
-    _SERVICE_VERSION: 'cloud-build-da25f6f'
+    _SERVICE_VERSION: 'cloud-build-fccc9d0'
