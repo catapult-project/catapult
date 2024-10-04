@@ -59,11 +59,10 @@ def SkiaAssociateAlertsHandlerPost():
   Request format is application/json, where we load data from request.
   Request parameters:
     bug_id: Bug ID number, as a string (when submitting the form).
-    project_id: Monorail project ID (when submitting the form).
     keys: Comma-separated alert keys in Anomaly: keys format.
 
   Returns:
-  if successful, then it will return {'bug_id': bug_id, 'project_id': project_id}
+  if successful, then it will return empty response {}
   if failed, then it will return {'error': the error message} with the http status code
   """
   if not utils.IsValidSheriffUser():
@@ -89,8 +88,7 @@ def SkiaAssociateAlertsHandlerPost():
 
   bug_id = data.get('bug_id')
   if bug_id:
-    project_id = data.get('project_id', 'chromium')
-    return _AssociateAlertsWithBugForSkia(bug_id, project_id, keys)
+    return _AssociateAlertsWithBugForSkia(bug_id, keys)
   return make_response(
       json.dumps({'error': 'No bug id specified to add.'}),
       http.HTTPStatus.BAD_REQUEST.value)
@@ -136,14 +134,13 @@ def _FetchBugs():
   return response
 
 
-def _AssociateAlertsWithBugForSkia(bug_id, project_id, keys):
+def _AssociateAlertsWithBugForSkia(bug_id, keys):
   """Sets the bug ID for a set of alerts.
 
   This is done after the user enters and submits a bug ID.
 
   Args:
     bug_id: Bug ID number, as a string.
-    project_id: Monorial project ID.
     keys: Comma-separated Alert keys in Anomaly: keys format.
   """
   # Validate bug ID.
@@ -156,7 +153,7 @@ def _AssociateAlertsWithBugForSkia(bug_id, project_id, keys):
   alert_keys = [ndb.Key('Anomaly', k) for k in keys]
   alert_entities = ndb.get_multi(alert_keys)
 
-  AssociateAlerts(bug_id, project_id, alert_entities)
+  AssociateAlertsForSkia(bug_id, alert_entities)
 
   return make_response(json.dumps({}))
 
@@ -251,6 +248,12 @@ def AssociateAlerts(bug_id, project_id, alerts):
   for a in alerts:
     a.bug_id = bug_id
     a.project_id = project_id
+  ndb.put_multi(alerts)
+
+
+def AssociateAlertsForSkia(bug_id, alerts):
+  for a in alerts:
+    a.bug_id = bug_id
   ndb.put_multi(alerts)
 
 

@@ -259,7 +259,6 @@ class AssociateAlertsTest(testing_common.TestCase):
         '/associate_alerts_skia', {
             'keys': [key_map[9996], key_map[10000]],
             'bug_id': "12345",
-            'project_id': "test_project",
         },
         expect_errors=False)
 
@@ -269,7 +268,6 @@ class AssociateAlertsTest(testing_common.TestCase):
     for anomaly_entity in anomaly.Anomaly.query().fetch():
       if anomaly_entity.end_revision in (10000, 9996):
         self.assertEqual(12345, anomaly_entity.bug_id)
-        self.assertEqual('test_project', anomaly_entity.project_id)
       elif anomaly_entity.end_revision != 9997:
         self.assertIsNone(anomaly_entity.bug_id)
         self.assertEqual('chromium', anomaly_entity.project_id)
@@ -281,7 +279,6 @@ class AssociateAlertsTest(testing_common.TestCase):
     response = self.testapp.post_json(
         '/associate_alerts_skia', {
             'bug_id': "12345",
-            'project_id': "test_project",
         },
         expect_errors=True)
 
@@ -309,7 +306,6 @@ class AssociateAlertsTest(testing_common.TestCase):
         '/associate_alerts_skia', {
             'bug_id': "",
             'keys': [key_map[9996], key_map[10000]],
-            'project_id': "test_project",
         },
         expect_errors=True)
     self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
@@ -323,7 +319,6 @@ class AssociateAlertsTest(testing_common.TestCase):
     response = self.testapp.post_json(
         '/associate_alerts_skia', {
             'keys': [key_map[9996], key_map[10000]],
-            'project_id': "test_project",
             'bug_id': "578",
         },
         expect_errors=False)
@@ -347,7 +342,6 @@ class AssociateAlertsTest(testing_common.TestCase):
     response = self.testapp.post_json(
         '/associate_alerts_skia', {
             'keys': [key_map[10000], key_map[10010]],
-            'project_id': "test_project",
             'bug_id': "12345",
         },
         expect_errors=False)
@@ -357,10 +351,8 @@ class AssociateAlertsTest(testing_common.TestCase):
     for anomaly_entity in anomaly.Anomaly.query().fetch():
       if anomaly_entity.end_revision in (10000, 10010):
         self.assertEqual(12345, anomaly_entity.bug_id)
-        self.assertEqual('test_project', anomaly_entity.project_id)
       elif anomaly_entity.end_revision != 9997:
         self.assertIsNone(anomaly_entity.bug_id)
-        self.assertEqual('chromium', anomaly_entity.project_id)
 
   @mock.patch.object(utils, 'IsTryjobUser', mock.MagicMock(return_value=False))
   def testSkiaPost_AssocaiteAlerts_InvalidUser(self):
@@ -372,7 +364,6 @@ class AssociateAlertsTest(testing_common.TestCase):
         '/associate_alerts_skia', {
             'keys': [key_map[9996], key_map[10000]],
             'bug_id': "12345",
-            'project_id': "test_project",
         },
         expect_errors=True)
     body_json = json.loads(response.body)
