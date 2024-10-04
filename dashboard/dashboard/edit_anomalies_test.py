@@ -108,7 +108,6 @@ class EditAnomaliesTest(testing_common.TestCase):
     response = self.testapp.post_json(
         '/edit_anomalies_skia', {
             'keys': [anomaly_keys[0].id()],
-            'bug_id': 31337,
         },
         expect_errors=True)
     body_json = json.loads(response.body)
@@ -139,10 +138,10 @@ class EditAnomaliesTest(testing_common.TestCase):
     self.SetCurrentUser('sullivan@chromium.org')
     response = self.testapp.post_json('/edit_anomalies_skia', {
         'keys': [anomaly_keys[0].id()],
-        'bug_id': 31337,
+        'action': 'IGNORE',
     })
 
-    self.assertEqual(31337, anomaly_keys[0].get().bug_id)
+    self.assertEqual(-2, anomaly_keys[0].get().bug_id)
     self.assertEqual(b'{}', response.body)
 
   def testPost_RemoveBug(self):
@@ -172,10 +171,10 @@ class EditAnomaliesTest(testing_common.TestCase):
     a.put()
     response = self.testapp.post_json('/edit_anomalies_skia', {
         'keys': [anomaly_keys[0].id()],
-        'bug_id': 'REMOVE',
+        'action': 'RESET',
     })
 
-    self.assertIsNone(anomaly_keys[0].get().bug_id)
+    self.assertEqual(0, anomaly_keys[0].get().bug_id)
     self.assertEqual(b'{}', response.body)
 
   def testPost_ChangeBugIDToInvalidID_ReturnsError(self):
@@ -198,7 +197,7 @@ class EditAnomaliesTest(testing_common.TestCase):
     self.assertEqual({'error': 'Invalid bug ID a'}, json.loads(response.body))
     self.assertEqual(12345, anomaly_keys[0].get().bug_id)
 
-  def testPost_ChangeBugIDToInvalidID_ReturnsError_Skia(self):
+  def testPost_ChangeBugIDToInvalidAction_ReturnsError_Skia(self):
     anomaly_keys = self._AddAnomaliesToDataStore()
     self.SetCurrentUser('sullivan@chromium.org')
     a = anomaly_keys[0].get()
@@ -207,10 +206,11 @@ class EditAnomaliesTest(testing_common.TestCase):
     response = self.testapp.post_json(
         '/edit_anomalies_skia', {
             'keys': [anomaly_keys[0].id()],
-            'bug_id': 'a',
+            'action': 'POKE',
         },
         expect_errors=True)
-    self.assertEqual({'error': 'Invalid bug ID a'}, json.loads(response.body))
+    self.assertEqual({'error': 'No valid action specified: POKE'},
+                     json.loads(response.body))
     self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
     self.assertEqual(12345, anomaly_keys[0].get().bug_id)
 
@@ -231,9 +231,22 @@ class EditAnomaliesTest(testing_common.TestCase):
     self.SetCurrentUser('foo@chromium.org')
     response = self.testapp.post_json(
         '/edit_anomalies_skia', {
-            'bug_id': 31337,
+            'action': 'IGNORE',
         }, expect_errors=True)
     self.assertEqual({'error': 'No skia anomaly keys specified to edit.'},
+                     json.loads(response.body))
+    self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
+    self.assertIsNone(anomaly_keys[0].get().bug_id)
+
+  def testPost_NoActionGiven_Error_Skia(self):
+    anomaly_keys = self._AddAnomaliesToDataStore()
+    self.SetCurrentUser('foo@chromium.org')
+    response = self.testapp.post_json(
+        '/edit_anomalies_skia', {
+            'keys': [anomaly_keys[0].id()],
+        },
+        expect_errors=True)
+    self.assertEqual({'error': 'No action specified for editing.'},
                      json.loads(response.body))
     self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
     self.assertIsNone(anomaly_keys[0].get().bug_id)
@@ -263,6 +276,7 @@ class EditAnomaliesTest(testing_common.TestCase):
     response = self.testapp.post_json(
         '/edit_anomalies_skia', {
             'keys': [anomaly_keys[0].id()],
+            'action': 'NUDGE',
             'start_revision': 123450,
             'end_revision': 123455,
         })
@@ -302,6 +316,7 @@ class EditAnomaliesTest(testing_common.TestCase):
     response = self.testapp.post_json(
         '/edit_anomalies_skia', {
             'keys': [anomaly_keys[0].id()],
+            'action': 'NUDGE',
             'start_revision': 'a',
             'end_revision': 'b',
         },
@@ -335,10 +350,11 @@ class EditAnomaliesTest(testing_common.TestCase):
     response = self.testapp.post_json(
         '/edit_anomalies_skia', {
             'keys': [anomaly_keys[0].id()],
+            'action': 'NUDGE',
             'start_revision': 123,
         },
         expect_errors=True)
-    self.assertEqual({'error': 'No bug ID or new revisions specified.'},
+    self.assertEqual({'error': 'No valid revisions specified. 123:None'},
                      json.loads(response.body))
     self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
 

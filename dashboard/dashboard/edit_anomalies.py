@@ -98,16 +98,30 @@ def SkiaEditAnomaliesPost():
   keys = [ndb.Key('Anomaly', k) for k in keys]
   alert_entities = ndb.get_multi(keys)
 
-  bug_id = data.get('bug_id', None)
-  start_revision = data.get('start_revision', None)
-  end_revision = data.get('end_revision', None)
+  action = data.get('action', None)
+  if not action:
+    return make_response(
+        json.dumps({'error': 'No action specified for editing.'}),
+        http.HTTPStatus.BAD_REQUEST.value)
+
   result = None
-  if bug_id:
-    result = ChangeBugId(alert_entities, bug_id)
-  elif start_revision and end_revision:
-    result = NudgeAnomalies(alert_entities, start_revision, end_revision)
+  if action == 'IGNORE':
+    result = ChangeBugId(alert_entities, -2)
+  elif action == 'RESET':
+    result = ChangeBugId(alert_entities, 0)
+  elif action == 'NUDGE':
+    start_revision = data.get('start_revision', None)
+    end_revision = data.get('end_revision', None)
+    if start_revision and end_revision:
+      result = NudgeAnomalies(alert_entities, start_revision, end_revision)
+    else:
+      result = {
+          'error':
+              'No valid revisions specified. %s:%s' %
+              (start_revision, end_revision)
+      }
   else:
-    result = {'error': 'No bug ID or new revisions specified.'}
+    result = {'error': 'No valid action specified: %s' % (action)}
   if 'error' in result:
     return make_response(json.dumps(result), http.HTTPStatus.BAD_REQUEST.value)
   return make_response('{}')
