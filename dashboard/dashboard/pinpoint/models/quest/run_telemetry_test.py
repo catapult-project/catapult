@@ -66,6 +66,7 @@ _CROSSBENCH_NAME = {
     'jetstream2.crossbench': 'jetstream_2.2',
     'motionmark1.3.crossbench': 'motionmark_1.3',
     'speedometer3.crossbench': 'speedometer_3.0',
+    'loadline_phone.crossbench': 'loadline-phone',
 }
 
 
