@@ -7,6 +7,7 @@
 
 import itertools
 import threading
+import time
 import unittest
 
 from unittest import mock
@@ -19,7 +20,25 @@ from devil.android.sdk import adb_wrapper
 
 def _CreateTestLog(raw_logcat=None):
   test_adb = adb_wrapper.AdbWrapper('0123456789abcdef')
-  test_adb.Logcat = mock.Mock(return_value=(l for l in raw_logcat))
+  test_adb.test_stop_nonce = None
+
+  def mock_shell(cmd, *_args, **_kwargs):
+    assert cmd.startswith('log '), cmd
+    assert test_adb.test_stop_nonce is None
+    test_adb.test_stop_nonce = cmd[4:]
+    return ''
+
+  def mock_logcat(*_args, **_kwargs):
+    for l in raw_logcat:
+      yield l
+    yield None
+    while test_adb.test_stop_nonce is None:
+      time.sleep(.001)
+    yield 'prefix: ' + test_adb.test_stop_nonce
+    yield 'Should not be included.'
+
+  test_adb.Logcat = mock_logcat
+  test_adb.Shell = mock_shell
   test_log = logcat_monitor.LogcatMonitor(test_adb, clear=False)
   return test_log
 
@@ -107,16 +126,19 @@ class LogcatMonitorTest(unittest.TestCase):
       for line in type(self)._TEST_THREADTIME_LOGCAT_DATA:
         yield line
       finished_lock.acquire()
+      yield '01-01 01:02:03.456  7890  0987 V LogcatMonitorTest: extra line'
 
-    test_adb = adb_wrapper.AdbWrapper('0123456789abcdef')
-    test_adb.Logcat = mock.Mock(return_value=LogGenerator())
-    test_log = logcat_monitor.LogcatMonitor(test_adb, clear=False)
+    test_log = _CreateTestLog(raw_logcat=LogGenerator())
     test_log.Start()
 
     actual_match = test_log.WaitFor(r'.*last line.*', None)
-    finished_lock.release()
     self.assertTrue(actual_match)
+    finished_lock.release()
     test_log.Stop()
+
+    actual_results = test_log.FindAll(r'.*')
+    self.assertEqual('extra line', list(actual_results)[-1].group('message'))
+
     test_log.Close()
 
   @mock.patch('time.sleep', mock.Mock())

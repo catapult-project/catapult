@@ -7,6 +7,7 @@
 import errno
 import logging
 import os
+import random
 import re
 import shutil
 import tempfile
@@ -62,7 +63,7 @@ class LogcatMonitor(object):
     self._record_file = None
     self._record_file_lock = threading.Lock()
     self._record_thread = None
-    self._stop_recording_event = threading.Event()
+    self._stop_nonce = 'logcat_monitor stop line ' + str(random.random())
     self._transform_func = transform_func
 
   @property
@@ -186,17 +187,18 @@ class LogcatMonitor(object):
     def record_to_file():
       # Write the log with line buffering so the consumer sees each individual
       # line.
-      for data in self._adb.Logcat(
-          filter_specs=self._filter_specs,
-          logcat_format='threadtime',
-          iter_timeout=self._RECORD_ITER_TIMEOUT,
-          check_error=self._check_error):
-        if self._stop_recording_event.isSet():
-          return
+      for data in self._adb.Logcat(filter_specs=self._filter_specs,
+                                   logcat_format='threadtime',
+                                   iter_timeout=self._RECORD_ITER_TIMEOUT,
+                                   check_error=self._check_error):
 
         if data is None:
           # Logcat can yield None if the iter_timeout is hit.
           continue
+
+        # Include the stop nonce in the output so that we can have confidence
+        # that logs are not truncated.
+        nonce_found = self._stop_nonce in data
 
         with self._record_file_lock:
           if self._record_file and not self._record_file.closed:
@@ -204,7 +206,9 @@ class LogcatMonitor(object):
               data = '\n'.join(self._transform_func([data]))
             self._record_file.write(data + '\n')
 
-    self._stop_recording_event.clear()
+        if nonce_found:
+          return
+
     if not self._record_thread:
       self._record_thread = reraiser_thread.ReraiserThread(record_to_file)
       self._record_thread.start()
@@ -212,7 +216,7 @@ class LogcatMonitor(object):
   def _StopRecording(self):
     """Finish recording logcat."""
     if self._record_thread:
-      self._stop_recording_event.set()
+      self._adb.Shell('log ' + self._stop_nonce)
       self._record_thread.join(timeout=self._RECORD_THREAD_JOIN_WAIT)
       self._record_thread.ReraiseIfException()
       self._record_thread = None
