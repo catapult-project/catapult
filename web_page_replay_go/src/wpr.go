@@ -71,6 +71,9 @@ type CommonConfig struct {
 type RecordCommand struct {
 	common CommonConfig
 	cmd    cli.Command
+
+	// Custom flags for record.
+	enableExperimentalTimedChunk bool
 }
 
 type ReplayCommand struct {
@@ -205,7 +208,28 @@ func (common *CommonConfig) ProcessInjectedScripts(timeSeedMs int64) error {
 }
 
 func (r *RecordCommand) Flags() []cli.Flag {
-	return r.common.Flags()
+	return append(r.common.Flags(),
+		&cli.BoolFlag{
+			Name: "enable_experimental_timed_chunk",
+			Usage: "When specified, record the precise timings of receiving " +
+				"response stream chunks.",
+			Destination: &r.enableExperimentalTimedChunk,
+		},
+	)
+}
+
+func (r *RecordCommand) CheckArgs(c *cli.Context) error {
+	if err := r.common.CheckArgs(c); err != nil {
+		return err
+	}
+
+	if r.enableExperimentalTimedChunk {
+		log.Printf("WARNING: Timed chunk recording is enabled. Note that the" +
+			"implementation is highly experimental at the moment and the " +
+			"format is subject to change.")
+	}
+
+	return nil
 }
 
 func (r *ReplayCommand) Flags() []cli.Flag {
@@ -404,6 +428,10 @@ func (r *RecordCommand) Run(c *cli.Context) error {
 	}
 	archive.DeterministicTimeSeedMs = timeSeedMs
 
+	if r.enableExperimentalTimedChunk {
+		log.Printf("NOTIMPLEMENTED: Experimental Timed Chunk recording support")
+		os.Exit(1)
+	}
 	httpHandler := webpagereplay.NewRecordingProxy(archive, "http", r.common.transformers)
 	httpsHandler := webpagereplay.NewRecordingProxy(archive, "https", r.common.transformers)
 	tlsconfig, err := webpagereplay.RecordTLSConfig(r.common.root_certs, archive)
@@ -491,7 +519,7 @@ func main() {
 		Name:   "record",
 		Usage:  "Record web pages to an archive",
 		Flags:  record.Flags(),
-		Before: record.common.CheckArgs,
+		Before: record.CheckArgs,
 		Action: record.Run,
 	}
 
