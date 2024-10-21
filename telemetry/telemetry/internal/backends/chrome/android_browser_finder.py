@@ -105,6 +105,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     self._compile_apk = finder_options.compile_apk
     self._finder_options = finder_options
     self._browser_package = None
+    self._assume_browser_already_installed = False
 
     if self._local_apk is None and finder_options.chrome_root is not None:
       self._local_apk = self._backend_settings.FindLocalApk(
@@ -117,6 +118,9 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     if finder_options.modules_to_install:
       self._modules_to_install = set(['base'] +
                                      finder_options.modules_to_install)
+
+    if finder_options.assume_browser_already_installed:
+      self._assume_browser_already_installed = True
 
     self._support_apk_list = []
     if (self._backend_settings.requires_embedder or
@@ -343,6 +347,9 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
   @decorators.Cache
   def UpdateExecutableIfNeeded(self):
+    if self._assume_browser_already_installed:
+      return
+
     # TODO(crbug.com/815133): This logic should belong to backend_settings.
     for apk in self._support_apk_list:
       logging.warning('Installing support apk (%s) on device if needed.', apk)

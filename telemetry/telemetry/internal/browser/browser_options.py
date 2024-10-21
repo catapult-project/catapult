@@ -270,6 +270,12 @@ class BrowserFinderOptions(argparse.Namespace):
         '--avd-config',
         help=('A path to an AVD configuration to use for starting an Android '
               'emulator.'))
+    group.add_argument('--assume-browser-already-installed',
+                       action='store_true',
+                       help='Skip running UpdateExecutableIfNeeded. This makes '
+                       'running 20+ benchmarks much faster (especially on '
+                       'android where UpdateExecutableIfNeeded can take '
+                       'minutes).')
 
     # Cast browser options
     group = parser.add_argument_group('Cast browser options')
