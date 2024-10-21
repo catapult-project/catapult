@@ -565,7 +565,12 @@ class AndroidPlatformBackend(
         saved_profile_location, profile_dir)
     dumpsys = self._device.RunShellCommand(
         ['dumpsys', 'package', package], check_return=True)
-    id_line = next(line for line in dumpsys if 'userId=' in line)
+    # The string userId was renamed to appId in Android U (API 34).
+    if self._device.build_version_sdk < 34:
+      id_line_prefix = 'userId='
+    else:
+      id_line_prefix = 'appId='
+    id_line = next(line for line in dumpsys if id_line_prefix in line)
     uid = re.search(r'\d+', id_line).group()
 
     # Generate all of the paths copied to the device, via walking through
