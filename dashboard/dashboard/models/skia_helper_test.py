@@ -226,6 +226,29 @@ class SkiaHelper(testing_common.TestCase):
     )
     self.assertEqual(len(urls), 0)
 
+  @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
+              MOCK_MAPPING)
+  def testGetMastersAndInternalOnlyForHost_FoundExt(self):
+    masters, is_internal = skia_helper.GetMastersAndInternalOnlyForHost(
+        host='https://b.com')
+    self.assertEqual(masters, ['master_c'])
+    self.assertEqual(is_internal, False)
+
+  @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
+              MOCK_MAPPING)
+  def testGetMastersAndInternalOnlyForHost_FoundInt(self):
+    masters, is_internal = skia_helper.GetMastersAndInternalOnlyForHost(
+        host='https://a.corp')
+    self.assertEqual(masters, ['master_a', 'master_b'])
+    self.assertEqual(is_internal, True)
+
+  @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
+              MOCK_MAPPING)
+  def testGetMastersAndInternalOnlyForHost_NotFound(self):
+    masters, is_internal = skia_helper.GetMastersAndInternalOnlyForHost(
+        host='blah')
+    self.assertEqual(masters, [])
+    self.assertEqual(is_internal, True)
 
 if __name__ == '__main__':
   unittest.main()
