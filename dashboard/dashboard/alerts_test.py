@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 from flask import Flask
+import json
 from unittest import mock
 import sys
 import unittest
@@ -19,6 +20,7 @@ from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models.subscription import Subscription
 from dashboard.sheriff_config_client import SheriffConfigClient
+from dashboard.sheriff_config_client import InternalServerError
 
 flask_app = Flask(__name__)
 
@@ -31,6 +33,11 @@ def AlertsHandlerGet():
 @flask_app.route('/alerts', methods=['POST'])
 def AlertsHandlerPost():
   return alerts.AlertsHandlerPost()
+
+
+@flask_app.route('/sheriff_configs_skia', methods=['GET'])
+def SkiaLoadSheriffConfigsHandlerGet():
+  return alerts.SkiaLoadSheriffConfigsHandlerGet()
 
 
 @mock.patch.object(SheriffConfigClient, '__init__',
@@ -373,6 +380,28 @@ class AlertsTest(testing_common.TestCase):
     for a in anomaly_list:  # Ensure anomaly_lists aren't equal.
       self.assertNotIn(a, anomaly_list2)
 
+  def testSheriffConfigsGet_Success(self):
+    with mock.patch.object(
+        SheriffConfigClient, 'List',
+        mock.MagicMock(
+            return_value=([
+                Subscription(name='Sheriff',),
+                Subscription(name='Sheriff V2',)
+            ], None))):
+      response = self.testapp.get('/sheriff_configs_skia')
+      body_json = json.loads(response.body)
+
+      self.assertEqual(2, len(body_json.get('sheriff_list')))
+      self.assertEqual(['Sheriff', 'Sheriff V2'], body_json.get('sheriff_list'))
+
+  def testSheriffConfigsGet_Failed(self):
+    with mock.patch.object(
+        SheriffConfigClient, 'List',
+        mock.MagicMock(side_effect=InternalServerError('Mock error'))):
+      response = self.testapp.get('/sheriff_configs_skia')
+      body_json = json.loads(response.body)
+
+      self.assertEqual('Mock error', body_json.get('error'))
 
 if __name__ == '__main__':
   unittest.main()

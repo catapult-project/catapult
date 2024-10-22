@@ -207,3 +207,11 @@ def _GetBisectStatusDict(anomalies):
   bug_id_list = {a.bug_id for a in anomalies if a.bug_id and a.bug_id > 0}
   bugs = ndb.get_multi(ndb.Key('Bug', b) for b in bug_id_list)
   return {b.key.id(): b.latest_bisect_status for b in bugs if b}
+
+
+def SkiaLoadSheriffConfigsHandlerGet():
+  try:
+    sheriff_config_names = _GetSheriffList()
+  except sheriff_config_client.InternalServerError as e:
+    return make_response(json.dumps({'error': str(e)}))
+  return make_response(json.dumps({'sheriff_list': sheriff_config_names}))

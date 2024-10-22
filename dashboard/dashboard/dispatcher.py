@@ -286,6 +286,11 @@ def ReportHandlerPost():
   return report.ReportHandlerPost()
 
 
+@flask_app.route('/sheriff_configs_skia', methods=['GET'])
+def SkiaLoadSheriffConfigsHandlerGet():
+  return alerts.SkiaLoadSheriffConfigsHandlerGet()
+
+
 @flask_app.route('/short_uri', methods=['GET'])
 def ShortUriHandlerGet():
   return short_uri.ShortUriHandlerGet()
