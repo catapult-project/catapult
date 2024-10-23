@@ -46,7 +46,7 @@ from dashboard.services import workflow_service
 
 
 # We want this to be fast to minimize overhead while waiting for tasks to
-# finish, but don't want to consume too many resources.
+# finish but don't want to consume too many resources.
 _TASK_INTERVAL = 60
 
 _CRYING_CAT_FACE = u'\U0001f63f'
