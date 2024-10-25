@@ -111,6 +111,11 @@ def AlertsHandlerPost():
   return alerts.AlertsHandlerPost()
 
 
+@flask_app.route('/alerts_skia', methods=['GET'])
+def SkiaAlertsHandlerGet():
+  return alerts.SkiaAlertsHandlerGet()
+
+
 @flask_app.route('/associate_alerts', methods=['GET', 'POST'])
 def AssociateAlertsHandlerPost():
   return associate_alerts.AssociateAlertsHandlerPost()
