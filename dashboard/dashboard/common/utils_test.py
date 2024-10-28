@@ -379,29 +379,28 @@ class UtilsTest(testing_common.TestCase):
     self.assertEqual('3486', number)
     self.assertEqual('new_test', step)
 
-  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch('apiclient.discovery.build')
-  def testIsGroupMember_PositiveCase(self, mock_discovery_build):
-    mock_request = mock.MagicMock()
-    mock_request.execute = mock.MagicMock(return_value={'is_member': True})
-    mock_service = mock.MagicMock()
-    mock_service.membership = mock.MagicMock(return_value=mock_request)
-    mock_discovery_build.return_value = mock_service
-    self.assertTrue(utils.IsGroupMember('foo@bar.com', 'group'))
-    mock_service.membership.assert_called_once_with(
-        identity='foo@bar.com', group='group')
+  @mock.patch('dashboard.common.utils.ServiceAccountHttp')
+  def testIsGroupMember_PositiveCase(self, mock_http):
+    http = mock.MagicMock()
+    mock_http.return_value = http
+    mock_request = http.request
+    mock_request.return_value = ({'status': '200'}, ')]}\'\n{"is_member":true}')
+    self.assertTrue(utils.IsGroupMember('foo@bar.com', 'sys/group'))
+    mock_request.assert_called_once_with(
+        'https://chrome-infra-auth.appspot.com/auth/api/v1/memberships/check?'
+        'identity=user%3Afoo%40bar.com&groups=sys%2Fgroup',
+        method='GET')
 
-  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch('dashboard.common.utils.ServiceAccountHttp')
   @mock.patch('logging.error')
-  @mock.patch('apiclient.discovery.build')
   def testIsGroupMember_RequestFails_LogsErrorAndReturnsFalse(
-      self, mock_discovery_build, mock_logging_error):
-    mock_service = mock.MagicMock()
-    mock_service.membership = mock.MagicMock(
-        return_value={'error': 'Some error'})
-    mock_discovery_build.return_value = mock_service
+      self, mock_logging_error, mock_http):
+    http = mock.MagicMock()
+    mock_http.return_value = http
+    mock_request = http.request
+    mock_request.return_value = ({'status': '403'}, '')
     with self.assertRaises(utils.GroupMemberAuthFailed):
-      utils.IsGroupMember('foo@bar.com', 'group')
+      utils.IsGroupMember('foo@bar.com', 'sys/group')
     self.assertEqual(1, mock_logging_error.call_count)
 
   def testGetSheriffForAutorollCommit_NotAutoroll_ReturnsNone(self):

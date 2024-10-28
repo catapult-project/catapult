@@ -8,15 +8,13 @@ from __future__ import absolute_import
 
 import collections
 import functools
+import json
 import logging
 import os
 import re
 import six
 import six.moves.urllib.parse
 import time
-
-from apiclient import discovery
-from apiclient import errors
 
 from google.appengine.api import app_identity
 from google.appengine.api import memcache
@@ -76,6 +74,7 @@ class _SimpleCache(
 _PINPOINT_REPO_EXCLUSION_TTL = 60  # seconds
 _PINPOINT_REPO_EXCLUSION_CACHED = _SimpleCache(0, None)
 _STAGING_APP_ID = 'chromeperf-stage'
+_JSON_RESPONSE_PREFIX = b")]}'\n"
 
 
 def IsDevAppserver():
@@ -566,22 +565,33 @@ def IsGroupMember(identity, group):
   cached = GetCachedIsGroupMember(identity, group)
   if cached is not None:
     return cached
-  try:
-    discovery_url = ('https://chrome-infra-auth.appspot.com'
-                     '/_ah/api/discovery/v1/apis/{api}/{apiVersion}/rest')
-    service = discovery.build(
-        'auth',
-        'v1',
-        discoveryServiceUrl=discovery_url,
-        http=ServiceAccountHttp())
-    request = service.membership(identity=identity, group=group)
-    response = request.execute()
-    is_member = response['is_member']
-    SetCachedIsGroupMember(identity, group, is_member)
-    return is_member
-  except (errors.HttpError, KeyError, AttributeError) as e:
-    logging.error('Failed to check membership of %s: %s', identity, str(e))
-    raise GroupMemberAuthFailed('Failed to authenticate user.') from e
+
+  # Construct the URL for the query.
+  url = 'https://chrome-infra-auth.appspot.com/auth/api/v1/memberships/check'
+  principal = 'user:{email}'.format(email=identity)
+  params = six.moves.urllib.parse.urlencode({
+      'identity': principal,
+      'groups': group
+  })
+  query_url = '{endpoint}?{params}'.format(endpoint=url, params=params)
+
+  http = ServiceAccountHttp()
+  response, content = http.request(query_url, method='GET')
+
+  if not response['status'].startswith('2'):
+    logging.error(
+        'Failed to check membership of %s. '
+        'Response headers: %s, body: %s', identity, response, content)
+    raise GroupMemberAuthFailed('Failed to authenticate user.')
+
+  content = six.ensure_binary(content)
+  if content.startswith(_JSON_RESPONSE_PREFIX):
+    content = content[len(_JSON_RESPONSE_PREFIX):]
+  body = json.loads(content)
+
+  is_member = body['is_member']
+  SetCachedIsGroupMember(identity, group, is_member)
+  return is_member
 
 
 def GetCachedIsGroupMember(identity, group):

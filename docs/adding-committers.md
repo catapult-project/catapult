@@ -14,4 +14,4 @@ address or vice versa, we cannot automate this into one step.
 
 [cla]: https://cla.developers.google.com/about/google-individual?csw=1
 [catapult]: https://github.com/orgs/catapult-project/teams/catapult
-[commit queue list]: https://chrome-infra-auth.appspot.com/auth/groups#project-catapult-committers
+[commit queue list]: https://chrome-infra-auth.appspot.com/auth/groups/project-catapult-committers
