@@ -73,7 +73,7 @@ def AlertsHandlerPost():
 def SkiaAlertsHandlerGet():
   logging.debug('[SkiaTriage] Request for getting alerts: %s', request)
 
-  anomalies, next_cursor, _, err_msg, err_code = _GetAlerts()
+  anomalies, next_cursor, _, err_msg, err_code = _GetAlerts(skia=True)
   if err_msg:
     return make_response(json.dumps({'error': err_msg}), err_code)
 
@@ -86,13 +86,22 @@ def SkiaAlertsHandlerGet():
   return make_response(json.dumps(values))
 
 
-def _GetAlerts():
+def _GetAlerts(skia=False):
   """ Helper function to load alerts.
   """
   sheriff_name = request.values.get('sheriff', None)
   if sheriff_name and not _SheriffIsFound(sheriff_name):
     return (None, None, None, 'Sheriff "%s" not found.' % sheriff_name,
             http.HTTPStatus.BAD_REQUEST.value)
+
+  masters, internal_only = None, None
+  if skia:
+    host = request.values.get('host', None)
+    if not host:
+      return (None, None, None,
+              'No host found in request to filter anomlies for skia instaces',
+              http.HTTPStatus.BAD_REQUEST.value)
+    masters, internal_only = skia_helper.GetMastersAndInternalOnlyForHost(host)
 
   # Cursors are used to fetch paged queries. If none is supplied, then the
   # first 500 alerts will be returned. If a cursor is given, the next
@@ -125,7 +134,9 @@ def _GetAlerts():
       is_improvement=is_improvement,
       recovered=recovered,
       count_limit=_MAX_ANOMALIES_TO_COUNT,
-      limit=max_anomalies_to_show).get_result()
+      limit=max_anomalies_to_show,
+      master_names=masters,
+      internal_only=internal_only).get_result()
 
   return anomalies, next_cursor, count, None, None
 

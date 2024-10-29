@@ -252,7 +252,9 @@ class Anomaly(internal_only_model.InternalOnlyModel):
                  test=None,
                  test_keys=None,
                  test_suite_name=None,
-                 project_id=None):
+                 project_id=None,
+                 master_names=None,
+                 internal_only=None):
     if key:
       # This tasklet isn't allowed to catch the internal_only AssertionError.
       alert = yield ndb.Key(urlsafe=key).get_async()
@@ -302,9 +304,22 @@ class Anomaly(internal_only_model.InternalOnlyModel):
         query = query.order(cls.key)
         equality_properties.append('test')
         inequality_property = 'key'
+
+      if master_name and master_names:
+        logging.warning(
+            'Cannot have both master_name and master_names in anomally query.')
       if master_name:
         query = query.filter(cls.master_name == master_name)
         equality_properties.append('master_name')
+        inequality_property = 'key'
+      elif master_names:
+        query = query.filter(cls.master_name.IN(master_names))
+        equality_properties.append('master_name')
+        inequality_property = 'key'
+
+      if internal_only is not None:
+        query = query.filter(cls.internal_only == internal_only)
+        equality_properties.append('internal_only')
         inequality_property = 'key'
       if bot_name:
         query = query.filter(cls.bot_name == bot_name)
