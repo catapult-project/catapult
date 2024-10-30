@@ -16,6 +16,20 @@ _SKIABRIDGE_URL_STAGE = \
   'https://skia-bridge-dot-chromeperf-stage.uc.r.appspot.com/'
 PAYLOAD_SIZE_LIMIT_KB = 1000
 
+INTERNAL_CLIENTS = [
+  'perf-chrome-internal@skia-infra-corp.iam.gserviceaccount.com',
+  'perf-widevine-cdm@skia-infra-corp.iam.gserviceaccount.com',
+  'perf-widevine-whitebox@skia-infra-corp.iam.gserviceaccount.com',
+  'perf-v8-internal@skia-infra-corp.iam.gserviceaccount.com',
+  'perf-devtools-frontend@skia-infra-corp.iam.gserviceaccount.com',
+  'perf-fuchsia-internal@skia-infra-corp.iam.gserviceaccount.com',
+  ]
+
+FUCHSIA_CLIENTS = [
+  'perf-fuchsia-internal@skia-infra-corp.iam.gserviceaccount.com',
+  'perf-fuchsia-public@skia-infra-public.iam.gserviceaccount.com',
+]
+
 def IsProduction():
   project = GetGcloudProject()
   if project and project == _GCLOUD_PROJECT_PROD:
@@ -42,3 +56,11 @@ def TestPath(key: datastore.key.Key):
 
   assert key.kind == 'TestMetadata' or key.kind == 'TestContainer'
   return key.id_or_name
+
+def GetFuchsiaCommitId(row, internal):
+  if internal:
+    commit_key = 'r_fuchsia_integ_int_git'
+  else:
+    commit_key = 'r_fuchsia_integ_pub_git'
+
+  return row[commit_key]

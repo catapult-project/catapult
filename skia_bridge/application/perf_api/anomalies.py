@@ -51,7 +51,9 @@ class AnomalyUpdateFailedException(Exception):
 class AnomalyData:
   test_path:str
   start_revision:int
+  start_revision_hash:str
   end_revision:int
+  end_revision_hash:str
   id:int
   timestamp:datetime.datetime
   bug_id:int
@@ -182,7 +184,7 @@ def GetAnomalyHandler():
 def QueryAnomaliesByTimePostHandler():
   try:
     logging.info('Received query request with data %s', request.data)
-    is_authorized, _ = auth_helper.AuthorizeBearerToken(
+    is_authorized, client_email = auth_helper.AuthorizeBearerToken(
       request, ALLOWED_CLIENTS)
     if not is_authorized:
       return 'Unauthorized', 401
@@ -216,6 +218,17 @@ def QueryAnomaliesByTimePostHandler():
     response = AnomalyResponse()
     for found_anomaly in anomalies:
       anomaly_data = GetAnomalyData(found_anomaly)
+      if client_email in utils.FUCHSIA_CLIENTS:
+        internal = client_email in utils.INTERNAL_CLIENTS
+        start_commit_row = client.GetFirstRowForRevision(
+          anomaly_data.start_revision)
+        anomaly_data.start_revision_hash = utils.GetFuchsiaCommitId(
+          start_commit_row, internal)
+        end_commit_row = client.GetFirstRowForRevision(
+          anomaly_data.end_revision)
+        anomaly_data.end_revision_hash = utils.GetFuchsiaCommitId(
+          end_commit_row, internal)
+
       response.AddAnomaly(anomaly_data.test_path, anomaly_data)
 
     return make_response(response.ToDict())

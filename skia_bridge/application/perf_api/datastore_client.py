@@ -124,6 +124,12 @@ class DataStoreClient:
 
     return filtered_results
 
+  def GetFirstRowForRevision(self, revision_number:int):
+    query = self._client.query(kind='Row', order=['-revision'])
+    query.add_filter('revision', '<=', revision_number)
+    results = list(query.fetch(limit=1))
+    return results[0]
+
   def GetEntity(self, entity_type:EntityType, entity_id):
     """Retrieves an entity of the specified type with the specified id."""
     entity_key = self._client.key(entity_type.value, entity_id)
