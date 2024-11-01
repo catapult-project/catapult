@@ -50,16 +50,19 @@ class AlertGroupDetailsResponse:
   end_commit_hash: str
 
   def ToDict(self):
-    return {
+    dict = {
       "group_id": self.group_id,
       "start_commit": self.start_commit,
       "end_commit": self.end_commit,
-      "start_commit_hash": self.start_commit_hash,
-      "end_commit_hash": self.end_commit_hash,
       "anomalies": {
         a.anomaly_id: a.test_path for a in self.anomalies
       }
     }
+    if hasattr(self, 'start_commit_hash'):
+      dict["start_commit_hash"] = self.start_commit_hash
+    if hasattr(self, 'end_commit_hash'):
+      dict["end_commit_hash"] = self.end_commit_hash
+    return dict
 
 @blueprint.route('/details', methods=['GET'])
 @cloud_metric.APIMetric("skia-bridge", "/alert_group/details")
