@@ -96,6 +96,8 @@ class AlertsTest(testing_common.TestCase):
       anomaly_entity = anomaly.Anomaly(
           start_revision=end_rev - 5,
           end_revision=end_rev,
+          display_start=end_rev - 5 - 1,
+          display_end=end_rev + 1,
           test=test_key,
           median_before_anomaly=100,
           median_after_anomaly=200,
@@ -287,6 +289,9 @@ class AlertsTest(testing_common.TestCase):
       response = self.testapp.post('/alerts', {'improvements': 'true'})
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     self.assertEqual(18, len(anomaly_list))
+    for alert in anomaly_list:
+      if alert['end_revision'] >= 10140:
+        self.assertEqual(alert['improvement'], True)
 
   def testPost_SheriffParameterSet_OtherSheriffAlertsListed(self):
     self._AddAlertsToDataStore()
@@ -408,8 +413,8 @@ class AlertsTest(testing_common.TestCase):
     anomaly_list.sort(key=lambda a: -a['end_revision'])
     expected_end_rev = 10110
     for alert in anomaly_list:
-      self.assertEqual(expected_end_rev, alert['end_revision'])
-      self.assertEqual(expected_end_rev - 5, alert['start_revision'])
+      self.assertEqual(expected_end_rev + 1, alert['end_revision'])
+      self.assertEqual(expected_end_rev - 5 - 1, alert['start_revision'])
       self.assertEqual(key_map[expected_end_rev].decode(), alert['key'])
       self.assertEqual('ChromiumGPU', alert['master'])
       self.assertEqual('linux-release', alert['bot'])
@@ -449,8 +454,9 @@ class AlertsTest(testing_common.TestCase):
     anomaly_list.sort(key=lambda a: -a['end_revision'])
     expected_end_rev = 10030
     for alert in anomaly_list:
-      self.assertEqual(expected_end_rev, alert['end_revision'])
-      self.assertEqual(expected_end_rev - 5, alert['start_revision'])
+      self.assertTrue('test_path' in alert)
+      self.assertEqual(expected_end_rev + 1, alert['end_revision'])
+      self.assertEqual(expected_end_rev - 5 - 1, alert['start_revision'])
       self.assertEqual(key_map[expected_end_rev].decode(), alert['key'])
       self.assertEqual('ChromiumGPU', alert['master'])
       self.assertEqual('linux-release', alert['bot'])
@@ -537,6 +543,9 @@ class AlertsTest(testing_common.TestCase):
       })
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     self.assertEqual(8 + 6, len(anomaly_list))
+    for alert in anomaly_list:
+      if alert['end_revision'] >= 10140:
+        self.assertEqual(alert['is_improvement'], True)
 
   def testPost_SheriffParameterSet_OtherSheriffAlertsListed_Skia(self):
     self._AddAlertsToDataStore()

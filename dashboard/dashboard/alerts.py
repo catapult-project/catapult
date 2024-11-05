@@ -79,7 +79,7 @@ def SkiaAlertsHandlerGet():
 
   values = {
       'anomaly_list':
-          AnomalyDicts(anomalies),
+          AnomalyDicts(anomalies, skia=True),
       'anomaly_cursor':
           (six.ensure_str(next_cursor.urlsafe()) if next_cursor else ''),
   }
@@ -157,15 +157,16 @@ def _GetSheriffList():
   return [s.name for s in subscriptions]
 
 
-def AnomalyDicts(anomalies, v2=False):
+def AnomalyDicts(anomalies, v2=False, skia=False):
   """Makes a list of dicts with properties of Anomaly entities."""
   bisect_statuses = _GetBisectStatusDict(anomalies)
   return [
-      GetAnomalyDict(a, bisect_statuses.get(a.bug_id), v2) for a in anomalies
+      GetAnomalyDict(a, bisect_statuses.get(a.bug_id), v2, skia)
+      for a in anomalies
   ]
 
 
-def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False):
+def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False, skia=False):
   """Returns a dictionary for an Anomaly which can be encoded as JSON.
 
   Args:
@@ -187,16 +188,25 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False):
       'bug_id': anomaly_entity.bug_id,
       'project_id': project_id,
       'dashboard_link': dashboard_link,
-      'end_revision': anomaly_entity.end_revision,
-      'improvement': anomaly_entity.is_improvement,
       'key': six.ensure_str(anomaly_entity.key.urlsafe()),
       'median_after_anomaly': anomaly_entity.median_after_anomaly,
       'median_before_anomaly': anomaly_entity.median_before_anomaly,
       'recovered': anomaly_entity.recovered,
-      'start_revision': anomaly_entity.start_revision,
       'units': anomaly_entity.units,
       'new_url': new_url
   }
+  # On the Skia anomaly table, the anomaly model expects different properties.
+  # Here we send some properties in different property name, or converge
+  # multiple into on.
+  if skia:
+    dct['test_path'] = test_path
+    dct['is_improvement'] = anomaly_entity.is_improvement
+    dct['start_revision'] = anomaly_entity.display_start or anomaly_entity.start_revision
+    dct['end_revision'] = anomaly_entity.display_end or anomaly_entity.end_revision
+  else:
+    dct['improvement'] = anomaly_entity.is_improvement
+    dct['start_revision'] = anomaly_entity.start_revision
+    dct['end_revision'] = anomaly_entity.end_revision
 
   if v2:
     bug_labels = set()
