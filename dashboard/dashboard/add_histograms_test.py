@@ -336,6 +336,54 @@ class AddHistogramsEndToEndTest(AddHistogramsBaseTest):
     rows = graph_data.Row.query().fetch()
     self.assertEqual(rows[0].a_build_uri, '[build](http://foo)')
 
+  def testPost_NotZlibDifferentDiagnostics_Fails(self):
+    hs = _CreateHistogram(
+        name='h1',
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=123,
+        benchmark_description='Benchmark description.',
+        samples=[1, 2, 3])
+    hs1 = _CreateHistogram(
+        name='h2',
+        master='master1',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=123,
+        benchmark_description='Benchmark description.',
+        samples=[1, 2, 3])
+    hs.Merge(hs1)
+    data = json.dumps(hs.AsDicts())
+
+    response = self.testapp.post('/add_histograms', {'data': data}, status=400)
+    self.assertIn("masters diagnostics must be the same for all histograms",
+                  response)
+
+  def testPost_ZlibDifferentDiagnostics_Fails(self):
+    hs = _CreateHistogram(
+        master='master',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=123,
+        benchmark_description='Benchmark description.',
+        samples=[1, 2, 3],
+        build_url='http://foo')
+    hs1 = _CreateHistogram(
+        name='h2',
+        master='master1',
+        bot='bot',
+        benchmark='benchmark',
+        commit_position=123,
+        benchmark_description='Benchmark description.',
+        samples=[1, 2, 3])
+    hs.Merge(hs1)
+    data = zlib.compress(six.ensure_binary(json.dumps(hs.AsDicts())))
+
+    response = self.PostAddHistogram(data, status=400)
+    self.assertIn("masters diagnostics must be the same for all histograms",
+                  response)
+
   def testPost_NotZlib_Fails(self):
     hs = _CreateHistogram(
         master='master',
