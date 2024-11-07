@@ -98,6 +98,12 @@ def SkiaEditAnomaliesPost():
   keys = [ndb.Key('Anomaly', k) for k in keys]
   alert_entities = ndb.get_multi(keys)
 
+  if len(alert_entities) == 0:
+    logging.warning('Cannot load alert entities with keys: %s', keys)
+    return make_response(
+        json.dumps({'error': 'No entity loaded for editing. Keys: %s' % keys}),
+        http.HTTPStatus.BAD_REQUEST.value)
+
   action = data.get('action', None)
   if not action:
     return make_response(

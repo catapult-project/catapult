@@ -199,6 +199,8 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False, skia=False):
   # Here we send some properties in different property name, or converge
   # multiple into on.
   if skia:
+    dct['id'] = anomaly_entity.key.integer_id(
+    ) or 0  # skia expected integet id.
     dct['test_path'] = test_path
     dct['is_improvement'] = anomaly_entity.is_improvement
     dct['start_revision'] = anomaly_entity.display_start or anomaly_entity.start_revision
