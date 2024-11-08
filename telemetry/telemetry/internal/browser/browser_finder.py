@@ -154,16 +154,24 @@ def FindBrowser(options):
     types = FindAllBrowserTypes(browser_finders)
     chosen_browser = min(browsers, key=lambda b: types.index(b.browser_type))
   else:
+    # b/355218109 - the naming of out/folder has been modified from
+    # out/Release, out/Debug to be bot specific. However, we reuse build
+    # artifacts in perf, meaning that a Swarming task may have a bot name from
+    # a different builder.
+    # The browser_type is curated by path manipulation to the binary in question
+    # and so switching from out/Release won't match --browser=release for ex.
+    logging.info("Potential browser candidates: %s" % browsers)
+    logging.info("Browser type specified for run: %s" % options.browser_type)
     matching_browsers = [
-        b for b in browsers
-        if b.browser_type == options.browser_type and
-        b.SupportsOptions(options.browser_options)]
+        b for b in browsers if b.browser_type == options.browser_type
+        and b.SupportsOptions(options.browser_options)
+    ]
     if not matching_browsers:
-      logging.warning('Cannot find any matched browser')
+      logging.error('Cannot find any matched browser')
       return None
+    logging.info('Matching browsers: %r' % matching_browsers)
     if len(matching_browsers) > 1:
-      logging.warning('Multiple browsers of the same type found: %r',
-                      matching_browsers)
+      logging.warning('Multiple browsers of the same type found')
     chosen_browser = max(matching_browsers,
                          key=lambda b: b.last_modification_time)
 

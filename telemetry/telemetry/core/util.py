@@ -85,6 +85,7 @@ def GetBuildDirectories(chrome_root=None):
 
   # CHROMIUM_OUTPUT_DIR can be set by --chromium-output-directory.
   output_dir = os.environ.get('CHROMIUM_OUTPUT_DIR')
+  logging.info('CHROMIUM_OUTPUT_DIR: %s' % output_dir)
   if output_dir:
     if os.path.isabs(output_dir):
       yield output_dir
@@ -94,6 +95,7 @@ def GetBuildDirectories(chrome_root=None):
     yield os.getcwd()
   else:
     out_dir = os.environ.get('CHROMIUM_OUT_DIR')
+    logging.info('CHROMIUM_OUT_DIR: %s' % out_dir)
     if out_dir:
       build_dirs = [out_dir]
     else:

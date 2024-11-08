@@ -362,22 +362,36 @@ def FindAllAvailableBrowsers(finder_options, device):
   def AddIfFound(browser_type, build_path, app_name, content_shell):
     app = os.path.join(build_path, app_name)
     if path_module.IsExecutable(app):
-      browsers.append(PossibleDesktopBrowser(
-          browser_type, finder_options, app,
-          content_shell, build_path, is_local_build=True))
+      opt = PossibleDesktopBrowser(browser_type,
+                                   finder_options,
+                                   app,
+                                   content_shell,
+                                   build_path,
+                                   is_local_build=True)
+      browsers.append(opt)
+      logging.info('Potential browser option: %s' % opt)
       return True
     return False
 
   # Add local builds
   if finder_options.chromium_output_dir:
+    logging.info('Flag chromium_output_dir: %s' %
+                 finder_options.chromium_output_dir)
     for chromium_app_name in chromium_app_names:
       AddIfFound(finder_options.browser_type,
                  finder_options.chromium_output_dir, chromium_app_name, False)
   else:
+    logging.info('Search for possible desktop browser options from flag chrome '
+                 'root: %s' % finder_options.chrome_root)
+    # path_module.GetBuildDirectories() very much relies on the legacy format
+    # of out/Debug, out/Release, out/Release_x64, etc.
+    # The out folder has been updated to be dependent on the builder's name
+    # that generated the Chrome artifact. See b/355218109.
     for build_path in path_module.GetBuildDirectories(
         finder_options.chrome_root):
       # TODO(agrieve): Extract browser_type from args.gn's is_debug.
       browser_type = os.path.basename(build_path.rstrip(os.sep)).lower()
+
       for chromium_app_name in chromium_app_names:
         AddIfFound(browser_type, build_path, chromium_app_name, False)
       AddIfFound('content-shell-' + browser_type, build_path,
