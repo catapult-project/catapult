@@ -102,6 +102,10 @@ def _GetAlerts(skia=False):
               'No host found in request to filter anomlies for skia instaces',
               http.HTTPStatus.BAD_REQUEST.value)
     masters, internal_only = skia_helper.GetMastersAndInternalOnlyForHost(host)
+    # If the request is from a internal instance, we should show both external
+    # and internal data.
+    if internal_only:
+      internal_only = None
 
   # Cursors are used to fetch paged queries. If none is supplied, then the
   # first 500 alerts will be returned. If a cursor is given, the next

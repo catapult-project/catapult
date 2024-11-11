@@ -448,11 +448,11 @@ class AlertsTest(testing_common.TestCase):
       response = self.testapp.get('/alerts_skia',
                                   {'host': 'https://chrome-perf.corp.goog'})
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
-    self.assertEqual(4, len(anomaly_list))
+    self.assertEqual(4 + 8, len(anomaly_list))
     # The test below depends on the order of the items, but the order is not
     # guaranteed; it depends on the timestamps, which depend on put order.
     anomaly_list.sort(key=lambda a: -a['end_revision'])
-    expected_end_rev = 10030
+    expected_end_rev = 10110
     for alert in anomaly_list:
       self.assertTrue('test_path' in alert)
       self.assertEqual(expected_end_rev + 1, alert['end_revision'])
