@@ -98,28 +98,6 @@ def _GetCloudStorageBucket():
   return 'add-histograms-cache'
 
 
-def _ValidateSameDiagnosticsAcrossHistograms(decompressed_data_str):
-  """Check if the diagnostic values are same for each histogram across the
-  entire dataset.
-
-  The key value pairs are expected to be the same for each diagnostic
-  in the dataset.
-
-  Keyword arguments:
-  decompressed_data_str -- Decompressed data that we get from the request body.
-
-  Raises:
-    A ValueError specifying the key that doesn't match for all
-    the diagnostic key value pairs.
-    """
-  histograms = histogram_set.HistogramSet()
-  s = _LoadHistogramList(decompressed_data_str)
-  histograms.ImportDicts(s)
-  # Reuse this function to check if the diagnostics are different accross
-  # histograms. If so this function throws an error
-  FindSuiteLevelSparseDiagnostics(histograms, None, 0, False)
-
-
 @api_request_handler.RequestHandlerDecoratorFactory(_CheckUser)
 def AddHistogramsPost():
   if utils.IsDevAppserver():
@@ -137,11 +115,9 @@ def AddHistogramsPost():
   with timing.WallTimeLogger('decompress'):
     try:
       data_str = request.get_data()
-      # chromium:375262979 - Earlier we tried to decompress the string
-      # just 100 bytes but since we need to have the diagnostics check we
-      # need the full decompressed data.
-      _ValidateSameDiagnosticsAcrossHistograms(
-          zlib.decompressobj().decompress(data_str))
+      # Try to decompress at most 100 bytes from the data, only to determine
+      # if we've been given compressed payload.
+      zlib.decompressobj().decompress(data_str, 100)
       logging.info('Received compressed data.')
     except zlib.error as e:
       data_str = request.form['data']
@@ -149,7 +125,6 @@ def AddHistogramsPost():
         six.raise_from(
             api_request_handler.BadRequestError(
                 'Missing or uncompressed data.'), e)
-      _ValidateSameDiagnosticsAcrossHistograms(data_str)
       data_str = zlib.compress(six.ensure_binary(data_str))
       logging.info('Received uncompressed data.')
 
