@@ -63,7 +63,9 @@ class AlertsTest(testing_common.TestCase):
     subscription = Subscription(
         name='Chromium Perf Sheriff',
         notification_email='internal@chromium.org',
-    )
+        bug_components=['Mock Component'],
+        bug_labels=['test bug', 'mocked'],
+        bug_cc_emails=['this@chromium.org', 'that@google.com'])
     testing_common.AddTests(
         ['ChromiumGPU'], ['linux-release'], {
             'scrolling-benchmark': {
@@ -419,6 +421,11 @@ class AlertsTest(testing_common.TestCase):
       self.assertEqual('ChromiumGPU', alert['master'])
       self.assertEqual('linux-release', alert['bot'])
       self.assertEqual('scrolling-benchmark', alert['testsuite'])
+      self.assertEqual('Chromium Perf Sheriff', alert['subscription_name'])
+      self.assertEqual('Mock Component', alert['bug_component'])
+      self.assertEqual(['test bug', 'mocked'], alert['bug_labels'])
+      self.assertEqual(['this@chromium.org', 'that@google.com'],
+                       alert['bug_cc_emails'])
       if expected_end_rev % 20 == 0:
         self.assertEqual('first_paint', alert['test'])
         self.assertEqual(
@@ -461,6 +468,11 @@ class AlertsTest(testing_common.TestCase):
       self.assertEqual('ChromiumGPU', alert['master'])
       self.assertEqual('linux-release', alert['bot'])
       self.assertEqual('scrolling-benchmark', alert['testsuite'])
+      self.assertEqual('Chromium Perf Sheriff', alert['subscription_name'])
+      self.assertEqual('Mock Component', alert['bug_component'])
+      self.assertEqual(['test bug', 'mocked'], alert['bug_labels'])
+      self.assertEqual(['this@chromium.org', 'that@google.com'],
+                       alert['bug_cc_emails'])
       if expected_end_rev % 20 == 0:
         self.assertEqual('first_paint', alert['test'])
         self.assertEqual(

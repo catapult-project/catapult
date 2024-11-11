@@ -209,6 +209,21 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False, skia=False):
     dct['is_improvement'] = anomaly_entity.is_improvement
     dct['start_revision'] = anomaly_entity.display_start or anomaly_entity.start_revision
     dct['end_revision'] = anomaly_entity.display_end or anomaly_entity.end_revision
+    # the subscription info needed for triaging.
+    subscription_names = anomaly_entity.subscription_names
+    if subscription_names:
+      if len(subscription_names) > 1:
+        logging.warning(
+            "More than one subscription names in anomaly %s. Subs: %s",
+            anomaly_entity.id, subscription_names)
+      dct['subscription_name'] = subscription_names[0]
+
+      subscriptions = anomaly_entity.subscriptions
+      if subscriptions:
+        dct['bug_component'] = subscriptions[0].bug_components[
+            0] if subscriptions[0].bug_components else ''
+        dct['bug_labels'] = subscriptions[0].bug_labels
+        dct['bug_cc_emails'] = subscriptions[0].bug_cc_emails
   else:
     dct['improvement'] = anomaly_entity.is_improvement
     dct['start_revision'] = anomaly_entity.start_revision
