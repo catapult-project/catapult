@@ -515,6 +515,16 @@ ANDROID_TRICHROME_BUNDLE = GenericChromeBundleBackendSettings(
     apk_name='trichrome_chrome_google_bundle',
     additional_apk_name='TrichromeLibraryGoogle.apk')
 
+# Prefer the _64_32 target instead of the _64 target, since telemetry is already
+# set up for it (e.g. //tools/perf/chrome_telemetry_build/BUILD.gn). The only
+# difference for these trichrome_chrome_* targets between _64_32 and _64 is an
+# empty stub lib in the library apk.
+ANDROID_TRICHROME_CHROME_64_32_BUNDLE = GenericChromeBundleBackendSettings(
+    browser_type='android-trichrome-chrome-64-32-bundle',
+    package='org.chromium.chrome',
+    apk_name='trichrome_chrome_64_32_bundle',
+    additional_apk_name='TrichromeLibrary6432.apk')
+
 ANDROID_TRICHROME_CHROME_GOOGLE_64_32_BUNDLE = (
     GenericChromeBundleBackendSettings(
         browser_type='android-trichrome-chrome-google-64-32-bundle',
@@ -576,9 +586,10 @@ ANDROID_BACKEND_SETTINGS = (
     ANDROID_CHROME_64_BUNDLE,
     ANDROID_CHROME_BUNDLE,
     ANDROID_TRICHROME_BUNDLE,
+    ANDROID_TRICHROME_CHROME_64_32_BUNDLE,
     ANDROID_TRICHROME_CHROME_GOOGLE_64_32_BUNDLE,
     ANDROID_CHROME_BETA,
     ANDROID_CHROME_DEV,
     ANDROID_CHROME_CANARY,
-    ANDROID_SYSTEM_CHROME
+    ANDROID_SYSTEM_CHROME,
 )
