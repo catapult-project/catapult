@@ -47,13 +47,13 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
       is_local_build: Whether the browser was built locally (as opposed to
           being downloaded).
     """
-    del finder_options
     target_os = sys.platform.lower()
     super().__init__(
         browser_type, target_os, not is_content_shell)
-    assert browser_type in FindAllBrowserTypes(), (
-        'Please add %s to desktop_browser_finder.FindAllBrowserTypes' %
-        browser_type)
+    if finder_options and finder_options.browser_type != 'builder':
+      assert browser_type in FindAllBrowserTypes(), (
+          'Please add %s to desktop_browser_finder.FindAllBrowserTypes' %
+          browser_type)
     self._local_executable = executable
     self._is_content_shell = is_content_shell
     self._browser_directory = browser_directory
@@ -290,6 +290,7 @@ def CanFindAvailableBrowsers():
 
 def FindAllBrowserTypes():
   return [
+      'builder',
       'exact',
       'reference',
       'release',

@@ -115,11 +115,12 @@ def GetBuildDirectories(chrome_root=None):
     if os.path.isdir(out_folder_path):
       logging.info('Checking folders in %s' % out_folder_path)
       for out_folder in os.listdir(out_folder_path):
+        out_folder = os.path.join(out_folder_path, out_folder)
         # we only seek folders, because the Chrome binary is expected to be in
         # the subfolder.
-        if os.path.isdir(out_folder) and out_dir not in results:
+        if os.path.isdir(out_folder) and out_folder not in results:
           logging.info('Found additional path %s for Chrome binaries.' %
-                       out_dir)
+                       out_folder)
           results.append(out_folder)
 
     for build_dir in results:

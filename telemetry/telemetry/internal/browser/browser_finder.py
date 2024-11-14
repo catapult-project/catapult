@@ -159,7 +159,7 @@ def FindBrowser(options):
     chosen_browser = min(browsers, key=lambda b: types.index(b.browser_type))
   if options.browser_type == 'builder':
     for browser in browsers:
-      pattern = r"^[\w\d]{4}-[\\w\\d\-\_\(\)]{1,15}$"
+      pattern = r"^(\w|\d){4}-(\w|\d|[-_()]){1,15}$"
       if re.match(pattern, browser.browser_type):
         logging.info(
             'Browser %s chosen for matching browser type to pattern %s' %
