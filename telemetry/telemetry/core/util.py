@@ -85,8 +85,8 @@ def GetBuildDirectories(chrome_root=None):
 
   # CHROMIUM_OUTPUT_DIR can be set by --chromium-output-directory.
   output_dir = os.environ.get('CHROMIUM_OUTPUT_DIR')
-  logging.info('CHROMIUM_OUTPUT_DIR: %s' % output_dir)
   if output_dir:
+    logging.info('CHROMIUM_OUTPUT_DIR: %s' % output_dir)
     if os.path.isabs(output_dir):
       yield output_dir
     else:
@@ -95,19 +95,35 @@ def GetBuildDirectories(chrome_root=None):
     yield os.getcwd()
   else:
     out_dir = os.environ.get('CHROMIUM_OUT_DIR')
-    logging.info('CHROMIUM_OUT_DIR: %s' % out_dir)
     if out_dir:
+      logging.info('CHROMIUM_OUT_DIR: %s' % out_dir)
       build_dirs = [out_dir]
     else:
-      build_dirs = ['build',
-                    'out',
-                    'xcodebuild']
+      logging.info('Neither CHROMIUM_OUTPUT_DIR nor CHROMIUM_OUT_DIR provided.')
+      build_dirs = ['build', 'out', 'xcodebuild']
 
     build_types = ['Debug', 'Debug_x64', 'Release', 'Release_x64', 'Default']
 
+    results = []
     for build_dir in build_dirs:
       for build_type in build_types:
-        yield os.path.join(chrome_root, build_dir, build_type)
+        results.append(os.path.join(chrome_root, build_dir, build_type))
+
+    # search for folders in {chrome_root}/out in case it follows the
+    # out/{builder_name} format.
+    out_folder_path = os.path.join(chrome_root, 'out')
+    if os.path.isdir(out_folder_path):
+      logging.info('Checking folders in %s' % out_folder_path)
+      for out_folder in os.listdir(out_folder_path):
+        # we only seek folders, because the Chrome binary is expected to be in
+        # the subfolder.
+        if os.path.isdir(out_folder) and out_dir not in results:
+          logging.info('Found additional path %s for Chrome binaries.' %
+                       out_dir)
+          results.append(out_folder)
+
+    for build_dir in results:
+      yield build_dir
 
 
 def GetUsedBuildDirectory(browser_directory=None, chrome_root=None):

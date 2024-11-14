@@ -69,8 +69,8 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
     self._build_dir = self._browser_directory
 
   def __repr__(self):
-    return 'PossibleDesktopBrowser(type=%s, executable=%s)' % (
-        self.browser_type, self._local_executable)
+    return 'PossibleDesktopBrowser(type=%s, executable=%s, binary_path=%s)' % (
+        self.browser_type, self._local_executable, self._browser_directory)
 
   @property
   def browser_directory(self):
@@ -383,13 +383,15 @@ def FindAllAvailableBrowsers(finder_options, device):
   else:
     logging.info('Search for possible desktop browser options from flag chrome '
                  'root: %s' % finder_options.chrome_root)
-    # path_module.GetBuildDirectories() very much relies on the legacy format
-    # of out/Debug, out/Release, out/Release_x64, etc.
-    # The out folder has been updated to be dependent on the builder's name
-    # that generated the Chrome artifact. See b/355218109.
+    # b/377748127 - GetBuildDirectories will search legacy formats, for example,
+    # out/Release or out/Debug as well as out/{hash}-{builder_name} format.
+    # As long as a Chrome binary exists at {build_path} + {app_location},
+    # it'll be included as a PossibleBrowser option.
     for build_path in path_module.GetBuildDirectories(
         finder_options.chrome_root):
-      # TODO(agrieve): Extract browser_type from args.gn's is_debug.
+
+      # The browser type for out/{hash}-{builder_name} will be
+      # {hash}-{builder_name}
       browser_type = os.path.basename(build_path.rstrip(os.sep)).lower()
 
       for chromium_app_name in chromium_app_names:

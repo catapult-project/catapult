@@ -102,11 +102,20 @@ class BrowserFinderOptions(argparse.Namespace):
 
     # Selection group
     group = parser.add_argument_group('Which browser to use')
+    # b/355218109 --browser=builder search for the Chrome binary where the
+    # Chrome binary it can find in the out/ folder. Traditionally, the browser
+    # type would've been release or debug, which would've mapped directly to
+    # out/Release or out/Debug. This has been changed to out/{hash}-{bot_name},
+    # and so browser will glob the out/ folder and match by regex.
+    # The path to the out/ folder is defined by --chrome-root, and builder is
+    # currently only supported for desktop.
     group.add_argument('--browser',
                        dest='browser_type',
-                       choices=['list', 'any'] +
+                       choices=['list', 'any', 'builder'] +
                        browser_finder.FindAllBrowserTypes(),
-                       help='Browser type to run, in order of priority.')
+                       help='Browser type to run, in order of priority. '
+                       'builder only supports desktop platforms and '
+                       'requires --chrome-root to be defined.')
     group.add_argument('--cast-receiver',
                        dest='cast_receiver_type',
                        choices=['list'] + cast_interface.CAST_BROWSERS,

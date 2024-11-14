@@ -201,20 +201,25 @@ class LinuxFindTest(fake_filesystem_unittest.TestCase):
     output_dir_env = os.environ.pop('CHROMIUM_OUTPUT_DIR', None)
 
     try:
-      for target in ['Release', 'Debug']:
+      for target in [
+          'Release',
+          'Debug',
+      ]:
         for browser in ['chrome', 'content_shell']:
           self.CreateBrowser('/src/out/%s/%s' % (target, browser))
 
-      self.assertEqual(
-          set(self.DoFindAllTypes()),
-          {'debug', 'release', 'content-shell-debug', 'content-shell-release'})
+      self.assertEqual(set(self.DoFindAllTypes()), {
+          'debug',
+          'release',
+          'content-shell-debug',
+          'content-shell-release',
+      })
     finally:
       if output_dir_env is not None:
         os.environ['CHROMIUM_OUTPUT_DIR'] = output_dir_env
 
   def testFindAllFailsIfNotExecutable(self):
     self.fs.CreateFile('/src/out/Release/chrome')
-
     self.assertFalse(self.DoFindAllTypes())
 
   @decorators.Disabled('android')  # Test not applicable to Android

@@ -6,6 +6,7 @@
 
 from __future__ import absolute_import
 import logging
+import re
 import time
 
 from telemetry import decorators
@@ -95,6 +96,9 @@ def FindBrowser(options):
   if options.browser_type != 'exact' and options.browser_executable is not None:
     raise browser_finder_exceptions.BrowserFinderException(
         '--browser-executable requires --browser=exact.')
+  if options.browser_type == 'builder' and options.chrome_root is None:
+    raise browser_finder_exceptions.BrowserFinderException(
+        '--browser=builder requires --chrome-root to be defined.')
 
   if (not _IsCrosBrowser(options)
       and (options.remote is not None or options.fetch_cros_remote)):
@@ -153,11 +157,20 @@ def FindBrowser(options):
   if options.browser_type == 'any':
     types = FindAllBrowserTypes(browser_finders)
     chosen_browser = min(browsers, key=lambda b: types.index(b.browser_type))
+  if options.browser_type == 'builder':
+    for browser in browsers:
+      pattern = r"^[\w\d]{4}-[\\w\\d\-\_\(\)]{1,15}$"
+      if re.match(pattern, browser.browser_type):
+        logging.info(
+            'Browser %s chosen for matching browser type to pattern %s' %
+            (browser, pattern))
+        chosen_browser = browser
+        break
+      logging.debug('Skipped browser %s as it did not match pattern %s' %
+                    (browser, pattern))
+    if not chosen_browser:
+      logging.warning('No browser was for use.')
   else:
-    # b/355218109 - the naming of out/folder has been modified from
-    # out/Release, out/Debug to be bot specific. However, we reuse build
-    # artifacts in perf, meaning that a Swarming task may have a bot name from
-    # a different builder.
     # The browser_type is curated by path manipulation to the binary in question
     # and so switching from out/Release won't match --browser=release for ex.
     logging.info("Potential browser candidates: %s" % browsers)
@@ -167,7 +180,9 @@ def FindBrowser(options):
         and b.SupportsOptions(options.browser_options)
     ]
     if not matching_browsers:
-      logging.error('Cannot find any matched browser')
+      logging.error(
+          ('Cannot find any matched browser. Selected browser_type: '
+           '%s Browsers: %r, browsers') % (options.browser_type, browsers))
       return None
     logging.info('Matching browsers: %r' % matching_browsers)
     if len(matching_browsers) > 1:
