@@ -19,6 +19,7 @@ from google.protobuf import json_format
 import google.auth
 
 from dashboard.protobuf import sheriff_config_pb2
+import luci_auth_service
 import luci_config
 import match_policy
 import service_client
@@ -88,9 +89,8 @@ def CreateApp(test_config=None):
   config_client = service_client.CreateServiceClient(
       'https://luci-config.appspot.com/_ah/api', 'config', 'v1',
       **client_config)
-  auth_client = service_client.CreateServiceClient(
-      'https://chrome-infra-auth.appspot.com/_ah/api', 'auth', 'v1',
-      **client_config)
+  auth_client = luci_auth_service.LUCIAuthServiceClient(
+      'https://chrome-infra-auth.appspot.com', **client_config)
 
   # First we check whether the test_config already has a predefined
   # datastore_client.

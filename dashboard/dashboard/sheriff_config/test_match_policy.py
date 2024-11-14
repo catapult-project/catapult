@@ -7,6 +7,8 @@ from __future__ import division
 from __future__ import print_function
 
 import unittest
+
+import luci_auth_service
 import match_policy
 import service_client
 from dashboard.protobuf import sheriff_config_pb2
@@ -56,11 +58,8 @@ class MatchPolicyTest(unittest.TestCase):
     ])
     _ = service_client.CreateServiceClient(
         'https://luci-config.appspot.com/_ah/api', 'config', 'v1', http=http)
-    auth_client = service_client.CreateServiceClient(
-        'https://chrome-infra-auth.appspot.com/_ah/api',
-        'auth',
-        'v1',
-        http=http)
+    auth_client = luci_auth_service.LUCIAuthServiceClient(
+        'https://chrome-infra-auth.appspot.com', http=http)
     request = sheriff_config_pb2.ListRequest(identity_email='foo@bar1')
     configs = match_policy.FilterSubscriptionsByIdentity(
         auth_client, request, configs)

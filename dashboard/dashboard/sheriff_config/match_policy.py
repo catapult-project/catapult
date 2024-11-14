@@ -35,10 +35,7 @@ def FilterSubscriptionsByPolicy(request, configs):
 def IsGroupMember(auth_client, email, group):
   if not email:
     return False
-  request = auth_client.membership(identity=email, group=group)
-  response = request.execute()
-  is_member = response['is_member']
-  return is_member
+  return auth_client.CheckMembership(identity=email, group=group)
 
 
 def FilterSubscriptionsByIdentity(auth_client, request, configs):

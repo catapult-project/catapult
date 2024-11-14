@@ -27,11 +27,6 @@ class LuciConfigTest(unittest.TestCase):
     ])
     service = service_client.CreateServiceClient(
         'https://luci-config.appspot.com/_ah/api', 'config', 'v1', http=http)
-    _ = service_client.CreateServiceClient(
-        'https://chrome-infra-auth.appspot.com/_ah/api',
-        'auth',
-        'v1',
-        http=http)
     self.assertEqual({}, luci_config.FindAllSheriffConfigs(service))
 
   def testFailingCreateConfigClient(self):

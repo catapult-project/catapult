@@ -11,8 +11,6 @@ from apiclient.http import HttpMockSequence
 
 with open('tests/config-discovery.json') as discovery_file:
   _CONFIG = discovery_file.read()
-with open('tests/auth-discovery.json') as discovery_file:
-  _AUTH = discovery_file.read()
 
 
 def HttpMockSequenceWithDiscovery(sequence):
@@ -20,8 +18,5 @@ def HttpMockSequenceWithDiscovery(sequence):
       ({
           'status': '200'
       }, _CONFIG),
-      ({
-          'status': '200'
-      }, _AUTH),
   ]
   return HttpMockSequence(discovery_sequence + sequence)
