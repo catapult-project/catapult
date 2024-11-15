@@ -6,10 +6,10 @@
 
 from __future__ import absolute_import
 import logging
-import re
 import time
 
 from telemetry import decorators
+from telemetry.core import util
 from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.backends.chrome import cros_browser_finder
 from telemetry.internal.backends.chrome import desktop_browser_finder
@@ -157,26 +157,15 @@ def FindBrowser(options):
   if options.browser_type == 'any':
     types = FindAllBrowserTypes(browser_finders)
     chosen_browser = min(browsers, key=lambda b: types.index(b.browser_type))
-  if options.browser_type == 'builder':
-    for browser in browsers:
-      pattern = r"^(\w|\d){4}-(\w|\d|[-_()]){1,15}$"
-      if re.match(pattern, browser.browser_type):
-        logging.info(
-            'Browser %s chosen for matching browser type to pattern %s' %
-            (browser, pattern))
-        chosen_browser = browser
-        break
-      logging.debug('Skipped browser %s as it did not match pattern %s' %
-                    (browser, pattern))
-    if not chosen_browser:
-      logging.warning('No browser was for use.')
   else:
     # The browser_type is curated by path manipulation to the binary in question
     # and so switching from out/Release won't match --browser=release for ex.
     logging.info("Potential browser candidates: %s" % browsers)
     logging.info("Browser type specified for run: %s" % options.browser_type)
     matching_browsers = [
-        b for b in browsers if b.browser_type == options.browser_type
+        b for b in browsers
+        if (util.IsBuilderOutName(b.browser_type) or
+            b.browser_type == options.browser_type)
         and b.SupportsOptions(options.browser_options)
     ]
     if not matching_browsers:

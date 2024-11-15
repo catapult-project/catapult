@@ -7,6 +7,7 @@ import glob
 import imp
 import logging
 import os
+import re
 import socket
 import sys
 
@@ -75,6 +76,11 @@ def GetUnreservedAvailableLocalPort():
   tmp.close()
 
   return port
+
+
+def IsBuilderOutName(dir_name):
+  """Check if dir_name is a valid builder output directory name."""
+  return re.match(r"^(\w|\d){4}-(\w|\d|[-_()]){1,15}$", dir_name)
 
 
 def GetBuildDirectories(chrome_root=None):

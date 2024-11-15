@@ -14,6 +14,7 @@ import six
 from py_utils import file_util
 from telemetry.core import exceptions
 from telemetry.core import platform as platform_module
+from telemetry.core import util
 from telemetry.internal.backends.chrome import chrome_startup_args
 from telemetry.internal.backends.chrome import desktop_browser_backend
 from telemetry.internal.browser import browser
@@ -47,10 +48,11 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
       is_local_build: Whether the browser was built locally (as opposed to
           being downloaded).
     """
+    del finder_options
     target_os = sys.platform.lower()
     super().__init__(
         browser_type, target_os, not is_content_shell)
-    if finder_options and finder_options.browser_type != 'builder':
+    if not util.IsBuilderOutName(browser_type):
       assert browser_type in FindAllBrowserTypes(), (
           'Please add %s to desktop_browser_finder.FindAllBrowserTypes' %
           browser_type)
