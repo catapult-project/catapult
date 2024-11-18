@@ -1,3 +1,6 @@
 monorail {
   component: "Speed"
 }
+buganizer_public: {
+  component_id: 1457058
+}

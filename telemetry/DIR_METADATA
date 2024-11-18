@@ -2,3 +2,6 @@ monorail {
   component: "Test>Telemetry"
 }
 team_email: "telemetry@chromium.org"
+buganizer_public: {
+  component_id: 1456742
+}
