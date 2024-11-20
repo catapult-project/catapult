@@ -97,6 +97,23 @@ class SourceEntry {
           this.description_ = e.params.group_name;
         }
         break;
+      case EventSourceType.TCP_STREAM_ATTEMPT:
+        this.description_ = e.params.ip_endpoint;
+        break;
+      case EventSourceType.TLS_STREAM_ATTEMPT:
+        this.description_ = e.params.host_port;
+        break;
+      case EventSourceType.HTTP_STREAM_POOL_GROUP:
+        this.description_ = e.params.stream_key.destination;
+        break;
+      case EventSourceType.HTTP_STREAM_POOL_ATTEMPT_MANAGER:
+        // Use description of parent source, if any.
+        if (e.params.source_dependency !== undefined) {
+          const parentId = e.params.source_dependency.id;
+          this.description_ =
+            SourceTracker.getInstance().getDescription(parentId);
+        }
+        break;
       case EventSourceType.HOST_RESOLVER_IMPL_JOB:
       case EventSourceType.HOST_RESOLVER_IMPL_PROC_TASK:
         this.description_ = e.params.host;
