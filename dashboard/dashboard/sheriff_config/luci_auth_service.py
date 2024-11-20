@@ -69,7 +69,7 @@ class LUCIAuthServiceClient:
         'groups': group
     })
     query_url = '{endpoint}?{params}'.format(endpoint=url, params=params)
-
+    logging.debug('[SkiaTriage] membership check url: %s', query_url)
     response, content = self._http.request(query_url, method='GET')
 
     if not response['status'].startswith('2'):

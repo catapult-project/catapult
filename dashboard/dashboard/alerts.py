@@ -284,7 +284,10 @@ def _GetBisectStatusDict(anomalies):
 
 def SkiaLoadSheriffConfigsHandlerGet():
   try:
+    logging.debug('[SkiaTriage] Load sheriff configs requests.')
     sheriff_config_names = _GetSheriffList()
+    logging.debug('[SkiaTriage] _GetSheriffList returned  %d configs.',
+                  len(sheriff_config_names))
   except sheriff_config_client.InternalServerError as e:
     return make_response(json.dumps({'error': str(e)}))
   return make_response(json.dumps({'sheriff_list': sheriff_config_names}))

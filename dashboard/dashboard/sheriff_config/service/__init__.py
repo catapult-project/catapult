@@ -210,7 +210,7 @@ def CreateApp(test_config=None):
     (from the main dashboard service).
 
     """
-
+    logging.debug('[SkiaTriage] List() in sheriff service.')
     try:
       list_request = json_format.Parse(request.get_data(),
                                        sheriff_config_pb2.ListRequest())
@@ -222,8 +222,12 @@ def CreateApp(test_config=None):
           }]}), 400
     list_response = sheriff_config_pb2.ListResponse()
     configs = list(luci_config.ListAllConfigs(datastore_client))
+    logging.debug('[SkiaTriage] from ListAllConfigs: %d',
+                  0 if configs else len(configs))
     configs = match_policy.FilterSubscriptionsByIdentity(
         auth_client, list_request, configs)
+    logging.debug('[SkiaTriage] after FilterSubscriptionsByIdentity: %d',
+                  0 if configs else len(configs))
     for config_set, revision, subscription in configs:
       subscription_metadata = list_response.subscriptions.add()
       subscription_metadata.config_set = config_set

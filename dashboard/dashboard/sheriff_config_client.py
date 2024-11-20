@@ -7,6 +7,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import logging
+
 from google.auth import app_engine
 
 
@@ -107,6 +109,8 @@ class SheriffConfigClient:
     ], None
 
   def List(self, check=False):
+    logging.debug('[SkiaTriage] client send list request. email: %s.',
+                  self._GetEmail())
     response = self._session.post(
         'https://sheriff-config-dot-chromeperf.appspot.com/subscriptions/list',
         json={'identity_email': self._GetEmail()})
@@ -117,6 +121,9 @@ class SheriffConfigClient:
       return None, err_msg
     list_resp = self._json_format.Parse(response.text,
                                         self._sheriff_config_pb2.ListResponse())
+    logging.debug(
+        '[SkiaTriage] list request returned %d.',
+        0 if not list_resp.subscriptions else len(list_resp.subscriptions))
     return [
         self._ParseSubscription(s.revision, s.subscription)
         for s in list_resp.subscriptions
