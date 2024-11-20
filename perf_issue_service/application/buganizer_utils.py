@@ -27,61 +27,108 @@ from application.clients import monorail_client
 
 # Mappings from a monorail component to a buganizer component id.
 COMPONENT_MAP_CR2B = {
-  # Chromium
-  'Blink>Accessibility': 1456587,
-  'Blink>Bindings': 1456743,
-  'Blink>CSS': 1456329,
-  'Blink>DOM': 1456718,
-  'Blink>DOM>ShadowDOM': 1456822,
-  'Blink>HTML>Parser': 1456175,
-  'Blink>JavaScript': 1456824,
-  'Blink>JavaScript>GarbageCollection': 1456490,
-  'Blink>JavaScript>WebAssembly': 1456332,
-  'Blink>Layout': 1456721,
-  'Blink>Paint': 1456440,
-  'Blink>ServiceWorker': 1456150,
-  'Blink>SVG': 1456414,
-  'Blink>Storage': 1456519,
-  'Blink>Storage>IndexedDB': 1456771,
-  'Blink>WebRTC>Perf': 1456207,
-  'Fuchsia': 1456675,
-  'Internals>GPU>ANGLE': 1456215,
-  'Internals>GPU>Metrics': 1456424,
-  'Internals>Network>Library': 1456244,
-  'Internals>Power': 1456482,
-  'Internals>Skia': 1457031,
-  'Internals>XR': 1456683,
-  'Mobile>Fundamentals>SystemHealth': 1457150,
-  'Platform>Apps>ARC': 1457293,
-  'Platform>DevTools>WebAssembly': 1456350,
-  'Speed>BinarySize>Android': 1457059,
-  'Speed>BinarySize>Desktop': 1456597,
-  'Speed>Dashboard': 1457390,
-  'Speed>Regressions': 1457332,
-  'Test>Telemetry': 1456742,
-  'Speed>Tracing': 1457213,
-  'UI>Browser>AdFilter': 1456114,
-  'UI>Browser>NewTabPage': 1457163,
-  'UI>Browser>Omnibox': 1457180,
-  'UI>Browser>TopChrome': 1457234,
-  # A new component is required in Buganizer after migration.
-  # This mapping is used for migration time and will be removed.
-  'Internals>Media': 1456190,
+    # Chromium
+    'Blink>Accessibility':
+        1456587,
+    'Blink>Bindings':
+        1456743,
+    'Blink>CSS':
+        1456329,
+    'Blink>DOM':
+        1456718,
+    'Blink>DOM>ShadowDOM':
+        1456822,
+    'Blink>HTML>Parser':
+        1456175,
+    'Blink>JavaScript':
+        1456824,
+    'Blink>JavaScript>GarbageCollection':
+        1456490,
+    'Blink>JavaScript>WebAssembly':
+        1456332,
+    'Blink>Layout':
+        1456721,
+    'Blink>Paint':
+        1456440,
+    'Blink>ServiceWorker':
+        1456150,
+    'Blink>SVG':
+        1456414,
+    'Blink>Storage':
+        1456519,
+    'Blink>Storage>IndexedDB':
+        1456771,
+    'Blink>WebRTC>Perf':
+        1456207,
+    'Fuchsia':
+        1456675,
+    'Internals>GPU>ANGLE':
+        1456215,
+    'Internals>GPU>Metrics':
+        1456424,
+    'Internals>Network>Library':
+        1456244,
+    'Internals>Power':
+        1456482,
+    'Internals>Skia':
+        1457031,
+    'Internals>XR':
+        1456683,
+    'Mobile>Fundamentals>SystemHealth':
+        1457150,
+    'Platform>Apps>ARC':
+        1457293,
+    'Platform>DevTools>WebAssembly':
+        1456350,
+    'Public Trackers > Chromium Public Trackers > Chromium > Infra > PGO':
+        1456420,
+    'Speed>BinarySize>Android':
+        1457059,
+    'Speed>BinarySize>Desktop':
+        1456597,
+    'Speed>Dashboard':
+        1457390,
+    'Speed>Regressions':
+        1457332,
+    'Test>Telemetry':
+        1456742,
+    'Speed>Tracing':
+        1457213,
+    'UI>Browser>AdFilter':
+        1456114,
+    'UI>Browser>NewTabPage':
+        1457163,
+    'UI>Browser>Omnibox':
+        1457180,
+    'UI>Browser>TopChrome':
+        1457234,
+    # A new component is required in Buganizer after migration.
+    # This mapping is used for migration time and will be removed.
+    'Internals>Media':
+        1456190,
 
-  # Fuchsia
-  # Trackers > Fuchsia > UntriagedPerformanceAlerts
-  'UntriagedPerformanceAlerts': 1454999,
+    # Fuchsia
+    # Trackers > Fuchsia > UntriagedPerformanceAlerts
+    'UntriagedPerformanceAlerts':
+        1454999,
 
-  # WebRTC
-  'Audio': 1565681,
-  'Perf>Arcturus': 1565993,
-  'Perf>Canopus': 1565890,
-  'Perf>Migration': 1565319,
-  'Perf>Video': 1565864,
-  'Stats': 1565682,
+    # WebRTC
+    'Audio':
+        1565681,
+    'Perf>Arcturus':
+        1565993,
+    'Perf>Canopus':
+        1565890,
+    'Perf>Migration':
+        1565319,
+    'Perf>Video':
+        1565864,
+    'Stats':
+        1565682,
 
-  # Test only. Remove after migration.
-  'ChromePerf testing': 1325852
+    # Test only. Remove after migration.
+    'ChromePerf testing':
+        1325852
 }
 
 # Mappings from a buganizer component id to a monorail project
@@ -123,6 +170,7 @@ COMPONENT_MAP_B2CR = {
   '1457234': 'chromium',
   '1456150': 'chromium',
   '1456190': 'chromium',
+  '1456420': 'chromium',
   '1457390': 'chromium',
 
   # Fuchsia
@@ -149,7 +197,7 @@ PROJECT_MAP_CR2B = {
     '1456519', '1456587', '1456597', '1456675', '1456683', '1456718', '1456721',
     '1456742', '1456743', '1456771', '1456822', '1456824', '1457031', '1457059',
     '1457150', '1457163', '1457180', '1457213', '1457234', '1457293', '1457332',
-    '1456190', '1457390'
+    '1456190', '1457390', '1456420'
     ],
 
   # Fuchsia
@@ -178,7 +226,7 @@ LABEL_MAP_CR2B = {
 
 # Mappings from a buganizer hotlist to a monorail label.
 HOTLIST_MAP_B2CR = {
-  hotlist:label for label, hotlist in LABEL_MAP_CR2B.items()
+  hotlist: label for label, hotlist in LABEL_MAP_CR2B.items()
 }
 
 
@@ -427,7 +475,7 @@ def GetCustomField(monorail_project):
   More context in FindBuganizerHotlists()
   '''
   if monorail_project == 'fuchsia':
-     return 'customfield1241047'
+    return 'customfield1241047'
   elif monorail_project == 'webrtc':
     return 'customfield1308691'
   return 'customfield1223031'
@@ -439,7 +487,7 @@ def GetCustomFieldId(monorail_project):
   More context in FindBuganizerHotlists()
   '''
   if monorail_project == 'fuchsia':
-     return 1241047
+    return 1241047
   elif monorail_project == 'webrtc':
     return 1308691
   return 1223031
