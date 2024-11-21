@@ -8,6 +8,7 @@ from dateutil import parser
 from flask import Blueprint, request, make_response
 import logging
 import json
+import math
 import uuid
 
 from common import cloud_metric, utils
@@ -381,6 +382,9 @@ def GetAnomalyData(anomaly_obj):
     logging.warning('Anomaly %s has no subscription name.', anomaly_obj.id)
     subscription_names = ['']
 
+  t_stat = anomaly_obj.get('t_statistic')
+  if math.isinf(t_stat):
+    t_stat=0
   return AnomalyData(
       test_path=utils.TestPath(anomaly_obj.get('test')),
       start_revision=anomaly_obj.get('start_revision'),
@@ -400,7 +404,7 @@ def GetAnomalyData(anomaly_obj):
       segment_size_after=anomaly_obj.get('segment_size_after'),
       segment_size_before=anomaly_obj.get('segment_size_before'),
       std_dev_before_anomaly=anomaly_obj.get('std_dev_before_anomaly'),
-      t_statistic=anomaly_obj.get('t_statistic'),
+      t_statistic=t_stat,
       subscription_name=subscription_names[0],
       bug_component=bug_components[0],
       bug_labels=bug_labels,
