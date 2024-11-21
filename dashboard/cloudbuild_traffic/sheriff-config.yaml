@@ -23,4 +23,4 @@ steps:
     'sheriff-config'
   ]
 substitutions:
-    _SERVICE_VERSION: 'cloud-build-f695e08'
+    _SERVICE_VERSION: 'cloud-build-a9e2f90'
