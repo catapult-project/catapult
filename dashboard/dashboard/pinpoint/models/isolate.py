@@ -67,12 +67,7 @@ def Put(isolate_infos):
 
 # TODO(dberris): Turn this into a Dataflow job instead.
 def DeleteExpiredIsolates(start_cursor=None):
-  # Some old builds were affected by https://crbug.com/377748127, and doesn't
-  # work on Pinpoint, so we want to delete them to avoid failures. The fix was
-  # rolled into Chromium at 2:16 am 11/16 UTC time (https://crrev.com/1383936).
-  # To be safe, we expire all isolates older than 11/18.
-  expire_time = max(datetime.datetime.utcnow() - ISOLATE_EXPIRY_DURATION,
-                    datetime.datetime(2024, 11, 18))
+  expire_time = datetime.datetime.utcnow() - ISOLATE_EXPIRY_DURATION
   q = Isolate.query()
   q = q.filter(Isolate.created < expire_time)
 
