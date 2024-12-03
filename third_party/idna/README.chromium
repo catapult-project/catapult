@@ -3,6 +3,8 @@ URL: https://github.com/kjd/idna
 Version: 2.8
 Revision: 375dc46c3f33c4c104e0af09bf7c015a4458dccc
 License: BSD
+License File: LICENSE.rst
+Security Critical: no
 Shipped: yes
 
 Description:
