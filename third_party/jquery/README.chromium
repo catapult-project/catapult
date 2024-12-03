@@ -2,6 +2,7 @@ Name: jQuery
 URL: https://jquery.com/
 Version: 2.1.4
 License: MIT
+License Source: LICENSE.txt
 Security Critical: No
 Shipped: yes
 
