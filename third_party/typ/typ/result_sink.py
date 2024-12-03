@@ -239,6 +239,7 @@ class ResultSinkReporter(object):
                 artifacts[artifact_id] = {
                     'contents': base64.b64encode(
                         contents.encode('utf-8')).decode('utf-8'),
+                    'content_type': 'text/plain; charset=utf-8',
                 }
 
         if not html_summary:

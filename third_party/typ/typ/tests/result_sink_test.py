@@ -37,10 +37,12 @@ HTML_SUMMARY = ('<p><text-artifact artifact-id="typ_stdout"/></p>'
                 '<p><text-artifact artifact-id="typ_stderr"/></p>')
 STDOUT_STDERR_ARTIFACTS = {
     'typ_stdout': {
-        'contents': base64.b64encode(b'stdout').decode('utf-8')
+        'contents': base64.b64encode(b'stdout').decode('utf-8'),
+        'content_type': 'text/plain; charset=utf-8',
     },
     'typ_stderr': {
-        'contents': base64.b64encode(b'stderr').decode('utf-8')
+        'contents': base64.b64encode(b'stderr').decode('utf-8'),
+        'content_type': 'text/plain; charset=utf-8',
     }
 }
 
@@ -443,10 +445,12 @@ class ResultSinkReporterTest(unittest.TestCase):
         expected_result = CreateExpectedTestResult(
             artifacts={
                 'typ_stdout': {
-                    'contents': base64.b64encode('stdout\u00A5'.encode('utf-8')).decode('utf-8')
+                    'contents': base64.b64encode('stdout\u00A5'.encode('utf-8')).decode('utf-8'),
+                    'content_type': 'text/plain; charset=utf-8',
                 },
                 'typ_stderr': {
-                    'contents': base64.b64encode('stderr\u00A5'.encode('utf-8')).decode('utf-8')
+                    'contents': base64.b64encode('stderr\u00A5'.encode('utf-8')).decode('utf-8'),
+                    'content_type': 'text/plain; charset=utf-8',
                 }
             })
         self.assertEqual(test_result, expected_result)
