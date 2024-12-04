@@ -215,7 +215,7 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False, skia=False):
       if len(subscription_names) > 1:
         logging.warning(
             "More than one subscription names in anomaly %s. Subs: %s",
-            anomaly_entity.id, subscription_names)
+            anomaly_entity.key.id(), subscription_names)
       dct['subscription_name'] = subscription_names[0]
 
       subscriptions = anomaly_entity.subscriptions

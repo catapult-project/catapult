@@ -41,6 +41,11 @@ def GroupReportPost():
   return group_report.GroupReportPost()
 
 
+@flask_app.route('/alerts_skia_by_key', methods=['GET'])
+def SkiaAlertsByKeyHandlerGet():
+  return group_report.SkiaGetAlertsByIntegerKey()
+
+
 class GroupReportTest(testing_common.TestCase):
 
   def setUp(self):
@@ -53,9 +58,11 @@ class GroupReportTest(testing_common.TestCase):
                           subscriptions,
                           bug_id=None,
                           project_id=None,
-                          group_id=None):
+                          group_id=None,
+                          return_urlsafe_keys=True):
     """Adds a group of Anomaly entities to the datastore."""
     urlsafe_keys = []
+    integer_keys = []
     keys = []
     for start_rev, end_rev in revision_ranges:
       subscription_names = [s.name for s in subscriptions]
@@ -71,12 +78,13 @@ class GroupReportTest(testing_common.TestCase):
           median_after_anomaly=200).put()
       urlsafe_keys.append(six.ensure_str(anomaly_key.urlsafe()))
       keys.append(anomaly_key)
+      integer_keys.append(anomaly_key.id())
     if group_id:
       alert_group.AlertGroup(
           id=group_id,
           anomalies=keys,
       ).put()
-    return urlsafe_keys
+    return urlsafe_keys if return_urlsafe_keys else integer_keys
 
   def _AddTests(self):
     """Adds sample TestMetadata entities and returns their keys."""
@@ -266,6 +274,55 @@ class GroupReportTest(testing_common.TestCase):
     error = self.GetJsonValue(response, 'error')
     self.assertEqual('Invalid AlertGroup ID "foo".', error)
 
+  # Tests for endpoints used by skia.
+
+  # load by key
+  def testGet_WithAnomalyKeys_ShowsSelectedAndOverlapping_Skia(self):
+    subscriptions = [
+        self._Subscription(suffix=" 1"),
+    ]
+    test_keys = self._AddTests()
+    selected_ranges = [(400, 900), (200, 700)]
+    overlapping_ranges = [(300, 500), (500, 600), (600, 800)]
+    non_overlapping_ranges = [(100, 200)]
+    selected_keys = self._AddAnomalyEntities(
+        selected_ranges, test_keys[0], subscriptions, return_urlsafe_keys=False)
+    self._AddAnomalyEntities(
+        overlapping_ranges,
+        test_keys[0],
+        subscriptions,
+        return_urlsafe_keys=False)
+    self._AddAnomalyEntities(
+        non_overlapping_ranges,
+        test_keys[0],
+        subscriptions,
+        return_urlsafe_keys=False)
+
+    response = self.testapp.get('/alerts_skia_by_key?keys=%s' %
+                                ','.join([str(k) for k in selected_keys]))
+    anomaly_list = self.GetJsonValue(response, 'anomaly_list')
+
+    # Expect selected alerts + overlapping alerts,
+    # but not the non-overlapping alert.
+    self.assertEqual(2 + 3, len(anomaly_list))
+    # Confirm the first few keys are the selected keys.
+    self.assertSetEqual({a['id'] for a in anomaly_list[0:2]},
+                        set(selected_keys))
+
+  def testGet_WithKeyOfNonExistentAlert_ShowsError_Skia(self):
+    response = self.testapp.get('/alerts_skia_by_key?keys=123')
+    error = self.GetJsonValue(response, 'error')
+    self.assertEqual('No Anomaly found for key 123.', error)
+
+  def testGet_WithInvalidKeyParameter_ShowsError_Skia(self):
+    response = self.testapp.get('/alerts_skia_by_key?keys=str_id')
+    error = self.GetJsonValue(response, 'error')
+    self.assertIn('Invalid Anomaly key', error)
+
+  def testGet_WithNoKeyParameter_ShowsError_Skia(self):
+    response = self.testapp.get('/alerts_skia_by_key')
+    error = self.GetJsonValue(response, 'error')
+    self.assertEqual('No key is found from the request.', error)
 
 if __name__ == '__main__':
   unittest.main()

@@ -108,6 +108,34 @@ def GroupReportPost():
     return make_response(json.dumps({'error': str(error)}))
 
 
+def SkiaGetAlertsByIntegerKey():
+  err_msg = ''
+  alert_list = []
+  keys = request.values.get('keys')
+  if not keys:
+    err_msg = 'No key is found from the request.'
+  else:
+    try:
+      alert_list = GetAlertsForKeys(keys.split(','), is_urlsafe=False)
+    except Exception as e:  # pylint: disable=broad-except
+      err_msg = str(e)
+
+  return MakeResponseForSkiaAlerts(alert_list, err_msg)
+
+
+def MakeResponseForSkiaAlerts(alert_list, err_msg):
+  if err_msg:
+    values = {
+        'error': err_msg,
+    }
+  else:
+    values = {
+        'anomaly_list': alerts.AnomalyDicts(alert_list, skia=True),
+    }
+
+  return make_response(json.dumps(values))
+
+
 def GetAlertsAroundRevision(rev):
   """Gets the alerts whose revision range includes the given revision.
 
@@ -130,7 +158,7 @@ def GetAlertsAroundRevision(rev):
   return [a for a in anomalies if a.start_revision <= rev]
 
 
-def GetAlertsForKeys(keys):
+def GetAlertsForKeys(keys, is_urlsafe=True):
   """Get alerts for |keys|.
 
   Query for anomalies with overlapping revision. The |keys|
@@ -143,10 +171,12 @@ def GetAlertsForKeys(keys):
   Returns:
     list of anomaly.Anomaly
   """
-  urlsafe_keys = keys
-
+  original_keys = keys
   try:
-    keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys]
+    if is_urlsafe:
+      keys = [ndb.Key(urlsafe=k) for k in original_keys]
+    else:
+      keys = [ndb.Key('Anomaly', int(k)) for k in original_keys]
   # Errors that can be thrown here include ProtocolBufferDecodeError
   # in google.net.proto.ProtocolBuffer. We want to catch any errors here
   # because they're almost certainly urlsafe key decoding errors.
@@ -159,7 +189,7 @@ def GetAlertsForKeys(keys):
   for i, anomaly_entity in enumerate(requested_anomalies):
     if anomaly_entity is None:
       raise request_handler.InvalidInputError('No Anomaly found for key %s.' %
-                                              urlsafe_keys[i])
+                                              original_keys[i])
 
   if not requested_anomalies:
     raise request_handler.InvalidInputError('No anomalies found.')
