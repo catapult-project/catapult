@@ -123,6 +123,22 @@ def SkiaGetAlertsByIntegerKey():
   return MakeResponseForSkiaAlerts(alert_list, err_msg)
 
 
+def SkiaGetAlertsByBugId():
+  err_msg = ''
+  alert_list = []
+  bug_id = request.values.get('bug_id')
+  if not bug_id:
+    err_msg = 'No bug id is found from the request.'
+  else:
+    try:
+      alert_list, _, _ = anomaly.Anomaly.QueryAsync(
+          bug_id=bug_id, limit=_QUERY_LIMIT).get_result()
+    except ValueError as e:
+      err_msg = 'Invalid bug ID "%s". %s' % (bug_id, str(e))
+
+  return MakeResponseForSkiaAlerts(alert_list, err_msg)
+
+
 def MakeResponseForSkiaAlerts(alert_list, err_msg):
   if err_msg:
     values = {

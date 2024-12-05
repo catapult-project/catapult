@@ -41,9 +41,14 @@ def GroupReportPost():
   return group_report.GroupReportPost()
 
 
-@flask_app.route('/alerts_skia_by_key', methods=['GET'])
+@flask_app.route('/alerts_skia_by_keys', methods=['GET'])
 def SkiaAlertsByKeyHandlerGet():
   return group_report.SkiaGetAlertsByIntegerKey()
+
+
+@flask_app.route('/alerts_skia_by_bug_id', methods=['GET'])
+def SkiaAlertsByBugIdHandlerGet():
+  return group_report.SkiaGetAlertsByBugId()
 
 
 class GroupReportTest(testing_common.TestCase):
@@ -298,7 +303,7 @@ class GroupReportTest(testing_common.TestCase):
         subscriptions,
         return_urlsafe_keys=False)
 
-    response = self.testapp.get('/alerts_skia_by_key?keys=%s' %
+    response = self.testapp.get('/alerts_skia_by_keys?keys=%s' %
                                 ','.join([str(k) for k in selected_keys]))
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
 
@@ -310,19 +315,48 @@ class GroupReportTest(testing_common.TestCase):
                         set(selected_keys))
 
   def testGet_WithKeyOfNonExistentAlert_ShowsError_Skia(self):
-    response = self.testapp.get('/alerts_skia_by_key?keys=123')
+    response = self.testapp.get('/alerts_skia_by_keys?keys=123')
     error = self.GetJsonValue(response, 'error')
     self.assertEqual('No Anomaly found for key 123.', error)
 
   def testGet_WithInvalidKeyParameter_ShowsError_Skia(self):
-    response = self.testapp.get('/alerts_skia_by_key?keys=str_id')
+    response = self.testapp.get('/alerts_skia_by_keys?keys=str_id')
     error = self.GetJsonValue(response, 'error')
     self.assertIn('Invalid Anomaly key', error)
 
   def testGet_WithNoKeyParameter_ShowsError_Skia(self):
-    response = self.testapp.get('/alerts_skia_by_key')
+    response = self.testapp.get('/alerts_skia_by_keys')
     error = self.GetJsonValue(response, 'error')
     self.assertEqual('No key is found from the request.', error)
+
+  # load by bug id
+  def testPost_WithBugIdParameter_Skia(self):
+    subscription = self._Subscription()
+    test_keys = self._AddTests()
+    bug_data.Bug.New(project='chromium', bug_id=123).put()
+    self._AddAnomalyEntities([(200, 300), (100, 200), (400, 500)],
+                             test_keys[0], [subscription],
+                             bug_id=123,
+                             return_urlsafe_keys=False)
+    self._AddAnomalyEntities([(150, 250)],
+                             test_keys[0], [subscription],
+                             return_urlsafe_keys=False)
+    response = self.testapp.get('/alerts_skia_by_bug_id?bug_id=123')
+    anomaly_list = self.GetJsonValue(response, 'anomaly_list')
+    self.assertEqual(3, len(anomaly_list))
+
+  def testPost_WithInvalidBugIdParameter_ShowsError_Skia(self):
+    response = self.testapp.get('/alerts_skia_by_bug_id?bug_id=foo')
+    anomaly_list = self.GetJsonValue(response, 'anomaly_list')
+    self.assertIsNone(anomaly_list)
+    error = self.GetJsonValue(response, 'error')
+    self.assertIn('Invalid bug ID "foo".', error)
+
+  def testGet_WithNoBugIdParameter_ShowsError_Skia(self):
+    response = self.testapp.get('/alerts_skia_by_bug_id')
+    error = self.GetJsonValue(response, 'error')
+    self.assertEqual('No bug id is found from the request.', error)
+
 
 if __name__ == '__main__':
   unittest.main()
