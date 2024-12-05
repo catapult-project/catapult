@@ -79,28 +79,25 @@ class WindowsProcessCollector(ProcessCollector):
   '3644      832    chrome#2                 4           34872'
   """
   _GET_PERF_DATA_SHELL_COMMAND = [
-      'wmic',
-      'path', # Retrieve a WMI object from the following path.
-      'Win32_PerfFormattedData_PerfProc_Process', # Contains process perf data.
-      'get',
-      'CreatingProcessID,IDProcess,Name,PercentProcessorTime,WorkingSet'
+      'powershell',
+      '-c',
+      ("Get-CIMInstance -query "
+       "'select * from Win32_PerfFormattedData_PerfProc_Process' | "
+       "ft CreatingProcessID,IDProcess,Name,PercentProcessorTime,WorkingSet"),
   ]
 
   _GET_COMMANDS_SHELL_COMMAND = [
-      'wmic',
-      'Process',
-      'get',
-      'CommandLine,ProcessID',
-      # Formatting the result as a CSV means that if no CommandLine is available
-      # we can at least tell by the lack of data between commas.
-      '/format:csv'
+      'powershell',
+      '-c',
+      ("Get-CIMInstance -query 'select * from Win32_Process' | "
+       "Select-Object CommandLine,ProcessId | ConvertTo-Csv"),
   ]
 
   _GET_PHYSICAL_MEMORY_BYTES_SHELL_COMMAND = [
-      'wmic',
-      'ComputerSystem',
-      'get',
-      'TotalPhysicalMemory'
+      'powershell',
+      '-c',
+      ("Get-CIMInstance -query 'select * from Win32_ComputerSystem' | "
+       "ft TotalPhysicalMemory"),
   ]
 
   def __init__(self):
@@ -134,19 +131,19 @@ class WindowsProcessCollector(ProcessCollector):
     """Returns the number of bytes of physical memory on the computer."""
     raw_output = subprocess.check_output(
         self._GET_PHYSICAL_MEMORY_BYTES_SHELL_COMMAND).decode('utf-8')
-    # The bytes of physical memory is on the second row (after the header row).
-    return int(raw_output.strip().split('\n')[1])
+    # The bytes of physical memory is on the third row (after a header row
+    # and a row of dashes).
+    return int(raw_output.strip().split('\n')[2])
 
   def _GetProcessesAsStrings(self):
     try:
       # Skip the header and total rows and strip the trailing newline.
-      return subprocess.check_output(
-          self._GET_PERF_DATA_SHELL_COMMAND).decode(
-              'utf-8').strip().split('\n')[2:]
+      return subprocess.check_output(self._GET_PERF_DATA_SHELL_COMMAND).decode(
+          'utf-8').strip().split('\n')[3:]
     except subprocess.CalledProcessError as e:
       logging.warning(
-          'wmic failed with error code %d when running command, which gave '
-          'output: %s', e.returncode, e.output)
+          'Powershell failed with error code %d when running command, '
+          'which gave output: %s', e.returncode, e.output)
       raise
 
   def _ParseProcessString(self, proc_string):
@@ -190,8 +187,8 @@ class WindowsProcessCollector(ProcessCollector):
     """
     # Skip the header row and strip the trailing newline.
     process_strings = subprocess.check_output(
-        self._GET_COMMANDS_SHELL_COMMAND).decode(
-            'utf-8').strip().split('\n')[1:]
+        self._GET_COMMANDS_SHELL_COMMAND).decode('utf-8').strip().split(
+            '\n')[2:]
     command_by_pid = {}
     for process_string in process_strings:
       process_string = process_string.strip()
@@ -204,12 +201,11 @@ class WindowsProcessCollector(ProcessCollector):
     return command_by_pid
 
   def _ParseCommandString(self, command_string):
-    groups = re.match(r'^([^,]+),(.*),([0-9]+)$', command_string).groups()
-    return {
-        # Ignore groups[0]: it's the hostname.
-        'pid': int(groups[2]),
-        'command': groups[1]
-    }
+    groups = re.match(r'^(.*),"([0-9]+)"$', command_string).groups()
+    command = groups[0]
+    if command.startswith('"') and command.endswith('"'):
+      command = command[1:-1].replace('""', '"')
+    return {'pid': int(groups[1]), 'command': command}
 
 
 class LinuxProcessCollector(ProcessCollector):
@@ -262,8 +258,8 @@ class MacProcessCollector(ProcessCollector):
 
 class CpuTracingAgent(tracing_agent.TracingAgent):
   _SNAPSHOT_INTERVAL_BY_OS = {
-      # Sampling via wmic on Windows is about twice as expensive as sampling via
-      # ps on Linux and Mac, so we halve the sampling frequency.
+      # Sampling via Powershell on Windows is about twice as expensive as
+      # sampling via ps on Linux and Mac, so we halve the sampling frequency.
       'win': 2.0,
       'mac': 1.0,
       'linux': 1.0
