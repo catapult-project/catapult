@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 
 from flask import Flask
+import http
 import itertools
 import json
 from unittest import mock
@@ -41,9 +42,14 @@ def GroupReportPost():
   return group_report.GroupReportPost()
 
 
-@flask_app.route('/alerts_skia_by_keys', methods=['GET'])
+@flask_app.route('/alerts_skia_by_key', methods=['GET'])
 def SkiaAlertsByKeyHandlerGet():
   return group_report.SkiaGetAlertsByIntegerKey()
+
+
+@flask_app.route('/alerts_skia_by_keys', methods=['POST'])
+def SkiaAlertsByKeyHandlerPost():
+  return group_report.SkiaPostAlertsByIntegerKeys()
 
 
 @flask_app.route('/alerts_skia_by_bug_id', methods=['GET'])
@@ -281,8 +287,54 @@ class GroupReportTest(testing_common.TestCase):
 
   # Tests for endpoints used by skia.
 
-  # load by key
+  # load by one key
   def testGet_WithAnomalyKeys_ShowsSelectedAndOverlapping_Skia(self):
+    subscriptions = [
+        self._Subscription(suffix=" 1"),
+    ]
+    test_keys = self._AddTests()
+    selected_ranges = [(400, 900)]
+    overlapping_ranges = [(300, 500), (500, 600), (600, 800)]
+    non_overlapping_ranges = [(100, 200)]
+    selected_key = self._AddAnomalyEntities(
+        selected_ranges, test_keys[0], subscriptions, return_urlsafe_keys=False)
+    self._AddAnomalyEntities(
+        overlapping_ranges,
+        test_keys[0],
+        subscriptions,
+        return_urlsafe_keys=False)
+    self._AddAnomalyEntities(
+        non_overlapping_ranges,
+        test_keys[0],
+        subscriptions,
+        return_urlsafe_keys=False)
+
+    response = self.testapp.get('/alerts_skia_by_key?key=%s' % selected_key[0])
+    anomaly_list = self.GetJsonValue(response, 'anomaly_list')
+
+    # Expect selected alerts + overlapping alerts,
+    # but not the non-overlapping alert.
+    self.assertEqual(1 + 3, len(anomaly_list))
+    # Confirm the first few keys are the selected keys.
+    self.assertEqual(anomaly_list[0]['id'], selected_key[0])
+
+  def testGet_WithKeyOfNonExistentAlert_ShowsError_Skia(self):
+    response = self.testapp.get('/alerts_skia_by_key?key=123')
+    error = self.GetJsonValue(response, 'error')
+    self.assertEqual('No Anomaly found for key 123.', error)
+
+  def testGet_WithInvalidKeyParameter_ShowsError_Skia(self):
+    response = self.testapp.get('/alerts_skia_by_key?key=str_id')
+    error = self.GetJsonValue(response, 'error')
+    self.assertIn('Invalid Anomaly key', error)
+
+  def testGet_WithNoKeyParameter_ShowsError_Skia(self):
+    response = self.testapp.get('/alerts_skia_by_key')
+    error = self.GetJsonValue(response, 'error')
+    self.assertEqual('No key is found from the request.', error)
+
+  # load by multiple keys
+  def testPost_WithAnomalyKeys_ShowsSelectedAndOverlapping_Skia(self):
     subscriptions = [
         self._Subscription(suffix=" 1"),
     ]
@@ -303,8 +355,10 @@ class GroupReportTest(testing_common.TestCase):
         subscriptions,
         return_urlsafe_keys=False)
 
-    response = self.testapp.get('/alerts_skia_by_keys?keys=%s' %
-                                ','.join([str(k) for k in selected_keys]))
+    response = self.testapp.post_json('/alerts_skia_by_keys', {
+        'keys': ','.join([str(k) for k in selected_keys]),
+    })
+
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
 
     # Expect selected alerts + overlapping alerts,
@@ -314,20 +368,28 @@ class GroupReportTest(testing_common.TestCase):
     self.assertSetEqual({a['id'] for a in anomaly_list[0:2]},
                         set(selected_keys))
 
-  def testGet_WithKeyOfNonExistentAlert_ShowsError_Skia(self):
-    response = self.testapp.get('/alerts_skia_by_keys?keys=123')
-    error = self.GetJsonValue(response, 'error')
-    self.assertEqual('No Anomaly found for key 123.', error)
+  def testPost_WithKeyOfNonExistentAlert_ShowsError_Skia(self):
+    response = self.testapp.post_json(
+        '/alerts_skia_by_keys', {
+            'keys': '123',
+        }, expect_errors=True)
+    self.assertEqual({'error': 'No Anomaly found for key 123.'},
+                     json.loads(response.body))
+    self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
 
-  def testGet_WithInvalidKeyParameter_ShowsError_Skia(self):
-    response = self.testapp.get('/alerts_skia_by_keys?keys=str_id')
-    error = self.GetJsonValue(response, 'error')
-    self.assertIn('Invalid Anomaly key', error)
+  def testPost_WithInvalidKeyParameter_ShowsError_Skia(self):
+    response = self.testapp.post_json(
+        '/alerts_skia_by_keys', {'keys': 'str_id'}, expect_errors=True)
+    self.assertEqual({'error': 'Invalid Anomaly key given.'},
+                     json.loads(response.body))
+    self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
 
-  def testGet_WithNoKeyParameter_ShowsError_Skia(self):
-    response = self.testapp.get('/alerts_skia_by_keys')
-    error = self.GetJsonValue(response, 'error')
-    self.assertEqual('No key is found from the request.', error)
+  def testPost_WithNoKeyParameter_ShowsError_Skia(self):
+    response = self.testapp.post_json(
+        '/alerts_skia_by_keys', {}, expect_errors=True)
+    self.assertEqual({'error': 'No key is found from the request.'},
+                     json.loads(response.body))
+    self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
 
   # load by bug id
   def testPost_WithBugIdParameter_Skia(self):

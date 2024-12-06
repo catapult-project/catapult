@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import http
 import json
 import logging
 import six
@@ -108,15 +109,45 @@ def GroupReportPost():
     return make_response(json.dumps({'error': str(error)}))
 
 
+def SkiaPostAlertsByIntegerKeys():
+  try:
+    data = json.loads(request.data)
+  except json.JSONDecodeError as e:
+    return make_response(
+        json.dumps({'error': str(e)}), http.HTTPStatus.BAD_REQUEST.value)
+
+  logging.debug(
+      '[SkiaTriage] Received get anomalies by keys request from Skia: %s', data)
+
+  keys = data.get('keys', [])
+  if not keys:
+    return make_response(
+        json.dumps({'error': 'No key is found from the request.'}),
+        http.HTTPStatus.BAD_REQUEST.value)
+
+  alert_list = []
+  try:
+    alert_list = GetAlertsForKeys(keys.split(','), is_urlsafe=False)
+  except Exception as e:  # pylint: disable=broad-except
+    return make_response(
+        json.dumps({'error': str(e)}), http.HTTPStatus.BAD_REQUEST.value)
+
+  values = {
+      'anomaly_list': alerts.AnomalyDicts(alert_list, skia=True),
+  }
+
+  return make_response(json.dumps(values))
+
+
 def SkiaGetAlertsByIntegerKey():
   err_msg = ''
   alert_list = []
-  keys = request.values.get('keys')
-  if not keys:
+  key = request.values.get('key')
+  if not key:
     err_msg = 'No key is found from the request.'
   else:
     try:
-      alert_list = GetAlertsForKeys(keys.split(','), is_urlsafe=False)
+      alert_list = GetAlertsForKeys([key], is_urlsafe=False)
     except Exception as e:  # pylint: disable=broad-except
       err_msg = str(e)
 

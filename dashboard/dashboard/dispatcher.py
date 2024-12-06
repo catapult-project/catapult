@@ -116,9 +116,14 @@ def SkiaAlertsHandlerGet():
   return alerts.SkiaAlertsHandlerGet()
 
 
-@flask_app.route('/alerts_skia_by_keys', methods=['GET'])
+@flask_app.route('/alerts_skia_by_key', methods=['GET'])
 def SkiaAlertsByKeyHandlerGet():
   return group_report.SkiaGetAlertsByIntegerKey()
+
+
+@flask_app.route('/alerts_skia_by_keys', methods=['POST'])
+def SkiaAlertsByKeysHandlerPost():
+  return group_report.SkiaPostAlertsByIntegerKeys()
 
 
 @flask_app.route('/alerts_skia_by_bug_id', methods=['GET'])
