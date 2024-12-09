@@ -54,12 +54,12 @@ SUFFIXES = {
     '_android_clank_monochrome',
     '_android_clank_monochrome_64_32_bundle',
     '_android_clank_monochrome_bundle',
-    '_android_clank_trichrome_bundle',
-    '_android_clank_trichrome_chrome_google_64_32_bundle',
     '_android_clank_trichrome_webview',
     '_android_clank_trichrome_webview_bundle',
     '_android_clank_webview',
     '_android_clank_webview_bundle',
+    '_android_trichrome_chrome_google_bundle',
+    '_android_trichrome_chrome_google_64_32_bundle',
 }
 # Map from target to fallback target.
 REGULAR_TELEMETRY_TESTS_WITH_FALLBACKS = {}
@@ -80,6 +80,22 @@ _NEW_MONOCHROME_TARGET = 'performance_test_suite_android_clank_monochrome'
 _OLD_CHROME_TARGET = 'performance_test_suite_android_clank_chrome'
 REGULAR_TELEMETRY_TESTS_WITH_FALLBACKS[
     _NEW_MONOCHROME_TARGET] = _OLD_CHROME_TARGET
+
+# TODO(https://crbug.com/378731077): Remove these fallback targets after Feb 5th
+#                                    2025, to provide 2 months of buffer.
+_NEW_TRICHROME_TARGETS = [
+    'performance_test_suite_android_trichrome_chrome_google_bundle',
+    'performance_test_suite_android_trichrome_chrome_google_64_32_bundle',
+]
+_OLD_TRICHROME_TARGETS = [
+    'performance_test_suite_android_clank_trichrome_bundle',
+    'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle',
+]
+for new, old in zip(_NEW_TRICHROME_TARGETS, _OLD_TRICHROME_TARGETS):
+  # Allow falling back both ways to accommodate older and newer code that only
+  # uses either old or new.
+  REGULAR_TELEMETRY_TESTS_WITH_FALLBACKS[new] = old
+  REGULAR_TELEMETRY_TESTS_WITH_FALLBACKS[old] = new
 
 _NON_CHROME_TARGETS = ['v8']
 
@@ -503,23 +519,21 @@ def GetIsolateTarget(bot_name, suite):
   if bot_name in ['android-go-perf', 'android-go-perf-pgo']:
     return 'performance_test_suite_android_clank_monochrome'
   if bot_name == 'android-go-wembley-perf':
-    return 'performance_test_suite_android_clank_trichrome_bundle'
+    return 'performance_test_suite_android_trichrome_chrome_google_bundle'
   if bot_name in ['android-new-pixel-perf', 'android-new-pixel-perf-pgo']:
-    return ('performance_test_suite_android_clank_'
-            'trichrome_chrome_google_64_32_bundle')
+    return 'performance_test_suite_android_trichrome_chrome_google_64_32_bundle'
   if bot_name in [
       'android-new-pixel-pro-perf', 'android-new-pixel-pro-perf-pgo'
   ]:
-    return ('performance_test_suite_android_clank_'
-            'trichrome_chrome_google_64_32_bundle')
+    return 'performance_test_suite_android_trichrome_chrome_google_64_32_bundle'
   if bot_name in ['android-pixel4-perf', 'android-pixel4-perf-pgo']:
-    return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
+    return 'performance_test_suite_android_trichrome_chrome_google_64_32_bundle'
   if bot_name in ['android-pixel6-perf', 'android-pixel6-perf-pgo']:
-    return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
+    return 'performance_test_suite_android_trichrome_chrome_google_64_32_bundle'
   if bot_name in ['android-pixel6-pro-perf', 'android-pixel6-pro-perf-pgo']:
-    return 'performance_test_suite_android_clank_trichrome_bundle'
+    return 'performance_test_suite_android_trichrome_chrome_google_bundle'
   if bot_name == 'android-pixel-fold-perf':
-    return 'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle'
+    return 'performance_test_suite_android_trichrome_chrome_google_64_32_bundle'
   if 'android' in bot_name.lower():
     raise Exception(
         'Given Android bot %s does not have an isolate mapped to it' % bot_name)
