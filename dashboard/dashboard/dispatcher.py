@@ -131,6 +131,11 @@ def SkiaAlertsByBugIdHandlerGet():
   return group_report.SkiaGetAlertsByBugId()
 
 
+@flask_app.route('/alerts_skia_by_sid', methods=['GET'])
+def SkiaAlertsBySidHandlerGet():
+  return group_report.SkiaGetAlertsBySid()
+
+
 @flask_app.route('/associate_alerts', methods=['GET', 'POST'])
 def AssociateAlertsHandlerPost():
   return associate_alerts.AssociateAlertsHandlerPost()

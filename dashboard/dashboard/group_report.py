@@ -15,6 +15,7 @@ from google.appengine.ext import ndb
 
 from dashboard import alerts
 from dashboard import chart_handler
+from dashboard import short_uri
 from dashboard import update_test_suites
 from dashboard.common import cloud_metric
 from dashboard.common import request_handler
@@ -119,12 +120,12 @@ def SkiaPostAlertsByIntegerKeys():
   logging.debug(
       '[SkiaTriage] Received get anomalies by keys request from Skia: %s', data)
 
-  keys = data.get('keys', [])
+  keys = data.get('keys', '')
   if not keys:
     return make_response(
         json.dumps({'error': 'No key is found from the request.'}),
         http.HTTPStatus.BAD_REQUEST.value)
-
+  sid = short_uri.GetOrCreatePageState(keys)
   alert_list = []
   try:
     alert_list = GetAlertsForKeys(keys.split(','), is_urlsafe=False)
@@ -132,6 +133,34 @@ def SkiaPostAlertsByIntegerKeys():
     return make_response(
         json.dumps({'error': str(e)}), http.HTTPStatus.BAD_REQUEST.value)
 
+  values = {
+      'anomaly_list': alerts.AnomalyDicts(alert_list, skia=True),
+      'sid': sid,
+  }
+
+  return make_response(json.dumps(values))
+
+
+def SkiaGetAlertsBySid():
+  alert_list = []
+  sid = request.values.get('sid')
+  if not sid:
+    return make_response(
+        json.dumps({'error': 'No sid is found from the request.'}),
+        http.HTTPStatus.BAD_REQUEST.value)
+
+  state = ndb.Key(page_state.PageState, sid).get()
+  if not state:
+    return make_response(
+        json.dumps({'error': 'No state is found from the sid %s.' % sid}),
+        http.HTTPStatus.BAD_REQUEST.value)
+
+  keys = state.value.decode("utf-8")
+  try:
+    alert_list = GetAlertsForKeys(keys.split(','), is_urlsafe=False)
+  except Exception as e:  # pylint: disable=broad-except
+    return make_response(
+        json.dumps({'error': str(e)}), http.HTTPStatus.BAD_REQUEST.value)
   values = {
       'anomaly_list': alerts.AnomalyDicts(alert_list, skia=True),
   }

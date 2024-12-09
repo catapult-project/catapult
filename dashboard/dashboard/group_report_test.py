@@ -57,6 +57,11 @@ def SkiaAlertsByBugIdHandlerGet():
   return group_report.SkiaGetAlertsByBugId()
 
 
+@flask_app.route('/alerts_skia_by_sid', methods=['GET'])
+def SkiaAlertsBySidHandlerGet():
+  return group_report.SkiaGetAlertsBySid()
+
+
 class GroupReportTest(testing_common.TestCase):
 
   def setUp(self):
@@ -355,11 +360,15 @@ class GroupReportTest(testing_common.TestCase):
         subscriptions,
         return_urlsafe_keys=False)
 
+    keys_param = ','.join([str(k) for k in selected_keys])
     response = self.testapp.post_json('/alerts_skia_by_keys', {
-        'keys': ','.join([str(k) for k in selected_keys]),
+        'keys': keys_param,
     })
 
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
+
+    expected_sid = short_uri.GenerateHash(keys_param)
+    self.assertEqual(expected_sid, self.GetJsonValue(response, 'sid'))
 
     # Expect selected alerts + overlapping alerts,
     # but not the non-overlapping alert.
@@ -367,6 +376,11 @@ class GroupReportTest(testing_common.TestCase):
     # Confirm the first few keys are the selected keys.
     self.assertSetEqual({a['id'] for a in anomaly_list[0:2]},
                         set(selected_keys))
+
+    response2 = self.testapp.get('/alerts_skia_by_sid?sid=%s' % expected_sid)
+    self.assertEqual(
+        self.GetJsonValue(response, 'anomaly_list'),
+        self.GetJsonValue(response2, 'anomaly_list'))
 
   def testPost_WithKeyOfNonExistentAlert_ShowsError_Skia(self):
     response = self.testapp.post_json(
