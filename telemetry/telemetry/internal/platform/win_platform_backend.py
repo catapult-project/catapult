@@ -146,10 +146,18 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     tags = super().GetTypExpectationsTags()
     if self.IsLaptop():
       tags.append('win-laptop')
+    tags.append(self.GetArchName().lower())
     return tags
 
   @decorators.Cache
   def GetArchName(self):
+    # Currently, platform.machine() does not work correctly on ARM devices.
+    # The lab still runs x64 version of Python on ARM devices,
+    # so platform.machine() returns 'AMD64' even on ARM devices.
+    # platform.processor() returns the right information, but it has too
+    # much details.
+    if platform.processor().startswith('ARM'):
+      return 'ARM'
     return platform.machine()
 
   def GetOSName(self):
