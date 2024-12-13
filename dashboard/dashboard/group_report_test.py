@@ -331,12 +331,6 @@ class GroupReportTest(testing_common.TestCase):
     # Confirm the first few keys are the selected keys.
     self.assertEqual(anomaly_list[0]['id'], selected_key[0])
 
-  def testGet_WithKeyOfNonExistentAlert_ShowsError_Skia(self):
-    response = self.testapp.get(
-        '/alerts_skia_by_key?key=123', expect_errors=True)
-    error = self.GetJsonValue(response, 'error')
-    self.assertEqual('No Anomaly found for key 123.', error)
-
   def testGet_WithInvalidKeyParameter_ShowsError_Skia(self):
     response = self.testapp.get(
         '/alerts_skia_by_key?key=str_id', expect_errors=True)
@@ -381,27 +375,15 @@ class GroupReportTest(testing_common.TestCase):
     expected_sid = short_uri.GenerateHash(keys_param)
     self.assertEqual(expected_sid, self.GetJsonValue(response, 'sid'))
 
-    # Expect selected alerts + overlapping alerts,
-    # but not the non-overlapping alert.
+    self.assertEqual(0, len(anomaly_list))
+
+    response2 = self.testapp.get('/alerts_skia_by_sid?sid=%s&host=%s' %
+                                 (expected_sid, SKIA_INTERNAL_HOST))
+    anomaly_list = self.GetJsonValue(response2, 'anomaly_list')
     self.assertEqual(2 + 3, len(anomaly_list))
     # Confirm the first few keys are the selected keys.
     self.assertSetEqual({a['id'] for a in anomaly_list[0:2]},
                         set(selected_keys))
-
-    response2 = self.testapp.get('/alerts_skia_by_sid?sid=%s&host=%s' %
-                                 (expected_sid, SKIA_INTERNAL_HOST))
-    self.assertEqual(
-        self.GetJsonValue(response, 'anomaly_list'),
-        self.GetJsonValue(response2, 'anomaly_list'))
-
-  def testPost_WithKeyOfNonExistentAlert_ShowsError_Skia(self):
-    response = self.testapp.post_json(
-        '/alerts_skia_by_keys', {
-            'keys': '123',
-        }, expect_errors=True)
-    self.assertEqual({'error': 'No Anomaly found for key 123.'},
-                     json.loads(response.body))
-    self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
 
   def testPost_WithInvalidKeyParameter_ShowsError_Skia(self):
     response = self.testapp.post_json(
@@ -418,7 +400,7 @@ class GroupReportTest(testing_common.TestCase):
     self.assertEqual(http.HTTPStatus.BAD_REQUEST.value, response.status_code)
 
   # load by bug id
-  def testPost_WithBugIdParameter_Skia(self):
+  def testGet_WithBugIdParameter_Skia(self):
     subscription = self._Subscription()
     test_keys = self._AddTests()
     bug_data.Bug.New(project='chromium', bug_id=123).put()
@@ -439,7 +421,7 @@ class GroupReportTest(testing_common.TestCase):
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     self.assertEqual(3, len(anomaly_list))
 
-  def testPost_WithBugIdParameter_ExternalHost_Skia(self):
+  def testGet_WithBugIdParameter_ExternalHost_Skia(self):
     subscription = self._Subscription()
     test_keys = self._AddTests()
     bug_data.Bug.New(project='chromium', bug_id=123).put()
@@ -460,7 +442,7 @@ class GroupReportTest(testing_common.TestCase):
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     self.assertEqual(2, len(anomaly_list))
 
-  def testPost_WithNoHostParameter_ShowsError_Skia(self):
+  def testGet_WithNoHostParameter_ShowsError_Skia(self):
     subscription = self._Subscription()
     test_keys = self._AddTests()
     bug_data.Bug.New(project='chromium', bug_id=123).put()
@@ -476,7 +458,7 @@ class GroupReportTest(testing_common.TestCase):
     error = self.GetJsonValue(response, 'error')
     self.assertIn('Host value is missing to load anomalies to Skia.', error)
 
-  def testPost_WithInvalidBugIdParameter_ShowsError_Skia(self):
+  def testGet_WithInvalidBugIdParameter_ShowsError_Skia(self):
     response = self.testapp.get(
         '/alerts_skia_by_bug_id?bug_id=foo', expect_errors=True)
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')

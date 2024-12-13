@@ -126,15 +126,17 @@ def SkiaPostAlertsByIntegerKeys():
     return make_response(
         json.dumps({'error': 'No key is found from the request.'}),
         http.HTTPStatus.BAD_REQUEST.value)
-  sid = short_uri.GetOrCreatePageState(keys)
-  alert_list = []
   try:
-    alert_list = GetAlertsForKeys(keys.split(','), is_urlsafe=False)
+    # Try converting to validate keys before converting to sid.
+    _ = [ndb.Key('Anomaly', int(k)) for k in keys.split(',')]
   except Exception as e:  # pylint: disable=broad-except
     return make_response(
-        json.dumps({'error': str(e)}), http.HTTPStatus.BAD_REQUEST.value)
+        json.dumps({'error': 'Invalid Anomaly key given.'}),
+        http.HTTPStatus.BAD_REQUEST.value)
+  sid = short_uri.GetOrCreatePageState(keys)
 
-  return MakeResponseForSkiaAlerts(alert_list, data.get('host', ''), sid)
+  # The current POST call from does not need the alert list.
+  return MakeResponseForSkiaAlerts([], data.get('host', ''), sid)
 
 
 def SkiaGetAlertsBySid():
