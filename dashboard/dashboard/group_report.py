@@ -297,7 +297,10 @@ def GetAlertsForKeys(keys, is_urlsafe=True):
     def _IsValidAlert(a):
       if a.key in requested_anomalies_set:
         return False
-      return a.bug_id is None or a.bug_id > 0
+      # The edit_anomalies request may set the bug_id to 0, which is equivalent
+      # to setting the bug_id to None in Chromeperf. Here we only want to
+      # filter out those with value -1 or -2.
+      return a.bug_id is None or a.bug_id >= 0
 
     anomalies = [a for a in anomalies if _IsValidAlert(a)]
     anomalies = _GetOverlaps(anomalies, min_range[0], min_range[1])
