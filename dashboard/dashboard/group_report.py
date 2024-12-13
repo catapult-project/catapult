@@ -23,6 +23,7 @@ from dashboard.common import utils
 from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import page_state
+from dashboard.models import skia_helper
 from dashboard.services import perf_issue_service_client
 
 from flask import request, make_response
@@ -133,12 +134,7 @@ def SkiaPostAlertsByIntegerKeys():
     return make_response(
         json.dumps({'error': str(e)}), http.HTTPStatus.BAD_REQUEST.value)
 
-  values = {
-      'anomaly_list': alerts.AnomalyDicts(alert_list, skia=True),
-      'sid': sid,
-  }
-
-  return make_response(json.dumps(values))
+  return MakeResponseForSkiaAlerts(alert_list, data.get('host', ''), sid)
 
 
 def SkiaGetAlertsBySid():
@@ -161,53 +157,65 @@ def SkiaGetAlertsBySid():
   except Exception as e:  # pylint: disable=broad-except
     return make_response(
         json.dumps({'error': str(e)}), http.HTTPStatus.BAD_REQUEST.value)
-  values = {
-      'anomaly_list': alerts.AnomalyDicts(alert_list, skia=True),
-  }
 
-  return make_response(json.dumps(values))
+  return MakeResponseForSkiaAlerts(alert_list, request.values.get('host'))
 
 
 def SkiaGetAlertsByIntegerKey():
-  err_msg = ''
   alert_list = []
   key = request.values.get('key')
   if not key:
-    err_msg = 'No key is found from the request.'
-  else:
-    try:
-      alert_list = GetAlertsForKeys([key], is_urlsafe=False)
-    except Exception as e:  # pylint: disable=broad-except
-      err_msg = str(e)
+    return make_response(
+        json.dumps({'error': 'No key is found from the request.'}),
+        http.HTTPStatus.BAD_REQUEST.value)
 
-  return MakeResponseForSkiaAlerts(alert_list, err_msg)
+  try:
+    alert_list = GetAlertsForKeys([key], is_urlsafe=False)
+  except Exception as e:  # pylint: disable=broad-except
+    return make_response(
+        json.dumps({'error': str(e)}), http.HTTPStatus.BAD_REQUEST.value)
+
+  return MakeResponseForSkiaAlerts(alert_list, request.values.get('host'))
 
 
 def SkiaGetAlertsByBugId():
-  err_msg = ''
   alert_list = []
   bug_id = request.values.get('bug_id')
   if not bug_id:
-    err_msg = 'No bug id is found from the request.'
-  else:
-    try:
-      alert_list, _, _ = anomaly.Anomaly.QueryAsync(
-          bug_id=bug_id, limit=_QUERY_LIMIT).get_result()
-    except ValueError as e:
-      err_msg = 'Invalid bug ID "%s". %s' % (bug_id, str(e))
+    return make_response(
+        json.dumps({'error': 'No bug id is found from the request.'}),
+        http.HTTPStatus.BAD_REQUEST.value)
+  try:
+    alert_list, _, _ = anomaly.Anomaly.QueryAsync(
+        bug_id=bug_id, limit=_QUERY_LIMIT).get_result()
+  except ValueError as e:
+    return make_response(
+        json.dumps({'error': 'Invalid bug ID "%s". %s' % (bug_id, str(e))}),
+        http.HTTPStatus.BAD_REQUEST.value)
 
-  return MakeResponseForSkiaAlerts(alert_list, err_msg)
+  return MakeResponseForSkiaAlerts(alert_list, request.values.get('host'))
 
 
-def MakeResponseForSkiaAlerts(alert_list, err_msg):
-  if err_msg:
-    values = {
-        'error': err_msg,
-    }
-  else:
-    values = {
-        'anomaly_list': alerts.AnomalyDicts(alert_list, skia=True),
-    }
+def MakeResponseForSkiaAlerts(alert_list, host, sid=None):
+  if not host:
+    return make_response(
+        json.dumps(
+            {'error': 'Host value is missing to load anomalies to Skia.'}),
+        http.HTTPStatus.BAD_REQUEST.value)
+
+  masters, internal_host = skia_helper.GetMastersAndInternalOnlyForHost(host)
+  # If the request is from a internal instance, no filtering is needed;
+  # otherwise, show external only.
+  if not internal_host:
+    alert_list = [a for a in alert_list if a.internal_only != True]
+  if masters:
+    alert_list = [a for a in alert_list if a.master_name in masters]
+
+  values = {
+      'anomaly_list': alerts.AnomalyDicts(alert_list, skia=True),
+  }
+  if sid:
+    values['sid'] = sid
 
   return make_response(json.dumps(values))
 

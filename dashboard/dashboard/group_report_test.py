@@ -29,6 +29,9 @@ from dashboard.models import page_state
 from dashboard.models.subscription import Subscription
 from dashboard.services import perf_issue_service_client
 
+SKIA_INTERNAL_HOST = 'https%3A%2F%2Fchrome-perf.corp.goog'
+SKIA_EXTERNAL_HOST = 'https%3A%2F%2Fperf.luci.app'
+
 flask_app = Flask(__name__)
 
 
@@ -67,6 +70,8 @@ class GroupReportTest(testing_common.TestCase):
   def setUp(self):
     super().setUp()
     self.testapp = webtest.TestApp(flask_app)
+    testing_common.SetIsInternalUser('internal@chromium.org', True)
+    self.SetCurrentUser('internal@chromium.org', is_admin=True)
 
   def _AddAnomalyEntities(self,
                           revision_ranges,
@@ -75,7 +80,8 @@ class GroupReportTest(testing_common.TestCase):
                           bug_id=None,
                           project_id=None,
                           group_id=None,
-                          return_urlsafe_keys=True):
+                          return_urlsafe_keys=True,
+                          internal_only=False):
     """Adds a group of Anomaly entities to the datastore."""
     urlsafe_keys = []
     integer_keys = []
@@ -91,7 +97,8 @@ class GroupReportTest(testing_common.TestCase):
           subscription_names=subscription_names,
           subscriptions=subscriptions,
           median_before_anomaly=100,
-          median_after_anomaly=200).put()
+          median_after_anomaly=200,
+          internal_only=internal_only).put()
       urlsafe_keys.append(six.ensure_str(anomaly_key.urlsafe()))
       keys.append(anomaly_key)
       integer_keys.append(anomaly_key.id())
@@ -314,7 +321,8 @@ class GroupReportTest(testing_common.TestCase):
         subscriptions,
         return_urlsafe_keys=False)
 
-    response = self.testapp.get('/alerts_skia_by_key?key=%s' % selected_key[0])
+    response = self.testapp.get('/alerts_skia_by_key?key=%s&host=%s' %
+                                (selected_key[0], SKIA_INTERNAL_HOST))
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
 
     # Expect selected alerts + overlapping alerts,
@@ -324,17 +332,19 @@ class GroupReportTest(testing_common.TestCase):
     self.assertEqual(anomaly_list[0]['id'], selected_key[0])
 
   def testGet_WithKeyOfNonExistentAlert_ShowsError_Skia(self):
-    response = self.testapp.get('/alerts_skia_by_key?key=123')
+    response = self.testapp.get(
+        '/alerts_skia_by_key?key=123', expect_errors=True)
     error = self.GetJsonValue(response, 'error')
     self.assertEqual('No Anomaly found for key 123.', error)
 
   def testGet_WithInvalidKeyParameter_ShowsError_Skia(self):
-    response = self.testapp.get('/alerts_skia_by_key?key=str_id')
+    response = self.testapp.get(
+        '/alerts_skia_by_key?key=str_id', expect_errors=True)
     error = self.GetJsonValue(response, 'error')
     self.assertIn('Invalid Anomaly key', error)
 
   def testGet_WithNoKeyParameter_ShowsError_Skia(self):
-    response = self.testapp.get('/alerts_skia_by_key')
+    response = self.testapp.get('/alerts_skia_by_key', expect_errors=True)
     error = self.GetJsonValue(response, 'error')
     self.assertEqual('No key is found from the request.', error)
 
@@ -363,6 +373,7 @@ class GroupReportTest(testing_common.TestCase):
     keys_param = ','.join([str(k) for k in selected_keys])
     response = self.testapp.post_json('/alerts_skia_by_keys', {
         'keys': keys_param,
+        'host': 'https://chrome-perf.corp.goog'
     })
 
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
@@ -377,7 +388,8 @@ class GroupReportTest(testing_common.TestCase):
     self.assertSetEqual({a['id'] for a in anomaly_list[0:2]},
                         set(selected_keys))
 
-    response2 = self.testapp.get('/alerts_skia_by_sid?sid=%s' % expected_sid)
+    response2 = self.testapp.get('/alerts_skia_by_sid?sid=%s&host=%s' %
+                                 (expected_sid, SKIA_INTERNAL_HOST))
     self.assertEqual(
         self.GetJsonValue(response, 'anomaly_list'),
         self.GetJsonValue(response2, 'anomaly_list'))
@@ -410,6 +422,48 @@ class GroupReportTest(testing_common.TestCase):
     subscription = self._Subscription()
     test_keys = self._AddTests()
     bug_data.Bug.New(project='chromium', bug_id=123).put()
+    self._AddAnomalyEntities([(200, 300), (100, 200)],
+                             test_keys[0], [subscription],
+                             bug_id=123,
+                             return_urlsafe_keys=False)
+    self._AddAnomalyEntities([(400, 500)],
+                             test_keys[0], [subscription],
+                             bug_id=123,
+                             return_urlsafe_keys=False,
+                             internal_only=True)
+    self._AddAnomalyEntities([(150, 250)],
+                             test_keys[0], [subscription],
+                             return_urlsafe_keys=False)
+    response = self.testapp.get('/alerts_skia_by_bug_id?bug_id=123&host=%s' %
+                                SKIA_INTERNAL_HOST)
+    anomaly_list = self.GetJsonValue(response, 'anomaly_list')
+    self.assertEqual(3, len(anomaly_list))
+
+  def testPost_WithBugIdParameter_ExternalHost_Skia(self):
+    subscription = self._Subscription()
+    test_keys = self._AddTests()
+    bug_data.Bug.New(project='chromium', bug_id=123).put()
+    self._AddAnomalyEntities([(200, 300), (100, 200)],
+                             test_keys[0], [subscription],
+                             bug_id=123,
+                             return_urlsafe_keys=False)
+    self._AddAnomalyEntities([(400, 500)],
+                             test_keys[0], [subscription],
+                             bug_id=123,
+                             return_urlsafe_keys=False,
+                             internal_only=True)
+    self._AddAnomalyEntities([(150, 250)],
+                             test_keys[0], [subscription],
+                             return_urlsafe_keys=False)
+    response = self.testapp.get('/alerts_skia_by_bug_id?bug_id=123&host=%s' %
+                                SKIA_EXTERNAL_HOST)
+    anomaly_list = self.GetJsonValue(response, 'anomaly_list')
+    self.assertEqual(2, len(anomaly_list))
+
+  def testPost_WithNoHostParameter_ShowsError_Skia(self):
+    subscription = self._Subscription()
+    test_keys = self._AddTests()
+    bug_data.Bug.New(project='chromium', bug_id=123).put()
     self._AddAnomalyEntities([(200, 300), (100, 200), (400, 500)],
                              test_keys[0], [subscription],
                              bug_id=123,
@@ -417,19 +471,21 @@ class GroupReportTest(testing_common.TestCase):
     self._AddAnomalyEntities([(150, 250)],
                              test_keys[0], [subscription],
                              return_urlsafe_keys=False)
-    response = self.testapp.get('/alerts_skia_by_bug_id?bug_id=123')
-    anomaly_list = self.GetJsonValue(response, 'anomaly_list')
-    self.assertEqual(3, len(anomaly_list))
+    response = self.testapp.get(
+        '/alerts_skia_by_bug_id?bug_id=123', expect_errors=True)
+    error = self.GetJsonValue(response, 'error')
+    self.assertIn('Host value is missing to load anomalies to Skia.', error)
 
   def testPost_WithInvalidBugIdParameter_ShowsError_Skia(self):
-    response = self.testapp.get('/alerts_skia_by_bug_id?bug_id=foo')
+    response = self.testapp.get(
+        '/alerts_skia_by_bug_id?bug_id=foo', expect_errors=True)
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     self.assertIsNone(anomaly_list)
     error = self.GetJsonValue(response, 'error')
     self.assertIn('Invalid bug ID "foo".', error)
 
   def testGet_WithNoBugIdParameter_ShowsError_Skia(self):
-    response = self.testapp.get('/alerts_skia_by_bug_id')
+    response = self.testapp.get('/alerts_skia_by_bug_id', expect_errors=True)
     error = self.GetJsonValue(response, 'error')
     self.assertEqual('No bug id is found from the request.', error)
 
