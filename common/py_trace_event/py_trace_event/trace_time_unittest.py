@@ -7,6 +7,7 @@ import contextlib
 import logging
 import platform
 import sys
+import time
 import unittest
 
 from py_trace_event import trace_time
@@ -110,7 +111,7 @@ class TimerTest(unittest.TestCase):
   def testGetClockGetTimeClockNumber_sunos(self):
     self.assertEquals(trace_time.GetClockGetTimeClockNumber('sunos5'), 4)
 
-  # Smoke Test.
+  # Smoke Tests.
   def testMonotonic(self):
     time_one = trace_time.Now()
     for _ in range(1000):
@@ -118,6 +119,14 @@ class TimerTest(unittest.TestCase):
       self.assertLessEqual(time_one, time_two)
       time_one = time_two
 
+  def testScale(self):
+    time_one = trace_time.Now()
+    time.sleep(1)
+    time_two = trace_time.Now()
+    diff = time_two - time_one
+    # trace_time.Now() returns a value in microseconds
+    self.assertLess(diff, 1.2e6)
+    self.assertGreater(diff, 0.8e6)
 
 if __name__ == '__main__':
   logging.getLogger().setLevel(logging.DEBUG)

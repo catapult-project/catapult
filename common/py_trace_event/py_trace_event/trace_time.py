@@ -65,7 +65,7 @@ def InitializeMacNowFunction(plat):
 
   timebase = MachTimebaseInfoData()
   libc.mach_timebase_info(ctypes.byref(timebase))
-  ticks_per_second = timebase.numer / timebase.denom * 1.0e9
+  ticks_per_second = timebase.denom / timebase.numer * 1.0e9
 
   def MacNowFunctionImpl():
     return mach_absolute_time() / ticks_per_second
