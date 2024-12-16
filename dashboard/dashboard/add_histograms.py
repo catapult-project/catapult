@@ -437,8 +437,8 @@ def FindSuiteLevelSparseDiagnostics(histograms, suite_key, revision,
               name=name,
               internal_only=internal_only)
         elif existing_entity.key.id() != diag.guid:
-          raise ValueError(name +
-                           ' diagnostics must be the same for all histograms')
+          err_template = ' diagnostics must be the same for all histograms. Suite key: '
+          raise ValueError(name + err_template + suite_key.id())
   return list(diagnostics.values())
 
 
