@@ -65,6 +65,16 @@ def SkiaAlertsBySidHandlerGet():
   return group_report.SkiaGetAlertsBySid()
 
 
+@flask_app.route('/alerts/skia/rev/<rev>', methods=['GET'])
+def ListSkiaAlertsByRev(rev):
+  return group_report.ListSkiaAlertsByRev(rev)
+
+
+@flask_app.route('/alerts/skia/group_id/<group_id>', methods=['GET'])
+def ListSkiaAlertsByGroupId(group_id):
+  return group_report.ListSkiaAlertsByGroupId(group_id)
+
+
 class GroupReportTest(testing_common.TestCase):
 
   def setUp(self):
@@ -470,6 +480,61 @@ class GroupReportTest(testing_common.TestCase):
     response = self.testapp.get('/alerts_skia_by_bug_id', expect_errors=True)
     error = self.GetJsonValue(response, 'error')
     self.assertEqual('No bug id is found from the request.', error)
+
+  # by rev
+  def testGet_WithRevParameter_Skia(self):
+    # If the rev parameter is given, then all alerts whose revision range
+    # includes the given revision should be included.
+    subscription = self._Subscription()
+    test_keys = self._AddTests()
+    self._AddAnomalyEntities([(190, 210), (200, 300), (100, 200), (400, 500)],
+                             test_keys[0], [subscription],
+                             return_urlsafe_keys=False)
+    response = self.testapp.get('/alerts/skia/rev/200?host=%s' %
+                                SKIA_INTERNAL_HOST)
+    anomaly_list = self.GetJsonValue(response, 'anomaly_list')
+    self.assertEqual(3, len(anomaly_list))
+
+  def testGet_WithInvalidRevParameter_ShowsError_Skia(self):
+    response = self.testapp.get('/alerts/skia/rev/foo', expect_errors=True)
+    error = self.GetJsonValue(response, 'error')
+    self.assertEqual('Invalid rev "foo".', error)
+
+  # by group id
+  @mock.patch.object(perf_issue_service_client, 'GetAnomaliesByAlertGroupID',
+                     mock.MagicMock(return_value=[1, 2, 3]))
+  def testGet_WithGroupIdParameter_Skia(self):
+    subscription = self._Subscription()
+    test_keys = self._AddTests()
+    self._AddAnomalyEntities([(200, 300), (100, 200), (400, 500)],
+                             test_keys[0], [subscription],
+                             group_id="123")
+    self._AddAnomalyEntities([(150, 250)], test_keys[0], [subscription])
+    response = self.testapp.get('/alerts/skia/group_id/123?host=%s' %
+                                SKIA_INTERNAL_HOST)
+    anomaly_list = self.GetJsonValue(response, 'anomaly_list')
+    self.assertEqual(3, len(anomaly_list))
+
+  @mock.patch.object(perf_issue_service_client, 'GetAnomaliesByAlertGroupID',
+                     mock.MagicMock(return_value=[1, 2, 3, '1-2-3']))
+  def testGet_WithGroupIdParameterWithNonIntegerAnomalyId_Skia(self):
+    subscription = self._Subscription()
+    test_keys = self._AddTests()
+    self._AddAnomalyEntities([(200, 300), (100, 200), (400, 500), (600, 700)],
+                             test_keys[0], [subscription],
+                             group_id="123")
+    self._AddAnomalyEntities([(150, 250)], test_keys[0], [subscription])
+    response = self.testapp.get('/alerts/skia/group_id/123?host=%s' %
+                                SKIA_INTERNAL_HOST)
+    anomaly_list = self.GetJsonValue(response, 'anomaly_list')
+    self.assertEqual(3, len(anomaly_list))
+
+  def testGet_WithInvalidGroupIdParameter_Skia(self):
+    response = self.testapp.get('/alerts/skia/group_id/foo', expect_errors=True)
+    anomaly_list = self.GetJsonValue(response, 'anomaly_list')
+    self.assertIsNone(anomaly_list)
+    error = self.GetJsonValue(response, 'error')
+    self.assertEqual('Invalid AlertGroup ID "foo".', error)
 
 
 if __name__ == '__main__':

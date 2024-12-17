@@ -136,6 +136,16 @@ def SkiaAlertsBySidHandlerGet():
   return group_report.SkiaGetAlertsBySid()
 
 
+@flask_app.route('/alerts/skia/rev/<rev>', methods=['GET'])
+def ListSkiaAlertsByRev(rev):
+  return group_report.ListSkiaAlertsByRev(rev)
+
+
+@flask_app.route('/alerts/skia/group_id/<group_id>', methods=['GET'])
+def ListSkiaAlertsByGroupId(group_id):
+  return group_report.ListSkiaAlertsByGroupId(group_id)
+
+
 @flask_app.route('/associate_alerts', methods=['GET', 'POST'])
 def AssociateAlertsHandlerPost():
   return associate_alerts.AssociateAlertsHandlerPost()

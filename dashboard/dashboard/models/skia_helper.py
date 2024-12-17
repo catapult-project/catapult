@@ -153,14 +153,14 @@ def GetSkiaUrlForAnomaly(anomaly: graph_data.anomaly.Anomaly) -> str:
   return ''
 
 
-def GetMastersAndInternalOnlyForHost(host: str):
+def GetMastersAndIsInternalForHost(host: str):
   for repo_map in REPOSITORY_HOST_MAPPING:
     if repo_map.get('public_host') == host:
       return repo_map.get('masters', []), False
     if repo_map.get('internal_host') == host:
       return repo_map.get('masters', []), True
 
-  return [], True
+  return [], False
 
 
 def _GetRepoMapForMaster(master: str):
