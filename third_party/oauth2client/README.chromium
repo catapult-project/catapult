@@ -4,7 +4,8 @@ Version: 1.4.11
 Revision: c61bdf4565782db82172b450284fb969150dd32b
 License: Apache
 License File: LICENSE
-Shipped: yes
+Shipped: no
+Security Critical: no
 
 Description:
 This is a client library for accessing resources protected by OAuth 2.0.
