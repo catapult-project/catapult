@@ -1,9 +1,11 @@
-Name: pyasn1
-URL: https://github.com/etingof/pyasn1
-Version: 0.4.5
+Name: chardet
+URL: https://github.com/chardet/chardet
+Version: 3.0.4
+Revision: 9b8c5c2fb118d76c6beeab9affd01c332732a530
 License: BSD-2
 License File: LICENSE
-Shipped: yes
+Shipped: no
+Security Critical: no
 
 Description:
 The Universal Character Encoding Detector.
