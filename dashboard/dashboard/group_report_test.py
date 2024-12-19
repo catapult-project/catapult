@@ -341,6 +341,9 @@ class GroupReportTest(testing_common.TestCase):
     # Confirm the first few keys are the selected keys.
     self.assertEqual(anomaly_list[0]['id'], selected_key[0])
 
+    expected_selected_keys = self.GetJsonValue(response, 'selected_keys')
+    self.assertEqual(selected_key, [int(k) for k in expected_selected_keys])
+
   def testGet_WithInvalidKeyParameter_ShowsError_Skia(self):
     response = self.testapp.get(
         '/alerts_skia_by_key?key=str_id', expect_errors=True)
@@ -394,6 +397,8 @@ class GroupReportTest(testing_common.TestCase):
     # Confirm the first few keys are the selected keys.
     self.assertSetEqual({a['id'] for a in anomaly_list[0:2]},
                         set(selected_keys))
+    expected_selected_keys = self.GetJsonValue(response2, 'selected_keys')
+    self.assertEqual(selected_keys, [int(k) for k in expected_selected_keys])
 
   def testPost_WithInvalidKeyParameter_ShowsError_Skia(self):
     response = self.testapp.post_json(
@@ -430,6 +435,8 @@ class GroupReportTest(testing_common.TestCase):
                                 SKIA_INTERNAL_HOST)
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     self.assertEqual(3, len(anomaly_list))
+    expected_selected_keys = self.GetJsonValue(response, 'selected_keys')
+    self.assertEqual(None, expected_selected_keys)
 
   def testGet_WithBugIdParameter_ExternalHost_Skia(self):
     subscription = self._Subscription()
@@ -494,6 +501,8 @@ class GroupReportTest(testing_common.TestCase):
                                 SKIA_INTERNAL_HOST)
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     self.assertEqual(3, len(anomaly_list))
+    expected_selected_keys = self.GetJsonValue(response, 'selected_keys')
+    self.assertEqual(None, expected_selected_keys)
 
   def testGet_WithInvalidRevParameter_ShowsError_Skia(self):
     response = self.testapp.get('/alerts/skia/rev/foo', expect_errors=True)

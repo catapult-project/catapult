@@ -196,13 +196,16 @@ def SkiaGetAlertsBySid():
         http.HTTPStatus.BAD_REQUEST.value)
 
   keys = state.value.decode("utf-8")
+  keys_list = []
   try:
-    alert_list = GetAlertsForKeys(keys.split(','), is_urlsafe=False)
+    keys_list = keys.split(',')
+    alert_list = GetAlertsForKeys(keys_list, is_urlsafe=False)
   except Exception as e:  # pylint: disable=broad-except
     return make_response(
         json.dumps({'error': str(e)}), http.HTTPStatus.BAD_REQUEST.value)
 
-  return MakeResponseForSkiaAlerts(alert_list, request.values.get('host'))
+  return MakeResponseForSkiaAlerts(
+      alert_list, request.values.get('host'), selected_keys=keys_list)
 
 
 def SkiaGetAlertsByIntegerKey():
@@ -222,7 +225,8 @@ def SkiaGetAlertsByIntegerKey():
     return make_response(
         json.dumps({'error': str(e)}), http.HTTPStatus.BAD_REQUEST.value)
 
-  return MakeResponseForSkiaAlerts(alert_list, request.values.get('host'))
+  return MakeResponseForSkiaAlerts(
+      alert_list, request.values.get('host'), selected_keys=[key])
 
 
 def SkiaGetAlertsByBugId():
@@ -248,7 +252,28 @@ def SkiaGetAlertsByBugId():
   return MakeResponseForSkiaAlerts(alert_list, request.values.get('host'))
 
 
-def MakeResponseForSkiaAlerts(alert_list, host, sid=None):
+def MakeResponseForSkiaAlerts(alert_list, host, sid=None, selected_keys=None):
+  """Make response for the anomaly list request specifically from Skia.
+
+  Args:
+    alert_list: a list of anomaly IDs in string
+    host: the Skia instance name, which is used to get the master names it
+          is correlated to, and whether it is an internal instance. Those
+          values will be used to filter the anomalies before returning to
+          Skia.
+    sid: the page state id used to represent a list of anomaly keys.
+    selected_keys: the keys from the original request, which will be used
+          to tell which anomalies should be checked in the report page.
+
+  Returns:
+    A response in json format:
+    {
+      'anomaly_list': the list of anomalies to return
+      'sid':          the state id.
+      'selected_keys': the keys of the anomalies which should be checked.
+      'error':        error message if any.
+    }
+  """
   if not host:
     return make_response(
         json.dumps(
@@ -268,6 +293,8 @@ def MakeResponseForSkiaAlerts(alert_list, host, sid=None):
   }
   if sid:
     values['sid'] = sid
+  if selected_keys:
+    values['selected_keys'] = selected_keys
 
   return make_response(json.dumps(values))
 
