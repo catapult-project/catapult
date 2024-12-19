@@ -104,10 +104,29 @@ class SourceEntry {
         this.description_ = e.params.host_port;
         break;
       case EventSourceType.HTTP_STREAM_POOL_GROUP:
-        this.description_ = e.params.stream_key.destination;
+      case EventSourceType.HTTP_STREAM_POOL_JOB:
+        // These source types could be durable. Some logs may not have the first
+        // event that contain `stream_key` parameter.
+        if ((typeof e.params.stream_key) === 'object' &&
+            (typeof e.params.stream_key.destination) === 'string') {
+          this.description_ = e.params.stream_key.destination;
+        }
         break;
       case EventSourceType.HTTP_STREAM_POOL_ATTEMPT_MANAGER:
-        // Use description of parent source, if any.
+        // This source type could be durable. Some logs may not have the first
+        // event that contain `stream_key` parameter. Try to use the description
+        // of the parent source first. Try to use `stream_key` parameter second.
+        if (e.params.source_dependency !== undefined) {
+          const parentId = e.params.source_dependency.id;
+          this.description_ =
+            SourceTracker.getInstance().getDescription(parentId);
+        } else if ((typeof e.params.stream_key) === 'object' &&
+                   (typeof e.params.stream_key.destination) === 'string') {
+          this.description_ = e.params.stream_key.destination;
+        }
+        break;
+      case EventSourceType.HTTP_STREAM_POOL_QUIC_TASK:
+        // Use the description of the parent source, if any.
         if (e.params.source_dependency !== undefined) {
           const parentId = e.params.source_dependency.id;
           this.description_ =
