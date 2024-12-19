@@ -12,6 +12,8 @@ import datetime
 from unittest import mock
 
 from dashboard.common import testing_common
+from dashboard.common import utils
+from dashboard.models import anomaly
 from dashboard.models import skia_helper
 
 MOCK_MAPPING = [{
@@ -28,6 +30,23 @@ MOCK_MAPPING = [{
 
 
 class SkiaHelper(testing_common.TestCase):
+
+  def setUp(self):
+    super().setUp()
+    testing_common.SetIsInternalUser('internal@chromium.org', True)
+    self.SetCurrentUser('internal@chromium.org', is_admin=True)
+
+  def _AddTests(self):
+    """Adds sample TestMetadata entities and returns their keys."""
+    testing_common.AddTests(['master_a'], ['bot'], {'benchmark': {'test': {},}})
+    testing_common.AddTests(['master_b'], ['bot'], {'benchmark': {'test': {},}})
+
+  def _AddAnomaly(self, test_key, internal_only):
+    """Adds a group of Anomaly entities to the datastore."""
+    anomaly_key = anomaly.Anomaly(
+        test=test_key, internal_only=internal_only).put()
+    return anomaly_key.get()
+
   # pylint: disable=line-too-long
   @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
               MOCK_MAPPING)
@@ -249,6 +268,35 @@ class SkiaHelper(testing_common.TestCase):
         host='blah')
     self.assertEqual(masters, [])
     self.assertEqual(is_internal, False)
+
+  @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
+              MOCK_MAPPING)
+  def testGetSkiaUrlForAnomaly_External(self):
+    a = self._AddAnomaly(
+        test_key=utils.TestKey('master_a/bot/benchmark/test'),
+        internal_only=False)
+    url = skia_helper.GetSkiaUrlForAnomaly(anomaly=a)
+    self.assertEqual(url, 'https://a.com/u/?anomalyIDs=%s' % a.key.integer_id())
+
+  @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
+              MOCK_MAPPING)
+  def testGetSkiaUrlForAnomaly_Internal(self):
+    a = self._AddAnomaly(
+        test_key=utils.TestKey('master_b/bot/benchmark/test'),
+        internal_only=True)
+    url = skia_helper.GetSkiaUrlForAnomaly(anomaly=a)
+    self.assertEqual(url,
+                     'https://a.corp/u/?anomalyIDs=%s' % a.key.integer_id())
+
+  @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
+              MOCK_MAPPING)
+  def testGetSkiaUrlForAnomaly_InvalidMaster(self):
+    a = self._AddAnomaly(
+        test_key=utils.TestKey('master_x/bot/benchmark/test'),
+        internal_only=False)
+    url = skia_helper.GetSkiaUrlForAnomaly(anomaly=a)
+    self.assertEqual(url, '')
+
 
 if __name__ == '__main__':
   unittest.main()

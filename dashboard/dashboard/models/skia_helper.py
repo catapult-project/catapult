@@ -8,7 +8,6 @@ from typing import List, Optional
 
 import datetime
 import logging
-import six
 import urllib.parse as encoder
 
 from dashboard.models import graph_data
@@ -148,7 +147,7 @@ def GetSkiaUrlForAnomaly(anomaly: graph_data.anomaly.Anomaly) -> str:
   if repo_map:
     host = repo_map['internal_host'] if anomaly.internal_only else repo_map[
           'public_host']
-    return '%s/_/anomaly?key=%s' % (host, six.ensure_str(anomaly.key.urlsafe()))
+    return '%s/u/?anomalyIDs=%s' % (host, anomaly.key.integer_id())
 
   return ''
 
