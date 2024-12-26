@@ -4,6 +4,8 @@ Version: 1.25.3
 Revision: 10f362e2b6e06e77943ca4823fd6eccbb38c394f
 CPEPrefix: cpe:/a:python:urllib3:1.25.3
 License: MIT
+License File: LICENSE.txt
+Security Critical: no
 Shipped: yes
 
 Description:
