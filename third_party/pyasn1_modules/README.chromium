@@ -3,6 +3,8 @@ URL: https://github.com/etingof/pyasn1-modules
 Version: 0.2.5
 Revision: 8764363979055eda0c736c49bad56abe6dc2687a
 License: BSD-2
+License File: LICENSE.txt
+Security Critical: no
 Shipped: yes
 
 Description:
