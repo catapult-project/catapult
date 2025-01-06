@@ -1,7 +1,40 @@
-Name: Chrome d8 for executing javascript
+Name: Chrome d8 for executing javascript (Linux)
 Short Name: d8
-URL: https://developers.google.com/v8/
-Version: 10.1.124.11 (linux), 7.0.276.40 (mac), 5.6.326.50 (win)
+URL: https://github.com/v8/v8
+Version: 10.1.124.11 (linux)
+Revision: 038025c396f285a96cee650993c800a5d0ea965f
+License: BSD
+License File: LICENSE, LICENSE.v8, LICENSE.strongtalk, LICENSE.valgrind
+Security Critical: no
+Shipped: yes
+Description: d8 binaries is used for executing trace-viewer's trace analyzing
+code.
+Local modifications: We ignore the source code & only keep the d8 binaries. Use
+tracing/bin/update_v8 to update the binary on your current OS.
+
+-------------------- DEPENDENCY DIVIDER --------------------
+
+Name: Chrome d8 for executing javascript (Mac)
+Short Name: d8
+URL: https://github.com/v8/v8
+Version: 7.0.276.40 (mac)
+Revision: 0ab74ca5dc325e46ad0763000e00c79fb2b4dad1
+License: BSD
+License File: LICENSE, LICENSE.v8, LICENSE.strongtalk, LICENSE.valgrind
+Security Critical: no
+Shipped: yes
+Description: d8 binaries is used for executing trace-viewer's trace analyzing
+code.
+Local modifications: We ignore the source code & only keep the d8 binaries. Use
+tracing/bin/update_v8 to update the binary on your current OS.
+
+-------------------- DEPENDENCY DIVIDER --------------------
+
+Name: Chrome d8 for executing javascript (Windows)
+Short Name: d8
+URL: https://github.com/v8/v8
+Version: 5.6.326.50 (win)
+Revision: d2f8b8429adbc4ddf887fb7e69d89143df07bf08
 License: BSD
 License File: LICENSE, LICENSE.v8, LICENSE.strongtalk, LICENSE.valgrind
 Security Critical: no
