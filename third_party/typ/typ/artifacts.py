@@ -40,6 +40,7 @@ WINDOWS_FORBIDDEN_PATH_CHARACTERS = [
 ]
 
 WINDOWS_MAX_PATH = 260
+LINUX_MAX_FILE_NAME = 255
 MAC_MAX_FILE_NAME = 255
 
 class Artifacts(object):
@@ -201,14 +202,13 @@ class Artifacts(object):
     # detect any cases of those, replace that section of the path with a hash of
     # that section.
     if self._platform == 'darwin':
-      path_pieces = subdir_relative_path.split(self._host.sep)
-      for i, piece in enumerate(path_pieces):
-        if len(piece) <= MAC_MAX_FILE_NAME:
-          continue
-        m = hashlib.sha1()
-        m.update(piece.encode('utf-8'))
-        path_pieces[i] = m.hexdigest()
-      subdir_relative_path = self._host.join(*path_pieces)
+      subdir_relative_path = self._RestrictPathComponentsToCharacterLimit(
+          subdir_relative_path, MAC_MAX_FILE_NAME)
+    # Similar constraints for Linux.
+    if 'linux' in self._platform:
+      subdir_relative_path = self._RestrictPathComponentsToCharacterLimit(
+          subdir_relative_path, LINUX_MAX_FILE_NAME)
+
     abs_path = self._host.join(self._output_dir, subdir_relative_path)
     # Attempt to work around the 260 character path limit in Windows. This is
     # not guaranteed to solve the issue, but should address the common case of
@@ -225,6 +225,27 @@ class Artifacts(object):
           (self._host.join(self._output_dir, self.ArtifactsSubDirectory(),
                            file_relative_path)))
     return (subdir_relative_path, abs_path)
+
+  def _RestrictPathComponentsToCharacterLimit(self, path, character_limit):
+    """Restricts the given path to a certain number of characters per component.
+
+    Args:
+      path: The path to check/modify.
+      character_limit: The maximum length any file/directory in the path is
+          allowed to be.
+
+    Returns:
+      A copy of |path| with any components that are longer than
+      |character_limit| replaced with a SHA1 digest of the component.
+    """
+    path_pieces = path.split(self._host.sep)
+    for i, piece in enumerate(path_pieces):
+      if len(piece) <= character_limit:
+        continue
+      m = hashlib.sha1()
+      m.update(piece.encode('utf-8'))
+      path_pieces[i] = m.hexdigest()
+    return self._host.join(*path_pieces)
 
 
 class PathTooLongException(Exception):

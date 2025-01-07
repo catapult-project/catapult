@@ -165,12 +165,12 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
       ar.CreateArtifact('artifact_name', file_rel_path, b'contents')
     self.assertEqual(ar.artifacts, {})
 
-  def test_mac_path_limit_workaround(self):
+  def _test_path_limit_workaround_impl(self, platform, character_limit):
     host = FakeHost()
-    host.platform = 'darwin'
+    host.platform = platform
     output_dir = '%stmp' % host.sep
-    long_artifact_piece = 'a' * (artifacts.MAC_MAX_FILE_NAME + 1)
-    long_relative_piece = 'b' * (artifacts.MAC_MAX_FILE_NAME + 1)
+    long_artifact_piece = 'a' * (character_limit + 1)
+    long_relative_piece = 'b' * (character_limit + 1)
     artifacts_base_dir = host.join(long_artifact_piece, 'short')
     ar = artifacts.Artifacts(output_dir, host, iteration=0,
                              artifacts_base_dir=artifacts_base_dir)
@@ -185,6 +185,13 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
     expected_path = host.join(
         output_dir, artifact_hash, 'short', relative_hash, 'output.txt')
     self.assertEqual(host.read_binary_file(expected_path), b'content')
+
+  def test_mac_path_limit_workaround(self):
+    self._test_path_limit_workaround_impl('darwin', artifacts.MAC_MAX_FILE_NAME)
+
+  def test_linux_path_limit_workaround(self):
+    self._test_path_limit_workaround_impl(
+        'linux2', artifacts.LINUX_MAX_FILE_NAME)
 
 
 class ArtifactsLinkCreationTests(unittest.TestCase):
