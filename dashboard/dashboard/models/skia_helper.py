@@ -136,8 +136,7 @@ def GetSkiaUrlsForAlertGroup(alert_group_id: str,
       host = repo_map['internal_host'] if internal_only else repo_map[
           'public_host']
       if host:
-        urls.add('%s: %s/_/alertgroup?group_id=%s' %
-                 (label, host, alert_group_id))
+        urls.add('%s: %s/u/?anomalyGroupID=%s' % (label, host, alert_group_id))
 
   return list(urls)
 

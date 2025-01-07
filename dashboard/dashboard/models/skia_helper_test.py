@@ -173,7 +173,7 @@ class SkiaHelper(testing_common.TestCase):
         internal_only=True,
         masters=['master_a'],
     )
-    expected_url = 'label_1: https://a.corp/_/alertgroup?group_id=abc'
+    expected_url = 'label_1: https://a.corp/u/?anomalyGroupID=abc'
     self.assertEqual(urls[0], expected_url)
 
   @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
@@ -184,7 +184,7 @@ class SkiaHelper(testing_common.TestCase):
         internal_only=False,
         masters=['master_a'],
     )
-    expected_url = 'label_1: https://a.com/_/alertgroup?group_id=abc'
+    expected_url = 'label_1: https://a.com/u/?anomalyGroupID=abc'
     self.assertEqual(urls[0], expected_url)
 
   @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
@@ -195,7 +195,7 @@ class SkiaHelper(testing_common.TestCase):
         internal_only=True,
         masters=['master_a'],
     )
-    expected_url = 'label_1: https://a.corp/_/alertgroup?group_id='
+    expected_url = 'label_1: https://a.corp/u/?anomalyGroupID='
     self.assertEqual(urls[0], expected_url)
 
   @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
@@ -217,7 +217,7 @@ class SkiaHelper(testing_common.TestCase):
         masters=['master_a', 'master_b'],
     )
     self.assertEqual(len(urls), 1)
-    expected_url = 'label_1: https://a.corp/_/alertgroup?group_id='
+    expected_url = 'label_1: https://a.corp/u/?anomalyGroupID='
     self.assertEqual(urls[0], expected_url)
 
   @mock.patch('dashboard.models.skia_helper.REPOSITORY_HOST_MAPPING',
@@ -230,8 +230,8 @@ class SkiaHelper(testing_common.TestCase):
     )
     self.assertEqual(len(urls), 2)
     expected = [
-        'label_1: https://a.com/_/alertgroup?group_id=',
-        'label_2: https://b.com/_/alertgroup?group_id='
+        'label_1: https://a.com/u/?anomalyGroupID=',
+        'label_2: https://b.com/u/?anomalyGroupID='
     ]
     self.assertEqual(sorted(urls), expected)
 
