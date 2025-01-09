@@ -3,6 +3,7 @@ URL: https://github.com/Pylons/webtest
 Version: 2.0.19
 Revision: be97d7b5e774bbd89b19bb5aed9478bbac79e313
 License: MIT
+License File: license.rst
 Shipped: yes
 Security Critical: no
 

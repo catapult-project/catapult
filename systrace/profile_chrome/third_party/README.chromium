@@ -1,9 +1,9 @@
 Name: Perf to JSON conversion script
 Short Name: perf_to_json
 URL: http://www.chromium.org
-Version: 0
+Version: N/A
 Date: 2014-07-21
-Revision: 0
+Revision: bb6eef7565d7764697a750271262ea44c336fb84
 License: GPL
 Security Critical: No
 Shipped: no
