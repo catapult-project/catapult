@@ -105,6 +105,9 @@ class Artifacts(object):
     self._intial_results_base_dir = intial_results_base_dir
     self._repeat_tests = repeat_tests
     self._host = host
+    # Artifacts that are held entirely in memory. A map of artifact name to text
+    # content.
+    self.in_memory_text_artifacts = {}
 
   def ArtifactsSubDirectory(self):
     sub_dir = self._artifacts_base_dir
@@ -176,6 +179,26 @@ class Artifacts(object):
     if parse_result.scheme != 'https':
       raise ValueError('Only HTTPS URLs are supported.')
     self.artifacts[artifact_name] = [path]
+
+  def CreateInMemoryTextArtifact(self, artifact_name, content, raise_exception_for_duplicates=True):
+    """Creates a fully in-memory text artifact.
+
+    This is primarily meant for numerous small artifacts, as creating many files
+    can negatively impact Swarming cleanup due to having to delete those files
+    before the task can end.
+
+    Args:
+      artifact_name: A string specifying the name for the artifact.
+      content: A string containing the content to store in the artifact.
+      raise_exception_for_duplicates: Whether a duplicate artifact name should
+          be considered an error.
+    """
+    if (raise_exception_for_duplicates and
+        artifact_name in self.in_memory_text_artifacts):
+      raise ValueError('%s already exists' % artifact_name)
+    if not isinstance(content, str):
+      raise ValueError('Content for %s is not text' % artifact_name)
+    self.in_memory_text_artifacts[artifact_name] = content
 
   def _AssertOutputDir(self):
     if not self._output_dir:

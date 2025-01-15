@@ -194,6 +194,33 @@ class ArtifactsArtifactCreationTests(unittest.TestCase):
         'linux2', artifacts.LINUX_MAX_FILE_NAME)
 
 
+class ArtifactsCreateInMemoryTextArtifactTests(unittest.TestCase):
+  def test_create_success(self):
+    ar = artifacts.Artifacts('', FakeHost())
+    ar.CreateInMemoryTextArtifact('artifact_name', 'content')
+    self.assertEqual(ar.in_memory_text_artifacts, {'artifact_name': 'content'})
+
+  def test_create_duplicate_failure(self):
+    ar = artifacts.Artifacts('', FakeHost())
+    ar.CreateInMemoryTextArtifact('artifact_name', 'content')
+    with self.assertRaisesRegex(ValueError, 'artifact_name already exists'):
+      ar.CreateInMemoryTextArtifact('artifact_name', 'new_content')
+
+  def test_create_duplicate_success(self):
+    ar = artifacts.Artifacts('', FakeHost())
+    ar.CreateInMemoryTextArtifact('artifact_name', 'content')
+    ar.CreateInMemoryTextArtifact(
+        'artifact_name', 'new_content', raise_exception_for_duplicates=False)
+    self.assertEqual(
+        ar.in_memory_text_artifacts, {'artifact_name': 'new_content'})
+
+  def test_create_non_text_failure(self):
+    ar = artifacts.Artifacts('', FakeHost())
+    with self.assertRaisesRegex(
+        ValueError, 'Content for artifact_name is not text'):
+      ar.CreateInMemoryTextArtifact('artifact_name', b'content')
+
+
 class ArtifactsLinkCreationTests(unittest.TestCase):
   def test_create_link(self):
     ar = artifacts.Artifacts('', FakeHost())

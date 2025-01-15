@@ -1243,7 +1243,8 @@ def _run_one_test(child, test_input):
     result = _result_from_test_result(test_result, test_name, started, took, out,
                                     err, child.worker_num, pid, test_case,
                                     expected_results, child.has_expectations,
-                                    art.artifacts, associated_bugs)
+                                    art.artifacts, art.in_memory_text_artifacts,
+                                    associated_bugs)
     result.result_sink_retcode =\
             child.result_sink_reporter.report_individual_test_result(
                 result, child.artifact_output_dir, child.expectations,
@@ -1265,7 +1266,9 @@ def _run_under_debugger(host, test_case, suite,
 
 def _result_from_test_result(test_result, test_name, started, took, out, err,
                              worker_num, pid, test_case, expected_results,
-                             has_expectations, artifacts, associated_bugs):
+                             has_expectations, artifacts,
+                             in_memory_text_artifacts,
+                             associated_bugs):
     failure_reason = None
     if test_result.failures:
         actual = ResultType.Failure
@@ -1313,8 +1316,8 @@ def _result_from_test_result(test_result, test_name, started, took, out, err,
     line_number = inspect.getsourcelines(test_func)[1]
     return Result(test_name, actual, started, took, worker_num,
                   expected_results, unexpected, flaky, code, out, err, pid,
-                  file_path, line_number, artifacts, failure_reason,
-                  associated_bugs)
+                  file_path, line_number, artifacts, in_memory_text_artifacts,
+                  failure_reason, associated_bugs)
 
 
 def _failure_reason_from_traceback(traceback):

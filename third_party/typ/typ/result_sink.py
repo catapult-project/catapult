@@ -201,9 +201,17 @@ class ResultSinkReporter(object):
 
         artifacts = {}
         original_artifacts = result.artifacts or {}
+        in_memory_text_artifacts = result.in_memory_text_artifacts or {}
         https_artifacts = ''
         assert STDOUT_KEY not in original_artifacts
+        assert STDOUT_KEY not in in_memory_text_artifacts
         assert STDERR_KEY not in original_artifacts
+        assert STDERR_KEY not in in_memory_text_artifacts
+        # Make sure there are no overlapping keys between file artifacts and
+        # in-memory artifacts.
+        assert not (set(original_artifacts.keys()) &
+                    set(in_memory_text_artifacts.keys()))
+
         if original_artifacts:
             assert artifact_output_dir
             if not os.path.isabs(artifact_output_dir):
@@ -232,6 +240,13 @@ class ResultSinkReporter(object):
                     'filePath': self.host.join(
                             artifact_output_dir, artifact_filepaths[0]),
                 }
+
+        for artifact_name, text_content in in_memory_text_artifacts.items():
+            artifacts[artifact_name] = {
+                'contents': base64.b64encode(
+                    text_content.encode('utf-8')).decode('utf-8'),
+                'content_type': 'text/plain; charset=utf-8',
+            }
 
         for artifact_id, contents in [(STDOUT_KEY, result.out),
                                       (STDERR_KEY, result.err)]:

@@ -48,11 +48,25 @@ class Result(object):
     # too many instance attributes  pylint: disable=R0902
     # too many arguments  pylint: disable=R0913
 
-    def __init__(self, name, actual, started, took, worker,
-                 expected=None, unexpected=False,
-                 flaky=False, code=0, out='', err='', pid=0,
-                 file_path='', line_number=0,
-                 artifacts=None, failure_reason=None, associated_bugs=''):
+    def __init__(self,
+                 name,
+                 actual,
+                 started,
+                 took,
+                 worker,
+                 expected=None,
+                 unexpected=False,
+                 flaky=False,
+                 code=0,
+                 out='',
+                 err='',
+                 pid=0,
+                 file_path='',
+                 line_number=0,
+                 artifacts=None,
+                 in_memory_text_artifacts=None,
+                 failure_reason=None,
+                 associated_bugs=''):
         self.name = name
         self.actual = actual
         self.started = started
@@ -67,6 +81,7 @@ class Result(object):
         self.pid = pid
         self.is_regression = actual != ResultType.Pass and unexpected
         self.artifacts = artifacts
+        self.in_memory_text_artifacts = in_memory_text_artifacts
         self.file_path = file_path
         self.line_number = line_number
         self.failure_reason = failure_reason
@@ -274,19 +289,33 @@ def _results_for_test(test_name, results_by_test_name):
         # invocation of the test.
         value['expected'] = ' '.join(sorted(r.expected))
 
-        # Handle artifacts
-        if not r.artifacts:
-            continue
-        if 'artifacts' not in value:
-            value['artifacts'] = {}
-        for artifact_name, artifacts in r.artifacts.items():
-            value['artifacts'].setdefault(artifact_name, []).extend(artifacts)
+        _add_artifacts_to_dict(value, r)
+        _add_in_memory_text_artifacts_to_dict(value, r)
 
     if not actuals:  # pragma: untested
         actuals.append('SKIP')
     value['actual'] = ' '.join(actuals)
     value['times'] = times
     return value
+
+def _add_artifacts_to_dict(value, result):
+    if not result.artifacts:
+        return
+    if 'artifacts' not in value:
+        value['artifacts'] = {}
+    for artifact_name, artifacts in result.artifacts.items():
+        value['artifacts'].setdefault(artifact_name, []).extend(artifacts)
+
+def _add_in_memory_text_artifacts_to_dict(value, result):
+    if not result.in_memory_text_artifacts:
+        return
+    if 'in_memory_text_artifacts' not in value:
+        value['in_memory_text_artifacts'] = {}
+    for artifact_name, content in result.in_memory_text_artifacts.items():
+        if artifact_name in value['in_memory_text_artifacts']:
+            raise ValueError(
+                'Duplicate in-memory text artifacts are not supported')
+        value['in_memory_text_artifacts'][artifact_name] = content
 
 def _add_path_to_trie(trie, path, value, test_separator):
     if test_separator not in path:

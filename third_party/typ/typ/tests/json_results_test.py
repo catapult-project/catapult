@@ -20,6 +20,7 @@ from typ import json_results
 class FakeArtifacts(object):
     def __init__(self):
         self.artifacts = {}
+        self.in_memory_text_artifacts = {}
 
 
 class TestMakeUploadRequest(unittest.TestCase):
@@ -153,13 +154,15 @@ class TestMakeFullResults(unittest.TestCase):
     def test_artifacts_and_types_added(self):
         ar = FakeArtifacts()
         ar.artifacts = {'artifact_name': ['a/b/c.txt']}
+        ar.in_memory_text_artifacts = {'text_artifact': 'content'}
 
         test_names = [ 'foo_test.FooTest.foobar' ]
 
         result_set = json_results.ResultSet()
         result_set.add(json_results.Result(
                 'foo_test.FooTest.foobar', json_results.ResultType.Pass,
-                0, 0.2, 0, artifacts=ar.artifacts))
+                0, 0.2, 0, artifacts=ar.artifacts,
+                in_memory_text_artifacts=ar.in_memory_text_artifacts))
 
         full_results = json_results.make_full_results(
                 {'foo': 'bar'}, 0, test_names, result_set)
@@ -168,6 +171,9 @@ class TestMakeFullResults(unittest.TestCase):
         self.assertIn('artifacts', tests['foobar'])
         self.assertEqual(tests['foobar']['artifacts'],
                          {'artifact_name': ['a/b/c.txt']})
+        self.assertIn('in_memory_text_artifacts', tests['foobar'])
+        self.assertEqual(tests['foobar']['in_memory_text_artifacts'],
+                         {'text_artifact': 'content'})
 
     def test_artifacts_merged(self):
         test_names = [ 'foo_test.FooTest.foobar' ]
@@ -197,3 +203,26 @@ class TestMakeFullResults(unittest.TestCase):
         self.assertEqual(len(artifacts['artifact_name']), 2)
         self.assertIn('a/b/c.txt', artifacts['artifact_name'])
         self.assertIn('d/e/f.txt', artifacts['artifact_name'])
+
+    def test_in_memory_artifacts_not_merged(self):
+        test_names = [ 'foo_test.FooTest.foobar' ]
+        result_set = json_results.ResultSet()
+
+        ar = FakeArtifacts()
+        ar.in_memory_text_artifacts = {'artifact_name': 'content'}
+        result_set.add(json_results.Result(
+                'foo_test.FooTest.foobar', json_results.ResultType.Failure,
+                0, 0.2, 0,
+                in_memory_text_artifacts=ar.in_memory_text_artifacts))
+
+        ar2 = FakeArtifacts()
+        ar2.in_memory_text_artifacts = {'artifact_name': 'content2'}
+        result_set.add(json_results.Result(
+                'foo_test.FooTest.foobar', json_results.ResultType.Failure,
+                0, 0.2, 0,
+                in_memory_text_artifacts=ar2.in_memory_text_artifacts))
+
+        with self.assertRaisesRegex(
+            ValueError, 'Duplicate in-memory text artifacts are not supported'):
+            json_results.make_full_results(
+                {'foo': 'bar'}, 0, test_names, result_set)
