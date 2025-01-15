@@ -180,7 +180,7 @@ found in the LICENSE file.
           <change-details job="[[job]]" change-state="[[changeState(job.state, changeIndex)]]" extra-args="[[getExtraArgs(job, 1)]]"></change-details>
         </div>
       </div>
-      <job-menu-fab hidden$=[[!user]] job="[[job]]" user="[[user]]" client="{{client}}"></job-menu-fab>
+      <job-menu-fab hidden$=[[!user]] job="[[job]]" user="[[user]]" client="{{client}}" isBisecJob="[[!isTryJob(job)]]"></job-menu-fab>
     </loading-wrapper>
   </template>
 

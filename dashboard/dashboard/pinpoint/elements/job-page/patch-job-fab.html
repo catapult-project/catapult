@@ -38,26 +38,39 @@ found in the LICENSE file.
     <paper-tooltip for="try-fab" position="left">Test a patch</paper-tooltip>
     <paper-dialog id="try_dialog" entry-animation="fade-in-animation" exit-animation="fade-out-animation">
       <h2>Test a patch with this configuration</h2>
+      <template is="dom-if" if="[[!isBisecJob]]">
+        <div>
+          <p>
+            See the impact of a patch on this job's metric. A patch job runs HEAD
+            and HEAD + patch with the same configuration and metric as this job.
+          </p>
+          <template is="dom-if" if="[[error]]">
+            <p class="error">[[error]]
+          </template>
+          <iron-form id="try_form" headers="[[client.authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
+            <form action="/api/new" method="POST">
+              <template is="dom-repeat" items="[[getArguments(job)]]">
+                <input type="hidden" name="[[item.key]]" value="[[item.value]]">
+              </template>
+              <paper-input name="experiment_patch" label="Gerrit URL" required></paper-input>
+            </form>
+          </iron-form>
+        </div>
+        <div class="buttons">
+          <paper-button on-tap="submit">Start</paper-button>
+        </div>
+      </template>
+      <template is="dom-if" if="[[isBisecJob]]">
       <div>
         <p>
-          See the impact of a patch on this job's metric. A patch job runs HEAD
-          and HEAD + patch with the same configuration and metric as this job.
+          Starting a try job within a bisection is not supported.
+          To run a try job, please start a new Pinpoint workflow.
         </p>
-        <template is="dom-if" if="[[error]]">
-          <p class="error">[[error]]
-        </template>
-        <iron-form id="try_form" headers="[[client.authHeaders]]" on-iron-form-error="handleError" on-iron-form-response="handleResponse">
-          <form action="/api/new" method="POST">
-            <template is="dom-repeat" items="[[getArguments(job)]]">
-              <input type="hidden" name="[[item.key]]" value="[[item.value]]">
-            </template>
-            <paper-input name="experiment_patch" label="Gerrit URL" required></paper-input>
-          </form>
-        </iron-form>
       </div>
       <div class="buttons">
-        <paper-button on-tap="submit">Start</paper-button>
+        <paper-button on-tap="ok">OK</paper-button>
       </div>
+    </template>
     </paper-dialog>
   </template>
 
@@ -75,6 +88,10 @@ found in the LICENSE file.
         user: {
           type: String,
           value: ''
+        },
+        isBisecJob: {
+          type: Boolean,
+          value: false
         }
       },
 
@@ -109,6 +126,10 @@ found in the LICENSE file.
           this.$.try_dialog.open();
         }
         this.client.requestAccessToken({hint: this.user});
+      },
+
+      ok() {
+        this.$.try_dialog.close();
       },
 
       submit() {
