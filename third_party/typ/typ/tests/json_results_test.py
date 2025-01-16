@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 import unittest
 
 from typ import json_results
@@ -204,7 +205,7 @@ class TestMakeFullResults(unittest.TestCase):
         self.assertIn('a/b/c.txt', artifacts['artifact_name'])
         self.assertIn('d/e/f.txt', artifacts['artifact_name'])
 
-    def test_in_memory_artifacts_not_merged(self):
+    def test_in_memory_artifacts_duplicates_renamed(self):
         test_names = [ 'foo_test.FooTest.foobar' ]
         result_set = json_results.ResultSet()
 
@@ -222,7 +223,20 @@ class TestMakeFullResults(unittest.TestCase):
                 0, 0.2, 0,
                 in_memory_text_artifacts=ar2.in_memory_text_artifacts))
 
-        with self.assertRaisesRegex(
-            ValueError, 'Duplicate in-memory text artifacts are not supported'):
-            json_results.make_full_results(
-                {'foo': 'bar'}, 0, test_names, result_set)
+        full_results = json_results.make_full_results(
+            {'foo': 'bar'}, 0, test_names, result_set)
+
+        tests = full_results['tests']['foo_test']['FooTest']
+        self.assertIn('in_memory_text_artifacts', tests['foobar'])
+        artifacts = tests['foobar']['in_memory_text_artifacts']
+        self.assertIn('artifact_name', artifacts)
+        self.assertEqual(artifacts['artifact_name'], 'content')
+
+        # Check that the duplicate artifact got auto-renamed to include the
+        # ISO-format timestamp.
+        iso_format_regex = re.compile(
+            r'artifact_name-\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d.\d+')
+        for artifact_name, artifact_content in artifacts.items():
+            if iso_format_regex.match(artifact_name):
+                self.assertEqual(artifact_content, 'content2')
+                break

@@ -14,6 +14,7 @@
 
 from collections import OrderedDict, defaultdict
 
+import datetime
 import json
 
 _show_only_in_metadata = set(['tags', 'expectations_files', 'test_name_prefix'])
@@ -313,8 +314,8 @@ def _add_in_memory_text_artifacts_to_dict(value, result):
         value['in_memory_text_artifacts'] = {}
     for artifact_name, content in result.in_memory_text_artifacts.items():
         if artifact_name in value['in_memory_text_artifacts']:
-            raise ValueError(
-                'Duplicate in-memory text artifacts are not supported')
+            timestamp = datetime.datetime.now().isoformat()
+            artifact_name = '%s-%s' % (artifact_name, timestamp)
         value['in_memory_text_artifacts'][artifact_name] = content
 
 def _add_path_to_trie(trie, path, value, test_separator):
