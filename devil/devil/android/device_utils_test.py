@@ -3694,6 +3694,12 @@ class DeviceUtilsGetPropTest(DeviceUtilsTest):
         self.call.device.GetProp('ro.product.device', cache=True), 'emu64x'):
       self.assertTrue(self.device.is_emulator)
 
+  def testIsEmulator_Android15(self):
+    with self.assertCall(
+        self.call.device.GetProp('ro.product.device', cache=True),
+        'vsoc_x86_64'):
+      self.assertTrue(self.device.is_emulator)
+
   def testIsEmulator_physicalDevice(self):
     with self.assertCall(
         self.call.device.GetProp('ro.product.device', cache=True),
