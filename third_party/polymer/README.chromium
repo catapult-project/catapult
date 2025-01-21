@@ -2,7 +2,7 @@ Name: Polymer
 Short Name: polymer
 URL: http://www.polymer-project.org
 Version: 0.5.2-4
-License: BSD
+License: BSD-3-Clause
 License File: LICENSE.polymer
 Security Critical: no
 Shipped: yes

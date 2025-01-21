@@ -2,7 +2,7 @@ Name: google-auth
 URL: https://github.com/googleapis/google-auth-library-python
 Version: 1.6.3
 Revision: 08272d89667a901d0dff6c4ba53d5b30fcc29e81
-License: Apache
+License: Apache-2.0
 License File: LICENSE
 Security Critical: no
 Shipped: yes

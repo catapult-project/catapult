@@ -2,7 +2,7 @@ Name: Google Cloud Storage Client Library
 Short Name: cloudstorage
 URL: https://github.com/GoogleCloudPlatform/appengine-gcs-client
 Version: 0.7
-License: Apache 2.0
+License: Apache-2.0
 License File: COPYING
 Revision: d8f33c65c598fbfabdc5785dd60f765f973d164f
 Security Critical: no

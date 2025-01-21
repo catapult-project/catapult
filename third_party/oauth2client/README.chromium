@@ -2,7 +2,7 @@ Name: oauth2client
 URL: https://github.com/google/oauth2client
 Version: 1.4.11
 Revision: c61bdf4565782db82172b450284fb969150dd32b
-License: Apache
+License: Apache-2.0
 License File: LICENSE
 Shipped: no
 Security Critical: no

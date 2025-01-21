@@ -2,7 +2,7 @@ Name: webapp2
 URL: https://pypi.python.org/pypi/webapp2
 Version: 2.5.2
 Date: 2012-09-28
-License: Apache Software License
+License: Apache-2.0, MIT, BSD-3-Clause
 License File: LICENSE
 Security Critical: no
 Shipped: yes
