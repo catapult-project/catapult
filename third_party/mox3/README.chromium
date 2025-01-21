@@ -2,7 +2,7 @@ Name: mox3
 Short Name: mox3
 URL: https://github.com/openstack/mox3
 Version: 60dd893a8095f9d7957bf6635dc1620a7908d86b (commit hash)
-License: Apache License 2.0
+License: Apache-2.0
 Security Critical: no
 Shipped: no
 

@@ -2,7 +2,7 @@ Name: pyfakefs
 Short Name: pyfakefs
 URL: https://github.com/jmcgeheeiv/pyfakefs
 Version: 7e8e097c0165ba9d51fa9d34a0888d8ec082d15b (commit hash)
-License: Apache License 2.0
+License: Apache-2.0
 Security Critical: no
 Shipped: no
 

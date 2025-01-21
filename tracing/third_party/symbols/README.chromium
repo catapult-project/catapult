@@ -3,7 +3,7 @@ URL: https://chromium.googlesource.com/chromium/src.git
 Version: N/A
 Date: 2014-02-24
 Revision: eb3ad0de43537c5bff297326b11b121c77cc18e6
-License: BSD
+License: BSD-3-Clause
 License File: //LICENSE
 Shipped: no
 Security Critical: no
