@@ -6,8 +6,8 @@
 import codecs
 import logging
 import os
-import pipes
 import select
+import shlex
 import signal
 import string
 import subprocess
@@ -50,7 +50,7 @@ def SingleQuote(s):
   Return:
     The string quoted using single quotes.
   """
-  return pipes.quote(s)
+  return shlex.quote(s)
 
 
 def DoubleQuote(s):

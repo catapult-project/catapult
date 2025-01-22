@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
-import pipes
+import shlex
 
 
 def ShellFormat(command, trim=False):
@@ -45,4 +45,4 @@ def _Trim(command):
 def _ShellQuote(command_part):
   """Escape a part of a command to enable copy/pasting it into a shell.
   """
-  return pipes.quote(command_part)
+  return shlex.quote(command_part)

@@ -21,9 +21,9 @@ import six.moves.http_client
 import json
 import logging
 import os
-import pipes
 import posixpath
 import re
+import shlex
 import socket
 import subprocess
 import tempfile
@@ -103,7 +103,7 @@ class AdbMini(object):
   def RunBaseCommand(cls, *args):
     cmd = [cls.ADB_BIN]
     cmd.extend(args)
-    logging.info('$ adb %s', ' '.join(pipes.quote(a) for a in args))
+    logging.info('$ adb %s', ' '.join(shlex.quote(a) for a in args))
     return subprocess.check_output(cmd, stderr=subprocess.STDOUT)
 
   @classmethod
@@ -128,8 +128,8 @@ class AdbMini(object):
         for line in self.RunCommand('ls', path).splitlines()]
 
   def WriteText(self, text, path):
-    self.RunShellCommand(
-        'echo -n %s > %s' % (pipes.quote(text), pipes.quote(path)))
+    self.RunShellCommand('echo -n %s > %s' %
+                         (shlex.quote(text), shlex.quote(path)))
 
   def ListPackages(self, name_filter=None, only_enabled=False):
     """Return a list of packages available on the device."""
