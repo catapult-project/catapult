@@ -21,6 +21,7 @@ See go/resultdb and go/resultsink for more details.
 """
 
 import base64
+from collections.abc import Mapping
 import contextlib
 import hashlib
 import json
@@ -149,8 +150,10 @@ class ResultSinkReporter(object):
                     containing the test.
             test_name_prefix: A string containing the prefix that will be added
                     to the test name.
-            additional_tags: An optional dict of additional tags to report to
-                    ResultDB.
+            additional_tags: Optional tags to add to the ResultDB result. The
+                    tags should be represented either as a sequence of key-value
+                    pairs or as a mapping from keys to values. The former
+                    supports repeated keys.
             html_summary: Optional human-readable explanation of the result as
                     sanitized HTML. If omitted, the reporter will generate a
                     default summary with links extracted from artifacts.
@@ -163,7 +166,9 @@ class ResultSinkReporter(object):
             return 0
 
         expectation_tags = expectations.tags if expectations else []
-        additional_tags = additional_tags or {}
+        additional_tags = additional_tags or []
+        if isinstance(additional_tags, Mapping):
+            additional_tags = list(additional_tags.items())
 
         test_id = test_name_prefix + result.name
         raw_typ_expected_results = (
@@ -194,7 +199,7 @@ class ResultSinkReporter(object):
         if expectation_tags:
             for tag in expectation_tags:
                 tag_list.append(('typ_tag', tag))
-        for key, value in additional_tags.items():
+        for key, value in additional_tags:
             assert isinstance(key, str)
             assert isinstance(value, str)
             tag_list.append((key, value))

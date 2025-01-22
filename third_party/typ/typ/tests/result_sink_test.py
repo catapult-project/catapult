@@ -412,6 +412,29 @@ class ResultSinkReporterTest(unittest.TestCase):
         self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[1]),
                          expected_result)
 
+    def testReportIndividualTestResultAdditionalTagsMultipleSameKey(self):
+        self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
+        rsr = ResultSinkReporterWithFakeSrc(self._host)
+        result = CreateResult({
+            'name': 'test_name',
+            'actual': json_results.ResultType.Pass,
+        })
+        rsr._post = StubWithRetval(2)
+        retval = rsr.report_individual_test_result(
+                result, ARTIFACT_DIR, None, FAKE_TEST_PATH, FAKE_TEST_LINE,
+                'test_name_prefix.', [('fake_tag', 'value1'),
+                                      ('fake_tag', 'value2')])
+        self.assertEqual(retval, 2)
+        expected_result = CreateExpectedTestResult(tags=[
+            {'key': 'test_name', 'value': 'test_name'},
+            {'key': 'typ_expectation', 'value': json_results.ResultType.Pass},
+            {'key': 'raw_typ_expectation', 'value': 'Pass'},
+            {'key': 'fake_tag', 'value': 'value1'},
+            {'key': 'fake_tag', 'value': 'value2'},
+        ])
+        self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[1]),
+                         expected_result)
+
     def testReportIndividualTestResultAdditionalTagsNoStrings(self):
         self.setLuciContextWithContent(DEFAULT_LUCI_CONTEXT)
         rsr = ResultSinkReporterWithFakeSrc(self._host)
