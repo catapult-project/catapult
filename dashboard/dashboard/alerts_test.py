@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import datetime
 from flask import Flask
 import json
 from unittest import mock
@@ -111,6 +112,10 @@ class AlertsTest(testing_common.TestCase):
       anomaly_entity.SetIsImprovement()
       anomaly_key = anomaly_entity.put()
       key_map[end_rev] = anomaly_key.urlsafe()
+      # set one of the anomaly which is detected before the skia limit.
+      if end_rev == 10000:
+        anomaly_entity.timestamp = datetime.datetime.strptime(
+            '2022-6-1T0:0:0', '%Y-%m-%dT%H:%M:%S')
 
     # Add some (2) already-triaged alerts.
     for end_rev in range(10120, 10140, 10):
@@ -455,7 +460,9 @@ class AlertsTest(testing_common.TestCase):
       response = self.testapp.get('/alerts_skia',
                                   {'host': 'https://chrome-perf.corp.goog'})
     anomaly_list = self.GetJsonValue(response, 'anomaly_list')
-    self.assertEqual(4 + 8, len(anomaly_list))
+    # one of them (ending at 10000) is older then 2022/7/1 and thus will not
+    # be reported in Skia.
+    self.assertEqual(4 + 8 - 1, len(anomaly_list))
     # The test below depends on the order of the items, but the order is not
     # guaranteed; it depends on the timestamps, which depend on put order.
     anomaly_list.sort(key=lambda a: -a['end_revision'])
@@ -486,7 +493,7 @@ class AlertsTest(testing_common.TestCase):
       self.assertEqual('100.0%', alert['percent_changed'])
       self.assertIsNone(alert['bug_id'])
       expected_end_rev -= 10
-    self.assertEqual(expected_end_rev, 9990)
+    self.assertEqual(expected_end_rev, 10000)
 
   def testPost_NoParametersSet_UntriagedAlertsListed_NoAnomalyForMaster(self):
     self._AddAlertsToDataStore()

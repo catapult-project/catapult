@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import datetime
 from httplib2 import http
 import json
 import logging
@@ -94,7 +95,7 @@ def _GetAlerts(skia=False):
     return (None, None, None, 'Sheriff "%s" not found.' % sheriff_name,
             http.HTTPStatus.BAD_REQUEST.value)
 
-  masters, internal_only = None, None
+  masters, internal_only, min_timestamp = None, None, None
   if skia:
     host = request.values.get('host', None)
     if not host:
@@ -106,6 +107,16 @@ def _GetAlerts(skia=False):
     # and internal data; otherwise, we should only show external data.
     if not is_internal:
       internal_only = False
+
+    # We did 1 year of backfill for non-press benchmarks and 3 years for press
+    # benchmarks. The backfill started from about June 2023. As a result, we
+    # should ignore those anomalies detected for non-press benchmarks before
+    # 2022/7/1, and those for press benchmarks before 2020/7/1.
+    # In our scenario, we don't have info to filter the anomalies on benchmark.
+    # We will use 2022/7/1 as a cut-off date, as it is not likely to look back
+    # on anomalies 2.5 years ago.
+    min_timestamp = datetime.datetime.strptime('2022-7-1T0:0:0',
+                                               '%Y-%m-%dT%H:%M:%S')
 
   # Cursors are used to fetch paged queries. If none is supplied, then the
   # first 500 alerts will be returned. If a cursor is given, the next
@@ -140,6 +151,7 @@ def _GetAlerts(skia=False):
       count_limit=_MAX_ANOMALIES_TO_COUNT,
       limit=max_anomalies_to_show,
       master_names=masters,
+      min_timestamp=min_timestamp,
       internal_only=internal_only).get_result()
 
   return anomalies, next_cursor, count, None, None
