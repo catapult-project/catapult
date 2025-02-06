@@ -62,6 +62,7 @@ type CommonConfig struct {
 	httpPort, httpsPort, httpSecureProxyPort int
 	certConfig                               CertConfig
 	injectScripts                            string
+	paramToIgnoreInURLPath                     string
 
 	// Computed state.
 	root_certs   []tls.Certificate
@@ -144,6 +145,17 @@ func (common *CommonConfig) Flags() []cli.Flag {
 				"such as Date() and Math.random() deterministic. " +
 				"CAUTION: Without deterministic.js, many pages will not replay.",
 			Destination: &common.injectScripts,
+		},
+		&cli.StringFlag{
+			Name:  "param-to-ignore-in-url-path",
+			Value: "",
+			Usage: "When recording and replaying, ignore a specific query parameter in" +
+				"a given url path. The input format is \"{Full URL path}::{parameter}\". " +
+				"e.g. input \"https://example.com/path::param1\" means WPR would remove " +
+				"param1 query key and values from when recording & replaying. Sequence " +
+				"of other parameteres are preserved. Only one parameter in one URL path ",
+				"is supported."
+			Destination: &common.paramToIgnoreInURLPath,
 		},
 	)
 }
@@ -432,8 +444,8 @@ func (r *RecordCommand) Run(c *cli.Context) error {
 		log.Printf("NOTIMPLEMENTED: Experimental Timed Chunk recording support")
 		os.Exit(1)
 	}
-	httpHandler := webpagereplay.NewRecordingProxy(archive, "http", r.common.transformers)
-	httpsHandler := webpagereplay.NewRecordingProxy(archive, "https", r.common.transformers)
+	httpHandler := webpagereplay.NewRecordingProxy(archive, "http", r.common.transformers, r.common.paramToIgnoreInURLPath)
+	httpsHandler := webpagereplay.NewRecordingProxy(archive, "https", r.common.transformers, r.common.paramToIgnoreInURLPath)
 	tlsconfig, err := webpagereplay.RecordTLSConfig(r.common.root_certs, archive)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating TLSConfig: %v", err)
@@ -482,8 +494,8 @@ func (r *ReplayCommand) Run(c *cli.Context) error {
 		log.Printf("Loaded replay rules from %s", r.rulesFile)
 	}
 
-	httpHandler := webpagereplay.NewReplayingProxy(archive, "http", r.common.transformers, r.quietMode)
-	httpsHandler := webpagereplay.NewReplayingProxy(archive, "https", r.common.transformers, r.quietMode)
+	httpHandler := webpagereplay.NewReplayingProxy(archive, "http", r.common.transformers, r.quietMode, r.common.paramToIgnoreInURLPath)
+	httpsHandler := webpagereplay.NewReplayingProxy(archive, "https", r.common.transformers, r.quietMode, r.common.paramToIgnoreInURLPath)
 	tlsconfig, err := webpagereplay.ReplayTLSConfig(r.common.root_certs, archive)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating TLSConfig: %v", err)

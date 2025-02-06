@@ -71,7 +71,7 @@ func TestDoNotSaveDeterministicJS(t *testing.T) {
 		t.Fatalf("failed to create script injector: %v", err)
 	}
 	transformers := []ResponseTransformer{si}
-	recordServer := httptest.NewServer(NewRecordingProxy(recordArchive, "http", transformers))
+	recordServer := httptest.NewServer(NewRecordingProxy(recordArchive, "http", transformers, ""))
 	recordTransport := &http.Transport{
 		Proxy: func(*http.Request) (*url.URL, error) {
 			return url.Parse(recordServer.URL)
@@ -151,7 +151,7 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatalf("OpenWritableArchive: %v", err)
 	}
 	var transformers []ResponseTransformer
-	recordServer := httptest.NewServer(NewRecordingProxy(recordArchive, "http", transformers))
+	recordServer := httptest.NewServer(NewRecordingProxy(recordArchive, "http", transformers, ""))
 	recordTransport := &http.Transport{
 		Proxy: func(*http.Request) (*url.URL, error) {
 			return url.Parse(recordServer.URL)
@@ -214,7 +214,7 @@ func TestEndToEnd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenArchive: %v", err)
 	}
-	replayServer := httptest.NewServer(NewReplayingProxy(replayArchive, "http", transformers, false))
+	replayServer := httptest.NewServer(NewReplayingProxy(replayArchive, "http", transformers, false, ""))
 	replayTransport := &http.Transport{
 		Proxy: func(*http.Request) (*url.URL, error) {
 			return url.Parse(replayServer.URL)
@@ -271,4 +271,41 @@ func TestUpdateDates(t *testing.T) {
 	if !reflect.DeepEqual(responseHeader, wantHeader) {
 		t.Errorf("got: %v\nwant: %v\n", responseHeader, wantHeader)
 	}
+}
+
+func TestProcessRequestURLParams(t *testing.T) {
+	urlNormal := "https://example.com/path/to/resource?param1=value1&param2=value2"
+	urlNoParam1 := "https://example.com/path/to/resource?param2=value2"
+	urlMultpleParam1 := "https://example.com/path/to/resource?param1=value1&param2=value2&param1=value3"
+	urlSequencePreserved := "https://example.com/path/to/resource?param1=value1&param2=value2&param3=value3&param1=value4&param2=value5"
+	urlAnotherHost := "https://another_example.com/path/to/resource?param1=value1&param2=value2"
+
+	validate := func(url string, paramToIgnoreInURLPath string, expectedURL string) error{
+		req, err := http.NewRequest("POST", url, strings.NewReader("this is the POST body"))
+		if err != nil {
+			return fmt.Errorf("NewRequest(%s): %v", url, err)
+		}
+		if err := processRequestURLParams(req, paramToIgnoreInURLPath); err != nil {
+			return fmt.Errorf("Error in processRequestURLParams: %v", err)
+		}
+		if req.URL.String() !=  expectedURL {
+			t.Errorf("got processed URL: %v\nwant: %v\n", req.URL, expectedURL)
+		}
+		return nil
+    }
+
+	paramToIgnoreInURLPath := "https://example.com/path/to/resource::param1"
+	tests := [][]string{
+        {urlNormal, paramToIgnoreInURLPath, "https://example.com/path/to/resource?param2=value2"},
+        {urlNoParam1, paramToIgnoreInURLPath, "https://example.com/path/to/resource?param2=value2"},
+        {urlMultpleParam1, paramToIgnoreInURLPath, "https://example.com/path/to/resource?param2=value2"},
+        {urlSequencePreserved, paramToIgnoreInURLPath, "https://example.com/path/to/resource?param2=value2&param3=value3&param2=value5"},
+        {urlAnotherHost, paramToIgnoreInURLPath, "https://another_example.com/path/to/resource?param1=value1&param2=value2"},
+    }
+
+	for _, test := range tests {
+		if err := validate(test[0], test[1], test[2]); err != nil {
+			t.Fatal(err)
+		}
+    }
 }

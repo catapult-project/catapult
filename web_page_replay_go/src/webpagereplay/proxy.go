@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -38,6 +39,35 @@ func fixupRequestURL(req *http.Request, scheme string) {
 	if req.URL.Host == "" {
 		req.URL.Host = req.Host
 	}
+}
+
+// If |paramToIgnoreInURLPath| appears in commandline switch, remove the parameter
+// before recording or find a matching for it in archive.
+func processRequestURLParams(req *http.Request, paramToIgnoreInURLPath string) error {
+	if paramToIgnoreInURLPath != "" {
+		index := strings.LastIndex(paramToIgnoreInURLPath, "::")
+		if index == -1 {
+			return fmt.Errorf("invalid paramToIgnoreInURLPath value (separator \"::\" not found): %s", paramToIgnoreInURLPath)
+		}
+		URLPath := paramToIgnoreInURLPath[:index]
+		parameterToBeRemoved := paramToIgnoreInURLPath[index+2:]
+		if strings.HasPrefix(req.URL.String(), URLPath) {
+			u, err := url.Parse(req.URL.String())
+			if err != nil {
+				return fmt.Errorf("cannot parse request URL: %s", req.URL.String())
+			}
+        	rawQuery := u.RawQuery
+			retainedQueries := []string{}
+			for _, param := range strings.Split(rawQuery, "&") {
+				if !strings.HasPrefix(param, parameterToBeRemoved+"=") {
+					retainedQueries = append(retainedQueries, param)
+				}
+			}
+			u.RawQuery = strings.Join(retainedQueries, "&")
+			req.URL = u
+        }
+	}
+	return nil
 }
 
 // updateDate is the basic function for date adjustment.
@@ -67,8 +97,8 @@ func updateDates(h http.Header, now time.Time) {
 
 // NewReplayingProxy constructs an HTTP proxy that replays responses from an archive.
 // The proxy is listening for requests on a port that uses the given scheme (e.g., http, https).
-func NewReplayingProxy(a *Archive, scheme string, transformers []ResponseTransformer, quietMode bool) http.Handler {
-	return &replayingProxy{a, scheme, transformers, quietMode}
+func NewReplayingProxy(a *Archive, scheme string, transformers []ResponseTransformer, quietMode bool, paramToIgnoreInURLPath string) http.Handler {
+	return &replayingProxy{a, scheme, transformers, quietMode, paramToIgnoreInURLPath}
 }
 
 type replayingProxy struct {
@@ -76,6 +106,7 @@ type replayingProxy struct {
 	scheme       string
 	transformers []ResponseTransformer
 	quietMode    bool
+	paramToIgnoreInURLPath string
 }
 
 func (proxy *replayingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -95,6 +126,11 @@ func (proxy *replayingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 		return
 	}
 	fixupRequestURL(req, proxy.scheme)
+	if err := processRequestURLParams(req, proxy.paramToIgnoreInURLPath); err != nil {
+		log.Printf("Error processing request URL: %v", err)
+		os.Exit(-1)
+		return
+	}
 	logf := makeLogger(req, proxy.quietMode)
 
 	// Lookup the response in the archive.
@@ -160,9 +196,9 @@ func (proxy *replayingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 
 // NewRecordingProxy constructs an HTTP proxy that records responses into an archive.
 // The proxy is listening for requests on a port that uses the given scheme (e.g., http, https).
-func NewRecordingProxy(a *WritableArchive, scheme string, transformers []ResponseTransformer) http.Handler {
+func NewRecordingProxy(a *WritableArchive, scheme string, transformers []ResponseTransformer, paramToIgnoreInURLPath string) http.Handler {
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	return &recordingProxy{http.DefaultTransport.(*http.Transport), a, scheme, transformers}
+	return &recordingProxy{http.DefaultTransport.(*http.Transport), a, scheme, transformers, paramToIgnoreInURLPath}
 }
 
 type recordingProxy struct {
@@ -170,6 +206,7 @@ type recordingProxy struct {
 	a            *WritableArchive
 	scheme       string
 	transformers []ResponseTransformer
+	paramToIgnoreInURLPath string
 }
 
 func (proxy *recordingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -186,6 +223,12 @@ func (proxy *recordingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 		return
 	}
 	fixupRequestURL(req, proxy.scheme)
+	if err := processRequestURLParams(req, proxy.paramToIgnoreInURLPath); err != nil {
+		log.Printf("Error processing request URL: %v", err)
+		os.Exit(-1)
+		return
+	}
+
 	logf := makeLogger(req, false)
 	// https://github.com/golang/go/issues/16036. Server requests always
 	// have non-nil body even for GET and HEAD. This prevents http.Transport
