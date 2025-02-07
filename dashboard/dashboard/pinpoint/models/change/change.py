@@ -18,6 +18,7 @@ except ImportError:
 
 from dashboard.pinpoint.models.change import commit as commit_module
 from dashboard.pinpoint.models.change import patch as patch_module
+from dashboard.services import request
 
 class Change(
     collections.namedtuple('Change',
@@ -337,7 +338,15 @@ def _FindMidpoints(commits_a, commits_b):
       raise commit_module.NonLinearError(
           'Changes have a different number of commits.')
 
-    commit_midpoint = commit_module.Commit.Midpoint(commit_a, commit_b)
+    try:
+      commit_midpoint = commit_module.Commit.Midpoint(commit_a, commit_b)
+    except request.NotFoundError:
+      # Unable to find the midpoint. This is most likely because Pinpoint has
+      # drilled down to an unsupported git repo. Skip this pair of commits.
+      logging.warning(
+          "_FindMidpoints: midpoint not found between %s and %s, skipping",
+          commit_a, commit_b)
+      continue
     logging.debug("b/343229141 - commit_midpoint: %s", commit_midpoint)
     commits_midpoint.append(commit_midpoint)
     if commit_a == commit_midpoint and commit_midpoint != commit_b:
