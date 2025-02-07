@@ -56,7 +56,7 @@ func processRequestURLParams(req *http.Request, paramToIgnoreInURLPath string) e
 			if err != nil {
 				return fmt.Errorf("cannot parse request URL: %s", req.URL.String())
 			}
-        	rawQuery := u.RawQuery
+			rawQuery := u.RawQuery
 			retainedQueries := []string{}
 			for _, param := range strings.Split(rawQuery, "&") {
 				if !strings.HasPrefix(param, parameterToBeRemoved+"=") {
@@ -65,7 +65,7 @@ func processRequestURLParams(req *http.Request, paramToIgnoreInURLPath string) e
 			}
 			u.RawQuery = strings.Join(retainedQueries, "&")
 			req.URL = u
-        }
+		}
 	}
 	return nil
 }
@@ -102,10 +102,10 @@ func NewReplayingProxy(a *Archive, scheme string, transformers []ResponseTransfo
 }
 
 type replayingProxy struct {
-	a            *Archive
-	scheme       string
-	transformers []ResponseTransformer
-	quietMode    bool
+	a                      *Archive
+	scheme                 string
+	transformers           []ResponseTransformer
+	quietMode              bool
 	paramToIgnoreInURLPath string
 }
 
@@ -202,10 +202,10 @@ func NewRecordingProxy(a *WritableArchive, scheme string, transformers []Respons
 }
 
 type recordingProxy struct {
-	tr           *http.Transport
-	a            *WritableArchive
-	scheme       string
-	transformers []ResponseTransformer
+	tr                     *http.Transport
+	a                      *WritableArchive
+	scheme                 string
+	transformers           []ResponseTransformer
 	paramToIgnoreInURLPath string
 }
 

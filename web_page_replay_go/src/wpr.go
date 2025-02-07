@@ -62,7 +62,7 @@ type CommonConfig struct {
 	httpPort, httpsPort, httpSecureProxyPort int
 	certConfig                               CertConfig
 	injectScripts                            string
-	paramToIgnoreInURLPath                     string
+	paramToIgnoreInURLPath                   string
 
 	// Computed state.
 	root_certs   []tls.Certificate
@@ -153,8 +153,8 @@ func (common *CommonConfig) Flags() []cli.Flag {
 				"a given url path. The input format is \"{Full URL path}::{parameter}\". " +
 				"e.g. input \"https://example.com/path::param1\" means WPR would remove " +
 				"param1 query key and values from when recording & replaying. Sequence " +
-				"of other parameteres are preserved. Only one parameter in one URL path ",
-				"is supported."
+				"of other parameteres are preserved. Only one parameter in one URL path " +
+				"is supported.",
 			Destination: &common.paramToIgnoreInURLPath,
 		},
 	)
