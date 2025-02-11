@@ -7,6 +7,7 @@ Unit tests for the contents of device_utils.py (mostly DeviceUtils).
 The test will invoke real devices
 """
 
+import logging
 import os
 import posixpath
 import sys
@@ -311,5 +312,36 @@ class PsOutputCompatibilityTests(device_test_case.DeviceTestCase):
             (key, row[key], line))
 
 
+class WriteFileTest(device_test_case.DeviceTestCase):
+
+  def setUp(self):
+    super().setUp()
+    self.adb = adb_wrapper.AdbWrapper(self.serial)
+    self.device = device_utils.DeviceUtils(self.adb, default_retries=0)
+    self.dest_device_dir = '/data/local/tmp/WriteFileTest'
+
+  def tearDown(self):
+    self.device.RunShellCommand('rm -rf ' + self.dest_device_dir, as_root=True)
+    super().tearDown()
+
+  def testWriteSmallFile(self):
+    written = 'hi there'
+    device_path = f'{self.dest_device_dir}/bar/b a z'
+    self.device.WriteFile(device_path, written)
+    read = self.device.ReadFile(device_path)
+    self.assertEqual(written, read)
+
+  def testWriteSmallFileWithSu(self):
+    written = 'hi there'
+    device_path = f'{self.dest_device_dir}/bar/baz'
+    self.device.WriteFile(device_path, written, as_root=True)
+    read = self.device.ReadFile(device_path)
+    self.assertEqual(written, read)
+
+
 if __name__ == '__main__':
+  logging.basicConfig(
+      level=logging.DEBUG,
+      format='%(levelname).1s %(process)d %(relativeCreated)6d %(message)s')
+  device_test_case.PrepareDevices()
   unittest.main()

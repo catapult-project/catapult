@@ -3350,20 +3350,23 @@ class DeviceUtilsWriteFileTest(DeviceUtilsTest):
       self.device.WriteFile('/path/to/device/file', contents, as_root=True)
 
   def testWriteFile_withEcho(self):
-    with self.assertCall(
-        self.call.adb.Shell("echo -n the.contents > /test/file/to.write",
-                            timeout=mock.ANY), ''):
+    expected_cmd = ('P=/test/file;mkdir -p "$P" && echo -n the.contents>'
+                    '"$P"/to.write')
+    with self.assertCall(self.call.adb.Shell(expected_cmd, timeout=mock.ANY),
+                         ''):
       self.device.WriteFile('/test/file/to.write', 'the.contents')
 
   def testWriteFile_withEchoAndQuotes(self):
-    with self.assertCall(
-        self.call.adb.Shell("echo -n 'the contents' > '/test/file/to write'",
-                            timeout=mock.ANY), ''):
+    expected_cmd = ('P=/test/file;mkdir -p "$P" && echo -n \'the contents\'>'
+                    '"$P"/\'to write\'')
+    with self.assertCall(self.call.adb.Shell(expected_cmd, timeout=mock.ANY),
+                         ''):
       self.device.WriteFile('/test/file/to write', 'the contents')
 
   def testWriteFile_withEchoAndSU(self):
-    expected_cmd_without_su = "sh -c 'echo -n contents > /test/file'"
-    expected_cmd = 'su -c %s' % expected_cmd_without_su
+    expected_cmd_without_su = (
+        'sh -c \'P=/test;mkdir -p "$P" && echo -n contents>"$P"/file\'')
+    expected_cmd = "su -c '%s'" % expected_cmd_without_su
     with self.assertCalls(
         (self.call.device.NeedsSU(), True),
         (self.call.device._Su(expected_cmd_without_su), expected_cmd),

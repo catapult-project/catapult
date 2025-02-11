@@ -3075,11 +3075,16 @@ class DeviceUtils(object):
     """
     logger.debug('The following contents will be written to the file %s: %s',
                  device_path, contents)
+    assert posixpath.isabs(device_path), 'Expected abs path: ' + device_path
     if not force_push and len(contents) < self._MAX_ADB_COMMAND_LENGTH:
       # If the contents are small, for efficieny we write the contents with
       # a shell command rather than pushing a file.
-      cmd = 'echo -n %s > %s' % (cmd_helper.SingleQuote(contents),
-                                 cmd_helper.SingleQuote(device_path))
+      parent_dir = posixpath.dirname(device_path)
+      filename = posixpath.basename(device_path)
+      cmd = 'P=%s;mkdir -p "$P" && echo -n %s>"$P"/%s' % (
+          cmd_helper.SingleQuote(parent_dir), cmd_helper.SingleQuote(contents),
+          cmd_helper.SingleQuote(filename))
+
       self.RunShellCommand(cmd,
                            shell=True,
                            as_root=as_root,
