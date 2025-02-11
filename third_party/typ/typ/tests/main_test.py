@@ -104,6 +104,16 @@ class SkipTestSetTags(test_case.TestCase):
         self.skipTest('')
 """
 
+SKIP_TEST_AT_RUNTIME_NO_ASSOCIATED_BUGS_PY = """
+from typ import test_case
+class SkipTestSetTags(test_case.TestCase):
+    def test_skip(self):
+        self.child.expectations.set_tags(['foo'])
+        self.programmaticSkipIsExpected = True
+        self.shouldNotOutputAssociatedBugs = True
+        self.skipTest('')
+"""
+
 
 FAIL_TEST_FILES = {'fail_test.py': FAIL_TEST_PY}
 
@@ -764,6 +774,20 @@ class TestCli(test_case.MainTestCase):
         self.assertIn(
             '[2/2] skip_test.SkipTestSetTags.test_skip was skipped '
             '(crbug.com/23456) (worker 1)', out)
+
+    def test_skip_via_expectations_at_runtime_no_associated_bugs(self):
+        files = {'expectations.txt': d("""\
+                 # tags: [ foo ]
+                 # results: [ Skip ]
+                 crbug.com/23456 [ foo ] skip_test.SkipTestSetTags.test_skip [ Skip ]
+                 """),
+                 'skip_test.py': SKIP_TEST_AT_RUNTIME_NO_ASSOCIATED_BUGS_PY,
+                 'pass_test.py': PASS_TEST_PY}
+        _, out, _, _ = self.check(['-j', '1', '-X', 'expectations.txt'],
+                                  files=files, ret=0)
+        self.assertIn(
+            '[2/2] skip_test.SkipTestSetTags.test_skip was skipped '
+            '(worker 1)', out)
 
     def test_skips_and_failures(self):
         _, out, _, _ = self.check(['-j', '1', '-v', '-v'], files=SF_TEST_FILES,

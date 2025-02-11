@@ -1228,6 +1228,8 @@ def _run_one_test(child, test_input):
         # Handle the case where the test called self.skipTest, e.g. if it
         # determined that the test is not valid on the current configuration.
         if test_result.skipped and test_case.programmaticSkipIsExpected:
+            if test_case.shouldNotOutputAssociatedBugs:
+                associated_bugs = ''
             result = Result(test_name, ResultType.Skip, started, took,
                            child.worker_num, expected={ResultType.Skip},
                            unexpected=False, pid=pid,
