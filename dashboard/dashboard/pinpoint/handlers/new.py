@@ -31,7 +31,6 @@ from dashboard.pinpoint.models.tasks import read_value
 
 _ERROR_BUG_ID = 'Bug ID must be an integer.'
 _ERROR_TAGS_DICT = 'Tags must be a dict of key/value string pairs.'
-_ERROR_UNSUPPORTED = 'This benchmark (%s) is unsupported.'
 _ERROR_PRIORITY = 'Priority must be an integer.'
 
 _EXTRA_BROWSER_ARGS_PREFIX = '--extra-browser-args'
@@ -80,22 +79,6 @@ _NEW_MONOCHROME_TARGET = 'performance_test_suite_android_clank_monochrome'
 _OLD_CHROME_TARGET = 'performance_test_suite_android_clank_chrome'
 REGULAR_TELEMETRY_TESTS_WITH_FALLBACKS[
     _NEW_MONOCHROME_TARGET] = _OLD_CHROME_TARGET
-
-# TODO(https://crbug.com/378731077): Remove these fallback targets after Feb 5th
-#                                    2025, to provide 2 months of buffer.
-_NEW_TRICHROME_TARGETS = [
-    'performance_test_suite_android_trichrome_chrome_google_bundle',
-    'performance_test_suite_android_trichrome_chrome_google_64_32_bundle',
-]
-_OLD_TRICHROME_TARGETS = [
-    'performance_test_suite_android_clank_trichrome_bundle',
-    'performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle',
-]
-for new, old in zip(_NEW_TRICHROME_TARGETS, _OLD_TRICHROME_TARGETS):
-  # Allow falling back both ways to accommodate older and newer code that only
-  # uses either old or new.
-  REGULAR_TELEMETRY_TESTS_WITH_FALLBACKS[new] = old
-  REGULAR_TELEMETRY_TESTS_WITH_FALLBACKS[old] = new
 
 _NON_CHROME_TARGETS = ['v8']
 
