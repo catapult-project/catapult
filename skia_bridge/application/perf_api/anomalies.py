@@ -75,6 +75,7 @@ class AnomalyData:
   bug_component: str
   bug_labels: list[str]
   bug_cc_emails: list[str]
+  bisect_ids: list[str]
 
   def __init__(
       self,
@@ -408,7 +409,8 @@ def GetAnomalyData(anomaly_obj):
       subscription_name=subscription_names[0],
       bug_component=bug_components[0],
       bug_labels=bug_labels,
-      bug_cc_emails=bug_cc_emails)
+      bug_cc_emails=bug_cc_emails,
+      bisect_ids=anomaly_obj.get('pinpoint_bisects'))
 
 def ValidateRequest(request_data, required_keys):
   missing_keys = []
