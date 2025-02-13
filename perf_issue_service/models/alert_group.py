@@ -98,7 +98,10 @@ class AlertGroup:
     group_key = cls.ds_client.AlertGroupKey(group_id)
     group = cls.ds_client.GetEntityByKey(group_key)
     if group:
-      return [a.id for a in group.get('anomalies')]
+      anomaly_ids = [a.id for a in group.get('anomalies')]
+      logging.debug('Found %d anomalies for group %s', len(anomaly_ids),
+                    group_id)
+      return anomaly_ids
     raise NoEntityFoundException('No Alert Group Found with id: %s', group_id)
 
   @classmethod

@@ -171,6 +171,8 @@ def ListSkiaAlertsByGroupId(group_id):
 
   try:
     alert_list = GetAlertsForGroupID(group_id)
+    logging.debug('[SkiaTriage] %d anomalies retrieved by group id %s',
+                  len(alert_list), group_id)
   except request_handler.InvalidInputError as e:
     return make_response(
         json.dumps({'error': str(e)}), http.HTTPStatus.BAD_REQUEST.value)
