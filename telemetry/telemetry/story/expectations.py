@@ -257,6 +257,7 @@ FUCHSIA_WEB_ENGINE_SHELL = _TestConditionFuchsiaWebEngineShell()
 FUCHSIA_CAST_STREAMING_SHELL = _TestConditionFuchsiaCastStreamingShell()
 FUCHSIA_ASTRO = _TestConditionFuchsiaByBoard('astro')
 FUCHSIA_SHERLOCK = _TestConditionFuchsiaByBoard('sherlock')
+FUCHSIA_NELSON = _TestConditionFuchsiaByBoard('nelson')
 
 EXPECTATION_NAME_MAP = {
     'All': ALL,
@@ -292,4 +293,5 @@ EXPECTATION_NAME_MAP = {
     'Fuchsia_CastStreamingShell': FUCHSIA_CAST_STREAMING_SHELL,
     'Fuchsia_Astro': FUCHSIA_ASTRO,
     'Fuchsia_Sherlock': FUCHSIA_SHERLOCK,
+    'Fuchsia_Nelson': FUCHSIA_NELSON,
 }
