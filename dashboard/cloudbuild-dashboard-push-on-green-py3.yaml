@@ -1,7 +1,7 @@
 # These are the testing and deploy steps for the performance dashboard
 # services. We re-use the docker-compose files in the dev_dockerfiles directory
 # to ensure we're runing the same test and deploy cycle everytime.
-timeout: 1800s  # Wait for 30 minutes for the whole process to finish.
+timeout: 2700s  # Wait for 45 minutes for the whole process to finish.
 options:
   diskSizeGb: 100
   machineType: 'N1_HIGHCPU_8'
