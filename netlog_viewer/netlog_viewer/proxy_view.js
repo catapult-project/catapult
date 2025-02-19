@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+'use strict';
+
 /**
  * This view displays information on the proxy setup:
  *
@@ -101,7 +103,7 @@ var ProxyView = (function() {
         var nameCell = addNode(tr, 'td');
         var badUntilCell = addNode(tr, 'td');
 
-        addTextNode(nameCell, entry.proxy_uri);
+        addTextNode(nameCell, entry.proxy_chain_uri);
         timeutil.addNodeWithDate(badUntilCell, badUntilDate);
       }
       return true;

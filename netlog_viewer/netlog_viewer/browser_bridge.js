@@ -138,7 +138,7 @@ const BrowserBridge = (function() {
      *   observer.onBadProxiesChanged(badProxies)
      *
      * |badProxies| is an array, where each entry has the property:
-     *   badProxies[i].proxy_uri: String identify the proxy.
+     *   badProxies[i].proxy_chain_uri: String identifying the proxy chain.
      *   badProxies[i].bad_until: The time when the proxy stops being considered
      *                            bad. Note the time is in time ticks.
      */
