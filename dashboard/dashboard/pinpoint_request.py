@@ -65,10 +65,19 @@ def NewPinpointBisect(job_params):
   results = pinpoint_service.NewJob(pinpoint_params)
   logging.info('Pinpoint Service Response: %s', results)
 
-  alert_keys = job_params.get('alerts')
+  # We might get a list of Anomaly IDs instead of a list of urlsafe keys. In that case, they need
+  # to be translated.
+  alert_keys = []
+  if 'alert_ids' in job_params:
+    alert_ids = json.loads(job_params.get('alert_ids'))
+    if alert_ids:
+      logging.info('Translating alert IDs to urlsafe keys: %s', alert_ids)
+      alert_keys = [ndb.Key('Anomaly', id).urlsafe() for id in alert_ids]
+  elif 'alerts' in job_params:
+    alert_keys = json.loads(job_params.get('alerts'))
+
   if 'jobId' in results and alert_keys:
-    alerts = json.loads(alert_keys)
-    for alert_urlsafe_key in alerts:
+    for alert_urlsafe_key in alert_keys:
       alert = ndb.Key(urlsafe=alert_urlsafe_key).get()
       alert.pinpoint_bisects.append(results['jobId'])
       alert.put()
@@ -289,6 +298,18 @@ def PinpointParamsFromPerfTryParams(params):
 
   return pinpoint_params
 
+def _GetUrlSafeKey(params):
+  """Returns the urlsafe key for the anomaly from the request parameters."""
+  if params.get('alert_ids'):
+    alert_ids = json.loads(params.get('alert_ids'))
+    if alert_ids:
+      return ndb.Key('Anomaly', alert_ids[0]).urlsafe()
+  elif params.get('alerts'):
+    alert_keys = json.loads(params.get('alerts'))
+    if alert_keys:
+      return alert_keys[0]
+  return ''
+
 
 def PinpointParamsFromBisectParams(params):
   """Takes parameters from Dashboard's pinpoint-job-dialog and returns
@@ -350,11 +371,7 @@ def PinpointParamsFromBisectParams(params):
   email = utils.GetEmail()
   job_name = '%s bisect on %s/%s' % (bisect_mode.capitalize(), bot_name, suite)
 
-  alert_key = ''
-  if params.get('alerts'):
-    alert_keys = json.loads(params.get('alerts'))
-    if alert_keys:
-      alert_key = alert_keys[0]
+  alert_key = _GetUrlSafeKey(params)
 
   alert_magnitude = None
   if alert_key:
