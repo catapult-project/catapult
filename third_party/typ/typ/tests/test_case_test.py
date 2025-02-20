@@ -12,7 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from typ import test_case
+
+
+class TestDirectories(test_case.TestCase):
+    def test_chromium_build_directory(self):
+        if not self.child.chromium_build_directory:
+            return
+        d = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                         '..', '..', 'tools'))
+        self.assertEqual(self.chromium_build_directory, d)
+        self.assertEqual(self.chromium_build_directory,
+                         os.environ['CHROMIUM_BUILD_DIRECTORY'])
+
+    def test_starting_directory(self):
+        if not self.child.starting_directory:
+            return
+        self.assertEqual(os.getcwd(),
+                         os.path.abspath(os.path.dirname(__file__)))
 
 
 class TestFuncs(test_case.MainTestCase):

@@ -64,14 +64,14 @@ class Host(object):
     def basename(self, path):
         return os.path.basename(path)
 
-    def call(self, argv, stdin=None, env=None):
+    def call(self, argv, stdin=None, env=None, cwd=None):
         if stdin:
             stdin_pipe = subprocess.PIPE
         else:
             stdin_pipe = None
         proc = subprocess.Popen(argv, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, stdin=stdin_pipe,
-                                env=env)
+                                env=env, cwd=cwd)
         if stdin_pipe:
             proc.stdin.write(stdin.encode('utf-8'))
         stdout, stderr = proc.communicate()
@@ -79,14 +79,14 @@ class Host(object):
         # pylint type checking bug - pylint: disable=E1103
         return proc.returncode, stdout.decode('utf-8'), stderr.decode('utf-8')
 
-    def call_inline(self, argv, env=None):
+    def call_inline(self, argv, env=None, cwd=None):
         if isinstance(self.stdout, _TeedStream):  # pragma: no cover
-            ret, out, err = self.call(argv, env)
+            ret, out, err = self.call(argv, env=env, cwd=cwd)
             self.print_(out, end='')
             self.print_(err, end='', stream=self.stderr)
             return ret
         return subprocess.call(argv, stdin=self.stdin, stdout=self.stdout,
-                               stderr=self.stderr, env=env)
+                               stderr=self.stderr, env=env, cwd=cwd)
 
     def chdir(self, *comps):
         return os.chdir(self.join(*comps))

@@ -164,6 +164,9 @@ class Runner(object):
         self.path_delimiter = json_results.DEFAULT_TEST_SEPARATOR
         self.artifact_output_dir = None
         self.tag_conflict_checker = None
+        self.original_cwd = self.host.getcwd()
+        self.starting_directory = None
+        self.chromium_build_directory = None
 
         # initialize self.args to the defaults.
         parser = ArgumentParser(self.host)
@@ -174,6 +177,47 @@ class Runner(object):
         self.parse_args(parser, argv, **defaults)
         if parser.exit_status is not None:
             return parser.exit_status
+
+        if self.args.chromium_build_directory:
+            self.chromium_build_directory = self.host.abspath(
+                self.args.chromium_build_directory
+            )
+
+        # Note that we check the build directory *before* we switch
+        # to the starting directory. This means that if the build
+        # directory is a relative path, it needs to be relative to where
+        # we originally start.
+        if self.chromium_build_directory:
+            if not self.host.exists(self.chromium_build_directory):
+                self.print_('Error: Chromium build directory "%s" does not '
+                            'exist.' % self.chromium_build_directory)
+                return 1
+            if not self.host.isdir(self.chromium_build_directory):
+                self.print_('Error: Chromium build directory arg "%s" does '
+                            'not point to a directory.' %
+                            self.chromium_build_directory)
+                return 1
+
+            self.host.env['CHROMIUM_BUILD_DIRECTORY'] = (
+                self.host.abspath(self.chromium_build_directory)
+            )
+
+        if self.args.starting_directory:
+            self.starting_directory = self.host.abspath(
+                self.args.starting_directory
+            )
+
+        if self.starting_directory:
+            if not self.host.exists(self.starting_directory):
+                self.print_('Error: starting directory "%s" does not exist' %
+                            self.starting_directory)
+                return 1
+            if not self.host.isdir(self.chromium_build_directory):
+                self.print_('Error: starting directory arg "%s" does not '
+                            'point to a directory.' %
+                            self.chromium_build_directory)
+                return 1
+            self.host.chdir(self.starting_directory)
 
         try:
             ret, _, _ = self.run()
@@ -197,7 +241,6 @@ class Runner(object):
         self.host.print_(msg, end, stream=stream)
 
     def run(self, test_set=None):
-
         ret = 0
         h = self.host
 
@@ -357,7 +400,8 @@ class Runner(object):
             self.args.write_full_results_to = fp.name
 
         argv = ArgumentParser(h).argv_from_args(self.args)
-        ret = h.call_inline([h.python_interpreter, path_to_file] + argv)
+        ret = h.call_inline([h.python_interpreter, path_to_file] + argv,
+                            env=self.host.env, cwd=self.original_cwd)
 
         trace = self._read_and_delete(self.args.write_trace_to,
                                       should_delete_trace)
@@ -1045,6 +1089,8 @@ class _Child(object):
         self.disable_resultsink = parent.args.disable_resultsink
         self.result_sink_output_file = parent.args.rdb_content_output_file
         self.jobs = parent.args.jobs
+        self.starting_directory = parent.starting_directory
+        self.chromium_build_directory = parent.chromium_build_directory
 
     def expectations_for(self, test_case):
         expectations = self.expectations if self.has_expectations else None
@@ -1182,6 +1228,7 @@ def _run_one_test(child, test_input):
         test_case.child = child
         test_case.context = child.context_after_setup
         test_case.set_artifacts(art)
+        test_case.chromium_build_directory = child.chromium_build_directory
 
     test_result = unittest.TestResult()
     out = ''

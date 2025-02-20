@@ -43,6 +43,7 @@ class TestCase(unittest.TestCase):
     shouldNotOutputAssociatedBugs = False
     # Any additional key/value pairs to report through ResultDB.
     additionalTags = {}
+    chromium_build_directory = None
 
     def set_artifacts(self, artifacts):
         # We need this setter instead of setting artifacts directly so that

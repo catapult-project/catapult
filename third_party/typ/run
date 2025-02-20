@@ -88,6 +88,13 @@ class Runner(object):
             'typ.tests.main_test.TestMain.test_basic',
         ] + args)
 
+        self.call([
+            self._python, '-m', 'typ',
+            '--chromium-build-directory', os.path.join(self._top_dir, 'tools'),
+            '--starting-directory', os.path.join(self._top_dir, 'typ', 'tests'),
+            'typ.tests.test_case_test.TestDirectories'
+        ])
+
         # Testing running the runner directly if nothing is in sys.path.
         home_dir = os.path.expanduser('~')
         self.call([self._python, self._path_to_runner,

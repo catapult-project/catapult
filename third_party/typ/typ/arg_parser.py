@@ -271,6 +271,12 @@ class ArgumentParser(argparse.ArgumentParser):
                               default=False,
                               help=('Use the older, single/global process pool '
                                     'approach instead of the scoped approach.'))
+            self.add_argument('--chromium-build-directory', action='store',
+                              help=('Path to a Chromium build. Exposed as '
+                                    'CHROMIUM_BUILD_DIRECTORY in the test '
+                                    'environment.'))
+            self.add_argument('--starting-directory', action='store',
+                              help='Directory to start execution from')
 
         if discovery or running:
             self.add_argument('-P', '--path', action='append', default=[],
