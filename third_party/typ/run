@@ -90,8 +90,13 @@ class Runner(object):
 
         self.call([
             self._python, '-m', 'typ',
-            '--chromium-build-directory', os.path.join(self._top_dir, 'tools'),
             '--starting-directory', os.path.join(self._top_dir, 'typ', 'tests'),
+            'typ.tests.test_case_test.TestDirectories'
+        ])
+
+        self.call([
+            self._python, '-m', 'typ',
+            '--chromium-build-directory', os.path.join(self._top_dir, 'tools'),
             'typ.tests.test_case_test.TestDirectories'
         ])
 

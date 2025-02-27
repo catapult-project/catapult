@@ -212,10 +212,10 @@ class Runner(object):
                 self.print_('Error: starting directory "%s" does not exist' %
                             self.starting_directory)
                 return 1
-            if not self.host.isdir(self.chromium_build_directory):
+            if not self.host.isdir(self.starting_directory):
                 self.print_('Error: starting directory arg "%s" does not '
                             'point to a directory.' %
-                            self.chromium_build_directory)
+                            self.starting_directory)
                 return 1
             self.host.chdir(self.starting_directory)
 
