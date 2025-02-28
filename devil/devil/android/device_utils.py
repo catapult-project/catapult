@@ -30,13 +30,13 @@ from devil import base_error
 from devil import devil_env
 from devil.utils import cmd_helper
 from devil.android import apk_helper
+from devil.android import devil_util
 from devil.android import device_signal
 from devil.android import decorators
 from devil.android import device_errors
 from devil.android import device_temp_file
 from devil.android import install_commands
 from devil.android import logcat_monitor
-from devil.android import md5sum
 from devil.android.sdk import adb_wrapper
 from devil.android.sdk import intent
 from devil.android.sdk import keyevent
@@ -2599,8 +2599,9 @@ class DeviceUtils(object):
     def calculate_host_checksums():
       # Need to compute all checksums when caching.
       if self._enable_device_files_cache:
-        return md5sum.CalculateHostMd5Sums([t[0] for t in file_tuples])
-      return md5sum.CalculateHostMd5Sums([t[0] for t in possibly_stale_tuples])
+        return devil_util.CalculateHostHashes([t[0] for t in file_tuples])
+      return devil_util.CalculateHostHashes(
+          [t[0] for t in possibly_stale_tuples])
 
     def calculate_device_checksums():
       paths = {t[1] for t in possibly_stale_tuples}
@@ -2616,7 +2617,7 @@ class DeviceUtils(object):
           else:
             paths_not_in_cache.add(path)
         paths = paths_not_in_cache
-      sums.update(dict(md5sum.CalculateDeviceMd5Sums(paths, self)))
+      sums.update(dict(devil_util.CalculateDeviceHashes(list(paths), self)))
       if self._enable_device_files_cache:
         for path, checksum in sums.items():
           self._cache['device_path_checksums'][path] = checksum
@@ -2631,9 +2632,9 @@ class DeviceUtils(object):
     up_to_date = set()
 
     for host_path, device_path in possibly_stale_tuples:
-      device_checksum = device_checksums.get(device_path, None)
-      host_checksum = host_checksums.get(host_path, None)
-      if device_checksum == host_checksum and device_checksum is not None:
+      device_checksum = device_checksums.get(device_path, '')
+      host_checksum = host_checksums.get(host_path, '')
+      if device_checksum and device_checksum == host_checksum:
         up_to_date.add(device_path)
       else:
         nodes_to_delete.add(device_path)
@@ -2659,7 +2660,7 @@ class DeviceUtils(object):
       # TODO(hypan): Double check for multi-user
       if self.PathExists('/data/data/' + package_name, as_root=True):
         device_paths = self._GetApplicationPathsInternal(package_name)
-        file_to_checksums = md5sum.CalculateDeviceMd5Sums(device_paths, self)
+        file_to_checksums = devil_util.CalculateDeviceHashes(device_paths, self)
         ret = set(file_to_checksums.values())
       else:
         logger.info('Cannot reuse package %s (data directory missing)',
@@ -2670,7 +2671,7 @@ class DeviceUtils(object):
 
   def _ComputeStaleApks(self, package_name, host_apk_paths):
     def calculate_host_checksums():
-      return md5sum.CalculateHostMd5Sums(host_apk_paths)
+      return devil_util.CalculateHostHashes(host_apk_paths)
 
     def calculate_device_checksums():
       return self._ComputeDeviceChecksumsForApks(package_name)
@@ -2678,7 +2679,8 @@ class DeviceUtils(object):
     host_checksums, device_checksums = reraiser_thread.RunAsync(
         (calculate_host_checksums, calculate_device_checksums))
     stale_apks = [
-        k for (k, v) in host_checksums.items() if v not in device_checksums
+        k for (k, v) in host_checksums.items()
+        if v and v not in device_checksums
     ]
     return stale_apks, set(host_checksums.values())
 

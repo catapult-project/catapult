@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2014 The Chromium Authors. All rights reserved.
+# Copyright 2025 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -10,18 +10,19 @@ from unittest import mock
 
 from devil import devil_env  # pylint: disable=unused-import
 from devil.android import device_errors
-from devil.android import md5sum
+from devil.android import devil_util
 
 TEST_OUT_DIR = os.path.join('test', 'out', 'directory')
-HOST_MD5_EXECUTABLE = os.path.join(TEST_OUT_DIR, 'md5sum_bin_host')
-MD5_DIST = os.path.join(TEST_OUT_DIR, 'md5sum_dist')
+HOST_DEVIL_UTIL_EXECUTABLE = os.path.join(TEST_OUT_DIR, 'devil_util_host')
+DEVIL_UTIL_DIST = os.path.join(TEST_OUT_DIR, 'devil_util_dist')
 
 
-class Md5SumTest(unittest.TestCase):
+class DevilUtilTest(unittest.TestCase):
+
   def setUp(self):
     mocked_attrs = {
-        'md5sum_host': HOST_MD5_EXECUTABLE,
-        'md5sum_device': MD5_DIST,
+        'devil_util_host': HOST_DEVIL_UTIL_EXECUTABLE,
+        'devil_util_device': DEVIL_UTIL_DIST,
     }
     self._patchers = [
         mock.patch(
@@ -36,70 +37,71 @@ class Md5SumTest(unittest.TestCase):
     for p in self._patchers:
       p.stop()
 
-  def testCalculateHostMd5Sums_singlePath(self):
-    test_path = '/test/host/file.dat'
-    mock_get_cmd_output = mock.Mock(
-        return_value='0123456789abcdef')
-    with mock.patch(
-        'devil.utils.cmd_helper.GetCmdOutput', new=mock_get_cmd_output):
-      out = md5sum.CalculateHostMd5Sums(test_path)
+  def testCalculateHostHashes_singlePath(self):
+    test_paths = ['/test/host/file.dat']
+    mock_get_cmd_output = mock.Mock(return_value='0123456789abcdef')
+    with mock.patch('devil.utils.cmd_helper.GetCmdOutput',
+                    new=mock_get_cmd_output):
+      out = devil_util.CalculateHostHashes(test_paths)
       self.assertEqual(1, len(out))
       self.assertTrue('/test/host/file.dat' in out)
       self.assertEqual('0123456789abcdef', out['/test/host/file.dat'])
       mock_get_cmd_output.assert_called_once_with(
-          [HOST_MD5_EXECUTABLE, "-gz", mock.ANY])
+          [HOST_DEVIL_UTIL_EXECUTABLE, 'hash', mock.ANY])
 
-  def testCalculateHostMd5Sums_list(self):
+  def testCalculateHostHashes_list(self):
     test_paths = ['/test/host/file0.dat', '/test/host/file1.dat']
     mock_get_cmd_output = mock.Mock(
         return_value='0123456789abcdef\n123456789abcdef0\n')
-    with mock.patch(
-        'devil.utils.cmd_helper.GetCmdOutput', new=mock_get_cmd_output):
-      out = md5sum.CalculateHostMd5Sums(test_paths)
+    with mock.patch('devil.utils.cmd_helper.GetCmdOutput',
+                    new=mock_get_cmd_output):
+      out = devil_util.CalculateHostHashes(test_paths)
       self.assertEqual(2, len(out))
       self.assertTrue('/test/host/file0.dat' in out)
       self.assertEqual('0123456789abcdef', out['/test/host/file0.dat'])
       self.assertTrue('/test/host/file1.dat' in out)
       self.assertEqual('123456789abcdef0', out['/test/host/file1.dat'])
       mock_get_cmd_output.assert_called_once_with(
-          [HOST_MD5_EXECUTABLE, "-gz", mock.ANY])
+          [HOST_DEVIL_UTIL_EXECUTABLE, 'hash', mock.ANY])
 
-  def testCalculateDeviceMd5Sums_noPaths(self):
+  def testCalculateDeviceHashes_noPaths(self):
     device = mock.NonCallableMock()
     device.RunShellCommand = mock.Mock(side_effect=Exception())
 
-    out = md5sum.CalculateDeviceMd5Sums([], device)
+    out = devil_util.CalculateDeviceHashes([], device)
     self.assertEqual(0, len(out))
 
-  def testCalculateDeviceMd5Sums_singlePath(self):
-    test_path = '/storage/emulated/legacy/test/file.dat'
+  def testCalculateDeviceHashes_singlePath(self):
+    test_paths = ['/storage/emulated/legacy/test/file.dat']
 
     device = mock.NonCallableMock()
-    device_md5sum_output = ['0123456789abcdef',]
-    device.RunShellCommand = mock.Mock(return_value=device_md5sum_output)
+    device_hash_output = [
+        '0123456789abcdef',
+    ]
+    device.RunShellCommand = mock.Mock(return_value=device_hash_output)
 
     with mock.patch('os.path.getsize', return_value=1337):
-      out = md5sum.CalculateDeviceMd5Sums(test_path, device)
+      out = devil_util.CalculateDeviceHashes(test_paths, device)
       self.assertEqual(1, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file.dat' in out)
       self.assertEqual('0123456789abcdef',
                        out['/storage/emulated/legacy/test/file.dat'])
       self.assertEqual(1, len(device.RunShellCommand.call_args_list))
 
-  def testCalculateDeviceMd5Sums_list(self):
+  def testCalculateDeviceHashes_list(self):
     test_path = [
         '/storage/emulated/legacy/test/file0.dat',
         '/storage/emulated/legacy/test/file1.dat'
     ]
     device = mock.NonCallableMock()
-    device_md5sum_output = [
+    device_hash_output = [
         '0123456789abcdef',
         '123456789abcdef0',
     ]
-    device.RunShellCommand = mock.Mock(return_value=device_md5sum_output)
+    device.RunShellCommand = mock.Mock(return_value=device_hash_output)
 
     with mock.patch('os.path.getsize', return_value=1337):
-      out = md5sum.CalculateDeviceMd5Sums(test_path, device)
+      out = devil_util.CalculateDeviceHashes(test_path, device)
       self.assertEqual(2, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file0.dat' in out)
       self.assertEqual('0123456789abcdef',
@@ -109,97 +111,76 @@ class Md5SumTest(unittest.TestCase):
                        out['/storage/emulated/legacy/test/file1.dat'])
       self.assertEqual(1, len(device.RunShellCommand.call_args_list))
 
-  def testCalculateDeviceMd5Sums_generator(self):
-    test_path = ('/storage/emulated/legacy/test/file%d.dat' % n
-                 for n in range(0, 2))
-
-    device = mock.NonCallableMock()
-    device_md5sum_output = [
-        '0123456789abcdef',
-        '123456789abcdef0',
-    ]
-    device.RunShellCommand = mock.Mock(return_value=device_md5sum_output)
-
-    with mock.patch('os.path.getsize', return_value=1337):
-      out = md5sum.CalculateDeviceMd5Sums(test_path, device)
-      self.assertEqual(2, len(out))
-      self.assertTrue('/storage/emulated/legacy/test/file0.dat' in out)
-      self.assertEqual('0123456789abcdef',
-                       out['/storage/emulated/legacy/test/file0.dat'])
-      self.assertTrue('/storage/emulated/legacy/test/file1.dat' in out)
-      self.assertEqual('123456789abcdef0',
-                       out['/storage/emulated/legacy/test/file1.dat'])
-      self.assertEqual(1, len(device.RunShellCommand.call_args_list))
-
-  def testCalculateDeviceMd5Sums_singlePath_linkerWarning(self):
+  def testCalculateDeviceHashes_singlePath_linkerWarning(self):
     # See crbug/479966
-    test_path = '/storage/emulated/legacy/test/file.dat'
+    test_paths = ['/storage/emulated/legacy/test/file.dat']
 
     device = mock.NonCallableMock()
-    device_md5sum_output = [
-        'WARNING: linker: /data/local/tmp/md5sum/md5sum_bin: '
+    device_hash_output = [
+        'WARNING: linker: /data/local/tmp/devil_util/devil_util_bin: '
         'unused DT entry: type 0x1d arg 0x15db',
         'THIS_IS_NOT_A_VALID_CHECKSUM_ZZZ some random text',
         '0123456789abcdef',
     ]
-    device.RunShellCommand = mock.Mock(return_value=device_md5sum_output)
+    device.RunShellCommand = mock.Mock(return_value=device_hash_output)
 
     with mock.patch('os.path.getsize', return_value=1337):
-      out = md5sum.CalculateDeviceMd5Sums(test_path, device)
+      out = devil_util.CalculateDeviceHashes(test_paths, device)
       self.assertEqual(1, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file.dat' in out)
       self.assertEqual('0123456789abcdef',
                        out['/storage/emulated/legacy/test/file.dat'])
       self.assertEqual(1, len(device.RunShellCommand.call_args_list))
 
-  def testCalculateDeviceMd5Sums_list_fileMissing(self):
-    test_path = [
+  def testCalculateDeviceHashes_list_fileMissing(self):
+    test_paths = [
         '/storage/emulated/legacy/test/file0.dat',
         '/storage/emulated/legacy/test/file1.dat'
     ]
     device = mock.NonCallableMock()
-    device_md5sum_output = [
+    device_hash_output = [
         '0123456789abcdef',
-        '[0819/203513:ERROR:md5sum.cc(25)] Could not open file asdf',
         '',
     ]
-    device.RunShellCommand = mock.Mock(return_value=device_md5sum_output)
+    device.RunShellCommand = mock.Mock(return_value=device_hash_output)
 
     with mock.patch('os.path.getsize', return_value=1337):
-      out = md5sum.CalculateDeviceMd5Sums(test_path, device)
-      self.assertEqual(1, len(out))
+      out = devil_util.CalculateDeviceHashes(test_paths, device)
+      self.assertEqual(2, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file0.dat' in out)
       self.assertEqual('0123456789abcdef',
                        out['/storage/emulated/legacy/test/file0.dat'])
+      self.assertTrue('/storage/emulated/legacy/test/file1.dat' in out)
+      self.assertEqual('', out['/storage/emulated/legacy/test/file1.dat'])
       self.assertEqual(1, len(device.RunShellCommand.call_args_list))
 
-  def testCalculateDeviceMd5Sums_requiresBinary(self):
-    test_path = '/storage/emulated/legacy/test/file.dat'
+  def testCalculateDeviceHashes_requiresBinary(self):
+    test_paths = ['/storage/emulated/legacy/test/file.dat']
 
     device = mock.NonCallableMock()
     device.adb = mock.NonCallableMock()
     device.adb.Push = mock.Mock()
-    device_md5sum_output = [
-        'WARNING: linker: /data/local/tmp/md5sum/md5sum_bin: '
+    device_hash_output = [
+        'WARNING: linker: /data/local/tmp/devil_util/devil_util_bin: '
         'unused DT entry: type 0x1d arg 0x15db',
         'THIS_IS_NOT_A_VALID_CHECKSUM_ZZZ some random text',
         '0123456789abcdef',
     ]
     error = device_errors.AdbShellCommandFailedError('cmd', 'out', 2)
-    device.RunShellCommand = mock.Mock(
-        side_effect=(error, '', device_md5sum_output))
+    device.RunShellCommand = mock.Mock(side_effect=(error, '',
+                                                    device_hash_output))
 
-    with mock.patch(
-        'os.path.isdir', return_value=True), (mock.patch(
-            'os.path.getsize', return_value=1337)):
-      out = md5sum.CalculateDeviceMd5Sums(test_path, device)
+    with mock.patch('os.path.isdir',
+                    return_value=True), (mock.patch('os.path.getsize',
+                                                    return_value=1337)):
+      out = devil_util.CalculateDeviceHashes(test_paths, device)
       self.assertEqual(1, len(out))
       self.assertTrue('/storage/emulated/legacy/test/file.dat' in out)
       self.assertEqual('0123456789abcdef',
                        out['/storage/emulated/legacy/test/file.dat'])
       self.assertEqual(3, len(device.RunShellCommand.call_args_list))
-      device.adb.Push.assert_called_once_with('test/out/directory/md5sum_dist',
-                                              '/data/local/tmp/md5sum')
+      device.adb.Push.assert_called_once_with(
+          'test/out/directory/devil_util_dist', '/data/local/tmp/devil_util')
 
 
 if __name__ == '__main__':
