@@ -79,7 +79,8 @@ class LinuxPlatformBackend(
       os_release = self._ReadReleaseFile(path)
       if os_release:
         codename = os_release.get('ID', 'linux')
-        version = _GetOSVersion(os_release.get('VERSION_ID'))
+        version = _GetOSVersion(
+            os_release.get('VERSION_ID', os_release.get('VERSION_CODENAME')))
         return os_version.OSVersion(codename, version)
 
     # Use lsb-release as a fallback.

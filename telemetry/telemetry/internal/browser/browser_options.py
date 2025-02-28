@@ -77,6 +77,11 @@ class BrowserFinderOptions(argparse.Namespace):
     self.experimental_system_data_sources = False
     self.force_sideload_perfetto = False
 
+    self.extra_chrome_categories = ''
+    self.extra_atrace_categories = ''
+    self.legacy_json_trace_format = False
+    self.enable_systrace = False
+
   def __repr__(self):
     return str(sorted(self.__dict__.items()))
 
