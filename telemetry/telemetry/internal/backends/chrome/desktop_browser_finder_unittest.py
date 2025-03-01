@@ -298,17 +298,13 @@ class WinFindTest(FindTestBase):
             'system', 'canary'
         })
 
-  def testFindAllWithExact(self):
+  def testNotFindAllWithExact(self):
     if not self.CanFindAvailableBrowsers():
       return
 
     self._finder_options.browser_executable = 'c:\\tmp\\chrome.exe'
     types = self.DoFindAllTypes()
-    self.assertEqual(
-        set(types), {
-            'exact', 'debug', 'release', 'content-shell-debug',
-            'content-shell-release', 'system', 'canary'
-        })
+    self.assertEqual(set(types), {'exact'})
 
   def testNoErrorWithUnrecognizedExecutableName(self):
     if not self.CanFindAvailableBrowsers():
