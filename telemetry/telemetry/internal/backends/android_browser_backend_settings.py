@@ -305,8 +305,9 @@ class WebViewBackendSettings(WebViewBasedBackendSettings):
       if self.additional_apk_name is not None:
         additional_apk_path = os.path.join(
             os.path.dirname(apk_path), self.additional_apk_name)
-        if os.path.exists(additional_apk_path):
-          all_apks.append(additional_apk_path)
+        assert os.path.exists(additional_apk_path), (
+            f'{additional_apk_path} is missing for {apk_path}')
+        all_apks.append(additional_apk_path)
     return all_apks
 
   def IsWebView(self):
@@ -342,8 +343,9 @@ class WebViewBundleBackendSettings(WebViewBackendSettings):
       if self.additional_apk_name is not None:
         additional_apk_path = os.path.join(
             os.path.dirname(apk_path), '..', 'apks', self.additional_apk_name)
-        if os.path.exists(additional_apk_path):
-          all_apks.append(additional_apk_path)
+        assert os.path.exists(additional_apk_path), (
+            f'{additional_apk_path} is missing for {apk_path}')
+        all_apks.append(additional_apk_path)
     return all_apks
 
 
