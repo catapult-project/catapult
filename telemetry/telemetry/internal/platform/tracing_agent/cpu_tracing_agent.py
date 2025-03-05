@@ -83,7 +83,8 @@ class WindowsProcessCollector(ProcessCollector):
       '-c',
       ("Get-CIMInstance -query "
        "'select * from Win32_PerfFormattedData_PerfProc_Process' | "
-       "ft CreatingProcessID,IDProcess,Name,PercentProcessorTime,WorkingSet"),
+       "ft CreatingProcessID,IDProcess,Name,PercentProcessorTime,WorkingSet | "
+       "Out-String -Width 9999"),
   ]
 
   _GET_COMMANDS_SHELL_COMMAND = [
@@ -97,7 +98,7 @@ class WindowsProcessCollector(ProcessCollector):
       'powershell',
       '-c',
       ("Get-CIMInstance -query 'select * from Win32_ComputerSystem' | "
-       "ft TotalPhysicalMemory"),
+       "ft TotalPhysicalMemory | Out-String -Width 9999"),
   ]
 
   def __init__(self):
