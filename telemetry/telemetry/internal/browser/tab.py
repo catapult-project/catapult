@@ -134,15 +134,19 @@ class Tab(web_contents.WebContents):
     """
     return self._inspector_backend.FullScreenshot(timeout)
 
-  def CollectGarbage(self):
+  def CollectGarbage(self, timeout_in_seconds=60):
     """Forces a garbage collection.
+
+    Args:
+      timeout_in_seconds: maximum amount of time (seconds) to wait for
+          garbage collection to complete.
 
     Raises:
       exceptions.WebSocketDisconnected
       exceptions.TimeoutException
       exceptions.DevtoolsTargetCrashException
     """
-    self._inspector_backend.CollectGarbage()
+    self._inspector_backend.CollectGarbage(timeout_in_seconds)
 
   def ClearCache(self, force):
     """Clears the browser's networking related disk, memory and other caches.

@@ -928,5 +928,5 @@ class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
       raise e
 
   @_HandleInspectorWebSocketExceptions
-  def CollectGarbage(self):
-    self._page.CollectGarbage()
+  def CollectGarbage(self, timeout_in_seconds=60):
+    self._page.CollectGarbage(timeout_in_seconds)

@@ -146,7 +146,7 @@ class ActionRunner(ActionRunnerBase):
 
     py_utils.WaitFor(self.tab.HasReachedQuiescence, timeout_in_seconds)
 
-  def MeasureMemory(self, deterministic_mode=False):
+  def MeasureMemory(self, deterministic_mode=False, timeout_in_seconds=60):
     """Add a memory measurement to the trace being recorded.
 
     Behaves as a no-op if tracing is not enabled.
@@ -155,6 +155,8 @@ class ActionRunner(ActionRunnerBase):
       deterministic_mode: A boolean indicating whether to attempt or not to
           control the environment (force GCs, clear caches) before making the
           measurement in an attempt to obtain more deterministic results.
+      timeout_in_seconds: maximum amount of time (seconds) to wait for a
+          garbage collection to complete.
 
     Returns:
       GUID of the generated dump if one was triggered, None otherwise.
@@ -164,7 +166,7 @@ class ActionRunner(ActionRunnerBase):
       return None
     if deterministic_mode:
       self.Wait(_MEMORY_DUMP_WAIT_TIME)
-      self.ForceGarbageCollection()
+      self.ForceGarbageCollection(timeout_in_seconds)
     dump_id = self.tab.browser.DumpMemory(deterministic=deterministic_mode)
     if not dump_id:
       raise exceptions.StoryActionError('Unable to obtain memory dump')
@@ -783,16 +785,20 @@ class ActionRunner(ActionRunnerBase):
         timeout_in_seconds=timeout_in_seconds,
         log_time=log_time, label=label))
 
-  def ForceGarbageCollection(self):
+  def ForceGarbageCollection(self, timeout_in_seconds=60):
     """Forces garbage collection on all relevant systems.
 
     This includes:
     - Java heap for browser and child subprocesses (on Android).
     - JavaScript on the current renderer.
     - System caches (on supported platforms).
+
+    Args:
+      timeout_in_seconds: maximum amount of time (seconds) to wait for each
+          garbage collection to complete.
     """
     # 1) Perform V8 and Blink garbage collection. This may free java wrappers.
-    self._tab.CollectGarbage()
+    self._tab.CollectGarbage(timeout_in_seconds)
     # 2) Perform Java garbage collection
     if self._tab.browser.supports_java_heap_garbage_collection:
       self._tab.browser.ForceJavaHeapGarbageCollection()
@@ -803,10 +809,10 @@ class ActionRunner(ActionRunnerBase):
     self.Wait(_GARBAGE_COLLECTION_PROPAGATION_TIME)
     # 5) Re-do V8 and Blink garbage collection to free garbage allocated
     # while waiting.
-    self._tab.CollectGarbage()
+    self._tab.CollectGarbage(timeout_in_seconds)
     # 6) Finally, finish with V8 and Blink garbage collection because some
     # objects require V8 GC => Blink GC => V8 GC roundtrip.
-    self._tab.CollectGarbage()
+    self._tab.CollectGarbage(timeout_in_seconds)
 
   def SimulateMemoryPressureNotification(self, pressure_level):
     """Simulate memory pressure notification.
