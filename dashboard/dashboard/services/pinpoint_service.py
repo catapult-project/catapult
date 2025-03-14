@@ -6,8 +6,9 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-import json
 import collections
+import json
+import logging
 
 from dashboard.common import datastore_hooks
 from dashboard.common import utils
@@ -102,7 +103,6 @@ def MakeBisectionRequest(test,
   Returns:
     Pinpoint request to start a new bisection job
   """
-
   story = story_filter or test.unescaped_story_name
 
   grouping_label = ''
@@ -142,5 +142,7 @@ def MakeBisectionRequest(test,
           ('trace', trace),
       ] if v
   })
+
+  logging.debug('[pinpoint service] params: %s', pinpoint_params)
 
   return pinpoint_params

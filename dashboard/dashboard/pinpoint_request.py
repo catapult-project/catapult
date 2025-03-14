@@ -58,20 +58,25 @@ def NewPinpointBisect(job_params):
 
   try:
     pinpoint_params = PinpointParamsFromBisectParams(job_params)
-    logging.info('Pinpoint Params: %s', pinpoint_params)
+    logging.info('[Pinpoint Request] Pinpoint Params: %s', pinpoint_params)
   except InvalidParamsError as e:
+    logging.error("[Pinpoint Request] Invalid params! %s", str(e))
     return {'error': str(e)}
 
+  logging.debug(
+      '[Pinpoint Request] Making the request to legacy Pinpoint for bisection')
   results = pinpoint_service.NewJob(pinpoint_params)
-  logging.info('Pinpoint Service Response: %s', results)
+  logging.info('[Pinpoint Request] Pinpoint Service Response: %s', results)
 
-  # We might get a list of Anomaly IDs instead of a list of urlsafe keys. In that case, they need
-  # to be translated.
+  # We might get a list of Anomaly IDs instead of a list of urlsafe keys.
+  # In that case, they need to be translated.
   alert_keys = []
   if 'alert_ids' in job_params:
     alert_ids = json.loads(job_params.get('alert_ids'))
     if alert_ids:
-      logging.info('Translating alert IDs to urlsafe keys: %s', alert_ids)
+      logging.info(
+          '[Pinpoint Request] Translating alert IDs to urlsafe keys: %s',
+          alert_ids)
       alert_keys = [ndb.Key('Anomaly', id).urlsafe() for id in alert_ids]
   elif 'alerts' in job_params:
     alert_keys = json.loads(job_params.get('alerts'))
@@ -296,6 +301,8 @@ def PinpointParamsFromPerfTryParams(params):
   if story_filter:
     pinpoint_params['story'] = story_filter
 
+  logging.debug('[Pinpoint Request] Pinpoint Params: %s', pinpoint_params)
+
   return pinpoint_params
 
 def _GetUrlSafeKey(params):
@@ -332,17 +339,25 @@ def PinpointParamsFromBisectParams(params):
   """
   if not utils.IsValidSheriffUser():
     user = utils.GetEmail()
+    logging.error('[Pinpoint Request] User "%s" not authorized.', user)
     raise InvalidParamsError('User "%s" not authorized.' % user)
 
   story_filter = params.get('story_filter')
   if not story_filter:
+    logging.error('[Pinpoint Request] Story is required.')
     raise InvalidParamsError('Story is required.')
 
   test_path = params.get('test_path')
   if not test_path:
+    logging.error('[Pinpoint Request] Test path is required.')
     raise InvalidParamsError('Test path is required.')
 
   test_path_parts = test_path.split('/')
+  if len(test_path_parts) < 2:
+    logging.error(
+        '[Pinpoint Request] Expecting test path be slash delimited, '
+        'received %s', test_path)
+    raise InvalidParamsError('Invalid test path provided.')
   bot_name = test_path_parts[1]
   suite = test_path_parts[2]
 
@@ -350,23 +365,32 @@ def PinpointParamsFromBisectParams(params):
   # empty.
   bisect_mode = params.get('bisect_mode')
   if bisect_mode not in ('performance', 'functional'):
+    logging.error('[Pinpoint Request] Invalid bisect mode %s specified.',
+                  bisect_mode)
     raise InvalidParamsError('Invalid bisect mode %s specified.' % bisect_mode)
 
   start_commit = params.get('start_commit')
   if not start_commit:
+    logging.error('[Pinpoint Request] Start commit is required.')
     raise InvalidParamsError('Start commit is required.')
 
   end_commit = params.get('end_commit')
   if not end_commit:
+    logging.error('[Pinpoint Request] Start commit is required.')
     raise InvalidParamsError('End commit is required.')
 
   start_git_hash = ResolveToGitHash(start_commit, suite)
+  logging.debug('[Pinpoint Request] Start git hash: %s', start_git_hash)
   end_git_hash = ResolveToGitHash(end_commit, suite)
+  logging.debug('[Pinpoint Request] End git hash: %s', end_git_hash)
+
 
   # Pinpoint also requires you specify which isolate target to run the
   # test, so we derive that from the suite name. Eventually, this would
   # ideally be stored in a SparesDiagnostic but for now we can guess.
   target = GetIsolateTarget(bot_name, suite)
+  logging.debug('[Pinpoint Request] Target %s from bot name %s and suite %s',
+                target, bot_name, suite)
 
   email = utils.GetEmail()
   job_name = '%s bisect on %s/%s' % (bisect_mode.capitalize(), bot_name, suite)
