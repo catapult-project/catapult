@@ -250,7 +250,7 @@ def PinpointParamsFromPerfTryParams(params):
     A dict of params for passing to Pinpoint to start a job, or a dict with an
     'error' field.
   """
-  if not utils.IsValidSheriffUser():
+  if not utils.IsValidSheriffUser(params.get('user', '')):
     user = utils.GetEmail()
     raise InvalidParamsError('User "%s" not authorized.' % user)
 

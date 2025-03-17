@@ -627,12 +627,11 @@ def ServiceAccountHttp(scope=EMAIL_SCOPE, timeout=None):
 
 
 @ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, xg=True)
-def IsValidSheriffUser():
+def IsValidSheriffUser(email=''):
   """Checks whether the user should be allowed to triage alerts."""
-  email = GetEmail()
+  email = email or GetEmail()
   if not email:
     return False
-
   sheriff_domains = stored_object.Get(SHERIFF_DOMAINS_KEY)
   domain_matched = sheriff_domains and any(
       email.endswith('@' + domain) for domain in sheriff_domains)
