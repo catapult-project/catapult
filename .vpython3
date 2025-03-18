@@ -393,7 +393,7 @@ wheel: <
 >
 wheel: <
   name: "infra/python/wheels/urllib3-py2_py3"
-  version: "version:1.26.6"
+  version: "version:1.26.20"
 >
 wheel: <
   name: "infra/python/wheels/blessings-py2_py3"
