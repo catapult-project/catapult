@@ -8,6 +8,7 @@
 # to talk about them that doesn't have quite so much legacy baggage), but
 # that might not be possible.
 
+import dataclasses
 import itertools
 import re
 import logging
@@ -16,6 +17,7 @@ from collections import Counter, OrderedDict
 from collections import defaultdict
 
 from typ import python_2_3_compat
+from typ import reduced_glob
 from typ.json_results import ResultType
 
 _EXPECTATION_MAP = {
@@ -67,7 +69,7 @@ class Expectation(object):
     def __init__(self, reason=None, test='*', tags=None, results=None, lineno=0,
                  retry_on_failure=False, is_slow_test=False,
                  conflict_resolution=ConflictResolutionTypes.UNION, raw_tags=None, raw_results=None,
-                 is_glob=False, trailing_comments=None, encode_func=None):
+                 is_glob=False, full_wildcard_support=False, trailing_comments=None, encode_func=None):
         """Constructor for expectations.
 
         Args:
@@ -79,6 +81,12 @@ class Expectation(object):
               then the test must be running with the 'Mac' and 'Debug' tags
               set; just 'Mac', or 'Mac' and 'Release', would not qualify.
           results: List of outcomes for test. Example: ['Skip', 'Pass']
+          is_glob: Whether the expectation is a glob (potentially matches
+               multiple tests) or not.
+          full_wildcard_support: Whether globs should be the older style (only
+              allowed at the end of the test) or the newer style with full
+              support (no restrictions on number of globs or where they are
+              placed). Unused if |is_glob| is False.
           encode_func: A reference that takes a string and returns an encoded
               string. This encoding will be applied when creating a string
               representation of the expectation. If unset, no encoding will be
@@ -102,6 +110,7 @@ class Expectation(object):
         self.is_slow_test = is_slow_test
         self.conflict_resolution = conflict_resolution
         self._is_glob = is_glob
+        self._full_wildcard_support = full_wildcard_support
         self._trailing_comments = trailing_comments
         self.encode_func = encode_func
 
@@ -121,23 +130,26 @@ class Expectation(object):
         Setting the _raw_results and _raw_tags list to the original lists through the constructor
         during parsing stops unintended modifications to test expectations when rewriting files.
         """
-        # If this instance is for a glob type expectation then do not escape
-        # the last asterisk
         if self.is_glob:
-            assert len(self._test) and self._test[-1] == '*', (
-                'For Expectation instances for glob type expectations, the test value '
-                'must end in an asterisk')
-            pattern = self._test[:-1].replace('*', '\\*') + '*'
+            if self.full_wildcard_support:
+                escaped_test = self._test.replace('[*]', '\\*')
+            else:
+                # If this instance is for a limited wildcard glob type
+                # expectation then do not escape the last asterisk.
+                assert len(self._test) and self._test[-1] == '*', (
+                    'For Expectation instances for glob type expectations, the '
+                    'test value must end in an asterisk')
+                escaped_test = self._test[:-1].replace('*', '\\*') + '*'
         else:
-            pattern = self._test.replace('*', '\\*')
+            escaped_test = self._test.replace('*', '\\*')
         if self.encode_func:
-            pattern = self.encode_func(pattern)
+            escaped_test = self.encode_func(escaped_test)
         self._string_value = ''
         if self._reason:
             self._string_value += self._reason + ' '
         if self.raw_tags:
             self._string_value += '[ %s ] ' % ' '.join(sorted(self.raw_tags))
-        self._string_value += pattern + ' '
+        self._string_value += escaped_test + ' '
         self._string_value += '[ %s ]' % ' '.join(sorted(self.raw_results))
         if self._trailing_comments:
             self._string_value += self._trailing_comments
@@ -186,9 +198,10 @@ class Expectation(object):
     def test(self, v):
         if not len(v):
             raise ValueError('Cannot set test to empty string')
-        if self.is_glob and v[-1] != '*':
-            raise ValueError(
-                'test value for glob type expectations must end with an asterisk')
+        if self.is_glob and not self.full_wildcard_support and v[-1] != '*':
+                raise ValueError(
+                    'test value for glob type expectations without full '
+                    'wildcard support must end with an asterisk')
         self._test = v
 
     @property
@@ -210,6 +223,10 @@ class Expectation(object):
     @property
     def is_glob(self):
         return self._is_glob
+
+    @property
+    def full_wildcard_support(self):
+        return self._full_wildcard_support
 
     @property
     def trailing_comments(self):
@@ -238,6 +255,7 @@ class TaggedTestListParser(object):
     """
     CONFLICTS_ALLOWED = '# conflicts_allowed: '
     CONFLICT_RESOLUTION = '# conflict_resolution: '
+    FULL_WILDCARD_SUPPORT = '# full_wildcard_support: '
     RESULT_TOKEN = '# results: ['
     TAG_TOKEN = '# tags: ['
     # The bug field (optional), including optional subproject.
@@ -254,6 +272,7 @@ class TaggedTestListParser(object):
                  encode_func=None, decode_func=None):
         self.tag_sets = set()
         self.conflicts_allowed = False
+        self.full_wildcard_support = False
         self.expectations = []
         self._allowed_results = set()
         self._tag_to_tag_set = {}
@@ -278,6 +297,8 @@ class TaggedTestListParser(object):
                 self._parse_conflict_resolution_line(lineno, line)
             elif line.startswith(self.CONFLICTS_ALLOWED):
                 self._parse_conflicts_allowed_line(lineno, line)
+            elif line.startswith(self.FULL_WILDCARD_SUPPORT):
+                self._parse_full_wildcard_support_line(lineno, line)
             elif line.startswith('#') or not line:
                 # Ignore, it is just a comment or empty.
                 lineno += 1
@@ -398,6 +419,16 @@ class TaggedTestListParser(object):
                  bool_value))
         self.conflicts_allowed = bool_value == 'true'
 
+    def _parse_full_wildcard_support_line(self, lineno, line):
+        """Helper function for parsing full wildcard support annotations."""
+        bool_value = line[len(self.FULL_WILDCARD_SUPPORT):].lower()
+        if bool_value not in ('true', 'false'):
+            raise ParseError(
+                lineno,
+                (f"Unrecognized value '{bool_value}' given for "
+                 f'full_wildcard_support descriptor'))
+        self.full_wildcard_support = bool_value == 'true'
+
     def _parse_expectation_line(self, lineno, line):
         reason, raw_tags, test, raw_results, trailing_comments =\
             self._parse_expectation_line_into_components(lineno, line)
@@ -411,8 +442,8 @@ class TaggedTestListParser(object):
             test = self._decode_func(test)
 
         # remove escapes for asterisks
-        is_glob = not test.endswith('\\*') and test.endswith('*')
-        test = test.replace('\\*', '*')
+        is_glob = self._determine_if_test_is_glob(test)
+        test = self._process_wildcards(test, is_glob)
         if raw_tags:
             raw_tags = raw_tags.split()
         if raw_results:
@@ -424,7 +455,45 @@ class TaggedTestListParser(object):
             reason, test, tags, results, lineno, retry_on_failure, is_slow_test,
             self.conflict_resolution, raw_tags=raw_tags,
             raw_results=raw_results, is_glob=is_glob,
+            full_wildcard_support=self.full_wildcard_support,
             trailing_comments=trailing_comments, encode_func=self._encode_func)
+
+    def _determine_if_test_is_glob(self, test):
+        """Helper function to determine if a particular test is a glob.
+
+        Args:
+            test: A string containing the name of the test to check.
+
+        Returns:
+            True if |test| is a glob, otherwise False.
+        """
+        if self.full_wildcard_support:
+            # Full wildcard support allows for non-escaped wildcards anywhere
+            # in the test.
+            num_escaped_wildcards = test.count('\\*')
+            num_non_escaped_wildcards = test.count('*')
+            return num_escaped_wildcards != num_non_escaped_wildcards
+
+        # Originally, glob support only allowed a single non-escaped
+        # wildcard at the end.
+        return not test.endswith('\\*') and test.endswith('*')
+
+    def _process_wildcards(self, test, is_glob):
+        """Helper function to process wildcards in a test.
+
+        Args:
+            test: A string containing the name of the test to process.
+            is_glob: Whether the test is a glob.
+
+        Returns:
+            A copy of |test| with escaped wildcards updated appropriately. With
+            full wildcard support, escaped wildcards are updated to the fnmatch
+            style ([*]). Otherwise, replace escaped wildcards with non-escaped
+            wildcards.
+        """
+        if is_glob and self.full_wildcard_support:
+            return test.replace('\\*', '[*]')
+        return test.replace('\\*', '*')
 
     def _parse_expectation_line_into_components(self, lineno, line):
         """Helper function to break a single expectation line into components.
@@ -459,10 +528,13 @@ class TaggedTestListParser(object):
             * Only one tag from each tag set is used
         """
         tag_set_ids = set()
-        for i in range(len(test)-1):
-            if test[i] == '*' and ((i > 0 and test[i-1] != '\\') or i == 0):
-                raise ParseError(lineno,
-                    'Invalid glob, \'*\' can only be at the end of the pattern')
+
+        if not self.full_wildcard_support:
+            for i in range(len(test)-1):
+                if test[i] == '*' and (i == 0 or test[i-1] != '\\'):
+                    raise ParseError(lineno,
+                        'Invalid glob, \'*\' can only be at the end of the '
+                        'pattern')
 
         for t in tags:
             if not t in  self._tag_to_tag_set:
@@ -526,6 +598,8 @@ class TestExpectations(object):
         # a regular dict for reasons given below.
         self.individual_exps = OrderedDict()
         self.glob_exps = OrderedDict()
+        self._cached_reduced_globs = dict()
+        self._full_wildcard_support = False
         self._conflict_resolution = ConflictResolutionTypes.UNION
         self._encode_func = encode_func
         self._decode_func = decode_func
@@ -597,8 +671,9 @@ class TestExpectations(object):
                         sorted(self.tag_sets), sorted(parser.tag_sets)))
         else:
             self.tag_sets = parser.tag_sets
-        # Conflict resolution tag in raw data will take precedence
+        # Settings from annotations in the raw data will take precedence.
         self._conflict_resolution = parser.conflict_resolution
+        self._full_wildcard_support = parser.full_wildcard_support
         # TODO(crbug.com/83560) - Add support for multiple policies
         # for supporting multiple matching lines, e.g., allow/union,
         # reject, etc. Right now, you effectively just get a union.
@@ -615,6 +690,7 @@ class TestExpectations(object):
         glob_exps.sort(key=lambda exp: len(exp.test), reverse=True)
         for exp in glob_exps:
             self.glob_exps.setdefault(exp.test, []).append(exp)
+            self._maybe_cache_reduced_glob(exp.test)
 
         errors = ''
         if not parser.conflicts_allowed:
@@ -632,6 +708,7 @@ class TestExpectations(object):
             self.individual_exps.setdefault(pattern, []).extend(exps)
         for pattern, exps in other.glob_exps.items():
             self.glob_exps.setdefault(pattern, []).extend(exps)
+            self._maybe_cache_reduced_glob(pattern)
         # resort the glob patterns by length in self.glob_exps ordered
         # dictionary
         glob_exps = self.glob_exps
@@ -639,6 +716,21 @@ class TestExpectations(object):
         for pattern, exps in sorted(
               glob_exps.items(), key=lambda item: len(item[0]), reverse=True):
             self.glob_exps[pattern] = exps
+
+    def _maybe_cache_reduced_glob(self, pattern):
+        """Helper function to store a ReducedGlob for |pattern|.
+
+        Args:
+            pattern: A string containing the pattern to store in the
+                ReducedGlob.
+        """
+        if not self._full_wildcard_support:
+            return
+        # Avoid using setdefault so we aren't running ReducedGlob.__init__()
+        # every time.
+        if pattern in self._cached_reduced_globs:
+            return
+        self._cached_reduced_globs[pattern] = reduced_glob.ReducedGlob(pattern)
 
     def expectations_for(self, test):
         # Returns an Expectation.
@@ -664,72 +756,68 @@ class TestExpectations(object):
         # is used internally if the user uses a special encoding.
         if self._decode_func:
             test = self._decode_func(test)
-        self._results = set()
-        self._reasons = set()
-        self._exp_tags = set()
-        self._should_retry_on_failure = False
-        self._is_slow_test = False
-        self._trailing_comments = str()
-
-        def _update_expected_results(exp):
-            if exp.tags.issubset(self._tags):
-                if exp.conflict_resolution == ConflictResolutionTypes.UNION:
-                    if not exp.is_default_pass:
-                        self._results.update(exp.results)
-                    self._should_retry_on_failure |= exp.should_retry_on_failure
-                    self._is_slow_test |= exp.is_slow_test
-                    self._exp_tags.update(exp.tags)
-                    if exp.trailing_comments:
-                        self._trailing_comments += exp.trailing_comments + '\n'
-                    if exp.reason:
-                        self._reasons.update([exp.reason])
-                else:
-                    self._results = set(exp.results)
-                    self._should_retry_on_failure = exp.should_retry_on_failure
-                    self._is_slow_test = exp.is_slow_test
-                    self._exp_tags = set(exp.tags)
-                    self._trailing_comments = exp.trailing_comments
-                    if exp.reason:
-                        self._reasons = {exp.reason}
+        merged_expectation_data = _MergedExpectationData()
 
         # First, check for an exact match on the test name.
         for exp in self.individual_exps.get(test, []):
-            _update_expected_results(exp)
+            self._maybe_merge_expectation_data(exp, merged_expectation_data)
 
-        if self._results or self._is_slow_test or self._should_retry_on_failure:
-            return Expectation(
-                    test=test, results=self._results, tags=self._exp_tags,
-                    retry_on_failure=self._should_retry_on_failure,
-                    conflict_resolution=self._conflict_resolution,
-                    is_slow_test=self._is_slow_test,
-                    reason=' '.join(sorted(self._reasons)),
-                    trailing_comments=self._trailing_comments,
-                    encode_func=self._encode_func)
+        if merged_expectation_data.contains_merged_data():
+            return merged_expectation_data.as_expectation(
+                test, self._conflict_resolution, self._encode_func)
 
         # If we didn't find an exact match, check for matching globs. Match by
         # the most specific (i.e., longest) glob first. Because self.globs_exps
         # is ordered by length, this is a simple linear search
         for glob, exps in self.glob_exps.items():
-            glob = glob[:-1]
-            if test.startswith(glob):
-                for exp in exps:
-                    _update_expected_results(exp)
-                # if *any* of the exps matched, results will be non-empty,
-                # and we're done. If not, keep looking through ever-shorter
-                # globs.
-                if self._results or self._is_slow_test or self._should_retry_on_failure:
-                    return Expectation(
-                            test=test, results=self._results,
-                            tags=self._exp_tags,
-                            retry_on_failure=self._should_retry_on_failure,
-                            conflict_resolution=self._conflict_resolution,
-                            is_slow_test=self._is_slow_test,
-                            reason=' '.join(sorted(self._reasons)),
-                            trailing_comments=self._trailing_comments,
-                            encode_func=self._encode_func)
+            if self._full_wildcard_support:
+                if self._cached_reduced_globs[glob].matchcase(test):
+                    for exp in exps:
+                        self._maybe_merge_expectation_data(exp, merged_expectation_data)
+            else:
+                glob = glob[:-1]
+                if test.startswith(glob):
+                    for exp in exps:
+                        self._maybe_merge_expectation_data(exp, merged_expectation_data)
+            # if *any* of the exps matched, results will be non-empty and we're
+            # done. If not, keep looking through ever-shorter globs.
+            if merged_expectation_data.contains_merged_data():
+                return merged_expectation_data.as_expectation(
+                    test, self._conflict_resolution, self._encode_func)
 
         # Nothing matched, so by default, the test is expected to pass.
         return Expectation(test=test, encode_func=self._encode_func)
+
+    def _maybe_merge_expectation_data(self, exp, merged_expectation_data):
+        """Helper function to conditionally merge expectation data.
+
+        Args:
+            exp: An Expectation instance whose data may be merged into
+                |merged_expectation_data|.
+            merged_expectation_data: A _MergedExpectationData instance
+                containing any previously merged data.
+        """
+        if not exp.tags.issubset(self._tags):
+            return
+
+        if exp.conflict_resolution == ConflictResolutionTypes.UNION:
+            if not exp.is_default_pass:
+                merged_expectation_data.results.update(exp.results)
+            merged_expectation_data.should_retry_on_failure |= exp.should_retry_on_failure
+            merged_expectation_data.is_slow_test |= exp.is_slow_test
+            merged_expectation_data.exp_tags.update(exp.tags)
+            if exp.trailing_comments:
+                merged_expectation_data.trailing_comments += exp.trailing_comments + '\n'
+            if exp.reason:
+                merged_expectation_data.reasons.update([exp.reason])
+        else:
+            merged_expectation_data.results = set(exp.results)
+            merged_expectation_data.should_retry_on_failure = exp.should_retry_on_failure
+            merged_expectation_data.is_slow_test = exp.is_slow_test
+            merged_expectation_data.exp_tags = set(exp.tags)
+            merged_expectation_data.trailing_comments = exp.trailing_comments
+            if exp.reason:
+                merged_expectation_data.reasons = {exp.reason}
 
     def tag_sets_conflict(self, s1, s2, tags_conflict_fn):
         # Tag sets s1 and s2 have no conflict when there exists a tag in s1
@@ -785,7 +873,27 @@ class TestExpectations(object):
             if pattern not in test_names:
                 broken_exps.extend(exps)
 
-        # look for broken glob expectations
+        if self._full_wildcard_support:
+            broken_glob_exps = self._check_for_broken_glob_expectations_full(
+                test_names)
+        else:
+            broken_glob_exps = self._check_for_broken_glob_expectations_simple(
+                test_names)
+
+        return broken_exps + broken_glob_exps
+
+    def _check_for_broken_glob_expectations_simple(self, test_names):
+        """Helper function to handle checking for broken simple globs.
+
+        Args:
+            test_names: A set of test names to check.
+
+        Returns:
+            A list of broken glob expectations that do not apply to any known
+            tests.
+        """
+        assert not self._full_wildcard_support
+
         # first create a trie of test names
         trie = {}
         broken_glob_exps = []
@@ -806,4 +914,63 @@ class TestExpectations(object):
                     broken_glob_exps.extend(exps)
                     break
                 _trie = _trie[l]
-        return broken_exps + broken_glob_exps
+        return broken_glob_exps
+
+    def _check_for_broken_glob_expectations_full(self, test_names):
+        """Helper function to handle checking for broken full wildcard globs.
+
+        Args:
+            test_names: A set of test names to check.
+
+        Returns:
+            A list of broken glob expectations that do not apply to any known
+            tests.
+        """
+        assert self._full_wildcard_support
+
+        broken_glob_exps = []
+        for pattern, exps in self.glob_exps.items():
+            for test in test_names:
+                if self._cached_reduced_globs[pattern].matchcase(test):
+                    break
+            else:
+                broken_glob_exps.extend(exps)
+        return broken_glob_exps
+
+
+@dataclasses.dataclass
+class _MergedExpectationData:
+    """Helper dataclass used to store/pass information in expectations_for."""
+    results: set = dataclasses.field(default_factory=set)
+    reasons: set = dataclasses.field(default_factory=set)
+    exp_tags: set = dataclasses.field(default_factory=set)
+    should_retry_on_failure: bool = False
+    is_slow_test: bool = False
+    trailing_comments: str = ''
+
+    def contains_merged_data(self):
+        """Whether this object contains any useful merged data."""
+        return (self.results or
+                self.is_slow_test or
+                self.should_retry_on_failure)
+
+    def as_expectation(self, test, conflict_resolution, encode_func):
+        """Returns the stored data as an Expectation object.
+
+        Args:
+            test: A string containing the test the merged data is for.
+            conflict_resolution: The conflict resolution to pass to the created
+                Expectation.
+            encode_func: The encode_func to pass to the created Expectation.
+        """
+        return Expectation(
+            test=test,
+            results=self.results,
+            tags=self.exp_tags,
+            retry_on_failure=self.should_retry_on_failure,
+            conflict_resolution=conflict_resolution,
+            is_slow_test=self.is_slow_test,
+            reason=' '.join(sorted(self.reasons)),
+            trailing_comments=self.trailing_comments,
+            encode_func=encode_func
+        )
