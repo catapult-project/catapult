@@ -31,7 +31,9 @@ class ExtensionTest(unittest.TestCase):
     # TODO(https://crbug.com/354627706): Migrate extensions to MV3 and remove
     # this flag.
     self._options.browser_options.AppendExtraBrowserArgs(
-        '--disable-features=ExtensionManifestV2Disabled')
+        '--disable-features=ExtensionManifestV2Disabled,' +
+        'ExtensionManifestV2Unsupported')
+
     browser_to_create = browser_finder.FindBrowser(self._options)
     if not browser_to_create:
       self.skipTest("Did not find a browser that supports extensions")
