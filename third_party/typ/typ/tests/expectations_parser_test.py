@@ -134,7 +134,7 @@ class ExpectationTest(unittest.TestCase):
 
         # Full wildcard support.
         e = expectations_parser.Expectation(reason='crbug.com/1234',
-                                            test='foo*bar[*]test*',
+                                            test='foo*bar\\*test*',
                                             tags=['win'],
                                             results=['FAIL'],
                                             trailing_comments=' # comment',

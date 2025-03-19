@@ -43,6 +43,9 @@ VALID_RESULT_TAGS = set(
     list(_EXPECTATION_MAP.keys()) +
     [_SLOW_TAG, _RETRY_ON_FAILURE_TAG])
 
+ESCAPED_WILDCARD = '\\*'
+UNESCAPED_WILDCARD = '*'
+
 
 class ConflictResolutionTypes(object):
     UNION = 1
@@ -66,7 +69,7 @@ class ParseError(Exception):
 
 
 class Expectation(object):
-    def __init__(self, reason=None, test='*', tags=None, results=None, lineno=0,
+    def __init__(self, reason=None, test=UNESCAPED_WILDCARD, tags=None, results=None, lineno=0,
                  retry_on_failure=False, is_slow_test=False,
                  conflict_resolution=ConflictResolutionTypes.UNION, raw_tags=None, raw_results=None,
                  is_glob=False, full_wildcard_support=False, trailing_comments=None, encode_func=None):
@@ -131,17 +134,24 @@ class Expectation(object):
         during parsing stops unintended modifications to test expectations when rewriting files.
         """
         if self.is_glob:
+            # Expectations using full wildcards do not have their escaped
+            # wildcards replaced with anything.
             if self.full_wildcard_support:
-                escaped_test = self._test.replace('[*]', '\\*')
+                escaped_test = self._test
             else:
                 # If this instance is for a limited wildcard glob type
                 # expectation then do not escape the last asterisk.
-                assert len(self._test) and self._test[-1] == '*', (
+                assert (len(self._test) and
+                        self._test[-1] == UNESCAPED_WILDCARD), (
                     'For Expectation instances for glob type expectations, the '
                     'test value must end in an asterisk')
-                escaped_test = self._test[:-1].replace('*', '\\*') + '*'
+                escaped_test = (
+                    self._test[:-1].replace(
+                        UNESCAPED_WILDCARD, ESCAPED_WILDCARD)
+                    + UNESCAPED_WILDCARD)
         else:
-            escaped_test = self._test.replace('*', '\\*')
+            escaped_test = self._test.replace(
+                UNESCAPED_WILDCARD, ESCAPED_WILDCARD)
         if self.encode_func:
             escaped_test = self.encode_func(escaped_test)
         self._string_value = ''
@@ -198,10 +208,12 @@ class Expectation(object):
     def test(self, v):
         if not len(v):
             raise ValueError('Cannot set test to empty string')
-        if self.is_glob and not self.full_wildcard_support and v[-1] != '*':
-                raise ValueError(
-                    'test value for glob type expectations without full '
-                    'wildcard support must end with an asterisk')
+        if (self.is_glob and
+            not self.full_wildcard_support and
+            v[-1] != UNESCAPED_WILDCARD):
+            raise ValueError(
+                'test value for glob type expectations without full wildcard '
+                'support must end with an asterisk')
         self._test = v
 
     @property
@@ -470,13 +482,14 @@ class TaggedTestListParser(object):
         if self.full_wildcard_support:
             # Full wildcard support allows for non-escaped wildcards anywhere
             # in the test.
-            num_escaped_wildcards = test.count('\\*')
-            num_non_escaped_wildcards = test.count('*')
+            num_escaped_wildcards = test.count(ESCAPED_WILDCARD)
+            num_non_escaped_wildcards = test.count(UNESCAPED_WILDCARD)
             return num_escaped_wildcards != num_non_escaped_wildcards
 
         # Originally, glob support only allowed a single non-escaped
         # wildcard at the end.
-        return not test.endswith('\\*') and test.endswith('*')
+        return (test.endswith(UNESCAPED_WILDCARD) and
+                not test.endswith(ESCAPED_WILDCARD))
 
     def _process_wildcards(self, test, is_glob):
         """Helper function to process wildcards in a test.
@@ -487,13 +500,12 @@ class TaggedTestListParser(object):
 
         Returns:
             A copy of |test| with escaped wildcards updated appropriately. With
-            full wildcard support, escaped wildcards are updated to the fnmatch
-            style ([*]). Otherwise, replace escaped wildcards with non-escaped
-            wildcards.
+            full wildcard support, escaped wildcards are left untouched.
+            Otherwise, replace escaped wildcards with non-escaped wilcards.
         """
         if is_glob and self.full_wildcard_support:
-            return test.replace('\\*', '[*]')
-        return test.replace('\\*', '*')
+            return test
+        return test.replace(ESCAPED_WILDCARD, UNESCAPED_WILDCARD)
 
     def _parse_expectation_line_into_components(self, lineno, line):
         """Helper function to break a single expectation line into components.
@@ -531,10 +543,11 @@ class TaggedTestListParser(object):
 
         if not self.full_wildcard_support:
             for i in range(len(test)-1):
-                if test[i] == '*' and (i == 0 or test[i-1] != '\\'):
+                if (test[i] == UNESCAPED_WILDCARD and
+                    (i == 0 or test[i-1] != '\\')):
                     raise ParseError(lineno,
-                        'Invalid glob, \'*\' can only be at the end of the '
-                        'pattern')
+                        f'Invalid glob, \'{UNESCAPED_WILDCARD}\' can only be '
+                        f'at the end of the pattern')
 
         for t in tags:
             if not t in  self._tag_to_tag_set:
@@ -908,7 +921,7 @@ class TestExpectations(object):
         for pattern, exps in self.glob_exps.items():
             _trie = trie
             for i, l in enumerate(pattern):
-                if l == '*' and i == len(pattern) - 1:
+                if l == UNESCAPED_WILDCARD and i == len(pattern) - 1:
                     break
                 if l not in _trie:
                     broken_glob_exps.extend(exps)

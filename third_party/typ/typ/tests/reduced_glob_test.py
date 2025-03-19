@@ -34,8 +34,8 @@ class GlobUnittest(unittest.TestCase):
         # Case sensitivity.
         self.assertFalse(g('test*').matchcase('Test_foobar'))
         # Escaped glob.
-        self.assertFalse(g('test_[*]').matchcase('test_.'))
-        self.assertTrue(g('test_[*]').matchcase('test_*'))
+        self.assertFalse(g('test_\\*').matchcase('test_.'))
+        self.assertTrue(g('test_\\*').matchcase('test_*'))
         # Ensure there is no implicit starting glob.
         self.assertFalse(g('foobar').matchcase('test_foobar'))
         # Ensure there is no implicit trailing glob.
