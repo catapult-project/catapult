@@ -859,7 +859,9 @@ class Job(ndb.Model):
           _UpdateGerritDeferred,
           self.gerrit_server,
           self.gerrit_change_id,
-          '%s Job %s.\n\nSee results at: %s' % (icon, state, self.url),
+          '%s Job %s/%s %s.\n\nSee results at: %s' %
+          (icon, self.configuration, self.benchmark_arguments.benchmark, state,
+           self.url),
           _retry_options=RETRY_OPTIONS,
       )
 

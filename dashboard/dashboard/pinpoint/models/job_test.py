@@ -57,7 +57,7 @@ https://testbed.example.com/job/1
 
 Error string""")
 
-_COMMENT_CODE_REVIEW = (u"""\U0001f4cd Job complete.
+_COMMENT_GERRIT_UPDATE = (u"""\U0001f4cd Job %s/%s complete.
 
 See results at: https://testbed.example.com/job/1""")
 
@@ -1327,14 +1327,21 @@ class BugCommentTest(test.TestCase):
 
   @mock.patch('dashboard.services.gerrit_service.PostChangeComment')
   def testCompletedUpdatesGerrit(self, post_change_comment):
+    expected_bot = 'linux-perf'
+    expected_benchmark = 'speedometer2'
     j = job.Job.New((), (),
+                    arguments={
+                        'configuration': expected_bot,
+                        'benchmark': expected_benchmark,
+                    },
                     gerrit_server='https://review.com',
                     gerrit_change_id='123456')
     scheduler.Schedule(j)
     j.Run()
     self.ExecuteDeferredTasks('default')
-    post_change_comment.assert_called_once_with('https://review.com', '123456',
-                                                _COMMENT_CODE_REVIEW)
+    post_change_comment.assert_called_once_with(
+        'https://review.com', '123456',
+        _COMMENT_GERRIT_UPDATE % (expected_bot, expected_benchmark))
 
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
