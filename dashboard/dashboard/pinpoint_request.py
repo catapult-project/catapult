@@ -337,12 +337,13 @@ def PinpointParamsFromBisectParams(params):
     A dict of params for passing to Pinpoint to start a job, or a dict with an
     'error' field.
   """
-  if not utils.IsValidSheriffUser():
-    user = utils.GetEmail()
-    logging.error('[Pinpoint Request] User "%s" not authorized.', user)
-    raise InvalidParamsError('User "%s" not authorized.' % user)
+  user_email = params.get('user') or utils.GetEmail()
+  if not utils.IsValidSheriffUser(user_email):
+    logging.error('[Pinpoint Request] User "%s" not authorized.', user_email)
+    raise InvalidParamsError('User "%s" not authorized.' % user_email)
 
-  story_filter = params.get('story_filter')
+  # story_filter renamed to story in Skia
+  story_filter = params.get('story_filter', params.get('story'))
   if not story_filter:
     logging.error('[Pinpoint Request] Story is required.')
     raise InvalidParamsError('Story is required.')
@@ -352,48 +353,56 @@ def PinpointParamsFromBisectParams(params):
     logging.error('[Pinpoint Request] Test path is required.')
     raise InvalidParamsError('Test path is required.')
 
-  test_path_parts = test_path.split('/')
-  if len(test_path_parts) < 2:
-    logging.error(
-        '[Pinpoint Request] Expecting test path be slash delimited, '
-        'received %s', test_path)
-    raise InvalidParamsError('Invalid test path provided.')
-  bot_name = test_path_parts[1]
-  suite = test_path_parts[2]
+  configuration = params.get('configuration')  # bot_name
+  benchmark = params.get('benchmark')  # suite
+
+  if not configuration and not benchmark:
+    test_path_parts = test_path.split('/')
+    if len(test_path_parts) < 2:
+      logging.error(
+          '[Pinpoint Request] Expecting test path be slash delimited, '
+          'received %s', test_path)
+      raise InvalidParamsError('Invalid test path provided.')
+    configuration = test_path_parts[1]
+    benchmark = test_path_parts[2]
 
   # If functional bisects are speciied, Pinpoint expects these parameters to be
   # empty.
-  bisect_mode = params.get('bisect_mode')
+  # bisect_mode renamed to comparison_mode for Skia. For bisect, Skia does not
+  # support functional bisect.
+  bisect_mode = params.get('bisect_mode', params.get('comparison_mode'))
   if bisect_mode not in ('performance', 'functional'):
     logging.error('[Pinpoint Request] Invalid bisect mode %s specified.',
                   bisect_mode)
     raise InvalidParamsError('Invalid bisect mode %s specified.' % bisect_mode)
 
-  start_commit = params.get('start_commit')
+  # start_commit and end_commit both renamed to start_git_hash and end_git_hash
+  # from Skia, though, they are utilized as commit positions.
+  start_commit = params.get('start_commit', params.get('start_git_hash'))
   if not start_commit:
     logging.error('[Pinpoint Request] Start commit is required.')
     raise InvalidParamsError('Start commit is required.')
 
-  end_commit = params.get('end_commit')
+  end_commit = params.get('end_commit', params.get('end_git_hash'))
   if not end_commit:
     logging.error('[Pinpoint Request] Start commit is required.')
     raise InvalidParamsError('End commit is required.')
 
-  start_git_hash = ResolveToGitHash(start_commit, suite)
+  start_git_hash = ResolveToGitHash(start_commit, benchmark)
   logging.debug('[Pinpoint Request] Start git hash: %s', start_git_hash)
-  end_git_hash = ResolveToGitHash(end_commit, suite)
+  end_git_hash = ResolveToGitHash(end_commit, benchmark)
   logging.debug('[Pinpoint Request] End git hash: %s', end_git_hash)
 
 
   # Pinpoint also requires you specify which isolate target to run the
   # test, so we derive that from the suite name. Eventually, this would
   # ideally be stored in a SparesDiagnostic but for now we can guess.
-  target = GetIsolateTarget(bot_name, suite)
+  target = GetIsolateTarget(configuration, benchmark)
   logging.debug('[Pinpoint Request] Target %s from bot name %s and suite %s',
-                target, bot_name, suite)
+                target, configuration, benchmark)
 
-  email = utils.GetEmail()
-  job_name = '%s bisect on %s/%s' % (bisect_mode.capitalize(), bot_name, suite)
+  job_name = '%s bisect on %s/%s' % (bisect_mode.capitalize(), configuration,
+                                     benchmark)
 
   alert_key = _GetUrlSafeKey(params)
 
@@ -405,6 +414,8 @@ def PinpointParamsFromBisectParams(params):
   if not alert_magnitude:
     alert_magnitude = FindMagnitudeBetweenCommits(
         utils.TestKey(test_path), start_commit, end_commit)
+  elif params.get('comparison_magnitude'):
+    alert_magnitude = params.get('comparison_magnitude')
 
   if isinstance(params['bug_id'], int):
     issue_id = params['bug_id'] if params['bug_id'] > 0 else None
@@ -421,7 +432,7 @@ def PinpointParamsFromBisectParams(params):
       comparison_mode=bisect_mode,
       target=target,
       comparison_magnitude=alert_magnitude,
-      user=email,
+      user=user_email,
       name=job_name,
       story_filter=story_filter,
       pin=params.get('pin'),
