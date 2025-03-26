@@ -19,7 +19,7 @@ from telemetry.internal.util import binary_manager
 
 import py_utils
 
-_MIN_GO_VERSION = [1, 12]
+_MIN_GO_VERSION = [1, 21]
 _WPR_GO_DIR = os.path.join(util.GetCatapultDir(), 'web_page_replay_go', 'src')
 
 def check_go_version():
