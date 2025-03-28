@@ -248,6 +248,9 @@ class Runner(object):
             self.print_(VERSION)
             return ret, None, None
 
+        if self.args.coverage_config_file:
+            h.env['COVERAGE_RCFILE'] = self.args.coverage_config_file
+
         if self.args.write_full_results_to:
             self.artifact_output_dir = os.path.join(
                     os.path.dirname(

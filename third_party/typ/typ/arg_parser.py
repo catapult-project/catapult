@@ -110,6 +110,9 @@ class ArgumentParser(argparse.ArgumentParser):
             self.add_argument('-c', '--coverage', action='store_true',
                               help=('Reports coverage information. This is '
                                     'disabled when a test filter is used.'))
+            self.add_argument('--coverage-config-file', action='store',
+                              help=('Path to a config file for the coverage '
+                                    'module'))
             self.add_argument('--coverage-source', action='append',
                               default=[],
                               help=('Directories to include when running and '
