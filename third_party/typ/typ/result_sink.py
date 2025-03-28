@@ -28,7 +28,11 @@ import json
 import os
 import sys
 
-import requests
+# The requests module is only needed if we actually need to talk to a sink.
+try:
+    import requests
+except ImportError:
+    requests = None
 
 from typ import host as typ_host
 from typ import json_results
@@ -87,6 +91,9 @@ class ResultSinkReporter(object):
                             'result_sink')
             if not self._sink:
                 return
+
+            assert(requests is not None,
+                   'Need the requests module to talk to the result sink')
 
             self._invocation_level_url = ('http://%s/prpc/luci.resultsink.v1.Sink/ReportInvocationLevelArtifacts'
                          % self._sink['address'])
