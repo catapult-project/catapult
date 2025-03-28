@@ -304,6 +304,39 @@ func TestMerge(t *testing.T) {
 	}
 }
 
+// Test that requests with the same URL but different headers are not lost
+// during merge.
+func TestMergeDifferentHeaders(t *testing.T) {
+	a := newArchive()
+	b := newArchive()
+	const host = "example.com"
+	a.Requests[host] = make(map[string][]*ArchivedRequest)
+	b.Requests[host] = make(map[string][]*ArchivedRequest)
+	// Create two requests with the same URL but different headers
+	const url = "https://example.com/index.html"
+
+	h1 := http.Header{}
+	h1.Set("User-Agent", "mobile")
+	a.Requests[host][url] = []*ArchivedRequest{createArchivedRequest(t, url, h1)}
+
+	h2 := http.Header{}
+	h2.Set("User-Agent", "desktop")
+	b.Requests[host][url] = []*ArchivedRequest{createArchivedRequest(t, url, h2)}
+
+	// The merged archive should contain both requests.
+	_ = a.Merge(&b)
+	if len(a.Requests[host][url]) != 2 {
+		t.Fatalf("Expected 2 requests in archive a, found %d",
+		         len(a.Requests[host][url]))
+	}
+
+	_ = b.Merge(&a)
+	if len(b.Requests[host][url]) != 2 {
+		t.Fatalf("Expected 2 requests in archive b, found %d",
+		         len(b.Requests[host][url]))
+	}
+}
+
 func TestAdd(t *testing.T) {
 	// generate a test server so we can capture and inspect the request
 	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
