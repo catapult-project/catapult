@@ -503,12 +503,6 @@ def GetIsolateTarget(bot_name, suite):
     return 'performance_test_suite_android_clank_monochrome'
   if bot_name == 'android-go-wembley-perf':
     return 'performance_test_suite_android_trichrome_chrome_google_bundle'
-  if bot_name in ['android-new-pixel-perf', 'android-new-pixel-perf-pgo']:
-    return 'performance_test_suite_android_trichrome_chrome_google_64_32_bundle'
-  if bot_name in [
-      'android-new-pixel-pro-perf', 'android-new-pixel-pro-perf-pgo'
-  ]:
-    return 'performance_test_suite_android_trichrome_chrome_google_64_32_bundle'
   if bot_name in ['android-pixel4-perf', 'android-pixel4-perf-pgo']:
     return 'performance_test_suite_android_trichrome_chrome_google_64_32_bundle'
   if bot_name in ['android-pixel6-perf', 'android-pixel6-perf-pgo']:
