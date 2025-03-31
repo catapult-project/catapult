@@ -263,6 +263,13 @@ class BrowserFinderOptions(argparse.Namespace):
               'devices are supported. If specified as "android", all available '
               'Android devices are used.'))
     group.add_argument(
+        '--connect-to-device-over-network',
+        action='store_true',
+        default=False,
+        help=('Connects to the hostname provided via --device when finding '
+              'devices. This allows for use of adb over TCP instead of '
+              'requiring the device to be physically connected.'))
+    group.add_argument(
         '--initial-find-device-attempts',
         type=int,
         default=1,
@@ -547,10 +554,14 @@ class BrowserFinderOptions(argparse.Namespace):
 
   # TODO(eakuefner): Factor this out into OptionBuilder pattern
   def BuildRemotePlatformOptions(self):
-    if self.device or self.android_denylist_file:
+    if (self.device or self.android_denylist_file
+        or self.connect_to_device_over_network):
+      if self.connect_to_device_over_network and not self.device:
+        raise RuntimeError('--connect-to-device-over-network requires --device')
       self.remote_platform_options = (
           remote_platform_options.AndroidPlatformOptions(
-              self.device, self.android_denylist_file))
+              self.device, self.android_denylist_file,
+              self.connect_to_device_over_network))
 
       # We delete these options because they should live solely in the
       # AndroidPlatformOptions instance belonging to this class.
@@ -558,6 +569,8 @@ class BrowserFinderOptions(argparse.Namespace):
         del self.device
       if self.android_denylist_file:
         del self.android_denylist_file
+      # This should always exist due to having a default.
+      del self.connect_to_device_over_network
     else:
       self.remote_platform_options = (
           remote_platform_options.AndroidPlatformOptions())

@@ -47,10 +47,16 @@ def GetDevicesMatchingOptions(options):
   """Returns a list of devices matching the options."""
   devices = []
   remote_platform_options = options.remote_platform_options
+
+  # Establish a connection to network devices so they show up in adb.
+  if remote_platform_options.connect_to_device_over_network:
+    android_device.ConnectToTcpDevice(remote_platform_options.device)
+
   if (not remote_platform_options.device or
       remote_platform_options.device == 'list'):
     devices = _GetAllAvailableDevices(options)
-  elif remote_platform_options.device == 'android':
+  elif (remote_platform_options.device == 'android'
+        or remote_platform_options.connect_to_device_over_network):
     devices = android_device.FindAllAvailableDevices(options)
   else:
     devices = _GetAllAvailableDevices(options)

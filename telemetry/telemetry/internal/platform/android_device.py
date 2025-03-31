@@ -155,3 +155,14 @@ def FindAllAvailableDevices(options):
             'adb reported as present, but NoAdbError thrown: %s', str(e))
 
   return devices
+
+
+def ConnectToTcpDevice(hostname):
+  """Makes adb connect to the provided hostname.
+
+  This allows network-attached Android devices to be accessible via adb.
+
+  Args:
+    hostname: A string containing the hostname to connect to.
+  """
+  adb_wrapper.AdbWrapper.Connect(hostname)

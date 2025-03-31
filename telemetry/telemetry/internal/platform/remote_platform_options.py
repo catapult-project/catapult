@@ -10,8 +10,12 @@ class RemotePlatformOptions():
 class AndroidPlatformOptions(RemotePlatformOptions):
   """Android-specific remote platform options."""
 
-  def __init__(self, device=None, android_denylist_file=None):
+  def __init__(self,
+               device=None,
+               android_denylist_file=None,
+               connect_to_device_over_network=None):
     super().__init__()
 
     self.device = device
     self.android_denylist_file = android_denylist_file
+    self.connect_to_device_over_network = connect_to_device_over_network
