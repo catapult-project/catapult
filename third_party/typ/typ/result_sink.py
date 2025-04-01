@@ -92,8 +92,9 @@ class ResultSinkReporter(object):
             if not self._sink:
                 return
 
-            assert(requests is not None,
-                   'Need the requests module to talk to the result sink')
+            assert requests is not None, (
+                'Need the requests module to talk to the result sink'
+            )
 
             self._invocation_level_url = ('http://%s/prpc/luci.resultsink.v1.Sink/ReportInvocationLevelArtifacts'
                          % self._sink['address'])
