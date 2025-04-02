@@ -44,7 +44,7 @@
     "eslint-plugin-html": "^4.0.0",
     "espree": "^3.0.0",
     "lit-element": "^2.0.0",
-    "karma": "^4.0.0",
+    "karma": "^6.4.3",
     "karma-chrome-launcher": "^2.2.0",
     "karma-coverage": "^1.1.2",
     "karma-mocha": "^1.3.0",
