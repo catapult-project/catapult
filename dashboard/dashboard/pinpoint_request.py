@@ -13,6 +13,7 @@ import six
 from google.appengine.ext import ndb
 
 from dashboard.common import descriptor
+from dashboard.common import isolate_targets as iso
 from dashboard.common import math_utils
 from dashboard.common import utils
 from dashboard.common import defaults
@@ -178,31 +179,11 @@ def GetIsolateTarget(bot_name, suite):
   if 'fuchsia-perf' in bot_name.lower():
     return 'performance_web_engine_test_suite'
 
-  # Each Android binary has its own target, and different bots use different
-  # binaries. Mapping based off of Chromium's
-  # //tools/perf/core/perf_data_generator.py
-  if bot_name == 'android-go-perf':
-    return 'performance_test_suite_android_clank_monochrome'
-  if bot_name == 'android-go-wembley-perf':
-    return 'performance_test_suite_android_trichrome_chrome_google_bundle'
-  if bot_name == 'android-pixel4-perf':
-    return 'performance_test_suite_android_trichrome_chrome_google_64_32_bundle'
-  if bot_name == 'android-pixel4a_power-perf':
-    return 'performance_test_suite_android_trichrome_chrome_google_bundle'
-  if bot_name == 'android-pixel6-perf':
-    return 'performance_test_suite_android_trichrome_chrome_google_64_32_bundle'
-  if bot_name == 'android-pixel6-pro-perf':
-    return 'performance_test_suite_android_trichrome_chrome_google_64_32_bundle'
-  if bot_name == 'android-samsung-foldable-perf':
-    return 'performance_test_suite_android_trichrome_chrome_google_bundle'
-  if bot_name == 'android-pixel-fold-perf':
-    return 'performance_test_suite_android_trichrome_chrome_google_64_32_bundle'
-  if 'android' in bot_name.lower():
-    raise InvalidParamsError(
-        'Given Android bot %s does not have an isolate mapped to it' % bot_name)
-
-  return 'performance_test_suite'
-
+  return iso.GetAndroidTarget(
+      bot_name,
+      InvalidParamsError(
+          'Given Android bot %s does not have an isolate mapped to it' %
+          bot_name))
 
 def ParseGroupingLabelChartNameAndTraceName(test_path):
   """Returns grouping_label, chart_name, trace_name from a test path."""
