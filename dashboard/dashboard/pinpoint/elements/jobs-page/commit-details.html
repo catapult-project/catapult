@@ -55,6 +55,7 @@ found in the LICENSE file.
       <template is="dom-if" if="[[hasCommitDetails(commitDetails)]]">
         <p><span class="commit-hash">[[_FormatHash(commitDetails.git_hash)]]</span><span class="conmit-message">[[commitDetails.message]]</span></p>
         <p><span class="commit-position">[[commitDetails.commit_position]]</span><span class="commit-author">[[commitDetails.author]]</span></p>
+        <p><span class="deps-link"><a href="{{buildDepsLink(commitDetails)}}">Link to DEPS</a></span></p>
       </template>
       <template is="dom-if" if="[[hasError(error.response.error, value)]]">
         <p class="error">[[error.response.error]]</p>
@@ -110,6 +111,10 @@ found in the LICENSE file.
 
       commitParams(project, value) {
         return {repository: project, git_hash: value};
+      },
+
+      buildDepsLink(commitDetails) {
+        return "https://chromium.googlesource.com/chromium/src/+/" + commitDetails.git_hash + "/DEPS";
       },
 
       hasError(error, value) {
