@@ -983,23 +983,6 @@ class Job(ndb.Model):
         self._PrintJobStatusRunTimeMetrics("cancelled")
 
         raise errors.BuildCancelled('Pinpoint Job cancelled')
-      if self.use_execution_engine:
-        # Treat this as if it's a poll, and run the handler here.
-        context = task_module.Evaluate(
-            self,
-            event_module.Event(type='initiate', target_task=None, payload={}),
-            task_evaluator.ExecutionEngine(self))
-        result_status = context.get('performance_bisection', {}).get('status')
-        if result_status not in {'failed', 'completed'}:
-          return
-
-        if result_status == 'failed':
-          execution_errors = context['find_culprit'].get('errors', [])
-          if execution_errors:
-            self.exception_details = execution_errors[0]
-
-        self._Complete()
-        return
 
       logging.info('JobQueueDebug: Scheduling jobrun. ID: %s', self.job_id)
       if not self._IsTryJob():

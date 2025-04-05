@@ -26,9 +26,6 @@ from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import job_state
 from dashboard.pinpoint.models import quest as quest_module
 from dashboard.pinpoint.models import scheduler
-from dashboard.pinpoint.models import task as task_module
-from dashboard.pinpoint.models.tasks import performance_bisection
-from dashboard.pinpoint.models.tasks import read_value
 
 _ERROR_BUG_ID = 'Bug ID must be an integer.'
 _ERROR_TAGS_DICT = 'Tags must be a dict of key/value string pairs.'
@@ -156,11 +153,6 @@ def _CreateJob(req):
   if not priority and comparison_mode == job_state.TRY:
     priority = -1
 
-  # TODO(dberris): Make this the default when we've graduated the beta.
-  use_execution_engine = (
-      arguments.get('experimental_execution_engine')
-      and arguments.get('comparison_mode') == job_state.PERFORMANCE)
-
   # Ensure that we have the required fields in tryjob requests.
   if comparison_mode == 'try':
     if 'benchmark' not in arguments:
@@ -191,7 +183,7 @@ def _CreateJob(req):
   # Create job.
   try:
     job = job_module.Job.New(
-        quests if not use_execution_engine else (),
+        quests,
         changes,
         arguments=original_arguments,
         bug_id=bug_id,
@@ -204,7 +196,7 @@ def _CreateJob(req):
         tags=tags,
         user=user,
         priority=priority,
-        use_execution_engine=use_execution_engine,
+        use_execution_engine=False,
         project=project,
         batch_id=batch_id,
         initial_attempt_count=initial_attempt_count,
@@ -213,50 +205,6 @@ def _CreateJob(req):
   except errors.SwarmingNoBots as e:
     six.raise_from(ValueError(str(e)), e)
 
-  if use_execution_engine:
-    # TODO(dberris): We need to figure out a way to get the arguments to be more
-    # structured when it comes in from the UI, so that we don't need to do the
-    # manual translation of options here.
-    # TODO(dberris): Decide whether we can make some of these hard-coded options
-    # be part of a template that's available in the UI (or by configuration
-    # somewhere else, maybe luci-config?)
-    start_change, end_change = changes
-    target = arguments.get('target')
-    task_options = performance_bisection.TaskOptions(
-        build_option_template=performance_bisection.BuildOptionTemplate(
-            builder=arguments.get('builder'),
-            target=target,
-            bucket=arguments.get('bucket', 'master.tryserver.chromium.perf'),
-        ),
-        test_option_template=performance_bisection.TestOptionTemplate(
-            swarming_server=arguments.get('swarming_server'),
-            dimensions=arguments.get('dimensions'),
-            extra_args=arguments.get('extra_test_args'),
-        ),
-        read_option_template=performance_bisection.ReadOptionTemplate(
-            benchmark=arguments.get('benchmark'),
-            histogram_options=read_value.HistogramOptions(
-                grouping_label=arguments.get('grouping_label'),
-                story=arguments.get('story'),
-                statistic=arguments.get('statistic'),
-                histogram_name=arguments.get('chart'),
-            ),
-            graph_json_options=read_value.GraphJsonOptions(
-                chart=arguments.get('chart'), trace=arguments.get('trace')),
-            mode=('histogram_sets'
-                  if target in performance_bisection.EXPERIMENTAL_TARGET_SUPPORT
-                  else 'graph_json')),
-        analysis_options=performance_bisection.AnalysisOptions(
-            comparison_magnitude=arguments.get('comparison_magnitude'),
-            min_attempts=10,
-            max_attempts=60,
-        ),
-        start_change=start_change,
-        end_change=end_change,
-        pinned_change=arguments.get('patch'),
-    )
-    task_module.PopulateTaskGraph(
-        job, performance_bisection.CreateGraph(task_options, arguments))
   return job
 
 
