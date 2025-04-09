@@ -183,6 +183,23 @@ class AndroidPlatformBackendTest(unittest.TestCase):
           self.assertIn('mobile', backend.GetTypExpectationsTags())
 
   @decorators.Disabled('chromeos', 'mac', 'win')
+  def testTypExpectationsTagsIncludesForAndroidDesktop(self):
+    backend = self.CreatePlatformBackendForTest()
+    with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
+                    return_value='foo'):
+      with mock.patch.object(backend,
+                             'GetDeviceTypeName',
+                             return_value='AOSP on BullHead'):
+        with mock.patch.object(backend,
+                               'GetOSReleaseVersion',
+                               return_value='10'):
+          with mock.patch.object(backend, 'IsPcHardwareType',
+                                 return_value=True):
+            tags = backend.GetTypExpectationsTags()
+            self.assertIn('desktop', tags)
+            self.assertNotIn('mobile', tags)
+
+  @decorators.Disabled('chromeos', 'mac', 'win')
   def testIsSvelte(self):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='svelte'):

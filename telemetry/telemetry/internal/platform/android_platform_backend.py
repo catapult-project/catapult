@@ -386,6 +386,11 @@ class AndroidPlatformBackend(
       tags.append(f'android-{os_version}')
     tags = test_utils.sanitizeTypExpectationsTags(tags)
 
+    if self.IsPcHardwareType():
+      tags.append('desktop')
+    else:
+      tags.append('mobile')
+
     # telemetry benchmark's expectations need to know the model name
     # and if it is a low end device
     device_type_name = self.GetDeviceTypeName()
@@ -395,7 +400,6 @@ class AndroidPlatformBackend(
             device_type_name, device_type_name)])
     if self.IsLowEnd():
       tags.append('android-low-end')
-    tags.append('mobile')
     return tags
 
   @decorators.Cache
@@ -412,6 +416,15 @@ class AndroidPlatformBackend(
     Any minor or patch versions are stripped off.
     """
     return self._device.GetProp('ro.build.version.release').split('.')[0]
+
+  @decorators.Cache
+  def IsPcHardwareType(self):
+    """Checks whether the device is an Android desktop device."""
+    feature_output = self._device.RunShellCommand(['pm', 'list', 'features'])
+    for line in feature_output:
+      if 'android.hardware.type.pc' in line:
+        return True
+    return False
 
   def GetDeviceHostClockOffset(self):
     """Returns the difference between the device and host clocks."""
