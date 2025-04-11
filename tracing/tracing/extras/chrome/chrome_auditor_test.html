@@ -146,7 +146,7 @@ tr.b.unittest.testSuite(function() {
         start: 200,
         duration: 15,
         args: {
-          chrome_frame_reporter: {state: 'STATE_PRESENTED_ALL'}
+          frame_reporter: {state: 'STATE_PRESENTED_ALL'}
         }
       });
 
@@ -155,7 +155,7 @@ tr.b.unittest.testSuite(function() {
         start: 200,
         duration: 15,
         args: {
-          chrome_frame_reporter: {
+          frame_reporter: {
             affects_smoothness: false,
             state: 'STATE_DROPPED'
           }
@@ -167,7 +167,7 @@ tr.b.unittest.testSuite(function() {
         start: 200,
         duration: 15,
         args: {
-          chrome_frame_reporter: {
+          frame_reporter: {
             affects_smoothness: true,
             state: 'STATE_DROPPED'
           }
@@ -179,7 +179,7 @@ tr.b.unittest.testSuite(function() {
         start: 200,
         duration: 15,
         args: {
-          chrome_frame_reporter: {state: 'STATE_DROPPED'}
+          frame_reporter: {state: 'STATE_DROPPED'}
         }
       });
 
