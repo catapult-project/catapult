@@ -415,6 +415,6 @@ def PinpointParamsFromBisectParams(params):
       pin=params.get('pin'),
       tags={
           'test_path': test_path,
-          'alert': alert_key,
+          'alert': six.ensure_str(alert_key),
       },
   )
