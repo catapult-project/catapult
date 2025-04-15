@@ -300,6 +300,7 @@ def FindAllBrowserTypes():
       'release_full_x64',
       'release_x86',
       'release_full_x86',
+      'release_arm64',
       'debug',
       'debug_x64',
       'debug_full_x64',
