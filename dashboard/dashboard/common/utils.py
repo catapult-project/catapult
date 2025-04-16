@@ -40,6 +40,8 @@ OAUTH_ENDPOINTS = [
     '/api/', '/add_histograms', '/add_point', '/file_bug_skia',
     '/associate_alerts_skia', '/edit_anomalies_skia', '/uploads',
     '/alerts_skia', '/alerts/skia', '/sheriff_configs_skia',
+]
+DUAL_AUTH_ENDPOINTS = [
     '/pinpoint/new/bisect',
 ]
 LEGACY_SERVICE_ACCOUNT = ('425761728072-pa1bs18esuhp2cp2qfa1u9vb6p1v6kfu'
@@ -107,7 +109,9 @@ def GetEmail():
     OAuthServiceFailureError: An unknown error occurred.
   """
   request_uri = os.environ.get('PATH_INFO', '')
-  if any(request_uri.startswith(e) for e in OAUTH_ENDPOINTS):
+  if (any(request_uri.startswith(e) for e in OAUTH_ENDPOINTS)
+      or (any(request_uri.startswith(e) for e in DUAL_AUTH_ENDPOINTS)
+          and 'HTTP_AUTHORIZATION' in os.environ)):
     # Prevent a CSRF whereby a malicious site posts an api request without an
     # Authorization header (so oauth.get_current_user() is None), but while the
     # user is signed in, so their cookies would make users.get_current_user()
