@@ -32,6 +32,8 @@ def GetAndroidTarget(bot_name, err):
       'android-pixel9-pro-perf',
       'android-pixel9-pro-xl-perf',
       'android-pixel-fold-perf',
+      'android-pixel-tangor-perf',
+      'android-pixel-tangor-perf-cbb',
   ]:
     return 'performance_test_suite_android_trichrome_chrome_google_64_32_bundle'
   if 'android' in bot_name.lower():
