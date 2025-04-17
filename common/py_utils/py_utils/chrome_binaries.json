@@ -77,34 +77,34 @@
           "version_in_cs": "83.0.4103.101"
         },
         "linux_x86_64": {
-          "cloud_storage_hash": "1ee52db4a67f003a7a1073fd27c9f55380f1f01b",
+          "cloud_storage_hash": "18a2056ee43f3e7edd626da0b10f9ee3b05d8ca9",
           "download_path": "bin/reference_build/chrome-linux64.zip",
           "path_within_archive": "chrome-linux64/chrome",
-          "version_in_cs": "125.0.6422.50"
+          "version_in_cs": "135.0.7049.84"
         },
         "mac_x86_64": {
-          "cloud_storage_hash": "012c5a5e7b1e69a0960462e7ba7f77f90464a10f",
+          "cloud_storage_hash": "77c71f4c036621a25bb0df997f56b15cbd5c50e3",
           "download_path": "bin/reference_builds/chrome-mac64.zip",
-          "path_within_archive": "chrome-mac/Google Chrome.app/Contents/MacOS/Google Chrome",
-          "version_in_cs": "83.0.4103.97"
+          "path_within_archive": "chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+          "version_in_cs": "135.0.7049.84"
         },
         "mac_arm64": {
-          "cloud_storage_hash": "8e5715ab04cdf366a20038b6d6aac2f41e12bbf0",
+          "cloud_storage_hash": "10d88082d60a044ade3b37b794cd948e36c99673",
           "download_path": "bin/reference_build/chrome-mac-arm64.zip",
-          "path_within_archive": "chrome-mac/Google Chrome.app/Contents/MacOS/Google Chrome",
-          "version_in_cs": "100.0.4896.75"
+          "path_within_archive": "chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+          "version_in_cs": "135.0.7049.84"
         },
         "win_AMD64": {
-          "cloud_storage_hash": "e6515496ebab0d02a5294a008fe8bbf9dd3dbc0c",
+          "cloud_storage_hash": "2c546dbb7d39524b1e9682c93aa7fe178daa70b6",
           "download_path": "bin\\reference_build\\chrome-win64-clang.zip",
-          "path_within_archive": "chrome-win64-clang\\chrome.exe",
-          "version_in_cs": "83.0.4103.97"
+          "path_within_archive": "chrome-win64\\chrome.exe",
+          "version_in_cs": "135.0.7049.84"
         },
         "win_x86": {
-          "cloud_storage_hash": "1749fac72241bc48e4adaf881a9278811b7ee406",
+          "cloud_storage_hash": "58722fd350c7f3e22604bbf6f43cc34c66c3e59c",
           "download_path": "bin\\reference_build\\chrome-win-clang.zip",
-          "path_within_archive": "chrome-win-clang\\chrome.exe",
-          "version_in_cs": "83.0.4103.97"
+          "path_within_archive": "chrome-win32\\chrome.exe",
+          "version_in_cs": "135.0.7049.84"
         }
       }
     },

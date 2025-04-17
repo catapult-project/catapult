@@ -84,6 +84,7 @@ class TabTest(tab_test_case.TabTestCase):
 
   @decorators.Enabled('has tabs')
   @decorators.Disabled('chromeos') # https://crbug.com/947675
+  @decorators.Disabled('win')  # crbug.com/410761163
   def testActivateTab(self):
     py_utils.WaitFor(lambda: _IsDocumentVisible(self._tab), timeout=5)
     new_tab = self._browser.tabs.New()

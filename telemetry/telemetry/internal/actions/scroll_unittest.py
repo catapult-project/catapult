@@ -4,6 +4,9 @@
 
 from __future__ import division
 from __future__ import absolute_import
+
+import sys
+
 from telemetry import decorators
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import scroll
@@ -89,8 +92,15 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     # Scrolling distance for touch will have some error from the excess delta
     # of the event that crosses the slop threshold but isn't applied, also
     # scroll resampling can increase the error amount..
-    self._RunScrollDistanceTest(
-        500000, 200000, page_action.GESTURE_SOURCE_TOUCH, 200)
+    max_error = 200
+
+    # When updating from M83 to M135, the error when scrolling this way on
+    # Windows increased.
+    if sys.platform == 'win32':
+      max_error = 750
+
+    self._RunScrollDistanceTest(500000, 200000,
+                                page_action.GESTURE_SOURCE_TOUCH, max_error)
 
   @decorators.Disabled('android-reference')  # crbug.com/934649
   def testScrollDistanceFastWheel(self):
