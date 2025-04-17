@@ -180,7 +180,8 @@ class DevilUtilTest(unittest.TestCase):
                        out['/storage/emulated/legacy/test/file.dat'])
       self.assertEqual(3, len(device.RunShellCommand.call_args_list))
       device.adb.Push.assert_called_once_with(
-          'test/out/directory/devil_util_dist', '/data/local/tmp/devil_util')
+          'test/out/directory/devil_util_dist/devil_util_bin',
+          '/data/local/tmp/devil_util_bin')
 
 
 if __name__ == '__main__':

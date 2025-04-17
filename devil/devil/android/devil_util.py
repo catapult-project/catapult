@@ -7,17 +7,19 @@ chromium/src at //tools/android/devil_util/. See the README.md there for
 additional details.
 """
 
+import collections
 import itertools
+import logging
 import os
 import tempfile
+import threading
 
 from devil import devil_env
 from devil.android import device_errors
 from devil.android import device_temp_file
 from devil.utils import cmd_helper
 
-DEVICE_LIB_PATH = '/data/local/tmp/devil_util'
-DEVICE_BIN_PATH = DEVICE_LIB_PATH + '/devil_util_bin'
+DEVICE_BIN_PATH = '/data/local/tmp/devil_util_bin'
 
 # We need to cap how many paths we send to the binary at once because
 # the ARG_MAX on Android devices is relatively small, typically 131072 bytes.
@@ -32,6 +34,16 @@ DEVICE_BIN_PATH = DEVICE_LIB_PATH + '/devil_util_bin'
 # Finally, we reduce the max length from 512 to 400, to compensate for the fact
 # that the command contains more than just the file paths.
 _MAX_FILE_PATHS_LENGTH = 400
+
+
+# Lock to hold when checking the "by_serial" dicts below.
+_update_bin_main_lock = threading.Lock()
+
+# Lock to hold when updating /data/local/tmp/devil_util_bin.
+_update_bin_lock_by_serial = collections.defaultdict(threading.Lock)
+
+# Counts the number of times devil_util_bin has been pushed per device.
+_update_bin_attempts_by_serial = collections.defaultdict(int)
 
 
 def CalculateHostHashes(paths):
@@ -153,11 +165,11 @@ def _RunDevilUtilOnDevice(devil_util_cmd, device, large_output=False):
     raise FileNotFoundError('File not built: %s' % devil_util_dist_path)
 
   if os.path.isdir(devil_util_dist_path):
-    devil_util_dist_bin_path = os.path.join(devil_util_dist_path,
-                                            'devil_util_bin')
-  else:
-    devil_util_dist_bin_path = devil_util_dist_path
-  devil_util_file_size = os.path.getsize(devil_util_dist_bin_path)
+    devil_util_dist_path = os.path.join(devil_util_dist_path, 'devil_util_bin')
+    if not os.path.exists(devil_util_dist_path):
+      raise IOError('File not built: %s' % devil_util_dist_path)
+
+  devil_util_file_size = os.path.getsize(devil_util_dist_path)
 
   # For better performance, make the script as small as possible to try and
   # avoid needing to write to an intermediary file (which RunShellCommand will
@@ -169,37 +181,47 @@ def _RunDevilUtilOnDevice(devil_util_cmd, device, large_output=False):
       devil_util_file_size)
   devil_util_script += devil_util_cmd
 
+  with _update_bin_main_lock:
+    prev_push_attempts = _update_bin_attempts_by_serial[device.serial]
+
+  def attempt_command():
+    return device.RunShellCommand(devil_util_script,
+                                  shell=True,
+                                  check_return=True,
+                                  as_root=True,
+                                  large_output=large_output,
+                                  timeout=120)
+
   try:
-    out = device.RunShellCommand(devil_util_script,
-                                 shell=True,
-                                 check_return=True,
-                                 as_root=True,
-                                 large_output=large_output,
-                                 timeout=120)
+    out = attempt_command()
   except device_errors.AdbCommandFailedError as e:
     # Push the binary only if it is found to not exist
     # (faster than checking up-front).
-    if e.status == 2:
-      # If files were previously pushed as root (adbd running as root), trying
-      # to re-push as non-root causes the push command to report success, but
-      # actually fail. So, wipe the directory first.
-      device.RunShellCommand(['rm', '-rf', DEVICE_LIB_PATH],
-                             as_root=True,
-                             check_return=True)
-      if os.path.isdir(devil_util_dist_path):
-        device.adb.Push(devil_util_dist_path, DEVICE_LIB_PATH)
-      else:
-        mkdir_cmd = 'a=%s;[[ -e $a ]] || mkdir $a' % DEVICE_LIB_PATH
-        device.RunShellCommand(mkdir_cmd, shell=True, check_return=True)
-        device.adb.Push(devil_util_dist_bin_path, DEVICE_BIN_PATH)
-      out = device.RunShellCommand(devil_util_script,
-                                   shell=True,
-                                   check_return=True,
-                                   as_root=True,
-                                   large_output=large_output,
-                                   timeout=120)
-    else:
+    if e.status != 2:
       raise
+
+    with _update_bin_main_lock:
+      update_lock = _update_bin_lock_by_serial[device.serial]
+    with update_lock:
+      with _update_bin_main_lock:
+        cur_push_attempts = _update_bin_attempts_by_serial[device.serial]
+      # Check if another thread updated it for us.
+      if prev_push_attempts == cur_push_attempts:
+        logging.info('Updating devil_util_bin')
+        # If files were previously pushed as root (adbd running as root), trying
+        # to re-push as non-root causes the push command to report success, but
+        # actually fail. So, wipe the directory first.
+        device.RunShellCommand(['rm', '-rf', DEVICE_BIN_PATH],
+                               as_root=True,
+                               check_return=True)
+        device.adb.Push(devil_util_dist_path, DEVICE_BIN_PATH)
+        with _update_bin_main_lock:
+          _update_bin_attempts_by_serial[device.serial] += 1
+      else:
+        logging.info('Another thread updated devil_util_bin')
+
+    # Retry the command
+    out = attempt_command()
 
   return out
 
