@@ -39,8 +39,8 @@ class DevilUtilTest(unittest.TestCase):
 
   def testCalculateHostHashes_singlePath(self):
     test_paths = ['/test/host/file.dat']
-    mock_get_cmd_output = mock.Mock(return_value=(0, '0123456789abcdef', ''))
-    with mock.patch('devil.utils.cmd_helper.GetCmdStatusOutputAndError',
+    mock_get_cmd_output = mock.Mock(return_value='0123456789abcdef')
+    with mock.patch('devil.utils.cmd_helper.GetCmdOutput',
                     new=mock_get_cmd_output):
       out = devil_util.CalculateHostHashes(test_paths)
       self.assertEqual(1, len(out))
@@ -52,8 +52,8 @@ class DevilUtilTest(unittest.TestCase):
   def testCalculateHostHashes_list(self):
     test_paths = ['/test/host/file0.dat', '/test/host/file1.dat']
     mock_get_cmd_output = mock.Mock(
-        return_value=(0, '0123456789abcdef\n123456789abcdef0\n', ''))
-    with mock.patch('devil.utils.cmd_helper.GetCmdStatusOutputAndError',
+        return_value='0123456789abcdef\n123456789abcdef0\n')
+    with mock.patch('devil.utils.cmd_helper.GetCmdOutput',
                     new=mock_get_cmd_output):
       out = devil_util.CalculateHostHashes(test_paths)
       self.assertEqual(2, len(out))

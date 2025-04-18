@@ -2970,45 +2970,51 @@ class DeviceUtilsPushChangedFilesIndividuallyTest(DeviceUtilsTest):
       self.device._PushChangedFilesIndividually(test_files)
 
 
-class DeviceUtilsPushChangedFilesCompressedArchiveTest(DeviceUtilsTest):
+class DeviceUtilsPushChangedFilesZippedTest(DeviceUtilsTest):
+  def testPushChangedFilesZipped_noUnzipCommand(self):
+    test_files = [('/test/host/path/file1', '/test/device/path/file1')]
+    with self.assertCalls((self.call.device._MaybeInstallCommands(), False)):
+      self.assertFalse(
+          self.device._PushChangedFilesZipped(test_files, ['/test/dir']))
 
-  def _testPushChangedFilesCompressedArchive_spec(self, test_files, test_dirs):
+  def _testPushChangedFilesZipped_spec(self, test_files, test_dirs):
+    @contextlib.contextmanager
+    def mock_zip_temp_dir():
+      yield '/test/temp/dir'
+
     expected_cmd = ''.join([
-        '\n', '  for dir in %s\n', '  do\n',
-        '    chmod -R 777 "$dir" || exit 1\n', '  done\n'
-    ]) % ' '.join(cmd_helper.SingleQuote(d) for d in test_dirs)
-
+        '\n  /data/local/tmp/bin/unzip %s &&',
+        ' (for dir in %s\n  do\n    chmod -R 777 "$dir" || exit 1\n',
+        '  done)\n'
+    ]) % ('/sdcard/foo123.zip', ' '.join(
+        cmd_helper.SingleQuote(d) for d in test_dirs))
     with self.assertCalls(
-        (self.call.device.HasRoot(), True),
-        (mock.call.tempfile.NamedTemporaryFile(suffix='.zst'),
-         MockTempFile('/tmp/foo.zst')),
-        (mock.call.devil.android.devil_util.CreateZstCompressedArchive(
-            '/tmp/foo.zst', test_files)),
-        (mock.call.os.path.getsize('/tmp/foo.zst'), 123),
-        (self.call.device.GetEnforce(timeout=None, retries=None), False),
+        (self.call.device._MaybeInstallCommands(), True),
+        (mock.call.py_utils.tempfile_ext.NamedTemporaryDirectory(),
+         mock_zip_temp_dir), (mock.call.devil.utils.zip_utils.WriteZipFile(
+             '/test/temp/dir/tmp.zip', test_files)),
+        (mock.call.os.path.getsize('/test/temp/dir/tmp.zip'), 123),
+        (self.call.device.NeedsSU(), True),
         (mock.call.devil.android.device_temp_file.DeviceTempFile(
-            self.adb), MockTempFile('/sdcard/foo')),
-        #(mock.call.devil.android.devil_util.CreateNamedPipe(
-        #    '/sdcard/foo', self.device)),
-        (self.call.adb.Push('/tmp/foo.zst', '/sdcard/foo')),
-        (mock.call.devil.android.devil_util.ExtractZstCompressedArchive(
-            '/sdcard/foo', self.device)),
+            self.adb, suffix='.zip'), MockTempFile('/sdcard/foo123.zip')),
+        self.call.adb.Push('/test/temp/dir/tmp.zip', '/sdcard/foo123.zip'),
         (mock.call.devil.android.device_temp_file.DeviceTempFile(
-            self.adb, suffix='.sh'), MockTempFile('/sdcard/bar.sh')),
-        self.call.device.WriteFile('/sdcard/bar.sh', expected_cmd),
-        self.call.device.RunShellCommand(['source', '/sdcard/bar.sh'],
-                                         check_return=True,
-                                         timeout=100,
-                                         as_root=True)):
+            self.adb, suffix='.sh'), MockTempFile('/sdcard/temp-123.sh')),
+        self.call.device.WriteFile('/sdcard/temp-123.sh', expected_cmd),
+        (self.call.device.RunShellCommand(['source', '/sdcard/temp-123.sh'],
+                                          check_return=True,
+                                          timeout=100,
+                                          as_root=True))):
       self.assertTrue(
-          self.device._PushChangedFilesCompressedArchive(test_files, test_dirs))
+          self.device._PushChangedFilesZipped(test_files, test_dirs))
 
-  def testPushChangedFilesCompressedArchive_single(self):
-    self._testPushChangedFilesCompressedArchive_spec(
-        [('/test/host/path/file1', '/test/device/path/file1')], ['/test/dir1'])
+  def testPushChangedFilesZipped_single(self):
+    self._testPushChangedFilesZipped_spec(
+        [('/test/host/path/file1', '/test/device/path/file1')],
+        ['/test/dir1'])
 
-  def testPushChangedFilesCompressedArchive_multiple(self):
-    self._testPushChangedFilesCompressedArchive_spec(
+  def testPushChangedFilesZipped_multiple(self):
+    self._testPushChangedFilesZipped_spec(
         [('/test/host/path/file1', '/test/device/path/file1'),
          ('/test/host/path/file2', '/test/device/path/file2')],
         ['/test/dir1', '/test/dir2', '/test/dir with space'])
