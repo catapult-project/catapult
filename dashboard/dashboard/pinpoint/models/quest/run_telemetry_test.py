@@ -16,6 +16,8 @@ _DEFAULT_EXTRA_ARGS = [
 
 _STORY_REGEX = re.compile(r'[^a-zA-Z0-9]')
 
+_MAX_STRING_LENGTH = 200
+
 # crbug/1146949
 # Please keep this executable-argument mapping synced with perf waterfall:
 #  https://chromium.googlesource.com/chromium/src/+/main/tools/perf/core/bot_platforms.py
@@ -119,7 +121,13 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
     return relative_cwd, command
 
   def Start(self, change, isolate_server, isolate_hash):
-    extra_swarming_tags = {'change': str(change)}
+    change_string = str(change)
+    # If the change string is too long, truncate it to avoid
+    # exceeding the swarming string length.
+    if len(change_string) > _MAX_STRING_LENGTH:
+      change_string = str(change)[:_MAX_STRING_LENGTH]
+
+    extra_swarming_tags = {'change': change_string}
     return self._Start(
         change,
         isolate_server,
