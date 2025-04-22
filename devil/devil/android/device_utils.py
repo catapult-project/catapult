@@ -45,7 +45,6 @@ from devil.utils import host_utils
 from devil.utils import parallelizer
 from devil.utils import reraiser_thread
 from devil.utils import timeout_retry
-from devil.utils import zip_utils
 
 with devil_env.SysPath(devil_env.PY_UTILS_PATH):
   from py_utils import tempfile_ext
@@ -105,11 +104,11 @@ _FILE_LIST_SCRIPT = """
   done
 """
 
-_UNZIP_AND_CHMOD_SCRIPT = """
-  {bin_dir}/unzip {zip_file} && (for dir in {dirs}
+_CHMOD_SCRIPT = """
+  for dir in {dirs}
   do
     chmod -R 777 "$dir" || exit 1
-  done)
+  done
 """
 
 _MKDIR_SCRIPT = """
@@ -2692,8 +2691,8 @@ class DeviceUtils(object):
     # to push to paths like user's /sdcard. But adb does not allow to
     # "push with su", so we force to push via zip.
     if self.target_user is not None:
-      if not self._PushChangedFilesZipped(files,
-                                          [d for _, d in host_device_tuples]):
+      if not self._PushChangedFilesCompressedArchive(
+          files, [d for _, d in host_device_tuples]):
         raise device_errors.CommandFailedError(
             'Failed to push changed files for user %s' % self.target_user,
             str(self))
@@ -2725,11 +2724,8 @@ class DeviceUtils(object):
       self._PushChangedFilesIndividually(host_device_tuples)
     elif push_duration < zip_duration:
       self._PushChangedFilesIndividually(files)
-    elif self._commands_installed is False:
-      # Already tried and failed to install unzip command.
-      self._PushChangedFilesIndividually(files)
-    elif not self._PushChangedFilesZipped(files,
-                                          [d for _, d in host_device_tuples]):
+    elif not self._PushChangedFilesCompressedArchive(
+        files, [d for _, d in host_device_tuples]):
       self._PushChangedFilesIndividually(files)
 
   def _MaybeInstallCommands(self):
@@ -2780,41 +2776,61 @@ class DeviceUtils(object):
     for h, d in files:
       self.adb.Push(h, d)
 
-  def _PushChangedFilesZipped(self, files, dirs):
-    if not self._MaybeInstallCommands():
+  def _PushChangedFilesCompressedArchive(self, files, dirs):
+    # Pushing files this way requires root access. If we do not already have
+    # root privilege and 'su' is also not available, we should not proceed.
+    if not (self.HasRoot() or self.NeedsSU()):
       return False
 
-    with tempfile_ext.NamedTemporaryDirectory() as working_dir:
-      zip_path = os.path.join(working_dir, 'tmp.zip')
-      try:
-        zip_utils.WriteZipFile(zip_path, files)
-      except zip_utils.ZipFailedError:
-        return False
+    with tempfile.NamedTemporaryFile(suffix='.zst') as compressed_archive:
+      # First we create a zst-compressed archive containing the changed files.
+      devil_util.CreateZstCompressedArchive(compressed_archive.name, files)
 
-      logger.info('Pushing %d files via .zip of size %d', len(files),
-                  os.path.getsize(zip_path))
-      self.NeedsSU()
-      with device_temp_file.DeviceTempFile(
-          self.adb, suffix='.zip') as device_temp:
-        self.adb.Push(zip_path, device_temp.name)
+      logger.info('Pushing %d files via zst-compressed archive of size %d',
+                  len(files), os.path.getsize(compressed_archive.name))
 
-        with device_temp_file.DeviceTempFile(self.adb, suffix='.sh') as script:
-          # Read dirs from temp file to avoid potential errors like
-          # "Argument list too long" (crbug.com/1174331) when the list
-          # is too long.
-          script_contents = _UNZIP_AND_CHMOD_SCRIPT.format(
-              bin_dir=install_commands.BIN_DIR,
-              zip_file=device_temp.name,
-              dirs=' '.join(cmd_helper.SingleQuote(d) for d in dirs))
-          self.WriteFile(script.name, script_contents)
-          self.RunShellCommand(
-              ['source', script.name],
-              check_return=True,
-              # Increase timeout to 100 secs as gtest can get 2k+ dirs
-              # which can take longer than the default timeout.
-              # See crbug.com/370307339 for an example.
-              timeout=100,
-              as_root=True)
+      # Next we push the compressed archive to the device and extract it at the
+      # same time. Note that we extract the compressed archive on the device
+      # while it is being transferred from the host to the device. This is done
+      # to speed things up. This is possible because we have specifically made
+      # the devil_util binary extract a portion of the input at a time.
+      # We need to set the SELinux policy to "permissive", because a SELinux
+      # policy of "enforcing" will prevent us from working with named pipes.
+      with self.SetEnforceContext(False):
+        # TODO(martinkong): Currently this is just a regular file and we are
+        # doing the push step and extraction step one at a time. We will use a
+        # named pipe and run the push step and extraction step concurrently
+        # once we verified that everything is working correctly.
+        with device_temp_file.DeviceTempFile(self.adb) as named_pipe:
+          #devil_util.CreateNamedPipe(named_pipe.name, self)
+
+          def push_compressed_archive():
+            self.adb.Push(compressed_archive.name, named_pipe.name)
+
+          def extract_compressed_archive():
+            devil_util.ExtractZstCompressedArchive(named_pipe.name, self)
+
+          #reraiser_thread.RunAsync(
+          #    (push_compressed_archive, extract_compressed_archive))
+
+          push_compressed_archive()
+          extract_compressed_archive()
+
+      # Finally we change the file permission to 0777 via chmod
+      with device_temp_file.DeviceTempFile(self.adb, suffix='.sh') as script:
+        # Read dirs from temp file to avoid potential errors like
+        # "Argument list too long" (crbug.com/1174331) when the list is too long
+        script_contents = _CHMOD_SCRIPT.format(dirs=' '.join(
+            cmd_helper.SingleQuote(d) for d in dirs))
+        self.WriteFile(script.name, script_contents)
+        self.RunShellCommand(
+            ['source', script.name],
+            check_return=True,
+            # Increase timeout to 100 secs as gtest can get 2k+ dirs
+            # which can take longer than the default timeout.
+            # See crbug.com/370307339 for an example.
+            timeout=100,
+            as_root=True)
 
     return True
 
@@ -3930,6 +3946,26 @@ class DeviceUtils(object):
     self.RunShellCommand(['setenforce', '1' if int(enabled) else '0'],
                          as_root=True,
                          check_return=True)
+
+  @contextlib.contextmanager
+  def SetEnforceContext(self, enabled, timeout=None, retries=None):
+    """A context manager that modifies the mode SELinux is running in,
+    and then restores the previous SELinux mode when the user is done.
+
+    Args:
+      enabled: a boolean indicating whether to put SELinux in enforcing mode
+               (if True), or permissive mode (otherwise).
+      timeout: timeout in seconds
+      retries: number of retries
+    """
+    if self.GetEnforce(timeout=timeout, retries=retries) == enabled:
+      yield
+      return
+    self.SetEnforce(enabled, timeout=timeout, retries=retries)
+    try:
+      yield
+    finally:
+      self.SetEnforce(not enabled, timeout=timeout, retries=retries)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetWebViewProvider(self, timeout=None, retries=None):
