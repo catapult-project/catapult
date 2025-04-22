@@ -16,6 +16,7 @@
   "private": true,
   "dependencies": {
     "dot-prop-immutable": "1.5.0",
+    "@babel/traverse": "^7.24.0",
     "@chopsui/result-channel": "0.1.0",
     "@chopsui/batch-iterator": "0.1.0",
     "@chopsui/chops-button": "0.1.11",
