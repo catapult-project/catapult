@@ -32,6 +32,8 @@ _POSSIBLE_SYMBOL_BINARY_DIRECTORIES = [
 _BREAKPAD_ARCH_TO_FILE_REGEX = {
     # 32-bit x86 (emulators).
     '0x0': r'.*32-bit.*Intel.*',
+    # 64-bit x86 (Android desktop).
+    '0x9': r'.*64-bit.*x86-64.*',
     # 32-bit ARM.
     '0x5': r'.*32-bit.*ARM.*',
     # 64-bit ARM.
