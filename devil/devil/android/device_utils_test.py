@@ -2973,11 +2973,6 @@ class DeviceUtilsPushChangedFilesIndividuallyTest(DeviceUtilsTest):
 class DeviceUtilsPushChangedFilesCompressedArchiveTest(DeviceUtilsTest):
 
   def _testPushChangedFilesCompressedArchive_spec(self, test_files, test_dirs):
-    expected_cmd = ''.join([
-        '\n', '  for dir in %s\n', '  do\n',
-        '    chmod -R 777 "$dir" || exit 1\n', '  done\n'
-    ]) % ' '.join(cmd_helper.SingleQuote(d) for d in test_dirs)
-
     with self.assertCalls(
         (self.call.device.HasRoot(), True),
         (mock.call.tempfile.NamedTemporaryFile(suffix='.zst'),
@@ -2992,14 +2987,7 @@ class DeviceUtilsPushChangedFilesCompressedArchiveTest(DeviceUtilsTest):
         #    '/sdcard/foo', self.device)),
         (self.call.adb.Push('/tmp/foo.zst', '/sdcard/foo')),
         (mock.call.devil.android.devil_util.ExtractZstCompressedArchive(
-            '/sdcard/foo', self.device)),
-        (mock.call.devil.android.device_temp_file.DeviceTempFile(
-            self.adb, suffix='.sh'), MockTempFile('/sdcard/bar.sh')),
-        self.call.device.WriteFile('/sdcard/bar.sh', expected_cmd),
-        self.call.device.RunShellCommand(['source', '/sdcard/bar.sh'],
-                                         check_return=True,
-                                         timeout=100,
-                                         as_root=True)):
+            '/sdcard/foo', self.device))):
       self.assertTrue(
           self.device._PushChangedFilesCompressedArchive(test_files, test_dirs))
 

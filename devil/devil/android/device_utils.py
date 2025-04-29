@@ -102,13 +102,6 @@ _FILE_LIST_SCRIPT = """
   done
 """
 
-_CHMOD_SCRIPT = """
-  for dir in {dirs}
-  do
-    chmod -R 777 "$dir" || exit 1
-  done
-"""
-
 _MKDIR_SCRIPT = """
   for dir in {dirs}
   do
@@ -2739,22 +2732,6 @@ class DeviceUtils(object):
 
           push_compressed_archive()
           extract_compressed_archive()
-
-      # Finally we change the file permission to 0777 via chmod
-      with device_temp_file.DeviceTempFile(self.adb, suffix='.sh') as script:
-        # Read dirs from temp file to avoid potential errors like
-        # "Argument list too long" (crbug.com/1174331) when the list is too long
-        script_contents = _CHMOD_SCRIPT.format(dirs=' '.join(
-            cmd_helper.SingleQuote(d) for d in dirs))
-        self.WriteFile(script.name, script_contents)
-        self.RunShellCommand(
-            ['source', script.name],
-            check_return=True,
-            # Increase timeout to 100 secs as gtest can get 2k+ dirs
-            # which can take longer than the default timeout.
-            # See crbug.com/370307339 for an example.
-            timeout=100,
-            as_root=True)
 
     return True
 
