@@ -6,6 +6,7 @@ from __future__ import absolute_import
 import datetime
 from dateutil import parser
 from flask import Blueprint, request, make_response
+from typing import Any
 import logging
 import json
 import math
@@ -94,10 +95,31 @@ class AnomalyResponse:
 
   def ToDict(self):
     return {
-      "anomalies": {
-          test_name: self.anomalies[test_name] for test_name in self.anomalies
-      }
+        "anomalies": {
+            test_name: self.anomalies[test_name]
+            for test_name in self.anomalies
+        }
     }
+
+
+def candidates_from_data(data: dict[str:Any]) -> list[str]:
+  # Makes a list of test candidates.
+  #
+  # This will allow us to just use testname_avg on the perf dashboard to avoid
+  # missing anomalies that are triggered on testname alert settings.
+  suffixToAggregate = '_avg'
+  testCandidates = []
+  for test in data.get('tests', []):
+    testCandidates.append(test)
+    if data.get('need_aggregation', None):
+      if test.endswith(suffixToAggregate):
+        # If the trace ends with _avg in the name, also query name without _avg.
+        testWithoutSuffix = test[:-len(suffixToAggregate)]
+        logging.info('need_aggrgation is set. append both %s and %s', test,
+                     testWithoutSuffix)
+        testCandidates.append(testWithoutSuffix)
+  return testCandidates
+
 
 @blueprint.route('/find', methods=['POST'])
 @cloud_metric.APIMetric("skia-bridge", "/anomalies/find")
@@ -125,7 +147,9 @@ def QueryAnomaliesPostHandler():
       if not is_valid:
         return error, 400
 
-      batched_tests = list(CreateTestBatches(data['tests']))
+      testCandidates = candidates_from_data(data)
+
+      batched_tests = list(CreateTestBatches(testCandidates))
       logging.info('Created %i batches for DataStore query', len(batched_tests))
       anomalies = []
       for batch in batched_tests:
@@ -361,7 +385,7 @@ def CreateTestBatches(testList):
 def GetAnomalyData(anomaly_obj):
   bug_id = anomaly_obj.get('bug_id')
   # Mark empty bug id value as 0, instead of -1,
-  # so that SkiaPerf UI is less confusion between invalid bug id and empty bug id
+  # so that SkiaPerf UI is less confusion between invalid bug id and empty id
   if bug_id is None:
     bug_id = '0'
 
