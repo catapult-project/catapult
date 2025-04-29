@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
+from collections.abc import Mapping, Sequence
 import datetime
 from dateutil import parser
 from flask import Blueprint, request, make_response
@@ -102,23 +103,35 @@ class AnomalyResponse:
     }
 
 
-def candidates_from_data(data: dict[str:Any]) -> list[str]:
+def candidates_from_data(data: Mapping[str, Any]) -> Sequence[str]:
   # Makes a list of test candidates.
   #
   # This will allow us to just use testname_avg on the perf dashboard to avoid
   # missing anomalies that are triggered on testname alert settings.
-  suffixToAggregate = '_avg'
-  testCandidates = []
+  suffix_to_aggregate = '_avg'
+  test_candidates = []
   for test in data.get('tests', []):
-    testCandidates.append(test)
+    test_candidates.append(test)
+    replaced = False
     if data.get('need_aggregation', None):
-      if test.endswith(suffixToAggregate):
-        # If the trace ends with _avg in the name, also query name without _avg.
-        testWithoutSuffix = test[:-len(suffixToAggregate)]
-        logging.info('need_aggrgation is set. append both %s and %s', test,
-                     testWithoutSuffix)
-        testCandidates.append(testWithoutSuffix)
-  return testCandidates
+      # If the tracename ends with _avg in the name, also add name
+      # without _avg. For instance, if seeing foo/bar_avg/subtest1,
+      # also add foo/bar/subtest1.
+      subs = test.split('/')
+      for i, sub in enumerate(subs):
+        if sub.endswith(suffix_to_aggregate):
+          subs[i] = sub[:-len(suffix_to_aggregate)]
+          replaced = True
+          break
+      if replaced:
+        test_without_suffix = '/'.join(subs)
+        logging.info(
+            'need_aggrgation is set. append both %s and %s',
+            test,
+            test_without_suffix,
+        )
+        test_candidates.append(test_without_suffix)
+  return test_candidates
 
 
 @blueprint.route('/find', methods=['POST'])
