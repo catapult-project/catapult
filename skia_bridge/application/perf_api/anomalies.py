@@ -132,7 +132,7 @@ def add_bracketing_tests(
     if replaced:
       test_without_suffix = '/'.join(subs)
       logging.info(
-          'need_aggrgation is set. Adds bracket test %s based on %s',
+          'need_aggregation is set. Adds bracket test %s based on %s',
           test_without_suffix,
           test,
       )
