@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from __future__ import absolute_import
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
 import datetime
 from dateutil import parser
 from flask import Blueprint, request, make_response
@@ -103,35 +103,79 @@ class AnomalyResponse:
     }
 
 
-def candidates_from_data(data: Mapping[str, Any]) -> Sequence[str]:
-  # Makes a list of test candidates.
-  #
-  # This will allow us to just use testname_avg on the perf dashboard to avoid
-  # missing anomalies that are triggered on testname alert settings.
+def add_bracketing_tests(
+    test_candidates: MutableSequence[str]) -> Mapping[str, str]:
+  """Adds a few bracketing test targets from given list of test candidates.
+
+  Note: This will allow us to just use testname_avg on the perf dashboard to
+    avoid missing anomalies that are triggered on testname alert settings.
+
+  Args:
+    test_candidates: A list of test names.
+  Returns:
+    A lookup table that maps artifactially added bracket tests to its original
+    tests.
+  """
   suffix_to_aggregate = '_avg'
-  test_candidates = []
-  for test in data.get('tests', []):
-    test_candidates.append(test)
+  bookkeeping = {}
+  for test in test_candidates:
     replaced = False
-    if data.get('need_aggregation', None):
-      # If the tracename ends with _avg in the name, also add name
-      # without _avg. For instance, if seeing foo/bar_avg/subtest1,
-      # also add foo/bar/subtest1.
-      subs = test.split('/')
-      for i, sub in enumerate(subs):
-        if sub.endswith(suffix_to_aggregate):
-          subs[i] = sub[:-len(suffix_to_aggregate)]
-          replaced = True
-          break
-      if replaced:
-        test_without_suffix = '/'.join(subs)
-        logging.info(
-            'need_aggrgation is set. append both %s and %s',
-            test,
-            test_without_suffix,
-        )
-        test_candidates.append(test_without_suffix)
-  return test_candidates
+    # If the tracename ends with _avg in the name, also add tracename
+    # without _avg. For instance, if seeing foo/bar_avg/subtest1,
+    # also add foo/bar/subtest1.
+    subs = test.split('/')
+    for i, sub in enumerate(subs):
+      if sub.endswith(suffix_to_aggregate):
+        subs[i] = sub[:-len(suffix_to_aggregate)]
+        replaced = True
+        break
+    if replaced:
+      test_without_suffix = '/'.join(subs)
+      logging.info(
+          'need_aggrgation is set. Adds bracket test %s based on %s',
+          test_without_suffix,
+          test,
+      )
+      bookkeeping[test_without_suffix] = test
+      test_candidates.append(test_without_suffix)
+  return bookkeeping
+
+
+def remove_bracketing_tests_in_anomalies(
+    anomalies: Sequence[MutableMapping[str, Any]], bookkeeping: Mapping[str,
+                                                                        str]):
+  """Removes bracketing tests from the list of anomalies.
+
+  Args:
+    anomalies: A list of anomalies.
+    bookkeeping: A dictionary mapping testname to testname_avg.
+
+  Returns:
+    A list of anomalies with testname reversed if the testname is found
+    in the lookup dictionary.
+
+  Example: when bookkeeping is {'testname/foo/bar': 'testname_avg/foo/bar'},
+  and anomalies is
+    [
+        {'test': 'testname/foo/bar'},
+        {'test': 'testname/foo/baz'},
+    ]
+  After returns, anomalies becomes
+    [
+        {'test': 'testname_avg/foo/bar'},
+        {'test': 'testname/foo/baz'},
+    ]
+  """
+  for anomaly in anomalies:
+    test = anomaly.get('test', '')
+    if test in bookkeeping:
+      logging.info('need_aggregation is set. Changes bracket test %s to %s',
+                   test, bookkeeping[test])
+      anomaly['test'] = bookkeeping[test]
+
+
+def is_aggregation_enabled(data: Mapping[str, Any]) -> bool:
+  return data.get('need_aggregation', False)
 
 
 @blueprint.route('/find', methods=['POST'])
@@ -160,9 +204,13 @@ def QueryAnomaliesPostHandler():
       if not is_valid:
         return error, 400
 
-      testCandidates = candidates_from_data(data)
+      test_candidates = []
+      for test in data.get('tests', []):
+        test_candidates.append(test)
+      if is_aggregation_enabled(data):
+        bookkeeping = add_bracketing_tests(test_candidates)
 
-      batched_tests = list(CreateTestBatches(testCandidates))
+      batched_tests = list(CreateTestBatches(test_candidates))
       logging.info('Created %i batches for DataStore query', len(batched_tests))
       anomalies = []
       for batch in batched_tests:
@@ -172,6 +220,9 @@ def QueryAnomaliesPostHandler():
           anomalies.extend(batch_anomalies)
 
     logging.info('%i anomalies returned from DataStore', len(anomalies))
+    if is_aggregation_enabled(data):
+      remove_bracketing_tests_in_anomalies(anomalies, bookkeeping)
+
     response = AnomalyResponse()
     for found_anomaly in anomalies:
       anomaly_data = GetAnomalyData(found_anomaly)
