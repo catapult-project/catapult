@@ -35,7 +35,6 @@ from devil.android import device_signal
 from devil.android import decorators
 from devil.android import device_errors
 from devil.android import device_temp_file
-from devil.android import install_commands
 from devil.android import logcat_monitor
 from devil.android.sdk import adb_wrapper
 from devil.android.sdk import intent
@@ -2727,17 +2726,6 @@ class DeviceUtils(object):
     elif not self._PushChangedFilesCompressedArchive(
         files, [d for _, d in host_device_tuples]):
       self._PushChangedFilesIndividually(files)
-
-  def _MaybeInstallCommands(self):
-    if self._commands_installed is None:
-      try:
-        if not install_commands.Installed(self):
-          install_commands.InstallCommands(self)
-        self._commands_installed = True
-      except device_errors.CommandFailedError as e:
-        logger.warning('unzip not available: %s', str(e))
-        self._commands_installed = False
-    return self._commands_installed
 
   @staticmethod
   def _ApproximateDuration(adb_calls, file_count, byte_count, is_zipping):

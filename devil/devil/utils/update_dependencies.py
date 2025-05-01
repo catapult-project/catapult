@@ -58,11 +58,6 @@ _CHROMIUM_DEPS = {
         'build_path': 'clang_x64/devil_util_bin',
         'target_name': 'devil_util',
     },
-    'chromium_commands': {
-        'archs': _HOST_ARCH,
-        'build_path': 'lib.java/chromium_commands.dex.jar',
-        'target_name': 'chromium_commands_java',
-    },
     'forwarder_device': {
         'archs': _DEVICE_ARCHS,
         'build_path': 'device_forwarder',

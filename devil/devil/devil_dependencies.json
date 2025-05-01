@@ -41,16 +41,6 @@
         }
       }
     },
-    "chromium_commands": {
-      "cloud_storage_base_folder": "binary_dependencies",
-      "cloud_storage_bucket": "chromium-telemetry",
-      "file_info": {
-        "linux2_x86_64": {
-          "cloud_storage_hash": "bc66213e7e38bd2957cbf4a72c0db7c0286a085a",
-          "download_path": "../bin/deps/linux2/x86_64/lib.java/chromium_commands.dex.jar"
-        }
-      }
-    },
     "devil_util_device": {
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",
