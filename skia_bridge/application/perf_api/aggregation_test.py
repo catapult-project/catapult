@@ -16,40 +16,26 @@ class AnomaliesTest(unittest.TestCase):
 
   @parameterized.expand([
       (
-          'no_key',
-          {},
+          'empty_test_list',
+          [],
           [],
           {},
       ),
       (
-          'empty_data',
-          {
-              'tests': [],
-          },
-          [],
-          {},
-      ),
-      (
-          'no_aggregation',
-          {
-              'tests': ['test1', 'test2'],
-          },
+          'no_aggregation_with_no_suffix',
+          ['test1', 'test2'],
           ['test1', 'test2'],
           {},
       ),
       (
           'no_aggregation_with_other_suffix',
-          {
-              'tests': ['abc/foo/bar/test1_max', 'abc/test2_min/foo/bar'],
-          },
+          ['abc/foo/bar/test1_max', 'abc/test2_min/foo/bar'],
           ['abc/foo/bar/test1_max', 'abc/test2_min/foo/bar'],
           {},
       ),
       (
-          'with_aggregation',
-          {
-              'tests': ['abc/test1_avg/foo/bar', 'abc/foo/bar/test2_avg'],
-          },
+          'two_aggregations',
+          ['abc/test1_avg/foo/bar', 'abc/foo/bar/test2_avg'],
           [
               'abc/test1_avg/foo/bar', 'abc/foo/bar/test2_avg',
               'abc/test1/foo/bar', 'abc/foo/bar/test2'
@@ -60,14 +46,23 @@ class AnomaliesTest(unittest.TestCase):
           },
       ),
       (
-          'with_aggregation_mixed_with_no_aggregation',
+          'two_aggregations_with_duplication',
+          ['abc/test1_avg/foo/bar', 'abc/test1_avg/foo/bar'],
+          [
+              'abc/test1_avg/foo/bar', 'abc/test1_avg/foo/bar',
+              'abc/test1/foo/bar', 'abc/test1/foo/bar'
+          ],
           {
-              'tests': [
-                  'abc/test1_avg/foo/bar',
-                  'abc/foo/bar/test2_avg',
-                  'abc/test3_max/foo/bar',
-              ],
+              'abc/test1/foo/bar': 'abc/test1_avg/foo/bar',
           },
+      ),
+      (
+          'one_aggregation_mixed_with_no_aggregation',
+          [
+              'abc/test1_avg/foo/bar',
+              'abc/foo/bar/test2_avg',
+              'abc/test3_max/foo/bar',
+          ],
           [
               'abc/test1_avg/foo/bar', 'abc/foo/bar/test2_avg',
               'abc/test3_max/foo/bar', 'abc/test1/foo/bar', 'abc/foo/bar/test2'
@@ -78,10 +73,9 @@ class AnomaliesTest(unittest.TestCase):
           },
       ),
   ])
-  def test_add_bracketing_tests(self, _, data, expected, expected_lookup):
-    test_candidates = data.get('tests', [])
-    got_lookup = aggregation.add_bracketing_tests(test_candidates)
-    self.assertEqual(test_candidates, expected)
+  def test_add_bracketing_tests(self, _, tests, expected, expected_lookup):
+    got_lookup = aggregation.add_bracketing_tests(tests)
+    self.assertEqual(tests, expected)
     self.assertDictEqual(got_lookup, expected_lookup)
 
   @parameterized.expand([
@@ -104,6 +98,30 @@ class AnomaliesTest(unittest.TestCase):
               'foo/bar': 'foo/bar_avg'
           },
           'foo/bar_avg',
+      ),
+      (
+          'with_test_but_no_key',
+          'foo/bar',
+          {},
+          'foo/bar',
+      ),
+      (
+          'with_multiple_keys',
+          'foo/bar',
+          {
+              'foo/bar': 'foo/bar_avg',
+              'foo/baz': 'foo/baz_avg',
+          },
+          'foo/bar_avg',
+      ),
+      (
+          'with_multiple_keys_but_no_match',
+          'bar/foo',
+          {
+              'foo/bar': 'foo/bar_avg',
+              'foo/baz': 'foo/baz_avg',
+          },
+          'bar/foo',
       ),
   ])
   def test_convert_bracketing_test(self, _, test, lookup, expected):
