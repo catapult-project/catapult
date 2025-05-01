@@ -12,6 +12,7 @@ import logging
 import json
 import math
 import uuid
+import aggregation
 
 from common import cloud_metric, utils
 from application.perf_api import datastore_client, auth_helper
@@ -103,66 +104,19 @@ class AnomalyResponse:
     }
 
 
-def add_bracketing_tests(
-    test_candidates: MutableSequence[str]) -> Mapping[str, str]:
-  """Adds a few bracketing test targets from given list of test candidates.
-
-  Note: This will allow us to just use testname_avg on the perf dashboard to
-    avoid missing anomalies that are triggered on testname alert settings.
+def convert_bracketing_test_in_anomaly(anomaly_data: AnomalyData,
+                                       bookkeeping: Mapping[str, str]):
+  """Converts anomaly_data internal test_path based on bookkeeping table.
 
   Args:
-    test_candidates: A list of test names.
-  Returns:
-    A lookup table that maps artifactially added bracket tests to its original
-    tests.
+    anomaly_data: An AnomalyData that to change.
+    bookkeeping: A dictionary mapping bracketing test to its original test.
   """
-  suffix_to_aggregate = '_avg'
-  bookkeeping = {}
-  for test in test_candidates:
-    replaced = False
-    # If the tracename ends with _avg in the name, also add tracename
-    # without _avg. For instance, if seeing foo/bar_avg/subtest1,
-    # also add foo/bar/subtest1.
-    subs = test.split('/')
-    for i, sub in enumerate(subs):
-      if sub.endswith(suffix_to_aggregate):
-        subs[i] = sub[:-len(suffix_to_aggregate)]
-        replaced = True
-        break
-    if replaced:
-      test_without_suffix = '/'.join(subs)
-      logging.info(
-          'need_aggregation is set. Adds bracket test %s based on %s',
-          test_without_suffix,
-          test,
-      )
-      bookkeeping[test_without_suffix] = test
-      test_candidates.append(test_without_suffix)
-  return bookkeeping
-
-
-def convert_bracketing_test(test: str, bookkeeping: Mapping[str, str]) -> str:
-  """Converts a bracket test to its original name.
-
-  Args:
-    test: A test name.
-    bookkeeping: A dictionary mapping testname to testname_avg.
-
-  Returns:
-    A converted test name.
-
-  Example: when bookkeeping is {'testname/foo/bar': 'testname_avg/foo/bar'},
-  and test is 'testname/foo/bar', it returns 'testname_avg/foo/bar'.
-  """
-  if test in bookkeeping:
-    logging.info('need_aggregation is set. Changes bracket test %s to %s', test,
-                 bookkeeping[test])
-    return bookkeeping[test]
-  return test
-
-
-def is_aggregation_enabled(data: Mapping[str, Any]) -> bool:
-  return data.get('need_aggregation', False)
+  if not anomaly_data:
+    return
+  test_path = aggregation.convert_bracketing_test(anomaly_data.test_path,
+                                                  bookkeeping)
+  anomaly_data.test_path = test_path
 
 
 @blueprint.route('/find', methods=['POST'])
@@ -194,8 +148,8 @@ def QueryAnomaliesPostHandler():
       test_candidates = []
       for test in data.get('tests', []):
         test_candidates.append(test)
-      if is_aggregation_enabled(data):
-        bookkeeping = add_bracketing_tests(test_candidates)
+      if aggregation.is_aggregation_enabled(data):
+        bookkeeping = aggregation.add_bracketing_tests(test_candidates)
 
       batched_tests = list(CreateTestBatches(test_candidates))
       logging.info('Created %i batches for DataStore query', len(batched_tests))
@@ -207,17 +161,15 @@ def QueryAnomaliesPostHandler():
           anomalies.extend(batch_anomalies)
 
     logging.info('%i anomalies returned from DataStore', len(anomalies))
-    if is_aggregation_enabled(data):
+    if aggregation.is_aggregation_enabled(data):
       logging.info('bookkeeper is %s', json.dumps(bookkeeping, indent=4))
 
     response = AnomalyResponse()
     for found_anomaly in anomalies:
       anomaly_data = GetAnomalyData(found_anomaly)
-      test_path = anomaly_data.test_path
-      if is_aggregation_enabled(data):
-        test_path = convert_bracketing_test(test_path, bookkeeping)
-        anomaly_data.test_path = test_path
-      response.AddAnomaly(test_path, anomaly_data)
+      if aggregation.is_aggregation_enabled(data):
+        convert_bracketing_test_in_anomaly(anomaly_data, bookkeeping)
+      response.AddAnomaly(anomaly_data.test_path, anomaly_data)
 
     return make_response(response.ToDict())
   except Exception as e:
