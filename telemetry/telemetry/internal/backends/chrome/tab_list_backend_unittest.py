@@ -25,6 +25,7 @@ class TabListBackendTest(tab_test_case.TabTestCase):
       self.assertEqual(tabs, new_tabs)
 
   @decorators.Enabled('has tabs')
+  @decorators.Disabled('linux')  # crbug.com/414790937
   def testNewWindow(self):
     already_open_tab_ids = set(tab.id for tab in self.tabs)
     number_already_open_tabs = len(already_open_tab_ids)
