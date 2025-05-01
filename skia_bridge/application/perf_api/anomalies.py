@@ -141,37 +141,24 @@ def add_bracketing_tests(
   return bookkeeping
 
 
-def remove_bracketing_tests_in_anomalies(
-    anomalies: Sequence[MutableMapping[str, Any]], bookkeeping: Mapping[str,
-                                                                        str]):
-  """Removes bracketing tests from the list of anomalies.
+def convert_bracketing_test(test: str, bookkeeping: Mapping[str, str]) -> str:
+  """Converts a bracket test to its original name.
 
   Args:
-    anomalies: A list of anomalies.
+    test: A test name.
     bookkeeping: A dictionary mapping testname to testname_avg.
 
   Returns:
-    A list of anomalies with testname reversed if the testname is found
-    in the lookup dictionary.
+    A converted test name.
 
   Example: when bookkeeping is {'testname/foo/bar': 'testname_avg/foo/bar'},
-  and anomalies is
-    [
-        {'test': 'testname/foo/bar'},
-        {'test': 'testname/foo/baz'},
-    ]
-  After returns, anomalies becomes
-    [
-        {'test': 'testname_avg/foo/bar'},
-        {'test': 'testname/foo/baz'},
-    ]
+  and test is 'testname/foo/bar', it returns 'testname_avg/foo/bar'.
   """
-  for anomaly in anomalies:
-    test = anomaly.get('test', '')
-    if test in bookkeeping:
-      logging.info('need_aggregation is set. Changes bracket test %s to %s',
-                   test, bookkeeping[test])
-      anomaly['test'] = bookkeeping[test]
+  if test in bookkeeping:
+    logging.info('need_aggregation is set. Changes bracket test %s to %s', test,
+                 bookkeeping[test])
+    return bookkeeping[test]
+  return test
 
 
 def is_aggregation_enabled(data: Mapping[str, Any]) -> bool:
@@ -221,12 +208,16 @@ def QueryAnomaliesPostHandler():
 
     logging.info('%i anomalies returned from DataStore', len(anomalies))
     if is_aggregation_enabled(data):
-      remove_bracketing_tests_in_anomalies(anomalies, bookkeeping)
+      logging.info('bookkeeper is %s', json.dumps(bookkeeping, indent=4))
 
     response = AnomalyResponse()
     for found_anomaly in anomalies:
       anomaly_data = GetAnomalyData(found_anomaly)
-      response.AddAnomaly(anomaly_data.test_path, anomaly_data)
+      test_path = anomaly_data.test_path
+      if is_aggregation_enabled(data):
+        test_path = convert_bracketing_test(test_path, bookkeeping)
+        anomaly_data.test_path = test_path
+      response.AddAnomaly(test_path, anomaly_data)
 
     return make_response(response.ToDict())
   except Exception as e:
