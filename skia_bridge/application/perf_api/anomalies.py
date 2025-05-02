@@ -12,10 +12,9 @@ import logging
 import json
 import math
 import uuid
-import aggregation
 
 from common import cloud_metric, utils
-from application.perf_api import datastore_client, auth_helper
+from application.perf_api import aggregation, datastore_client, auth_helper
 
 
 blueprint = Blueprint('anomalies', __name__)
