@@ -40,7 +40,6 @@ from devil.android.sdk import adb_wrapper
 from devil.android.sdk import intent
 from devil.android.sdk import keyevent
 from devil.android.sdk import version_codes
-from devil.utils import host_utils
 from devil.utils import parallelizer
 from devil.utils import reraiser_thread
 from devil.utils import timeout_retry
@@ -2686,79 +2685,16 @@ class DeviceUtils(object):
     if not files:
       return
 
-    # If the target_user is set to a secondary user, it will need root in order
-    # to push to paths like user's /sdcard. But adb does not allow to
-    # "push with su", so we force to push via zip.
-    if self.target_user is not None:
-      if not self._PushChangedFilesCompressedArchive(
-          files, [d for _, d in host_device_tuples]):
+    if not self._PushChangedFilesCompressedArchive(
+        files, [d for _, d in host_device_tuples]):
+      if self.target_user is not None:
+        # If the target_user is set to a secondary user, it will need root in
+        # order to push to paths like user's /sdcard. But adb does not allow to
+        # "push with su", so we have to push via compressed archive.
         raise device_errors.CommandFailedError(
             'Failed to push changed files for user %s' % self.target_user,
             str(self))
-      return
-
-    size = sum(host_utils.GetRecursiveDiskUsage(h) for h, _ in files)
-    file_count = len(files)
-    dir_size = sum(
-        host_utils.GetRecursiveDiskUsage(h) for h, _ in host_device_tuples)
-    dir_file_count = 0
-    for h, _ in host_device_tuples:
-      if os.path.isdir(h):
-        dir_file_count += sum(len(f) for _r, _d, f in os.walk(h))
-      else:
-        dir_file_count += 1
-
-    push_duration = self._ApproximateDuration(file_count, file_count, size,
-                                              False)
-    dir_push_duration = self._ApproximateDuration(
-        len(host_device_tuples), dir_file_count, dir_size, False)
-    zip_duration = self._ApproximateDuration(1, 1, size, True)
-
-    # TODO(https://crbug.com/1338098): Resume directory pushing once
-    # clients have switched to 1.0.36-compatible syntax.
-    # pylint: disable=condition-evals-to-constant
-    if (dir_push_duration < push_duration and dir_push_duration < zip_duration
-        and False):
-      # pylint: enable=condition-evals-to-constant
-      self._PushChangedFilesIndividually(host_device_tuples)
-    elif push_duration < zip_duration:
       self._PushChangedFilesIndividually(files)
-    elif not self._PushChangedFilesCompressedArchive(
-        files, [d for _, d in host_device_tuples]):
-      self._PushChangedFilesIndividually(files)
-
-  @staticmethod
-  def _ApproximateDuration(adb_calls, file_count, byte_count, is_zipping):
-    # We approximate the time to push a set of files to a device as:
-    #   t = c1 * a + c2 * f + c3 + b / c4 + b / (c5 * c6), where
-    #     t: total time (sec)
-    #     c1: adb call time delay (sec)
-    #     a: number of times adb is called (unitless)
-    #     c2: push time delay (sec)
-    #     f: number of files pushed via adb (unitless)
-    #     c3: zip time delay (sec)
-    #     c4: zip rate (bytes/sec)
-    #     b: total number of bytes (bytes)
-    #     c5: transfer rate (bytes/sec)
-    #     c6: compression ratio (unitless)
-
-    # All of these are approximations.
-    ADB_CALL_PENALTY = 0.1  # seconds
-    ADB_PUSH_PENALTY = 0.01  # seconds
-    ZIP_PENALTY = 2.0  # seconds
-    ZIP_RATE = 10000000.0  # bytes / second
-    TRANSFER_RATE = 2000000.0  # bytes / second
-    COMPRESSION_RATIO = 2.0  # unitless
-
-    adb_call_time = ADB_CALL_PENALTY * adb_calls
-    adb_push_setup_time = ADB_PUSH_PENALTY * file_count
-    if is_zipping:
-      zip_time = ZIP_PENALTY + byte_count / ZIP_RATE
-      transfer_time = byte_count / (TRANSFER_RATE * COMPRESSION_RATIO)
-    else:
-      zip_time = 0
-      transfer_time = byte_count / TRANSFER_RATE
-    return adb_call_time + adb_push_setup_time + zip_time + transfer_time
 
   def _PushChangedFilesIndividually(self, files):
     for h, d in files:
