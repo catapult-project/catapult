@@ -67,9 +67,12 @@ GTEST_EXECUTABLE_NAME = {
 _CROSSBENCH_NAME = {
     'jetstream2.crossbench': 'jetstream_2.2',
     'motionmark1.3.crossbench': 'motionmark_1.3',
-    'speedometer3.crossbench': 'speedometer_3.0',
     'speedometer2.0.crossbench': 'speedometer_2.0',
     'speedometer2.1.crossbench': 'speedometer_2.1',
+    'speedometer2.crossbench': 'speedometer_2',
+    'speedometer3.0.crossbench': 'speedometer_3.0',
+    'speedometer3.1.crossbench': 'speedometer_3.1',
+    'speedometer3.crossbench': 'speedometer_3',
     'loadline_phone.crossbench': 'loadline-phone-fast',
     'loadline_tablet.crossbench': 'loadline-tablet-fast'
 }

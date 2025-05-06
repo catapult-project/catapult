@@ -221,7 +221,7 @@ class FromDictTest(unittest.TestCase):
 
     extra_args = [
         '--benchmark-display-name=speedometer3.crossbench',
-        '--benchmarks=speedometer_3.0',
+        '--benchmarks=speedometer_3',
         '--browser=release',
     ] + run_performance_test._DEFAULT_EXTRA_ARGS
     expected = run_telemetry_test.RunTelemetryTest(
