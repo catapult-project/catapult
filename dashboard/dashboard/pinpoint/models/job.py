@@ -278,6 +278,8 @@ class Job(ndb.Model):
   # Bots we can use to run tests
   bots = ndb.StringProperty(repeated=True)
 
+  culprits = ndb.StringProperty(repeated=True)
+
   @classmethod
   def _post_get_hook(cls, key, future):  # pylint: disable=unused-argument
     e = future.get_result()

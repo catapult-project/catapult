@@ -46,6 +46,7 @@ from dashboard import report
 from dashboard import sheriff_config_poller
 from dashboard import short_uri
 from dashboard import update_dashboard_stats
+from dashboard import update_pinpoint_job_culprits
 from dashboard import update_test_suites
 from dashboard import update_test_suite_descriptors
 from dashboard import uploads_info
@@ -204,6 +205,12 @@ def EditAnomaliesPost():
 @flask_app.route('/edit_anomalies_skia', methods=['POST'])
 def SkiaEditAnomaliesPost():
   return edit_anomalies.SkiaEditAnomaliesPost()
+
+
+@flask_app.route('/update_pinpoint_job_culprits', methods=['POST'])
+def UpdatePinpointJobCulprits():
+  logging.debug('[CULPRITS] Recieved request')
+  return update_pinpoint_job_culprits.UpdatePinpointJobCulpritsPost()
 
 
 @flask_app.route('/edit_site_config', methods=['GET'])
