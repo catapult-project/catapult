@@ -34,7 +34,7 @@ _TEMPLATE_ENV = jinja2.Environment(
         searchpath=os.path.join(
             os.path.dirname(os.path.realpath(__file__)), 'templates')))
 _DIFFERENCES_FOUND_TMPL = _TEMPLATE_ENV.get_template('differences_found.j2')
-_CREATED_TEMPL = _TEMPLATE_ENV.get_template('job_created.j2')
+_CREATED_TMPL = _TEMPLATE_ENV.get_template('job_created.j2')
 _MISSING_VALUES_TMPL = _TEMPLATE_ENV.get_template('missing_values.j2')
 
 _LABEL_EXCLUSION_SETS = [
@@ -102,7 +102,7 @@ class JobUpdateBuilder:
   def CreationUpdate(self, pending):
     env = self._env.copy()
     env.update({'pending': pending})
-    comment_text = _CREATED_TEMPL.render(**env)
+    comment_text = _CREATED_TMPL.render(**env)
     labels = ComputeLabelUpdates(['Pinpoint-Job-Pending'])
     return _BugUpdateInfo(comment_text, None, None, labels, None)
 
@@ -427,7 +427,7 @@ def _FormatDocumentationUrls(tags):
     return ''
 
   docs = docs[reserved_infos.DOCUMENTATION_URLS.name].get('values')
-  footer = '\n\n%s:\n  %s' % (docs[0][0], docs[0][1])
+  footer = '\n%s: %s' % (docs[0][0], docs[0][1])
   return footer
 
 
@@ -479,8 +479,9 @@ def UpdatePostAndMergeDeferred(bug_update_builder,
     return
   commit_cache_key = bug_update_builder.GenerateCommitCacheKey()
   if not commit_cache_key:
-    logging.debug('UpdatePostAndMergeDeferred: commit_cache_key is None. Bug: "%s"',
-                  bug_id)
+    logging.debug(
+        'UpdatePostAndMergeDeferred: commit_cache_key is None. Bug: "%s"',
+        bug_id)
   bug_update = bug_update_builder.BuildUpdate(tags, url, improvement_dir,
                                               sandwiched)
   merge_details, cc_list = _ComputePostMergeDetails(

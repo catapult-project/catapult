@@ -547,15 +547,14 @@ class Job(ndb.Model):
         self.benchmark_arguments.benchmark, self.benchmark_arguments.story,
         pinpoint_job_queued_time.total_seconds())
 
-    title = _ROUND_PUSHPIN + ' Pinpoint job started.'
-    comment = '\n'.join((title, self.url))
+    comment = _ROUND_PUSHPIN + ' Pinpoint job started: ' + self.url
     deferred.defer(
         _PostBugCommentDeferred,
         self.bug_id,
         self.project,
         comment=comment,
         labels=job_bug_update.ComputeLabelUpdates(['Pinpoint-Job-Started']),
-        send_email=True,
+        send_email=False,
         _retry_options=RETRY_OPTIONS)
 
   def _IsTryJob(self):
@@ -726,12 +725,12 @@ class Job(ndb.Model):
     logging.debug('Processing outputs.')
     if self._IsTryJob():
       # There is no comparison metric.
-      title = '<b>%s Job complete. See results below.</b>' % _ROUND_PUSHPIN
+      comment = '%s Job complete: %s' % (_ROUND_PUSHPIN, self.url)
       deferred.defer(
           _PostBugCommentDeferred,
           self.bug_id,
           self.project,
-          comment='\n'.join((title, self.url)),
+          comment=comment,
           labels=['Pinpoint-Tryjob-Completed'],
           _retry_options=RETRY_OPTIONS)
       return
@@ -768,9 +767,8 @@ class Job(ndb.Model):
       # First, check if there are no differences because one side of bisection
       # failed outright.
       if self.state.FirstOrLastChangeFailed():
-        title = "<b>%s Job finished with errors.</b>" % _CRYING_CAT_FACE
-        comment = '\n'.join(
-            (title, self.url, '', _FIRST_OR_LAST_FAILED_COMMENT))
+        title = "%s Job finished with errors: %s" % (_CRYING_CAT_FACE, self.url)
+        comment = '\n'.join((title, '', _FIRST_OR_LAST_FAILED_COMMENT))
         deferred.defer(
             _PostBugCommentDeferred,
             self.bug_id,
@@ -785,12 +783,13 @@ class Job(ndb.Model):
       # WontFix. This is based on information we've gathered in production that
       # most issues where we find Pinpoint cannot reproduce the difference end
       # up invariably as "Unconfirmed" with very little follow-up.
-      title = "<b>%s Couldn't reproduce a difference.</b>" % _ROUND_PUSHPIN
+      comment = "%s Couldn't reproduce a difference: %s" % (_ROUND_PUSHPIN,
+                                                            self.url)
       deferred.defer(
           _PostBugCommentDeferred,
           self.bug_id,
           self.project,
-          comment='\n'.join((title, self.url)),
+          comment=comment,
           labels=job_bug_update.ComputeLabelUpdates(
               ['Pinpoint-Job-Completed', 'Pinpoint-No-Repro']),
           status='WontFix',
@@ -809,32 +808,33 @@ class Job(ndb.Model):
       regression_cnt, wf_executions = self._StartSandwichAndUpdateWorkflowGroup(
           improvement_dir, differences, result_values)
       if regression_cnt == 0:
-        title = ("<b>%s %s Couldn't reproduce a difference in the"
-                 "regression direction.</b>") % (_ROUND_PUSHPIN, _SANDWICH)
+        comment = ("%s %s Couldn't reproduce a difference in the"
+                   "regression direction: %s") % (_ROUND_PUSHPIN, _SANDWICH,
+                                                  self.url)
         deferred.defer(
             _PostBugCommentDeferred,
             self.bug_id,
             self.project,
-            comment='\n'.join((title, self.url)),
+            comment=comment,
             labels=['Pinpoint-Job-Completed', 'Pinpoint-No-Regression'],
             status='WontFix',
             _retry_options=RETRY_OPTIONS)
       else:
-        title1 = ("<b>%s %s %s regressions found.</b>" %
-                  (_ROUND_PUSHPIN, _SANDWICH, regression_cnt))
-        title2 = "<b>Started sandwich culprit verification process.</b>"
+        title1 = ("%s %s %s regressions found: %s" %
+                  (_ROUND_PUSHPIN, _SANDWICH, regression_cnt, self.url))
+        title2 = "Started sandwich culprit verification process."
         workflow_details = ("culprit verification workflow keys: %s" %
                             (wf_executions))
         deferred.defer(
             _PostBugCommentDeferred,
             self.bug_id,
             self.project,
-            comment='\n'.join((title1, self.url, title2, workflow_details)),
+            comment='\n'.join((title1, title2, workflow_details)),
             labels=[
                 'Pinpoint-Job-Completed',
                 'Culprit-Sandwich-Verification-Started'
             ],
-            send_email=True,
+            send_email=False,
             _retry_options=RETRY_OPTIONS)
       return
 
@@ -886,7 +886,8 @@ class Job(ndb.Model):
       # What follows are the details we are providing when
       # posting updates to the associated bug.
       tb = traceback.format_exc() or ''
-      title = _CRYING_CAT_FACE + ' Pinpoint job stopped with an error.'
+      title = (
+          _CRYING_CAT_FACE + ' Pinpoint job stopped with an error: ' + self.url)
       exc_info = sys.exc_info()
       if exception is None:
         if exc_info[1] is None:
@@ -912,7 +913,7 @@ class Job(ndb.Model):
     if not self.cancelled:
       self._PrintJobStatusRunTimeMetrics("failed", True)
 
-      comment = '\n'.join((title, self.url, '', exc_message))
+      comment = '\n'.join((title, '', exc_message))
 
       deferred.defer(
           _PostBugCommentDeferred,
@@ -1135,9 +1136,9 @@ class Job(ndb.Model):
 
     self._PrintJobStatusRunTimeMetrics("cancelled")
 
-    title = _ROUND_PUSHPIN + ' Pinpoint job cancelled.'
-    comment = u'{}\n{}\n\nCancelled by {}, reason given: {}'.format(
-        title, self.url, user, reason)
+    comment = (u'{} Pinpoint job cancelled: {}\n'
+               u'Cancelled by {}, reason given: {}').format(
+                   _ROUND_PUSHPIN, self.url, user, reason)
     deferred.defer(
         _PostBugCommentDeferred,
         self.bug_id,

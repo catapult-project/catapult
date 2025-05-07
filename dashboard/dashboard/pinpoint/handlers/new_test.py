@@ -523,7 +523,7 @@ class NewTest(_NewTest):
     post_issue.assert_called_once_with(
         12345, 'chromium', comment=mock.ANY, send_email=True)
     message = post_issue.call_args.kwargs['comment']
-    self.assertIn('Pinpoint job created and queued.', message)
+    self.assertIn('Pinpoint job created and queued:', message)
 
   def testExtraArgsSupported(self):
     request = dict(_BASE_REQUEST)

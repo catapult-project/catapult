@@ -19,12 +19,12 @@ if utils.IsStagingEnvironment():
 else:
   _SERVICE_URL = 'https://perf-issue-service-dot-chromeperf.appspot.com/'
 
-_ISSUES_PERFIX = 'issues/'
+_ISSUES_PREFIX = 'issues/'
 _ALERT_GROUP_PREFIX = 'alert_groups/'
 
 
 def GetIssues(**kwargs):
-  url = _SERVICE_URL + _ISSUES_PERFIX
+  url = _SERVICE_URL + _ISSUES_PREFIX
   try:
     cloud_metric.PublishPerfIssueServiceRequests('GetIssues', 'GET', url,
                                                  kwargs)
@@ -43,7 +43,7 @@ def GetIssue(issue_id, project_name='chromium'):
   project_name = 'chromium' if project_name is None or not project_name.strip(
   ) else project_name
 
-  url = _SERVICE_URL + _ISSUES_PERFIX
+  url = _SERVICE_URL + _ISSUES_PREFIX
   url += '%s/project/%s' % (issue_id, project_name)
   try:
     cloud_metric.PublishPerfIssueServiceRequests('GetIssue', 'GET', url, {
@@ -69,7 +69,7 @@ def GetIssueComments(issue_id, project_name='chromium'):
   project_name = 'chromium' if project_name is None or not project_name.strip(
   ) else project_name
 
-  url = _SERVICE_URL + _ISSUES_PERFIX
+  url = _SERVICE_URL + _ISSUES_PREFIX
   url += '%s/project/%s/comments' % (issue_id, project_name)
   try:
     cloud_metric.PublishPerfIssueServiceRequests(
@@ -92,7 +92,7 @@ def GetIssueComments(issue_id, project_name='chromium'):
 
 
 def PostIssue(**kwargs):
-  url = _SERVICE_URL + _ISSUES_PERFIX
+  url = _SERVICE_URL + _ISSUES_PREFIX
   try:
     cloud_metric.PublishPerfIssueServiceRequests('PostIssue', 'POST', url,
                                                  kwargs)
@@ -111,7 +111,7 @@ def PostIssueComment(issue_id, project_name='chromium', **kwargs):
   project_name = 'chromium' if project_name is None or not project_name.strip(
   ) else project_name
 
-  url = _SERVICE_URL + _ISSUES_PERFIX
+  url = _SERVICE_URL + _ISSUES_PREFIX
   url += '%s/project/%s/comments' % (issue_id, project_name)
   try:
     cloud_metric.PublishPerfIssueServiceRequests('PostIssueComment', 'POST',

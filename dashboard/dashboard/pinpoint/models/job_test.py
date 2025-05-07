@@ -33,27 +33,25 @@ from six.moves import zip # pylint: disable=redefined-builtin
 # pylint: disable=too-many-lines
 
 _CHROMIUM_URL = 'https://chromium.googlesource.com/chromium/src'
-_COMMENT_STARTED = (u"""\U0001f4cd Pinpoint job started.
-https://testbed.example.com/job/1""")
+_COMMENT_STARTED = (
+    u"""\U0001f4cd Pinpoint job started: https://testbed.example.com/job/1""")
 
 _COMMENT_COMPLETED_NO_COMPARISON = (
-    u"""<b>\U0001f4cd Job complete. See results below.</b>
-https://testbed.example.com/job/1""")
+    u"""\U0001f4cd Job complete: https://testbed.example.com/job/1""")
 
 _COMMENT_COMPLETED_NO_DIFFERENCES = (
-    u"""<b>\U0001f4cd Couldn't reproduce a difference.</b>
-https://testbed.example.com/job/1""")
+    u"""\U0001f4cd Couldn't reproduce a difference: https://testbed.example.com/job/1"""
+)
 
 _COMMENT_COMPLETED_NO_DIFFERENCES_DUE_TO_FAILURE = (
-    u"""<b>\U0001f63f Job finished with errors.</b>
-https://testbed.example.com/job/1
+    u"""\U0001f63f Job finished with errors: https://testbed.example.com/job/1
 
 One or both of the initial changes failed to produce any results.
 Perhaps the job is misconfigured or the tests are broken? See the job
 page for details.""")
 
-_COMMENT_FAILED = (u"""\U0001f63f Pinpoint job stopped with an error.
-https://testbed.example.com/job/1
+_COMMENT_FAILED = (
+    u"""\U0001f63f Pinpoint job stopped with an error: https://testbed.example.com/job/1
 
 Error string""")
 
@@ -421,7 +419,7 @@ class BugCommentTest(test.TestCase):
         'chromium',
         comment=_COMMENT_STARTED,
         labels=mock.ANY,
-        send_email=True)
+        send_email=False)
     labels = self.add_bug_comment.call_args[1]['labels']
     self.assertIn('Pinpoint-Job-Started', labels)
     self.assertNotIn('-Pinpoint-Job-Started', labels)
@@ -511,7 +509,7 @@ class BugCommentTest(test.TestCase):
         merge_issue=None)
     message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found a significant difference at 1 commit.', message)
-    self.assertIn('<b>Subject.</b>', message)
+    self.assertIn('Subject.', message)
     self.assertIn('https://example.com/repository/+/git_hash', message)
     labels = self.add_bug_comment.call_args.kwargs['labels']
     self.assertIn('Pinpoint-Culprit-Found', labels)
@@ -614,7 +612,7 @@ class BugCommentTest(test.TestCase):
         merge_issue=None)
     message = self.add_bug_comment.call_args.kwargs['comment']
     self.assertIn('Found a significant difference at 1 commit.', message)
-    self.assertIn('<b>Subject.</b>', message)
+    self.assertIn('Subject.', message)
     self.assertIn('https://example.com/repository/+/git_hash', message)
     labels = self.add_bug_comment.call_args.kwargs['labels']
     self.assertIn('Pinpoint-Culprit-Found', labels)
