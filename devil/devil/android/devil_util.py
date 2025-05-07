@@ -73,8 +73,9 @@ def CalculateHostHashes(paths):
           [devil_util_bin_host_path, 'hash',
            '@%s' % compressed_arg_file.name])
   else:
+    combined_paths_escaped = cmd_helper.SingleQuote(combined_paths)
     exit_code, stdout, stderr = cmd_helper.GetCmdStatusOutputAndError(
-        [devil_util_bin_host_path, 'hash', combined_paths])
+        [devil_util_bin_host_path, 'hash', combined_paths_escaped])
 
   if exit_code != 0:
     exc_msg = ['Failed to hash files']
@@ -251,7 +252,8 @@ def CalculateDeviceHashes(paths, device):
       devil_util_cmd = '$a hash @%s' % compressed_arg_file.name
       out = _RunDevilUtilOnDevice(devil_util_cmd, device, large_output=True)
   else:
-    devil_util_cmd = '$a hash %s' % combined_paths
+    combined_paths_escaped = cmd_helper.SingleQuote(combined_paths)
+    devil_util_cmd = "$a hash %s" % combined_paths_escaped
     out = _RunDevilUtilOnDevice(devil_util_cmd, device)
 
   # Filter out linker warnings like
