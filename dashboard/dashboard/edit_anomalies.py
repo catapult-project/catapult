@@ -46,6 +46,7 @@ def EditAnomaliesPost():
     return request_handler.RequestHandlerReportError(
         'User "%s" not authorized.' % user, status=403)
 
+  logging.debug('[Triage] Received edit anomalies request: %s', request.values)
 
   # Get the list of alerts to modify.
   urlsafe_keys = request.values.get('keys')
