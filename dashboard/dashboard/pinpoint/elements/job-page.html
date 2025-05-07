@@ -33,6 +33,11 @@ found in the LICENSE file.
         white-space: pre-wrap;
       }
 
+      #completed {
+        background: var(--paper-green-50);
+        color: var(--paper-green-500);
+      }
+
       #running {
         background: var(--paper-indigo-50);
         color: var(--paper-indigo-500);
@@ -101,10 +106,13 @@ found in the LICENSE file.
 
     <loading-wrapper url="/api/job/[[routeData.jobId]]?o=STATE&amp;o=ESTIMATE" response="{{job}}">
       <h1>
+        <template is="dom-if" if="[[completed(job)]]">
+          <span id="complete" class="badge">Completed</span>
+        </template>
         <template is="dom-if" if="[[failed(job)]]">
           <span id="failed" class="badge">Error</span>
           <paper-tooltip for="failed" animation-delay="0">
-            <div id="failed-tooltip">[[job.exception]]</div>
+            <div id="failed-tooltip">[[exceptionMessage(job.exception)]]</div>
           </paper-tooltip>
         </template>
         <template is="dom-if" if="[[running(job)]]">
@@ -235,6 +243,20 @@ found in the LICENSE file.
           return false;
         }
         return !job.comparison_mode || job.comparison_mode === 'try';
+      },
+
+      exceptionMessage(exception) {
+        if (!exception) {
+          return '';
+        }
+        return exception.message;
+      },
+
+      completed(job) {
+        if (!job) {
+          return false;
+        }
+        return job.status.toLowerCase() === 'completed';
       },
 
       failed(job) {
