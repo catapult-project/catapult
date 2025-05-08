@@ -42,6 +42,8 @@ def UpdatePinpointJobCulpritsPost():
   for job in jobs:
     state = job.state
     differences = state.Differences()
+    logging.debug('[CULPRITS] Processing job %s with %d differences',
+                  job.key.id, len(differences))
     for commit_pair in differences:
       culprit = commit_pair[1].AsDict()
       commit = culprit['commits'][-1]
@@ -58,5 +60,8 @@ def UpdatePinpointJobCulpritsPost():
                   job.key.id)
     job.culprits = culprits
     job.put()
+    # TODO (b/416555830) Start with backfilling culprits on one job per call,
+    # for debuggning purposes.
+    break
 
   return make_response('')

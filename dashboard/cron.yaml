@@ -62,6 +62,10 @@ cron:
   schedule: every 1 minutes
   target: pinpoint
 
+- description: Backfill the culprit commit info on Pinpoint job table.
+  url: /update_pinpoint_job_culprits
+  schedule: every 24 hours
+
 # The backup cron job is disabled temporarily in order to check whether
 # it is responsible for increased cost on the weekends.
 # See: https://github.com/catapult-project/catapult/issues/1944
