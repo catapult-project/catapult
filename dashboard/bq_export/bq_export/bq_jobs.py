@@ -111,6 +111,8 @@ def JobEntityToRowDict(entity):
         },
         'use_execution_engine':
             _IfNone(entity.get('use_execution_engine'), False),
+        'culprits':
+            entity.get('culprits', [])
     }
   except KeyError as e:
     six.raise_from(UnconvertibleJobError('Missing property: ' + str(e)), e)
@@ -195,7 +197,8 @@ def main():
    failed BOOLEAN NOT NULL,
    running BOOLEAN NOT NULL,
    configuration STRING,
-   batch_id STRING)
+   batch_id STRING,
+   culprits ARRAY<STRING>)
   PARTITION BY DATE(`create_time`);
   """
   bq_job_schema = {
@@ -379,6 +382,11 @@ def main():
               'name': 'batch_id',
               'type': 'STRING',
               'mode': 'NULLABLE'
+          },
+          {
+              'name': 'culprits',
+              'type': 'STRING',
+              'mode': 'REPEATED'
           },
       ]
   }
