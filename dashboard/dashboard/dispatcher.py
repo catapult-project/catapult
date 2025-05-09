@@ -207,7 +207,7 @@ def SkiaEditAnomaliesPost():
   return edit_anomalies.SkiaEditAnomaliesPost()
 
 
-@flask_app.route('/update_pinpoint_job_culprits', methods=['POST'])
+@flask_app.route('/update_pinpoint_job_culprits', methods=['GET', 'POST'])
 def UpdatePinpointJobCulprits():
   logging.debug('[CULPRITS] Recieved request')
   return update_pinpoint_job_culprits.UpdatePinpointJobCulpritsPost()
