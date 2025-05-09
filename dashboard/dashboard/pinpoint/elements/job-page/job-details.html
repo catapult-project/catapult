@@ -78,13 +78,6 @@ found in the LICENSE file.
 
   <script>
     'use strict';
-
-    const PROJECT_GIT_COMMIT_URLS = {
-      __proto__: null,
-      'chromium': 'https://chromium.googlesource.com/chromium/src/+',
-      'v8': 'https://chromium.googlesource.com/v8/v8/+',
-    };
-
     Polymer({
       is: 'job-details',
 
@@ -150,28 +143,26 @@ found in the LICENSE file.
         }
         const tuples = [];
         for (const key in job.arguments) {
-          const value = job.arguments[key];
           if (['bug_id', 'name', 'user'].includes(key)) {
             continue;
           }
-          if (['base_git_hash', 'end_git_hash', 'start_git_hash'].includes(key)) {
+          if (['base_git_hash', 'end_git_hash'].includes(key)) {
             tuples.push({
               key: key+'/commit_position',
-              value: value,
+              value: job.arguments[key],
             });
             continue;
           }
-          const maybeUrl = getArgumentsURL(job, key, value);
-          if (maybeUrl) {
+          if (job.arguments[key].startsWith('http')) {
               tuples.push({
                 key,
-                value: value,
-                url: maybeUrl,
+                value: job.arguments[key],
+                url: job.arguments[key],
               });
           } else {
             tuples.push({
                 key,
-                value: value,
+                value: job.arguments[key],
               });
           }
         }
@@ -181,24 +172,6 @@ found in the LICENSE file.
           return 0;
         });
         return tuples;
-      },
-
-      getArgumentsURL(job, key, value) {
-        if (value.startsWith("http")) {
-          return value
-        }
-        if (["benchmark", "chart", "story"].includes(key)) {
-          const perfCodeSearchUrl = new URL("https://source.chromium.org/search")
-          perfCodeSearchURL.searchParams.set("q", `${value} language:python (path:tools/perf OR path:third_party/crossbench) -path:third_party/angle`)
-          return perfCodeSearchUrl.toString();
-        }
-        if (key.includes("_git_hash")) {
-          const maybeCommitURL = PROJECT_GIT_COMMIT_URLS[job.arguments.project];
-          if (maybeCommitURL) {
-            return `${maybeCommitURL}/${value}`;
-          }
-        }
-        return undefined;
       },
 
       getReproCmd(job) {
@@ -253,7 +226,7 @@ found in the LICENSE file.
             case 'batch_id':
             case 'project':
               if (key === 'project' && value === 'chromium') {
-                // The default project is Chromium.
+                // The default projet is Chromium.
                 continue;
               }
               notesList.push(`${key} argument is not supported at this time!`);
