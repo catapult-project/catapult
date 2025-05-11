@@ -26,3 +26,4 @@ _ Removed requirements.txt from google-auth-library-python and
   google-auth-library-python-httlib2's .kokoro dependency. The
   requirements listed there are not used by Catapult and were causing false
   positives when checking Python dependency versions.
+- Added gsutil.bat for invoking gsutil on Windows.
