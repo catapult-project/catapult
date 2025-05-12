@@ -74,7 +74,9 @@ _CROSSBENCH_NAME = {
     'speedometer3.1.crossbench': 'speedometer_3.1',
     'speedometer3.crossbench': 'speedometer_3',
     'loadline_phone.crossbench': 'loadline-phone-fast',
-    'loadline_tablet.crossbench': 'loadline-tablet-fast'
+    'loadline_tablet.crossbench': 'loadline-tablet-fast',
+    'embedder.crossbench': 'embedder',
+    'loading.crossbench': 'loading',
 }
 
 
