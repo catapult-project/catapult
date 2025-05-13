@@ -521,7 +521,7 @@ class NewTest(_NewTest):
     self.ExecuteDeferredTasks('default')
 
     post_issue.assert_called_once_with(
-        12345, 'chromium', comment=mock.ANY, send_email=True)
+        12345, 'chromium', comment=mock.ANY, send_email=False)
     message = post_issue.call_args.kwargs['comment']
     self.assertIn('Pinpoint job created and queued:', message)
 

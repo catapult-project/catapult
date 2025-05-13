@@ -430,7 +430,7 @@ class Job(ndb.Model):
         self.bug_id,
         self.project,
         comment=bug_update.comment_text,
-        send_email=True,
+        send_email=False,
         _retry_options=RETRY_OPTIONS)
 
   @property
@@ -732,6 +732,7 @@ class Job(ndb.Model):
           self.project,
           comment=comment,
           labels=['Pinpoint-Tryjob-Completed'],
+          send_email=True,
           _retry_options=RETRY_OPTIONS)
       return
 
@@ -775,6 +776,7 @@ class Job(ndb.Model):
             self.project,
             comment=comment,
             labels=job_bug_update.ComputeLabelUpdates(['Pinpoint-Job-Failed']),
+            send_email=True,
             _retry_options=RETRY_OPTIONS)
         return
 
@@ -792,6 +794,7 @@ class Job(ndb.Model):
           comment=comment,
           labels=job_bug_update.ComputeLabelUpdates(
               ['Pinpoint-Job-Completed', 'Pinpoint-No-Repro']),
+          send_email=True,
           status='WontFix',
           _retry_options=RETRY_OPTIONS)
       return
@@ -817,6 +820,7 @@ class Job(ndb.Model):
             self.project,
             comment=comment,
             labels=['Pinpoint-Job-Completed', 'Pinpoint-No-Regression'],
+            send_email=True,
             status='WontFix',
             _retry_options=RETRY_OPTIONS)
       else:

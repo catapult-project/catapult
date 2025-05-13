@@ -435,6 +435,7 @@ class BugCommentTest(test.TestCase):
         'chromium',
         comment=_COMMENT_COMPLETED_NO_COMPARISON,
         labels=['Pinpoint-Tryjob-Completed'],
+        send_email=True,
     )
 
   def testCompletedNoDifference(self):
@@ -448,6 +449,7 @@ class BugCommentTest(test.TestCase):
         'chromium',
         comment=_COMMENT_COMPLETED_NO_DIFFERENCES,
         labels=mock.ANY,
+        send_email=True,
         status='WontFix',
     )
     labels = self.add_bug_comment.call_args[1]['labels']
@@ -471,7 +473,8 @@ class BugCommentTest(test.TestCase):
         123456,
         'chromium',
         comment=_COMMENT_COMPLETED_NO_DIFFERENCES_DUE_TO_FAILURE,
-        labels=mock.ANY)
+        labels=mock.ANY,
+        send_email=True)
     labels = self.add_bug_comment.call_args[1]['labels']
     self.assertIn('Pinpoint-Job-Failed', labels)
     self.assertNotIn('-Pinpoint-Job-Failed', labels)
