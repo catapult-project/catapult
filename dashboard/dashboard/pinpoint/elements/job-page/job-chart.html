@@ -275,8 +275,10 @@ found in the LICENSE file.
           .attr('class', 'change-plot')
           .call(drawChangeIcon);
       // Add an x-axis label.
-      div.append('div')
+      div.append('a')
           .classed('vertical', div.data().length >= 15)
+          .attr('href', d => changeURL(d.change))
+          .attr('title', d => changeSubject(d.change))
           .text(d => changeString(d.change));
     }
 
@@ -364,6 +366,31 @@ found in the LICENSE file.
         differenceString = '−' + differenceString;
       }
       return differenceString;
+    }
+
+    function changeURL(change) {
+      if (change.commits.length != 1) {
+        return '';
+      }
+      const commit = change.commits[0];
+      if (commit.review_url) {
+        return commit.review_url;
+      }
+      if (commit.url) {
+        return commit.url;
+      }
+      return '';
+    }
+
+    function changeSubject(change) {
+      if (change.commits.length != 1) {
+        return '';
+      }
+      const commit = change.commits[0];
+      if (commit.subject) {
+        return commit.subject;
+      }
+      return '';
     }
 
     function changeString(change) {
