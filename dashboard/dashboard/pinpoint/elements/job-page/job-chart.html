@@ -76,6 +76,7 @@ found in the LICENSE file.
         color: var(--paper-grey-500);
         fill: var(--paper-grey-700);
         width: 100%;
+        margin-right: 5px;
       }
 
       .change-div iron-icon {
@@ -307,6 +308,14 @@ found in the LICENSE file.
           .attr('x2', '100%')
           .attr('y1', d => y(d3.mean(d.result_values)))
           .attr('y2', d => y(d3.mean(d.result_values)));
+
+      // Draw the mean text.
+      svg.append('text')
+          .attr('x', '50%')
+          .attr('y', d => y(d3.mean(d.result_values)))
+          .attr("text-anchor", 'middle')
+          .atr('dominant-baseline', 'text-after-edge')
+          .text(d => meanString(d));
     }
 
     function drawChangeIcon(div) {
@@ -327,6 +336,13 @@ found in the LICENSE file.
           });
     }
 
+    function meanString(state) {
+      if (state?.result_values?.length) {
+        return d3.mean(state.result_values)
+      }
+      return null;
+    }
+
     function differenceString(prevState, state) {
       if (!prevState) {
         return null;
@@ -344,7 +360,7 @@ found in the LICENSE file.
       if (meanDifference >= 0) {
         differenceString = '+' + differenceString;
       } else {
-        // Use &minus; instead of a hypen to match the '+' width.
+        // Use &minus; instead of a hyphen to match the '+' width.
         differenceString = '−' + differenceString;
       }
       return differenceString;
