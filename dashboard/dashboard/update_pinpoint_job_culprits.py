@@ -6,11 +6,13 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import concurrent.futures
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import logging
 
 from flask import make_response
+from google.appengine.ext import ndb
 
 from dashboard.common import datastore_hooks
 from dashboard.pinpoint.models import job as job_module
@@ -27,11 +29,13 @@ def UpdatePinpointJobCulpritsPost():
   datastore_hooks.SetPrivilegedRequest()
 
   counter = 0
-  for i in range(LOOK_BACK_MONTHS_TOTAL):
-    jobs_updated = _LookBackAndUpdateJobsWithDiff(i)
-    counter += jobs_updated
+  with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+    results_map = executor.map(_LookBackAndUpdateJobsWithDiff,
+                               list(range(LOOK_BACK_MONTHS_TOTAL)))
+    for res in results_map:
+      counter += res
 
-  logging.debug('[CULPRITS] In total %d jobs are updated.'.counter)
+  logging.debug('[CULPRITS] In total %d jobs are updated.', counter)
 
   return make_response('Update finished.')
 
@@ -50,7 +54,7 @@ def _LookBackAndUpdateJobsWithDiff(look_back_months):
   query = query.filter(job_module.Job.created > one_month_ago)
   query = query.filter(job_module.Job.created < current)
   query = query.filter(job_module.Job.comparison_mode == job_state.PERFORMANCE)
-  jobs = query.order(-job_module.Job.created).fetch()
+  jobs = query.fetch()
 
   logging.debug('[CULPRITS] Loaded %d bisect jobs between %s and %s.',
                 len(jobs), one_month_ago.date(), current.date())
@@ -61,7 +65,7 @@ def _LookBackAndUpdateJobsWithDiff(look_back_months):
   # jobs = [j for j in jobs if j.culprits == []]
   # logging.debug('[CULPRITS] Loaded %d jobs with no culprits.', len(jobs))
 
-  jobs_updated = 0
+  jobs_to_update = []
   for job in jobs:
     culprits = []
     state = job.state
@@ -74,11 +78,6 @@ def _LookBackAndUpdateJobsWithDiff(look_back_months):
       logging.warning(
           '[CULPRITS] Job %s has diff count %d but has no difference in state.',
           job.key.id, job.difference_count)
-      continue
-
-    if job.culprits:
-      logging.debug('[CULPRITS] Job %s already has culprits set: %s.',
-                    job.key.id, job.culprits)
       continue
 
     for commit_pair in differences:
@@ -101,7 +100,10 @@ def _LookBackAndUpdateJobsWithDiff(look_back_months):
     logging.debug('[CULPRITS] Adding culprits %s to Pinpoint job %s', culprits,
                   job.key.id)
     job.culprits = culprits
-    job.put()
-    jobs_updated += 1
+    jobs_to_update.append(job)
 
-  return jobs_updated
+  logging.debug('[CULPRITS] Batch saving %d jobs. (%s to %s.)',
+                len(jobs_to_update), one_month_ago.date(), current.date())
+  ndb.put_multi(jobs_to_update)
+
+  return len(jobs_to_update)
