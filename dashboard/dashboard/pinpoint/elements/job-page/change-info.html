@@ -17,8 +17,8 @@ found in the LICENSE file.
       }
     </style>
 
-    <p><a href="[[url(change)]]" target="_blank">[[subject(change)]]</a></p>
-    <p class="commit">[[commit(change)]]</p>
+    <p><a href="[[reviewOrCommitURL(change)]]" target="_blank">[[subject(change)]]</a></p>
+    <p class="commit"><a href="[[commitURL(change)]]" target="_blank">[[commit(change)]]</a></p>
     <p class="byline">By [[author(change)]]</p>
     <template is="dom-if" if="[[args]]">
       <p class="byline">Extra Args: [[args]]</p>
@@ -52,7 +52,12 @@ found in the LICENSE file.
         return change.commits[change.commits.length - 1];
       },
 
-      url(change) {
+      reviewOrCommitURL(change) {
+        const commit = this.visibleCommit_(change);
+        return commit.review_url || commit.url;
+      },
+
+      commitURL(change) {
         return this.visibleCommit_(change).url;
       },
 
