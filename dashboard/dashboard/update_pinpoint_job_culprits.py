@@ -54,14 +54,16 @@ def _LookBackAndUpdateJobsWithDiff(look_back_months):
 
   logging.debug('[CULPRITS] Loaded %d bisect jobs between %s and %s.',
                 len(jobs), one_month_ago.date(), current.date())
+  # skip the jobs which has no difference.
   jobs = [j for j in jobs if j.difference_count and j.difference_count > 0]
   logging.debug('[CULPRITS] Loaded %d jobs with DIFF.', len(jobs))
-  jobs = [j for j in jobs if j.culprits == []]
-  logging.debug('[CULPRITS] Loaded %d jobs with no culprits.', len(jobs))
+  # TODO(b/406405606): uncomment to skip the jobs which has been backfilled.
+  # jobs = [j for j in jobs if j.culprits == []]
+  # logging.debug('[CULPRITS] Loaded %d jobs with no culprits.', len(jobs))
 
-  culprits = []
   jobs_updated = 0
   for job in jobs:
+    culprits = []
     state = job.state
     differences = state.Differences()
     logging.debug(
