@@ -130,7 +130,7 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
     # If the change string is too long, truncate it to avoid
     # exceeding the swarming string length.
     if len(change_string) > _MAX_STRING_LENGTH:
-      change_string = str(change)[:_MAX_STRING_LENGTH]
+      change_string = str(change)[:_MAX_STRING_LENGTH].strip()
 
     extra_swarming_tags = {'change': change_string}
     return self._Start(
