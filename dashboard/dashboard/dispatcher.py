@@ -208,9 +208,17 @@ def SkiaEditAnomaliesPost():
 
 
 @flask_app.route('/update_pinpoint_job_culprits', methods=['GET', 'POST'])
-def UpdatePinpointJobCulprits():
+# Added page_size and look_back for debugging purposes so that we can update
+# the url in cron.yaml to update cron job behavior.
+@flask_app.route(
+    '/update_pinpoint_job_culprits/<page_size>', methods=['GET', 'POST'])
+@flask_app.route(
+    '/update_pinpoint_job_culprits/<page_size>/<look_back>',
+    methods=['GET', 'POST'])
+def UpdatePinpointJobCulprits(page_size=None, look_back=None):
   logging.debug('[CULPRITS] Recieved request')
-  return update_pinpoint_job_culprits.UpdatePinpointJobCulpritsPost()
+  return update_pinpoint_job_culprits.UpdatePinpointJobCulpritsPost(
+      page_size, look_back)
 
 
 @flask_app.route('/edit_site_config', methods=['GET'])
