@@ -469,6 +469,39 @@ tr.exportTo('tr.metrics.sh', function() {
     }
   };
 
+  const VULKAN_TOTAL_ALLOCATION_SIZE = {
+    name: 'vulkan_total_allocation_size',
+    unit: sizeInBytes_smallerIsBetter,
+    buildDescriptionPrefix(componentPath, processName) {
+      return buildChromeValueDescriptionPrefix(componentPath, processName, {
+        userFriendlyPropertyName: 'vulkan memory allocator total allocation size',
+        componentPreposition: 'of'
+      });
+    }
+  };
+
+  const VULKAN_USED_ALLOCATION_SIZE = {
+    name: 'vulkan_used_allocation_size',
+    unit: sizeInBytes_smallerIsBetter,
+    buildDescriptionPrefix(componentPath, processName) {
+      return buildChromeValueDescriptionPrefix(componentPath, processName, {
+        userFriendlyPropertyName: 'vulkan memory allocator used allocation size',
+        componentPreposition: 'of'
+      });
+    }
+  };
+
+  const VULKAN_FRAGMENTATION_SIZE = {
+    name: 'vulkan_fragmentation_size',
+    unit: sizeInBytes_smallerIsBetter,
+    buildDescriptionPrefix(componentPath, processName) {
+      return buildChromeValueDescriptionPrefix(componentPath, processName, {
+        userFriendlyPropertyName: 'vulkan memory allocator fragmentation size',
+        componentPreposition: 'of'
+      });
+    }
+  };
+
   const CHROME_VALUE_PROPERTIES = [
     EFFECTIVE_SIZE,
     ALLOCATED_OBJECTS_SIZE,
@@ -806,6 +839,31 @@ tr.exportTo('tr.metrics.sh', function() {
                 property: PROPORTIONAL_RESIDENT_SIZE,
                 value: memtrackChildDump.numerics.memtrack_pss
               });
+            });
+          }
+
+          // Add memory:<browser-name>:<process-name>:reported_by_chrome:
+          // gpu_memory:... values.
+          const vulkanDump = processDump.getMemoryAllocatorDumpByFullName(
+              'gpu/vulkan');
+          if (vulkanDump !== undefined) {
+            addProcessScalar({
+              source: 'reported_by_chrome',
+              component: ['gpu_memory'],
+              property: VULKAN_TOTAL_ALLOCATION_SIZE,
+              value: vulkanDump.numerics.allocated_size
+            });
+            addProcessScalar({
+              source: 'reported_by_chrome',
+              component: ['gpu_memory'],
+              property: VULKAN_FRAGMENTATION_SIZE,
+              value: vulkanDump.numerics.fragmentation_size
+            });
+            addProcessScalar({
+              source: 'reported_by_chrome',
+              component: ['gpu_memory'],
+              property: VULKAN_USED_ALLOCATION_SIZE,
+              value: vulkanDump.numerics.used_size
             });
           }
         }, function(componentTree) {}, values);
