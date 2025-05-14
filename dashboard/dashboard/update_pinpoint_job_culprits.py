@@ -18,7 +18,7 @@ from dashboard.common import datastore_hooks
 from dashboard.pinpoint.models import job as job_module
 from dashboard.pinpoint.models import job_state
 
-LOOK_BACK_MONTHS_TOTAL = 24
+LOOK_BACK_WEEKS_TOTAL = 104
 
 def UpdatePinpointJobCulpritsPost():
   """Checks if alerts have recovered, and marks them if so.
@@ -29,9 +29,9 @@ def UpdatePinpointJobCulpritsPost():
   datastore_hooks.SetPrivilegedRequest()
 
   counter = 0
-  with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+  with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
     results_map = executor.map(_LookBackAndUpdateJobsWithDiff,
-                               list(range(LOOK_BACK_MONTHS_TOTAL)))
+                               list(range(LOOK_BACK_WEEKS_TOTAL)))
     for res in results_map:
       counter += res
 
@@ -40,24 +40,24 @@ def UpdatePinpointJobCulpritsPost():
   return make_response('Update finished.')
 
 
-# Load the monthly changes for Pinpoint jobs between (now - look_back_months)
-# and (now - look_back_months - 1). If the job has difference_count > 0, try
+# Load the weekly changes for Pinpoint jobs between (now - look_back_weeks)
+# and (now - look_back_weeks - 1). If the job has difference_count > 0, try
 # to load the difference info from job state, and populate the commit info
 # into a new column 'culprits'.
-def _LookBackAndUpdateJobsWithDiff(look_back_months):
-  current = datetime.now() - relativedelta(months=look_back_months)
-  one_month_ago = current - relativedelta(months=1)
+def _LookBackAndUpdateJobsWithDiff(look_back_weeks):
+  current = datetime.now() - relativedelta(weeks=look_back_weeks)
+  one_week_ago = current - relativedelta(weeks=1)
 
   # Fetch the jobs for the month, which are bisection jobs, with different
   # count > 0, and no culprits are been populated yet.
   query = job_module.Job.query()
-  query = query.filter(job_module.Job.created > one_month_ago)
+  query = query.filter(job_module.Job.created > one_week_ago)
   query = query.filter(job_module.Job.created < current)
   query = query.filter(job_module.Job.comparison_mode == job_state.PERFORMANCE)
   jobs = query.fetch()
 
   logging.debug('[CULPRITS] Loaded %d bisect jobs between %s and %s.',
-                len(jobs), one_month_ago.date(), current.date())
+                len(jobs), one_week_ago.date(), current.date())
   # skip the jobs which has no difference.
   jobs = [j for j in jobs if j.difference_count and j.difference_count > 0]
   logging.debug('[CULPRITS] Loaded %d jobs with DIFF.', len(jobs))
@@ -103,7 +103,7 @@ def _LookBackAndUpdateJobsWithDiff(look_back_months):
     jobs_to_update.append(job)
 
   logging.debug('[CULPRITS] Batch saving %d jobs. (%s to %s.)',
-                len(jobs_to_update), one_month_ago.date(), current.date())
+                len(jobs_to_update), one_week_ago.date(), current.date())
   ndb.put_multi(jobs_to_update)
 
   return len(jobs_to_update)
