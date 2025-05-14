@@ -188,9 +188,9 @@ found in the LICENSE file.
           return value
         }
         if (["benchmark", "chart", "story"].includes(key)) {
-          const perfCodeSearchUrl = new URL("https://source.chromium.org/search")
+          const perfCodeSearchURL = new URL("https://source.chromium.org/search")
           perfCodeSearchURL.searchParams.set("q", `${value} language:python (path:tools/perf OR path:third_party/crossbench) -path:third_party/angle`)
-          return perfCodeSearchUrl.toString();
+          return perfCodeSearchURL.toString();
         }
         if (key.includes("_git_hash")) {
           const maybeCommitURL = PROJECT_GIT_COMMIT_URLS[job.arguments.project];
