@@ -148,32 +148,23 @@ found in the LICENSE file.
         if (!job) {
           return [];
         }
+        const ignoredKeys = ['bug_id', 'name', 'user'];
+        const commitKeys = ['base_git_hash', 'end_git_hash', 'start_git_hash'];
         const tuples = [];
         for (const key in job.arguments) {
           const value = job.arguments[key];
-          if (['bug_id', 'name', 'user'].includes(key)) {
+          if (ignoredKeys.includes(key)) {
             continue;
           }
-          if (['base_git_hash', 'end_git_hash', 'start_git_hash'].includes(key)) {
-            tuples.push({
-              key: key+'/commit_position',
-              value: value,
-            });
-            continue;
+          const item = {key, value};
+          if (commitKeys.includes(key)) {
+            item.key = key+'/commit_position';
           }
           const maybeUrl = this.getArgumentsURL(job, key, value);
           if (maybeUrl) {
-              tuples.push({
-                key,
-                value: value,
-                url: maybeUrl,
-              });
-          } else {
-            tuples.push({
-                key,
-                value: value,
-              });
+              item.url = maybeUrl;
           }
+          tuples.push(item);
         }
         tuples.sort(function(a, b) {
           if (a.key < b.key) return -1;
