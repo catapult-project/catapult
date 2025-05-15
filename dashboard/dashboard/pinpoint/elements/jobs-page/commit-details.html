@@ -31,7 +31,7 @@ found in the LICENSE file.
       .commit {
         padding: 4px;
         border-radius: 3px;
-        background-color: background-color: var(--paper-grey-100);
+        background-color: var(--paper-grey-100);
       }
 
       .error {
@@ -53,8 +53,8 @@ found in the LICENSE file.
         <paper-progress indeterminate></paper-progress>
       </template>
       <template is="dom-if" if="[[hasCommitDetails(commitDetails)]]">
-        <p><span class="commit-hash">[[_FormatHash(commitDetails.git_hash)]]</span><span class="conmit-message">[[commitDetails.message]]</span></p>
-        <p><span class="commit-position">[[commitDetails.commit_position]]</span><span class="commit-author">[[commitDetails.author]]</span></p>
+        <p><a class="commit-hash" href="[[commitDetails.review_url]]">[[_FormatHash(commitDetails.git_hash)]]</a><span class="conmit-message">[[commitDetails.message]]</span></p>
+        <p><a class="commit-position" href="[[commitDetails.url]]">[[commitDetails.commit_position]]</a><span class="commit-author">[[commitDetails.author]]</span></p>
       </template>
       <template is="dom-if" if="[[hasError(error.response.error, value)]]">
         <p class="error">[[error.response.error]]</p>
