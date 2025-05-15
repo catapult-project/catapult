@@ -84,24 +84,9 @@ def Compare(values_a,
   kolmogorov_p_value = kolmogorov_smirnov.KolmogorovSmirnov(values_a, values_b)
   mann_p_value = mann_whitney_u.MannWhitneyU(values_a, values_b)
   p_value = min(kolmogorov_p_value, mann_p_value)
-  logging.debug(
-    'BisectDebug: kolmogorov_p_value: %s, mann_p_value: %s, actual_p_value: %s',
-    kolmogorov_p_value,
-    mann_p_value,
-    p_value)
 
   new_low_threshold = max(low_threshold, _MIN_LOW_THRESHOLDS_FUNCTIONAL)
   new_high_threshold = max(high_threshold, _MIN_HIGH_THRESHOLDS_FUNCTIONAL)
-
-  logging.debug(
-    'BisectDebug: pv: %s, lt: %s, ht: %s, mg: %s, ac: %s, va: %s, vb: %s',
-    p_value,
-    low_threshold,
-    high_threshold,
-    magnitude,
-    attempt_count,
-    values_a,
-    values_b)
 
   if p_value <= new_low_threshold:
     new_comparison_result = ComparisonResults(DIFFERENT, p_value,
@@ -114,7 +99,6 @@ def Compare(values_a,
     new_comparison_result = ComparisonResults(UNKNOWN, p_value,
                                               new_low_threshold,
                                               new_high_threshold)
-  logging.debug('BisectDebug: new_comparison_result: %s', new_comparison_result)
 
   if p_value <= low_threshold:
     # The p-value is less than the significance level. Reject the null
@@ -131,28 +115,13 @@ def Compare(values_a,
     # come from different distributions, and we don't care to investigate more.
     comparison_result = ComparisonResults(SAME, p_value, low_threshold,
                                           high_threshold)
-  logging.debug('BisectDebug: actual_comparison_result: %s', comparison_result)
 
   if comparison_result.result != new_comparison_result.result:
     if benchmark_arguments is not None:
-      logging.debug(
-          'BisectDebug: Found different comparison result, '
-          'job_id: %s, benchmark: %s, chart: %s, story: %s, '
-          'new result: %s, actual result: %s', job_id,
-          benchmark_arguments.benchmark, benchmark_arguments.chart,
-          benchmark_arguments.story, new_comparison_result, comparison_result)
-      # Apply the new comparison result to all benchmarks
-      logging.debug(
-          'BisectDebug: Return new comparison result, '
-          'job_id: %s, benchmark: %s, chart: %s, story: %s, '
-          'new result: %s, old result: %s', job_id,
-          benchmark_arguments.benchmark, benchmark_arguments.chart,
-          benchmark_arguments.story, new_comparison_result,
-          comparison_result)
       return new_comparison_result
 
     logging.debug(
-        'BisectDebug: Found different comparison result, new result: %s, actual result: %s',
-        new_comparison_result, comparison_result)
+        'BisectDebug: Job %s found different comparison result, new: %s, actual: %s',
+        job_id, new_comparison_result, comparison_result)
 
   return comparison_result
