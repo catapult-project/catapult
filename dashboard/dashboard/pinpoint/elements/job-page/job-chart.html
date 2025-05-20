@@ -63,6 +63,12 @@ found in the LICENSE file.
 
       .difference-label {
         height: 16px;
+        opacity: 0.8;
+      }
+
+      .detected-difference {
+        font-weight: bold;
+        opacity: 1;
       }
 
       .vertical {
@@ -265,6 +271,7 @@ found in the LICENSE file.
       // Draw the difference if significant.
       div.append('div')
           .attr('class', 'difference-label')
+          .classed('detected-difference', (i) => isDetectedDifference(d))
           .classed('vertical', div.data().length >= 15)
           .text((d, i) => differenceString(div.data()[i + 1], d));
       // Draw the plot or icon.
@@ -312,12 +319,8 @@ found in the LICENSE file.
           .attr('y2', d => y(d3.mean(d.result_values)));
 
       // Draw the mean text.
-      svg.append('text')
-          .attr('x', '50%')
-          .attr('y', d => y(d3.mean(d.result_values)))
-          .attr("text-anchor", 'middle')
-          .attr('dominant-baseline', 'text-after-edge')
-          .text(d => meanString(d));
+      svg.append('title')
+          .text(d => meanString(d, false));
     }
 
     function drawChangeIcon(div) {
@@ -349,9 +352,6 @@ found in the LICENSE file.
       if (!prevState) {
         return null;
       }
-      if (state.comparisons.prev != 'different') {
-        return null;
-      }
       if (!(prevState.result_values.length && state.result_values.length)) {
         return '+??';
       }
@@ -366,6 +366,10 @@ found in the LICENSE file.
         differenceString = '−' + differenceString;
       }
       return differenceString;
+    }
+
+    function isDetectedDifference(state) {
+       return state?.comparisons?.prev === 'different';
     }
 
     function changeURL(change) {
