@@ -65,17 +65,32 @@ GTEST_EXECUTABLE_NAME = {
 }
 
 _CROSSBENCH_NAME = {
-    'jetstream2.crossbench': 'jetstream_2.2',
+    # Jetstream
+    'jetstream2.crossbench': 'jetstream_2',
+    'jetstream2.0.crossbench': 'jetstream_2.0',
+    'jetstream2.1.crossbench': 'jetstream_2.1',
+    'jetstream2.2.crossbench': 'jetstream_2.2',
+    'jetstream-main.crossbench': 'jetstream_main',
+    # Motionmark
+    'motionmark1.0.crossbench': 'motionmark_1.0',
+    'motionmark1.1.crossbench': 'motionmark_1.1',
+    'motionmark1.2.crossbench': 'motionmark_1.2',
     'motionmark1.3.crossbench': 'motionmark_1.3',
+    'motionmark1.3.1.crossbench': 'motionmark_1.3.1',
+    # Speedmeter
+    'speedometer2.crossbench': 'speedometer_2',
     'speedometer2.0.crossbench': 'speedometer_2.0',
     'speedometer2.1.crossbench': 'speedometer_2.1',
-    'speedometer2.crossbench': 'speedometer_2',
+    'speedometer3.crossbench': 'speedometer_3',
     'speedometer3.0.crossbench': 'speedometer_3.0',
     'speedometer3.1.crossbench': 'speedometer_3.1',
-    'speedometer3.crossbench': 'speedometer_3',
+    'speedometer-main.crossbench': 'speedometer_main',
+    # Loadline
     'loadline_phone.crossbench': 'loadline-phone-fast',
     'loadline_tablet.crossbench': 'loadline-tablet-fast',
+    # Embedder
     'embedder.crossbench': 'embedder',
+    # Loading
     'loading.crossbench': 'loading',
 }
 
