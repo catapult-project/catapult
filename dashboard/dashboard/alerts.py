@@ -221,6 +221,7 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None, v2=False, skia=False):
     dct['is_improvement'] = anomaly_entity.is_improvement
     dct['start_revision'] = anomaly_entity.display_start or anomaly_entity.start_revision
     dct['end_revision'] = anomaly_entity.display_end or anomaly_entity.end_revision
+    dct['timestamp'] = anomaly_entity.timestamp.isoformat()
     # the subscription info needed for triaging.
     subscription_names = anomaly_entity.subscription_names
     if subscription_names:
