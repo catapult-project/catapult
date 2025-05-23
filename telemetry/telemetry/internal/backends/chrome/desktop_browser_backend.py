@@ -197,9 +197,11 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self.LogStartCommand(cmd, env)
 
     if not self.browser_options.show_stdout:
-      self._tmp_output_file = tempfile.NamedTemporaryFile('w')
-      self._proc = subprocess.Popen(
-          cmd, stdout=self._tmp_output_file, stderr=subprocess.STDOUT, env=env)
+      self._tmp_output_file = tempfile.NamedTemporaryFile('w', delete=False)
+      self._proc = subprocess.Popen(cmd,
+                                    stdout=self._tmp_output_file,
+                                    stderr=subprocess.STDOUT,
+                                    env=env)
     else:
       # There is weird behavior on Windows where stream redirection does not
       # work as expected if we let the subprocess use the defaults. This results
@@ -389,10 +391,16 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if self.IsBrowserRunning():
       logging.warning('Proceed to kill the browser.')
       self._proc.kill()
-    self._proc = None
+      try:
+        py_utils.WaitFor(lambda: not self.IsBrowserRunning(),
+                         timeout=int(os.getenv('CHROME_SHUTDOWN_TIMEOUT', '5')))
+        self._proc = None
+      except py_utils.TimeoutException:
+        logging.warning('Failed to kill the browser.')
 
     if self._tmp_output_file:
       self._tmp_output_file.close()
+      os.remove(self._tmp_output_file.name)
       self._tmp_output_file = None
 
     if self._tmp_minidump_dir:
