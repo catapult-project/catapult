@@ -41,8 +41,8 @@ REPOSITORY_HOST_MAPPING = [{
     ]
 }, {
     'label': 'WebRTC',
-    'public_host': 'https://webrtc-perf.luci.app',
-    'internal_host': None,
+    'public_host': None,
+    'internal_host': 'https://webrtc-perf.luci.app',
     'masters': ['WebRTCPerf']
 }, {
     'label': 'Widevine CDM',
@@ -68,7 +68,9 @@ REPOSITORY_HOST_MAPPING = [{
     'label': 'Fuchsia Internal',
     'public_host': None,
     'internal_host': 'https://fuchsia-perf.corp.goog',
-    'masters': ['fuchsia.global.ci', 'turquoise-internal.integration.global.ci']
+    'masters': [
+        'fuchsia.global.ci', 'turquoise-internal.integration.global.ci'
+    ]
 }, {
     'label': 'Fuchsia Public',
     'public_host': 'https://fuchsia-perf.luci.app',

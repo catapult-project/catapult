@@ -17,13 +17,15 @@ _SKIABRIDGE_URL_STAGE = \
 PAYLOAD_SIZE_LIMIT_KB = 1000
 
 INTERNAL_CLIENTS = [
-  'perf-chrome-internal@skia-infra-corp.iam.gserviceaccount.com',
-  'perf-widevine-cdm@skia-infra-corp.iam.gserviceaccount.com',
-  'perf-widevine-whitebox@skia-infra-corp.iam.gserviceaccount.com',
-  'perf-v8-internal@skia-infra-corp.iam.gserviceaccount.com',
-  'perf-devtools-frontend@skia-infra-corp.iam.gserviceaccount.com',
-  'perf-fuchsia-internal@skia-infra-corp.iam.gserviceaccount.com',
-  ]
+    'perf-chrome-internal@skia-infra-corp.iam.gserviceaccount.com',
+    'perf-widevine-cdm@skia-infra-corp.iam.gserviceaccount.com',
+    'perf-widevine-whitebox@skia-infra-corp.iam.gserviceaccount.com',
+    'perf-v8-internal@skia-infra-corp.iam.gserviceaccount.com',
+    'perf-devtools-frontend@skia-infra-corp.iam.gserviceaccount.com',
+    'perf-fuchsia-internal@skia-infra-corp.iam.gserviceaccount.com',
+    # All webrtc anomalies in legacy are marked as internal_only.
+    'perf-webrtc-public@skia-infra-public.iam.gserviceaccount.com',
+]
 
 FUCHSIA_CLIENTS = [
   'perf-fuchsia-internal@skia-infra-corp.iam.gserviceaccount.com',
