@@ -392,6 +392,7 @@ class AlertGroupWorkflow:
 
     regressions, _ = self._GetRegressions(update.anomalies)
     group = self._group
+    logging.debug('[SWDEBUG] Group status before action: %s.', group.status)
     if group.updated + self._config.active_window <= update.now:
       self._Archive()
     elif group.created + self._config.triage_delay <= update.now and (
@@ -868,6 +869,8 @@ class AlertGroupWorkflow:
     Returns:
       allowed_regressions: A list of sandwich verifiable regressions.
     """
+    logging.debug('[SWDEBUG] Checking %d regressions for sandwich.',
+                  len(regressions))
     allowed_regressions = []
     if not feature_flags.SANDWICH_VERIFICATION:
       return allowed_regressions
@@ -876,12 +879,20 @@ class AlertGroupWorkflow:
       if not isinstance(regression, anomaly.Anomaly):
         raise TypeError('%s is not anomaly.Anomaly' % type(regression))
 
+      logging.debug(
+          '[SWDEBUG] Checking regression %s: '
+          'auto_triage: %s, auto_bisect: %s, subscription: %s.',
+          regression.key.id(), regression.auto_triage_enable,
+          regression.auto_bisect_enable, self._group.subscription_name)
       if (regression.auto_triage_enable and regression.auto_bisect_enable
           and sandwich_allowlist.CheckAllowlist(self._group.subscription_name,
                                                 regression.benchmark_name,
                                                 regression.bot_name)):
+        logging.debug('[SWDEBUG] Regression allowed: %s', regression.key.id())
         allowed_regressions.append(regression)
 
+    logging.debug('[SWDEBUG] %d Regressions allowed for sandwich.',
+                  len(allowed_regressions))
     return allowed_regressions
 
   def _TryVerifyRegression(self, update):
