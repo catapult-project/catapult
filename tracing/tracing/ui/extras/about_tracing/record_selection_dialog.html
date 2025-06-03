@@ -496,33 +496,25 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
     includedAndExcludedCategories() {
       let includedCategories = [];
-      let excludedCategories = [];
       if (this.usingPreset_()) {
         const allCategories = this.allCategories_();
         for (const category in allCategories) {
-          const disabledByDefault =
-              category.indexOf('disabled-by-default-') === 0;
           if (this.currentlyChosenPreset_.indexOf(category) >= 0) {
-            if (disabledByDefault) {
               includedCategories.push(category);
-            }
-          } else {
-            if (!disabledByDefault) {
-              excludedCategories.push(category);
-            }
           }
         }
         return {
           included: includedCategories,
-          excluded: excludedCategories
+          excluded: []
         };
       }
 
       excludedCategories = this.unselectedCategories_();
-      includedCategories = this.enabledDisabledByDefaultCategories_();
+      includedCategories = this.enabledDisabledByDefaultCategories_().concat(
+        this.enabledCategories_());
       return {
         included: includedCategories,
-        excluded: excludedCategories
+        excluded: []
       };
     },
 
@@ -558,6 +550,13 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     enabledDisabledByDefaultCategories_() {
       const inputs =
           Polymer.dom(this.disabledCategoriesContainerEl_).querySelectorAll(
+              'input');
+      return this.collectInputs_(inputs, true);
+    },
+
+    enabledCategories_() {
+      const inputs =
+          Polymer.dom(this.enabledCategoriesContainerEl_).querySelectorAll(
               'input');
       return this.collectInputs_(inputs, true);
     },
