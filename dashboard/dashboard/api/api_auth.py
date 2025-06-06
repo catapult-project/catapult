@@ -44,6 +44,8 @@ OAUTH_CLIENT_ID_ALLOWLIST = [
     # This oauth client id is used by luci-auth and various LUCI
     # libraries that copy it.
     '608762726021-luma271nfkof2jrmn0pucj3tv3bvkjf0.apps.googleusercontent.com',
+    # jeffyoon@
+    '764086051850-6qr4p6gpi6hn506pt8ejuq83di341hur.apps.googleusercontent.com',
 ]
 if utils.IsStagingEnvironment():
   OAUTH_CLIENT_ID_ALLOWLIST = [
