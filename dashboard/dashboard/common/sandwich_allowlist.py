@@ -9,14 +9,7 @@ BLOCKED_SUBSCRIPTIONS = []
 
 BLOCKED_BENCHMARKS = []
 
-BLOCKED_DEVICES = [
-    'lacros-eve-perf',
-    'mac-m1_mini_2020-perf-pgo',
-    'mac-14-m1-pro-perf',
-    'win-10_amd-perf',
-    'Win 7 Perf',
-    'Win 7 Nvidia GPU Perf',
-]
+BLOCKED_DEVICES = []
 
 
 def CheckAllowlist(subscription, benchmark, cfg):
