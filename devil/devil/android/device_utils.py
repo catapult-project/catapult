@@ -2691,12 +2691,8 @@ class DeviceUtils(object):
       # We need to set the SELinux policy to "permissive", because a SELinux
       # policy of "enforcing" will prevent us from working with named pipes.
       with self.SetEnforceContext(False):
-        # TODO(martinkong): Currently this is just a regular file and we are
-        # doing the push step and extraction step one at a time. We will use a
-        # named pipe and run the push step and extraction step concurrently
-        # once we verified that everything is working correctly.
         with device_temp_file.DeviceTempFile(self.adb) as named_pipe:
-          #devil_util.CreateNamedPipe(named_pipe.name, self)
+          devil_util.CreateNamedPipe(named_pipe.name, self)
 
           def push_compressed_archive():
             self.adb.Push(compressed_archive.name, named_pipe.name)
@@ -2704,11 +2700,8 @@ class DeviceUtils(object):
           def extract_compressed_archive():
             devil_util.ExtractZstCompressedArchive(named_pipe.name, self)
 
-          #reraiser_thread.RunAsync(
-          #    (push_compressed_archive, extract_compressed_archive))
-
-          push_compressed_archive()
-          extract_compressed_archive()
+          reraiser_thread.RunAsync(
+              (push_compressed_archive, extract_compressed_archive))
 
     return True
 

@@ -2983,8 +2983,8 @@ class DeviceUtilsPushChangedFilesCompressedArchiveTest(DeviceUtilsTest):
         (self.call.device.GetEnforce(timeout=None, retries=None), False),
         (mock.call.devil.android.device_temp_file.DeviceTempFile(
             self.adb), MockTempFile('/sdcard/foo')),
-        #(mock.call.devil.android.devil_util.CreateNamedPipe(
-        #    '/sdcard/foo', self.device)),
+        (mock.call.devil.android.devil_util.CreateNamedPipe(
+            '/sdcard/foo', self.device)),
         (self.call.adb.Push('/tmp/foo.zst', '/sdcard/foo')),
         (mock.call.devil.android.devil_util.ExtractZstCompressedArchive(
             '/sdcard/foo', self.device))):
