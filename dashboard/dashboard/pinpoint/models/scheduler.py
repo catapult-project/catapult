@@ -22,9 +22,11 @@ import datetime
 import functools
 import random
 import logging
+import time
 
 from google.appengine.api import app_identity
 from google.appengine.ext import ndb
+from google.appengine.runtime import apiproxy_errors
 
 from dashboard.common import bot_configurations
 from dashboard.common import cloud_metric
@@ -78,7 +80,26 @@ class ConfigurationQueue(ndb.Model):
 
   @classmethod
   def GetOrCreateQueue(cls, configuration):
-    parent = Queues.get_by_id('root')
+    parent = None
+    max_retries = 5
+    delay = 1
+
+    for i in range(max_retries):
+      try:
+        parent = Queues.get_by_id('root')
+        break
+      except apiproxy_errors.ApplicationError as e:
+        if i < max_retries - 1:
+          logging.warning(
+              'Queues.get_by_id(\'root\') failed due to error: %s. Retrying...',
+              e)
+          time.sleep(delay)
+        else:
+          logging.error(
+              'Queues.get_by_id(\'root\') failed after %d retries. Giving up. Error: %s',
+              max_retries, e)
+          raise
+
     if not parent:
       parent = Queues(id='root')
       parent.put()
