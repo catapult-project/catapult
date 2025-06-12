@@ -36,8 +36,6 @@ tr.exportTo('tr.metrics', function() {
     const allMetricsStart = new Date();
     const durationBreakdown = new tr.v.d.Breakdown();
 
-    const categories = getTraceCategories(model);
-
     const histograms = new tr.v.HistogramSet();
 
     histograms.createHistogram('trace_import_duration',
@@ -56,7 +54,6 @@ tr.exportTo('tr.metrics', function() {
       if (metric === undefined) {
         throw new Error(`"${metricName}" is not a registered metric.`);
       }
-      validateTraceCategories(metric.metadata.requiredCategories, categories);
       try {
         metric.constructor(histograms, model, options);
       } catch (e) {
@@ -96,47 +93,6 @@ tr.exportTo('tr.metrics', function() {
         });
 
     return histograms;
-  }
-
-  function getTraceCategories(model) {
-    for (const metadata of model.metadata) {
-      let config;
-      if (metadata.name === 'TraceConfig' && metadata.value) {
-        config = metadata.value;
-      }
-      if (metadata.name === 'metadata' && metadata.value &&
-          metadata.value['trace-config'] &&
-          metadata.value['trace-config'] !== '__stripped__') {
-        config = JSON.parse(metadata.value['trace-config']);
-      }
-      if (config) {
-        return {
-          excluded: config.excluded_categories || [],
-          included: config.included_categories || [],
-        };
-      }
-    }
-  }
-
-  function validateTraceCategories(requiredCategories, categories) {
-    if (!requiredCategories) return;
-
-    if (!categories) throw new Error('Missing trace config metadata');
-
-    for (const cat of requiredCategories) {
-      const isDisabledByDefault = (cat.indexOf('disabled-by-default') === 0);
-      let missing = false;
-      if (isDisabledByDefault) {
-        if (!categories.included.includes(cat)) {
-          missing = true;
-        }
-      } else if (categories.excluded.includes(cat)) {
-        missing = true;
-      }
-      if (missing) {
-        throw new Error(`Trace is missing required category "${cat}"`);
-      }
-    }
   }
 
   /**
