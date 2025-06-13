@@ -145,6 +145,8 @@ def _CreateJob(req):
   name = arguments.get('name')
   pin = _ValidatePin(arguments.get('pin'))
   tags = _ValidateTags(arguments.get('tags'))
+  # the user triggering the job can be different from the underlying service
+  # account making the call to Pinpoint
   user = _ValidateUser(arguments.get('user'))
   changes = _ValidateChanges(comparison_mode, arguments)
 

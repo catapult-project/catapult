@@ -46,6 +46,10 @@ OAUTH_CLIENT_ID_ALLOWLIST = [
     '608762726021-luma271nfkof2jrmn0pucj3tv3bvkjf0.apps.googleusercontent.com',
     # jeffyoon@
     '764086051850-6qr4p6gpi6hn506pt8ejuq83di341hur.apps.googleusercontent.com',
+    # mcp-server-perf@skia-infra-public.iam.gserviceaccount.com
+    '104948706913098690704',
+    # mcp-server-perf@skia-infra-corp.iam.gserviceaccount.com
+    '110941947140990718675',
 ]
 if utils.IsStagingEnvironment():
   OAUTH_CLIENT_ID_ALLOWLIST = [
