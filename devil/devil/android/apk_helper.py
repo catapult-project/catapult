@@ -430,20 +430,16 @@ class BaseApkHelper(object):
       path_tokens = path.split('/')
       if len(path_tokens) >= 2 and path_tokens[0] == 'lib':
         libs.add(path_tokens[1])
-    lib_to_abi = {
-        abis.ARM: [abis.ARM, abis.ARM_64],
-        abis.ARM_64: [abis.ARM_64],
-        abis.X86: [abis.X86, abis.X86_64],
-        abis.X86_64: [abis.X86_64]
-    }
-    try:
-      output = set()
-      for lib in libs:
-        for abi in lib_to_abi[lib]:
-          output.add(abi)
-      return sorted(output)
-    except KeyError:
-      raise ApkHelperError('Unexpected ABI in lib/* folder.')
+
+    # Define the set of allowed ABIs
+    allowed_abis = {abis.ARM, abis.ARM_64, abis.X86, abis.X86_64}
+
+    # Confirm that all found libs are within the allowed ABIs
+    for lib in libs:
+      if lib not in allowed_abis:
+        raise ApkHelperError(f'Unexpected ABI "{lib}" in lib/* folder.')
+
+    return sorted(libs)
 
   def GetApkPaths(self,
                   device,

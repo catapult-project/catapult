@@ -368,11 +368,8 @@ class ApkHelperTest(mock_calls.TestCase):
     ]:
       with _MockListApkPaths([abi_pair.abi32bit]):
         helper = apk_helper.ApkHelper('')
-        self.assertEqual(
-            set([
-                os.path.basename(abi_pair.abi32bit),
-                os.path.basename(abi_pair.abi64bit)
-            ]), set(helper.GetAbis()))
+        self.assertEqual(set([os.path.basename(abi_pair.abi32bit)]),
+                         set(helper.GetAbis()))
       with _MockListApkPaths([abi_pair.abi32bit, abi_pair.abi64bit]):
         helper = apk_helper.ApkHelper('')
         self.assertEqual(
