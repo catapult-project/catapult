@@ -24,13 +24,17 @@ func TestReplaceTimeStamp(t *testing.T) {
 	replacements := map[string]string{
 		"{{WPR_TIME_SEED_TIMESTAMP}}": strconv.FormatInt(time_stamp_ms, 10)}
 	script := []byte("var time_seed = {{WPR_TIME_SEED_TIMESTAMP}};")
-	transformer := NewScriptInjector(script, replacements)
+	transformer, err := NewScriptInjector(script, replacements)
+	if err != nil {
+		t.Fatal(err)
+	}
 	req := http.Request{}
 	responseHeader := http.Header{
 		"Content-Type": []string{"text/html"}}
 	resp := http.Response{
 		StatusCode: 200,
 		Header:     responseHeader,
+		Request:    &req,
 		Body:       ioutil.NopCloser(bytes.NewReader([]byte("<html></html>")))}
 	transformer.Transform(&req, &resp)
 	body, err := ioutil.ReadAll(resp.Body)
@@ -39,8 +43,8 @@ func TestReplaceTimeStamp(t *testing.T) {
 		t.Fatal(err)
 	}
 	expectedContent := []byte(
-		fmt.Sprintf("<html><script>var time_seed = %d;</script></html>",
-			time_stamp_ms))
+		fmt.Sprintf("<html><script>var time_seed=%de6</script></html>",
+			time_stamp_ms / 1e6))
 	if !bytes.Equal(expectedContent, body) {
 		t.Fatal(
 			fmt.Errorf("expected : %s \n actual: %s \n", expectedContent, body))
@@ -50,13 +54,17 @@ func TestReplaceTimeStamp(t *testing.T) {
 // Regression test for https://github.com/catapult-project/catapult/issues/3726
 func TestInjectScript(t *testing.T) {
 	script := []byte("var foo = 1;")
-	transformer := NewScriptInjector(script, nil)
+	transformer, err := NewScriptInjector(script, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	req := http.Request{}
 	responseHeader := http.Header{
 		"Content-Type": []string{"text/html"}}
 	resp := http.Response{
 		StatusCode: 200,
 		Header:     responseHeader,
+		Request:    &req,
 		Body: ioutil.NopCloser(bytes.NewReader([]byte("<html><head><script>" +
 			"document.write('<head></head>');</script></head></html>")))}
 	transformer.Transform(&req, &resp)
@@ -65,8 +73,8 @@ func TestInjectScript(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedContent := []byte(fmt.Sprintf("<html><head><script>var foo = " +
-		"1;</script><script>document.write('<head></head>');</script>" +
+	expectedContent := []byte(fmt.Sprintf("<html><head><script>var foo=" +
+		"1</script><script>document.write('<head></head>');</script>" +
 		"</head></html>"))
 	if !bytes.Equal(expectedContent, body) {
 		t.Fatal(
@@ -76,13 +84,17 @@ func TestInjectScript(t *testing.T) {
 
 func TestNoTagFound(t *testing.T) {
 	script := []byte("var foo = 1;")
-	transformer := NewScriptInjector(script, nil)
+	transformer, err := NewScriptInjector(script, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	req := http.Request{}
 	responseHeader := http.Header{
 		"Content-Type": []string{"text/html"}}
 	resp := http.Response{
 		StatusCode: 200,
 		Header:     responseHeader,
+		Request:    &req,
 		Body: ioutil.NopCloser(bytes.NewReader(
 			[]byte("no tag random content")))}
 	resp.Request = &req
@@ -101,7 +113,10 @@ func TestNoTagFound(t *testing.T) {
 
 func TestInjectScriptToGzipResponse(t *testing.T) {
 	script := []byte("var foo = 1;")
-	transformer := NewScriptInjector(script, nil)
+	transformer, minifyErr := NewScriptInjector(script, nil)
+	if minifyErr != nil {
+		t.Fatal(minifyErr)
+	}
 	req := http.Request{}
 	responseHeader := http.Header{
 		"Content-Type":     []string{"text/html"},
@@ -117,6 +132,7 @@ func TestInjectScriptToGzipResponse(t *testing.T) {
 	resp := http.Response{
 		StatusCode: 200,
 		Header:     responseHeader,
+		Request:    &req,
 		Body:       ioutil.NopCloser(bytes.NewReader(gzippedBody.Bytes()))}
 	transformer.Transform(&req, &resp)
 	var reader io.ReadCloser
@@ -129,7 +145,7 @@ func TestInjectScriptToGzipResponse(t *testing.T) {
 		t.Fatal(err)
 	}
 	reader.Close()
-	expectedContent := []byte("<html><script>var foo = 1;</script></html>")
+	expectedContent := []byte("<html><script>var foo=1</script></html>")
 	if !bytes.Equal(expectedContent, body) {
 		t.Fatal(
 			fmt.Errorf("expected : %s \n actual: %s \n", expectedContent, body))
@@ -145,32 +161,35 @@ func TestInjectScriptToResponse(t *testing.T) {
 		{
 			desc:	"With CSP Nonce script-src",
 			input: "script-src 'strict-dynamic' 'nonce-2726c7f26c'",
-			want:	"<html><head><script nonce=\"2726c7f26c\">var foo = 1;</script>" +
+			want:	"<html><head><script nonce=\"2726c7f26c\">var foo=1</script>" +
 							"<script>document.write('<head></head>');</script></head></html>",
 		},
 		{
 			desc:	"With CSP Nonce default-src",
 			input: "default-src 'strict-dynamic' 'nonce-2726c7f26c'",
-			want:	"<html><head><script nonce=\"2726c7f26c\">var foo = 1;</script>" +
+			want:	"<html><head><script nonce=\"2726c7f26c\">var foo=1</script>" +
 							"<script>document.write('<head></head>');</script></head></html>",
 		},
 		{
 			desc:	"With CSP Nonce and both Default and Script",
 			input: "default-src 'self' https://foo.com;script-src 'strict-dynamic' 'nonce-2726cf26c'",
-			want:	"<html><head><script nonce=\"2726cf26c\">var foo = 1;</script>" +
+			want:	"<html><head><script nonce=\"2726cf26c\">var foo=1</script>" +
 							"<script>document.write('<head></head>');</script></head></html>",
 		},
 		{
 			desc:	"With CSP Nonce and both Default and Script override",
 			input: "default-src 'self' 'nonce-99999cf26c';script-src 'strict-dynamic' 'nonce-2726cf26c'",
-			want:	"<html><head><script nonce=\"2726cf26c\">var foo = 1;</script>" +
+			want:	"<html><head><script nonce=\"2726cf26c\">var foo=1</script>" +
 							"<script>document.write('<head></head>');</script></head></html>",
 		},
 	}
 
 	for _, tc := range tests {
 		script := []byte("var foo = 1;")
-		transformer := NewScriptInjector(script, nil)
+		transformer, err := NewScriptInjector(script, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
 		req := http.Request{}
 		responseHeader := http.Header{
 			"Content-Type": []string{"text/html"},
@@ -178,7 +197,8 @@ func TestInjectScriptToResponse(t *testing.T) {
 				tc.input}}
 		resp := http.Response{
 			StatusCode: 200,
-			Header:		 responseHeader,
+			Header:     responseHeader,
+			Request:    &req,
 			Body: ioutil.NopCloser(bytes.NewReader([]byte("<html><head><script>" +
 				"document.write('<head></head>');</script></head></html>")))}
 		transformer.Transform(&req, &resp)
@@ -196,7 +216,10 @@ func TestInjectScriptToResponse(t *testing.T) {
 
 func TestInjectScriptToResponseWithCspHash(t *testing.T) {
 	script := []byte("var foo = 1;")
-	transformer := NewScriptInjector(script, nil)
+	transformer, err := NewScriptInjector(script, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	req := http.Request{}
 	responseHeader := http.Header{
 		"Content-Type": []string{"text/html"},
@@ -206,13 +229,14 @@ func TestInjectScriptToResponseWithCspHash(t *testing.T) {
 	resp := http.Response{
 		StatusCode: 200,
 		Header:     responseHeader,
+		Request:    &req,
 		Body: ioutil.NopCloser(bytes.NewReader([]byte("<html><head><script>" +
 			"document.write('<head></head>');</script></head></html>")))}
 	transformer.Transform(&req, &resp)
 	assertEquals(t,
 		resp.Header.Get("Content-Security-Policy"),
 		"script-src 'strict-dynamic' " +
-			"'sha256-HbDPY0FOc-FyUADaVWybbiLpgaRgtVUzWzQFo0YhKWc=' " +
+			"'sha256--NKAhNB_ewpUL916YVnpQuR_yWRHBmV6sThatA-5nK8=' " +
 			"'sha256-pwltXkdHyMvChFSLNauyy5WItOFOm+iDDsgqRTr8peI=' ")
 }
 
