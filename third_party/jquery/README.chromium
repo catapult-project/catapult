@@ -1,6 +1,7 @@
 Name: jQuery
 URL: https://jquery.com/
 Version: 2.1.4
+Update Mechanism: Manual
 License: MIT
 License File: LICENSE.txt
 Security Critical: No

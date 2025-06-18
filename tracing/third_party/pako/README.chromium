@@ -3,6 +3,7 @@ Short Name: pako
 URL: https://github.com/nodeca/pako
 Version: 1.0.6
 Revision: 893381abcafa10fa2081ce60dae7d4d8e873a658
+Update Mechanism: Manual
 Date: 2017-09-14
 License: MIT
 License File: LICENSE

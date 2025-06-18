@@ -3,6 +3,7 @@ Short Name: pipeline
 URL: https://github.com/GoogleCloudPlatform/appengine-pipelines
 Version: 1.9.21.1
 Revision: 5b4cff29e45d69bd22f24ae9231332337d10e5e9
+Update Mechanism: Manual
 License: Apache-2.0
 License File: LICENSE
 Security Critical: no

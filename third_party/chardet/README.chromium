@@ -2,6 +2,7 @@ Name: chardet
 URL: https://github.com/chardet/chardet
 Version: 3.0.4
 Revision: 9b8c5c2fb118d76c6beeab9affd01c332732a530
+Update Mechanism: Manual
 License: LGPL-2.1
 License File: LICENSE
 Shipped: no

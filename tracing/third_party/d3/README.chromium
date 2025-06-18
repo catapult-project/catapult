@@ -3,6 +3,7 @@ Short Name: d3
 URL: https://github.com/mbostock/d3
 Version: 3.4.3
 Revision: 0b2fe8fe9eaa529f70f6ab93bc8580b2a5328f43
+Update Mechanism: Manual
 Date: 2014-03-01
 License: BSD-3-Clause
 License File: LICENSE

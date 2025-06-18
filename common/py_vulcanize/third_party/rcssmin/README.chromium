@@ -3,6 +3,7 @@ Short Name: rcssmin
 URL: https://github.com/ndparker/rcssmin
 Version: 1.0.5
 Revision: bf66b37a81736df47a91ec45c68208159973ddf7
+Update Mechanism: Manual
 License: Apache-2.0
 License File: LICENSE
 Security Critical: no

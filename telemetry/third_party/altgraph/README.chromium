@@ -2,6 +2,7 @@ Name: altgraph
 Short Name: altgraph
 URL: https://pypi.python.org/pypi/altgraph/
 Version: 0.12
+Update Mechanism: Manual
 License: MIT
 Security Critical: no
 Shipped: no

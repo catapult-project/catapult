@@ -2,6 +2,7 @@ Name: pyasn1_modules
 URL: https://github.com/etingof/pyasn1-modules
 Version: 0.2.5
 Revision: 8764363979055eda0c736c49bad56abe6dc2687a
+Update Mechanism: Manual
 License: BSD-2-Clause
 License File: LICENSE.txt
 Security Critical: no

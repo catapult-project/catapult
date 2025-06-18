@@ -2,6 +2,7 @@ Name: Google App Engine MapReduce
 Short Name: mapreduce
 URL: https://github.com/GoogleCloudPlatform/appengine-mapreduce
 Revision: 9f0d9a15cc3fc559a6296bbb3bf1676be942c7de
+Update Mechanism: Manual
 Version: 1.9.22.0
 License: Apache-2.0
 License File: LICENSE

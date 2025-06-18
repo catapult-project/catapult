@@ -2,6 +2,7 @@ Name: Mocha, simple, flexible, fun javascript test framework for node.js & the b
 Short Name: Mocha
 URL: https://github.com/mochajs/mocha
 Version: 2c2ed43ae7f047f333468e2043001bfb8c9d13d5
+Update Mechanism: Manual
 License: MIT
 License File: LICENSE
 Security Critical: no

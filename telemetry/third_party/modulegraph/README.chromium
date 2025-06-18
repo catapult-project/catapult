@@ -2,6 +2,7 @@ Name: modulegraph
 Short Name: modulegraph
 URL: https://pypi.python.org/pypi/modulegraph/
 Version: 0.19.2
+Update Mechanism: Manual
 License: MIT-0
 License File: LICENSE
 Security Critical: no

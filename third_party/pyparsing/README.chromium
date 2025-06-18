@@ -1,6 +1,7 @@
 Name: pyparsing
 URL: https://pypi.org/project/pyparsing
 Version: 2.4.7
+Update Mechanism: Manual
 CPEPrefix: unknown
 License: MIT
 License File: LICENSE

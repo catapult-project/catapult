@@ -3,6 +3,7 @@ Short Name: jpeg-js
 URL: https://github.com/jpeg-js/jpeg-js
 Version: 0.4.4
 Revision: 9ccd35fb5f55a6c4f1902ac5b0f270f675750c27
+Update Mechanism: Manual
 Date: 2022-06-03
 License: Apache-2.0
 License File: LICENSE

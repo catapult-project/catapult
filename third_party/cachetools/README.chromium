@@ -2,6 +2,7 @@ Name: cachetools
 URL: https://github.com/tkem/cachetools
 Version: 3.1.1
 Revision: e943390bb30ca57038d086dd7d4396b9d6452e29
+Update Mechanism: Manual
 License: MIT
 License File: LICENSE
 Security Critical: no

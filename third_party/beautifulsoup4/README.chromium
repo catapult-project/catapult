@@ -2,6 +2,7 @@ Name: BeautifulSoup
 Short Name: bs4
 URL: http://www.crummy.com/software/BeautifulSoup/
 Version: 4.3.2
+Update Mechanism: Manual
 License: MIT
 License File: COPYING.txt
 Security Critical: No

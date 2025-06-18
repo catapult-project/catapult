@@ -3,6 +3,7 @@ Short Name: gsutil
 URL: https://github.com/GoogleCloudPlatform/gsutil
 Version: 5.29
 Revision: 63ae7eeb2cac04cfc5f989b1a6f86172e561c2c7
+Update Mechanism: Manual
 Date: 2024-05-08
 License: Apache-2.0
 License File: LICENSE

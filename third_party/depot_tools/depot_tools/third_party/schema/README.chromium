@@ -1,6 +1,7 @@
 Name: schema
 URL: https://github.com/keleshev/schema
 Version: 0.6.6
+Update Mechanism: Manual
 License: MIT
 License File: LICENSE-MIT
 Shipped: no

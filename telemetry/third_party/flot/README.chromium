@@ -3,6 +3,7 @@ Short Name: Flot
 URL: http://www.flotcharts.org
 Version: 0.8.1
 Revision: 7f5f90384ed6d6c30b232580d358c84e355919ab
+Update Mechanism: Manual
 License: MIT
 Security Critical: yes
 Shipped: no

@@ -3,6 +3,7 @@ Short Name: d8
 URL: https://github.com/v8/v8
 Version: 13.6.233.10 (linux)
 Revision: 5297e56d91816747d539abca52b578e5832135f0
+Update Mechanism: Manual
 License: BSD
 License File: LICENSE, LICENSE.v8, LICENSE.strongtalk, LICENSE.valgrind
 Security Critical: no
@@ -19,6 +20,7 @@ Short Name: d8
 URL: https://github.com/v8/v8
 Version: 7.0.276.40 (mac)
 Revision: 0ab74ca5dc325e46ad0763000e00c79fb2b4dad1
+Update Mechanism: Manual
 License: BSD
 License File: LICENSE, LICENSE.v8, LICENSE.strongtalk, LICENSE.valgrind
 Security Critical: no
@@ -35,6 +37,7 @@ Short Name: d8
 URL: https://github.com/v8/v8
 Version: 13.6.233.10 (win)
 Revision: 5297e56d91816747d539abca52b578e5832135f0
+Update Mechanism: Manual
 License: BSD
 License File: LICENSE, LICENSE.v8, LICENSE.strongtalk, LICENSE.valgrind
 Security Critical: no
