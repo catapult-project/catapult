@@ -203,14 +203,16 @@ def _SetUpSystemAppModification(device, timeout=None, retries=None):
   try:
     # Disable Marshmallow's Verity security feature
     if device.build_version_sdk >= version_codes.MARSHMALLOW:
-      # Additional step for emulator with Android >= Q (API 29). For more
-      # details, see https://issuetracker.google.com/issues/144891973#comment31
-      if device.build_version_sdk >= version_codes.Q and device.is_emulator:
+      # Emulator with Android 10 & 11 (API 29 & 30) uses avbctl instead.
+      # For more details, see https://crbug.com/144891973#comment31
+      if (version_codes.Q <= device.build_version_sdk <= version_codes.R
+          and device.is_emulator):
         logger.info('Disabling Verication on %s', device.serial)
         device.RunShellCommand(['avbctl', 'disable-verification'],
                                check_return=True)
-      logger.info('Disabling Verity on %s', device.serial)
-      device.adb.DisableVerity()
+      else:
+        logger.info('Disabling Verity on %s', device.serial)
+        device.adb.DisableVerity()
       device.Reboot()
       device.WaitUntilFullyBooted()
       device.EnableRoot()
