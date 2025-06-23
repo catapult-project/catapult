@@ -3,6 +3,7 @@ module github.com/catapult-project/catapult/web_page_replay_go
 go 1.23.0
 
 require (
+	github.com/andybalholm/brotli v1.1.1
 	github.com/kylelemons/godebug v1.1.0
 	github.com/tdewolff/minify/v2 v2.23.8
 	github.com/urfave/cli/v2 v2.25.7

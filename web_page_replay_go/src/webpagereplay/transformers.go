@@ -22,6 +22,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/andybalholm/brotli"
 	"github.com/tdewolff/minify/v2"
 	"github.com/tdewolff/minify/v2/js"
 )
@@ -136,7 +137,8 @@ func decompressBody(ce string, compressed []byte) ([]byte, error) {
 		}
 	case "deflate":
 		r = flate.NewReader(bytes.NewReader(compressed))
-	// TODO(catapult:3742): Implement Brotli support.
+	case "br":
+		return ioutil.ReadAll(brotli.NewReader(bytes.NewReader(compressed)))
 	default:
 		// Unknown compression type or uncompressed.
 		return compressed, errors.New("unknown compression: " + ce)
@@ -160,6 +162,9 @@ func CompressBody(ae string, uncompressed []byte) ([]byte, string, error) {
 	case strings.Contains(ae, "deflate"):
 		w, _ = flate.NewWriter(&buf, flate.DefaultCompression) // never fails
 		outCE = "deflate"
+	case strings.Contains(ae, "br"):
+		w = brotli.NewWriter(&buf)
+		outCE = "br"
 	default:
 		// Unknown compression type or compression not allowed.
 		return uncompressed, "identity", errors.New("unknown compression: " + ae)
