@@ -50,7 +50,6 @@ class TimelineModelIntegrationTests(tab_test_case.TabTestCase):
     markers = model.FindTimelineMarkers('trace-event')
     self.assertEqual(len(markers), 1)
 
-  @decorators.Disabled('chromeos')  # crbug.com/426010565
   def testGetFirstRendererThread_singleTab(self):
     self.assertEqual(len(self.tabs), 1)  # We have a single tab/page.
     self.tracing_controller.StartTracing(self.config)

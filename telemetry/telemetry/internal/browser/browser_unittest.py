@@ -66,7 +66,6 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     self._browser.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
   @decorators.Enabled('has tabs')
-  @decorators.Disabled('chromeos')  # crbug.com/426010565
   def testCloseReferencedTab(self):
     num_initial_tabs = len(self._browser.tabs)
     self._browser.tabs.New()
@@ -77,7 +76,6 @@ class BrowserTest(browser_test_case.BrowserTestCase):
 
   @decorators.Enabled('has tabs')
   @decorators.Disabled('win')  # crbug.com/410761163
-  @decorators.Disabled('chromeos')  # crbug.com/426010565
   def testForegroundTab(self):
     num_tabs = len(self._browser.tabs)
     self.assertLess(0, num_tabs)
