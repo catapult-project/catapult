@@ -172,6 +172,69 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
     self.assertFalse(android_browser_finder._CanPossiblyHandlePath(''))
     self.assertFalse(android_browser_finder._CanPossiblyHandlePath('fooaab'))
 
+  def testAndroidDesktopSwitchedToMainUser(self):
+    """Tests that the main user is used on Android Desktop."""
+    self.fs.CreateFile('foo_bundle')
+    possible_browser = android_browser_finder.PossibleAndroidBrowser(
+        'android-chromium-bundle', self.finder_options, self.fake_platform,
+        android_browser_backend_settings.ANDROID_CHROMIUM_BUNDLE, 'foo_bundle')
+    with mock.patch.object(self.fake_platform._platform_backend,
+                           'IsPcHardwareType',
+                           return_value=True):
+      with mock.patch.object(self.fake_platform._platform_backend.device,
+                             'GetMainUser',
+                             return_value='0') as m:
+        with mock.patch.object(self.fake_platform._platform_backend.device,
+                               'GetCurrentUser',
+                               return_value='1'):
+          with mock.patch.object(self.fake_platform._platform_backend.device,
+                                 "SwitchUser") as s:
+            possible_browser.UpdateExecutableIfNeeded()
+            m.assert_called_once()
+            s.assert_called_with('0')
+
+  def testAndroidDesktopNotSwitchedToMainUser(self):
+    """Tests that the main user is not on Android Desktop if already in use."""
+    self.fs.CreateFile('foo_bundle')
+    possible_browser = android_browser_finder.PossibleAndroidBrowser(
+        'android-chromium-bundle', self.finder_options, self.fake_platform,
+        android_browser_backend_settings.ANDROID_CHROMIUM_BUNDLE, 'foo_bundle')
+    with mock.patch.object(self.fake_platform._platform_backend,
+                           'IsPcHardwareType',
+                           return_value=True):
+      with mock.patch.object(self.fake_platform._platform_backend.device,
+                             'GetMainUser',
+                             return_value='0') as m:
+        with mock.patch.object(self.fake_platform._platform_backend.device,
+                               'GetCurrentUser',
+                               return_value='0'):
+          with mock.patch.object(self.fake_platform._platform_backend.device,
+                                 "SwitchUser") as s:
+            possible_browser.UpdateExecutableIfNeeded()
+            m.assert_called_once()
+            s.assert_not_called()
+
+  def testNonDesktopNotSwitchedToMainUser(self):
+    """Tests that the main user is not used if not on Android Desktop."""
+    self.fs.CreateFile('foo_bundle')
+    possible_browser = android_browser_finder.PossibleAndroidBrowser(
+        'android-chromium-bundle', self.finder_options, self.fake_platform,
+        android_browser_backend_settings.ANDROID_CHROMIUM_BUNDLE, 'foo_bundle')
+    with mock.patch.object(self.fake_platform._platform_backend,
+                           'IsPcHardwareType',
+                           return_value=False):
+      with mock.patch.object(self.fake_platform._platform_backend.device,
+                             'GetMainUser',
+                             return_value='0') as m:
+        with mock.patch.object(self.fake_platform._platform_backend.device,
+                               'GetCurrentUser',
+                               return_value='1'):
+          with mock.patch.object(self.fake_platform._platform_backend.device,
+                                 "SwitchUser") as s:
+            possible_browser.UpdateExecutableIfNeeded()
+            m.assert_not_called()
+            s.assert_not_called()
+
   def testModulesPassedToInstallApplicationForBundle(self):
     self.finder_options.modules_to_install = ['base']
     self.fs.CreateFile('foo_bundle')

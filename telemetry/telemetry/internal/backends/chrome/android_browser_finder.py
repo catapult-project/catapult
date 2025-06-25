@@ -347,6 +347,21 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
   @decorators.Cache
   def UpdateExecutableIfNeeded(self):
+    # If we are on Android Desktop, we need to ensure that we are running as
+    # the main user. Without this, weird things are liable to happen such as
+    # the device appearing to go offline on browser restart. See b/427791059
+    # for example weirdness. Doing this in SetUpEnvironment() seems to be
+    # sufficient, but do it earlier before we install the browser in case there
+    # are additional edge cases which care about that.
+    device = self._platform_backend.device
+    if self._platform_backend.IsPcHardwareType():
+      main_user = device.GetMainUser()
+      if device.GetCurrentUser() != main_user:
+        logging.error(
+            'Automatically switching to main user with ID %s due to running on '
+            'Android Desktop', main_user)
+        device.SwitchUser(main_user)
+
     if self._assume_browser_already_installed:
       return
 
@@ -361,7 +376,6 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       return
 
     package_name = apk_helper.GetPackageName(self._local_apk)
-    device = self._platform_backend.device
     logging.warning('Installing %s on device if needed.', self._local_apk)
     self._platform_backend.InstallApplication(self._local_apk,
                                               modules=self._modules_to_install)
