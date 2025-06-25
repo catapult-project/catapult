@@ -32,19 +32,11 @@ WIN81 = OSVersion('win8.1', 6.3)
 WIN10 = OSVersion('win10', 10)
 WIN11 = OSVersion('win11', 11)
 
-LEOPARD = OSVersion('leopard', 105)
-SNOWLEOPARD = OSVersion('snowleopard', 106)
-LION = OSVersion('lion', 107)
-MOUNTAINLION = OSVersion('mountainlion', 108)
-MAVERICKS = OSVersion('mavericks', 109)
-YOSEMITE = OSVersion('yosemite', 1010)
-ELCAPITAN = OSVersion('elcapitan', 1011)
-SIERRA = OSVersion('sierra', 1012)
-HIGHSIERRA = OSVersion('highsierra', 1013)
-MOJAVE = OSVersion('mojave', 1014)
-CATALINA = OSVersion('catalina', 1015)
-BIGSUR = OSVersion('bigsur', 1100)
 MONTEREY = OSVersion('monterey', 1200)
 VENTURA = OSVersion('ventura', 1300)
 SONOMA = OSVersion('sonoma', 1400)
 SEQUOIA = OSVersion('sequoia', 1500)
+# macOS 12–15 have explicit definitions, but all subsequent versions are
+# automatically named after the release year (e.g. macOS 26 is now
+# `OSVersion('macos26', 2600)` to avoid having this code break upon every single
+# OS release).

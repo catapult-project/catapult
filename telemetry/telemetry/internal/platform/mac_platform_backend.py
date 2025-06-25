@@ -51,52 +51,27 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
 
   @decorators.Cache
   def GetOSVersionName(self):
-    os_version = os.uname()[2]
+    # os.uname()[2] is the Darwin version; extract the main version number. If
+    # this can't be parsed as an int then allow the ValueError to escape.
+    darwin_version = int(os.uname()[2].split('.')[0])
 
-    if os_version.startswith('9.'):
-      return os_version_module.LEOPARD
-    if os_version.startswith('10.'):
-      return os_version_module.SNOWLEOPARD
-    if os_version.startswith('11.'):
-      return os_version_module.LION
-    if os_version.startswith('12.'):
-      return os_version_module.MOUNTAINLION
-    if os_version.startswith('13.'):
-      return os_version_module.MAVERICKS
-    if os_version.startswith('14.'):
-      return os_version_module.YOSEMITE
-    if os_version.startswith('15.'):
-      return os_version_module.ELCAPITAN
-    if os_version.startswith('16.'):
-      return os_version_module.SIERRA
-    if os_version.startswith('17.'):
-      return os_version_module.HIGHSIERRA
-    if os_version.startswith('18.'):
-      return os_version_module.MOJAVE
-    if os_version.startswith('19.'):
-      return os_version_module.CATALINA
-    if os_version.startswith('20.'):
-      return os_version_module.BIGSUR
-    if os_version.startswith('21.'):
+    if darwin_version == 21:
       return os_version_module.MONTEREY
-    if os_version.startswith('22.'):
+    if darwin_version == 22:
       return os_version_module.VENTURA
-    if os_version.startswith('23.'):
+    if darwin_version == 23:
       return os_version_module.SONOMA
-    if os_version.startswith('24.'):
+    if darwin_version == 24:
       return os_version_module.SEQUOIA
-
-    raise NotImplementedError('Unknown mac version %s.' % os_version)
+    # macOS, as of Darwin 25, has moved to a year-based versioning scheme. Use
+    # that as the "friendly name" to avoid this code breaking every year upon a
+    # release of a new OS. Because macOS 26 = Darwin 25, just add one.
+    macos_release = darwin_version + 1
+    return os_version_module.OSVersion(f'macos{macos_release}',
+                                       macos_release * 100)
 
   def GetTypExpectationsTags(self):
-    # telemetry benchmarks expectations need to know if the version number
-    # of the operating system is 10.12 or 10.13
     tags = super().GetTypExpectationsTags()
-    detail_string = self.GetOSVersionDetailString()
-    if detail_string.startswith('10.11'):
-      tags.append('mac-10.11')
-    elif detail_string.startswith('10.12'):
-      tags.append('mac-10.12')
     tags.append('mac-' + os.uname()[4])
     return tags
 
@@ -124,8 +99,7 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     return self.HasRootAccess()
 
   def FlushEntireSystemCache(self):
-    mavericks_or_later = self.GetOSVersionName() >= os_version_module.MAVERICKS
-    p = self.LaunchApplication('purge', elevate_privilege=mavericks_or_later)
+    p = self.LaunchApplication('purge', elevate_privilege=True)
     p.communicate()
     assert p.returncode == 0, 'Failed to flush system cache'
 
