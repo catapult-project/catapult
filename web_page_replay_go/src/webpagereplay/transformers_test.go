@@ -155,31 +155,37 @@ func TestInjectScriptToGzipResponse(t *testing.T) {
 func TestInjectScriptToResponse(t *testing.T) {
 	tests := []struct {
 		desc string
-		input string
+		input []string
 		want string
 	}{
 		{
 			desc:	"With CSP Nonce script-src",
-			input: "script-src 'strict-dynamic' 'nonce-2726c7f26c'",
+			input: []string{"script-src 'strict-dynamic' 'nonce-2726c7f26c'"},
 			want:	"<html><head><script nonce=\"2726c7f26c\">var foo=1</script>" +
 							"<script>document.write('<head></head>');</script></head></html>",
 		},
 		{
 			desc:	"With CSP Nonce default-src",
-			input: "default-src 'strict-dynamic' 'nonce-2726c7f26c'",
+			input: []string{"default-src 'strict-dynamic' 'nonce-2726c7f26c'"},
 			want:	"<html><head><script nonce=\"2726c7f26c\">var foo=1</script>" +
 							"<script>document.write('<head></head>');</script></head></html>",
 		},
 		{
 			desc:	"With CSP Nonce and both Default and Script",
-			input: "default-src 'self' https://foo.com;script-src 'strict-dynamic' 'nonce-2726cf26c'",
+			input: []string{"default-src 'self' https://foo.com;script-src 'strict-dynamic' 'nonce-2726cf26c'"},
 			want:	"<html><head><script nonce=\"2726cf26c\">var foo=1</script>" +
 							"<script>document.write('<head></head>');</script></head></html>",
 		},
 		{
 			desc:	"With CSP Nonce and both Default and Script override",
-			input: "default-src 'self' 'nonce-99999cf26c';script-src 'strict-dynamic' 'nonce-2726cf26c'",
+			input: []string{"default-src 'self' 'nonce-99999cf26c';script-src 'strict-dynamic' 'nonce-2726cf26c'"},
 			want:	"<html><head><script nonce=\"2726cf26c\">var foo=1</script>" +
+							"<script>document.write('<head></head>');</script></head></html>",
+		},
+		{
+			desc:	"With two CSP headers",
+			input: []string{"useless", "script-src 'strict-dynamic' 'nonce-12345'"},
+			want:	"<html><head><script nonce=\"12345\">var foo=1</script>" +
 							"<script>document.write('<head></head>');</script></head></html>",
 		},
 	}
@@ -192,9 +198,10 @@ func TestInjectScriptToResponse(t *testing.T) {
 		}
 		req := http.Request{}
 		responseHeader := http.Header{
-			"Content-Type": []string{"text/html"},
-			"Content-Security-Policy": []string{
-				tc.input}}
+			"Content-Type": []string{"text/html"},}
+		for _, input := range tc.input {
+			responseHeader.Add("Content-Security-Policy", input)
+		}
 		resp := http.Response{
 			StatusCode: 200,
 			Header:     responseHeader,
