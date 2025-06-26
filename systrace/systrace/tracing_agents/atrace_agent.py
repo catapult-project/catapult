@@ -273,10 +273,6 @@ class AtraceAgent(tracing_agents.TracingAgent):
             self._tracer_args + ['--async_dump'], raw_output=True,
             large_output=True, check_return=True,
             timeout=ADB_LARGE_OUTPUT_TIMEOUT)
-      # Run synchronous tracing for 0 seconds to stop tracing, clear buffers
-      # and other state.
-      self._device_utils.RunShellCommand(
-          self._tracer_args + ['-t 0'], check_return=True)
     else:
       # On M+ --async_stop does everything necessary
       if compress_trace_data:
@@ -290,6 +286,11 @@ class AtraceAgent(tracing_agents.TracingAgent):
             self._tracer_args + ['--async_stop'], raw_output=True,
             large_output=True, check_return=True,
             timeout=ADB_LARGE_OUTPUT_TIMEOUT)
+
+    # Run synchronous tracing for 0 seconds to ensure stop tracing,
+    # clear buffers and other state.
+    self._device_utils.RunShellCommand(self._tracer_args + ['-t', '0'],
+                                       check_return=True)
 
     return six.ensure_binary(result)
 
