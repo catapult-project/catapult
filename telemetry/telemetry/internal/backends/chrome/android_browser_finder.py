@@ -356,6 +356,12 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     device = self._platform_backend.device
     if self._platform_backend.IsPcHardwareType():
       main_user = device.GetMainUser()
+      # We explicitly set the target user for commands run on the device since
+      # the default behavior does not use whatever user is currently active. In
+      # practice, this has caused APK permissions to be granted for the wrong
+      # user, and may cause other similar issues related to the wrong user being
+      # used.
+      device.target_user = main_user
       if device.GetCurrentUser() != main_user:
         logging.error(
             'Automatically switching to main user with ID %s due to running on '
