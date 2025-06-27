@@ -7,7 +7,7 @@ require (
 	github.com/kylelemons/godebug v1.1.0
 	github.com/tdewolff/minify/v2 v2.23.8
 	github.com/urfave/cli/v2 v2.25.7
-	golang.org/x/net v0.36.0
+	golang.org/x/net v0.38.0
 )
 
 require (
@@ -15,5 +15,5 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/tdewolff/parse/v2 v2.8.1 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 )
