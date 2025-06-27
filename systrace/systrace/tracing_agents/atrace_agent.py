@@ -262,30 +262,18 @@ class AtraceAgent(tracing_agents.TracingAgent):
       self._device_utils.WriteFile(is_trace_enabled_file, '0')
       # For compressed trace data, we don't want encoding when adb shell reads
       # the temp output file. (crbug/1271668)
-      if compress_trace_data:
-        result = self._device_utils.RunShellCommand(
-            self._tracer_args + ['--async_dump'], raw_output=True,
-            large_output=True, check_return=True,
-            timeout=ADB_LARGE_OUTPUT_TIMEOUT,
-            encoding=None)
-      else:
-        result = self._device_utils.RunShellCommand(
-            self._tracer_args + ['--async_dump'], raw_output=True,
-            large_output=True, check_return=True,
-            timeout=ADB_LARGE_OUTPUT_TIMEOUT)
+      command = '--async_dump'
     else:
       # On M+ --async_stop does everything necessary
-      if compress_trace_data:
-        result = self._device_utils.RunShellCommand(
-            self._tracer_args + ['--async_stop'], raw_output=True,
-            large_output=True, check_return=True,
-            timeout=ADB_LARGE_OUTPUT_TIMEOUT,
-            encoding=None)
-      else:
-        result = self._device_utils.RunShellCommand(
-            self._tracer_args + ['--async_stop'], raw_output=True,
-            large_output=True, check_return=True,
-            timeout=ADB_LARGE_OUTPUT_TIMEOUT)
+      command = '--async_stop'
+
+    result = self._device_utils.RunShellCommand(
+        self._tracer_args + [command],
+        raw_output=True,
+        large_output=True,
+        check_return=True,
+        timeout=ADB_LARGE_OUTPUT_TIMEOUT,
+        encoding=(None if compress_trace_data else 'utf8'))
 
     # Run synchronous tracing for 0 seconds to ensure stop tracing,
     # clear buffers and other state.
