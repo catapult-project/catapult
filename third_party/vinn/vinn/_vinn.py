@@ -157,9 +157,10 @@ def _RemoveTreeWithRetry(tree, retry=3):
 
 
 class RunResult(object):
-  def __init__(self, returncode, stdout):
+  def __init__(self, returncode, stdout, stderr=None):
     self.returncode = returncode
     self.stdout = stdout
+    self.stderr = stderr
 
 
 def ExecuteFile(file_path, source_paths=None, js_args=None, v8_args=None,
@@ -320,14 +321,15 @@ def _RunFileWithD8(js_file_path, js_args, v8_args, timeout, stdout, stdin):
 
   args += ['--'] + full_js_args
 
-  # Set stderr=None since d8 doesn't write into stderr anyway.
-  sp = subprocess.Popen(args, stdout=stdout, stderr=None, stdin=stdin)
+  sp = subprocess.Popen(
+    args, stdout=stdout, stderr=subprocess.PIPE, stdin=stdin
+  )
   if timeout:
     deadline = time.time() + timeout
     timeout_thread = threading.Timer(timeout, _KillProcess, args=(
         sp, 'd8', 'it timed out'))
     timeout_thread.start()
-  out, _ = sp.communicate()
+  out, err = sp.communicate()
   if timeout:
     timeout_thread.cancel()
 
@@ -345,17 +347,20 @@ def _RunFileWithD8(js_file_path, js_args, v8_args, timeout, stdout, stdin):
   # logic here in order to raise/return the right thing.
   returncode = sp.returncode
   if returncode == 0:
-    return RunResult(0, out)
+    return RunResult(0, out, err)
   elif returncode == 1:
+    err_str = err.decode('utf-8', errors='backslashreplace')
+    message = (
+      f'Exception raised when executing {js_file_path}:\nstderr: {err_str}'
+    )
     if out:
-      raise RuntimeError(
-        'Exception raised when executing %s:\n%s' % (js_file_path, out))
+      out_str = out.decode('utf-8', errors='backslashreplace')
+      message += f'\nstdout: {out_str}'
     else:
-      raise RuntimeError(
-        'Exception raised when executing %s. '
-        '(Error stack is dumped into stdout)' % js_file_path)
+      message += '\n(Error stack from d8 stdout is dumped into Python stdout)'
+    raise RuntimeError(message)
   else:
-    return RunResult(returncode - 1, out)
+    return RunResult(returncode - 1, out, err)
 
 
 def main():

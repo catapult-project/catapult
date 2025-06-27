@@ -191,12 +191,7 @@ class VinnUnittest(unittest.TestCase):
     exception_message = self._GetUnescapedExceptionMessage(context.exception)
     self.assertIn(
         ('error.js:7: Error: Throw ERROR'), exception_message)
-    # d8 changed how it escapes quotes in errors on Windows sometime between
-    # 5.6.326.50 and 13.6.233.10. So, Windows needs to be special cased.
-    expected_str = "    throw new Error('Throw ERROR');"
-    if os.name == 'nt':
-      expected_str = "    throw new Error(\\'Throw ERROR\\');"
-    self.assertIn(expected_str, exception_message)
+    self.assertIn("    throw new Error('Throw ERROR');", exception_message)
     self.AssertHasNamedFrame('maybeRaiseException', 'error.js:7',
                              exception_message)
     self.AssertHasNamedFrame('global.maybeRaiseExceptionInFoo', 'foo.html:34',
@@ -221,12 +216,7 @@ class VinnUnittest(unittest.TestCase):
     exception_message = self._GetUnescapedExceptionMessage(context.exception)
     self.assertIn(
         ('error.js:7: Error: Throw ERROR'), exception_message)
-    # d8 changed how it escapes quotes in errors on Windows sometime between
-    # 5.6.326.50 and 13.6.233.10. So, Windows needs to be special cased.
-    expected_str = "    throw new Error('Throw ERROR');"
-    if os.name == 'nt':
-      expected_str = "    throw new Error(\\'Throw ERROR\\');"
-    self.assertIn(expected_str, exception_message)
+    self.assertIn("    throw new Error('Throw ERROR');", exception_message)
 
     self.AssertHasNamedFrame('maybeRaiseException', 'error.js:7',
                              exception_message)
@@ -284,6 +274,18 @@ class VinnUnittest(unittest.TestCase):
     self.assertIn('non_defined_variable is not defined', exception_message)
     self.AssertHasNamedFrame('eval', 'non_strict_error.html:17',
                              exception_message)
+
+  def testRunJsStringWithErrorInStderr(self):
+    res = vinn.RunJsString(
+      'console.log("hello")',
+      v8_args=['--max-old-space-size=-1']
+    )
+    self.assertEqual(res.returncode, 0)
+    self.assertIn(
+      'Value for flag --max-old-space-size=-1 of type size_t is out of bounds',
+      res.stderr.decode('utf-8')
+    )
+    self.assertEqual(res.stdout.decode('utf-8'), 'hello\n')
 
   def testConsolePolyfill(self):
     self.assertEquals(

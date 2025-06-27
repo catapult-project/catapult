@@ -126,6 +126,9 @@ def MapSingleTrace(trace_handle,
   stdout = res.stdout
   if not isinstance(stdout, str):
     stdout = stdout.decode('utf-8', errors='replace')
+  stderr = res.stderr
+  if stderr and not isinstance(stderr, str):
+    stderr = stderr.decode('utf-8', errors='replace')
 
   if res.returncode != 0:
     sys.stderr.write(stdout)
@@ -133,7 +136,8 @@ def MapSingleTrace(trace_handle,
         job,
         trace_handle.canonical_url,
         'Error', 'vinn runtime error while mapping trace.',
-        'vinn runtime error while mapping trace.', 'Unknown stack'))
+        f'Return code: {res.returncode}, stdout: {stdout}, stderr: {stderr}',
+        'Unknown stack'))
     return result
 
   for line in stdout.split('\n'):
