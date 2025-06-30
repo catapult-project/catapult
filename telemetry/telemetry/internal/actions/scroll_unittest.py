@@ -163,8 +163,7 @@ class ScrollActionTest(tab_test_case.TabTestCase):
         screenHeight // 2 - 1)
     self.assertEqual(self._tab.EvaluateJavaScript('window.scrollY'), 0)
 
-    self._RunScrollDistanceTest(
-        2000, 2000, page_action.GESTURE_SOURCE_MOUSE, 60)
+    self._RunScrollDistanceTest(2000, 900, page_action.GESTURE_SOURCE_MOUSE, 60)
 
   def testTouchScrollDistanceWhileZoomed(self):
     # Just pass the test on platforms that don't support touch (i.e. Mac)
