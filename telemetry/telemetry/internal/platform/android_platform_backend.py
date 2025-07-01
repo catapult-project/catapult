@@ -617,6 +617,12 @@ class AndroidPlatformBackend(
           _DEVICE_COPY_SCRIPT_FILE,
           _DEVICE_COPY_SCRIPT_LOCATION)
       self._device_copy_script = _DEVICE_COPY_SCRIPT_LOCATION
+
+    # For PC hardware types, which log in as the main user, the source path must
+    # be resolved to ensure it is accessible.
+    if self.IsPcHardwareType():
+      source = self._device.ResolveSpecialPath(source)
+
     self._device.RunShellCommand(
         ['sh', self._device_copy_script, source, dest], check_return=True)
 
