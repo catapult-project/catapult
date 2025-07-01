@@ -570,6 +570,11 @@ class AndroidPlatformBackend(
     saved_profile_location = posixpath.join(
         self._device.GetExternalStoragePath(),
         'profile', profile_base)
+    # For PC hardware types, which log in as the main user, the source path
+    # must be resolved to ensure it is accessible.
+    if self.IsPcHardwareType():
+      saved_profile_location = self._device.ResolveSpecialPath(
+          saved_profile_location)
     self._device.PushChangedFiles([(new_profile_dir, saved_profile_location)],
                                   delete_device_stale=True)
 
@@ -617,11 +622,6 @@ class AndroidPlatformBackend(
           _DEVICE_COPY_SCRIPT_FILE,
           _DEVICE_COPY_SCRIPT_LOCATION)
       self._device_copy_script = _DEVICE_COPY_SCRIPT_LOCATION
-
-    # For PC hardware types, which log in as the main user, the source path must
-    # be resolved to ensure it is accessible.
-    if self.IsPcHardwareType():
-      source = self._device.ResolveSpecialPath(source)
 
     self._device.RunShellCommand(
         ['sh', self._device_copy_script, source, dest], check_return=True)
