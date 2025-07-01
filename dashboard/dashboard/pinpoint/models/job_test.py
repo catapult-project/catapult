@@ -1344,6 +1344,23 @@ class BugCommentTest(test.TestCase):
         'https://review.com', '123456',
         _COMMENT_GERRIT_UPDATE % (expected_bot, expected_benchmark))
 
+  @mock.patch('dashboard.services.gerrit_service.PostChangeComment')
+  def testCompletedDoesNotUpdatesGerritForCQ(self, post_change_comment):
+    expected_bot = 'linux-perf'
+    expected_benchmark = 'speedometer2'
+    j = job.Job.New((), (),
+                    arguments={
+                        'configuration': expected_bot,
+                        'benchmark': expected_benchmark,
+                    },
+                    gerrit_server='https://review.com',
+                    gerrit_change_id='123456',
+                    tags={'origin': 'CQ'})
+    scheduler.Schedule(j)
+    j.Run()
+    self.ExecuteDeferredTasks('default')
+    post_change_comment.assert_not_called()
+
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 class GetImprovementDirectionTest(testing_common.TestCase):

@@ -62,6 +62,8 @@ OPTION_TAGS = 'TAGS'
 OPTION_ESTIMATE = 'ESTIMATE'
 OPTION_INPUTS = 'INPUTS'
 
+_JOB_ORIGIN_CQ = 'CQ'
+
 COMPARISON_MODES = job_state.COMPARISON_MODES
 
 RETRY_OPTIONS = taskqueue.TaskRetryOptions(
@@ -858,6 +860,10 @@ class Job(ndb.Model):
         _retry_options=RETRY_OPTIONS)
 
   def _UpdateGerritIfNeeded(self, success=True):
+    if self.origin == _JOB_ORIGIN_CQ:
+      # Do not spam on Gerrit as jobs from CQ will have results reported
+      # on the Checks tab.
+      return
     if self.gerrit_server and self.gerrit_change_id:
       icon = _ROUND_PUSHPIN if success else _CRYING_CAT_FACE
       state = 'complete' if success else 'failed'
