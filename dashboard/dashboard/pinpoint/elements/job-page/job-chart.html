@@ -271,7 +271,7 @@ found in the LICENSE file.
       // Draw the difference if significant.
       div.append('div')
           .attr('class', 'difference-label')
-          .classed('detected-difference', (i) => isDetectedDifference(d))
+          .classed('detected-difference', (d) => isDetectedDifference(d))
           .classed('vertical', div.data().length >= 15)
           .text((d, i) => differenceString(div.data()[i + 1], d));
       // Draw the plot or icon.
