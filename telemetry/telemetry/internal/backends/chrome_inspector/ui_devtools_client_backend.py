@@ -152,6 +152,24 @@ class UIDevToolsClientBackend():
     }
     return self._browser_websocket.SyncRequest(request, timeout=60)
 
+  def GetNodeBoundsInScreen(self, node_id):
+    request = {
+        'method': 'DOM.getNodeBoundsInScreen',
+        'params': {
+            'nodeId': node_id,
+        }
+    }
+    return self._browser_websocket.SyncRequest(request, timeout=60)
+
+  def GetDeviceScaleFactor(self, node_id):
+    request = {
+        'method': 'DOM.getDeviceScaleFactor',
+        'params': {
+            'nodeId': node_id,
+        }
+    }
+    return self._browser_websocket.SyncRequest(request, timeout=60)
+
   # pylint: disable=redefined-builtin
   def DispatchMouseEvent(self,
                          node_id,

@@ -42,6 +42,12 @@ class UIDevTools():
   def QueryNodes(self, query):
     return self._ui_devtools_backend.QueryNodes(query)
 
+  def GetNodeBoundsInScreen(self, node_id):
+    return self._ui_devtools_backend.GetNodeBoundsInScreen(node_id)
+
+  def GetDeviceScaleFactor(self, node_id):
+    return self._ui_devtools_backend.GetDeviceScaleFactor(node_id)
+
   # pylint: disable=redefined-builtin
   def DispatchMouseEvent(self,
                          node_id,
