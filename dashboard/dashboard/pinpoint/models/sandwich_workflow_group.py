@@ -14,6 +14,12 @@ class CloudWorkflow(ndb.Model):
   commit_dict = ndb.JsonProperty()
   values_a = ndb.FloatProperty(repeated=True)
   values_b = ndb.FloatProperty(repeated=True)
+  decision = ndb.BooleanProperty()
+  job_id = ndb.StringProperty()
+  anomaly = ndb.JsonProperty()
+  statistic = ndb.JsonProperty()
+  started = ndb.DateTimeProperty(auto_now_add=True)
+  finished = ndb.DateTimeProperty()
 
 
 class SandwichWorkflowGroup(ndb.Model):

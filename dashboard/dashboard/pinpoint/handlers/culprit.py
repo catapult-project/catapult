@@ -9,6 +9,7 @@ then update the sandwich verification results.
 """
 from __future__ import absolute_import
 
+import datetime
 import json
 from flask import make_response
 
@@ -60,6 +61,7 @@ def CulpritVerificationResultsUpdateHandler():
             group.url,
             group.project,
             improvement_dir,
+            sandwiched=True,
             _retry_options=RETRY_OPTIONS)
       group.active = False
     group.put()
@@ -70,20 +72,30 @@ def _AllExecutionCompleted(group):
   cloud_workflows_keys = group.cloud_workflows_keys
   completed = True
   for wk in cloud_workflows_keys:
-    could_workflow = ndb.Key('CloudWorkflow', wk).get()
-    response = workflow_service.GetExecution(could_workflow.execution_name)
+    cloud_workflow = ndb.Key('CloudWorkflow', wk).get()
+    response = workflow_service.GetExecution(cloud_workflow.execution_name)
     if response['state'] == workflow_service.EXECUTION_STATE_SUCCEEDED:
-      could_workflow.execution_status = 'SUCCEEDED'
+      cloud_workflow.execution_status = workflow_service.EXECUTION_STATE_SUCCEEDED
+      result_dict = json.loads(response.get('result', '{}'))
+
+      cloud_workflow.decision = result_dict.get('decision')
+      cloud_workflow.job_id = result_dict.get('job_id')
+      cloud_workflow.anomaly = result_dict.get('anomaly')
+      cloud_workflow.statistic = result_dict.get('statistic')
+      cloud_workflow.finished = datetime.datetime.utcnow()
     elif response['state'] == workflow_service.EXECUTION_STATE_FAILED:
-      could_workflow.execution_status = 'FAILED'
+      cloud_workflow.execution_status = workflow_service.EXECUTION_STATE_FAILED
+      cloud_workflow.finished = datetime.datetime.utcnow()
     elif response['state'] == workflow_service.EXECUTION_STATE_CANCELLED:
-      could_workflow.execution_status = 'CANCELLED'
+      cloud_workflow.execution_status = workflow_service.EXECUTION_STATE_CANCELLED
+      cloud_workflow.finished = datetime.datetime.utcnow()
     elif response[
         'state'] == workflow_service.EXECUTION_STATE_STATE_UNSPECIFIED:
-      could_workflow.execution_status = 'STATE_UNSPECIFIED'
+      cloud_workflow.execution_status = workflow_service.EXECUTION_STATE_STATE_UNSPECIFIED
+      cloud_workflow.finished = datetime.datetime.utcnow()
     else:
       completed = False
-    could_workflow.put()
+    cloud_workflow.put()
   return completed
 
 
@@ -91,16 +103,13 @@ def _SummarizeResults(cloud_workflows_keys, bug_update_builder):
   num_succeeded, num_verified = 0, 0
   for wk in cloud_workflows_keys:
     w = ndb.Key('CloudWorkflow', wk).get()
-    response = workflow_service.GetExecution(w.execution_name)
-    if response['state'] == workflow_service.EXECUTION_STATE_SUCCEEDED:
+
+    if w.execution_status == workflow_service.EXECUTION_STATE_SUCCEEDED:
       num_succeeded += 1
-      result_dict = json.loads(response['result'])
-      if 'decision' in result_dict:
-        decision = result_dict['decision']
-        if decision:
-          bug_update_builder.AddDifference(None, w.values_a, w.values_b, w.kind, w.commit_dict)
-          num_verified += 1
-    elif response['state'] in [
+      if w.decision:
+        bug_update_builder.AddDifference(None, w.values_a, w.values_b, w.kind, w.commit_dict)
+        num_verified += 1
+    elif w.execution_status in [
         workflow_service.EXECUTION_STATE_FAILED,
         workflow_service.EXECUTION_STATE_CANCELLED,
         workflow_service.EXECUTION_STATE_STATE_UNSPECIFIED

@@ -715,7 +715,8 @@ class Job(ndb.Model):
           kind=kind,
           commit_dict=commit_dict,
           values_a=values_a,
-          values_b=values_b)
+          values_b=values_b,
+          anomaly=wf_execution_request)
       cloud_workflow_key = cloud_workflow.put()
       cloud_workflows_keys.append(cloud_workflow_key.id())
       workflow_executions.append(execution_name)
