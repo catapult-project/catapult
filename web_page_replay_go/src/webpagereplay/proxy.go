@@ -97,14 +97,13 @@ func updateDates(h http.Header, now time.Time) {
 
 // NewReplayingProxy constructs an HTTP proxy that replays responses from an archive.
 // The proxy is listening for requests on a port that uses the given scheme (e.g., http, https).
-func NewReplayingProxy(a *Archive, scheme string, transformers []ResponseTransformer, quietMode bool, paramToIgnoreInURLPath string) http.Handler {
-	return &replayingProxy{a, scheme, transformers, quietMode, paramToIgnoreInURLPath}
+func NewReplayingProxy(a *Archive, scheme string, quietMode bool, paramToIgnoreInURLPath string) http.Handler {
+	return &replayingProxy{a, scheme, quietMode, paramToIgnoreInURLPath}
 }
 
 type replayingProxy struct {
 	a                      *Archive
 	scheme                 string
-	transformers           []ResponseTransformer
 	quietMode              bool
 	paramToIgnoreInURLPath string
 }
@@ -177,11 +176,6 @@ func (proxy *replayingProxy) ServeHTTP(w http.ResponseWriter, req *http.Request)
 
 	// Update dates in response header.
 	updateDates(storedResp.Header, time.Now())
-
-	// Transform.
-	for _, t := range proxy.transformers {
-		t.Transform(req, storedResp)
-	}
 
 	// Forward the response.
 	logf("serving %v response", storedResp.StatusCode)

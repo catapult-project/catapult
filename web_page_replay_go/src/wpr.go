@@ -494,9 +494,21 @@ func (r *ReplayCommand) Run(c *cli.Context) error {
 		log.Printf("Loaded replay rules from %s", r.rulesFile)
 	}
 
-	httpHandler := webpagereplay.NewReplayingProxy(archive, "http", r.common.transformers, r.quietMode, r.common.paramToIgnoreInURLPath)
-	httpsHandler := webpagereplay.NewReplayingProxy(archive, "https", r.common.transformers, r.quietMode, r.common.paramToIgnoreInURLPath)
-	tlsconfig, err := webpagereplay.ReplayTLSConfig(r.common.root_certs, archive)
+	transformedArchive := webpagereplay.NewArchive()
+	err = archive.ForEach(func(req *http.Request, resp *http.Response) error {
+		for _, t := range r.common.transformers {
+			t.Transform(req, resp)
+		}
+		return transformedArchive.AddArchivedRequest(req, resp, webpagereplay.AddModeAppend)
+	})
+	if err != nil {
+		fmt.Println(os.Stderr, "Error applying transformations")
+		os.Exit(1)
+	}
+
+	httpHandler := webpagereplay.NewReplayingProxy(&transformedArchive, "http", r.quietMode, r.common.paramToIgnoreInURLPath)
+	httpsHandler := webpagereplay.NewReplayingProxy(&transformedArchive, "https", r.quietMode, r.common.paramToIgnoreInURLPath)
+	tlsconfig, err := webpagereplay.ReplayTLSConfig(r.common.root_certs, &transformedArchive)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating TLSConfig: %v", err)
 		os.Exit(1)
