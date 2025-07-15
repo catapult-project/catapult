@@ -174,3 +174,9 @@ class AndroidActionRunner():
       return
 
     py_utils.WaitFor(IsScreenUnlocked, 5)
+
+  def RunCommand(self, command):
+    return self._platform_backend.RunCommand(command)
+
+  def IsXrDevice(self):
+    return self._platform_backend.IsXrDevice()

@@ -45,8 +45,9 @@ def GetFromBrowserOptions(browser_options):
   # might eventually scroll.
   args.append('--enable-gpu-benchmarking')
 
-  # Suppress all permission prompts by atomatically denying them.
-  args.append('--deny-permission-prompts')
+  # Suppress all permission prompts by automatically denying them.
+  if browser_options.deny_permission_prompts:
+    args.append('--deny-permission-prompts')
 
   # Override the need for a user gesture in order to play media.
   args.append('--autoplay-policy=no-user-gesture-required')

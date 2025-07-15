@@ -426,6 +426,17 @@ class AndroidPlatformBackend(
         return True
     return False
 
+  @decorators.Cache
+  def IsXrDevice(self):
+    """Checks whether the device is an Android XR device."""
+    feature_output = self._device.RunShellCommand(['pm', 'list', 'features'])
+    # Aligned with base/android/java/src/org/chromium/base/PackageManagerUtils.java
+    for line in feature_output:
+      if 'android.software.xr.immersive' in line \
+          or 'android.software.xr.api.openxr' in line:
+        return True
+    return False
+
   def GetDeviceHostClockOffset(self):
     """Returns the difference between the device and host clocks."""
     if self._device_host_clock_offset is None:

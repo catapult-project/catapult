@@ -670,6 +670,9 @@ class BrowserOptions():
     # runtime environment.
     self.environment = None
 
+    # Suppress all permission prompts by automatically denying them.
+    self.deny_permission_prompts = True
+
   def __repr__(self):
     return str(sorted(self.__dict__.items()))
 
@@ -731,6 +734,17 @@ class BrowserOptions():
         '--gtest_output',
         help='Ignored argument for compatibility with runtest.py harness')
 
+    group.add_argument(
+        '--deny-permission-prompts',
+        action='store_true',
+        dest='deny_permission_prompts',
+        help='Suppress all permission prompts by automatically denying them. '
+        'This is the default behavior.')
+    group.add_argument('--no-deny-permission-prompts',
+                       action='store_false',
+                       dest='deny_permission_prompts',
+                       help='Do not suppress permission prompts.')
+
   def UpdateFromParseResults(self, finder_options):
     """Copies our options from finder_options."""
     browser_options_list = [
@@ -739,7 +753,8 @@ class BrowserOptions():
         'profile_dir',
         'profile_type',
         'show_stdout',
-        'compatibility_mode'
+        'compatibility_mode',
+        'deny_permission_prompts'
         ]
     for o in browser_options_list:
       a = getattr(finder_options, o, None)
@@ -781,6 +796,10 @@ class BrowserOptions():
     if getattr(finder_options, 'logging_verbosity'):
       self.logging_verbosity = finder_options.logging_verbosity
       delattr(finder_options, 'logging_verbosity')
+
+    if hasattr(finder_options, 'deny_permission_prompts'):
+      self.deny_permission_prompts = finder_options.deny_permission_prompts
+      delattr(finder_options, 'deny_permission_prompts')
 
     # This deferred import is necessary because browser_options is imported in
     # telemetry/telemetry/__init__.py.

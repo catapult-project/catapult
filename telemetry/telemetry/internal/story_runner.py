@@ -115,7 +115,14 @@ def AddCommandLineArgs(parser):
       help=('Introduces a wait between each story until the device CPU has '
             'cooled down. If not specified, this wait is disabled. Device must '
             'be supported. '))
-
+  parser.add_argument(
+      '--max-battery-temp',
+      default=35,
+      type=int,
+      help=
+      ('The highest battery temperature the stories should run with. If'
+       'the temperature is higher than this number, the runner will wait until'
+       'the battery has cooled down. '))
 
 def ProcessCommandLineArgs(parser, args, environment=None):
   story_filter_module.StoryFilterFactory.ProcessCommandLineArgs(
@@ -357,7 +364,8 @@ def RunStorySet(test, story_set, finder_options, results,
 
           try:
             if state.platform:
-              state.platform.WaitForBatteryTemperature(35)
+              state.platform.WaitForBatteryTemperature(
+                  finder_options.max_battery_temp)
               if finder_options.wait_for_cpu_temp:
                 state.platform.WaitForCpuTemperature(38.0)
               _WaitForThermalThrottlingIfNeeded(state.platform)
