@@ -19,17 +19,8 @@ tr.exportTo('tr.e.cc', function() {
     'RasterTask'
   ];
 
-  const knownAnalysisTaskNames = [
-    'TileManager::RunAnalyzeTask',
-    'RasterWorkerPoolTaskImpl::RunAnalysisOnThread',
-    'RasterWorkerPoolTaskImpl::Analyze',
-    'RasterTaskImpl::Analyze',
-    'cc::AnalyzeTask',
-    'AnalyzeTask'
-  ];
-
   function getTileFromRasterTaskSlice(slice) {
-    if (!(isSliceDoingRasterization(slice) || isSliceDoingAnalysis(slice))) {
+    if (!isSliceDoingRasterization(slice)) {
       return undefined;
     }
 
@@ -53,14 +44,9 @@ tr.exportTo('tr.e.cc', function() {
     return knownRasterTaskNames.includes(slice.title);
   }
 
-  function isSliceDoingAnalysis(slice) {
-    return knownAnalysisTaskNames.includes(slice.title);
-  }
-
   return {
     getTileFromRasterTaskSlice,
-    isSliceDoingRasterization,
-    isSliceDoingAnalysis
+    isSliceDoingRasterization
   };
 });
 </script>

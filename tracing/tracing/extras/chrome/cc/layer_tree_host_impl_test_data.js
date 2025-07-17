@@ -36,24 +36,6 @@ global.g_catLTHIEvents = [
     'id': 'PICTURE_1'
   },
   {
-    'name': 'AnalyzeTask',
-    'args': {
-      'data': {
-        'source_frame_number': 107,
-        'tile_id': {
-          'id_ref': 'TILE_1'
-        },
-        'resolution': 'HIGH_RESOLUTION',
-        'is_tile_in_pending_tree_now_bin': true
-      }
-    },
-    'pid': 1,
-    'ts': 101,
-    'cat': 'cc',
-    'tid': 1,
-    'ph': 'B'
-  },
-  {
     'name': 'gfx::Image',
     'args': {
       'snapshot': {
@@ -69,15 +51,6 @@ global.g_catLTHIEvents = [
     'tid': 1,
     'ph': 'O',
     'id': 'PNG_1'
-  },
-  {
-    'name': 'AnalyzeTask',
-    'args': {},
-    'pid': 1,
-    'ts': 105,
-    'cat': 'cc',
-    'tid': 1,
-    'ph': 'E'
   },
   {
     'name': 'RasterTask',

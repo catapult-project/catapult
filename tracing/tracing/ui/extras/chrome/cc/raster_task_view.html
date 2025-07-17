@@ -80,13 +80,6 @@ Polymer({
         cmp(a, b) { return a.numTiles - b.numTiles; }
       },
       {
-        title: 'Num Analysis Tasks',
-        value(row) { return row.numAnalysisTasks; },
-        cmp(a, b) {
-          return a.numAnalysisTasks - b.numAnalysisTasks;
-        }
-      },
-      {
         title: 'Num Raster Tasks',
         value(row) { return row.numRasterTasks; },
         cmp(a, b) { return a.numRasterTasks - b.numRasterTasks; }
@@ -159,7 +152,6 @@ Polymer({
           layerId,
           layer,
           numTiles: 0,
-          numAnalysisTasks: 0,
           numRasterTasks: 0,
           duration: 0,
           cpuDuration: 0
@@ -170,7 +162,6 @@ Polymer({
 
     let totalDuration = 0;
     let totalCpuDuration = 0;
-    let totalNumAnalyzeTasks = 0;
     let totalNumRasterizeTasks = 0;
     let hadCpuDurations = false;
 
@@ -185,13 +176,8 @@ Polymer({
         curCosts.numTiles += 1;
       }
 
-      if (tr.e.cc.isSliceDoingAnalysis(slice)) {
-        curCosts.numAnalysisTasks += 1;
-        totalNumAnalyzeTasks += 1;
-      } else {
-        curCosts.numRasterTasks += 1;
-        totalNumRasterizeTasks += 1;
-      }
+      curCosts.numRasterTasks += 1;
+      totalNumRasterizeTasks += 1;
       curCosts.duration += slice.duration;
       totalDuration += slice.duration;
       if (slice.cpuDuration !== undefined) {
@@ -211,7 +197,6 @@ Polymer({
       {
         isTotals: true,
         numTiles: Object.keys(tilesThatWeHaveSeen).length,
-        numAnalysisTasks: totalNumAnalyzeTasks,
         numRasterTasks: totalNumRasterizeTasks,
         duration: totalDuration,
         cpuDuration: totalCpuDuration
