@@ -494,7 +494,18 @@ func (r *ReplayCommand) Run(c *cli.Context) error {
 		log.Printf("Loaded replay rules from %s", r.rulesFile)
 	}
 
-	transformedArchive := webpagereplay.NewArchive()
+	// When recording, transformations are applied at request time, because that's
+	// the only way. But here, when replaying, transformations are applied ahead
+	// of requests, for performance reasons.
+	transformedArchive := webpagereplay.Archive{
+		Requests: make(map[string]map[string][]*webpagereplay.ArchivedRequest),
+		Certs: archive.Certs,
+		NegotiatedProtocol: archive.NegotiatedProtocol,
+		DeterministicTimeSeedMs: archive.DeterministicTimeSeedMs,
+		ServeResponseInChronologicalSequence: archive.ServeResponseInChronologicalSequence,
+		CurrentSessionId: archive.CurrentSessionId,
+		DisableFuzzyURLMatching: archive.DisableFuzzyURLMatching,
+	}
 	err = archive.ForEach(func(req *http.Request, resp *http.Response) error {
 		for _, t := range r.common.transformers {
 			t.Transform(req, resp)
@@ -502,13 +513,14 @@ func (r *ReplayCommand) Run(c *cli.Context) error {
 		return transformedArchive.AddArchivedRequest(req, resp, webpagereplay.AddModeAppend)
 	})
 	if err != nil {
-		fmt.Println(os.Stderr, "Error applying transformations")
-		os.Exit(1)
+		fmt.Fprintln(os.Stderr, "Using original archive, error while creating transformed one: %v\n", err)
+	} else {
+		archive = &transformedArchive
 	}
 
-	httpHandler := webpagereplay.NewReplayingProxy(&transformedArchive, "http", r.quietMode, r.common.paramToIgnoreInURLPath)
-	httpsHandler := webpagereplay.NewReplayingProxy(&transformedArchive, "https", r.quietMode, r.common.paramToIgnoreInURLPath)
-	tlsconfig, err := webpagereplay.ReplayTLSConfig(r.common.root_certs, &transformedArchive)
+	httpHandler := webpagereplay.NewReplayingProxy(archive, "http", r.quietMode, r.common.paramToIgnoreInURLPath)
+	httpsHandler := webpagereplay.NewReplayingProxy(archive, "https", r.quietMode, r.common.paramToIgnoreInURLPath)
+	tlsconfig, err := webpagereplay.ReplayTLSConfig(r.common.root_certs, archive)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating TLSConfig: %v", err)
 		os.Exit(1)

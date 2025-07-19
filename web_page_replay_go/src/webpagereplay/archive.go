@@ -120,7 +120,7 @@ type Archive struct {
 	DisableFuzzyURLMatching bool
 }
 
-func NewArchive() Archive {
+func newArchive() Archive {
 	return Archive{Requests: make(map[string]map[string][]*ArchivedRequest)}
 }
 
@@ -147,7 +147,7 @@ func OpenArchive(path string) (*Archive, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read failed: %v", err)
 	}
-	a := NewArchive()
+	a := newArchive()
 	if err := json.Unmarshal(buf, &a); err != nil {
 		return nil, fmt.Errorf("json unmarshal failed: %v", err)
 	}
@@ -156,6 +156,9 @@ func OpenArchive(path string) (*Archive, error) {
 }
 
 // ForEach applies f to all requests in the archive.
+// Although `req` and `resp` are pointers, mutating them won't actually change
+// the contents of the archive. If you need to mutate, create a new archive and
+// add to it.
 func (a *Archive) ForEach(f func(req *http.Request, resp *http.Response) error) error {
 	for _, urlmap := range a.Requests {
 		for urlString, requests := range urlmap {
@@ -413,7 +416,7 @@ func (a *Archive) StartNewReplaySession() {
 // edit the request. If f returns a nil pair, the request is deleted.
 // The edited archive is returned, leaving the current archive is unchanged.
 func (a *Archive) Edit(edit func(req *http.Request, resp *http.Response) (*http.Request, *http.Response, error)) (*Archive, error) {
-	clone := NewArchive()
+	clone := newArchive()
 	err := a.ForEach(func(oldReq *http.Request, oldResp *http.Response) error {
 		newReq, newResp, err := edit(oldReq, oldResp)
 		if err != nil {
@@ -461,7 +464,7 @@ func (a *Archive) Merge(other *Archive) error {
 // The trimmed archive is returned, leaving the current archive unchanged.
 func (a *Archive) Trim(trimMatch func(req *http.Request, resp *http.Response) (bool, error)) (*Archive, error) {
 	var numRemovedRequests = 0
-	clone := NewArchive()
+	clone := newArchive()
 	err := a.ForEach(func(req *http.Request, resp *http.Response) error {
 		trimReq, err := trimMatch(req, resp)
 		if err != nil {
@@ -540,7 +543,7 @@ func OpenWritableArchive(path string) (*WritableArchive, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not open %s: %v", path, err)
 	}
-	return &WritableArchive{Archive: NewArchive(), f: f}, nil
+	return &WritableArchive{Archive: newArchive(), f: f}, nil
 }
 
 // RecordRequest records a request/response pair in the archive.

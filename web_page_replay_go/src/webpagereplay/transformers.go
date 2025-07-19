@@ -59,17 +59,16 @@ func cloneHeaders(h http.Header) http.Header {
 // tf is passed an uncompressed body and should return an uncompressed body.
 // The final response will be compressed if allowed by
 // resp.Header[ContentEncoding].
-func transformResponseBody(resp *http.Response, f func([]byte) []byte) error {
-	failEarly := func(body []byte, err error) error {
-		resp.Body = ioutil.NopCloser(&readerWithError{bytes.NewReader(body), err})
-		return err
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return failEarly(body, err)
-	}
+func transformResponseBody(resp *http.Response, f func([]byte) []byte) {
+	oldBody, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
+	if err != nil {
+		// We were unable to read the body, e.g. because it was ill-formed. Nothing
+		// else we can do, just keep it as is.
+		resp.Body = ioutil.NopCloser(bytes.NewReader(oldBody))
+		log.Printf("Error while injecting script: %v", err)
+		return
+	}
 
 	var isCompressed bool
 	var ce string
@@ -80,29 +79,39 @@ func transformResponseBody(resp *http.Response, f func([]byte) []byte) error {
 	}
 
 	// Decompress as needed.
+	newBody := oldBody
 	if isCompressed {
-		body, err = decompressBody(ce, body)
+		newBody, err = decompressBody(ce, newBody)
 		if err != nil {
-			return failEarly(body, err)
+			// It's possible the body uses an encryption algorithm supported by the
+			// web but not by webpagereplay. We don't want the tool to fail completely
+			// in that case, so just log the error and keep the body as is.
+			resp.Body = ioutil.NopCloser(bytes.NewReader(oldBody))
+			log.Printf("Error while injecting script: %v", err)
+			return
 		}
 	}
 
 	// Transform and recompress as needed.
-	body = f(body)
+	newBody = f(newBody)
 	if isCompressed {
-		body, _, err = CompressBody(ce, body)
+		newBody, _, err = CompressBody(ce, newBody)
 		if err != nil {
-			return failEarly(body, err)
+			// Usually if it was possible to decompress the body, it should be
+			// possible to recompress it. On the off-chance recompression fails, the
+			// same comment as above applies: log the error, keep the body as is.
+			resp.Body = ioutil.NopCloser(bytes.NewReader(oldBody))
+			log.Printf("Error while injecting script: %v", err)
+			return
 		}
 	}
-	resp.Body = ioutil.NopCloser(bytes.NewReader(body))
+	resp.Body = ioutil.NopCloser(bytes.NewReader(newBody))
 
 	// ContentLength has changed, so update the outgoing headers accordingly.
 	if resp.ContentLength >= 0 {
-		resp.ContentLength = int64(len(body))
-		resp.Header.Set("Content-Length", strconv.Itoa(len(body)))
+		resp.ContentLength = int64(len(newBody))
+		resp.Header.Set("Content-Length", strconv.Itoa(len(newBody)))
 	}
-	return nil
 }
 
 // Decompresses Response Body in place.
@@ -324,9 +333,15 @@ func getUpdatedSingleCSPHeader(csp string, injectedScriptSha256 string) string {
 
 // ResponseTransformer is an interface for transforming HTTP responses.
 type ResponseTransformer interface {
-	// Transform applies transformations to the response. for example, by
+	// Transform attempts to apply transformations to the response, for example
 	// updating resp.Header or wrapping resp.Body. The transformer may inspect
 	// the request but should not modify the request.
+	// Transformations can fail because the web is wild, e.g. `resp` could be
+	// ill-formed, preventing reading. We don't want to stop recording nor
+	// replaying in that case. So this method is best-effort and in doubt should
+	// leave `resp` unchanged.
+	// Failures that don't depend on `req` or `resp` should be raised before this
+	// is invoked, e.g. attempting to inject a script file that doesn't exist.
 	Transform(req *http.Request, resp *http.Response)
 }
 
@@ -409,7 +424,7 @@ func (si *scriptInjector) Transform(_ *http.Request, resp *http.Response) {
 		return
 	}
 
-	err := transformResponseBody(resp, func(body []byte) []byte {
+	transformResponseBody(resp, func(body []byte) []byte {
 		// Don't inject if the script has already been injected.
 		if bytes.Contains(body, si.script) {
 			log.Printf("ScriptInjector(%s): already injected", resp.Request.URL)
@@ -459,9 +474,6 @@ func (si *scriptInjector) Transform(_ *http.Request, resp *http.Response) {
 		log.Printf("ScriptInjector(%s): succesfully injected", resp.Request.URL)
 		return buffer.Bytes()
 	})
-	if err != nil {
-		log.Printf("Error while injecting script: %v", err)
-	}
 }
 
 // NewRuleBasedTransformer creates a transformer that is controlled by a rules
@@ -478,12 +490,15 @@ func NewRuleBasedTransformer(filename string) (ResponseTransformer, error) {
 	}
 	rulesDir := filepath.Dir(filename)
 	for _, r := range rules {
-		if err := r.compile(); err != nil {
-			return nil, err
-		}
-
+		// Ensure relative paths are relative to the directory containing the
+		// rules file, not the one where the binary got executed. This normalization
+		// must happen before compile(), as that consumes the path.
 		if r.InjectedScript != "" && !filepath.IsAbs(r.InjectedScript) {
 			r.InjectedScript = filepath.Join(rulesDir, r.InjectedScript)
+		}
+
+		if err := r.compile(); err != nil {
+			return nil, err
 		}
 	}
 	return &ruleBasedTransformer{rules}, nil
@@ -505,8 +520,11 @@ type TransformerRule struct {
 	// Path to a script to inject in the response.
 	InjectedScript string
 
-	// Hidden state generated by compile.
+	// Hidden state generated by compile. These are never used by json.Unmarshal()
+	// nor json.Marshal(). They are computed early to raise failures early (ahead
+	// of Transform() in the case of `scriptInjector`).
 	urlRE *regexp.Regexp
+	scriptInjector ResponseTransformer
 }
 
 // PushPromiseRule is a rule that adds pushes into the response stream.
@@ -539,6 +557,13 @@ func (r *TransformerRule) compile() error {
 			return fmt.Errorf("error compiling URLPattern %s: %v", r.URLPattern, err)
 		}
 		r.urlRE = re
+	}
+	if r.InjectedScript != "" {
+		scriptInjector, err := NewScriptInjectorFromFile(r.InjectedScript,  make(map[string]string))
+		if err != nil {
+			return err
+		}
+		r.scriptInjector = scriptInjector
 	}
 	if len(r.ExtraHeaders) == 0 && len(r.Push) == 0 && len(r.InjectedScript) == 0 {
 		return fmt.Errorf("rule has no effect: %q", raw)
@@ -582,13 +607,8 @@ func (rt *ruleBasedTransformer) Transform(
 			resp.Header[k] = append(resp.Header[k], v...)
 		}
 
-		if r.InjectedScript != "" {
-			injector, err := NewScriptInjectorFromFile(r.InjectedScript, make(map[string]string))
-			if err != nil {
-				log.Printf("failed to inject %v into response for %v", r.InjectedScript, req.URL)
-				continue
-			}
-			injector.Transform(req, resp)
+		if r.scriptInjector != nil {
+			r.scriptInjector.Transform(req, resp)
 		}
 		/*
 			if disabled {

@@ -35,7 +35,7 @@ func validateTrim(t *testing.T, f func(req *http.Request, resp *http.Response) (
 }
 
 func TestFindRequestFuzzyMatching(t *testing.T) {
-	a := NewArchive()
+	a := newArchive()
 	const u = "https://example.com/a/b/c/+/query?usegapi=1&foo=bar&c=d"
 	const host = "example.com"
 	req := createArchivedRequest(t, u, nil)
@@ -57,7 +57,7 @@ func TestFindRequestFuzzyMatching(t *testing.T) {
 
 // Regression test for updating bestRatio when matching query params.
 func TestFindClosest(t *testing.T) {
-	a := NewArchive()
+	a := newArchive()
 	const host = "example.com"
 	a.Requests[host] = make(map[string][]*ArchivedRequest)
 	// Store three requests. u1 and u2 match equally well. u1 is chosen because
@@ -96,7 +96,7 @@ func TestFindClosest(t *testing.T) {
 
 // Regression test for https://github.com/catapult-project/catapult/issues/3727
 func TestMatchHeaders(t *testing.T) {
-	a := NewArchive()
+	a := newArchive()
 	const u = "https://example.com/mail/"
 	const host = "example.com"
 	headers := http.Header{}
@@ -130,7 +130,7 @@ func TestMatchHeaders(t *testing.T) {
 
 // When no header matches, the archived request with the same url should still be returned.
 func TestNoHeadersMatch(t *testing.T) {
-	a := NewArchive()
+	a := newArchive()
 	const u = "https://example.com/mail/"
 	const host = "example.com"
 	headers := http.Header{}
@@ -155,7 +155,7 @@ func TestNoHeadersMatch(t *testing.T) {
 
 // Test tie-breaking when an archive contains multiple responses for the same request.
 func TestTieBreak(t *testing.T) {
-	a := NewArchive()
+	a := newArchive()
 	const u = "https://example.com/mail/"
 	const host = "example.com"
 	const header1 = "1"
@@ -202,7 +202,7 @@ func TestTieBreak(t *testing.T) {
 // Test tie breaking in chronological order when an archive contains multiple responses for
 // the same request.
 func TestTieBreakChronologicalOrder(t *testing.T) {
-	a := NewArchive()
+	a := newArchive()
 	const u = "https://example.com/mail/"
 	const host = "example.com"
 	const header1 = "1"
@@ -260,8 +260,8 @@ func TestTieBreakChronologicalOrder(t *testing.T) {
 }
 
 func TestMerge(t *testing.T) {
-	a := NewArchive()
-	b := NewArchive()
+	a := newArchive()
+	b := newArchive()
 	const host = "example.com"
 	a.Requests[host] = make(map[string][]*ArchivedRequest)
 	b.Requests[host] = make(map[string][]*ArchivedRequest)
@@ -307,8 +307,8 @@ func TestMerge(t *testing.T) {
 // Test that requests with the same URL but different headers are not lost
 // during merge.
 func TestMergeDifferentHeaders(t *testing.T) {
-	a := NewArchive()
-	b := NewArchive()
+	a := newArchive()
+	b := newArchive()
 	const host = "example.com"
 	a.Requests[host] = make(map[string][]*ArchivedRequest)
 	b.Requests[host] = make(map[string][]*ArchivedRequest)
@@ -344,7 +344,7 @@ func TestAdd(t *testing.T) {
 	}))
 	defer func() { testServer.Close() }()
 
-	a := NewArchive()
+	a := newArchive()
 	if len(a.Requests) != 0 {
 		t.Fatalf("Expected empty archive")
 	}
@@ -450,7 +450,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestTrim(t *testing.T) {
-	a := NewArchive()
+	a := newArchive()
 
 	const host1 = "example.com"
 	const host2 = "example.gov"
