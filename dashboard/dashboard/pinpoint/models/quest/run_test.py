@@ -41,6 +41,10 @@ def SwarmingTagsFromJob(job):
   if job.batch_id is not None:
     ret['pinpoint_batch_id'] = job.batch_id
 
+  if job.tags is not None and job.tags.get('origin') == 'CQ':
+    ret['perf_on_cq'] = True
+    ret['pinpoint_configuration'] = job.configuration
+
   return ret
 
 

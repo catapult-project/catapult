@@ -33,9 +33,10 @@ _BASE_ARGUMENTS = {
 
 _BASE_SWARMING_TAGS = {}
 
-FakeJob = collections.namedtuple(
-    'Job', ['job_id', 'url', 'comparison_mode', 'user', 'state', 'bots',
-            'batch_id'])
+FakeJob = collections.namedtuple('Job', [
+    'job_id', 'url', 'comparison_mode', 'user', 'state', 'bots', 'batch_id',
+    'tags'
+])
 State = collections.namedtuple('State', ['attempt_count'])
 
 
@@ -46,7 +47,7 @@ class StartTest(unittest.TestCase):
                              None, None)
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
-                'user@example.com', State(1), ['a'], 'some_batch_id'))
+                'user@example.com', State(1), ['a'], 'some_batch_id', {}))
     execution = quest.Start('change', 'https://isolate.server', 'isolate hash')
     self.assertEqual(execution._extra_args, ['arg'])
 
@@ -192,7 +193,7 @@ class RunTestFullTest(_RunTestExecutionTest):
     # Propagate a thing that looks like a job.
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(1), ['a'], 'some_batch_id'))
+                'user@example.com', State(1), ['a'], 'some_batch_id', {}))
 
     execution = quest.Start(
         change.Change("a", variant=0), 'isolate server', 'input isolate hash')
@@ -298,7 +299,7 @@ class RunTestFullTest(_RunTestExecutionTest):
     # Propagate a thing that looks like a job.
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(2), ['b', 'a'], 'some_batch_id'))
+                'user@example.com', State(2), ['b', 'a'], 'some_batch_id', {}))
 
     change_a = change.Change("a", variant=0)
     change_b = change.Change("b", variant=1)
@@ -362,7 +363,7 @@ class RunTestFullTest(_RunTestExecutionTest):
     # Propagate a thing that looks like a job.
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(2), ['b', 'a'], 'some_batch_id'))
+                'user@example.com', State(2), ['b', 'a'], 'some_batch_id', {}))
 
     change_a = change.Change("a", variant=0)
     change_b = change.Change("b", variant=1)
@@ -397,7 +398,7 @@ class RunTestFullTest(_RunTestExecutionTest):
     # Propagate a thing that looks like a job.
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(1), ['a'], 'some_batch_id'))
+                'user@example.com', State(1), ['a'], 'some_batch_id', {}))
 
     execution_a = quest.Start(
         change.Change("a", variant=0), 'cas-instance', 'xxxxxxxx/111')
@@ -510,7 +511,7 @@ class RunTestFullTest(_RunTestExecutionTest):
     # Propagate a thing that looks like a job.
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(1), ['a'], 'some_batch_id'))
+                'user@example.com', State(1), ['a'], 'some_batch_id', {}))
 
     execution_a = quest.Start(
         change.Change("a", variant=0), 'cas-instance', 'xxxxxxxx/111')
@@ -575,7 +576,7 @@ class RunTestFullTest(_RunTestExecutionTest):
     quest = run_test.RunTest('server', DIMENSIONS, ['arg'], None, None, None)
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
-                'user@example.com', State(1), ['a'] , 'some_batch_id'))
+                'user@example.com', State(1), ['a'], 'some_batch_id', {}))
     quest.Start('change_1', 'isolate server', 'input isolate hash')
 
 
@@ -593,7 +594,7 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
                              None, None)
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(1), ['a'], 'some_batch_id'))
+                'user@example.com', State(1), ['a'], 'some_batch_id', {}))
     execution = quest.Start(
         change.Change("a", variant=0), 'isolate server', 'input isolate hash')
     quest.Start(
@@ -629,7 +630,7 @@ class SwarmingTaskStatusTest(_RunTestExecutionTest):
                              None, None)
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(1), ['a'], 'some_batch_id'))
+                'user@example.com', State(1), ['a'], 'some_batch_id', {}))
     execution = quest.Start(
         change.Change("a", variant=0), 'isolate server', 'input isolate hash')
     quest.Start(
@@ -660,7 +661,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
                              None, None)
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(1), ['a'], 'some_batch_id'))
+                'user@example.com', State(1), ['a'], 'some_batch_id', {}))
     execution_a = quest.Start(
         change.Change("a", variant=0), 'isolate server', 'input isolate hash')
     quest.Start(
@@ -678,7 +679,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
                              None, None)
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
-                'user@example.com', State(1), ['a'], 'some_batch_id'))
+                'user@example.com', State(1), ['a'], 'some_batch_id', {}))
     quest.Start('change_1', 'isolate server', 'input isolate hash')
 
   @mock.patch('dashboard.services.swarming.IsBotAlive',
@@ -694,7 +695,7 @@ class BotIdHandlingTest(_RunTestExecutionTest):
                              None, None)
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'try',
-                'user@example.com', State(1), ['a'], 'some_batch_id'))
+                'user@example.com', State(1), ['a'], 'some_batch_id', {}))
     execution_1 = quest.Start(
         change.Change("a", variant=0), 'input isolate server',
         'input isolate hash')
