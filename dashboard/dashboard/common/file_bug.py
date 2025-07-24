@@ -48,10 +48,11 @@ def _GetDocsForTest(test):
   return docs[0]
 
 
-def _AdditionalDetails(bug_id, project_id, alerts):
+def _AdditionalDetails(bug_id, project_id, alerts, skia_host=None):
   """Returns a message with additional information to add to a bug."""
   base_url = '%s/group_report' % _GetServerURL()
   bug_page_url = '%s?bug_id=%s&project_id=%s' % (base_url, bug_id, project_id)
+
   alert_keys = utils.ConvertBytesBeforeJsonDumps(_UrlsafeKeys(alerts))
   sid = short_uri.GetOrCreatePageState(json.dumps(alert_keys))
   alerts_url = '%s?sid=%s' % (base_url, sid)
@@ -59,6 +60,22 @@ def _AdditionalDetails(bug_id, project_id, alerts):
   comment += (
       '(For debugging:) Original alerts at time of bug-filing:\n  %s\n' %
       alerts_url)
+
+  if skia_host:
+    # For Skia, alerts are in integer ID form
+    integer_ids = [a.key.id() for a in alerts]
+
+    skia_id_string = ','.join(map(str, integer_ids))
+    skia_sid = short_uri.GetOrCreatePageState(skia_id_string)
+
+    skia_base_url = '%s/u/' % skia_host
+    skia_bug_page_url = '%s?bugID=%s' % (skia_base_url, bug_id)
+    skia_alerts_url = '%s?sid=%s' % (skia_base_url, skia_sid)
+
+    comment += ('\n<b>Graphs on Skia host:</b>\n  %s\n\n' % skia_bug_page_url)
+    comment += ('(For debugging:) Original alerts on Skia host:\n  %s\n' %
+                skia_alerts_url)
+
   bot_names = {a.bot_name for a in alerts}
   if bot_names:
     comment += '\n\nBot(s) for this bug\'s original alert(s):\n\n'
@@ -305,7 +322,8 @@ def FileBug(owner,
             components,
             keys,
             needs_bisect=True,
-            keys_are_urlsafe=True):
+            keys_are_urlsafe=True,
+            skia_host=None):
   logging.info('file a bug from legacy chromeperf UI')
   if keys_are_urlsafe:
     alert_keys = [ndb.Key(urlsafe=k) for k in keys]
@@ -343,7 +361,8 @@ def FileBug(owner,
 
   ndb.put_multi(alerts)
   logging.info('bug mapped to alert')
-  comment_body = _AdditionalDetails(bug_id, project_id, alerts)
+  comment_body = _AdditionalDetails(
+      bug_id, project_id, alerts, skia_host=skia_host)
 
   # Add the bug comment with the service account, so that there are no
   # permissions issues.

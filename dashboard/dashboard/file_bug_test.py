@@ -25,6 +25,8 @@ from dashboard.models import anomaly
 from dashboard.models import bug_label_patterns
 from dashboard.models import histogram
 from dashboard.models.subscription import Subscription
+from dashboard import short_uri
+
 
 from tracing.value.diagnostics import generic_set
 from tracing.value.diagnostics import reserved_infos
@@ -1178,3 +1180,40 @@ class FileBugTest(testing_common.TestCase):
     self.assertIn(
         b'<input type="checkbox" checked name="component" value="Abc&gt;Def">',
         response.body)
+
+  @mock.patch('google.appengine.api.app_identity.get_default_version_hostname',
+              mock.MagicMock(return_value='chromeperf.appspot.com'))
+  @mock.patch.object(file_bug.file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+                     mock.MagicMock(return_value=[]))
+  @mock.patch('dashboard.common.file_bug.auto_bisect.StartNewBisectForBug',
+              mock.MagicMock(return_value={'issue_id': 123}))
+  def testSkiaFileBug_WithHost_IncludesSkiaLinksInComment(self):
+    """Tests that providing a host adds Skia-specific links to the bug comment."""
+    anomaly_keys = self._AddSampleAlerts()
+    alerts_to_file = [anomaly_keys[0], anomaly_keys[1]]
+    integer_ids = [k.id() for k in alerts_to_file]
+    skia_host_name = 'https://perf.skia.org'
+
+    self.testapp.post_json(
+        '/file_bug_skia', {
+            'keys': integer_ids,
+            'title': 'Test Skia Links',
+            'description': 'A test bug.',
+            'component': 'Test>Component',
+            'host': skia_host_name,
+        })
+
+    comment = self._issue_tracker_service.add_comment_kwargs['comment']
+
+    self.assertIn('<b>All graphs for this bug:</b>', comment)
+    self.assertIn('https://chromeperf.appspot.com/group_report?bug_id=',
+                  comment)
+
+    self.assertIn('<b>Graphs on Skia host:</b>', comment)
+    self.assertIn('https://perf.skia.org/u/?bugID=', comment)
+
+    expected_id_string = ','.join(map(str, integer_ids))
+    expected_skia_sid = short_uri.GetOrCreatePageState(expected_id_string)
+
+    expected_skia_debug_url = 'https://perf.skia.org/u/?sid=%s' % expected_skia_sid
+    self.assertIn(expected_skia_debug_url, comment)

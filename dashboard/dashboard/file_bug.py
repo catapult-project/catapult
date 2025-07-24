@@ -137,6 +137,8 @@ def SkiaFileBugHandlerPost():
   ccs = data.get('ccs', [])
   # list of labels in string
   labels = data.get('labels', [])
+  # Skia host link
+  skia_host = data.get('host', '')
 
   create_bug_result = _CreateBug(
       owner=assignee,
@@ -147,7 +149,8 @@ def SkiaFileBugHandlerPost():
       labels=labels,
       components=[component],  # FileBug expects a list of components.
       urlsafe_keys='',
-      integer_keys=keys)
+      integer_keys=keys,
+      skia_host=skia_host)
 
   if 'error' in create_bug_result:
     return make_response(
@@ -184,8 +187,16 @@ def _ShowBugDialog(summary, description, urlsafe_keys):
       })
 
 
-def _CreateBug(owner, cc, summary, description, project_id, labels, components,
-               urlsafe_keys, integer_keys):
+def _CreateBug(owner,
+               cc,
+               summary,
+               description,
+               project_id,
+               labels,
+               components,
+               urlsafe_keys,
+               integer_keys,
+               skia_host=None):
   """Creates a bug, associates it with the alerts, sends a HTML response.
 
   Args:
@@ -211,9 +222,16 @@ def _CreateBug(owner, cc, summary, description, project_id, labels, components,
             project_domain
     }
   if urlsafe_keys:
-    template_params = file_bug.FileBug(owner, cc, summary, description,
-                                       project_id, labels, components,
-                                       urlsafe_keys.split(','))
+    template_params = file_bug.FileBug(
+        owner,
+        cc,
+        summary,
+        description,
+        project_id,
+        labels,
+        components,
+        urlsafe_keys.split(','),
+        skia_host=skia_host)
   else:
     template_params = file_bug.FileBug(
         owner,
@@ -224,5 +242,6 @@ def _CreateBug(owner, cc, summary, description, project_id, labels, components,
         labels,
         components,
         integer_keys,
-        keys_are_urlsafe=False)
+        keys_are_urlsafe=False,
+        skia_host=skia_host)
   return template_params
