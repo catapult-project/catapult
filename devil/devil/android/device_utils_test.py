@@ -4461,8 +4461,9 @@ class DeviceUtilsHealthyDevicesTest(mock_calls.TestCase):
 
   @mock.patch('time.sleep')
   @mock.patch('devil.android.sdk.adb_wrapper.RestartServer')
+  @mock.patch('devil.utils.reset_usb.reset_all_android_devices')
   def testHealthyDevices_EmptyListDeviceArg_no_attached_with_resets(
-      self, mock_restart, mock_sleep):
+      self, mock_reset_all_android_devices, mock_restart, mock_sleep):
     # The reset_usb import fails on windows. Mock the full import here so it can
     # succeed like it would on linux.
     mock_reset_import = mock.MagicMock()
