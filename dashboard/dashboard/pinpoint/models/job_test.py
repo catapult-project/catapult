@@ -1361,6 +1361,52 @@ class BugCommentTest(test.TestCase):
     self.ExecuteDeferredTasks('default')
     post_change_comment.assert_not_called()
 
+  @mock.patch('dashboard.pinpoint.models.change.Commit.AsDict')
+  @mock.patch('dashboard.pinpoint.models.sandwich_workflow_group.CloudWorkflow')
+  @mock.patch('dashboard.services.workflow_service.CreateExecution',
+              mock.MagicMock(return_value='test-workflow-execution-name'))
+  def testStartSandwich_CommitDictContainsCLNumber(self, mock_cloud_workflow,
+                                                   mock_as_dict):
+    j = job.Job.New(
+        (), (),
+        arguments={
+            'benchmark': 'speedometer2',
+            'configuration': 'linux-perf',
+            'story': 'some-story',
+            'chart': 'Total'
+        },
+        bug_id=123456)
+
+    mock_as_dict.return_value = {
+        'repository':
+            'chromium',
+        'git_hash':
+            'git_hash_1',
+        'review_url':
+            'https://chromium-review.googlesource.com/c/chromium/src/+/987654'
+    }
+
+    mock_cloud_workflow.return_value.put.return_value.id.return_value = 999
+
+    c0 = change.Change((change.Commit('chromium', 'git_hash_0'),))
+    c1 = change.Change((change.Commit('chromium', 'git_hash_1'),))
+    differences = [(c0, c1)]
+    result_values = {c0: [0], c1: [10]}
+
+    j._StartSandwichAndUpdateWorkflowGroup(anomaly.DOWN, differences,
+                                           result_values)
+
+    call_args = mock_cloud_workflow.call_args
+    self.assertIsNotNone(call_args, "CloudWorkflow constructor was not called.")
+
+    commit_dict = call_args.kwargs.get('commit_dict')
+    self.assertIsNotNone(commit_dict)
+
+    self.assertEqual(commit_dict.get('cl_number'), '987654')
+
+    self.assertEqual(commit_dict.get('git_hash'), 'git_hash_1')
+    self.assertEqual(commit_dict.get('repository'), 'chromium')
+
 @mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
             mock.MagicMock(return_value=["a"]))
 class GetImprovementDirectionTest(testing_common.TestCase):

@@ -701,9 +701,19 @@ class Job(ndb.Model):
         }
       else:
         kind = 'commit'
+        commit_info = change_b.last_commit.AsDict()
+        review_url = commit_info.get('review_url')  # Safely get the URL
+
+        cl_number = ''
+        if not review_url:
+          logging.warning('[CULPRITS] Culprit commit does not have review_url.')
+        else:
+          cl_number = review_url.split('/')[-1]
+
         commit_dict = {
             'repository': change_b.last_commit.repository,
             'git_hash': change_b.last_commit.git_hash,
+            'cl_number': cl_number,
         }
       regression_cnt += 1
       # Call sandwich verification workflow.
