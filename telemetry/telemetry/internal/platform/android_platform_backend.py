@@ -86,6 +86,8 @@ _DEVICE_COPY_SCRIPT_LOCATION = (
 _DEVICE_MEMTRACK_HELPER_LOCATION = '/data/local/tmp/profilers/memtrack_helper'
 _DEVICE_CLEAR_SYSTEM_CACHE_TOOL_LOCATION = '/data/local/tmp/clear_system_cache'
 
+_OS_LETTER_CUTOFF_VERSION = 13
+
 
 class _VideoRecorder():
   def __init__(self):
@@ -369,18 +371,14 @@ class AndroidPlatformBackend(
     return self._device.product_model
 
   def GetTypExpectationsTags(self):
-    os_release_version = self.GetOSReleaseVersion()
+    os_release_version = int(self.GetOSReleaseVersion())
     tags = [
         self.GetOSName(),
         f'android-{os_release_version}',
     ]
-    # Starting in 2024, the Android image naming scheme changed so that the
-    # first letter no longer corresponds to the codename, e.g. Android 14 is
-    # no longer Android U. Instead, the release version should be used directly.
-    # The letter version is kept around for backwards compatibility for OS
-    # versions that stopped being updated prior to the naming change. See
-    # crbug.com/333795261 for details.
-    if int(os_release_version) <= 13:
+    # See comment in GetOSVersionName() for why we report additional tags on
+    # older Android versions.
+    if os_release_version <= _OS_LETTER_CUTOFF_VERSION:
       os_version = self.GetOSVersionName().lower()
       os_version = _MAP_TO_USER_FRIENDLY_OS_NAMES.get(os_version, os_version)
       tags.append(f'android-{os_version}')
@@ -404,7 +402,15 @@ class AndroidPlatformBackend(
 
   @decorators.Cache
   def GetOSVersionName(self):
-    return self._device.GetProp('ro.build.id')[0]
+    # Starting in 2024, the Android image naming scheme changed so that the
+    # first letter no longer corresponds to the codename, e.g. Android 14 is
+    # no longer Android U. For versions prior to this change, report the letter
+    # for backwards compatibility. Otherwise, report the numerical version. See
+    # crbug.com/333795261 for details.
+    os_release_version = self.GetOSReleaseVersion()
+    if int(os_release_version) <= _OS_LETTER_CUTOFF_VERSION:
+      return self._device.GetProp('ro.build.id')[0]
+    return os_release_version
 
   def GetOSVersionDetailString(self):
     return self._device.GetProp('ro.build.id')
