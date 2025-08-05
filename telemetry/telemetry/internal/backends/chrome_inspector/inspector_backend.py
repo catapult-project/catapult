@@ -80,12 +80,15 @@ class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
       self._console = inspector_console.InspectorConsole(self._websocket)
       self._log = inspector_log.InspectorLog(self._websocket)
       self._memory = inspector_memory.InspectorMemory(self._websocket)
-      self._page = inspector_page.InspectorPage(
-          self._websocket, timeout=timeout)
       self._runtime = inspector_runtime.InspectorRuntime(self._websocket)
-      self._serviceworker = inspector_serviceworker.InspectorServiceWorker(
-          self._websocket, timeout=timeout)
       self._storage = inspector_storage.InspectorStorage(self._websocket)
+
+      # Only enable 'Page' and 'ServiceWorker' domain for 'page' targets.
+      if self._context['type'] == 'page':
+        self._page = inspector_page.InspectorPage(self._websocket,
+                                                  timeout=timeout)
+        self._serviceworker = inspector_serviceworker.InspectorServiceWorker(
+            self._websocket, timeout=timeout)
     except (inspector_websocket.WebSocketException, exceptions.TimeoutException,
             py_utils.TimeoutException) as e:
       self._ConvertExceptionFromInspectorWebsocket(e)

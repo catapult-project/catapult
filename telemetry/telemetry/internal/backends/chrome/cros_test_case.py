@@ -40,11 +40,6 @@ class CrOSTestCase(unittest.TestCase):
           path=extension_path,
           browser_type=finder_options.browser_type)
       browser_options.extensions_to_load = [self._load_extension]
-      # TODO(https://crbug.com/354627706): Migrate extensions to MV3 and remove
-      # this flag.
-      browser_options.AppendExtraBrowserArgs(
-          '--disable-features=ExtensionManifestV2Disabled,' +
-          'ExtensionManifestV2Unsupported')
 
     browser_to_create = browser_finder.FindBrowser(finder_options)
     self.assertTrue(browser_to_create)
@@ -78,10 +73,10 @@ class CrOSTestCase(unittest.TestCase):
     self.assertTrue(extension.EvaluateJavaScript(
         "typeof('chrome.autotestPrivate') != 'undefined'"))
     extension.ExecuteJavaScript('''
-        window.__login_status = null;
+        self.__login_status = null;
         chrome.autotestPrivate.loginStatus(function(s) {
-          window.__login_status = s;
+          self.__login_status = s;
         });
     ''')
-    return extension.WaitForJavaScriptCondition(
-        'window.__login_status', timeout=10)
+    return extension.WaitForJavaScriptCondition('self.__login_status',
+                                                timeout=10)

@@ -172,11 +172,18 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         return False
       for extension_object in extension_objects:
         try:
+          # For Manifest V3 extensions, the background script is a service
+          # worker, which doesn't have a document. We check for service
+          # worker global scope to identify these extensions. For MV2
+          # background pages, check that the document has finished loading
+          # the expected URL.
           res = extension_object.EvaluateJavaScript(
               """
-              document.URL.lastIndexOf({{ url }}, 0) == 0 &&
-              (document.readyState == 'complete' ||
-               document.readyState == 'interactive')
+              (typeof ServiceWorkerGlobalScope !== 'undefined' &&
+               self instanceof ServiceWorkerGlobalScope) ||
+              (document.URL.lastIndexOf({{ url }}, 0) == 0 &&
+               (document.readyState == 'complete' ||
+                document.readyState == 'interactive'))
               """,
               url='chrome-extension://%s/' % e.extension_id)
         except exceptions.EvaluateException:
