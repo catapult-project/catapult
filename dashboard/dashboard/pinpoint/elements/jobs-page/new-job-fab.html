@@ -196,7 +196,7 @@ found in the LICENSE file.
               <div class="column rightPad">
                 <autocomplete-box id="botDropdown"
                                   name="configuration"
-                                  items="{{arrayToAutocompleteList(config.configurations)}}"
+                                  items="{{arrayToAutocompleteList(_filteredConfigurations)}}"
                                   disabled="[[!validConfig(config)]]"
                                   placeholder="Bot"
                                   selected-name="{{configuration}}"
@@ -440,6 +440,10 @@ found in the LICENSE file.
           value: 'commit'
         },
         config: Object,
+        _filteredConfigurations: {
+          type: Array,
+          computed: '_computeFilteredConfigs(config.configurations)'
+        },
         configuration: String,
         configLoading: {
           type: Boolean,
@@ -501,6 +505,18 @@ found in the LICENSE file.
         'commitSourceChangedBase(commitSourceBase)',
         'commitSourceChangedExp(commitSourceExp)'
       ],
+
+      _computeFilteredConfigs: function(configurations) {
+        // Return an empty array if the input isn't ready yet
+        if (!configurations || configurations.length === 0) {
+          return [];
+        }
+
+        // CQ configurations which we don't want end users to use.
+        return configurations.filter(function(configName) {
+          return !configName.endsWith('perf-cq');
+        });
+      },
 
       openDialog() {
         this.client.open_dialog = () => {
