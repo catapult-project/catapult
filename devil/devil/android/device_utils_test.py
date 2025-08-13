@@ -4018,19 +4018,23 @@ class DeviceUtilsSetWebViewImplementationTest(DeviceUtilsTest):
         self.device.SetWebViewImplementation('foo.org')
       self.assertIn('is not installed', cfe.exception.message)
 
-  def _testSetWebViewImplementationHelper(self, mock_dump_sys,
-                                          exception_message_substr):
-    with self.patch_call(
-        self.call.device.IsApplicationInstalled, return_value=True):
+  def _testSetWebViewImplementationHelper(self,
+                                          mock_dump_sys,
+                                          exception_message_substr,
+                                          sdk_int=version_codes.Q):
+    with self.patch_call(self.call.device.IsApplicationInstalled,
+                         return_value=True):
       with self.assertCall(
           self.call.adb.Shell(
               'cmd webviewupdate set-webview-implementation foo.org',
               timeout=mock.ANY), 'Oops!'):
-        with self.patch_call(self.call.device.GetWebViewUpdateServiceDump,
-                             return_value=mock_dump_sys):
-          with self.assertRaises(device_errors.CommandFailedError) as cfe:
-            self.device.SetWebViewImplementation('foo.org')
-          self.assertIn(exception_message_substr, cfe.exception.message)
+        with self.patch_call(self.call.device.build_version_sdk,
+                             return_value=sdk_int):
+          with self.patch_call(self.call.device.GetWebViewUpdateServiceDump,
+                               return_value=mock_dump_sys):
+            with self.assertRaises(device_errors.CommandFailedError) as cfe:
+              self.device.SetWebViewImplementation('foo.org')
+            self.assertIn(exception_message_substr, cfe.exception.message)
 
   def testSetWebViewImplementation_notInProviderList(self):
     mock_dump_sys = {
@@ -4063,11 +4067,11 @@ class DeviceUtilsSetWebViewImplementationTest(DeviceUtilsTest):
     with self.assertCalls(
         (self.call.device.GetApplicationTargetSdk('foo.org'), '29'),
         (self.call.device.GetProp('ro.build.version.preview_sdk'), '0')):
-      with self.patch_call(self.call.device.build_version_sdk, return_value=30):
-        self._testSetWebViewImplementationHelper(
-            mock_dump_sys,
-            "has targetSdkVersion '29', but valid WebView providers must "
-            "target >= 30 on this device")
+      self._testSetWebViewImplementationHelper(
+          mock_dump_sys,
+          "has targetSdkVersion '29', but valid WebView providers must "
+          "target >= 30 on this device",
+          sdk_int=version_codes.R)
 
   def testSetWebViewImplementation_lowTargetSdkVersion_prefinalizedSdk(self):
     mock_dump_sys = {'WebViewPackages': {'foo.org': 'SDK version too low', }}
@@ -4075,11 +4079,11 @@ class DeviceUtilsSetWebViewImplementationTest(DeviceUtilsTest):
         (self.call.device.GetApplicationTargetSdk('foo.org'), '29'),
         (self.call.device.GetProp('ro.build.version.preview_sdk'), '1'),
         (self.call.device.GetProp('ro.build.version.codename'), 'R')):
-      with self.patch_call(self.call.device.build_version_sdk, return_value=29):
-        self._testSetWebViewImplementationHelper(
-            mock_dump_sys,
-            "targets a finalized SDK ('29'), but valid WebView providers must "
-            "target a pre-finalized SDK ('R') on this device")
+      self._testSetWebViewImplementationHelper(
+          mock_dump_sys,
+          "targets a finalized SDK ('29'), but valid WebView providers must "
+          "target a pre-finalized SDK ('R') on this device",
+          sdk_int=version_codes.Q)
 
   def testSetWebViewImplementation_lowVersionCode(self):
     mock_dump_sys = {
@@ -4095,6 +4099,44 @@ class DeviceUtilsSetWebViewImplementationTest(DeviceUtilsTest):
     mock_dump_sys = {'WebViewPackages': {'foo.org': 'Incorrect signature'}}
     self._testSetWebViewImplementationHelper(mock_dump_sys,
                                              'signed with release keys')
+
+  def testSetWebViewImplementation_android14_workaround(self):
+    mock_dump_sys = {'CurrentWebViewPackage': 'foo.org'}
+    android14_error = ('java.lang.NullPointerException: Attempt to get length '
+                       'of null array')
+    with self.patch_call(self.call.device.IsApplicationInstalled,
+                         return_value=True):
+      with self.patch_call(self.call.device.build_version_sdk,
+                           return_value=version_codes.UPSIDE_DOWN_CAKE):
+        with self.assertCall(
+            self.call.adb.Shell(
+                'cmd webviewupdate set-webview-implementation foo.org',
+                timeout=mock.ANY), android14_error):
+          with self.patch_call(self.call.device.GetWebViewUpdateServiceDump,
+                               return_value=mock_dump_sys):
+            self.device.SetWebViewImplementation('foo.org')
+
+  def testSetWebViewImplementation_android14_error(self):
+    mock_dump_sys = {
+        'CurrentWebViewPackage': 'wrong.package',
+        'WebViewPackages': {
+            'foo.org': 'Incorrect signature'
+        }
+    }
+    android14_error = ('java.lang.NullPointerException: Attempt to get length '
+                       'of null array')
+    with self.patch_call(self.call.device.IsApplicationInstalled,
+                         return_value=True):
+      with self.patch_call(self.call.device.build_version_sdk,
+                           return_value=version_codes.UPSIDE_DOWN_CAKE):
+        with self.assertCall(
+            self.call.adb.Shell(
+                'cmd webviewupdate set-webview-implementation foo.org',
+                timeout=mock.ANY), android14_error):
+          with self.patch_call(self.call.device.GetWebViewUpdateServiceDump,
+                               return_value=mock_dump_sys):
+            with self.assertRaises(device_errors.CommandFailedError):
+              self.device.SetWebViewImplementation('foo.org')
 
 
 class DeviceUtilsSetWebViewFallbackLogicTest(DeviceUtilsTest):
