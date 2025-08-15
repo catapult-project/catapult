@@ -1376,3 +1376,61 @@ crbug.com/12345 [ tag3 tag4 ] b1/s1 [ Skip ]
             expectations_parser.TaggedTestListParser(raw_data)
         self.assertIn('1: duplicate tag(s): Win',
                       str(context.exception))
+
+    def testUniqueTagsCanAppearAfterExpectationsWhenDisabledCheck(self):
+        # When disabled tag found after Expectation check, tags can appear
+        # after expectations and get parsed with tags appear before if they
+        # don't overlap with those tags appear before, otherwise an error will
+        # be raised indicating the tag was found in multiple tag sets.
+        raw_data = (
+            '# tags: [ Mac Win ]\n'
+            '# results: [ Failure Skip ]\n'
+            'crbug.com/12345 [ Mac ] b1/s1 [ Failure ]\n'
+            '# tags: [ Linux ]\n'
+            'crbug.com/12346 [ Linux ] b1/s2 [ Skip ]\n')
+        parser = expectations_parser.TaggedTestListParser(raw_data,
+            disable_tag_found_after_expectations_check=True)
+        self.assertEqual(len(parser.expectations), 2)
+        self.assertEqual(parser.expectations[0].reason, 'crbug.com/12345')
+        self.assertEqual(parser.expectations[0].tags, {'mac'})
+        self.assertEqual(parser.expectations[0].test, 'b1/s1')
+        self.assertEqual(parser.expectations[0].results, {'FAIL'})
+        self.assertEqual(parser.expectations[1].reason, 'crbug.com/12346')
+        self.assertEqual(parser.expectations[1].tags, {'linux'})
+        self.assertEqual(parser.expectations[1].test, 'b1/s2')
+        self.assertEqual(parser.expectations[1].results, {'SKIP'})
+
+    def testUniqueTagsCanNotAppearAfterExpectationsWhenEnabledCheck(self):
+        # Tags overlap with existing tags cannot appear after expectations and
+        # an error will be raised indicating the tag was found in multiple tag
+        # sets.
+        raw_data = (
+            '# tags: [ Mac Win ]\n'
+            '# results: [ Failure Skip ]\n'
+            'crbug.com/12345 [ Mac ] b1/s1 [ Failure ]\n'
+            '# tags: [ Win ]\n'
+            'crbug.com/12346 [ Win ] b1/s2 [ Skip ]\n')
+
+        # disable_tag_found_after_expectations_check is default to False if
+        # not specified in TaggedTestListParser constructor.
+        with self.assertRaises(expectations_parser.ParseError) as context:
+            expectations_parser.TaggedTestListParser(raw_data)
+        self.assertIn('4: Tag found after first expectation.',
+                      str(context.exception))
+
+    def testOverlappedTagsCanNotAppearAfterExpectationsWhenDisabledCheck(self):
+        # Tags overlap with existing tags cannot appear after expectations and
+        # an error will be raised indicating the tag was found in multiple tag
+        # sets.
+        raw_data = (
+            '# tags: [ Mac Win ]\n'
+            '# results: [ Failure Skip ]\n'
+            'crbug.com/12345 [ Mac ] b1/s1 [ Failure ]\n'
+            '# tags: [ Win ]\n'
+            'crbug.com/12346 [ Win ] b1/s2 [ Skip ]\n')
+
+        with self.assertRaises(expectations_parser.ParseError) as context:
+            expectations_parser.TaggedTestListParser(raw_data,
+                disable_tag_found_after_expectations_check=True)
+        self.assertIn('The tag win was found in multiple tag sets',
+                      str(context.exception))

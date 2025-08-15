@@ -484,15 +484,37 @@ class Runner(object):
     def parse_expectations(self):
         args = self.args
 
+        all_contents = []
         if len(args.expectations_files) != 1:
             # TODO(crbug.com/835690): Fix this.
             self.print_(
                 'Only a single expectation file is currently supported',
                 stream=self.host.stderr)
             return 1
-        contents = self.host.read_text_file(args.expectations_files[0])
 
-        expectations = TestExpectations(set(args.tags), args.ignored_tags)
+        # Handle main expectations file.
+        all_contents.append(
+            self.host.read_text_file(args.expectations_files[0]))
+
+        # Handle additional expectations files. This is a temporary solution to
+        # support appending additional tags header and expectations to the main
+        # expectations files to support certain user cases, while the long term
+        # solution should support parsing multiple expectations files and merge
+        # tags with more flexible approaches, which is tracked by
+        # crbug.com/40276328.
+        if args.additional_expectations_files:
+            for expectations_file in args.additional_expectations_files:
+                all_contents.append(self.host.read_text_file(expectations_file))
+
+        # Combine the contents.
+        contents = '\n'.join(all_contents)
+
+        # Parse the combined content.
+        disable_tag_found_after_expectations_check = bool(
+            args.additional_expectations_files)
+        expectations = TestExpectations(
+            set(args.tags), args.ignored_tags, None, None,
+            disable_tag_found_after_expectations_check)
         err, msg = expectations.parse_tagged_list(
             contents, args.expectations_files[0],
             tags_conflict=self.tag_conflict_checker)
@@ -502,6 +524,7 @@ class Runner(object):
 
         self.has_expectations = True
         self.expectations = expectations
+        return 0
 
     def find_tests(self, args):
         test_set = TestSet(self.args.test_name_prefix)

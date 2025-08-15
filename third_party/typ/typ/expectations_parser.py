@@ -281,7 +281,8 @@ class TaggedTestListParser(object):
 
     def __init__(self, raw_data,
                  conflict_resolution=ConflictResolutionTypes.UNION,
-                 encode_func=None, decode_func=None):
+                 encode_func=None, decode_func=None,
+                 disable_tag_found_after_expectations_check=False):
         self.tag_sets = set()
         self.conflicts_allowed = False
         self.full_wildcard_support = False
@@ -291,6 +292,8 @@ class TaggedTestListParser(object):
         self.conflict_resolution = conflict_resolution
         self._encode_func = encode_func
         self._decode_func = decode_func
+        self._disable_tag_found_after_expectations_check = (
+            disable_tag_found_after_expectations_check)
         self._parse_raw_expectation_data(raw_data)
 
     def _parse_raw_expectation_data(self, raw_data):
@@ -337,7 +340,13 @@ class TaggedTestListParser(object):
             A set of strings containing any tag set intersections found while
             parsing the given line.
         """
-        if self.expectations:
+        # Disable "Tag found after first expectation" check only if it's
+        # specifically disabled to support additional expectations files. This
+        # is a temporary solution to allow more flexible parsing for certain
+        # cases while the long term solution should support parsing multiple
+        # expectations files more flexibly.
+        if (self.expectations and
+            not self._disable_tag_found_after_expectations_check):
             raise ParseError(lineno,
                              'Tag found after first expectation.')
         if line.startswith(self.TAG_TOKEN):
@@ -600,7 +609,8 @@ class TaggedTestListParser(object):
 class TestExpectations(object):
 
     def __init__(self, tags=None, ignored_tags=None, encode_func=None,
-                 decode_func=None):
+                 decode_func=None,
+                 disable_tag_found_after_expectations_check=False):
         self.tag_sets = set()
         self.ignored_tags = set(ignored_tags or [])
         self.set_tags(tags or [])
@@ -616,6 +626,8 @@ class TestExpectations(object):
         self._conflict_resolution = ConflictResolutionTypes.UNION
         self._encode_func = encode_func
         self._decode_func = decode_func
+        self._disable_tag_found_after_expectations_check = (
+            disable_tag_found_after_expectations_check)
 
     def set_tags(self, tags, raise_ex_for_bad_tags=False):
         self.validate_condition_tags(tags, raise_ex_for_bad_tags)
@@ -668,10 +680,13 @@ class TestExpectations(object):
         self._conflict_resolution = conflict_resolution
         tags_conflict = tags_conflict or _default_tags_conflict
         try:
-            parser = TaggedTestListParser(raw_data,
-                                          conflict_resolution,
-                                          encode_func=self._encode_func,
-                                          decode_func=self._decode_func)
+            parser = TaggedTestListParser(
+                raw_data,
+                conflict_resolution,
+                encode_func=self._encode_func,
+                decode_func=self._decode_func,
+                disable_tag_found_after_expectations_check=
+                    self._disable_tag_found_after_expectations_check)
         except ParseError as e:
             return 1, str(e)
         # If we have parsed another tagged list before, ensure that the tag sets

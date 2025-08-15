@@ -230,6 +230,15 @@ class ArgumentParser(argparse.ArgumentParser):
                               default=[], action='append',
                               help=('test expectations file (can specify '
                                     'multiple times'))
+            self.add_argument('--additional-expectations',
+                              dest='additional_expectations_files',
+                              default=[], action='append',
+                              help=('additional test expectations files to be '
+                                    'concatenated with the main expectations '
+                                    'files. This argument will disable the '
+                                    '"Tag found after first expectation" check'
+                                    ' since it allows new tags to be appended '
+                                    'to expectations.'))
             self.add_argument('--passthrough', action='store_true',
                               default=False,
                               help='Prints all output while running.')

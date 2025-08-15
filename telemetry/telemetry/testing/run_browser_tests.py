@@ -341,6 +341,8 @@ def RunTests(args):
   typ_runner.args.disable_resultsink = options.disable_resultsink
   typ_runner.args.rdb_content_output_file = options.rdb_content_output_file
   typ_runner.args.use_global_pool = options.use_global_pool
+  typ_runner.args.additional_expectations_files = (
+      options.additional_expectations_files)
 
   typ_runner.classifier = _GetClassifier(typ_runner)
   typ_runner.path_delimiter = test_class.GetJSONResultsDelimiter()

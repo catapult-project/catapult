@@ -469,3 +469,116 @@ class RealTestFuncTests(TestCase):
 
 setattr(test_func, 'real_test_func', stub_test_func)
 setattr(RealTestFuncTests, 'test_use_real_test_func_attribute', test_func)
+
+class ParseAdditionalExpectationsTests(TestCase):
+    def test_parse_expectations_files_with_additional_expectations(self):
+        # Test that parse_expectations() correctly parses main expectations
+        # files together with additional expectations files.
+        h = Host()
+        orig_wd = h.getcwd()
+        tmpdir = None
+        try:
+            tmpdir = h.mkdtemp()
+            h.chdir(tmpdir)
+
+            # Create first additional expectations file.
+            h.write_text_file('first_additional_expectations.txt', d("""\
+                crbug.com/12347 [ Win ] b1/s3 [ Skip ]
+                """))
+
+            # Create second additional expectations file.
+            h.write_text_file('second_additional_expectations.txt', d("""\
+                # tags: [ Mac ]
+                crbug.com/12348 [ Mac ] b1/s4 [ Failure ]
+                """))
+
+            # Create main expectations file.
+            h.write_text_file('expectations.txt', d("""\
+                # tags: [ Win Linux ]
+                # results: [ Skip Failure ]
+                crbug.com/12345 [ Win ] b1/s1 [ Failure ]
+                crbug.com/12346 [ Linux ] b1/s2 [ Skip ]
+                """))
+
+            r = Runner(h)
+            # Set up minimal args.
+            r.args.expectations_files = [h.join(tmpdir, 'expectations.txt')]
+            r.args.additional_expectations_files = [
+                h.join(tmpdir, 'first_additional_expectations.txt'),
+                h.join(tmpdir, 'second_additional_expectations.txt')]
+            r.args.tags = []
+            r.args.ignored_tags = []
+
+            # Call parse_expectations.
+            ret = r.parse_expectations()
+
+            # Should succeed.
+            self.assertEqual(ret, 0)
+            self.assertTrue(r.has_expectations)
+            self.assertIsNotNone(r.expectations)
+
+            # Verify that expectations from all files are present with correct
+            # orders.
+            exps = r.expectations.individual_exps
+            self.assertEqual(len(exps), 4)
+            self.assertEqual(list(exps.keys()), ['b1/s1', 'b1/s2', 'b1/s3', 'b1/s4'])
+            # Verify that expectations have correct results
+            self.assertEqual(exps['b1/s1'][0].results, {'FAIL'})
+            self.assertEqual(exps['b1/s1'][0].tags, {'win'})
+            self.assertEqual(exps['b1/s2'][0].results, {'SKIP'})
+            self.assertEqual(exps['b1/s2'][0].tags, {'linux'})
+            self.assertEqual(exps['b1/s3'][0].results, {'SKIP'})
+            self.assertEqual(exps['b1/s3'][0].tags, {'win'})
+            self.assertEqual(exps['b1/s4'][0].results, {'FAIL'})
+            self.assertEqual(exps['b1/s4'][0].tags, {'mac'})
+
+        finally:
+            h.chdir(orig_wd)
+            if tmpdir:
+                h.rmtree(tmpdir)
+
+    def test_parse_expectations_files_without_additional_expectations(self):
+        # Test that parse_expectations() correctly parses main expectations
+        # files without additional expectations files.
+        h = Host()
+        orig_wd = h.getcwd()
+        tmpdir = None
+        try:
+            tmpdir = h.mkdtemp()
+            h.chdir(tmpdir)
+
+            # Create main expectations file.
+            h.write_text_file('expectations.txt', d("""\
+                # tags: [ Win Linux ]
+                # results: [ Skip Failure ]
+                crbug.com/12345 [ Win ] b1/s1 [ Failure ]
+                crbug.com/12346 [ Linux ] b1/s2 [ Skip ]
+                """))
+
+            r = Runner(h)
+            # Set up minimal args.
+            r.args.expectations_files = [h.join(tmpdir, 'expectations.txt')]
+            r.args.tags = []
+            r.args.ignored_tags = []
+
+            # Call parse_expectations.
+            ret = r.parse_expectations()
+
+            # Should succeed.
+            self.assertEqual(ret, 0)
+            self.assertTrue(r.has_expectations)
+            self.assertIsNotNone(r.expectations)
+
+            # Verify that expectations are present with correct orders.
+            exps = r.expectations.individual_exps
+            self.assertEqual(len(exps), 2)
+            self.assertEqual(list(exps.keys()), ['b1/s1', 'b1/s2'])
+            self.assertEqual(exps['b1/s1'][0].results, {'FAIL'})
+            self.assertEqual(exps['b1/s1'][0].tags, {'win'})
+            self.assertEqual(exps['b1/s2'][0].results, {'SKIP'})
+            self.assertEqual(exps['b1/s2'][0].tags, {'linux'})
+
+        finally:
+            h.chdir(orig_wd)
+            if tmpdir:
+                h.rmtree(tmpdir)
