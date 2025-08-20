@@ -3984,7 +3984,8 @@ class DeviceUtils(object):
               '%s is not signed with release keys (but user builds require '
               'this for WebView providers)' % package_name, str(self))
       raise device_errors.CommandFailedError(
-          'Error setting WebView provider: %s' % output, str(self))
+          'Cannot change WebView provider. Wanted (%s) but current is (%s). '
+          'Error: %s' % (package_name, current_provider, output), str(self))
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def SetWebViewFallbackLogic(self, enabled, timeout=None, retries=None):
