@@ -388,8 +388,8 @@ def RequestBuild(builder_name, change, bucket, build_tags, task=None):
 
 
 def BuildTagsFromJob(job):
-  return collections.OrderedDict([
-      ('pinpoint_job_id', job.job_id),
-      ('pinpoint_user', job.user),
-      ('pinpoint_url', job.url),
-  ])
+  return collections.OrderedDict([('pinpoint_job_id', job.job_id),
+                                  ('pinpoint_user', job.user),
+                                  ('pinpoint_url', job.url),
+                                  ('perf_on_cq', job.tags.get('origin') == 'CQ')
+                                 ])

@@ -118,7 +118,8 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
     job = job_module.Job.New((), (),
                              comparison_mode='performance',
                              use_execution_engine=True,
-                             arguments={'comparison_mode': 'performance'})
+                             arguments={'comparison_mode': 'performance'},
+                             tags={'origin': 'CQ'})
     self.PopulateSimpleBisectionGraph(job)
     task_updates.HandleTaskUpdate(
         json.dumps({
@@ -206,7 +207,8 @@ class ExecutionEngineTaskUpdatesTest(bisection_test_util.BisectionTestBase):
 
     job = job_module.Job.New((), (),
                              use_execution_engine=True,
-                             comparison_mode='performance')
+                             comparison_mode='performance',
+                             tags={'origin': 'CQ'})
     self.PopulateSimpleBisectionGraph(job)
     self.assertTrue(job.use_execution_engine)
     self.assertFalse(job.running)

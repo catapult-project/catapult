@@ -19,7 +19,7 @@ from dashboard.pinpoint.models.quest import find_isolate
 import six
 
 FakeJob = collections.namedtuple('Job',
-                                 ['job_id', 'url', 'comparison_mode', 'user'])
+                                 ['job_id', 'url', 'comparison_mode', 'user', 'tags'])
 
 
 class FindIsolateQuestTest(unittest.TestCase):
@@ -108,7 +108,7 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
     # Propagate a thing that looks like a job.
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
-                'user@example.com'))
+                'user@example.com', {}))
 
     execution = quest.Start(change_test.Change(123))
     execution.Poll()
@@ -148,7 +148,7 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
     # Propagate a thing that looks like a job.
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
-                'user@example.com'))
+                'user@example.com', {}))
 
     execution = quest.Start(change_test.Change(999))
     execution.Poll()
@@ -192,7 +192,7 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
     # Propagate a thing that looks like a job.
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
-                'user@example.com'))
+                'user@example.com', {}))
 
     execution = quest.Start(change_test.Change(123))
     execution.Poll()
@@ -235,7 +235,7 @@ class IsolateLookupTest(_FindIsolateExecutionTest):
     # Propagate a thing that looks like a job.
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
-                'user@example.com'))
+                'user@example.com', {}))
 
     execution = quest.Start(change_test.Change(123))
     execution._build = True
@@ -331,7 +331,7 @@ class BuildTest(_FindIsolateExecutionTest):
     # Propagate a thing that looks like a job.
     quest.PropagateJob(
         FakeJob('cafef00d', 'https://pinpoint/cafef00d', 'performance',
-                'user@example.com'))
+                'user@example.com', {}))
     execution = quest.Start(change)
 
     # Request a build.
@@ -347,6 +347,7 @@ class BuildTest(_FindIsolateExecutionTest):
             'pinpoint_job_id:cafef00d',
             'pinpoint_user:user@example.com',
             'pinpoint_url:https://pinpoint/cafef00d',
+            'perf_on_cq:False'
         ], {
             'builder_name': 'Mac Builder',
             'properties': {

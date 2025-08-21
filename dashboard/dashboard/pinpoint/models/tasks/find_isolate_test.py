@@ -27,7 +27,7 @@ class FindIsolateEvaluatorBase(test.TestCase):
     self.maxDiff = None
     with mock.patch('dashboard.services.swarming.GetAliveBotsByDimensions',
                     mock.MagicMock(return_value=["a"])):
-      self.job = job_module.Job.New((), ())
+      self.job = job_module.Job.New((), (), tags={})
     task_module.PopulateTaskGraph(
         self.job,
         find_isolate.CreateGraph(
