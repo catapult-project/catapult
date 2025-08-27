@@ -23,6 +23,7 @@ See go/resultdb and go/resultsink for more details.
 import base64
 from collections.abc import Mapping
 import contextlib
+import enum
 import hashlib
 import json
 import os
@@ -56,9 +57,13 @@ STDERR_KEY = 'typ_stderr'
 MAX_TAG_LENGTH = 256
 SHA1_HEX_HASH_LENGTH = 40
 
+class ModuleScheme(enum.Enum):
+    PYUNIT = 'pyunit'
+    WEBTEST = 'webtest'
+
 
 class ResultSinkReporter(object):
-    def __init__(self, host=None, disable=False, output_file=None):
+    def __init__(self, host=None, disable=False, output_file=None, module_scheme=None):
         """Class for interacting with ResultDB's ResultSink.
 
         Args:
@@ -69,6 +74,7 @@ class ResultSinkReporter(object):
                 makes no attempt at being thread-safe, as it is only intended
                 as a workaround for Skylab, and it is not expected to run tests
                 in parallel there.
+            module_scheme: A choice from the ModuleScheme enum.
         """
         self.host = host or typ_host.Host()
         self._sink = None
@@ -79,6 +85,7 @@ class ResultSinkReporter(object):
         self._chromium_src_dir = None
         self._output_file = output_file
         self._pending_results = None
+        self._module_scheme = module_scheme
         if disable:
             return
 
@@ -359,7 +366,7 @@ class ResultSinkReporter(object):
         # look up the correct component for bug filing.
         test_result = _create_json_test_result(
                 test_id, status, expected, artifacts, tag_list, html_summary,
-                duration, test_metadata, failure_reason)
+                duration, test_metadata, failure_reason, self._module_scheme)
 
         if self._pending_results:
             self._pending_results.add(test_result)
@@ -429,7 +436,7 @@ class ResultSinkError(Exception):
 
 def _create_json_test_result(
         test_id, status, expected, artifacts, tag_list, html_summary,
-        duration, test_metadata, failure_reason):
+        duration, test_metadata, failure_reason, module_scheme=None):
     """Formats data to be suitable for sending to ResultSink.
 
     Args:
@@ -446,6 +453,8 @@ def _create_json_test_result(
         test_metadata: A dict containing additional test metadata to upload.
         failure_reason: An optional FailureReason object describing the
                 reason the test failed.
+        module_scheme: A choice from the ModuleScheme enum indicating which
+                module scheme to upload to resultdb with.
 
     Returns:
         A dict containing the provided data in a format that is ingestable by
@@ -472,6 +481,9 @@ def _create_json_test_result(
             'tags': [],
             'testMetadata': test_metadata,
     }
+
+    test_result['testIdStructured'] = _create_test_id_struct_dict(test_id, module_scheme)
+
     for (k, v) in tag_list:
         test_result['tags'].append({'key': k, 'value': v})
 
@@ -498,6 +510,29 @@ def result_sink_retcode_from_result_set(result_set):
         ResultSink, otherwise 0.
     """
     return int(any(r.result_sink_retcode for r in result_set.results))
+
+
+def _create_test_id_struct_dict(test_id, module_scheme):
+    struct_test_dict = {
+        'coarseName': None,
+        'fineName': None,
+        'caseNameComponents': None,
+    }
+
+    if module_scheme == ModuleScheme.WEBTEST:
+      test_split = test_id.rsplit('/', 1)
+      fine_name = test_split[0] if len(test_split) > 1 else '/'
+      case_name = test_split[1] if len(test_split) > 1 else test_split[0]
+      struct_test_dict['fineName'] =  fine_name
+      struct_test_dict['caseNameComponents'] = [case_name]
+    elif module_scheme == ModuleScheme.PYUNIT:
+      test_split = test_id.rsplit('.', 2)
+      if len(test_split) == 3:
+        struct_test_dict['coarseName'] =  test_split[0]
+        struct_test_dict['fineName'] =  test_split[1]
+        struct_test_dict['caseNameComponents'] = [test_split[2]]
+
+    return struct_test_dict
 
 
 def _truncate_to_utf8_bytes(s, length):

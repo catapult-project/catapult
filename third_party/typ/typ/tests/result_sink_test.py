@@ -110,7 +110,12 @@ def CreateExpectedTestResult(
                 'fileName': '//some/test.py',
                 'line': FAKE_TEST_LINE,
             }
-        }
+        },
+        'testIdStructured': {
+            'caseNameComponents': None,
+            'coarseName': None,
+            'fineName': None,
+        },
     }
     if primary_error_message:
         result['failureReason'] = {
@@ -896,6 +901,11 @@ class ResultSinkReporterTest(unittest.TestCase):
                     'repo': 'a repo',
                 },
             },
+            'testIdStructured': {
+                'caseNameComponents': None,
+                'coarseName': None,
+                'fineName': None,
+            },
             'failureReason': {
                 'primaryErrorMessage': 'got "foo", want "bar"',
             },
@@ -914,6 +924,34 @@ class ResultSinkReporterTest(unittest.TestCase):
             {'artifact': {'filePath': 'somepath'}},
             [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e+16, {}, None)
         self.assertEqual(retval['duration'], '10000000000000000.000000000s')
+
+    def testStructureTestIdPyunit(self):
+        retval = result_sink._create_json_test_result(
+            'blinkpy.wpt_tests.wpt_adapter_unittest.WPTAdapterTest.test_env_var',
+            json_results.ResultType.Pass, True,
+            {'artifact': {'filePath': 'somepath'}},
+            [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e-10, {}, None,
+            result_sink.ModuleScheme.PYUNIT)
+        struct_test_dict = {
+          'coarseName': 'blinkpy.wpt_tests.wpt_adapter_unittest',
+          'fineName': 'WPTAdapterTest',
+          'caseNameComponents': ['test_env_var'],
+        }
+        self.assertEqual(retval['testIdStructured'], struct_test_dict)
+
+    def testStructureTestIdWebtest(self):
+        retval = result_sink._create_json_test_result(
+            'external/wpt/worker-src-wildcard/worklet-animation.https.html',
+            json_results.ResultType.Pass, True,
+            {'artifact': {'filePath': 'somepath'}},
+            [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e-10, {}, None,
+            result_sink.ModuleScheme.WEBTEST)
+        struct_test_dict = {
+          'coarseName': None,
+          'fineName': 'external/wpt/worker-src-wildcard',
+          'caseNameComponents': ['worklet-animation.https.html'],
+        }
+        self.assertEqual(retval['testIdStructured'], struct_test_dict)
 
     def testTruncateBasicCase(self):
         input = 'a' * 1050
