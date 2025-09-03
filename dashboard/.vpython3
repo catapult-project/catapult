@@ -52,7 +52,7 @@ wheel: <
 >
 wheel: <
   name: "infra/python/wheels/pillow/${vpython_platform}"
-  version: "version:8.3.1"
+  version: "version:10.4.0"
 >
 wheel: <
   name: "infra/python/wheels/ruamel_yaml-py3"

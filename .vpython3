@@ -429,7 +429,7 @@ wheel: <
 >
 wheel: <
   name: "infra/python/wheels/pillow/${vpython_platform}"
-  version: "version:9.5.0"
+  version: "version:10.4.0"
 >
 
 # Used by:
