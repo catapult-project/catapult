@@ -1330,7 +1330,9 @@ class AdbWrapper(object):
               timeout=DEFAULT_LONG_TIMEOUT,
               retries=DEFAULT_RETRIES,
               instant_app=False,
-              force_queryable=False):
+              force_queryable=False,
+              allow_test_packages=False,
+              grant_all_runtime_permissions=False):
     """Install an apk on the device.
 
     Args:
@@ -1360,6 +1362,10 @@ class AdbWrapper(object):
       cmd.append('-s')
     if allow_downgrade:
       cmd.append('-d')
+    if allow_test_packages:
+      cmd.append('-t')
+    if grant_all_runtime_permissions:
+      cmd.append('-g')
     if instant_app:
       self._CheckSdkVersion(29, error_message='Instant apps not supported')
       cmd.append('--instant')
@@ -1393,7 +1399,9 @@ class AdbWrapper(object):
                       timeout=DEFAULT_LONG_TIMEOUT,
                       retries=DEFAULT_RETRIES,
                       instant_app=False,
-                      force_queryable=False):
+                      force_queryable=False,
+                      allow_test_packages=False,
+                      grant_all_runtime_permissions=False):
     """Install an apk with splits on the device.
 
     Args:
@@ -1432,6 +1440,10 @@ class AdbWrapper(object):
       cmd.append('-s')
     if allow_downgrade:
       cmd.append('-d')
+    if allow_test_packages:
+      cmd.append('-t')
+    if grant_all_runtime_permissions:
+      cmd.append('-g')
     if instant_app:
       self._CheckSdkVersion(29, error_message='Instant apps not supported')
       cmd.append('--instant')
