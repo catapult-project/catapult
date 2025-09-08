@@ -1126,8 +1126,7 @@ class _Child(object):
 def _setup_process(host, worker_num, child):
     child.host = host
     child.result_sink_reporter = result_sink.ResultSinkReporter(
-            host, child.disable_resultsink, child.result_sink_output_file,
-            module_scheme=result_sink.ModuleScheme.PYUNIT)
+            host, child.disable_resultsink, child.result_sink_output_file)
     child.worker_num = worker_num
     # pylint: disable=protected-access
 

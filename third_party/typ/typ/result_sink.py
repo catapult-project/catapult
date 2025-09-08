@@ -57,9 +57,11 @@ STDERR_KEY = 'typ_stderr'
 MAX_TAG_LENGTH = 256
 SHA1_HEX_HASH_LENGTH = 40
 
+# These are the names of the ResultDB schemes.
 class ModuleScheme(enum.Enum):
     PYUNIT = 'pyunit'
     WEBTEST = 'webtest'
+    WEBGPUCTS = 'webgpucts'
 
 
 class ResultSinkReporter(object):
@@ -482,7 +484,9 @@ def _create_json_test_result(
             'testMetadata': test_metadata,
     }
 
-    test_result['testIdStructured'] = _create_test_id_struct_dict(test_id, module_scheme)
+    result_dict = _create_test_id_struct_dict(test_id, module_scheme)
+    if result_dict:
+      test_result['testIdStructured'] = result_dict
 
     for (k, v) in tag_list:
         test_result['tags'].append({'key': k, 'value': v})
@@ -525,12 +529,27 @@ def _create_test_id_struct_dict(test_id, module_scheme):
       case_name = test_split[1] if len(test_split) > 1 else test_split[0]
       struct_test_dict['fineName'] =  fine_name
       struct_test_dict['caseNameComponents'] = [case_name]
-    elif module_scheme == ModuleScheme.PYUNIT:
+    elif module_scheme == ModuleScheme.WEBGPUCTS or 'webgpu_cts' in test_id:
+      # gpu_tests take the form of:
+      # gpu_tests.WebGpu.{suite}:{path,to,file}:{test,test}:{param=}
+      # the parameters can also have ':' so cannot use rsplit.
+      test_split =  test_id.split(':', 3)
+      suite = test_split[0].split('.')[-1]
+      struct_test_dict['coarseName'] =  '%s:%s' % (suite, test_split[1])
+      struct_test_dict['fineName'] =  test_split[2]
+      if len(test_split) <= 3 or not test_split[3]:
+        params = 'single_case'
+      else:
+        params = test_split[3]
+
+      struct_test_dict['caseNameComponents'] = [params]
+    elif module_scheme == ModuleScheme.PYUNIT or len(test_id.rsplit('.', 2)) == 3:
       test_split = test_id.rsplit('.', 2)
-      if len(test_split) == 3:
-        struct_test_dict['coarseName'] =  test_split[0]
-        struct_test_dict['fineName'] =  test_split[1]
-        struct_test_dict['caseNameComponents'] = [test_split[2]]
+      struct_test_dict['coarseName'] =  test_split[0]
+      struct_test_dict['fineName'] =  test_split[1]
+      struct_test_dict['caseNameComponents'] = [test_split[2]]
+    else:
+      return None
 
     return struct_test_dict
 

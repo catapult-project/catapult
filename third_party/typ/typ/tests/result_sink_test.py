@@ -111,11 +111,6 @@ def CreateExpectedTestResult(
                 'line': FAKE_TEST_LINE,
             }
         },
-        'testIdStructured': {
-            'caseNameComponents': None,
-            'coarseName': None,
-            'fineName': None,
-        },
     }
     if primary_error_message:
         result['failureReason'] = {
@@ -900,11 +895,6 @@ class ResultSinkReporterTest(unittest.TestCase):
                 'location': {
                     'repo': 'a repo',
                 },
-            },
-            'testIdStructured': {
-                'caseNameComponents': None,
-                'coarseName': None,
-                'fineName': None,
             },
             'failureReason': {
                 'primaryErrorMessage': 'got "foo", want "bar"',
