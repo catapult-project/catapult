@@ -529,7 +529,7 @@ def _create_test_id_struct_dict(test_id, module_scheme):
       case_name = test_split[1] if len(test_split) > 1 else test_split[0]
       struct_test_dict['fineName'] =  fine_name
       struct_test_dict['caseNameComponents'] = [case_name]
-    elif module_scheme == ModuleScheme.WEBGPUCTS or 'webgpu_cts' in test_id:
+    elif module_scheme == ModuleScheme.WEBGPUCTS or 'webgpu' in test_id:
       # gpu_tests take the form of:
       # gpu_tests.WebGpu.{suite}:{path,to,file}:{test,test}:{param=}
       # the parameters can also have ':' so cannot use rsplit.
