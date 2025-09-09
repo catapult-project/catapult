@@ -5,16 +5,12 @@
 'use strict';
 
 (function () {
-  var random_count = 0;
-  var random_count_threshold = 25;
   var random_seed = 0.462;
   Math.random = function() {
-    random_count++;
-    if (random_count > random_count_threshold){
-     random_seed += 0.1;
-     random_count = 1;
-    }
-    return (random_seed % 1);
+    // Some websites rely on random values being reasonably unique and break if
+    // random returns repeated values.
+    random_seed = (random_seed + 0.13297) % 1;
+    return random_seed;
   };
   if (typeof(crypto) == 'object' &&
       typeof(crypto.getRandomValues) == 'function') {
