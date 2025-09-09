@@ -24,77 +24,7 @@ import (
 
 const usage = "%s [ls|cat|edit|merge|add|addAll|trim|inject] [options] archive_file [output_file] [url]"
 
-type Config struct {
-	method, host, fullPath                                           string
-	statusCode                                                       int
-	decodeResponseBody, skipExisting, overwriteExisting, invertMatch bool
-}
-
-func (cfg *Config) RequestFilterFlags() []cli.Flag {
-	return []cli.Flag{
-		&cli.StringFlag{
-			Name:        "command",
-			Value:       "",
-			Usage:       "Only include URLs matching this HTTP method.",
-			Destination: &cfg.method,
-		},
-		&cli.StringFlag{
-			Name:        "host",
-			Value:       "",
-			Usage:       "Only include URLs matching this host.",
-			Destination: &cfg.host,
-		},
-		&cli.StringFlag{
-			Name:        "full_path",
-			Value:       "",
-			Usage:       "Only include URLs matching this full path.",
-			Destination: &cfg.fullPath,
-		},
-		&cli.IntFlag{
-			Name:        "status_code",
-			Value:       0,
-			Usage:       "Only include URLs matching this response status code.",
-			Destination: &cfg.statusCode,
-		},
-	}
-}
-
-func (cfg *Config) DefaultFlags() []cli.Flag {
-	return append([]cli.Flag{
-		&cli.BoolFlag{
-			Name:        "decode_response_body",
-			Usage:       "Decode/encode response body according to Content-Encoding header.",
-			Destination: &cfg.decodeResponseBody,
-		},
-	}, cfg.RequestFilterFlags()...)
-}
-
-func (cfg *Config) AddFlags() []cli.Flag {
-	return []cli.Flag{
-		&cli.BoolFlag{
-			Name:        "skip-existing",
-			Usage:       "Skip over existing urls in the archive",
-			Destination: &cfg.skipExisting,
-		},
-		&cli.BoolFlag{
-			Name:        "overwrite-existing",
-			Usage:       "Overwrite existing urls in the archive",
-			Destination: &cfg.overwriteExisting,
-		},
-	}
-}
-
-func (cfg *Config) TrimFlags() []cli.Flag {
-	return append([]cli.Flag{
-		&cli.BoolFlag{
-			Name:        "invert-match",
-			Usage:       "Trim away any urls that DON'T match in the archive",
-			Destination: &cfg.invertMatch,
-		},
-	}, cfg.DefaultFlags()...)
-}
-
-func (cfg *Config) requestEnabled(req *http.Request, resp *http.Response) bool {
+func (cfg *HttpArchiveConfig) requestEnabled(req *http.Request, resp *http.Response) bool {
 	if cfg.method != "" && strings.ToUpper(cfg.method) != req.Method {
 		return false
 	}
@@ -110,7 +40,7 @@ func (cfg *Config) requestEnabled(req *http.Request, resp *http.Response) bool {
 	return true
 }
 
-func list(cfg *Config, a *webpagereplay.Archive, printFull bool) error {
+func list(cfg *HttpArchiveConfig, a *webpagereplay.Archive, printFull bool) error {
 	return a.ForEach(func(req *http.Request, resp *http.Response) error {
 		if !cfg.requestEnabled(req, resp) {
 			return nil
@@ -132,7 +62,7 @@ func list(cfg *Config, a *webpagereplay.Archive, printFull bool) error {
 	})
 }
 
-func trim(cfg *Config, a *webpagereplay.Archive, outfile string) error {
+func trim(cfg *HttpArchiveConfig, a *webpagereplay.Archive, outfile string) error {
 	newA, err := a.Trim(func(req *http.Request, resp *http.Response) (bool, error) {
 		// If req matches and invertMatch -> keep match
 		// If req doesn't match and !invertMatch -> keep match
@@ -151,7 +81,7 @@ func trim(cfg *Config, a *webpagereplay.Archive, outfile string) error {
 	return writeArchive(newA, outfile)
 }
 
-func edit(cfg *Config, a *webpagereplay.Archive, outfile string) error {
+func edit(cfg *HttpArchiveConfig, a *webpagereplay.Archive, outfile string) error {
 	editor := os.Getenv("EDITOR")
 	if editor == "" {
 		fmt.Printf("Warning: EDITOR not specified, using default.\n")
@@ -268,7 +198,7 @@ func writeArchive(archive *webpagereplay.Archive, outfile string) error {
 	return nil
 }
 
-func merge(cfg *Config, archive *webpagereplay.Archive, input *webpagereplay.Archive, outfile string) error {
+func merge(cfg *HttpArchiveConfig, archive *webpagereplay.Archive, input *webpagereplay.Archive, outfile string) error {
 	if err := archive.Merge(input); err != nil {
 		return fmt.Errorf("Merge archives failed: %v", err)
 	}
@@ -276,7 +206,7 @@ func merge(cfg *Config, archive *webpagereplay.Archive, input *webpagereplay.Arc
 	return writeArchive(archive, outfile)
 }
 
-func addUrl(cfg *Config, archive *webpagereplay.Archive, urlString string) error {
+func addUrl(cfg *HttpArchiveConfig, archive *webpagereplay.Archive, urlString string) error {
 	addMode := webpagereplay.AddModeAppend
 	if cfg.skipExisting {
 		addMode = webpagereplay.AddModeSkipExisting
@@ -289,7 +219,7 @@ func addUrl(cfg *Config, archive *webpagereplay.Archive, urlString string) error
 	return nil
 }
 
-func add(cfg *Config, archive *webpagereplay.Archive, outfile string, urls []string) error {
+func add(cfg *HttpArchiveConfig, archive *webpagereplay.Archive, outfile string, urls []string) error {
 	for _, urlString := range urls {
 		if err := addUrl(cfg, archive, urlString); err != nil {
 			return err
@@ -298,7 +228,7 @@ func add(cfg *Config, archive *webpagereplay.Archive, outfile string, urls []str
 	return writeArchive(archive, outfile)
 }
 
-func addAll(cfg *Config, archive *webpagereplay.Archive, outfile string, inputFilePath string) error {
+func addAll(cfg *HttpArchiveConfig, archive *webpagereplay.Archive, outfile string, inputFilePath string) error {
 	f, err := os.OpenFile(inputFilePath, os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("open file error: %v", err)
@@ -319,7 +249,7 @@ func addAll(cfg *Config, archive *webpagereplay.Archive, outfile string, inputFi
 	return writeArchive(archive, outfile)
 }
 
-func inject(cfg *Config, a *webpagereplay.Archive, outfile string, scriptFile string) error {
+func inject(cfg *HttpArchiveConfig, a *webpagereplay.Archive, outfile string, scriptFile string) error {
 	timeSeedMs := a.DeterministicTimeSeedMs
 	// Replace {{WPR_TIME_SEED_TIMESTAMP}} with the time seed.
 	replacements := map[string]string{"{{WPR_TIME_SEED_TIMESTAMP}}": strconv.FormatInt(timeSeedMs, 10)}
@@ -368,7 +298,7 @@ func compressResponse(resp *http.Response) error {
 
 func main() {
 	progName := filepath.Base(os.Args[0])
-	cfg := &Config{}
+	cfg := &HttpArchiveConfig{}
 
 	fail := func(c *cli.Context, err error) {
 		fmt.Fprintf(os.Stderr, "Error:\n%v.\n\n", err)

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package main
+package webpagereplay
 
 import (
 	"testing"
@@ -11,8 +11,8 @@ import (
 )
 
 func TestFlags(t *testing.T) {
-	cfg := &Config{}
-	baseFlags := []string{"command", "host", "full_path", "status_code", "decode_response_body"}
+	cfg := &HttpArchiveConfig{}
+	baseFlags := []string{"decode_response_body", "command", "host", "full_path", "status_code", }
 	addFlags := []string{"skip-existing", "overwrite-existing"}
 	trimFlags := append([]string{"invert-match"}, baseFlags...)
 
