@@ -160,19 +160,62 @@ class RunTest(quest.Quest):
     # We need to wait for all of the builds to be complete.
     if len(self._started_executions) != 2:
       return
-    logging.debug('bots in quest: %s', [str(b) for b in self._bots])
+    logging.debug('[Swarming] bots pool in current Quest: %s',
+                  [str(b) for b in self._bots])
+    # Try using the bots with the least pending tasks to fix b/443981559.
+    try:
+      # Only use valid pool name for perf-on-cq jobs.
+      # We will apply to regular Pinpoint jobs later.
+      pool_name = 'chrome.tests.pinpoint-cq' if self._swarming_tags.get(
+          'perf_on_cq') else 'invalid.pool'
+      logging.debug('[Swarming] Loading PENDING tasks from pool: %s', pool_name)
+      pending_task_list = swarming.Swarming(
+          self._swarming_server).Tasks().List(pool_name=pool_name)
+      pending_tasks = pending_task_list.get('items', [])
+      if len(pending_tasks) == 0:
+        logging.debug('[Swarming] No Pending Tasks. No need to sort.')
+      else:
+        logging.debug('[Swarming] %d pending tasks loaded.', len(pending_tasks))
+        # Count the pending tasks for each candidate in self._bots
+        # A sample task:
+        # {
+        #   "taskId": "734940d7d6581a10",
+        #   "state": "PENDING",
+        #   "tags": [
+        #     "id:win-79-e504",
+        #   ],
+        # }
+        bot_tasks_counts = dict.fromkeys(self._bots, 0)
+        for task in pending_tasks:
+          for tag in task.get('tags', []):
+            if tag.startswith('id:'):
+              bot_id = tag.split(':')[-1]
+              # it is possible that the bot was not alive when the job was newed.
+              # don't mess up the original list for now.
+              if bot_id in bot_tasks_counts:
+                bot_tasks_counts[bot_id] += 1
+        # sort by the counter on pending tasks
+        sorted_bots = sorted(bot_tasks_counts.items(), key=lambda item: item[1])
+        logging.debug('[Swarming] Sorted bots with least pending jobs: %s',
+                      sorted_bots)
+        self._bots = [bot for bot, _ in sorted_bots]
+    except Exception as e:  # pylint: disable=broad-except
+      logging.warning(
+          '[Swarming] Error when sorting the bots by pending tasks: %s', str(e))
+
     a_list, b_list = self._started_executions.values()
     if len(a_list) != self._attempt_count or len(b_list) != self._attempt_count:
       return
 
     orderings = self._GetABOrderings(self._attempt_count)
     for i in range(self._attempt_count):
+      bot_id = self._bots[i % len(self._bots)]
       if orderings[i]:
-        a_list[i]._StartTask()
-        b_list[i]._StartTask()
+        a_list[i]._StartTask(bot_id)
+        b_list[i]._StartTask(bot_id)
       else:
-        b_list[i]._StartTask()
-        a_list[i]._StartTask()
+        b_list[i]._StartTask(bot_id)
+        a_list[i]._StartTask(bot_id)
 
   def _GetABOrderings(self, attempt_count):
     # Get a list of if a/0 or b/1 should go first, such that
@@ -470,7 +513,7 @@ class _RunTestExecution(execution_module.Execution):
     # This will call _StartTask on all tasks, including this one
     self._quest._StartAllTasks()
 
-  def _StartTask(self):
+  def _StartTask(self, bot_id_override=None):
     """Kick off a Swarming task to run a test."""
     # TODO(fancl): Seperate cas input from isolate (including endpoint and
     # datastore module)
@@ -508,6 +551,11 @@ class _RunTestExecution(execution_module.Execution):
 
     for d in self._dimensions:
       if d['key'] == 'id':
+        if bot_id_override:
+          # self._dimension could have been pre-assigned for try jobs.
+          # As part of the fix in b/443981559, we will prioritize those bots
+          # with the least pending tasks by passing the bot_id_override here.
+          d['value'] = bot_id_override
         self._bot_id = d['value']
 
     if self.command:
