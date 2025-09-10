@@ -617,7 +617,8 @@ def ServiceAccountEmail():
   return ADC_SERVICE_ACCOUNT
 
 
-@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, xg=True)
+@ndb.transactional(
+    propagation=ndb.TransactionOptions.INDEPENDENT, xg=True, retries=10)
 def ServiceAccountHttp(scope=EMAIL_SCOPE, timeout=None):
   """Returns the Credentials of the service account if available."""
   assert scope, "ServiceAccountHttp scope must not be None."
@@ -631,7 +632,8 @@ def ServiceAccountHttp(scope=EMAIL_SCOPE, timeout=None):
   return http
 
 
-@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, xg=True)
+@ndb.transactional(
+    propagation=ndb.TransactionOptions.INDEPENDENT, xg=True, retries=10)
 def IsValidSheriffUser(email=''):
   """Checks whether the user should be allowed to triage alerts."""
   email = email or GetEmail()
@@ -662,7 +664,8 @@ def IsAllowedToDelegate(email):
     return False
 
 
-@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, xg=True)
+@ndb.transactional(
+    propagation=ndb.TransactionOptions.INDEPENDENT, xg=True, retries=10)
 def GetIpAllowlist():
   """Returns a list of IP addresses allowed to post data."""
   return stored_object.Get(IP_ALLOWLIST_KEY)
@@ -677,7 +680,8 @@ def GetRepositoryExclusions():
   return _PINPOINT_REPO_EXCLUSION_CACHED.value
 
 
-@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, xg=True)
+@ndb.transactional(
+    propagation=ndb.TransactionOptions.INDEPENDENT, xg=True, retries=10)
 def _GetRepositoryExclusions():
   """Returns a list of repositories to exclude from bisection."""
   # TODO(dberris): Move this to git-hosted configurations later.

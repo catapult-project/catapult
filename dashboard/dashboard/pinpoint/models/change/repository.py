@@ -11,7 +11,7 @@ import logging
 from google.appengine.ext import ndb
 
 
-@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT)
+@ndb.transactional(propagation=ndb.TransactionOptions.INDEPENDENT, retries=10)
 def RepositoryUrl(name):
   """Returns the URL of a repository, given its short name.
 

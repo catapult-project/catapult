@@ -131,7 +131,7 @@ def IsDone(job_id):
     raise
 
 
-@ndb.transactional
+@ndb.transactional(retries=10)
 def MarkDone(job_id):
   """Transactionally update the job as done.
 
@@ -147,7 +147,7 @@ def MarkDone(job_id):
   return True
 
 
-@ndb.transactional
+@ndb.transactional(retries=10)
 def UpdateTime(job_id):
   """Transactionally updates the updated propery of a job."""
   job = JobFromId(job_id)
