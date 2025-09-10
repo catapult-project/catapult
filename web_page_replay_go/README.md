@@ -209,9 +209,7 @@ are run with the --use-local-wpr flag.
 
 ## Contribute
 Please read [contributor's guide][contribute]. We use the Catapult
-[issue tracker][tracker] for bugs and features. Once your change is reviewed
-and ready for landing, please run `telemetry/bin/update_wpr_go_binary` to update
-binaries in Google cloud storage.
+[issue tracker][tracker] for bugs and features.
 
 ## Contact
 Please email telemetry@chromium.org.
