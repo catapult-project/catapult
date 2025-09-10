@@ -997,24 +997,24 @@ class Job(ndb.Model):
 
     logging.info('JobQueueDebug: Starting jobrun. ID: %s', self.job_id)
 
-    # If the job is triggered by Perf-on-cq job, it should be cancelled when
-    # the cq try job is cancelled.
-    if self.origin == _JOB_ORIGIN_CQ:
-      buildbucket_id = self.tags.get('buildbucket-id')
-      if buildbucket_id:
-        job_status = buildbucket_service.GetJobStatus(buildbucket_id)
-        build_status = job_status.get('status', '')
-        logging.debug('[POC] Checking BB job %s status: %s', buildbucket_id,
-                      build_status)
-        if build_status in ['FAILURE', 'INFRA_FAILURE', 'CANCELED']:
-          reason = 'Pinpoint job is no longer needed. CQ try job %s status: %s' % (
-              buildbucket_id, build_status)
-          logging.info('[POC] Cancelling Pinpoint job %s. %s', self.job_id,
-                       reason)
-          self.Cancel(user=utils.ServiceAccountEmail(), reason=reason)
-          return
-
     try:
+      # If the job is triggered by Perf-on-cq job, it should be cancelled when
+      # the cq try job is cancelled.
+      if self.origin == _JOB_ORIGIN_CQ:
+        buildbucket_id = self.tags.get('buildbucket-id')
+        if buildbucket_id:
+          job_status = buildbucket_service.GetJobStatus(buildbucket_id)
+          build_status = job_status.get('status', '')
+          logging.debug('[POC] Checking BB job %s status: %s', buildbucket_id,
+                        build_status)
+          if build_status in ['FAILURE', 'INFRA_FAILURE', 'CANCELED']:
+            reason = 'Pinpoint job is no longer needed. CQ try job %s status: %s' % (
+                buildbucket_id, build_status)
+            logging.info('[POC] Cancelling Pinpoint job %s. %s', self.job_id,
+                         reason)
+            self.Cancel(user=utils.ServiceAccountEmail(), reason=reason)
+            return
+
       if scheduler.IsStopped(self):
         # When a user manually cancels a Pinpoint job, job.Cancel() is
         # executed, but it is possible for job.Run() to execute simultaneously,
