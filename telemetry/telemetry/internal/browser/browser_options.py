@@ -735,15 +735,11 @@ class BrowserOptions():
         help='Ignored argument for compatibility with runtest.py harness')
 
     group.add_argument(
-        '--deny-permission-prompts',
-        action='store_true',
+        '--no-deny-permission-prompts',
+        action='store_false',
         dest='deny_permission_prompts',
-        help='Suppress all permission prompts by automatically denying them. '
-        'This is the default behavior.')
-    group.add_argument('--no-deny-permission-prompts',
-                       action='store_false',
-                       dest='deny_permission_prompts',
-                       help='Do not suppress permission prompts.')
+        help='Do not suppress permission prompts. Default (without '
+        'this option) is to automatically deny permission prompts')
 
   def UpdateFromParseResults(self, finder_options):
     """Copies our options from finder_options."""
