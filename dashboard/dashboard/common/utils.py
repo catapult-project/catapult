@@ -617,8 +617,6 @@ def ServiceAccountEmail():
   return ADC_SERVICE_ACCOUNT
 
 
-@ndb.transactional(
-    propagation=ndb.TransactionOptions.INDEPENDENT, xg=True, retries=10)
 def ServiceAccountHttp(scope=EMAIL_SCOPE, timeout=None):
   """Returns the Credentials of the service account if available."""
   assert scope, "ServiceAccountHttp scope must not be None."
