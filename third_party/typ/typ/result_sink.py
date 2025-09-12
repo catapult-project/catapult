@@ -59,6 +59,7 @@ SHA1_HEX_HASH_LENGTH = 40
 
 # These are the names of the ResultDB schemes.
 class ModuleScheme(enum.Enum):
+    FLAT = 'flat'
     PYUNIT = 'pyunit'
     WEBTEST = 'webtest'
     WEBGPUCTS = 'webgpucts'
@@ -523,6 +524,14 @@ def _create_test_id_struct_dict(test_id, module_scheme):
         'caseNameComponents': None,
     }
 
+    # Most of the tests should by pyunit.
+    if not module_scheme:
+      module_scheme = ModuleScheme.PYUNIT
+      if 'webgpu' in test_id and ':' in test_id:
+        module_scheme = ModuleScheme.WEBGPUCTS
+      elif test_id.startswith('gpu_tests.'):
+        module_scheme = ModuleScheme.FLAT
+
     if module_scheme == ModuleScheme.WEBTEST:
       test_split = test_id.rsplit('/', 1)
       fine_name = test_split[0] if len(test_split) > 1 else '/'
@@ -545,9 +554,14 @@ def _create_test_id_struct_dict(test_id, module_scheme):
       struct_test_dict['caseNameComponents'] = [params]
     elif module_scheme == ModuleScheme.PYUNIT:
       test_split = test_id.rsplit('.', 2)
+      if len(test_split) != 3:
+        return None
+
       struct_test_dict['coarseName'] =  test_split[0]
       struct_test_dict['fineName'] =  test_split[1]
       struct_test_dict['caseNameComponents'] = [test_split[2]]
+    elif module_scheme == ModuleScheme.FLAT:
+      struct_test_dict['caseNameComponents'] = [test_id]
     else:
       return None
 
