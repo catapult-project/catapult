@@ -71,7 +71,8 @@ def ParseDateWithUTCOffset(date_string):
   return dt
 
 
-class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
+class Commit(
+    collections.namedtuple('Commit', ('repository', 'git_hash', 'cl_number'))):
   """A git repository pinned to a particular commit."""
 
   def __init__(self, *args, **kwargs):
@@ -79,8 +80,8 @@ class Commit(collections.namedtuple('Commit', ('repository', 'git_hash'))):
     print(args, kwargs)  #  hard to bypass pylint here
     self._repository_url = None
 
-  def __new__(cls, *args, **kwargs):
-    self = super(Commit, cls).__new__(cls, *args, **kwargs)
+  def __new__(cls, repository, git_hash, cl_number=0):
+    self = super(Commit, cls).__new__(cls, repository, git_hash, cl_number)
     return self
 
   def __str__(self):

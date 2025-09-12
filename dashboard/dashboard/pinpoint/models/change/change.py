@@ -134,8 +134,10 @@ class Change(
     Returns:
       A new Change object.
     """
-    commits = collections.OrderedDict(self.commits)
-    commits.update(other.commits)
+    repo_hash_tuples = [(c.repository, c.git_hash) for c in self.commits]
+    commits = collections.OrderedDict(repo_hash_tuples)
+    other_repo_hash_tuples = [(c.repository, c.git_hash) for c in other.commits]
+    commits.update(other_repo_hash_tuples)
     commits = tuple(
         commit_module.Commit(repository, git_hash)
         for repository, git_hash in commits.items())
