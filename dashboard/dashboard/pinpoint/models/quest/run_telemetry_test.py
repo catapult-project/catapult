@@ -82,6 +82,7 @@ _CROSSBENCH_NAME = {
     'speedometer2.0.crossbench': 'speedometer_2.0',
     'speedometer2.1.crossbench': 'speedometer_2.1',
     'speedometer3.crossbench': 'speedometer_3',
+    'speedometer3.a11y.crossbench': 'speedometer_3',
     'speedometer3.0.crossbench': 'speedometer_3.0',
     'speedometer3.1.crossbench': 'speedometer_3.1',
     'speedometer-main.crossbench': 'speedometer_main',
@@ -92,6 +93,10 @@ _CROSSBENCH_NAME = {
     'embedder.crossbench': 'embedder',
     # Loading
     'loading.crossbench': 'loading',
+}
+
+_CROSSBENCH_EXTRA_ARGS = {
+    'speedometer3.a11y.crossbench': ('--', '--force-renderer-accessibility'),
 }
 
 
@@ -168,6 +173,7 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
     extra_test_args.append(f'--browser={browser}')
 
     extra_test_args += super()._ExtraTestArgs(arguments)
+    extra_test_args += _CROSSBENCH_EXTRA_ARGS.get(benchmark, ())
     return extra_test_args
 
   @classmethod
