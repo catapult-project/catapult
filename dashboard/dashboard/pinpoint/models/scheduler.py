@@ -297,7 +297,6 @@ def QueueStats(configuration):
   return result
 
 
-@ndb.transactional(retries=10)
 def IsStopped(job):
   """Checks if a job has stopped or not. Jobs should be stopped if
   their status in the job queue is not Running or Queued."""
