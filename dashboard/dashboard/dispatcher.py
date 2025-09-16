@@ -6,9 +6,10 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
-from flask import Flask, request as flask_request, make_response
+from flask import Flask, request as flask_request, make_response, redirect
 import logging
 
+from google.appengine.api import users
 from google.appengine.api import wrap_wsgi_app
 import google.cloud.logging
 try:
@@ -56,6 +57,7 @@ from dashboard.api import describe
 from dashboard.api import test_suites
 from dashboard.api import timeseries2
 from dashboard.common import datastore_hooks
+from dashboard.common import utils
 
 google.cloud.logging.Client().setup_logging(log_level=logging.DEBUG)
 logging.getLogger("urllib3").setLevel(logging.INFO)
@@ -63,6 +65,43 @@ logging.getLogger("urllib3").setLevel(logging.INFO)
 datastore_hooks.InstallHooks()
 
 flask_app = Flask(__name__)
+
+
+@flask_app.before_request
+def CheckUser():
+  # Exclude static assets (required for the pages to render correctly)
+  # and API with its own authentication.
+  exempt_paths = {
+      '/favicon.ico',
+      '/alert_groups_update',
+  }
+  exempt_prefixes = [
+      '/api/',
+      '/components/',
+      '/dashboard/static/',
+      '/dashboard/elements/',
+      '/flot/',
+      '/jquery/',
+      '/tracing/',
+  ]
+
+  path = flask_request.path
+  if path in exempt_paths or any(path.startswith(p) for p in exempt_prefixes):
+    return None
+
+  if utils.IsInternalUser():
+    return None
+
+  user = users.get_current_user()
+  if not user:
+    return redirect(users.create_login_url(path))
+  return make_response(
+      'The performance dashboard is deprecated and access is limited. '
+      'Please use the new dashboard (public instance for Chromium: '
+      'https://perf.luci.app/, public instance for WebRTC: https://webrtc-perf.luci.app).'
+      ' If you are an internal user, you can (for now) authorize with your '
+      'Google account to access this page.', 403)
+
 
 flask_app.wsgi_app = wrap_wsgi_app(flask_app.wsgi_app, use_deferred=True)
 
