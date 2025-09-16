@@ -280,7 +280,9 @@ class SharedPageState(story_module.SharedState):
 
   def _GetCurrentTab(self):
     try:
-      return self.browser.tabs[0]
+      # Some browsers don't default to showing the first tab.
+      # Directly getting the current foreground_tab is more accurate.
+      return self.browser.foreground_tab
     # The tab may have gone away in some case, so we create a new tab and retry
     # (See crbug.com/496280)
     except exceptions.DevtoolsTargetCrashException as e:

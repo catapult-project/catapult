@@ -402,6 +402,18 @@ class FakeBrowser(FakeApp):
     return self._tabs
 
   @property
+  def foreground_tab(self):
+    for tab in self._tabs:
+      # The foreground tab is the first (only) one that isn't hidden.
+      # This only works through luck on Android, due to crbug.com/322544
+      # which means that tabs that have never been in the foreground return
+      # document.hidden as false; however in current code the Android foreground
+      # tab is always tab 0, which will be the first one that isn't hidden
+      if tab.EvaluateJavaScript('!document.hidden'):
+        return tab
+    raise exceptions.TabMissingError("No foreground tab found")
+
+  @property
   def _platform_backend(self):
     return self._platform._platform_backend
 
@@ -511,6 +523,10 @@ class _FakeTab():
     pass
 
   def IsAlive(self):
+    return True
+
+  def EvaluateJavaScript(self, *args, **kwargs):
+    del args, kwargs  # unused
     return True
 
   def CloseConnections(self):
