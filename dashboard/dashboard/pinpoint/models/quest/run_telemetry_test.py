@@ -96,7 +96,8 @@ _CROSSBENCH_NAME = {
 }
 
 _CROSSBENCH_EXTRA_ARGS = {
-    'speedometer3.a11y.crossbench': ('--', '--force-renderer-accessibility'),
+    'speedometer3.a11y.crossbench':
+        ('--extra-browser-args=--force-renderer-accessibility',),
 }
 
 
