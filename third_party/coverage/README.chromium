@@ -3,6 +3,7 @@ Short Name: coverage
 URL: https://pypi.python.org/pypi/coverage
 Version: 4.0.3
 Date: 2015-11-24
+Update Mechanism: Manual
 License: Apache-2.0
 License File: LICENSE.txt
 Security Critical: no
