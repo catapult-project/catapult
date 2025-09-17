@@ -146,7 +146,7 @@ class ResultSinkReporter(object):
     def report_individual_test_result(
             self, result, artifact_output_dir, expectations, test_file_location,
             test_file_line=None, test_name_prefix='', additional_tags=None,
-            html_summary=None):
+            html_summary=None, properties=None):
         """Reports a single test result to ResultSink.
 
         Inputs are typically similar to what is passed to
@@ -175,6 +175,8 @@ class ResultSinkReporter(object):
             html_summary: Optional human-readable explanation of the result as
                     sanitized HTML. If omitted, the reporter will generate a
                     default summary with links extracted from artifacts.
+            properties: Optional arbitrary JSON object that contains structured,
+                    domain-specific properties of the test result.
 
         Returns:
             0 if the result was reported successfully or ResultDB is not
@@ -303,7 +305,8 @@ class ResultSinkReporter(object):
         status = _JSON_TO_RESULTDB_STATUSES.get(result.actual, result.actual)
         return self._report_result(
                 test_id, status, result_is_expected, artifacts, tag_list,
-                html_summary, result.took, test_metadata, result.failure_reason)
+                html_summary, result.took, test_metadata, result.failure_reason,
+                properties)
 
     @contextlib.contextmanager
     def batch_results(self):
@@ -340,7 +343,7 @@ class ResultSinkReporter(object):
 
     def _report_result(
             self, test_id, status, expected, artifacts, tag_list, html_summary,
-            duration, test_metadata, failure_reason):
+            duration, test_metadata, failure_reason, properties):
         """Reports a single test result to ResultSink.
 
         Args:
@@ -357,6 +360,8 @@ class ResultSinkReporter(object):
             test_metadata: A dict containing additional test metadata to upload.
             failure_reason: An optional FailureReason object describing the
                     reason the test failed.
+            properties: Optional arbitrary JSON object that contains
+                    structured, domain-specific properties of the test result.
 
         Returns:
             0 if the result was reported successfully or ResultDB is not
@@ -369,7 +374,8 @@ class ResultSinkReporter(object):
         # look up the correct component for bug filing.
         test_result = _create_json_test_result(
                 test_id, status, expected, artifacts, tag_list, html_summary,
-                duration, test_metadata, failure_reason, self._module_scheme)
+                duration, test_metadata, failure_reason, properties,
+                self._module_scheme)
 
         if self._pending_results:
             self._pending_results.add(test_result)
@@ -439,7 +445,8 @@ class ResultSinkError(Exception):
 
 def _create_json_test_result(
         test_id, status, expected, artifacts, tag_list, html_summary,
-        duration, test_metadata, failure_reason, module_scheme=None):
+        duration, test_metadata, failure_reason, properties=None,
+        module_scheme=None):
     """Formats data to be suitable for sending to ResultSink.
 
     Args:
@@ -456,6 +463,8 @@ def _create_json_test_result(
         test_metadata: A dict containing additional test metadata to upload.
         failure_reason: An optional FailureReason object describing the
                 reason the test failed.
+        properties: Optional arbitrary JSON object that contains structured,
+                domain-specific properties of the test result.
         module_scheme: A choice from the ModuleScheme enum indicating which
                 module scheme to upload to resultdb with.
 
@@ -500,6 +509,9 @@ def _create_json_test_result(
         test_result['failureReason'] = {
                 'primaryErrorMessage': primary_error_message,
         }
+
+    if properties:
+        test_result['properties'] = properties
 
     return test_result
 
