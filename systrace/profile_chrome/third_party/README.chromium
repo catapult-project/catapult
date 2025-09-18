@@ -4,7 +4,7 @@ URL: http://www.chromium.org
 Version: N/A
 Date: 2014-07-21
 Revision: bb6eef7565d7764697a750271262ea44c336fb84
-Update Mechanism: Manual
+Update Mechanism: Static (crbug.com/422060790)
 License: GPL-2.0
 Security Critical: No
 Shipped: no
