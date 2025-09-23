@@ -66,35 +66,58 @@ datastore_hooks.InstallHooks()
 
 flask_app = Flask(__name__)
 
-
 @flask_app.before_request
 def CheckUser():
   # Exclude static assets (required for the pages to render correctly)
   # and API with its own authentication.
   exempt_paths = {
-      '/favicon.ico',
       '/alert_groups_update',
+      '/delete_expired_entities',
+      '/favicon.ico',
+      '/graph_json',
+      '/group_report',
+      '/list_tests',
+      '/load_from_prod',
+      '/mark_recovered_alerts',
+      '/migrate_test_names_tasks',
+      '/update_dashboard_stats',
+      '/update_test_suites',
+      '/update_test_suite_descriptors',
   }
+  # Prefixes for Exempt Paths
   exempt_prefixes = [
+      '/_ah/',
+      '/add_histograms',
+      '/add_point',
       '/api/',
+      '/buildbucket_job_status/',
       '/components/',
-      '/dashboard/static/',
+      '/configs/',
+      '/cron/',
       '/dashboard/elements/',
+      '/dashboard/static/',
       '/flot/',
+      '/internal/',
       '/jquery/',
+      '/migrate_test_names',
+      '/pinpoint/',
       '/tracing/',
-  ]
+      '/update_pinpoint_job_culprits',
+  ] + utils.OAUTH_ENDPOINTS + utils.DUAL_AUTH_ENDPOINTS
 
   path = flask_request.path
   if path in exempt_paths or any(path.startswith(p) for p in exempt_prefixes):
     return None
 
+  email = utils.GetEmail()
+  if not email:
+    return redirect(users.create_login_url(path))
+
   if utils.IsInternalUser():
+    logging.debug('Allowed user access: %s %s', email, path)
     return None
 
-  user = users.get_current_user()
-  if not user:
-    return redirect(users.create_login_url(path))
+  logging.debug('Blocked user access: %s %s', email, path)
   return make_response(
       'The performance dashboard is deprecated and access is limited. '
       'Please use the new dashboard (public instance for Chromium: '
