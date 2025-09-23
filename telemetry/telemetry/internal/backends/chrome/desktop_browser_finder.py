@@ -134,13 +134,13 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
       os.rmdir(self._profile_directory)
       shutil.copytree(source_profile, self._profile_directory)
 
-      # When using an existing profile directory, we need to make sure to
-      # delete the file containing the active DevTools port number.
-      devtools_file_path = os.path.join(
-          self._profile_directory,
-          desktop_browser_backend.DEVTOOLS_ACTIVE_PORT_FILE)
-      if os.path.isfile(devtools_file_path):
-        os.remove(devtools_file_path)
+    # All tests must perform this check and cleanup; reusing the DevToolsActivePort
+    # file from a previous test run is prohibited.
+    devtools_file_path = os.path.join(
+        self._profile_directory,
+        desktop_browser_backend.DEVTOOLS_ACTIVE_PORT_FILE)
+    if os.path.isfile(devtools_file_path):
+      os.remove(devtools_file_path)
 
     # Copy data into the profile if it hasn't already been added via
     # |source_profile|.

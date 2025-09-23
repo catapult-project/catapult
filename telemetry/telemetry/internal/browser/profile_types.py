@@ -7,7 +7,7 @@ import os
 
 from telemetry.core import util
 
-BASE_PROFILE_TYPES = ['clean', 'default']
+BASE_PROFILE_TYPES = ['clean', 'default', 'exact']
 
 PROFILE_TYPE_MAPPING = {
     'typical_user': 'content_scripts1',
