@@ -190,38 +190,6 @@
         }
       }
     },
-    "md5sum_bin": {
-      "cloud_storage_base_folder": "binary_dependencies",
-      "cloud_storage_bucket": "chromium-telemetry",
-      "file_info": {
-        "android_arm64-v8a": {
-          "cloud_storage_hash": "fca070d85c5c732bc6fb098fc061f53474148dc0",
-          "download_path": "bin/android/arm64-v8a/md5sum_bin"
-        },
-        "android_armeabi-v7a": {
-          "cloud_storage_hash": "293c093c4487b2f1cdff6ed8c93b0214e45c4e7c",
-          "download_path": "bin/android/armeabi-v7a/md5sum_bin"
-        },
-        "android_x86": {
-          "cloud_storage_hash": "12cc00d0804bd3b4757bd33b269206dfbd13b98b",
-          "download_path": "bin/android/x86/md5sum_bin"
-        }
-      }
-    },
-    "md5sum_bin_host": {
-      "cloud_storage_base_folder": "binary_dependencies",
-      "cloud_storage_bucket": "chromium-telemetry",
-      "file_info": {
-        "linux_x86_64": {
-          "cloud_storage_hash": "1f5060df87c9332d423bf25a31ffcd4c6c0ef1bf",
-          "download_path": "bin/linux/x86_64/md5sum_bin_host"
-        },
-        "mac_x86_64": {
-          "cloud_storage_hash": "b068e3ba81a1fb7dbfe121edd2dac0c3942eb7e6",
-          "download_path": "bin/mac/x86_64/md5sum_bin_host"
-        }
-      }
-    },
     "memtrack_helper": {
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",
