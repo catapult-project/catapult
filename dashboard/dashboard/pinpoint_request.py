@@ -41,8 +41,20 @@ def PinpointNewBisectPost():
 
 
 def PinpointNewPrefillPost():
-  t = utils.TestKey(request.values.get('test_path')).get()
-  return json.dumps({'story_filter': t.unescaped_story_name})
+  _, test = _GetTestKeyAndTest(request.values.get('test_path'))
+  return json.dumps({'story_filter': test.unescaped_story_name})
+
+
+def _GetTestKeyAndTest(test_path):
+  test_key = utils.TestKey(test_path)
+  if not test_key:
+    logging.error('[Pinpoint Request] Failed to get test key for %s', test_path)
+    raise InvalidParamsError('Failed to get test key for %s' % test_path)
+  test = test_key.get()
+  if not test:
+    logging.error('[Pinpoint Request] Failed to get test for %s', test_path)
+    raise InvalidParamsError('Failed to get test for %s' % test_path)
+  return test_key, test
 
 
 def PinpointNewPerfTryPost():
@@ -382,15 +394,15 @@ def PinpointParamsFromBisectParams(params):
                                      benchmark)
 
   alert_key = _GetUrlSafeKey(params)
-
+  test_key, test = _GetTestKeyAndTest(test_path)
   alert_magnitude = None
   if alert_key:
     alert = ndb.Key(urlsafe=alert_key).get()
     alert_magnitude = alert.median_after_anomaly - alert.median_before_anomaly
 
   if not alert_magnitude:
-    alert_magnitude = FindMagnitudeBetweenCommits(
-        utils.TestKey(test_path), start_commit, end_commit)
+    alert_magnitude = FindMagnitudeBetweenCommits(test_key, start_commit,
+                                                  end_commit)
   elif params.get('comparison_magnitude'):
     alert_magnitude = params.get('comparison_magnitude')
 
@@ -402,7 +414,7 @@ def PinpointParamsFromBisectParams(params):
       project_id=params.get('project_id', 'chromium'), issue_id=issue_id)
 
   return pinpoint_service.MakeBisectionRequest(
-      test=utils.TestKey(test_path).get(),
+      test=test,
       commit_range=pinpoint_service.CommitRange(
           start=start_git_hash, end=end_git_hash),
       issue=issue,
