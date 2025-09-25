@@ -113,18 +113,29 @@ def CheckUser():
   if not email:
     return redirect(users.create_login_url(path))
 
-  if utils.IsInternalUser():
-    logging.debug('Allowed user access: %s %s', email, path)
-    return None
+  if not utils.IsInternalUser():
+    logging.debug('Blocked user access: %s %s', email, path)
+    return make_response(
+        'The performance dashboard is deprecated and access is limited. '
+        'Please use the new dashboard (public instance for Chromium: '
+        'https://perf.luci.app/, public instance for WebRTC: https://webrtc-perf.luci.app).'
+        ' If you are an internal user, you can (for now) authorize with your '
+        'Google account to access this page.', 403)
 
-  logging.debug('Blocked user access: %s %s', email, path)
-  return make_response(
-      'The performance dashboard is deprecated and access is limited. '
-      'Please use the new dashboard (public instance for Chromium: '
-      'https://perf.luci.app/, public instance for WebRTC: https://webrtc-perf.luci.app).'
-      ' If you are an internal user, you can (for now) authorize with your '
-      'Google account to access this page.', 403)
+  if utils.IsGroupMember(email, 'chromeperf-access-eligible'):
+    # Access on Demand is enabled for this user.
+    # Check if they have permissions at the moment.
+    if utils.IsGroupMember(email, 'chromeperf-access-granted'):
+      logging.debug('Allowed (on-demand) user access: %s %s', email, path)
+      return None
+    logging.debug('Blocked (on-demand) user access: %s %s', email, path)
+    return make_response(
+        'The performance dashboard is deprecated and access is limited. '
+        'See go/legacy-chromeperf-aod.', 403)
 
+  # Legacy code path. Should be removed when all users are enrolled in AoD.
+  logging.debug('Allowed user access: %s %s', email, path)
+  return None
 
 flask_app.wsgi_app = wrap_wsgi_app(flask_app.wsgi_app, use_deferred=True)
 

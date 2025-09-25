@@ -48,6 +48,7 @@ LEGACY_SERVICE_ACCOUNT = ('425761728072-pa1bs18esuhp2cp2qfa1u9vb6p1v6kfu'
                           '@developer.gserviceaccount.com')
 ADC_SERVICE_ACCOUNT = 'chromeperf@appspot.gserviceaccount.com'
 _CACHE_TIME = 60*60*2 # 2 hours
+_CACHE_TIME_FAST_CHANGING = 5 * 60  # 5 minutes (we want fast AoD)
 DELAY_REPORTING_PLACEHOLDER = 'Speed>Regressions'
 DELAY_REPORTING_LABEL = 'Chromeperf-Delay-Reporting'
 
@@ -606,7 +607,9 @@ def GetCachedIsGroupMember(identity, group):
 
 def SetCachedIsGroupMember(identity, group, value):
   memcache.set(
-      _IsGroupMemberCacheKey(identity, group), value, time=_CACHE_TIME)
+      _IsGroupMemberCacheKey(identity, group),
+      value,
+      time=_CACHE_TIME_FAST_CHANGING)
 
 
 def _IsGroupMemberCacheKey(identity, group):
