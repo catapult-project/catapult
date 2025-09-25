@@ -155,6 +155,9 @@ found in the LICENSE file.
           // the issue description.
           delete job.state;
           delete job.bots;
+          delete job.estimate;
+          delete job.queue_stats;
+          delete job.quests;
           if (job.exception) {
             delete job.exception.traceback;
           }
