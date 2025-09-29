@@ -1284,6 +1284,9 @@ def _run_one_test(child, test_input):
     additional_tags = None
     test_location = inspect.getsourcefile(test_case.__class__)
     test_method = getattr(test_case, test_case._testMethodName)
+    if real_test_func := getattr(test_method, 'real_test_func', None):
+        test_location = inspect.getsourcefile(real_test_func)
+        test_method = real_test_func
     # Test methods are often wrapped by decorators such as @mock. Try to get to
     # the actual test method instead of the wrapper.
     if hasattr(test_method, '__wrapped__'):
@@ -1316,7 +1319,8 @@ def _run_one_test(child, test_input):
         should_retry_on_failure = (should_retry_on_failure
                                    or test_case.retryOnFailure)
     result = _result_from_test_result(test_result, test_name, started, took, out,
-                                    err, child.worker_num, pid, test_case,
+                                    err, child.worker_num, pid,
+                                    test_location, test_line,
                                     expected_results, child.has_expectations,
                                     art.artifacts, art.in_memory_text_artifacts,
                                     associated_bugs)
@@ -1340,8 +1344,8 @@ def _run_under_debugger(host, test_case, suite,
 
 
 def _result_from_test_result(test_result, test_name, started, took, out, err,
-                             worker_num, pid, test_case, expected_results,
-                             has_expectations, artifacts,
+                             worker_num, pid, test_location, test_line,
+                             expected_results, has_expectations, artifacts,
                              in_memory_text_artifacts,
                              associated_bugs):
     failure_reason = None
@@ -1385,14 +1389,10 @@ def _result_from_test_result(test_result, test_name, started, took, out, err,
         unexpected = actual not in expected_results
 
     flaky = False
-    test_func = getattr(test_case, test_case._testMethodName)
-    test_func = getattr(test_func, 'real_test_func', test_func)
-    file_path = inspect.getsourcefile(test_func)
-    line_number = inspect.getsourcelines(test_func)[1]
     return Result(test_name, actual, started, took, worker_num,
                   expected_results, unexpected, flaky, code, out, err, pid,
-                  file_path, line_number, artifacts, in_memory_text_artifacts,
-                  failure_reason, associated_bugs)
+                  test_location, test_line, artifacts,
+                  in_memory_text_artifacts, failure_reason, associated_bugs)
 
 
 def _failure_reason_from_traceback(traceback):
