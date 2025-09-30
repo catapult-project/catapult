@@ -134,6 +134,18 @@ class InspectorBackend(six.with_metaclass(trace_event.TracedMetaClass, object)):
   def debugger_url(self):
     return self._context['webSocketDebuggerUrl']
 
+  @property
+  def serviceworker_versions(self):
+    return self._serviceworker.versions
+
+  @property
+  def serviceworker_registrations(self):
+    return self._serviceworker.registrations
+
+  @property
+  def serviceworker_error_message(self):
+    return self._serviceworker.error_message
+
   def StopAllServiceWorkers(self, timeout):
     self._serviceworker.StopAllWorkers(timeout)
 

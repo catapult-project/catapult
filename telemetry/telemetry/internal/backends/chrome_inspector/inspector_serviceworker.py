@@ -10,6 +10,9 @@ class InspectorServiceWorker():
   def __init__(self, inspector_socket, timeout):
     self._websocket = inspector_socket
     self._websocket.RegisterDomain('ServiceWorker', self._OnNotification)
+    self._versions = []
+    self._registrations = []
+    self._error_message = {}
     # ServiceWorker.enable RPC must be called before calling any other methods
     # in ServiceWorker domain.
     res = self._websocket.SyncRequest(
@@ -18,9 +21,19 @@ class InspectorServiceWorker():
       raise exceptions.StoryActionError(res['error']['message'])
 
   def _OnNotification(self, msg):
-    # TODO: track service worker events
-    # (https://chromedevtools.github.io/devtools-protocol/tot/ServiceWorker/)
-    pass
+    # Handle notifications from the ServiceWorker domain.
+    # Reference: https://chromedevtools.github.io/devtools-protocol/tot/ServiceWorker/
+    method = msg.get('method', None)
+    params = msg.get('params', {})
+
+    if method == 'ServiceWorker.workerRegistrationUpdated':
+      self._registrations = params.get('registrations', [])
+
+    elif method == 'ServiceWorker.workerVersionUpdated':
+      self._versions = params.get('versions', [])
+
+    elif method == 'ServiceWorker.workerErrorReported':
+      self._error_message = params.get('errorMessage', {})
 
   def StopAllWorkers(self, timeout):
     res = self._websocket.SyncRequest(
@@ -32,3 +45,15 @@ class InspectorServiceWorker():
             'DevTools method ServiceWorker.stopAllWorkers is not supported by '
             'this browser.')
       raise exceptions.StoryActionError(res['error']['message'])
+
+  @property
+  def versions(self):
+    return self._versions
+
+  @property
+  def registrations(self):
+    return self._registrations
+
+  @property
+  def error_message(self):
+    return self._error_message

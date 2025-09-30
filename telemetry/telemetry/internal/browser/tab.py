@@ -188,6 +188,18 @@ class Tab(web_contents.WebContents):
     """
     return self._inspector_backend.ClearDataForOrigin(url, timeout)
 
+  @property
+  def serviceworker_versions(self):
+    return self._inspector_backend.serviceworker_versions
+
+  @property
+  def serviceworker_registrations(self):
+    return self._inspector_backend.serviceworker_registrations
+
+  @property
+  def serviceworker_error_message(self):
+    return self._inspector_backend.serviceworker_error_message
+
   def StopAllServiceWorkers(self, timeout=DEFAULT_TAB_TIMEOUT):
     """Stops all service workers.
 
