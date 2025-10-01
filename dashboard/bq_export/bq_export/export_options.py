@@ -66,6 +66,8 @@ class _TimeRangeProvider:
   def _EndAsDatetime(self):
     # pylint: disable=access-member-before-definition
     end_date = self._end_date.get()
+    if end_date == 'today':
+      end_date = datetime.datetime.utcnow().strftime('%Y%m%d')
     if end_date == 'yesterday':
       end_date = _YesterdayUTC()
     return datetime.datetime.strptime(end_date,
