@@ -292,7 +292,7 @@ class ResultSinkReporter(object):
         test_location_in_repo = self._convert_path_to_repo_path(
             os.path.normpath(test_file_location))
         test_metadata = {
-            'name': test_id,
+            'name': result.name,
             'location': {
                 'repo': 'https://chromium.googlesource.com/chromium/src',
                 'fileName': test_location_in_repo,
@@ -304,7 +304,7 @@ class ResultSinkReporter(object):
 
         status = _JSON_TO_RESULTDB_STATUSES.get(result.actual, result.actual)
         return self._report_result(
-                test_id, status, result_is_expected, artifacts, tag_list,
+                test_id, test_name_prefix, status, result_is_expected, artifacts, tag_list,
                 html_summary, result.took, test_metadata, result.failure_reason,
                 properties)
 
@@ -342,12 +342,13 @@ class ResultSinkReporter(object):
             self._pending_results = None
 
     def _report_result(
-            self, test_id, status, expected, artifacts, tag_list, html_summary,
+            self, test_id, test_name_prefix, status, expected, artifacts, tag_list, html_summary,
             duration, test_metadata, failure_reason, properties):
         """Reports a single test result to ResultSink.
 
         Args:
             test_id: A string containing the unique identifier of the test.
+            test_name_prefix: A string that was added to the test_id.
             status: A string containing the status of the test. Must be in
                     |VALID_STATUSES|.
             expected: A boolean denoting whether |status| is expected or not.
@@ -373,7 +374,7 @@ class ResultSinkReporter(object):
         # TODO(crbug.com/1104252): Handle testLocation key so that ResultDB can
         # look up the correct component for bug filing.
         test_result = _create_json_test_result(
-                test_id, status, expected, artifacts, tag_list, html_summary,
+                test_id, test_name_prefix, status, expected, artifacts, tag_list, html_summary,
                 duration, test_metadata, failure_reason, properties,
                 self._module_scheme)
 
@@ -444,13 +445,14 @@ class ResultSinkError(Exception):
 
 
 def _create_json_test_result(
-        test_id, status, expected, artifacts, tag_list, html_summary,
+        test_id, test_name_prefix, status, expected, artifacts, tag_list, html_summary,
         duration, test_metadata, failure_reason, properties=None,
         module_scheme=None):
     """Formats data to be suitable for sending to ResultSink.
 
     Args:
         test_id: A string containing the unique identifier of the test.
+        test_name_prefix: A string of the prefix added to tests.
         status: A string containing the status of the test. Must be in
                 |VALID_STATUSES|.
         expected: A boolean denoting whether |status| is expected or not.
@@ -500,6 +502,9 @@ def _create_json_test_result(
 
     for (k, v) in tag_list:
         test_result['tags'].append({'key': k, 'value': v})
+
+    if test_id.startswith('gpu_tests.'):
+      test_result['tags'].append({'key': 'gpu_test_class', 'value': test_name_prefix.rstrip('.') })
 
     # This is based off the protobuf in
     # https://source.chromium.org/chromium/infra/infra/+/main:go/src/go.chromium.org/luci/resultdb/proto/v1/failure_reason.proto

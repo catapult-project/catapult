@@ -86,10 +86,11 @@ def GetTestResultFromPostedJson(json_string):
 
 
 def CreateExpectedTestResult(
-        test_id=None, status=None, expected=None, duration=None,
+        test_id=None, test_name=None, status=None, expected=None, duration=None,
         summary_html=HTML_SUMMARY, artifacts=None, tags=None, test_metadata=None,
         primary_error_message=None):
     test_id = test_id or 'test_name_prefix.test_name'
+    test_name = test_name or 'test_name'
     result = {
         'testId': test_id,
         'status': status or json_results.ResultType.Pass,
@@ -104,7 +105,7 @@ def CreateExpectedTestResult(
             {'key': 'typ_tag', 'value': 'bar_tag'},
             {'key': 'typ_tag', 'value': 'foo_tag'},],
         'testMetadata': test_metadata or {
-            'name': test_id,
+            'name': test_name,
             'location': {
                 'repo': 'https://chromium.googlesource.com/chromium/src',
                 'fileName': '//some/test.py',
@@ -812,7 +813,7 @@ class ResultSinkReporterTest(unittest.TestCase):
             result, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
             FAKE_TEST_LINE, 'test_name_prefix.')
         expected_results = CreateExpectedTestResult(
-            test_id=('test_name_prefix.' + test_name))
+            test_id=('test_name_prefix.' + test_name), test_name=test_name)
         index = -1
         for i, tag_dict in enumerate(expected_results['tags']):
             if tag_dict['key'] == 'test_name':
@@ -842,7 +843,7 @@ class ResultSinkReporterTest(unittest.TestCase):
             result, ARTIFACT_DIR, CreateTestExpectations(), FAKE_TEST_PATH,
             FAKE_TEST_LINE, 'test_name_prefix.')
         expected_results = CreateExpectedTestResult(
-            test_id=('test_name_prefix.' + test_name))
+            test_id=('test_name_prefix.' + test_name), test_name=test_name)
         self.assertEqual(GetTestResultFromPostedJson(rsr._post.args[1]),
                          expected_results)
 
@@ -874,7 +875,7 @@ class ResultSinkReporterTest(unittest.TestCase):
         result_sink._create_json_test_result = lambda: 1/0
         try:
             self.assertEqual(rsr._report_result(
-                    'test_id', json_results.ResultType.Pass, True, {}, {},
+                    'test_id', '', json_results.ResultType.Pass, True, {}, {},
                     '<pre>summary</pre>', 1, {}, failure_reason=None,
                     properties=None), 0, {})
         finally:
@@ -883,11 +884,11 @@ class ResultSinkReporterTest(unittest.TestCase):
     def testCreateJsonTestResultInvalidStatus(self):
         with self.assertRaises(ValueError):
             result_sink._create_json_test_result(
-                'test_id', 'InvalidStatus', False, {}, {}, '', 1, {}, None)
+                'test_id', 'test_prefix.', 'InvalidStatus', False, {}, {}, '', 1, {}, None)
 
     def testCreateJsonTestResultBasic(self):
         retval = result_sink._create_json_test_result(
-            'test_id', json_results.ResultType.Failure, True,
+            'test_id', 'test_prefix.', json_results.ResultType.Failure, True,
             {'artifact': {'filePath': 'somepath'}},
             [('tag_key', 'tag_value')], '<pre>summary</pre>', 1,
             {'name': 'test_name', 'location': {'repo': 'a repo'}},
@@ -922,21 +923,45 @@ class ResultSinkReporterTest(unittest.TestCase):
 
     def testCreateJsonWithVerySmallDuration(self):
         retval = result_sink._create_json_test_result(
-            'test_id', json_results.ResultType.Pass, True,
+            'test_id', 'test_prefix.', json_results.ResultType.Pass, True,
             {'artifact': {'filePath': 'somepath'}},
             [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e-10, {}, None)
         self.assertEqual(retval['duration'], '0.000000000s')
 
     def testCreateJsonFormatsWithVeryLongDuration(self):
         retval = result_sink._create_json_test_result(
-            'test_id', json_results.ResultType.Pass, True,
+            'test_id', 'test_prefix.', json_results.ResultType.Pass, True,
             {'artifact': {'filePath': 'somepath'}},
             [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e+16, {}, None)
         self.assertEqual(retval['duration'], '10000000000000000.000000000s')
 
+    def testGpuClassTag(self):
+        retval = result_sink._create_json_test_result(
+            'gpu_tests.foo.bar.test_env_var',
+            'gpu_tests.foo.bar.',
+            json_results.ResultType.Pass, True,
+            {'artifact': {'filePath': 'somepath'}},
+            [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e-10, {}, None,
+            )
+        self.assertEqual(retval['tags'], [{'key': 'tag_key', 'value': 'tag_value'},
+                         {'key': 'gpu_test_class', 'value': 'gpu_tests.foo.bar'}])
+
+        retval = result_sink._create_json_test_result(
+            'gpu_tests.foo.bar.test_env_var',
+            'gpu_tests.foo.bar.',
+            json_results.ResultType.Pass, True,
+            {'artifact': {'filePath': 'somepath'}},
+            [], '<pre>summary</pre>', 1e-10, {}, None,
+            )
+        self.assertEqual(
+            retval['tags'],
+            [{'key': 'gpu_test_class', 'value': 'gpu_tests.foo.bar'}]
+        )
+
     def testStructureTestIdPyunit(self):
         retval = result_sink._create_json_test_result(
             'blinkpy.wpt_tests.wpt_adapter_unittest.WPTAdapterTest.test_env_var',
+            'test_prefix.',
             json_results.ResultType.Pass, True,
             {'artifact': {'filePath': 'somepath'}},
             [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e-10, {}, None,
@@ -951,6 +976,7 @@ class ResultSinkReporterTest(unittest.TestCase):
     def testStructureTestIdWebtest(self):
         retval = result_sink._create_json_test_result(
             'external/wpt/worker-src-wildcard/worklet-animation.https.html',
+            'test_prefix.',
             json_results.ResultType.Pass, True,
             {'artifact': {'filePath': 'somepath'}},
             [('tag_key', 'tag_value')], '<pre>summary</pre>', 1e-10, {}, None,
