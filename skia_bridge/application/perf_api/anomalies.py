@@ -37,6 +37,11 @@ ALLOWED_CLIENTS = [
     'perf-devtools-frontend@skia-infra-corp.iam.gserviceaccount.com',
     # Fuchsia (internal) skia instance service account
     'perf-fuchsia-internal@skia-infra-corp.iam.gserviceaccount.com',
+    # Browser-perf-infra team developers - for local development
+    'ansid@google.com',
+    'mordeckimarcin@google.com',
+    'seawardt@google.com',
+    'sergeirudenkov@google.com',
 ]
 
 DATASTORE_TEST_BATCH_SIZE = 25
