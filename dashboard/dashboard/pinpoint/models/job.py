@@ -51,6 +51,15 @@ from dashboard.services import workflow_service
 # finish but don't want to consume too many resources.
 _TASK_INTERVAL = 60
 
+# We want Pinpoint jobs for perf-on-cq to progress in a faster rate.
+# The size of the job on CQ is manageable that:
+#  - it is try job with only two branches.
+#  - each branch runs for 16 iterations.
+# Reducing the interval from 60 to 40 will potentially increase the queue's
+# throughput by 50%. I'm increasing the instances count form 10 to 20 to
+# handler the increased workloads.
+_TASK_INTERVAL_CQ = 40
+
 _CRYING_CAT_FACE = u'\U0001f63f'
 _INFINITY = u'\u221e'
 _RIGHT_ARROW = u'\u2192'
@@ -957,6 +966,8 @@ class Job(ndb.Model):
     # https://github.com/catapult-project/catapult/issues/3900
     task_name = str(uuid.uuid4())
     logging.info('JobQueueDebug: Adding jobrun. ID: %s', self.job_id)
+    if self.origin == _JOB_ORIGIN_CQ:
+      countdown = _TASK_INTERVAL_CQ
     try:
       task = taskqueue.add(
           queue_name='job-queue',

@@ -7,7 +7,7 @@ app_engine_apis: true
 instance_class: F4_1G
 
 automatic_scaling:
-  min_instances: 10
+  min_instances: 20
 
 builtins:
 - deferred: on
