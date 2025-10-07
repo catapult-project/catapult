@@ -47,7 +47,6 @@ REPOSITORY_PROPERTY_MAP = {
             # 'ChromiumPerfPGO', 'ChromiumPerf',
         ],
         'public_bucket_name': 'chrome-perf-public',
-        # 'public_bucket_name': None,
         'internal_bucket_name': 'chrome-perf-non-public',
         # 'internal_bucket_name': 'chrome-perf-non-public-secondary',
         'ingest_folder': 'ingest',
@@ -171,30 +170,19 @@ def main():
     """
     row_entities_read.inc()
     try:
-      # UNCOMMENT TO ADD FILTERS THAT ARE NOT MASTERS
-      # # --- START NEW FILTER LOGIC ---
       test_path_parts = entity.key.parent.name.split('/')
+      bot_to_filter = export_options.bot_to_filter.get()
+      benchmark_to_filter = export_options.benchmark_to_filter.get()
 
-      # # 1. Check Bot/Benchmark filter
-      # bot_name = test_path_parts[1] if len(test_path_parts) > 1 else None
-      # benchmark_name = test_path_parts[2] if len(test_path_parts) > 2 else None
+      if bot_to_filter != 'all':
+        bot_name = test_path_parts[1] if len(test_path_parts) > 1 else None
+        if bot_name != bot_to_filter:
+          return []  # Fails Bot filter
 
-      # if not (benchmark_name == 'startup.mobile'):
-      #   return [] # Fails Bot/Benchmark filter
-
-      # # 2. Check Underscore filter
-      # subtest_1 = test_path_parts[4] if len(test_path_parts) > 4 else None
-      # subtest_2 = test_path_parts[5] if len(test_path_parts) > 5 else None
-
-      # has_underscore = False
-      # if subtest_1 and '_' in subtest_1:
-      #   has_underscore = True
-      # if not has_underscore and subtest_2 and '_' in subtest_2:
-      #   has_underscore = True
-
-      # if not has_underscore:
-      #   return [] # Fails Underscore filter
-      # # --- END NEW FILTER LOGIC ---
+      if benchmark_to_filter != 'all':
+        benchmark_name = test_path_parts[2] if len(test_path_parts) > 2 else None
+        if benchmark_name != benchmark_to_filter:
+          return []  # Fails Benchmark filter
 
       # # If we get here, the row passed both filters. Proceed.
       d = {

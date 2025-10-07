@@ -57,6 +57,23 @@ If you want to run on a particular repo, use the following flag:
 --repo_to_export=v8
 ```
 
+### Testing on a Specific Bot or Benchmark
+
+To narrow down your test to a specific bot or benchmark, you can use the following flags. This is useful for debugging data from a particular test configuration.
+
+For filtering by bot:
+
+```bash
+--bot_to_filter=linux-perf
+```
+
+For filtering by benchmark:
+```bash
+--benchmark_to_filter=speedometer
+```
+
+You can use these flags in combination with the time range and repository filters.
+
 ## Updating Templates
 
 Once your changes have been tested and merged, you need to update the Dataflow template so that your changes are reflected in production. Run the following command:
@@ -90,7 +107,7 @@ gcloud dataflow jobs run export-skia-backfill \
   --subnetwork=regions/us-central1/subnetworks/dashboard-batch \
   --worker-machine-type=e2-standard-4 \
   --project=chromeperf \
-  --parameters=start_time=202304250000,end_time=202304260000,repo_to_export=fuchsia
+  --parameters=start_time=202304250000,end_time=202304260000,repo_to_export=fuchsia,bot_to_filter=linux-perf
 ```
 
-Make sure you set `start_time` and `end_time` to the desired range in `YYYYMMDDHHmm` format. You can also change the `repo_to_export` parameter.
+Make sure you set `start_time` and `end_time` to the desired range in `YYYYMMDDHHmm` format. You can also specify `repo_to_export`, `bot_to_filter`, and `benchmark_to_filter` as needed.

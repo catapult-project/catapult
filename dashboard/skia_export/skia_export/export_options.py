@@ -20,6 +20,8 @@ class ExportOptions(PipelineOptions):
     start_time: ValueProvider for the start of the time range to fetch.
     testing: ValueProvider to enable/disable testing mode (no GCS upload).
     repo_to_export: Specific repository to export (e.g., chromium, webrtc).
+    bot_to_filter: Specific bot to filter for.
+    benchmark_to_filter: Specific benchmark to filter for.
   """
 
   @classmethod
@@ -44,6 +46,18 @@ class ExportOptions(PipelineOptions):
         help=('Specify only to export a specific repo (e.g. chromium, webrtc). '
               'If not specified, all repos are exported to their respective '
               'GCS Buckets.'),
+        default='all',
+    )
+    parser.add_value_provider_argument(
+        '--bot_to_filter',
+        help=('Specify a bot name to filter for (e.g., "linux-perf"). '
+              'If not specified, all bots are included.'),
+        default='all',
+    )
+    parser.add_value_provider_argument(
+        '--benchmark_to_filter',
+        help=('Specify a benchmark name to filter for (e.g., "speedometer"). '
+              'If not specified, all benchmarks are included.'),
         default='all',
     )
 

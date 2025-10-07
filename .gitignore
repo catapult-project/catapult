@@ -52,3 +52,6 @@ catapult_base/catapult_base/bin/
 
 # Node dependency download folders
 node_modules
+
+# Ignore Python package build artifacts
+skia_export/skia_export.egg-info/
