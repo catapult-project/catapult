@@ -27,6 +27,8 @@ _TESTER_SERVICE_ACCOUNT = (
 _CAS_DEFAULT_INSTANCE = (
     'projects/chromium-swarm/instances/default_instance'
 )
+_SWARMING_EXECUTION_TIMEOUT = 2700  # 60 * 45 minutes
+_CQ_SWARMING_EXECUTION_TIMEOUT = 600  # 60 * 10 minutes
 
 
 def SwarmingTagsFromJob(job):
@@ -139,6 +141,10 @@ class RunTest(quest.Quest):
       swarming_tags.update(self._swarming_tags)
 
     dimensions = self._GetDimensions(index)
+
+    if 'perf_on_cq' in swarming_tags:
+      # kill swarming task from Perf On CQ earlier.
+      execution_timeout_secs = _CQ_SWARMING_EXECUTION_TIMEOUT
 
     test_execution = _RunTestExecution(
         self,
@@ -542,10 +548,14 @@ class _RunTestExecution(execution_module.Execution):
       }
 
     properties = {
-        'extraArgs': self._extra_args,
-        'dimensions': self._dimensions,
-        'executionTimeoutSecs': str(self.execution_timeout_secs or 2700),
-        'ioTimeoutSecs': str(self.execution_timeout_secs or 2700),
+        'extraArgs':
+            self._extra_args,
+        'dimensions':
+            self._dimensions,
+        'executionTimeoutSecs':
+            str(self.execution_timeout_secs or _SWARMING_EXECUTION_TIMEOUT),
+        'ioTimeoutSecs':
+            str(self.execution_timeout_secs or _SWARMING_EXECUTION_TIMEOUT),
     }
     properties.update(**input_ref)
 
