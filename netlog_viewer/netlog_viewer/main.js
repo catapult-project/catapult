@@ -163,6 +163,7 @@ const MainView = (function() {
       addTab(TimelineView);
       addTab(DnsView);
       addTab(SocketsView);
+      addTab(StreamPoolView);
       addTab(AltSvcView);
       addTab(SpdyView);
       addTab(QuicView);

@@ -47,6 +47,8 @@ const BrowserBridge = (function() {
         'reportingInfo', 'onReportingInfoChanged');
     this.addNetInfoPollableDataHelper(
         'httpCacheInfo', 'onHttpCacheInfoChanged');
+    this.addNetInfoPollableDataHelper(
+        'httpStreamPoolInfo', 'onHttpStreamPoolInfoChanged');
 
     // Add other PollableDataHelpers.
     this.pollableDataHelpers_.serviceProviders = new PollableDataHelper(
@@ -248,6 +250,17 @@ const BrowserBridge = (function() {
      */
     addHttpCacheInfoObserver(observer, ignoreWhenUnchanged) {
       this.pollableDataHelpers_.httpCacheInfo.addObserver(
+          observer, ignoreWhenUnchanged);
+    },
+
+    /**
+     * Adds a listener for the HTTP stream pool info. |observer| will be
+     * called back when data is received, through:
+     *
+     *   observer.onHttpStreamPoolInfoChanged(httpStreamPoolInfo)
+     */
+    addHttpStreamPoolInfoObserver(observer, ignoreWhenUnchanged) {
+      this.pollableDataHelpers_.httpStreamPoolInfo.addObserver(
           observer, ignoreWhenUnchanged);
     },
 
