@@ -27,7 +27,7 @@ def MockDeviceWithFiles(files=None):
   if files is None:
     files = {}
 
-  def file_exists(path):
+  def path_exists(path, **_kwargs):
     return path in files
 
   def write_file(path, contents, **_kwargs):
@@ -37,7 +37,7 @@ def MockDeviceWithFiles(files=None):
     return files[path]
 
   device = mock.MagicMock(spec=device_utils.DeviceUtils)
-  device.FileExists = mock.Mock(side_effect=file_exists)
+  device.PathExists = mock.Mock(side_effect=path_exists)
   device.WriteFile = mock.Mock(side_effect=write_file)
   device.ReadFile = mock.Mock(side_effect=read_file)
   return device
@@ -102,17 +102,17 @@ class SharedPrefsTest(unittest.TestCase):
         return_value=version_codes.LOLLIPOP_MR1)
     prefs = shared_prefs.SharedPrefs(self.device, 'com.some.package',
                                      'other_prefs.xml')
-    self.assertFalse(self.device.FileExists(prefs.path))  # file does not exist
+    self.assertFalse(self.device.PathExists(prefs.path))  # file does not exist
     prefs.Load()
     self.assertEqual(len(prefs), 0)  # file did not exist, collection is empty
     prefs.SetInt('magicNumber', 42)
     prefs.SetFloat('myMetric', 3.14)
     prefs.SetLong('bigNumner', 6000000000)
     prefs.SetStringSet('apps', ['gmail', 'chrome', 'music'])
-    self.assertFalse(self.device.FileExists(prefs.path))  # still does not exist
+    self.assertFalse(self.device.PathExists(prefs.path))  # still does not exist
     self.assertTrue(prefs.changed)
     prefs.Commit()
-    self.assertTrue(self.device.FileExists(prefs.path))  # should exist now
+    self.assertTrue(self.device.PathExists(prefs.path))  # should exist now
     self.device.KillAll.assert_called_once_with(
         prefs.package, exact=True, as_root=True, quiet=True)
     self.assertFalse(prefs.changed)

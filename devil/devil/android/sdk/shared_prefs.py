@@ -172,7 +172,13 @@ _PREF_TYPES = {
 
 
 class SharedPrefs(object):
-  def __init__(self, device, package, filename, use_encrypted_path=False):
+
+  def __init__(self,
+               device,
+               package,
+               filename,
+               user_id=0,
+               use_encrypted_path=False):
     """Helper object to read and update "Shared Prefs" of Android apps.
 
     Such files typically look like, e.g.:
@@ -201,6 +207,7 @@ class SharedPrefs(object):
       package: A string with the package name of the app that owns the shared
         preferences file.
       filename: A string with the name of the preferences file to read/write.
+      user_id: The id of the targeting user, as an int. Default to 0.
       use_encrypted_path: Whether to read and write to the shared prefs location
         in the device-encrypted path (/data/user_de) instead of the older,
         unencrypted path (/data/data). Only supported on N+, but falls back to
@@ -213,8 +220,8 @@ class SharedPrefs(object):
     self._filename = filename
     self._unencrypted_path = '/data/data/%s/shared_prefs/%s' % (package,
                                                                 filename)
-    self._encrypted_path = '/data/user_de/0/%s/shared_prefs/%s' % (package,
-                                                                   filename)
+    self._encrypted_path = '/data/user_de/%d/%s/shared_prefs/%s' % (
+        user_id, package, filename)
     self._path = self._unencrypted_path
     self._encrypted = use_encrypted_path
     if use_encrypted_path:
@@ -275,7 +282,7 @@ class SharedPrefs(object):
     A empty xml document, which may be modified and saved on |commit|, is
     created if the file does not already exist.
     """
-    if self._device.FileExists(self.path):
+    if self._device.PathExists(self.path, as_root=True):
       self._xml = ElementTree.fromstring(
           self._device.ReadFile(self.path, as_root=True))
       assert self._xml.tag == 'map'

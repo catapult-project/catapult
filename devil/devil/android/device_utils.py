@@ -39,6 +39,7 @@ from devil.android import logcat_monitor
 from devil.android.sdk import adb_wrapper
 from devil.android.sdk import intent
 from devil.android.sdk import keyevent
+from devil.android.sdk import shared_prefs
 from devil.android.sdk import version_codes
 from devil.utils import parallelizer
 from devil.utils import reraiser_thread
@@ -338,6 +339,11 @@ _USER_FLAG_FULL = 0x00000400
 #  * on Headless System User Mode (hsum), main user is the first human user.
 #  * on non-hsum, main user is the system user (user 0)
 _USER_FLAG_MAIN = 0x00004000
+
+# A string template pointing to file that stores the gboard preference
+# for a given user.
+_GBOARD_PKG = 'com.google.android.inputmethod.latin'
+_GBOARD_PREF_FILENAME = f'{_GBOARD_PKG}_preferences.xml'
 
 
 # Namespaces for settings
@@ -3837,6 +3843,27 @@ class DeviceUtils(object):
       yield
     finally:
       self.SetEnforce(not enabled, timeout=timeout, retries=retries)
+
+  @contextlib.contextmanager
+  def GboardPreferences(self, timeout=None, retries=None):
+    """Get the gboard preferences.
+
+    For users to read or modify the desired preferences.
+
+    Args:
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      A shared_prefs.SharedPrefs object
+    """
+    with shared_prefs.SharedPrefs(self,
+                                  _GBOARD_PKG,
+                                  _GBOARD_PREF_FILENAME,
+                                  user_id=self.GetCurrentUser(),
+                                  use_encrypted_path=True) as prefs:
+      yield prefs
+
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetWebViewProvider(self, timeout=None, retries=None):
