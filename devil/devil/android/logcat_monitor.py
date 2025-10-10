@@ -16,6 +16,7 @@ import time
 
 import six
 
+from devil import base_error
 from devil.android import decorators
 from devil.android import device_errors
 from devil.android.sdk import adb_wrapper
@@ -216,7 +217,10 @@ class LogcatMonitor(object):
   def _StopRecording(self):
     """Finish recording logcat."""
     if self._record_thread:
-      self._adb.Shell('log ' + self._stop_nonce)
+      try:
+        self._adb.Shell('log ' + self._stop_nonce)
+      except base_error.BaseError as e:
+        logging.warning('Failed to log the stop nonce in logcat: %s', str(e))
       self._record_thread.join(timeout=self._RECORD_THREAD_JOIN_WAIT)
       self._record_thread.ReraiseIfException()
       self._record_thread = None
