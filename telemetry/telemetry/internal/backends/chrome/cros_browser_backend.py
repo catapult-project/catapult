@@ -184,8 +184,12 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     if self._cri:
       self._cri.RestartUI() # Logs out.
+      logging.info(
+          'crbug.com/449866954: Done restarting UI, waiting for no cryptohome')
       py_utils.WaitFor(lambda: not self._IsCryptohomeMounted(), 180)
+      logging.info('crbug.com/449866954: Done waiting for no cryptohome')
       self._cri.CloseConnection()
+      logging.info('crbug.com/449866954: cros_interface connection closed')
 
     self._cri = None
 

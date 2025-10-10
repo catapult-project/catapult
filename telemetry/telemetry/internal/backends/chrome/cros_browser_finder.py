@@ -143,14 +143,18 @@ class PossibleCrOSBrowser(possible_browser.PossibleBrowser):
                           '--user=%s' % self._browser_options.username])
 
   def _TearDownEnvironment(self):
+    logging.info('crbug.com/449866954: Beginning environment teardown')
     cri = self._platform_backend.cri
     for extension in self._browser_options.extensions_to_load:
       cri.RmRF(posixpath.dirname(extension.local_path))
+    logging.info('crbug.com/449866954: Done removing extensions')
 
     # Move back any dumps that existed before we started the test.
     cri.RmRF(self._CROS_MINIDUMP_DIR)
+    logging.info('crbug.com/449866954: Done removing minidump dir')
     cri.RunCmdOnDevice(
         ['mv', self._existing_minidump_dir, self._CROS_MINIDUMP_DIR])
+    logging.info('crbug.com/449866954: Done restoring original minidump dir')
 
   def Create(self):
     # Init the LocalFirstBinaryManager if this is the first time we're creating

@@ -201,9 +201,13 @@ class CrOSInterface(linux_based_interface.LinuxBasedInterface):
       restart_cmd.insert(0, 'systemctl')
 
     if self.IsServiceRunning('ui'):
+      logging.info('crbug.com/449866954: Running restart command %s',
+                   restart_cmd)
       self.RunCmdOnDevice(restart_cmd)
     else:
+      logging.info('crbug.com/449866954: Running start command %s', start_cmd)
       self.RunCmdOnDevice(start_cmd)
+    logging.info('crbug.com/449866954: Done restarting UI')
 
   def _DisableRootFsVerification(self):
     """Disables rootfs verification on the device, requiring a reboot."""
