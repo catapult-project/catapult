@@ -59,20 +59,22 @@ def RunCmd(args, cwd=None, quiet=False):
   return cmd_util.RunCmd(args, cwd, quiet)
 
 
-def GetAllCmdOutput(args, cwd=None, quiet=False):
+def GetAllCmdOutput(args, cwd=None, quiet=False, timeout=None):
   """Executes a command synchronously in a subprocess, returning its output.
 
   Args:
     args: list of program arguments as strings.
     cwd: string, directory to execute command in.
     quiet: boolean, whether or not to log command execution.
+    timeout: float, will be used as the timeout in seconds for the command if
+      set.
 
   Returns:
     Tuple of stdout, stderr of executed command.
   """
   # GetAllCmdOutput returns bytes on Python 3. As the downstream codes are
   # expecting strings, we decode the inpout here.
-  stdout, stderr = cmd_util.GetAllCmdOutput(args, cwd, quiet)
+  stdout, stderr = cmd_util.GetAllCmdOutput(args, cwd, quiet, timeout=timeout)
   return (stdout.decode('utf-8'), stderr.decode('utf-8'))
 
 
@@ -354,15 +356,16 @@ class LinuxBasedInterface:
                      quiet=False,
                      connect_timeout=None,
                      port_forward=False,
-                     env=None):
-    stdout, stderr = GetAllCmdOutput(
-        self.FormSSHCommandLine(
-            args,
-            connect_timeout=connect_timeout,
-            port_forward=port_forward,
-            env=env),
-        cwd=cwd,
-        quiet=quiet)
+                     env=None,
+                     timeout=None):
+    stdout, stderr = GetAllCmdOutput(self.FormSSHCommandLine(
+        args,
+        connect_timeout=connect_timeout,
+        port_forward=port_forward,
+        env=env),
+                                     cwd=cwd,
+                                     quiet=quiet,
+                                     timeout=timeout)
     # The initial login will add the host to the hosts file but will also print
     # a warning to stderr that we need to remove.
     stderr = self._RemoveSSHWarnings(stderr)

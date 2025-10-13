@@ -35,7 +35,7 @@ def RunCmd(args, cwd=None, quiet=False, env=None):
     return p.wait()
 
 
-def GetAllCmdOutput(args, cwd=None, quiet=False, env=None):
+def GetAllCmdOutput(args, cwd=None, quiet=False, env=None, timeout=None):
   """Open a subprocess to execute a program and returns its output.
 
   Args:
@@ -43,6 +43,9 @@ def GetAllCmdOutput(args, cwd=None, quiet=False, env=None):
       the string or the first item in the args sequence.
     cwd: If not None, the subprocess's current directory will be changed to
       |cwd| before it's executed.
+    timeout: An optional timeout in seconds as a float to use when running this
+      command. If specified, a subprocess.TimeoutExpired will be raised in the
+      event that the timeout is hit.
 
   Returns:
     Captures and returns the command's stdout.
@@ -58,7 +61,12 @@ def GetAllCmdOutput(args, cwd=None, quiet=False, env=None):
         stderr=subprocess.PIPE,
         stdin=devnull,
         env=env)
-    stdout, stderr = p.communicate()
+    try:
+      stdout, stderr = p.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+      p.kill()
+      p.communicate()
+      raise
     if not quiet:
       logging.debug(' > stdout=[%s], stderr=[%s]', stdout, stderr)
     return stdout, stderr

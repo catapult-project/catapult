@@ -43,13 +43,19 @@ class LinuxBasedInterfaceHelperMethodsTest(unittest.TestCase):
     mock_stdout.decode.assert_called_once_with('utf-8')
     mock_stderr.decode.assert_called_once_with('utf-8')
 
-    mock_get_output.assert_called_once_with(['forward', 'me'], None, False)
+    mock_get_output.assert_called_once_with(['forward', 'me'],
+                                            None,
+                                            False,
+                                            timeout=None)
 
     mock_get_output.reset_mock()
     linux_based_interface.GetAllCmdOutput(['forward', 'me'],
                                           quiet=True,
                                           cwd='some/dir')
-    mock_get_output.assert_called_once_with(['forward', 'me'], 'some/dir', True)
+    mock_get_output.assert_called_once_with(['forward', 'me'],
+                                            'some/dir',
+                                            True,
+                                            timeout=None)
 
   @mock.patch.object(cmd_util, 'StartCmd')
   @decorators.Enabled('linux', 'chromeos')
@@ -244,7 +250,8 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
                                           cwd='/some/dir',
                                           quiet=True,
                                           connect_timeout=57,
-                                          port_forward=True)
+                                          port_forward=True,
+                                          timeout=123)
       self.assertEqual(stdout, 'stdout')
       self.assertEqual(stderr, 'filtered stderr')
 
@@ -254,7 +261,8 @@ class LinuxBasedInterfaceTest(unittest.TestCase):
                                             env=None)
       mock_get_output.assert_called_once_with(['some', 'args'],
                                               cwd='/some/dir',
-                                              quiet=True)
+                                              quiet=True,
+                                              timeout=123)
       mock_remove_warnings.asset_called_once_with('stderr')
 
   @mock.patch.object(linux_based_interface.LinuxBasedInterface,
@@ -1181,6 +1189,11 @@ class LinuxBasedInterfaceIntegrationTest(unittest.TestCase):
                      linux_based_interface.GetAllCmdOutput(['bash',
                                                             tmp_file_base],
                                                            cwd=tmp_file_dir))
+
+  @decorators.Enabled('linux', 'chromeos')
+  def testGetAllCmdOutputTimeout(self):
+    with self.assertRaises(subprocess.TimeoutExpired):
+      linux_based_interface.GetAllCmdOutput(['sleep', '5'], timeout=0.1)
 
   @decorators.Enabled('linux', 'chromeos')
   def testStartCmdExecutesAsyncCommand(self):
