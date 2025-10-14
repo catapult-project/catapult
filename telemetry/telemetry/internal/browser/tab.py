@@ -301,3 +301,39 @@ class Tab(web_contents.WebContents):
     return self._inspector_backend.WaitForSharedStorageEvents(expected_events,
                                                               mode,
                                                               timeout)
+
+  def EnableFetch(self,
+                  patterns,
+                  request_paused_callback=None,
+                  auth_required_callback=None,
+                  timeout=DEFAULT_TAB_TIMEOUT):
+    self._inspector_backend.EnableFetch(patterns, request_paused_callback,
+                                        auth_required_callback, timeout)
+
+  def DisableFetch(self, timeout=DEFAULT_TAB_TIMEOUT):
+    self._inspector_backend.DisableFetch(timeout)
+
+  def CreateContinueRequest(self,
+                            request_id,
+                            url=None,
+                            method=None,
+                            post_data=None,
+                            headers=None):
+    return self._inspector_backend.CreateContinueRequest(
+        request_id, url, method, post_data, headers)
+
+  def ContinueRequestSync(self, request, timeout=DEFAULT_TAB_TIMEOUT):
+    return self._inspector_backend.ContinueRequestSync(request, timeout)
+
+  def ContinueRequestAndIgnoreResponse(self, request):
+    self._inspector_backend.ContinueRequestAndIgnoreResponse(request)
+
+  def CreateContinueWithAuthRequest(self, request_id, auth_challenge_response):
+    return self._inspector_backend.CreateContinueWithAuthRequest(
+        request_id, auth_challenge_response)
+
+  def ContinueWithAuthRequestSync(self, request, timeout=DEFAULT_TAB_TIMEOUT):
+    return self._inspector_backend.ContinueWithAuthRequestSync(request, timeout)
+
+  def ContinueWithAuthRequestAndIgnoreResponse(self, request):
+    self._inspector_backend.ContinueWithAuthRequestAndIgnoreResponse(request)

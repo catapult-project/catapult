@@ -49,6 +49,8 @@ _MEMORY_DUMP_WAIT_TIME = 3
 # that Java Heap garbage collection can take ~5 seconds to complete.
 _GARBAGE_COLLECTION_PROPAGATION_TIME = 6
 
+# Timeout for websocket communication when using inspector
+_DEFAULT_WEBSOCKET_TIMEOUT = 60
 
 ActionRunnerBase = six.with_metaclass(trace_event.TracedMetaClass, object)
 
@@ -873,6 +875,43 @@ class ActionRunner(ActionRunnerBase):
     """Stops emulation of a mobile device."""
     self._tab.StopMobileDeviceEmulation(timeout)
 
+  def EnableFetch(self,
+                  patterns,
+                  request_paused_callback=None,
+                  auth_required_callback=None,
+                  timeout=_DEFAULT_WEBSOCKET_TIMEOUT):
+    self._tab.EnableFetch(patterns, request_paused_callback,
+                          auth_required_callback, timeout)
+
+  def DisableFetch(self, timeout=_DEFAULT_WEBSOCKET_TIMEOUT):
+    self._tab.DisableFetch(timeout)
+
+  def CreateContinueRequest(self,
+                            request_id,
+                            url=None,
+                            method=None,
+                            post_data=None,
+                            headers=None):
+    return self._tab.CreateContinueRequest(request_id, url, method, post_data,
+                                           headers)
+
+  def ContinueRequestSync(self, request, timeout=_DEFAULT_WEBSOCKET_TIMEOUT):
+    return self._tab.ContinueRequestSync(request, timeout)
+
+  def ContinueRequestAndIgnoreResponse(self, request):
+    self._tab.ContinueRequestAndIgnoreResponse(request)
+
+  def CreateContinueWithAuthRequest(self, request_id, auth_challenge_response):
+    return self._tab.CreateContinueWithAuthRequest(request_id,
+                                                   auth_challenge_response)
+
+  def ContinueWithAuthRequestSync(self,
+                                  request,
+                                  timeout=_DEFAULT_WEBSOCKET_TIMEOUT):
+    return self._tab.ContinueWithAuthRequestSync(request, timeout)
+
+  def ContinueWithAuthRequestAndIgnoreResponse(self, request):
+    self._tab.ContinueWithAuthRequestAndIgnoreResponse(request)
 
 class Interaction():
 
