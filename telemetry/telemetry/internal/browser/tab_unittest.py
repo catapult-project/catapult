@@ -95,6 +95,9 @@ class TabTest(tab_test_case.TabTestCase):
     py_utils.WaitFor(lambda: _IsDocumentVisible(self._tab), timeout=5)
     self.assertFalse(_IsDocumentVisible(new_tab))
 
+  # This test is flaky on all platforms:
+  # https://crbug.com/446286399, https://crbug.com/444018704
+  @decorators.Disabled('all')
   def testTabUrl(self):
     self.assertEqual(self._tab.url, 'about:blank')
     url = self.UrlOfUnittestFile('blank.html')
