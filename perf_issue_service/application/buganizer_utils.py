@@ -406,7 +406,7 @@ def ReconcileBuganizerIssue(buganizer_issue):
 
   monorail_issue['id'] = buganizer_issue['issueId']
 
-  buganizer_status = issue_state['status']
+  buganizer_status = issue_state.get('status')
   if buganizer_status in ('NEW', 'ASSIGNED', 'ACCEPTED'):
     monorail_issue['state'] = 'open'
   else:
