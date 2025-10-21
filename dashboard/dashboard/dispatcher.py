@@ -75,7 +75,6 @@ def CheckUser():
       '/delete_expired_entities',
       '/favicon.ico',
       '/graph_json',
-      '/group_report',
       '/list_tests',
       '/load_from_prod',
       '/mark_recovered_alerts',
@@ -83,6 +82,7 @@ def CheckUser():
       '/update_dashboard_stats',
       '/update_test_suites',
       '/update_test_suite_descriptors',
+      '/navbar',
   }
   # Prefixes for Exempt Paths
   exempt_prefixes = [
@@ -111,7 +111,7 @@ def CheckUser():
 
   email = utils.GetEmail()
   if not email:
-    return redirect(users.create_login_url(path))
+    return redirect(users.create_login_url(flask_request.full_path))
 
   if not utils.IsInternalUser():
     logging.debug('Blocked user access: %s %s', email, path)
