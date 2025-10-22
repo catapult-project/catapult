@@ -4,6 +4,12 @@ ARG PROTOBUF_VERSION=3.6.1.3-2
 
 ENV PATH=/usr/local/depot_tools:${PATH}
 
+# Fix Debian 10 (Buster) EOL
+RUN echo "deb http://archive.debian.org/debian/ buster main" > /etc/apt/sources.list \
+ && echo "deb http://archive.debian.org/debian-security/ buster/updates main" >> /etc/apt/sources.list \
+ && echo "deb http://archive.debian.org/debian/ buster-updates main" >> /etc/apt/sources.list \
+ && curl -sS https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+
 # The latest version is in sid repo. So need to specify the
 # version of dependency to avoid version conflix if you want
 # to use "stable" one.
