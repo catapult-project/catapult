@@ -92,16 +92,37 @@ def _ListTestSuitesAsync(test_suites, partial_tests, parent_test=None):
   # description is unfortunately defined as part of the composite index:
   # https://chromium.googlesource.com/catapult.git/+/HEAD/dashboard/index.yaml#317
   query = query.filter(graph_data.TestMetadata.description != "made_up_description")
-  keys = yield query.fetch_async(keys_only=True)
-  for key in keys:
-    test_path = utils.TestPath(key)
-    desc = yield descriptor.Descriptor.FromTestPathAsync(test_path)
-    if desc.test_suite:
-      test_suites.add(desc.test_suite)
-    elif partial_tests is not None:
-      partial_tests.add(key)
-    else:
-      logging.error('Unable to parse "%s"', test_path)
+  # First order by the property used in the inequality filter.
+  # Then order by key to ensure a stable order for the cursor.
+  query = query.order(graph_data.TestMetadata.description,
+                      graph_data.TestMetadata._key)
+
+  cursor = None
+  more = True
+  while more:
+    keys, next_cursor, more = yield query.fetch_page_async(
+        2000, start_cursor=cursor, keys_only=True)
+
+    descriptor_futures = []
+    for key in keys:
+      test_path = utils.TestPath(key)
+      descriptor_futures.append(
+          descriptor.Descriptor.FromTestPathAsync(test_path))
+
+    # Wait for all descriptors for this page to be fetched in parallel
+    descriptors = yield descriptor_futures
+
+    for i, desc in enumerate(descriptors):
+      if desc.test_suite:
+        test_suites.add(desc.test_suite)
+      elif partial_tests is not None:
+        # Add the original key, not the descriptor
+        partial_tests.add(keys[i])
+      else:
+        logging.error('Unable to parse "%s"', utils.TestPath(keys[i]))
+
+    # Set the cursor for the next loop iteration
+    cursor = next_cursor
   logging.debug("list test suites: %s", test_suites)
 
 

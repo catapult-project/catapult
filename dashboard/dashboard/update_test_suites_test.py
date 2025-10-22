@@ -19,6 +19,7 @@ from dashboard.common import stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import graph_data
+from unittest import mock
 
 flask_app = Flask(__name__)
 
@@ -494,6 +495,66 @@ class ListTestSuitesTest(testing_common.TestCase):
     self.assertEqual(['TEST_PARTIAL_TEST_SUITE:COMPOSITE'],
                      update_test_suites.FetchCachedTestSuites2())
 
+  @mock.patch(
+      'dashboard.update_test_suites.descriptor.Descriptor.FromTestPathAsync')
+  @mock.patch('google.appengine.ext.ndb.Query.fetch_page_async')
+  def testListTestSuites_Paging(self, mock_fetch_page, mock_from_path):
+    # This test ensures that the paging logic in _ListTestSuitesAsync
+    # correctly loops and aggregates results from multiple pages.
+
+    # --- 1. Setup Mocks ---
+
+    # We will simulate two pages of results.
+    mock_key_1 = ndb.Key('TestMetadata', 'M/b/suite1')
+    mock_key_2 = ndb.Key('TestMetadata', 'M/b/suite2')
+    mock_cursor_obj = ndb.Cursor()
+
+    # Configure fetch_page_async to be called twice.
+    # Each call must return a Future that resolves to the page data.
+    future_page1 = ndb.Future()
+    future_page1.set_result( ([mock_key_1], mock_cursor_obj, True) ) # Set result immediately
+
+    future_page2 = ndb.Future()
+    future_page2.set_result( ([mock_key_2], None, False) )          # Set result immediately
+
+    mock_fetch_page.side_effect = [
+        future_page1,
+        future_page2,
+    ]
+
+    # Mock the descriptors that will be looked up.
+    # We must return Futures because the code yields them.
+    mock_desc_1 = mock.Mock()
+    mock_desc_1.test_suite = 'suite1'
+    future1 = ndb.Future()
+    future1.set_result(mock_desc_1)
+
+    mock_desc_2 = mock.Mock()
+    mock_desc_2.test_suite = 'suite2'
+    future2 = ndb.Future()
+    future2.set_result(mock_desc_2)
+
+    mock_from_path.side_effect = [future1, future2]
+
+    # --- 2. Run the Function ---
+    # We call the synchronous wrapper, which will run our
+    # modified _ListTestSuitesAsync.
+    result = update_test_suites._ListTestSuites()
+
+    # --- 3. Assertions ---
+
+    # Check that the final list is correct and aggregated
+    self.assertEqual(['suite1', 'suite2'], result)
+
+    # Check that fetch_page_async was called twice.
+    self.assertEqual(2, mock_fetch_page.call_count)
+
+    # Check that the first call had no cursor
+    calls = mock_fetch_page.call_args_list
+    self.assertEqual(None, calls[0][1]['start_cursor'])
+
+    # Check that the second call used the cursor from the first
+    self.assertEqual(mock_cursor_obj, calls[1][1]['start_cursor'])
 
 if __name__ == '__main__':
   unittest.main()
