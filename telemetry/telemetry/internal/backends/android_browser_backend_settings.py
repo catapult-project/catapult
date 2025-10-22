@@ -380,6 +380,12 @@ ANDROID_WEBVIEW_STANDALONE_BUNDLE = WebViewBundleBackendSettings(
     browser_type='android-webview-standalone-bundle',
     apk_name='system_webview_bundle')
 
+# We use the 64_32 bundle for generating WebView orderfiles for 64-bit because
+# it is distributed to the largest number of 64-bit devices.
+ANDROID_WEBVIEW_STANDALONE_64_32_BUNDLE = WebViewBundleBackendSettings(
+    browser_type='android-webview-standalone-64-32-bundle',
+    apk_name='system_webview_64_32_bundle')
+
 ANDROID_WEBVIEW_TRICHROME = WebViewBackendSettings(
     apk_name='TrichromeWebView.apk',
     additional_apk_name='TrichromeLibrary.apk',
