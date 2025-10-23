@@ -110,6 +110,8 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
     return self[index]
 
   def ShouldIncludeContext(self, context):
+    if context['url'] == 'chrome://omnibox-popup.top-chrome/':
+      return False
     if 'type' in context:
       return (context['type'] == 'page' or
               context['url'] == 'chrome://media-router/' or
