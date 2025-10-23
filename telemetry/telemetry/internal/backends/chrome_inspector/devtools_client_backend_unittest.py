@@ -7,6 +7,16 @@ from telemetry import decorators
 from telemetry.testing import browser_test_case
 
 
+def filterContexts(contexts):
+  # Whether this omnibox context exists depends on browser feature state. To
+  # make these tests pass regardless of browser feature state, filter out the
+  # omnibox context. When the feature launches or becomes universally enabled,
+  # this filtering can be removed.
+  return [
+      c for c in contexts if c['url'] != 'chrome://omnibox-popup.top-chrome/'
+  ]
+
+
 class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):
   @property
   def _browser_backend(self):
@@ -31,21 +41,24 @@ class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):
   def testGetUpdatedInspectableContexts(self):
     self._browser.tabs.New()
     c1 = self._devtools_client.GetUpdatedInspectableContexts()
-    self.assertEqual(len(c1.contexts), 2)
-    backends1 = [c1.GetInspectorBackend(c['id']) for c in c1.contexts]
+    contexts1 = filterContexts(c1.contexts)
+    self.assertEqual(len(contexts1), 2)
+    backends1 = [c1.GetInspectorBackend(c['id']) for c in contexts1]
     tabs1 = list(self._browser.tabs)
 
     c2 = self._devtools_client.GetUpdatedInspectableContexts()
-    self.assertEqual(len(c2.contexts), 2)
-    backends2 = [c2.GetInspectorBackend(c['id']) for c in c2.contexts]
+    contexts2 = filterContexts(c2.contexts)
+    self.assertEqual(len(contexts2), 2)
+    backends2 = [c2.GetInspectorBackend(c['id']) for c in contexts2]
     tabs2 = list(self._browser.tabs)
     self.assertEqual(backends2, backends1)
     self.assertEqual(tabs2, tabs1)
 
     self._browser.tabs.New()
     c3 = self._devtools_client.GetUpdatedInspectableContexts()
-    self.assertEqual(len(c3.contexts), 3)
-    backends3 = [c3.GetInspectorBackend(c['id']) for c in c3.contexts]
+    contexts3 = filterContexts(c3.contexts)
+    self.assertEqual(len(contexts3), 3)
+    backends3 = [c3.GetInspectorBackend(c['id']) for c in contexts3]
     tabs3 = list(self._browser.tabs)
     self.assertEqual(backends3[1], backends1[0])
     self.assertEqual(backends3[2], backends1[1])
@@ -54,8 +67,9 @@ class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):
 
     self._browser.tabs[1].Close()
     c4 = self._devtools_client.GetUpdatedInspectableContexts()
-    self.assertEqual(len(c4.contexts), 2)
-    backends4 = [c4.GetInspectorBackend(c['id']) for c in c4.contexts]
+    contexts4 = filterContexts(c4.contexts)
+    self.assertEqual(len(contexts4), 2)
+    backends4 = [c4.GetInspectorBackend(c['id']) for c in contexts4]
     tabs4 = list(self._browser.tabs)
     self.assertEqual(backends4[0], backends3[0])
     self.assertEqual(backends4[1], backends3[1])
@@ -67,13 +81,15 @@ class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):
   @decorators.Disabled('android', 'chromeos')
   def testGetUpdatedInspectableContextsUpdateContextsData(self):
     c1 = self._devtools_client.GetUpdatedInspectableContexts()
-    self.assertEqual(len(c1.contexts), 1)
-    self.assertEqual(c1.contexts[0]['url'], 'about:blank')
+    contexts1 = filterContexts(c1.contexts)
+    self.assertEqual(len(contexts1), 1)
+    self.assertEqual(contexts1[0]['url'], 'about:blank')
 
-    context_id = c1.contexts[0]['id']
+    context_id = contexts1[0]['id']
     backend = c1.GetInspectorBackend(context_id)
     backend.Navigate(self.UrlOfUnittestFile('blank.html'), None, 10)
     c2 = self._devtools_client.GetUpdatedInspectableContexts()
-    self.assertEqual(len(c2.contexts), 1)
-    self.assertTrue('blank.html' in c2.contexts[0]['url'])
+    contexts2 = filterContexts(c2.contexts)
+    self.assertEqual(len(contexts2), 1)
+    self.assertTrue('blank.html' in contexts2[0]['url'])
     self.assertEqual(c2.GetInspectorBackend(context_id), backend)
