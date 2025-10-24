@@ -103,23 +103,17 @@ def _ListTestSuitesAsync(test_suites, partial_tests, parent_test=None):
     keys, next_cursor, more = yield query.fetch_page_async(
         2000, start_cursor=cursor, keys_only=True)
 
-    descriptor_futures = []
     for key in keys:
       test_path = utils.TestPath(key)
-      descriptor_futures.append(
-          descriptor.Descriptor.FromTestPathAsync(test_path))
+      desc = yield descriptor.Descriptor.FromTestPathAsync(test_path)
 
-    # Wait for all descriptors for this page to be fetched in parallel
-    descriptors = yield descriptor_futures
-
-    for i, desc in enumerate(descriptors):
       if desc.test_suite:
         test_suites.add(desc.test_suite)
       elif partial_tests is not None:
         # Add the original key, not the descriptor
-        partial_tests.add(keys[i])
+        partial_tests.add(key)
       else:
-        logging.error('Unable to parse "%s"', utils.TestPath(keys[i]))
+        logging.error('Unable to parse "%s"', utils.TestPath(key))
 
     # Set the cursor for the next loop iteration
     cursor = next_cursor
