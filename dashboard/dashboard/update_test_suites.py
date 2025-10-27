@@ -11,6 +11,7 @@ import logging
 
 from google.appengine.api import datastore_errors
 from google.appengine.ext import ndb
+from google.appengine.ext import deferred
 
 from dashboard.common import datastore_hooks
 from dashboard.common import descriptor
@@ -43,38 +44,40 @@ def FetchCachedTestSuites():
   """Fetches cached test suite data."""
   cached = namespaced_stored_object.Get(_LIST_SUITES_CACHE_KEY)
   if cached is None:
-    # If the cache test suite list is not set, update it before fetching.
-    # This is for convenience when testing sending of data to a local instance.
-    UpdateTestSuites(datastore_hooks.GetNamespace())
-    cached = namespaced_stored_object.Get(_LIST_SUITES_CACHE_KEY)
+    logging.warning(
+        'FetchCachedTestSuites: Cache is empty (%s). '
+        'Returning None. Data will be populated by the next '
+        'cron run.', _LIST_SUITES_CACHE_KEY)
   return cached
 
 
 def UpdateTestSuitesPost():
+  namespace = datastore_hooks.EXTERNAL
   if request.values.get('internal_only') == 'true':
-    logging.info('Going to update internal-only test suites data.')
-    # Update internal-only test suites data.
-    datastore_hooks.SetPrivilegedRequest()
-    UpdateTestSuites(datastore_hooks.INTERNAL)
+    logging.info('Going to queue internal-only test suites updates.')
+    namespace = datastore_hooks.INTERNAL
   else:
-    logging.info('Going to update externally-visible test suites data.')
-    # Update externally-visible test suites data.
-    UpdateTestSuites(datastore_hooks.EXTERNAL)
+    logging.info('Going to queue externally-visible test suites updates.')
+
+  deferred.defer(StartTestSuiteDictUpdate, namespace)
   return make_response('')
 
 
-def UpdateTestSuites(permissions_namespace):
-  """Updates test suite data for either internal or external users."""
-  logging.info('Updating test suite data for: %s', permissions_namespace)
+def StartTestSuiteDictUpdate(namespace):
+  logging.info('Updating test suite data for: %s', namespace)
   suite_dict = _CreateTestSuiteDict()
-  key = namespaced_stored_object.NamespaceKey(_LIST_SUITES_CACHE_KEY,
-                                              permissions_namespace)
+  key = namespaced_stored_object.NamespaceKey(_LIST_SUITES_CACHE_KEY, namespace)
   stored_object.Set(key, suite_dict)
 
+  deferred.defer(StartListTestSuitesUpdate, namespace)
+
+
+def StartListTestSuitesUpdate(namespace):
+  logging.info('Starting to update test suites list for: %s', namespace)
   stored_object.Set(
-      namespaced_stored_object.NamespaceKey(TEST_SUITES_2_CACHE_KEY,
-                                            permissions_namespace),
+      namespaced_stored_object.NamespaceKey(TEST_SUITES_2_CACHE_KEY, namespace),
       _ListTestSuites())
+  logging.info('Finished updating test suites list for: %s', namespace)
 
 
 @ndb.tasklet

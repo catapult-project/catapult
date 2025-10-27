@@ -111,8 +111,9 @@ class ReportTest(testing_common.TestCase):
             'des': 'This should show up',
         },
     }
-    response = self.testapp.post('/report')
-    actual_suites = self.GetJsonValue(response, 'test_suites')
+    self.testapp.post('/report')
+    self.ExecuteDeferredTasks('default')
+    actual_suites = update_test_suites.FetchCachedTestSuites()
     self.assertEqual(expected_suites, actual_suites)
 
   def testGet(self):

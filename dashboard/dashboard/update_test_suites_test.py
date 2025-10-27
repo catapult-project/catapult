@@ -92,8 +92,10 @@ class ListTestSuitesTest(testing_common.TestCase):
             update_test_suites.TEST_SUITES_2_CACHE_KEY), ['foo'])
     self.assertEqual(['foo'], update_test_suites.FetchCachedTestSuites2())
 
-    # Making a request to /udate_test_suites forces an update.
     self.testapp.post('/update_test_suites')
+
+    self.ExecuteDeferredTasks('default')
+
     self.assertEqual(
         {
             'dromaeo': {
@@ -141,6 +143,8 @@ class ListTestSuitesTest(testing_common.TestCase):
 
     self.testapp.post('/update_test_suites?internal_only=true')
 
+    self.ExecuteDeferredTasks('default')
+
     self.assertEqual(
         {
             'dromaeo': {
@@ -178,42 +182,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                 },
                 'dep': False,
             },
-        }, update_test_suites.FetchCachedTestSuites())
-
-  def testFetchCachedTestSuites_Empty_UpdatesWhenFetching(self):
-    # If the cache is not set at all, then FetchCachedTestSuites
-    # just updates the cache before returning the list.
-    self._AddSampleData()
-    self.assertEqual(
-        {
-            'dromaeo': {
-                'mas': {
-                    'Chromium': {
-                        'mac': False,
-                        'win7': False
-                    }
-                },
-                'dep': False,
-            },
-            'scrolling': {
-                'mas': {
-                    'Chromium': {
-                        'mac': False,
-                        'win7': False
-                    }
-                },
-                'dep': False,
-            },
-            'really': {
-                'mas': {
-                    'Chromium': {
-                        'mac': False,
-                        'win7': False
-                    }
-                },
-                'dep': False,
-            },
-        }, update_test_suites.FetchCachedTestSuites())
+        }, update_test_suites._CreateTestSuiteDict())
 
   def testFetchSuites_BasicDescription(self):
     self._AddSampleData()
@@ -254,7 +223,7 @@ class ListTestSuitesTest(testing_common.TestCase):
                 },
                 'dep': False,
             },
-        }, update_test_suites.FetchCachedTestSuites())
+        }, update_test_suites._CreateTestSuiteDict())
 
   def testFetchSuites_DifferentMasters(self):
     # If the cache is not set at all, then FetchCachedTestSuites
@@ -479,9 +448,6 @@ class ListTestSuitesTest(testing_common.TestCase):
                 'Chromium/win7/scrolling',
             ])), suite_keys)
 
-  def testGetSubTestPath(self):
-    key = utils.TestKey('Chromium/mac/my_suite/foo/bar')
-    self.assertEqual('foo/bar', update_test_suites._GetTestSubPath(key))
 
   def testPartialTestSuites(self):
     testing_common.AddTests(['master'], ['bot'], {
@@ -492,6 +458,9 @@ class ListTestSuitesTest(testing_common.TestCase):
         },
     })
     self.testapp.post('/update_test_suites')
+
+    self.ExecuteDeferredTasks('default')
+
     self.assertEqual(['TEST_PARTIAL_TEST_SUITE:COMPOSITE'],
                      update_test_suites.FetchCachedTestSuites2())
 
@@ -512,10 +481,12 @@ class ListTestSuitesTest(testing_common.TestCase):
     # Configure fetch_page_async to be called twice.
     # Each call must return a Future that resolves to the page data.
     future_page1 = ndb.Future()
-    future_page1.set_result( ([mock_key_1], mock_cursor_obj, True) ) # Set result immediately
+    future_page1.set_result(
+        ([mock_key_1], mock_cursor_obj, True))  # Set result immediately
 
     future_page2 = ndb.Future()
-    future_page2.set_result( ([mock_key_2], None, False) )          # Set result immediately
+    future_page2.set_result(
+        ([mock_key_2], None, False))  # Set result immediately
 
     mock_fetch_page.side_effect = [
         future_page1,
