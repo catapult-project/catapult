@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import
 import glob
-import imp
+import importlib
 import logging
 import os
 import re
@@ -56,7 +56,15 @@ def _GetUniqueModuleName():
 
 
 def GetPythonPageSetModule(file_path):
-  return imp.load_source(_GetUniqueModuleName(), file_path)
+  module_name = _GetUniqueModuleName()
+  spec = importlib.util.spec_from_file_location(
+      name=module_name,
+      location=file_path,
+  )
+  module = importlib.util.module_from_spec(spec)
+  sys.modules[module_name] = module
+  spec.loader.exec_module(module)
+  return module
 
 
 def GetUnreservedAvailableLocalPort():
