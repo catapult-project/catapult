@@ -103,6 +103,8 @@ type Archive struct {
 	Certs map[string][]byte
 	// Maps host string to the negotiated protocol. eg. "http/1.1" or "h2"
 	// If absent, will default to "http/1.1".
+	// Note: the protocol could be inferred from `Requests`, so this field seems
+	// redundant.
 	NegotiatedProtocol map[string]string
 	// The time seed that was used to initialize deterministic.js.
 	DeterministicTimeSeedMs int64
@@ -178,19 +180,19 @@ func (a *Archive) ForEach(f func(req *http.Request, resp *http.Response) error) 
 	return nil
 }
 
-// Returns the der encoded cert and negotiated protocol.
-func (a *Archive) FindHostTlsConfig(host string) ([]byte, string, error) {
+// Returns the der encoded cert.
+func (a *Archive) FindHostCertificate(host string) ([]byte, error) {
 	if cert, ok := a.Certs[host]; ok {
-		return cert, a.findHostNegotiatedProtocol(host), nil
+		return cert, nil
 	}
-	return nil, "", ErrNotFound
+	return nil, ErrNotFound
 }
 
-func (a *Archive) findHostNegotiatedProtocol(host string) string {
+func (a *Archive) FindHostNegotiatedProtocol(host string) (string, error) {
 	if negotiatedProtocol, ok := a.NegotiatedProtocol[host]; ok {
-		return negotiatedProtocol
+		return negotiatedProtocol, nil
 	}
-	return "http/1.1"
+	return "", ErrNotFound
 }
 
 func assertCompleteURL(url *url.URL) {
@@ -438,14 +440,14 @@ func (a *Archive) Edit(edit func(req *http.Request, resp *http.Response) (*http.
 }
 
 // Merge adds all the request of the provided archive to the receiver.
-func (a *Archive) Merge(other *Archive) error {
+func (a *Archive) Merge(other *Archive, keepDuplicates bool) error {
 	var numAddedRequests = 0
 	var numSkippedRequests = 0
 	err := other.ForEach(func(req *http.Request, resp *http.Response) error {
 		foundReq, _, notFoundErr := a.FindRequest(req)
-		if notFoundErr == ErrNotFound ||
-				req.URL.String() != foundReq.URL.String() ||
-				!reflect.DeepEqual(req.Header, foundReq.Header) {
+		if keepDuplicates || notFoundErr == ErrNotFound ||
+			req.URL.String() != foundReq.URL.String() ||
+			!reflect.DeepEqual(req.Header, foundReq.Header) {
 			if err := a.AddArchivedRequest(req, resp, AddModeAppend); err != nil {
 				return err
 			}
@@ -553,18 +555,30 @@ func (a *WritableArchive) RecordRequest(req *http.Request, resp *http.Response) 
 	return a.AddArchivedRequest(req, resp, AddModeAppend)
 }
 
-// RecordTlsConfig records the cert used and protocol negotiated for a host.
-func (a *WritableArchive) RecordTlsConfig(host string, der_bytes []byte, negotiatedProtocol string) {
+// Must only be called if FindHostCertificate() returned ErrNotFound.
+func (a *WritableArchive) RecordHostCertificate(host string, der_bytes []byte) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	if a.Certs == nil {
 		a.Certs = make(map[string][]byte)
 	}
-	if _, ok := a.Certs[host]; !ok {
-		a.Certs[host] = der_bytes
+	_, ok := a.Certs[host]
+	if ok {
+		panic("must not record a host certificate when there's an existing one")
 	}
+	a.Certs[host] = der_bytes
+}
+
+// Must only be called if FindHostNegotiatedProtocol() returned ErrNotFound.
+func (a *WritableArchive) RecordHostNegotiatedProtocol(host string, negotiatedProtocol string) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
 	if a.NegotiatedProtocol == nil {
 		a.NegotiatedProtocol = make(map[string]string)
+	}
+	_, ok := a.NegotiatedProtocol[host]
+	if ok {
+		panic("must not record a protocol when there's an existing one")
 	}
 	a.NegotiatedProtocol[host] = negotiatedProtocol
 }

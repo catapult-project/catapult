@@ -44,7 +44,7 @@ func TestReplaceTimeStamp(t *testing.T) {
 	}
 	expectedContent := []byte(
 		fmt.Sprintf("<html><script>var time_seed=%de6</script></html>",
-			time_stamp_ms / 1e6))
+			time_stamp_ms/1e6))
 	if !bytes.Equal(expectedContent, body) {
 		t.Fatal(
 			fmt.Errorf("expected : %s \n actual: %s \n", expectedContent, body))
@@ -154,39 +154,39 @@ func TestInjectScriptToGzipResponse(t *testing.T) {
 
 func TestInjectScriptToResponse(t *testing.T) {
 	tests := []struct {
-		desc string
+		desc  string
 		input []string
-		want string
+		want  string
 	}{
 		{
-			desc:	"With CSP Nonce script-src",
+			desc:  "With CSP Nonce script-src",
 			input: []string{"script-src 'strict-dynamic' 'nonce-2726c7f26c'"},
-			want:	"<html><head><script nonce=\"2726c7f26c\">var foo=1</script>" +
-							"<script>document.write('<head></head>');</script></head></html>",
+			want: "<html><head><script nonce=\"2726c7f26c\">var foo=1</script>" +
+				"<script>document.write('<head></head>');</script></head></html>",
 		},
 		{
-			desc:	"With CSP Nonce default-src",
+			desc:  "With CSP Nonce default-src",
 			input: []string{"default-src 'strict-dynamic' 'nonce-2726c7f26c'"},
-			want:	"<html><head><script nonce=\"2726c7f26c\">var foo=1</script>" +
-							"<script>document.write('<head></head>');</script></head></html>",
+			want: "<html><head><script nonce=\"2726c7f26c\">var foo=1</script>" +
+				"<script>document.write('<head></head>');</script></head></html>",
 		},
 		{
-			desc:	"With CSP Nonce and both Default and Script",
+			desc:  "With CSP Nonce and both Default and Script",
 			input: []string{"default-src 'self' https://foo.com;script-src 'strict-dynamic' 'nonce-2726cf26c'"},
-			want:	"<html><head><script nonce=\"2726cf26c\">var foo=1</script>" +
-							"<script>document.write('<head></head>');</script></head></html>",
+			want: "<html><head><script nonce=\"2726cf26c\">var foo=1</script>" +
+				"<script>document.write('<head></head>');</script></head></html>",
 		},
 		{
-			desc:	"With CSP Nonce and both Default and Script override",
+			desc:  "With CSP Nonce and both Default and Script override",
 			input: []string{"default-src 'self' 'nonce-99999cf26c';script-src 'strict-dynamic' 'nonce-2726cf26c'"},
-			want:	"<html><head><script nonce=\"2726cf26c\">var foo=1</script>" +
-							"<script>document.write('<head></head>');</script></head></html>",
+			want: "<html><head><script nonce=\"2726cf26c\">var foo=1</script>" +
+				"<script>document.write('<head></head>');</script></head></html>",
 		},
 		{
-			desc:	"With two CSP headers",
+			desc:  "With two CSP headers",
 			input: []string{"useless", "script-src 'strict-dynamic' 'nonce-12345'"},
-			want:	"<html><head><script nonce=\"12345\">var foo=1</script>" +
-							"<script>document.write('<head></head>');</script></head></html>",
+			want: "<html><head><script nonce=\"12345\">var foo=1</script>" +
+				"<script>document.write('<head></head>');</script></head></html>",
 		},
 	}
 
@@ -198,7 +198,7 @@ func TestInjectScriptToResponse(t *testing.T) {
 		}
 		req := http.Request{}
 		responseHeader := http.Header{
-			"Content-Type": []string{"text/html"},}
+			"Content-Type": []string{"text/html"}}
 		for _, input := range tc.input {
 			responseHeader.Add("Content-Security-Policy", input)
 		}
@@ -232,7 +232,7 @@ func TestInjectScriptToResponseWithCspHash(t *testing.T) {
 		"Content-Type": []string{"text/html"},
 		"Content-Security-Policy": []string{
 			"script-src 'strict-dynamic' " +
-			"'sha256-pwltXkdHyMvChFSLNauyy5WItOFOm+iDDsgqRTr8peI='"}}
+				"'sha256-pwltXkdHyMvChFSLNauyy5WItOFOm+iDDsgqRTr8peI='"}}
 	resp := http.Response{
 		StatusCode: 200,
 		Header:     responseHeader,
@@ -242,17 +242,17 @@ func TestInjectScriptToResponseWithCspHash(t *testing.T) {
 	transformer.Transform(&req, &resp)
 	assertEquals(t,
 		resp.Header.Get("Content-Security-Policy"),
-		"script-src 'strict-dynamic' " +
-			"'sha256--NKAhNB_ewpUL916YVnpQuR_yWRHBmV6sThatA-5nK8=' " +
+		"script-src 'strict-dynamic' "+
+			"'sha256--NKAhNB_ewpUL916YVnpQuR_yWRHBmV6sThatA-5nK8=' "+
 			"'sha256-pwltXkdHyMvChFSLNauyy5WItOFOm+iDDsgqRTr8peI=' ")
 }
 
 func TestTransformCsp(t *testing.T) {
 	tests := []struct {
-		desc string
-		input string
+		desc     string
+		input    string
 		inputSha string
-		want string
+		want     string
 	}{
 		{
 			desc:  "Just Script",
@@ -275,15 +275,15 @@ func TestTransformCsp(t *testing.T) {
 			want:  "default-src 'self' https://foo.com ; script-src 'self' 'unsafe-inline'",
 		},
 		{
-			desc:  "Sha repeats",
-			input: "script-src 'self' blob: https://foo.com 'sha256-XXX' 'sha384-XXX' https://foo2.com 'sha512-XXX', 'sha256-XX';",
+			desc:     "Sha repeats",
+			input:    "script-src 'self' blob: https://foo.com 'sha256-XXX' 'sha384-XXX' https://foo2.com 'sha512-XXX', 'sha256-XX';",
 			inputSha: "NEW",
-			want: "script-src 'self' blob: https://foo.com 'sha256-NEW' 'sha256-XXX' 'sha384-XXX' https://foo2.com 'sha256-NEW' 'sha512-XXX', 'sha256-XX' ;",
+			want:     "script-src 'self' blob: https://foo.com 'sha256-NEW' 'sha256-XXX' 'sha384-XXX' https://foo2.com 'sha256-NEW' 'sha512-XXX', 'sha256-XX' ;",
 		},
 	}
 
 	for _, tc := range tests {
-		responseHeader := http.Header{"Content-Security-Policy": { tc.input } }
+		responseHeader := http.Header{"Content-Security-Policy": {tc.input}}
 		transformCSPHeader(responseHeader, tc.inputSha)
 		got := responseHeader.Get("Content-Security-Policy")
 		if diff := pretty.Compare(tc.want, got); diff != "" {
@@ -295,39 +295,39 @@ func TestTransformCsp(t *testing.T) {
 
 func TestTransformMultipleCspEntries(t *testing.T) {
 	tests := []struct {
-		desc string
-		input []string
+		desc     string
+		input    []string
 		inputSha string
-		want []string
+		want     []string
 	}{
 		{
-			desc:  "CSP single entry",
-			input: []string {"script-src 'self' blob: https://foo.com 'sha256-XX1';"},
+			desc:     "CSP single entry",
+			input:    []string{"script-src 'self' blob: https://foo.com 'sha256-XX1';"},
 			inputSha: "NEW",
-			want: []string{"script-src 'self' blob: https://foo.com 'sha256-NEW' 'sha256-XX1' ;"},
+			want:     []string{"script-src 'self' blob: https://foo.com 'sha256-NEW' 'sha256-XX1' ;"},
 		},
 		{
-			desc:  "CSP first entry relevant",
-			input: []string {"script-src 'self' blob: https://foo.com 'sha256-XX1';", "some other data"},
+			desc:     "CSP first entry relevant",
+			input:    []string{"script-src 'self' blob: https://foo.com 'sha256-XX1';", "some other data"},
 			inputSha: "NEW",
-			want: []string { "script-src 'self' blob: https://foo.com 'sha256-NEW' 'sha256-XX1' ;", "some other data"},
+			want:     []string{"script-src 'self' blob: https://foo.com 'sha256-NEW' 'sha256-XX1' ;", "some other data"},
 		},
 		{
-			desc:  "Sha second entry relevant",
-			input: []string { "some other data", "script-src 'self' blob: https://foo.com 'sha256-XX1';"},
+			desc:     "Sha second entry relevant",
+			input:    []string{"some other data", "script-src 'self' blob: https://foo.com 'sha256-XX1';"},
 			inputSha: "NEW",
-			want: []string { "some other data", "script-src 'self' blob: https://foo.com 'sha256-NEW' 'sha256-XX1' ;"},
+			want:     []string{"some other data", "script-src 'self' blob: https://foo.com 'sha256-NEW' 'sha256-XX1' ;"},
 		},
 		{
-			desc:  "no CSP entry",
-			input: []string {},
+			desc:     "no CSP entry",
+			input:    []string{},
 			inputSha: "NEW",
-			want: []string {},
+			want:     []string{},
 		},
 	}
 
 	for _, tc := range tests {
-		responseHeader := http.Header{"Content-Security-Policy": tc.input }
+		responseHeader := http.Header{"Content-Security-Policy": tc.input}
 		transformCSPHeader(responseHeader, tc.inputSha)
 		got := responseHeader.Values("Content-Security-Policy")
 		if diff := pretty.Compare(tc.want, got); diff != "" {

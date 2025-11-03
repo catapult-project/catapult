@@ -281,7 +281,7 @@ func TestMerge(t *testing.T) {
 	if len(a.Requests[host]) != 2 {
 		t.Fatalf("Expected 2 requests in archive a")
 	}
-	_ = a.Merge(&a)
+	_ = a.Merge(&a, false)
 	if len(a.Requests[host]) != 2 {
 		t.Fatalf("Expected 2 requests in archive a")
 	}
@@ -289,13 +289,13 @@ func TestMerge(t *testing.T) {
 	if len(b.Requests[host]) != 2 {
 		t.Fatalf("Expected 2 requests in archive b")
 	}
-	_ = b.Merge(&b)
+	_ = b.Merge(&b, false)
 	if len(b.Requests[host]) != 2 {
 		t.Fatalf("Expected 2 requests in archive b")
 	}
 
 	// Merge b into a.
-	_ = a.Merge(&b)
+	_ = a.Merge(&b, false)
 	if size := len(a.Requests[host]); size != 3 {
 		t.Fatalf("Expected 3 requests in archive a but got %d", size)
 	}
@@ -324,16 +324,32 @@ func TestMergeDifferentHeaders(t *testing.T) {
 	b.Requests[host][url] = []*ArchivedRequest{createArchivedRequest(t, url, h2)}
 
 	// The merged archive should contain both requests.
-	_ = a.Merge(&b)
+	_ = a.Merge(&b, false)
 	if len(a.Requests[host][url]) != 2 {
 		t.Fatalf("Expected 2 requests in archive a, found %d",
-		         len(a.Requests[host][url]))
+			len(a.Requests[host][url]))
 	}
 
-	_ = b.Merge(&a)
+	_ = b.Merge(&a, false)
 	if len(b.Requests[host][url]) != 2 {
 		t.Fatalf("Expected 2 requests in archive b, found %d",
-		         len(b.Requests[host][url]))
+			len(b.Requests[host][url]))
+	}
+}
+
+func TestMergeWithDuplicates(t *testing.T) {
+	a := newArchive()
+	const host = "example.com"
+	a.Requests[host] = make(map[string][]*ArchivedRequest)
+	const url = "https://example.com/index.html"
+	a.Requests[host][url] = []*ArchivedRequest{createArchivedRequest(t, url, nil)}
+
+	if len(a.Requests[host][url]) != 1 {
+		t.Fatalf("Expected 1 request in archive a")
+	}
+	_ = a.Merge(&a, true)
+	if len(a.Requests[host][url]) != 2 {
+		t.Fatalf("Expected 2 requests in archive a")
 	}
 }
 

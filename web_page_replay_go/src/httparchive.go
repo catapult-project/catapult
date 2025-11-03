@@ -24,25 +24,25 @@ import (
 
 const usage = "%s [ls|cat|edit|merge|add|addAll|trim|inject] [options] archive_file [output_file] [url]"
 
-func (cfg *HttpArchiveConfig) requestEnabled(req *http.Request, resp *http.Response) bool {
-	if cfg.method != "" && strings.ToUpper(cfg.method) != req.Method {
+func requestEnabled(cfg *webpagereplay.HttpArchiveConfig, req *http.Request, resp *http.Response) bool {
+	if cfg.Method != "" && strings.ToUpper(cfg.Method) != req.Method {
 		return false
 	}
-	if cfg.host != "" && cfg.host != req.Host {
+	if cfg.Host != "" && cfg.Host != req.Host {
 		return false
 	}
-	if cfg.fullPath != "" && cfg.fullPath != req.URL.Path {
+	if cfg.FullPath != "" && cfg.FullPath != req.URL.Path {
 		return false
 	}
-	if cfg.statusCode != 0 && cfg.statusCode != resp.StatusCode {
+	if cfg.StatusCode != 0 && cfg.StatusCode != resp.StatusCode {
 		return false
 	}
 	return true
 }
 
-func list(cfg *HttpArchiveConfig, a *webpagereplay.Archive, printFull bool) error {
+func list(cfg *webpagereplay.HttpArchiveConfig, a *webpagereplay.Archive, printFull bool) error {
 	return a.ForEach(func(req *http.Request, resp *http.Response) error {
-		if !cfg.requestEnabled(req, resp) {
+		if !requestEnabled(cfg, req, resp) {
 			return nil
 		}
 		if printFull {
@@ -62,12 +62,12 @@ func list(cfg *HttpArchiveConfig, a *webpagereplay.Archive, printFull bool) erro
 	})
 }
 
-func trim(cfg *HttpArchiveConfig, a *webpagereplay.Archive, outfile string) error {
+func trim(cfg *webpagereplay.HttpArchiveConfig, a *webpagereplay.Archive, outfile string) error {
 	newA, err := a.Trim(func(req *http.Request, resp *http.Response) (bool, error) {
 		// If req matches and invertMatch -> keep match
 		// If req doesn't match and !invertMatch -> keep match
 		// Otherwise, trim match
-		if cfg.requestEnabled(req, resp) == cfg.invertMatch {
+		if requestEnabled(cfg, req, resp) == cfg.InvertMatch {
 			fmt.Printf("Keeping request: host=%s uri=%s\n", req.Host, req.URL.String())
 			return false, nil
 		} else {
@@ -81,7 +81,7 @@ func trim(cfg *HttpArchiveConfig, a *webpagereplay.Archive, outfile string) erro
 	return writeArchive(newA, outfile)
 }
 
-func edit(cfg *HttpArchiveConfig, a *webpagereplay.Archive, outfile string) error {
+func edit(cfg *webpagereplay.HttpArchiveConfig, a *webpagereplay.Archive, outfile string) error {
 	editor := os.Getenv("EDITOR")
 	if editor == "" {
 		fmt.Printf("Warning: EDITOR not specified, using default.\n")
@@ -94,7 +94,7 @@ func edit(cfg *HttpArchiveConfig, a *webpagereplay.Archive, outfile string) erro
 		if err := req.WriteProxy(w); err != nil {
 			return err
 		}
-		if cfg.decodeResponseBody {
+		if cfg.DecodeResponseBody {
 			if err := webpagereplay.DecompressResponse(resp); err != nil {
 				return fmt.Errorf("couldn't decompress body: %v", err)
 			}
@@ -115,7 +115,7 @@ func edit(cfg *HttpArchiveConfig, a *webpagereplay.Archive, outfile string) erro
 			}
 			return nil, nil, fmt.Errorf("couldn't unmarshal response: %v", err)
 		}
-		if cfg.decodeResponseBody {
+		if cfg.DecodeResponseBody {
 			// Compress body back according to Content-Encoding
 			if err := compressResponse(resp); err != nil {
 				return nil, nil, fmt.Errorf("couldn't compress response: %v", err)
@@ -132,7 +132,7 @@ func edit(cfg *HttpArchiveConfig, a *webpagereplay.Archive, outfile string) erro
 	}
 
 	newA, err := a.Edit(func(req *http.Request, resp *http.Response) (*http.Request, *http.Response, error) {
-		if !cfg.requestEnabled(req, resp) {
+		if !requestEnabled(cfg, req, resp) {
 			return req, resp, nil
 		}
 		fmt.Printf("Editing request: host=%s uri=%s\n", req.Host, req.URL.String())
@@ -198,19 +198,19 @@ func writeArchive(archive *webpagereplay.Archive, outfile string) error {
 	return nil
 }
 
-func merge(cfg *HttpArchiveConfig, archive *webpagereplay.Archive, input *webpagereplay.Archive, outfile string) error {
-	if err := archive.Merge(input); err != nil {
+func merge(cfg *webpagereplay.HttpArchiveConfig, archive *webpagereplay.Archive, input *webpagereplay.Archive, outfile string, keepDuplicates bool) error {
+	if err := archive.Merge(input, keepDuplicates); err != nil {
 		return fmt.Errorf("Merge archives failed: %v", err)
 	}
 
 	return writeArchive(archive, outfile)
 }
 
-func addUrl(cfg *HttpArchiveConfig, archive *webpagereplay.Archive, urlString string) error {
+func addUrl(cfg *webpagereplay.HttpArchiveConfig, archive *webpagereplay.Archive, urlString string) error {
 	addMode := webpagereplay.AddModeAppend
-	if cfg.skipExisting {
+	if cfg.SkipExisting {
 		addMode = webpagereplay.AddModeSkipExisting
-	} else if cfg.overwriteExisting {
+	} else if cfg.OverwriteExisting {
 		addMode = webpagereplay.AddModeOverwriteExisting
 	}
 	if err := archive.Add("GET", urlString, addMode); err != nil {
@@ -219,7 +219,7 @@ func addUrl(cfg *HttpArchiveConfig, archive *webpagereplay.Archive, urlString st
 	return nil
 }
 
-func add(cfg *HttpArchiveConfig, archive *webpagereplay.Archive, outfile string, urls []string) error {
+func add(cfg *webpagereplay.HttpArchiveConfig, archive *webpagereplay.Archive, outfile string, urls []string) error {
 	for _, urlString := range urls {
 		if err := addUrl(cfg, archive, urlString); err != nil {
 			return err
@@ -228,7 +228,7 @@ func add(cfg *HttpArchiveConfig, archive *webpagereplay.Archive, outfile string,
 	return writeArchive(archive, outfile)
 }
 
-func addAll(cfg *HttpArchiveConfig, archive *webpagereplay.Archive, outfile string, inputFilePath string) error {
+func addAll(cfg *webpagereplay.HttpArchiveConfig, archive *webpagereplay.Archive, outfile string, inputFilePath string) error {
 	f, err := os.OpenFile(inputFilePath, os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("open file error: %v", err)
@@ -249,7 +249,7 @@ func addAll(cfg *HttpArchiveConfig, archive *webpagereplay.Archive, outfile stri
 	return writeArchive(archive, outfile)
 }
 
-func inject(cfg *HttpArchiveConfig, a *webpagereplay.Archive, outfile string, scriptFile string) error {
+func inject(cfg *webpagereplay.HttpArchiveConfig, a *webpagereplay.Archive, outfile string, scriptFile string) error {
 	timeSeedMs := a.DeterministicTimeSeedMs
 	// Replace {{WPR_TIME_SEED_TIMESTAMP}} with the time seed.
 	replacements := map[string]string{"{{WPR_TIME_SEED_TIMESTAMP}}": strconv.FormatInt(timeSeedMs, 10)}
@@ -259,11 +259,11 @@ func inject(cfg *HttpArchiveConfig, a *webpagereplay.Archive, outfile string, sc
 	}
 
 	err = a.ForEach(func(req *http.Request, resp *http.Response) error {
-			if cfg.requestEnabled(req, resp) {
-				si.Transform(req, resp)
-			}
-			a.AddArchivedRequest(req, resp, webpagereplay.AddModeOverwriteExisting)
-			return nil
+		if requestEnabled(cfg, req, resp) {
+			si.Transform(req, resp)
+		}
+		a.AddArchivedRequest(req, resp, webpagereplay.AddModeOverwriteExisting)
+		return nil
 	})
 	if err != nil {
 		return fmt.Errorf("Error editing archive: %v", err)
@@ -298,7 +298,7 @@ func compressResponse(resp *http.Response) error {
 
 func main() {
 	progName := filepath.Base(os.Args[0])
-	cfg := &HttpArchiveConfig{}
+	cfg := &webpagereplay.HttpArchiveConfig{}
 
 	fail := func(c *cli.Context, err error) {
 		fmt.Fprintf(os.Stderr, "Error:\n%v.\n\n", err)
@@ -358,9 +358,10 @@ func main() {
 			Name:      "merge",
 			Usage:     "Merge the requests/responses of two archives",
 			ArgsUsage: "base_archive input_archive output_archive",
+			Flags:     cfg.MergeFlags(),
 			Before:    checkArgs("merge", 3),
 			Action: func(c *cli.Context) error {
-				return merge(cfg, loadArchiveOrDie(c, 0), loadArchiveOrDie(c, 1), c.Args().Get(2))
+				return merge(cfg, loadArchiveOrDie(c, 0), loadArchiveOrDie(c, 1), c.Args().Get(2), c.Bool("keep-duplicates"))
 			},
 		},
 		&cli.Command{
