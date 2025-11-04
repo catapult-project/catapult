@@ -25,6 +25,8 @@ ResultType = json_results.ResultType
 # expectations.config stay in sync.
 SYSTEM_CONDITION_TAGS = frozenset([
     'android',
+    'android-corsola',
+    'android-nissa',
     'android-go',
     'android-low-end',
     'android-nexus-5',
