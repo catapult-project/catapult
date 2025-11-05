@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import fnmatch
 import importlib
 import inspect
 import json
@@ -42,6 +41,7 @@ for path in (dir_above_typ, dir_cov):
 
 from typ import artifacts
 from typ import json_results
+from typ import reduced_glob
 from typ import result_sink
 from typ.arg_parser import ArgumentParser
 from typ.expectations_parser import TestExpectations, Expectation
@@ -1033,7 +1033,7 @@ class Runner(object):
         test_name = test_case.id()[len(self.args.test_name_prefix):]
         if self.args.test_filter:
             return any(
-                fnmatch.fnmatch(test_name, glob)
+                reduced_glob.get_cached_instance(glob).matchcase(test_name)
                 for glob in self.args.test_filter.split('::'))
         if self.args.partial_match_filter:
             return any(
@@ -1045,7 +1045,7 @@ class Runner(object):
         _validate_test_starts_with_prefix(
             self.args.test_name_prefix, test_case.id())
         test_name = test_case.id()[len(self.args.test_name_prefix):]
-        return any(fnmatch.fnmatch(test_name, glob)
+        return any(reduced_glob.get_cached_instance(glob).matchcase(test_name)
                    for glob in self.args.isolate)
 
     def should_skip(self, test_case):
@@ -1060,7 +1060,8 @@ class Runner(object):
             expected_results = {ResultType.Pass}
         return (
             ResultType.Skip in expected_results or
-            any(fnmatch.fnmatch(test_name, glob) for glob in self.args.skip))
+            any(reduced_glob.get_cached_instance(glob).matchcase(test_name)
+                for glob in self.args.skip))
 
 
 def _test_adder(test_set, classifier):

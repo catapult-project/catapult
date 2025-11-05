@@ -8,6 +8,8 @@ This avoids having to escape non-asterisk patterns when we only want to match
 * wildcards.
 """
 
+import functools
+
 ESCAPED_WILDCARD = '\\*'
 UNESCAPED_WILDCARD = '*'
 
@@ -86,6 +88,12 @@ class ReducedGlob:
             # Consume everything we just matched.
             starting_index = substr_start_index + len(substr)
         return True
+
+
+@functools.lru_cache(maxsize=None)
+def get_cached_instance(pattern):
+    """Returns a cached ReducedGlob instance for |pattern|."""
+    return ReducedGlob(pattern)
 
 
 def _find_all_indices(s, substr):

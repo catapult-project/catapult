@@ -49,14 +49,14 @@ class MockArgs(object):
 
     def __init__(
         self, test_name_prefix='', skip_globs=None,
-        isolate_globs=None,test_filter='', all=False):
+        isolate_globs=None, test_filter='', run_all=False):
         cls = MockTestCase('test_pass').__class__
         self.test_name_prefix = (
             test_name_prefix or '%s.%s.' % (cls.__module__, cls.__name__))
         self.skip = skip_globs or []
         self.isolate = isolate_globs or []
         self.tests = []
-        self.all = all
+        self.all = run_all
         self.test_filter = test_filter
 
 
