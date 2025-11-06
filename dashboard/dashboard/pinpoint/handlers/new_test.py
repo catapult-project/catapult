@@ -236,6 +236,8 @@ class NewTest(_NewTest):
 
   def testComparisonModeTry_BaseAndExpFlags(self):
     request = dict(_BASE_REQUEST)
+    disable_infobar_arg = \
+      '--extra-browser-args=--disable-features=SessionRestoreInfobar'
     del request['end_git_hash']
     del request['start_git_hash']
     request['comparison_mode'] = 'try'
@@ -247,6 +249,10 @@ class NewTest(_NewTest):
         '--extra-browser-args',
         'something-else',
     ]
+    expected_base_args = list(base_args)
+    expected_base_args.append(disable_infobar_arg)
+    expected_exp_args = list(exp_args)
+    expected_exp_args.append(disable_infobar_arg)
     request['base_extra_args'] = json.dumps(base_args)
     request['experiment_extra_args'] = json.dumps(exp_args)
     response = self.Post('/api/new', request, status=200)
@@ -254,11 +260,11 @@ class NewTest(_NewTest):
     self.assertEqual(job.comparison_mode, 'try')
     self.assertEqual(
         str(job.state._changes[0]),
-        'base: chromium@3 (%s) (Variant: 0)' % (', '.join(base_args)),
+        'base: chromium@3 (%s) (Variant: 0)' % (', '.join(expected_base_args)),
     )
     self.assertEqual(
         str(job.state._changes[1]),
-        'exp: chromium@3 (%s) (Variant: 1)' % (', '.join(exp_args)),
+        'exp: chromium@3 (%s) (Variant: 1)' % (', '.join(expected_exp_args)),
     )
 
   def testComparisonModeTry_BaseNoPatchAndExperimentCommitPatch(self):

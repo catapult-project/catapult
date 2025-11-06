@@ -218,6 +218,10 @@ def _ParseExtraArgs(args):
     except ValueError:
       extra_args = shlex.split(args)
   _RearrangeExtraArgs(extra_args)
+  # b/457520120#comment3. Disabling the feature for Pinpoint.
+  disable_session_restore_infobar = '--disable-features=SessionRestoreInfobar'
+  extra_args.append(
+      f'{_EXTRA_BROWSER_ARGS_PREFIX}={disable_session_restore_infobar}')
   return extra_args
 
 
