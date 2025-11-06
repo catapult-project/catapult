@@ -46,52 +46,55 @@ REPOSITORY_PROPERTY_MAP = {
             # 'ChromiumPerfFyi.all',
             # 'ChromiumPerfPGO', 'ChromiumPerf',
         ],
-        'public_bucket_name': 'chrome-perf-public',
-        'internal_bucket_name': 'chrome-perf-non-public',
-        # 'internal_bucket_name': 'chrome-perf-non-public-secondary',
+        'public_buckets': ['chrome-perf-public'],
+        'internal_buckets': [
+            'chrome-perf-non-public',
+            # 'chrome-perf-non-public-secondary'
+        ],
         'ingest_folder': 'ingest',
         'commit_number': True,
         'revision_param': 'revision',
     },
     'webrtc': {
         'masters': ['WebRTCPerf'],
-        'public_bucket_name': 'webrtc-perf-public',
-        'internal_bucket_name': None,
+        'public_buckets': ['webrtc-perf-public'],
+        'internal_buckets': [],
         'ingest_folder': 'ingest-cp',
         'commit_number': True,
         'revision_param': 'revision',
     },
     # 'widevine-cdm': {
     #     'masters': ['WidevineCdmPerf'],
-    #     'public_bucket_name': None,
-    #     'internal_bucket_name': 'widevine-cdm-perf',
+    #     'public_buckets': [],
+    #     'internal_buckets': ['widevine-cdm-perf'],
     #     'ingest_folder': 'ingest',
     #     'commit_number': False,
     #     'revision_param': 'r_cdm_git',
     # },
     # 'widevine-whitebox': {
     #     'masters': ['WidevineWhiteboxPerf_master'],
-    #     'public_bucket_name': None,
-    #     'internal_bucket_name': 'widevine-whitebox-perf',
+    #     'public_buckets': [],
+    #     'internal_buckets': ['widevine-whitebox-perf'],
     #     'ingest_folder': 'ingest',
     #     'commit_number': False,
     #     'revision_param': 'r_cdm_git',
     # },
     'v8': {
         'masters': [
-            'internal.client.v8', 'client.v8',
+            'internal.client.v8',
+            'client.v8',
             'client.v8.perf',
         ],
-        'public_bucket_name': None,
-        'internal_bucket_name': 'v8-perf-prod',
+        'public_buckets': [],
+        'internal_buckets': ['v8-perf-prod'],
         'ingest_folder': 'ingest',
         'commit_number': True,
         'revision_param': 'revision',
     },
     # 'devtools-frontend': {
     #     'masters': ['client.devtools-frontend.integration'],
-    #     'public_bucket_name': None,
-    #     'internal_bucket_name': 'devtools-frontend-perf',
+    #     'public_buckets': [],
+    #     'internal_buckets': ['devtools-frontend-perf'],
     #     'ingest_folder': 'ingest',
     #     'commit_number': False,
     #     'revision_param': 'r_devtools_git',
@@ -102,16 +105,22 @@ REPOSITORY_PROPERTY_MAP = {
             'turquoise-internal.integration.global.ci',
             'turquoise-internal.integration.smart.ci',
         ],
-        'public_bucket_name': None,
-        'internal_bucket_name': 'fuchsia-perf-non-public',
+        'public_buckets': [],
+        'internal_buckets': [
+            'fuchsia-perf-non-public',
+            'fuchsia-perf-experiment-non-public'  # Experimental bucket
+        ],
         'ingest_folder': 'ingest',
         'commit_number': False,
         'revision_param': 'r_fuchsia_integ_int_git',
     },
     'fuchsia': {
         'masters': ['fuchsia.global.ci'],
-        'public_bucket_name': None,
-        'internal_bucket_name': 'fuchsia-perf-public',
+        'public_buckets': [],
+        'internal_buckets': [
+            'fuchsia-perf-public',
+            'fuchsia-perf-experiment-public'  # Experimental bucket
+        ],
         'ingest_folder': 'ingest',
         'commit_number': False,
         'revision_param': 'r_fuchsia_integ_pub_git',
@@ -381,7 +390,7 @@ def main():
     }]
 
   class WriteSkiaPerfBucket(beam.DoFn):
-    """Writes the Skia Perf JSON data to the appropriate GCS bucket."""
+    """Writes the Skia Perf JSON data to the appropriate GCS bucket(s)."""
 
     def process(self, element):  # pylint: disable=invalid-name
       """Processes each element and writes to GCS.
@@ -393,8 +402,10 @@ def main():
       skia_data = element['skia_data']
       repo = element['repo']
       properties = REPOSITORY_PROPERTY_MAP[repo]
-      public_bucket_name = properties['public_bucket_name']
-      internal_bucket_name = properties['internal_bucket_name']
+
+      # Get bucket lists. Defaults to empty list if key is missing.
+      public_bucket_list = properties.get('public_buckets', [])
+      internal_bucket_list = properties.get('internal_buckets', [])
 
       is_internal = key['internal_only'] and key['master'] != 'WebRTCPerf'
       random_suffix = ''.join(random.choices(string.ascii_letters, k=10))
@@ -405,26 +416,34 @@ def main():
 
       testing_mode = export_options.testing.get() != 'no'
       if not testing_mode:
-        logging.getLogger().info(is_internal, internal_bucket_name)
-        if not is_internal and public_bucket_name:
-          filename = 'gs://%s/%s' % (public_bucket_name, gcs_suffix)
-          with GcsIO().open(filename, mode='w',
-                            mime_type='application/json') as file:
-            file.write(json.dumps(skia_data).encode('utf-8'))
-            public_writes.inc()
-        if internal_bucket_name:
-          filename = 'gs://%s/%s' % (internal_bucket_name, gcs_suffix)
+        logging.getLogger().info(is_internal, internal_bucket_list)
+
+        # Write to all public buckets
+        if not is_internal:
+          for bucket_name in public_bucket_list:
+            filename = 'gs://%s/%s' % (bucket_name, gcs_suffix)
+            with GcsIO().open(
+                filename, mode='w', mime_type='application/json') as file:
+              file.write(json.dumps(skia_data).encode('utf-8'))
+              public_writes.inc()
+
+        # Write to all internal buckets
+        for bucket_name in internal_bucket_list:
+          filename = 'gs://%s/%s' % (bucket_name, gcs_suffix)
           with GcsIO().open(filename, mode='w',
                             mime_type='application/json') as file:
             file.write(json.dumps(skia_data).encode('utf-8'))
             non_public_writes.inc()
       else:
-        if not is_internal and public_bucket_name:
-          logging.getLogger().info(public_bucket_name, gcs_suffix)
-          public_writes.inc()
-        if internal_bucket_name:
+        # Handle testing mode logging
+        if not is_internal:
+          for bucket_name in public_bucket_list:
+            logging.getLogger().info(bucket_name, gcs_suffix)
+            public_writes.inc()
+
+        for bucket_name in internal_bucket_list:
           non_public_writes.inc()
-          logging.getLogger().info(internal_bucket_name, gcs_suffix)
+          logging.getLogger().info(bucket_name, gcs_suffix)
         logging.getLogger().info(skia_data)
 
   _ = (({
