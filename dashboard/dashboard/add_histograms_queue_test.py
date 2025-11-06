@@ -89,6 +89,11 @@ class AddHistogramsQueueTest(testing_common.TestCase):
 
   def setUp(self):
     super().setUp()
+    patcher = mock.patch(
+        'dashboard.common.histogram_helpers._BENCHMARKS_WITH_SYNTHETIC_STATISTICS',
+        ['benchmark', 'suite', 'memory_desktop', 'v8.browsing_desktop'])
+    patcher.start()
+    self.addCleanup(patcher.stop)
     self.testapp = webtest.TestApp(flask_app)
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
@@ -677,6 +682,11 @@ class AddHistogramsQueueTestWithUploadCompletionToken(testing_common.TestCase):
 
   def setUp(self):
     super().setUp()
+    patcher = mock.patch(
+        'dashboard.common.histogram_helpers._BENCHMARKS_WITH_SYNTHETIC_STATISTICS',
+        ['benchmark'])
+    patcher.start()
+    self.addCleanup(patcher.stop)
     self.testapp = webtest.TestApp(flask_app)
     testing_common.SetIsInternalUser('foo@bar.com', True)
     self.SetCurrentUser('foo@bar.com')

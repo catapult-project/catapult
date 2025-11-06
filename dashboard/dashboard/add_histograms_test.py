@@ -201,6 +201,12 @@ class AddHistogramsBaseTest(testing_common.TestCase):
     self.mock_utils = identity_patcher.start()
     self.mock_utils.get_application_id.return_value = 'chromeperf'
 
+    patcher = mock.patch(
+        'dashboard.common.histogram_helpers._BENCHMARKS_WITH_SYNTHETIC_STATISTICS',
+        ['benchmark'])
+    patcher.start()
+    self.addCleanup(patcher.stop)
+
     patcher = mock.patch.object(add_histograms, 'cloudstorage')
     self.mock_cloudstorage = patcher.start()
     self.addCleanup(patcher.stop)

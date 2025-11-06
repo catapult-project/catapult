@@ -231,7 +231,7 @@ def _ProcessRowAndHistogram(params):
   legacy_parent_tests = {}
 
   # TODO(#4213): Stop doing this.
-  if histogram_helpers.IsLegacyBenchmark(benchmark_name):
+  if not histogram_helpers.ShouldGenerateStatistics(benchmark_name):
     statistics_scalars = {}
 
   for stat_name, scalar in statistics_scalars.items():
