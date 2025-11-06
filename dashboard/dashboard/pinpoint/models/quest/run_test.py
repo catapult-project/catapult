@@ -464,9 +464,9 @@ class _RunTestExecution(execution_module.Execution):
         other branch.
       pinpont_job_id: id of the pinpoint job which launches the swarming task
     """
-    created_ts = result.get('created_ts')
-    started_ts = result.get('started_ts')
-    completed_ts = result.get('completed_ts')
+    created_ts = result.get('createdTs')
+    started_ts = result.get('startedTs')
+    completed_ts = result.get('completedTs')
     if created_ts and started_ts and completed_ts:
       pending_time = datetime.fromisoformat(
           started_ts) - datetime.fromisoformat(created_ts)
@@ -488,18 +488,18 @@ class _RunTestExecution(execution_module.Execution):
         logging.debug('Missing value in swarming result: %s', result)
 
       cloud_metric.PublishPinpointSwarmingPendingMetric(
-          task_id=result.get('task_id'),
+          task_id=result.get('taskId'),
           pinpoint_job_type=pinpoint_job_type,
           pinpoint_job_id=pinpoint_job_id,
-          bot_id=result.get('bot_id'),
+          bot_id=result.get('botId'),
           bot_os=bot_os,
           pending_time=pending_time.total_seconds())
 
       cloud_metric.PublishPinpointSwarmingRuntimeMetric(
-          task_id=result.get('task_id'),
+          task_id=result.get('taskId'),
           pinpoint_job_type=pinpoint_job_type,
           pinpoint_job_id=pinpoint_job_id,
-          bot_id=result.get('bot_id'),
+          bot_id=result.get('botId'),
           bot_os=bot_os,
           running_time=running_time.total_seconds())
 
