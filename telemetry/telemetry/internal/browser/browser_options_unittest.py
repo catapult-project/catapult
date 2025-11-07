@@ -239,6 +239,33 @@ class BrowserOptionsTest(unittest.TestCase):
                   possible_browser_args)
 
 
+class ExtraBrowserArgsTest(unittest.TestCase):
+
+  def testConsolidateFeatureArgs(self):
+    options = browser_options.BrowserFinderOptions()
+    parser = options.CreateParser()
+    parser.parse_args([
+        '--extra-browser-args=--enable-features=FeatureA',
+        '--extra-browser-args=--disable-features=FeatureB',
+        '--extra-browser-args=--enable-features=FeatureC',
+        '--extra-browser-args=--disable-features=FeatureD',
+        '--extra-browser-args=--foo=bar'
+    ])
+    extra_args = options.browser_options.extra_browser_args
+    self.assertIn('--foo=bar', extra_args)
+    # The order of consolidation is not guaranteed.
+    possible_enables = [
+        '--enable-features=FeatureA,FeatureC',
+        '--enable-features=FeatureC,FeatureA'
+    ]
+    possible_disables = [
+        '--disable-features=FeatureB,FeatureD',
+        '--disable-features=FeatureD,FeatureB'
+    ]
+    self.assertTrue(any(e in extra_args for e in possible_enables))
+    self.assertTrue(any(d in extra_args for d in possible_disables))
+
+
 class ParseAndroidEmulatorOptionsTest(unittest.TestCase):
   class EarlyExitException(Exception):
     pass
