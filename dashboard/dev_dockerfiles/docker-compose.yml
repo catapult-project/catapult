@@ -1,3 +1,4 @@
+version: "3"
 services:
   dashboard-base:
     build: .
@@ -32,5 +33,9 @@ services:
       - ../..:/workspace
     working_dir: /workspace/dashboard
     command: [./bin/deploy, --dry_run, --target_dir, /workspace/deploy-dashboard, --copy_files]
+networks:
+  default:
+    external:
+      name: host
 volumes:
   gcloud-config:
