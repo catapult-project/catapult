@@ -2,7 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 from __future__ import absolute_import
-from distutils import version  # pylint: disable=no-name-in-module
+try:
+  from packaging import version  # pylint: disable=no-name-in-module
+  VERSION_SOURCE = 'packaging'
+except ImportError:
+  from distutils import version as distutils_version
+  VERSION_SOURCE = 'distutils'
 
 
 def RequireVersion(module, min_version, max_version=None):
@@ -20,12 +25,19 @@ def RequireVersion(module, min_version, max_version=None):
   Raises:
     ImportError if the module's __version__ is not within the allowed range.
   """
-  module_version = version.LooseVersion(module.__version__)
-  min_version = version.LooseVersion(str(min_version))
+  if VERSION_SOURCE == 'packaging':
+    module_version = version.Version(module.__version__)
+    min_version = version.Version(str(min_version))
+  else:
+    module_version = distutils_version.LooseVersion(module.__version__)
+    min_version = distutils_version.LooseVersion(str(min_version))
   valid_version = min_version <= module_version
 
   if max_version is not None:
-    max_version = version.LooseVersion(str(max_version))
+    if VERSION_SOURCE == 'packaging':
+      max_version = version.Version(str(max_version))
+    else:
+      max_version = distutils_version.LooseVersion(str(max_version))
     valid_version = valid_version and (module_version < max_version)
     wants_version = 'at or above %s and below %s' % (min_version, max_version)
   else:

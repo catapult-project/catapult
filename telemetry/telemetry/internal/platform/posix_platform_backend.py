@@ -6,7 +6,7 @@
 # pylint: disable=no-name-in-module
 from __future__ import print_function
 from __future__ import absolute_import
-import distutils.spawn as spawn
+from shutil import which
 import logging
 import os
 import re
@@ -51,14 +51,14 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       return f.read()
 
   def CanLaunchApplication(self, application):
-    return bool(spawn.find_executable(application))
+    return bool(which(application))
 
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):
     assert application, 'Must specify application to launch'
 
     if os.path.sep not in application:
-      application = spawn.find_executable(application)
+      application = which(application)
       assert application, 'Failed to find application in path'
 
     args = [application]

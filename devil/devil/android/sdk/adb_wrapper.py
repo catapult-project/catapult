@@ -12,7 +12,6 @@ import collections
 # pylint: disable=import-error
 # pylint: disable=no-name-in-module
 from datetime import datetime, timedelta
-import distutils.version as du_version
 import errno
 import logging
 import os
@@ -24,6 +23,8 @@ import time
 from six.moves.queue import Queue, Empty
 
 import six
+
+from packaging.version import Version
 
 from devil import base_error
 from devil import devil_env
@@ -928,8 +929,7 @@ class AdbWrapper(object):
     """
     VerifyLocalFileExists(local)
 
-    if (du_version.LooseVersion(self.Version()) <
-        du_version.LooseVersion('1.0.36')):
+    if Version(self.Version()) < Version('1.0.36'):
 
       # Different versions of adb handle pushing a directory to an existing
       # directory differently.
@@ -969,8 +969,7 @@ class AdbWrapper(object):
 
     if sync:
       push_cmd += ['--sync']
-      if (du_version.LooseVersion(self.Version()) <
-          du_version.LooseVersion('1.0.39')):
+      if Version(self.Version()) < Version('1.0.39'):
         # The --sync flag for `adb push` is a relatively recent addition.
         # We're not sure exactly which release first contained it, but it
         # exists at least as far back as 1.0.39.
@@ -1292,8 +1291,7 @@ class AdbWrapper(object):
     Returns:
       The output of adb forward --list as a string.
     """
-    if (du_version.LooseVersion(self.Version()) >=
-        du_version.LooseVersion('1.0.36')):
+    if Version(self.Version()) >= Version('1.0.36'):
       # Starting in 1.0.36, this can occasionally fail with a protocol fault.
       # As this interrupts all connections with all devices, we instead just
       # return an empty list. This may give clients an inaccurate result, but
@@ -1373,8 +1371,7 @@ class AdbWrapper(object):
       self._CheckSdkVersion(30, error_message='Force queryable not supported')
       cmd.append('--force-queryable')
     if streaming in (True, False):
-      if (du_version.LooseVersion(self.Version()) <
-          du_version.LooseVersion('1.0.40')):
+      if Version(self.Version()) < Version('1.0.40'):
         logging.warning(
             'adb: streaming options not supported prior to version 1.0.40 '
             '(current: %s)', self.Version())
@@ -1425,8 +1422,7 @@ class AdbWrapper(object):
     for path in apk_paths:
       VerifyLocalFileExists(path)
     cmd = ['install-multiple']
-    if (du_version.LooseVersion(self.ReleaseVersion()) <
-        du_version.LooseVersion('33.0.1')):
+    if Version(self.ReleaseVersion()) < Version('33.0.1'):
       # Workaround for http://issuetracker.google.com/218716282. In adb versions
       # before the one in platform-tools 33.0.1, the first arg is ignored for
       # install-multiple. Pass an extra arg in this case to avoid one of the
@@ -1451,8 +1447,7 @@ class AdbWrapper(object):
       self._CheckSdkVersion(30, error_message='Force queryable not supported')
       cmd.append('--force-queryable')
     if streaming in (True, False):
-      if (du_version.LooseVersion(self.Version()) <
-          du_version.LooseVersion('1.0.40')):
+      if Version(self.Version()) < Version('1.0.40'):
         logging.warning(
             'adb: streaming options not supported prior to version 1.0.40 '
             '(current: %s)', self.Version())
