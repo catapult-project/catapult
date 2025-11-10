@@ -188,11 +188,6 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
 
     extra_test_args = []
 
-    # If we're running a single test,
-    # do so even if it's configured to be ignored in expectations.config.
-    if not arguments.get('story_tags'):
-      extra_test_args.append('-d')
-
     if benchmark in _WATERFALL_ENABLED_GTEST_NAMES:
       # crbug/1146949
       # Pass the correct arguments to run gtests on pinpoint.
@@ -202,6 +197,11 @@ class RunTelemetryTest(run_performance_test.RunPerformanceTest):
       extra_test_args += ('--non-telemetry', 'true')
       extra_test_args.extend(_WATERFALL_ENABLED_GTEST_NAMES[benchmark])
     else:
+      # If we're running a single test,
+      # do so even if it's configured to be ignored in expectations.config.
+      if not arguments.get('story_tags'):
+        extra_test_args.append('-d')
+
       extra_test_args += ('--benchmarks', benchmark)
 
     story = arguments.get('story')
