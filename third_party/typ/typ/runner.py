@@ -1125,6 +1125,7 @@ class _Child(object):
 
 
 def _setup_process(host, worker_num, child):
+    host.setup_stdio_for_process()
     child.host = host
     child.result_sink_reporter = result_sink.ResultSinkReporter(
             host, child.disable_resultsink, child.result_sink_output_file)

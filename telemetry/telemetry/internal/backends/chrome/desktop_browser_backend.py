@@ -5,7 +5,6 @@
 from __future__ import print_function
 from __future__ import absolute_import
 import datetime
-import io
 import logging
 import os
 import os.path
@@ -207,17 +206,15 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # There is weird behavior on Windows where stream redirection does not
       # work as expected if we let the subprocess use the defaults. This results
       # in browser logging not being visible on Windows on swarming. Explicitly
-      # setting the streams works around this. The except is in case we are
-      # being run through typ, whose _TeedStream replaces the default streams.
-      # This can't be used for subprocesses since it is all in-memory, and thus
-      # does not have a fileno.
+      # setting the streams works around this. Pass `sys.__std(out|err)__`
+      # instead of `sys.std(out|err)`, which might be replaced by in-memory
+      # streams when run through typ. Subprocesses can only inherit streams with
+      # real file descriptors.
       if sys.platform == 'win32':
-        try:
-          self._proc = subprocess.Popen(
-              cmd, stdout=sys.stdout, stderr=sys.stderr, env=env)
-        except io.UnsupportedOperation:
-          self._proc = subprocess.Popen(
-              cmd, stdout=sys.__stdout__, stderr=sys.__stderr__, env=env)
+        self._proc = subprocess.Popen(cmd,
+                                      stdout=sys.__stdout__,
+                                      stderr=sys.__stderr__,
+                                      env=env)
       else:
         self._proc = subprocess.Popen(cmd, env=env)
 

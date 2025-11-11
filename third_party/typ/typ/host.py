@@ -20,6 +20,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 
 from typ import python_2_3_compat
@@ -32,6 +33,9 @@ else:  # pragma: python3
     assert sys.version_info.major == 3
     from urllib.request import urlopen, Request  # pylint: disable=F0401,E0611
 
+_STDOUT_FILENO = sys.__stdout__.fileno()
+_STDERR_FILENO = sys.__stderr__.fileno()
+
 
 class Host(object):
     python_interpreter = sys.executable
@@ -40,9 +44,6 @@ class Host(object):
     pathsep = os.pathsep
     sep = os.sep
     env = os.environ
-
-    _orig_stdout = sys.stdout
-    _orig_stderr = sys.stderr
 
     def __init__(self):
         self.logger = logging.getLogger()
@@ -258,6 +259,14 @@ class Host(object):
         self.stdout.capture(divert)
         self.stderr.capture(divert)
 
+    def setup_stdio_for_process(self):
+        if self.stdout is sys.stdout is sys.__stdout__:
+            self.stdout = _remap_stream(_STDOUT_FILENO)
+            assert self.stdout is not sys.__stdout__, self.stdout
+        if self.stderr is sys.stderr is sys.__stderr__:
+            self.stderr = _remap_stream(_STDERR_FILENO)
+            assert self.stderr is not sys.__stderr__, self.stderr
+
     def restore_output(self):
         assert isinstance(self.stdout, _TeedStream)
         out, err = (self.stdout.restore(), self.stderr.restore())
@@ -268,41 +277,97 @@ class Host(object):
         return out, err
 
 
+def _remap_stream(fd: int):
+    """Reassign std(out|err) to another file descriptor.
+
+    Replace the original descriptor with the write end of a pipe that
+    subprocesses can inherit. A thread will asynchronously forward subprocess
+    stdio to the native `sys.std(out|err)`.
+
+    Note that this will invalidate existing references to `sys.std(out|err)`.
+    """
+    if fd == _STDOUT_FILENO:
+        stream_name = 'stdout'
+    elif fd == _STDERR_FILENO:
+        stream_name = 'stderr'
+    else:
+        raise ValueError(f'FD {fd} is not a standard stream')
+
+    read_fd, write_fd = os.pipe()
+    # File descriptors can be many-to-one with an underlying kernel I/O
+    # resource, which is only cleaned up when its last descriptor is closed.
+    # Duplicate the original std(out|err)'s descriptor to keep the resource
+    # alive for passing through stdio to the parent process.
+    stream = getattr(sys, stream_name)
+    alt_fd = os.dup(fd)
+    # After duplication, it's safe to close and replace `STD(OUT|ERR)_FILENO`.
+    stream.flush()
+    os.dup2(write_fd, fd)
+    alt_stream = os.fdopen(alt_fd, 'w', encoding=stream.encoding, newline='')
+    setattr(sys, stream_name, alt_stream)
+    # Now there are two descriptors to the pipe's write end. Close the
+    # nonstandard one we don't need anymore.
+    os.close(write_fd)
+
+    worker = threading.Thread(target=_forward_lines,
+                              args=(read_fd, stream_name),
+                              name=f'tee-worker-{stream_name}',
+                              daemon=True)
+    worker.start()
+    # The remapping is permanent so that subprocesses can inherit a stable file
+    # descriptor for std(out|err). The worker doesn't need cleanup, since it's
+    # a daemon and won't block process shutdown.
+    return alt_stream
+
+
+def _forward_lines(read_fd: int, stream_name: str):
+    encoding = getattr(sys, stream_name).encoding
+    with os.fdopen(read_fd, encoding=encoding, newline='') as reader:
+        for line in reader:
+            # `sys.std(out|err)` can switch at any point between the
+            # `alt_stream` created in `_remap_stream()` and
+            # `_TeedStream(alt_stream)` when capturing. Therefore, we need to
+            # resolve the current stream for each write. These writes are
+            # line-buffered and mutually exclusive with other threads, so the
+            # captured output won't have interwoven line fragments.
+            getattr(sys, stream_name).write(line)
+
+
 class _TeedStream(io.StringIO):
 
     def __init__(self, stream):
-        super(_TeedStream, self).__init__()
+        super().__init__()
         self.stream = stream
         self.capturing = False
         self.diverting = False
+        self._write_lock = threading.Lock()
 
     @property
     def encoding(self):
         return self.stream.encoding
 
-    def write(self, msg, *args, **kwargs):
-        if self.capturing:
-            if (sys.version_info.major == 2 and
-                    isinstance(msg, str)):  # pragma: python2
-                msg = unicode(msg)
-            super(_TeedStream, self).write(msg, *args, **kwargs)
-        if not self.diverting:
-            self.stream.write(msg, *args, **kwargs)
+    def write(self, msg: str):
+        with self._write_lock:
+            if self.capturing:
+                super().write(msg)
+            if not self.diverting:
+                self.stream.write(msg)
 
     def flush(self):
-        if self.capturing:
-            super(_TeedStream, self).flush()
-        if not self.diverting:
-            self.stream.flush()
+        with self._write_lock:
+            if not self.diverting:
+                self.stream.flush()
 
     def capture(self, divert=True):
-        self.truncate(0)
-        self.capturing = True
-        self.diverting = divert
+        with self._write_lock:
+            self.truncate(0)
+            self.capturing = True
+            self.diverting = divert
 
     def restore(self):
-        msg = self.getvalue()
-        self.truncate(0)
-        self.capturing = False
-        self.diverting = False
-        return msg
+        with self._write_lock:
+            msg = self.getvalue()
+            self.truncate(0)
+            self.capturing = False
+            self.diverting = False
+            return msg

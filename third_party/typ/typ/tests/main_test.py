@@ -1431,6 +1431,33 @@ class TestCli(test_case.MainTestCase):
         self.assertEqual(result['actual'], 'FAIL')
         self.assertNotIn('is_unexpected', result)
 
+    def test_subprocess_output(self):
+        output_py = d("""\
+            import subprocess
+            import sys
+            import unittest
+
+            class PassTest(unittest.TestCase):
+              def test_out(self):
+                subprocess.check_call([sys.executable, '-c',
+                                       'print("hello on stdout")'])
+
+              def test_err(self):
+                subprocess.check_call([
+                    sys.executable, '-c',
+                    'import sys; print("hello on stderr", file=sys.stderr)'])
+            """)
+        self.check(['-vv', '--jobs=1'], files={'output_test.py': output_py},
+                   ret=0,
+                   out=d("""\
+                         [1/2] output_test.PassTest.test_err passed (worker 1):
+                           hello on stderr
+                         [2/2] output_test.PassTest.test_out passed (worker 1):
+                           hello on stdout
+                         2 tests passed, 0 skipped, 0 failures.
+                         """), err='')
+
+
 class TestMain(TestCli):
     prog = []
 
@@ -1463,3 +1490,9 @@ class TestMain(TestCli):
     def test_debugger(self):
         # TODO: this test seems to hang under coverage.
         pass
+
+    def test_subprocess_output(self):
+        self.skipTest(
+            'test cannot run in-process, since multiple captures will be '
+            'nested, and the output to assert will be inaccessible in the '
+            'outermost capture')
