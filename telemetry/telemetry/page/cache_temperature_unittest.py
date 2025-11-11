@@ -46,6 +46,7 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
 
   @decorators.Enabled('has tabs')
   @decorators.Disabled('chromeos')  # crbug.com/840033
+  @decorators.Disabled('mac')  # https://crbug.com/459886342
   @decorators.Disabled('win')  # crbug.com/840033
   def testEnsureAny(self):
     with self.CaptureTraceMarkers():
@@ -63,6 +64,7 @@ class CacheTemperatureTests(browser_test_case.BrowserTestCase):
 
   @decorators.Enabled('has tabs')
   @decorators.Disabled('chromeos')  # crbug.com/840033
+  @decorators.Disabled('mac')  # https://crbug.com/459886342
   @decorators.Disabled('win')  # crbug.com/840033
   def testEnsureCold(self):
     with self.CaptureTraceMarkers():

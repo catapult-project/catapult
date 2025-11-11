@@ -325,6 +325,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self.assertEqual(3, results.num_skipped)
     self.assertEqual(2, results.num_failed)  # max_failures + 1
 
+  @decorators.Disabled('mac')  # https://crbug.com/459886342
   def testWebPageReplay(self):
     story_set = example_domain.ExampleDomainPageSet()
     body = []

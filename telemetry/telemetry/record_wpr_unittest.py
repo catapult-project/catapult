@@ -175,6 +175,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     return flags
 
   @decorators.Disabled('chromeos') # crbug.com/404868.
+  @decorators.Disabled('mac')  # https://crbug.com/459886342
   def testWprRecorderWithPageSet(self):
     flags = self.GetBrowserDeviceFlags()
     mock_story_set = MockStorySet(url=self._url)
@@ -185,6 +186,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
         self.assertEqual(
             sorted(mock_story_set.stories), _SuccessfulStories(results))
 
+  @decorators.Disabled('mac')  # https://crbug.com/459886342
   def testWprRecorderWithBenchmark(self):
     flags = self.GetBrowserDeviceFlags()
     flags.extend(['--mock-benchmark-url', self._url])
@@ -197,6 +199,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
             sorted(mock_benchmark.mock_story_set.stories),
             _SuccessfulStories(results))
 
+  @decorators.Disabled('mac')  # https://crbug.com/459886342
   def testWprRecorderWithTimelineBasedMeasurementBenchmark(self):
     flags = self.GetBrowserDeviceFlags()
     flags.extend(['--mock-benchmark-url', self._url])
@@ -209,6 +212,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
             sorted(mock_benchmark.mock_story_set.stories),
             _SuccessfulStories(results))
 
+  @decorators.Disabled('mac')  # https://crbug.com/459886342
   def testPageSetBaseDirFlag(self):
     flags = self.GetBrowserDeviceFlags()
     flags.extend(['--page-set-base-dir', self._test_data_dir,
@@ -298,6 +302,7 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
               sorted(mock_benchmark.mock_story_set.stories),
               _SkippedStories(results))
 
+  @decorators.Disabled('mac')  # https://crbug.com/4598886342
   def testWprRecorderWithBenchmarkAndEmptyExpectations(self):
     flags = self.GetBrowserDeviceFlags()
     flags.extend(['--mock-benchmark-url', self._url])

@@ -45,6 +45,7 @@ class WebPageReplayGoServerTest(unittest.TestCase):
       self.assertEqual(r.getcode(), 200)
 
   @decorators.Disabled('chromeos')  # crbug.com/801641
+  @decorators.Disabled('mac')  # https://crbug.com/459886342
   @mock.patch('py_utils.atexit_with_log.Register')
   def testKillingWebPageReplayProcessUponStartupFailure(
       self, atexit_with_log_register_patch):
