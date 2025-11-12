@@ -464,9 +464,15 @@ class _RunTestExecution(execution_module.Execution):
         other branch.
       pinpont_job_id: id of the pinpoint job which launches the swarming task
     """
-    created_ts = result.get('createdTs')
-    started_ts = result.get('startedTs')
-    completed_ts = result.get('completedTs')
+    # b/459746759: make datetime string compatible in python 3.10.
+    def _GenCompatibleDatetimeStr(s):
+      if s and s.endswith('Z'):
+        return s[:-1]
+      return s
+
+    created_ts = _GenCompatibleDatetimeStr(result.get('createdTs'))
+    started_ts = _GenCompatibleDatetimeStr(result.get('startedTs'))
+    completed_ts = _GenCompatibleDatetimeStr(result.get('completedTs'))
     if created_ts and started_ts and completed_ts:
       pending_time = datetime.fromisoformat(
           started_ts) - datetime.fromisoformat(created_ts)
