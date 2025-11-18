@@ -24,7 +24,12 @@ from six.moves.queue import Queue, Empty
 
 import six
 
-from packaging.version import Version
+try:
+  from packaging.version import Version
+  VERSION_SOURCE = 'packaging'
+except ImportError:
+  import distutils.version as du_version
+  VERSION_SOURCE = 'distutils'
 
 from devil import base_error
 from devil import devil_env
@@ -928,8 +933,13 @@ class AdbWrapper(object):
       AdbVersionError if sync=True with versions of adb prior to 1.0.39.
     """
     VerifyLocalFileExists(local)
-
-    if Version(self.Version()) < Version('1.0.36'):
+    version_satisfy = False
+    if VERSION_SOURCE == 'packaging':
+      version_satisfy = Version(self.Version()) < Version('1.0.36')
+    else:
+      version_satisfy = du_version.LooseVersion(
+          self.Version()) < du_version.LooseVersion('1.0.36')
+    if version_satisfy:
 
       # Different versions of adb handle pushing a directory to an existing
       # directory differently.
@@ -969,7 +979,13 @@ class AdbWrapper(object):
 
     if sync:
       push_cmd += ['--sync']
-      if Version(self.Version()) < Version('1.0.39'):
+      version_satisfy = False
+      if VERSION_SOURCE == 'packaging':
+        version_satisfy = Version(self.Version()) < Version('1.0.39')
+      else:
+        version_satisfy = du_version.LooseVersion(
+            self.Version()) < du_version.LooseVersion('1.0.39')
+      if version_satisfy:
         # The --sync flag for `adb push` is a relatively recent addition.
         # We're not sure exactly which release first contained it, but it
         # exists at least as far back as 1.0.39.
@@ -1291,7 +1307,13 @@ class AdbWrapper(object):
     Returns:
       The output of adb forward --list as a string.
     """
-    if Version(self.Version()) >= Version('1.0.36'):
+    version_satisfy = False
+    if VERSION_SOURCE == 'packaging':
+      version_satisfy = Version(self.Version()) >= Version('1.0.36')
+    else:
+      version_satisfy = du_version.LooseVersion(
+          self.Version()) >= du_version.LooseVersion('1.0.36')
+    if version_satisfy:
       # Starting in 1.0.36, this can occasionally fail with a protocol fault.
       # As this interrupts all connections with all devices, we instead just
       # return an empty list. This may give clients an inaccurate result, but
@@ -1371,7 +1393,13 @@ class AdbWrapper(object):
       self._CheckSdkVersion(30, error_message='Force queryable not supported')
       cmd.append('--force-queryable')
     if streaming in (True, False):
-      if Version(self.Version()) < Version('1.0.40'):
+      version_satisfy = False
+      if VERSION_SOURCE == 'packaging':
+        version_satisfy = Version(self.Version()) < Version('1.0.40')
+      else:
+        version_satisfy = du_version.LooseVersion(
+            self.Version()) < du_version.LooseVersion('1.0.40')
+      if version_satisfy:
         logging.warning(
             'adb: streaming options not supported prior to version 1.0.40 '
             '(current: %s)', self.Version())
@@ -1422,7 +1450,13 @@ class AdbWrapper(object):
     for path in apk_paths:
       VerifyLocalFileExists(path)
     cmd = ['install-multiple']
-    if Version(self.ReleaseVersion()) < Version('33.0.1'):
+    version_satisfy = False
+    if VERSION_SOURCE == 'packaging':
+      version_satisfy = Version(self.ReleaseVersion()) < Version('33.0.1')
+    else:
+      version_satisfy = du_version.LooseVersion(
+          self.ReleaseVersion()) < du_version.LooseVersion('33.0.1')
+    if version_satisfy:
       # Workaround for http://issuetracker.google.com/218716282. In adb versions
       # before the one in platform-tools 33.0.1, the first arg is ignored for
       # install-multiple. Pass an extra arg in this case to avoid one of the
@@ -1447,7 +1481,13 @@ class AdbWrapper(object):
       self._CheckSdkVersion(30, error_message='Force queryable not supported')
       cmd.append('--force-queryable')
     if streaming in (True, False):
-      if Version(self.Version()) < Version('1.0.40'):
+      version_satisfy = False
+      if VERSION_SOURCE == 'packaging':
+        version_satisfy = Version(self.Version()) < Version('1.0.40')
+      else:
+        version_satisfy = du_version.LooseVersion(
+            self.Version()) < du_version.LooseVersion('1.0.40')
+      if version_satisfy:
         logging.warning(
             'adb: streaming options not supported prior to version 1.0.40 '
             '(current: %s)', self.Version())
